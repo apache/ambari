@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,7 +37,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -46,6 +52,7 @@ import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -56,6 +63,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
@@ -63,7 +71,12 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.WidgetLayout;
+import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,7 +255,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(VIEWINSTANCE_TABLE,
       new DBColumnInfo(SHORT_URL_COLUMN, Long.class, null, null, true));
     dbAccessor.addFKConstraint(VIEWINSTANCE_TABLE, "FK_instance_url_id",
-            SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
+      SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
   }
 
   private void updateClusterTableDDL() throws SQLException {
@@ -277,6 +290,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateClusterInheritedPermissionsConfig();
     consolidateUserRoles();
     createRolePrincipals();
+    updateHDFSWidgetDefinition();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
@@ -1124,7 +1138,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    */
   protected void updateAlertTargetTable() throws SQLException {
     dbAccessor.addColumn(ALERT_TARGET_TABLE,
-        new DBColumnInfo(ALERT_TARGET_ENABLED_COLUMN, Short.class, null, 1, false));
+      new DBColumnInfo(ALERT_TARGET_ENABLED_COLUMN, Short.class, null, 1, false));
   }
 
   protected void setRoleSortOrder() throws SQLException {
@@ -1343,10 +1357,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     // ALTER TABLE servicecomponentdesiredstate ADD COLUMN
     // recovery_enabled SMALLINT DEFAULT 0 NOT NULL
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
-            new DBColumnInfo(RECOVERY_ENABLED_COL, Short.class, null, 0, false));
+      new DBColumnInfo(RECOVERY_ENABLED_COL, Short.class, null, 0, false));
 
     dbAccessor.addColumn(SERVICE_COMPONENT_DESIRED_STATE_TABLE,
-            new DBColumnInfo(DESIRED_VERSION_COLUMN_NAME, String.class, 255, State.UNKNOWN.toString(), false));
+      new DBColumnInfo(DESIRED_VERSION_COLUMN_NAME, String.class, 255, State.UNKNOWN.toString(), false));
   }
 
   /**
@@ -1860,5 +1874,101 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     }
 
     return (cluster == null) ? "_unknown_" : cluster.getClusterName();
+  }
+
+  protected void updateHDFSWidgetDefinition() throws AmbariException {
+    LOG.info("Updating HDFS widget definition.");
+
+    Map<String, List<String>> widgetMap = new HashMap<>();
+    Map<String, String> sectionLayoutMap = new HashMap<>();
+
+    List<String> hdfsSummaryWidgets = Collections.singletonList("NameNode Operations");
+    widgetMap.put("HDFS_SUMMARY", hdfsSummaryWidgets);
+    sectionLayoutMap.put("HDFS_SUMMARY", "default_hdfs_dashboard");
+
+    updateWidgetDefinitionsForService("HDFS", widgetMap, sectionLayoutMap);
+  }
+
+  private void updateWidgetDefinitionsForService(String serviceName, Map<String, List<String>> widgetMap,
+                                                 Map<String, String> sectionLayoutMap) throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
+    Gson gson = injector.getInstance(Gson.class);
+    WidgetDAO widgetDAO = injector.getInstance(WidgetDAO.class);
+
+    Clusters clusters = ambariManagementController.getClusters();
+
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterID = cluster.getClusterId();
+
+      StackId stackId = cluster.getDesiredStackVersion();
+      Map<String, Object> widgetDescriptor = null;
+      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+      ServiceInfo serviceInfo = stackInfo.getService(serviceName);
+      if (serviceInfo == null) {
+        LOG.info("Skipping updating widget definition, because " + serviceName +  " service is not present in cluster " +
+          "cluster_name= " + cluster.getClusterName());
+        continue;
+      }
+
+      for (String section : widgetMap.keySet()) {
+        List<String> widgets = widgetMap.get(section);
+        for (String widgetName : widgets) {
+          List<WidgetEntity> widgetEntities = widgetDAO.findByName(clusterID,
+            widgetName, "ambari", section);
+
+          if (widgetEntities != null && widgetEntities.size() > 0) {
+            WidgetEntity entityToUpdate = null;
+            if (widgetEntities.size() > 1) {
+              LOG.info("Found more that 1 entity with name = "+ widgetName +
+                " for cluster = " + cluster.getClusterName() + ", skipping update.");
+            } else {
+              entityToUpdate = widgetEntities.iterator().next();
+            }
+            if (entityToUpdate != null) {
+              LOG.info("Updating widget: " + entityToUpdate.getWidgetName());
+              // Get the definition from widgets.json file
+              WidgetLayoutInfo targetWidgetLayoutInfo = null;
+              File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
+              if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
+                try {
+                  widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+                } catch (Exception ex) {
+                  String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+                  LOG.error(msg, ex);
+                  widgetDescriptor = null;
+                }
+              }
+              if (widgetDescriptor != null) {
+                LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
+                for (Object artifact : widgetDescriptor.values()) {
+                  List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
+                  for (WidgetLayout widgetLayout : widgetLayouts) {
+                    if (widgetLayout.getLayoutName().equals(sectionLayoutMap.get(section))) {
+                      for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
+                        if (layoutInfo.getWidgetName().equals(widgetName)) {
+                          targetWidgetLayoutInfo = layoutInfo;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              if (targetWidgetLayoutInfo != null) {
+                entityToUpdate.setMetrics(gson.toJson(targetWidgetLayoutInfo.getMetricsInfo()));
+                entityToUpdate.setWidgetValues(gson.toJson(targetWidgetLayoutInfo.getValues()));
+                entityToUpdate.setDescription(targetWidgetLayoutInfo.getDescription());
+                widgetDAO.merge(entityToUpdate);
+              } else {
+                LOG.warn("Unable to find widget layout info for " + widgetName +
+                  " in the stack: " + stackId);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

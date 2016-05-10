@@ -275,13 +275,13 @@
         },
         {
           "widget_name": "NameNode Operations",
-          "description": "Total number of file operation over time.",
+          "description": "Rate per second of number of file operation over time.",
           "widget_type": "GRAPH",
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.namenode.TotalFileOps",
-              "metric_path": "metrics/dfs/namenode/TotalFileOps",
+              "name": "dfs.namenode.TotalFileOps._rate",
+              "metric_path": "metrics/dfs/namenode/TotalFileOps._rate",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -290,7 +290,7 @@
           "values": [
             {
               "name": "NameNode File Operations",
-              "value": "${dfs.namenode.TotalFileOps}"
+              "value": "${dfs.namenode.TotalFileOps._rate}"
             }
           ],
           "properties": {

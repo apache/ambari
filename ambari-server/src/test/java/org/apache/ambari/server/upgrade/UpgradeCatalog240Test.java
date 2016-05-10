@@ -28,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -61,6 +62,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -69,14 +71,20 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -93,6 +101,7 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 
 import junit.framework.Assert;
+import org.junit.rules.TemporaryFolder;
 
 public class UpgradeCatalog240Test {
   private static Injector injector;
@@ -416,7 +425,7 @@ public class UpgradeCatalog240Test {
     Method consolidateUserRoles = UpgradeCatalog240.class.getDeclaredMethod("consolidateUserRoles");
     Method updateClusterInheritedPermissionsConfig = UpgradeCatalog240.class.getDeclaredMethod("updateClusterInheritedPermissionsConfig");
     Method createRolePrincipals = UpgradeCatalog240.class.getDeclaredMethod("createRolePrincipals");
-
+    Method updateHDFSWidget = UpgradeCatalog240.class.getDeclaredMethod("updateHDFSWidgetDefinition");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -441,6 +450,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(consolidateUserRoles)
             .addMockedMethod(updateClusterInheritedPermissionsConfig)
             .addMockedMethod(createRolePrincipals)
+            .addMockedMethod(updateHDFSWidget)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -463,6 +473,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.consolidateUserRoles();
     upgradeCatalog240.createRolePrincipals();
     upgradeCatalog240.updateClusterInheritedPermissionsConfig();
+    upgradeCatalog240.updateHDFSWidgetDefinition();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -1372,6 +1383,77 @@ public class UpgradeCatalog240Test {
     ems.verifyAll();
 
 
+  }
+
+  @Test
+  public void testHDFSWidgetUpdate() throws Exception {
+    final Clusters clusters = createNiceMock(Clusters.class);
+    final Cluster cluster = createNiceMock(Cluster.class);
+    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final Gson gson = new Gson();
+    final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
+    final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+    WidgetEntity widgetEntity = createNiceMock(WidgetEntity.class);
+    StackId stackId = new StackId("HDP", "2.0.0");
+    StackInfo stackInfo = createNiceMock(StackInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
+    String widgetStr = "{\n" +
+      "  \"layouts\": [\n" +
+      "    {\n" +
+      "      \"layout_name\": \"default_hdfs_dashboard\",\n" +
+      "      \"display_name\": \"Standard HDFS Dashboard\",\n" +
+      "      \"section_name\": \"HDFS_SUMMARY\",\n" +
+      "      \"widgetLayoutInfo\": [\n" +
+      "        {\n" +
+      "          \"widget_name\": \"NameNode Operations\",\n" +
+      "          \"metrics\": [],\n" +
+      "          \"values\": []\n" +
+      "        }\n" +
+      "      ]\n" +
+      "    }\n" +
+      "  ]\n" +
+      "}";
+
+    TemporaryFolder temporaryFolder = new TemporaryFolder();
+    File dataDirectory = temporaryFolder.newFolder();
+    File file = new File(dataDirectory, "hdfs_widget.json");
+    FileUtils.writeStringToFile(file, widgetStr);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(AmbariManagementController.class).toInstance(controller);
+        bind(Clusters.class).toInstance(clusters);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(Gson.class).toInstance(gson);
+        bind(WidgetDAO.class).toInstance(widgetDAO);
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(AmbariMetaInfo.class).toInstance(metaInfo);
+      }
+    });
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo).anyTimes();
+    expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file).anyTimes();
+
+    expect(widgetDAO.findByName(1L, "NameNode Operations", "ambari", "HDFS_SUMMARY"))
+      .andReturn(Collections.singletonList(widgetEntity));
+    expect(widgetDAO.merge(widgetEntity)).andReturn(null);
+    expect(widgetEntity.getWidgetName()).andReturn("Namenode Operations").anyTimes();
+
+    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo);
+
+    mockInjector.getInstance(UpgradeCatalog240.class).updateHDFSWidgetDefinition();
+
+    verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
   }
 }
 
