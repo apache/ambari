@@ -564,6 +564,26 @@ public class KerberosHelperTest extends EasyMockSupport {
   }
 
   @Test
+  public void addAmbariServerIdentity_CreateAmbariPrincipal() throws Exception {
+    addAmbariServerIdentity(Collections.singletonMap("create_ambari_principal", "true"));
+  }
+
+  @Test
+  public void addAmbariServerIdentity_DoNotCreateAmbariPrincipal() throws Exception {
+    addAmbariServerIdentity(Collections.singletonMap("create_ambari_principal", "false"));
+  }
+
+  @Test
+  public void addAmbariServerIdentity_MissingProperty() throws Exception {
+    addAmbariServerIdentity(Collections.singletonMap("not_create_ambari_principal", "value"));
+  }
+
+  @Test
+  public void addAmbariServerIdentity_MissingKerberosEnv() throws Exception {
+    addAmbariServerIdentity(null);
+  }
+
+  @Test
   public void testGetActiveIdentities_SingleService() throws Exception {
     Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, "SERVICE1", null, true, SecurityType.KERBEROS);
 
@@ -3841,6 +3861,39 @@ public class KerberosHelperTest extends EasyMockSupport {
     verifyAll();
 
     return identities;
+  }
+
+  private void addAmbariServerIdentity(Map<String, String> kerberosEnvProperties) throws Exception {
+
+    boolean createAmbariPrincipal = (kerberosEnvProperties == null)
+        || !"false".equalsIgnoreCase(kerberosEnvProperties.get("create_ambari_principal"));
+
+    KerberosHelperImpl kerberosHelper = injector.getInstance(KerberosHelperImpl.class);
+
+    KerberosIdentityDescriptor ambariKerberosIdentity = createMock(KerberosIdentityDescriptor.class);
+
+    KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    if (createAmbariPrincipal) {
+      expect(kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME)).andReturn(ambariKerberosIdentity).once();
+    }
+
+    List<KerberosIdentityDescriptor> identities = new ArrayList<KerberosIdentityDescriptor>();
+
+    replayAll();
+
+    // Needed by infrastructure
+    injector.getInstance(AmbariMetaInfo.class).init();
+
+    kerberosHelper.addAmbariServerIdentity(kerberosEnvProperties, kerberosDescriptor, identities);
+
+    verifyAll();
+
+    if (createAmbariPrincipal) {
+      Assert.assertEquals(1, identities.size());
+      Assert.assertSame(ambariKerberosIdentity, identities.get(0));
+    } else {
+      Assert.assertTrue(identities.isEmpty());
+    }
   }
 
   private KerberosConfigurationDescriptor createMockConfigurationDescriptor(Map<String, String> properties) {
