@@ -44,7 +44,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   getHostComponentList: function() {
     var hostComponentList = [];
     App.MasterComponent.find().rejectProperty('totalCount', 0).toArray()
-        .concat(App.SlaveComponent.find().rejectProperty('totalCount', 0).toArray())
+        .concat(App.SlaveComponent.find().rejectProperty('totalCount', 0).toArray()
+        .concat(App.ClientComponent.find().rejectProperty('totalCount', 0).toArray()))
         .forEach(function(component) {
       var displayName = component.get('displayName');
       if (displayName) {
@@ -208,22 +209,26 @@ App.MainHostComboSearchBoxView = Em.View.extend({
             case 'componentState':
               var list = [ "All" ];
               map['All'] = 'ALL';
-              var currentComponentFacets = self.getComponentStateFacets(null, true);
-              if (currentComponentFacets.length == 0) {
-                list = list.concat(App.HostComponentStatus.getStatusesList()
-                .reject(function(status){return status == "UPGRADE_FAILED"}) // take out 'UPGRADE_FAILED'
-                .map(function (status) {
-                    map[App.HostComponentStatus.getTextStatus(status)] = status;
-                    return App.HostComponentStatus.getTextStatus(status);
-                }))
-                .concat([
-                    "Inservice",
-                    "Decommissioned",
-                    "Decommissioning",
-                    "RS Decommissioned",
-                    "Maintenance Mode On",
-                    "Maintenance Mode Off"
-                ]);
+              // client only have "ALL" state
+              if (facet.toLowerCase().indexOf("client") == -1)
+              {
+                var currentComponentFacets = self.getComponentStateFacets(null, true);
+                if (currentComponentFacets.length == 0) {
+                  list = list.concat(App.HostComponentStatus.getStatusesList()
+                    .reject(function(status){return status == "UPGRADE_FAILED"}) // take out 'UPGRADE_FAILED'
+                    .map(function (status) {
+                      map[App.HostComponentStatus.getTextStatus(status)] = status;
+                      return App.HostComponentStatus.getTextStatus(status);
+                    }))
+                    .concat([
+                      "Inservice",
+                      "Decommissioned",
+                      "Decommissioning",
+                      "RS Decommissioned",
+                      "Maintenance Mode On",
+                      "Maintenance Mode Off"
+                    ]);
+                }
               }
               callback(list, {preserveOrder: true});
               break;
