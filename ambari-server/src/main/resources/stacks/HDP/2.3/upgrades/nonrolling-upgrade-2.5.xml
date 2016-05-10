@@ -28,6 +28,8 @@
         <property name="min-failure-stack-version">HDP-2.3.0.0</property>
       </check-properties>
     </configuration>
+
+    <check>org.apache.ambari.server.checks.AtlasPresenceCheck</check>
   </prerequisite-checks>
 
   <!-- Instructs the upgrade pack how to build the configuration pack -->

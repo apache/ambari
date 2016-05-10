@@ -266,6 +266,15 @@ public enum CheckDescription {
             "Could not check credentials.  Missing property %s/%s");
       }}),
 
+  ATLAS_SERVICE_PRESENCE_CHECK(PrereqCheckType.SERVICE,
+    "Atlas Is Not Supported For Upgrades",
+    new HashMap<String, String>() {{
+      put(AbstractCheckDescriptor.DEFAULT,
+        "The Atlas service is currently installed on the cluster. " +
+        "This service does not support upgrades and must be removed before the upgrade can continue. " +
+        "After upgrading, Atlas can be reinstalled");
+    }}),
+
   KAFKA_KERBEROS_CHECK(PrereqCheckType.SERVICE,
     "Kafka upgrade on Kerberized cluster",
     new HashMap<String, String>() {{
