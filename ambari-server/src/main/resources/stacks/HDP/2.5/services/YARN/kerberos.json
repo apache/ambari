@@ -67,35 +67,6 @@
               }
             },
             {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
-              "principal": {
-                "configuration": "hive-interactive-site/hive.llap.daemon.service.principal"
-              },
-              "keytab": {
-                "configuration": "hive-interactive-site/hive.llap.daemon.keytab.file"
-              }
-            },
-            {
-              "name": "llap_zk_hive",
-              "principal": {
-                "value": "hive@${realm}",
-                "type" : "user",
-                "configuration": "hive-interactive-site/hive.llap.zk.sm.principal"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/hive.llap.zk.sm.keytab",
-                "owner": {
-                  "name": "${yarn-env/yarn_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": "r"
-                },
-                "configuration": "hive-interactive-site/hive.llap.zk.sm.keytab.file"
-              }
-            },
-            {
               "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-principal"
