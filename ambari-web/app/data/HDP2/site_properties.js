@@ -2123,60 +2123,46 @@ var hdp2properties = [
   },
   /*logsearch-properties*/
   {
-    "name": "logsearch.collection.numshards",
+    "name": "logsearch.solr.collection.service.logs",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 1
   },
   {
-    "name": "logsearch.collection.replication.factor",
+    "name": "logsearch.service.logs.fields",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 2
   },
   {
-    "name": "logsearch.solr.collection.service.logs",
+    "name": "logsearch.service.logs.split.interval.mins",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 3
   },
   {
-    "name": "logsearch.service.logs.fields",
+    "name": "logsearch.solr.collection.audit.logs",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 4
   },
   {
-    "name": "logsearch.service.logs.split.interval.mins",
+    "name": "logsearch.audit.logs.split.interval.mins",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 5
   },
   {
-    "name": "logsearch.solr.collection.audit.logs",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-properties.xml",
-    "category": "Advanced logsearch-properties",
-    "index": 6
-  },
-  {
-    "name": "logsearch.audit.logs.split.interval.mins",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-properties.xml",
-    "category": "Advanced logsearch-properties",
-    "index": 7
-  },
-  {
     "name": "logsearch.logfeeder.include.default.level",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 8
+    "index": 6
   },
   /*logsearch-solr-env*/
   {

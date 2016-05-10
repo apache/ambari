@@ -2937,8 +2937,10 @@ class TestHDP23StackAdvisor(TestCase):
     configurations = {
       "logsearch-properties": {
         "properties": {
-          "logsearch.collection.numshards" : "5",
-          "logsearch.collection.replication.factor": "0"
+          "logsearch.collection.service.logs.numshards" : "5",
+          "logsearch.collection.service.logs.replication.factor": "0",
+          "logsearch.collection.audit.logs.numshards" : "5",
+          "logsearch.collection.audit.logs.replication.factor": "0"
         }
       }
     }
@@ -2954,11 +2956,17 @@ class TestHDP23StackAdvisor(TestCase):
     expected = {
       'logsearch-properties': {
         'properties': {
-          "logsearch.collection.numshards" : "2",
-          "logsearch.collection.replication.factor": "1"
+          "logsearch.collection.service.logs.numshards" : "2",
+          "logsearch.collection.service.logs.replication.factor": "1",
+          "logsearch.collection.audit.logs.numshards" : "2",
+          "logsearch.collection.audit.logs.replication.factor": "1"
         },
         "property_attributes": {
-          "logsearch.collection.numshards": {
+          "logsearch.collection.service.logs.numshards": {
+            "minimum": "1",
+            "maximum": "3"
+          },
+          "logsearch.collection.audit.logs.numshards": {
             "minimum": "1",
             "maximum": "3"
           }

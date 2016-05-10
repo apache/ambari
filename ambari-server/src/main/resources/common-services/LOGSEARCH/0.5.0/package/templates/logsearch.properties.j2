@@ -20,8 +20,8 @@ solr.zkhosts={{zookeeper_quorum}}{{logsearch_solr_znode}}
 solr.core.logs={{logsearch_solr_collection_service_logs}}
 
 solr.service_logs.split_interval_mins={{service_logs_collection_splits_interval_mins}}
-solr.service_logs.shards={{logsearch_numshards}}
-solr.service_logs.replication_factor={{logsearch_repfactor}}
+solr.service_logs.shards={{logsearch_service_logs_numshards}}
+solr.service_logs.replication_factor={{logsearch_service_logs_repfactor}}
 
 solr.servicelogs.fields={{logsearch_service_logs_fields}}
 
@@ -31,13 +31,13 @@ auditlog.solr.core.logs={{logsearch_solr_collection_audit_logs}}
 auditlog.solr.url={{solr_audit_logs_url}}
 
 solr.audit_logs.split_interval_mins={{audit_logs_collection_splits_interval_mins}}
-solr.audit_logs.shards={{logsearch_numshards}}
-solr.audit_logs.replication_factor={{logsearch_repfactor}}
+solr.audit_logs.shards={{logsearch_audit_logs_numshards}}
+solr.audit_logs.replication_factor={{logsearch_audit_logs_repfactor}}
 
 # History logs
 solr.core.history=history
 solr.history.config_name=history
-solr.history.replication_factor={{logsearch_repfactor}}
+solr.history.replication_factor=1
 
 #Logfeeder Settings
 

@@ -22,10 +22,10 @@
 <configuration>
 
   <property>
-    <name>logsearch.collection.numshards</name>
+    <name>logsearch.collection.service.logs.numshards</name>
     <value>5</value>
-    <display-name>Logsearch Solr Collection Shards</display-name>
-    <description>Number of shards for Solr collections</description>
+    <display-name>Logsearch Solr Service Logs Shards</display-name>
+    <description>Number of shards for Service Logs collection</description>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>
@@ -36,10 +36,38 @@
   </property>
 
   <property>
-    <name>logsearch.collection.replication.factor</name>
+    <name>logsearch.collection.service.logs.replication.factor</name>
     <value>1</value>
-    <display-name>Logsearch Solr Collection Replication Factor</display-name>
-    <description>Replication factor for Solr collections</description>
+    <display-name>Logsearch Solr Service Logs Replication Factor</display-name>
+    <description>Replication factor for Service Logs Solr collection</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logsearch.collection.audit.logs.numshards</name>
+    <value>5</value>
+    <display-name>Logsearch Solr Audit Logs Shards</display-name>
+    <description>Number of shards for Audit Logs collection</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>20</maximum>
+      <unit>int</unit>
+      <increment-step>1</increment-step>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logsearch.collection.audit.logs.replication.factor</name>
+    <value>1</value>
+    <display-name>Logsearch Solr Audit Logs Replication Factor</display-name>
+    <description>Replication factor for Audit Logs Solr collection</description>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>

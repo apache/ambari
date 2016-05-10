@@ -138,14 +138,21 @@ solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4
 #####################################
 logsearch_dir = '/usr/lib/ambari-logsearch-portal'
 
-logsearch_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.numshards']
+logsearch_service_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.service.logs.numshards']
+logsearch_audit_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.numshards']
 
-if logsearch_numshards_config > 0:
-  logsearch_numshards = str(logsearch_numshards_config)
+if logsearch_service_numshards_config > 0:
+  logsearch_service_logs_numshards = str(logsearch_service_numshards_config)
 else:
-  logsearch_numshards = format(str(logsearch_solr_instance_count))
+  logsearch_service_logs_numshards = format(str(logsearch_solr_instance_count))
 
-logsearch_repfactor = str(config['configurations']['logsearch-properties']['logsearch.collection.replication.factor'])
+if logsearch_audit_numshards_config > 0:
+  logsearch_audit_logs_numshards = str(logsearch_audit_numshards_config)
+else:
+  logsearch_audit_logs_numshards = format(str(logsearch_audit_numshards_config))
+
+logsearch_service_logs_repfactor = str(config['configurations']['logsearch-properties']['logsearch.collection.service.logs.replication.factor'])
+logsearch_audit_logs_repfactor = str(config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.replication.factor'])
 
 logsearch_solr_collection_service_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.service.logs', 'hadoop_logs')
 logsearch_solr_collection_audit_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.audit.logs','audit_logs')

@@ -39,8 +39,8 @@
                   "column-index": "1",
                   "row-span": "1",
                   "column-span": "1",
-                  "section-columns": "3",
-                  "section-rows": "1",
+                  "section-columns": "1",
+                  "section-rows": "5",
                   "subsections": [
                     {
                       "name": "subsection-logsearch-server-col1",
@@ -81,11 +81,19 @@
           "subsection-name": "subsection-logsearch-server-col1"
         },
         {
-          "config": "logsearch-properties/logsearch.collection.numshards",
+          "config": "logsearch-properties/logsearch.collection.service.logs.numshards",
           "subsection-name": "subsection-logsearch-server-col1"
         },
         {
-          "config": "logsearch-properties/logsearch.collection.replication.factor",
+          "config": "logsearch-properties/logsearch.collection.service.logs.replication.factor",
+          "subsection-name": "subsection-logsearch-server-col1"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.audit.logs.numshards",
+          "subsection-name": "subsection-logsearch-server-col1"
+        },
+        {
+          "config": "logsearch-properties/logsearch.collection.audit.logs.replication.factor",
           "subsection-name": "subsection-logsearch-server-col1"
         }
       ]
@@ -137,7 +145,7 @@
         }
       },
       {
-        "config": "logsearch-properties/logsearch.collection.numshards",
+        "config": "logsearch-properties/logsearch.collection.service.logs.numshards",
         "widget": {
           "type": "slider",
           "units": [
@@ -148,7 +156,29 @@
         }
       },
       {
-        "config": "logsearch-properties/logsearch.collection.replication.factor",
+        "config": "logsearch-properties/logsearch.collection.service.logs.replication.factor",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.audit.logs.numshards",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.collection.audit.logs.replication.factor",
         "widget": {
           "type": "slider",
           "units": [
