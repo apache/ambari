@@ -45,9 +45,13 @@ import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.utils.CollectionPresentationUtils;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.easymock.MockType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
@@ -63,7 +67,6 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -73,16 +76,23 @@ import static org.easymock.EasyMock.reset;
  */
 public class BlueprintConfigurationProcessorTest {
 
-  private static final String CLUSTER_NAME = "test-cluster";
-  private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
-
+  private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(), Collections.<String, Map<String, Map<String, String>>>emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
 
-  private final Blueprint bp = createNiceMock(Blueprint.class);
-  private final ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-  private final Stack stack = createNiceMock(Stack.class);
-  private final AmbariContext ambariConext = createNiceMock(AmbariContext.class);
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.NICE)
+  private AmbariContext ambariConext;
+
+  @Mock(type = MockType.NICE)
+  private Blueprint bp;
+
+  @Mock(type = MockType.NICE)
+  private ServiceInfo serviceInfo;
+
+  @Mock(type = MockType.NICE)
+  private Stack stack;
 
   @Before
   public void init() throws Exception {
@@ -3951,7 +3961,47 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
-  public void testAddExcludedProperties() throws Exception {
+  public void testExcludedPropertiesShouldBeAddedWhenServiceIsInBlueprint() throws Exception {
+    reset(stack);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site"));
+    expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.<String>emptySet());
+    expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
+    expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("FALCON_SERVER");
+    hgComponents.add("FALCON_CLIENT");
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("OOZIE_CLIENT");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("c6401.apache.ambari.org");
+    hosts.add("serverTwo");
+    TestHostGroup group1 = new TestHostGroup("host_group_1", hgComponents, hosts);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals("Falcon Broker URL property not properly exported",
+      "testValue", clusterConfig.getPropertyValue("oozie-site", "oozie.service.ELService.ext.functions.coord-job-submit-instances"));
+  }
+
+  @Test
+  public void testExcludedPropertiesShouldBeIgnoredWhenServiceIsNotInBlueprint() throws Exception {
     reset(stack);
 
     // defaults from init() method that we need
@@ -3962,6 +4012,7 @@ public class BlueprintConfigurationProcessorTest {
     // customized stack calls for this test only
     expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site")).anyTimes();
     expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
+    expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
 
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -3982,8 +4033,7 @@ public class BlueprintConfigurationProcessorTest {
 
     updater.doUpdateForClusterCreate();
 
-    assertEquals("Falcon Broker URL property not properly exported",
-      "testValue", clusterConfig.getPropertyValue("oozie-site", "oozie.service.ELService.ext.functions.coord-job-submit-instances"));
+    Assert.assertNull("Excluded properties shouldn't be added in this setup!", clusterConfig.getPropertyValue("oozie-site", "oozie.service.ELService.ext.functions.coord-job-submit-instances"));
   }
 
   @Test

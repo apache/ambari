@@ -2670,24 +2670,44 @@ public class BlueprintConfigurationProcessor {
 
     }
 
-    addExcludedConfigProperties(configuration, configTypesUpdated, services);
+    addExcludedConfigProperties(configuration, configTypesUpdated, services, clusterTopology.getBlueprint().getStack());
 
   }
 
   /**
    * Adds properties from excluded config files (marked as excluded in service metainfo.xml) like Falcon related properties
    * from oozie-site.xml defined in FALCON/configuration. (AMBARI-13017)
+   *
+   * In case the excluded config-type related service is not present in the blueprint, excluded configs are ignored
    * @param configuration
    * @param configTypesUpdated
-   * @param services
+   * @param blueprintServices
+   * @param stack
    */
-  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, Collection<String> services) {
-    Stack stack = clusterTopology.getBlueprint().getStack();
+  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, Collection<String> blueprintServices, Stack stack) {
+    LOG.debug("Handling excluded properties for blueprint services: {}", blueprintServices);
 
-    for(String service: services){
-      Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(service);
+    for (String blueprintService : blueprintServices) {
+
+      LOG.debug("Handling excluded properties for blueprint service: {}", blueprintService);
+      Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(blueprintService);
+
+      if (excludedConfigTypes.isEmpty()) {
+        LOG.debug("There are no excluded config types for blueprint service: {}", blueprintService);
+        continue;
+      }
+
       for(String configType: excludedConfigTypes) {
-        Map<String, String> configProperties = stack.getConfigurationProperties(service, configType);
+        LOG.debug("Handling excluded config type [{}] for blueprint service: [{}]", configType, blueprintService);
+
+        String blueprintServiceForExcludedConfig = stack.getServiceForConfigType(configType);
+        if (!blueprintServices.contains(blueprintServiceForExcludedConfig)) {
+          LOG.debug("Service [{}] for excluded config type [{}] is not present in the blueprint. " +
+              "Ignoring excluded config entries.", blueprintServiceForExcludedConfig, configType);
+          continue;
+        }
+
+        Map<String, String> configProperties = stack.getConfigurationProperties(blueprintService, configType);
         for(Map.Entry<String, String> entry: configProperties.entrySet()) {
           LOG.debug("ADD property " + configType + " " + entry.getKey() + " " + entry.getValue());
           ensureProperty(configuration, configType, entry.getKey(), entry.getValue(), configTypesUpdated);
