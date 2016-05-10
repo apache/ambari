@@ -45,4 +45,24 @@
     <display-name>Metrics collector hosts</display-name>
   </property>
 
+  <property>
+    <name>logfeeder.log.filter.enable</name>
+    <value>true</value>
+    <description>Enable Log filtering based on log level (INFO,ERROR,WARN etc.)</description>
+    <display-name>Log Filter enable</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logfeeder.solr.config.interval</name>
+    <value>5</value>
+    <description>Interval to fetch filter config from Solr in sec</description>
+    <display-name>Fetch Solr config interval</display-name>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+
 </configuration>

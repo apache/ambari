@@ -1897,6 +1897,20 @@ var hdp2properties = [
     "category": "Advanced logfeeder-properties",
     "index": 3
   },
+  {
+    "name": "logfeeder.solr.config.interval",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-properties.xml",
+    "category": "Advanced logfeeder-properties",
+    "index": 4
+  },
+  {
+    "name": "logfeeder.log.filter.enable",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-properties.xml",
+    "category": "Advanced logfeeder-properties",
+    "index": 5
+  },
   /*logfeeder-env*/
   {
     "name": "logfeeder_log_dir",
