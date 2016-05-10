@@ -26,7 +26,7 @@ import re
 AMBARI_SERVER_ROOT_ENV_VARIABLE = "ROOT"
 
 class AmbariPath():
-  root_directory = os.environ[AMBARI_SERVER_ROOT_ENV_VARIABLE]
+  root_directory = os.getenv(AMBARI_SERVER_ROOT_ENV_VARIABLE, "/")
 
   @staticmethod
   def get(path):
