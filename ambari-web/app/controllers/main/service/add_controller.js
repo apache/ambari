@@ -164,40 +164,48 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   loadServices: function () {
     var services = this.getDBProperty('services');
-    if (!services) {
-      services = {
-        selectedServices: [],
-        installedServices: []
-      };
-      App.StackService.find().forEach(function (item) {
-        var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
-        var isSelected = (item.get('serviceName') == this.get('serviceToInstall')) || item.get('coSelectedServices').contains(this.get('serviceToInstall'));
-        item.set('isSelected', isInstalled || isSelected);
-        item.set('isInstalled', isInstalled);
-        if (isInstalled) {
-          services.selectedServices.push(item.get('serviceName'));
-          services.installedServices.push(item.get('serviceName'));
-        } else if(isSelected) {
-          services.selectedServices.push(item.get('serviceName'));
-        }
-      }, this);
-      this.setDBProperty('services', services);
-    } else {
-      App.StackService.find().forEach(function (item) {
+    var stackServices = App.StackService.find();
+    if (services) {
+      stackServices.forEach(function (item) {
         var isSelected = services.selectedServices.contains(item.get('serviceName')) || item.get('serviceName') == this.get('serviceToInstall');
         var isInstalled = services.installedServices.contains(item.get('serviceName'));
         item.set('isSelected', isSelected || (this.get("currentStep") == "1" ? isInstalled : isSelected));
         item.set('isInstalled', isInstalled);
       }, this);
       this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected').filterProperty('isInstalled', false), 3);
+    } else {
+      services = {
+        selectedServices: [],
+        installedServices: []
+      };
+      stackServices.forEach(function (item) {
+        var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
+        var isSelected = item.get('serviceName') === this.get('serviceToInstall') || item.get('coSelectedServices').contains(this.get('serviceToInstall'));
+        item.set('isSelected', isInstalled || isSelected);
+        item.set('isInstalled', isInstalled);
+        var serviceName = item.get('serviceName');
+        if (isInstalled) {
+          services.selectedServices.push(serviceName);
+          services.installedServices.push(serviceName);
+        }
+        else {
+          if (isSelected) {
+            services.selectedServices.push(serviceName);
+          }
+        }
+      }, this);
+      this.setDBProperty('services', services);
     }
     this.set('serviceToInstall', null);
+    this.set('content.services', stackServices);
     var self = this;
     this.loadServiceVersionFromVersionDefinitions().complete(function () {
-      self.set('content.services', App.StackService.find().forEach(function (item) {
-        // user the service version from VersionDefinition
-        Ember.set(item, 'serviceVersionDisplay', self.get('serviceVersionsMap')[item.get('serviceName')]);
-      }));
+      var serviceVersionsMap = self.get('serviceVersionsMap');
+      stackServices.forEach(function (stackService) {
+        var serviceName = stackService.get('serviceName');
+        Em.set(stackService, 'serviceVersionDisplay', serviceVersionsMap[serviceName]);
+      });
+      self.set('content.services', stackServices);
     });
   },
 
@@ -330,14 +338,14 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     var props = this.getDBProperties(['slaveComponentHosts', 'hosts']);
     var slaveComponentHosts = props.slaveComponentHosts,
       hosts = props.hosts || {},
-      host_names = Em.keys(hosts);
+      hostNames = Em.keys(hosts);
     if (!Em.isNone(slaveComponentHosts)) {
       slaveComponentHosts.forEach(function (component) {
         component.hosts.forEach(function (host) {
           //Em.set(host, 'hostName', hosts[host.host_id].name);
-          for (var i = 0; i < host_names.length; i++) {
-            if (hosts[host_names[i]].id === host.host_id) {
-              host.hostName = host_names[i];
+          for (var i = 0; i < hostNames.length; i++) {
+            if (hosts[hostNames[i]].id === host.host_id) {
+              host.hostName = hostNames[i];
               break;
             }
           }
@@ -403,7 +411,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     return {
       "context": Em.I18n.t('requestInfo.installServices'),
       "ServiceInfo": {"state": "INSTALLED"},
-      "urlParams": "ServiceInfo/service_name.in(" + selectedServices.join(',')  + ")"
+      "urlParams": "ServiceInfo/service_name.in(" + selectedServices.join(',') + ")"
     };
   },
 
@@ -472,13 +480,12 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           });
         }
       }, this);
-      if (this.get('installClietsQueue.queue.length') == 0) {
+      if (!this.get('installClietsQueue.queue.length')) {
         return dfd.resolve();
-      } else {
-        this.set('installClientQueueLength', this.get('installClietsQueue.queue.length'));
-        App.get('router.wizardStep8Controller').set('servicesInstalled', true);
-        this.get('installClietsQueue').start();
       }
+      this.set('installClientQueueLength', this.get('installClietsQueue.queue.length'));
+      App.get('router.wizardStep8Controller').set('servicesInstalled', true);
+      this.get('installClietsQueue').start();
     } else {
       dfd.resolve();
     }
@@ -493,7 +500,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * @method installClientComplete
    */
   installClientSuccess: function(data, opt, params) {
-    if (this.get('installClientQueueLength') - 1 == params.counter) {
+    if (this.get('installClientQueueLength') - 1 === params.counter) {
       params.deferred.resolve();
     }
   },
@@ -507,7 +514,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * @param params
    */
   installClientError: function(request, ajaxOptions, error, opt, params) {
-    if (this.get('installClientQueueLength') - 1 == params.counter) {
+    if (this.get('installClientQueueLength') - 1 === params.counter) {
       params.deferred.resolve();
     }
   },
