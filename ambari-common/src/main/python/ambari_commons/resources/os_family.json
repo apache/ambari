@@ -65,6 +65,7 @@
       }
     },
     "aliases": {
-      "amazon2015": "amazon6"
+      "amazon2015": "amazon6",
+      "amazon2016": "amazon6"
     }
 }
