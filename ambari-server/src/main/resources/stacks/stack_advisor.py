@@ -462,7 +462,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     if self.isSlaveComponent(component):
       cardinality = str(component["StackServiceComponents"]["cardinality"])
-      if self.isComponentUsingCardinalityForLayout(component) and cardinality:
+      if self.isComponentUsingCardinalityForLayout(componentName) and cardinality:
         # cardinality types: 1+, 1-2, 1
         if "+" in cardinality:
           hostsMin = int(cardinality[:-1])
