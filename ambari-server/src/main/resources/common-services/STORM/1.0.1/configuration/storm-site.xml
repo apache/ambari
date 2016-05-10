@@ -22,9 +22,20 @@
 <configuration supports_final="true">
   <property>
     <name>storm.thrift.transport</name>
-    <value>org.apache.storm.security.auth.SimpleTransportPlugin</value>
-    <description>The transport plug-in for Thrift client/server communication.</description>
+    <value>{{storm_thrift_transport}}</value>
+    <description>The transport plug-in that used for Thrift client/server communication.</description>
   </property>
+  <property>
+    <name>_storm.thrift.nonsecure.transport</name>
+    <value>org.apache.storm.security.auth.SimpleTransportPlugin</value>
+    <description>The transport plug-in that used for non-secure mode for for Thrift client/server communication.</description>
+  </property>
+  <property>
+    <name>_storm.thrift.secure.transport</name>
+    <value>org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin</value>
+    <description>The transport plug-in that used for secure mode for Thrift client/server communication.</description>
+  </property>
+
   <property>
     <name>storm.messaging.transport</name>
     <value>org.apache.storm.messaging.netty.Context</value>
