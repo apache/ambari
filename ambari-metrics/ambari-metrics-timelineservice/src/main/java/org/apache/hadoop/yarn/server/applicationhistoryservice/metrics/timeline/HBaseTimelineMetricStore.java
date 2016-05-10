@@ -26,6 +26,7 @@ import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
@@ -36,7 +37,8 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConditionBuilder;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.TopNCondition;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -54,6 +56,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
 public class HBaseTimelineMetricStore extends AbstractService implements TimelineMetricStore {
@@ -66,6 +69,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private final Map<AGGREGATOR_NAME, ScheduledExecutorService> scheduledExecutors = new HashMap<>();
   private TimelineMetricMetadataManager metricMetadataManager;
   private TimelineMetricHAController haController;
+  private Integer defaultTopNHostsLimit;
 
   /**
    * Construct the service.
@@ -106,6 +110,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         }
       }
 
+      defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
       }
@@ -177,7 +182,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
       List<String> hostnames, String applicationId, String instanceId,
       Long startTime, Long endTime, Precision precision, Integer limit,
-      boolean groupedByHosts) throws SQLException, IOException {
+      boolean groupedByHosts, TopNConfig topNConfig) throws SQLException, IOException {
 
     if (metricNames == null || metricNames.isEmpty()) {
       throw new IllegalArgumentException("No metric name filter specified.");
@@ -192,10 +197,34 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     Map<String, List<Function>> metricFunctions =
       parseMetricNamesToAggregationFunctions(metricNames);
 
-    Condition condition = new DefaultCondition(
-      new ArrayList<String>(metricFunctions.keySet()),
-      hostnames, applicationId, instanceId, startTime, endTime,
-      precision, limit, groupedByHosts);
+    ConditionBuilder conditionBuilder = new ConditionBuilder(new ArrayList<String>(metricFunctions.keySet()))
+      .hostnames(hostnames)
+      .appId(applicationId)
+      .instanceId(instanceId)
+      .startTime(startTime)
+      .endTime(endTime)
+      .precision(precision)
+      .limit(limit)
+      .grouped(groupedByHosts);
+
+    if (topNConfig != null) {
+      if (TopNCondition.isTopNHostCondition(metricNames, hostnames) || TopNCondition.isTopNMetricCondition(metricNames, hostnames)) {
+        conditionBuilder.topN(topNConfig.getTopN());
+        conditionBuilder.isBottomN(topNConfig.getIsBottomN());
+        Function.ReadFunction readFunction = Function.ReadFunction.getFunction(topNConfig.getTopNFunction());
+        Function function = new Function(readFunction, null);
+        conditionBuilder.topNFunction(function);
+      } else {
+        LOG.info("Invalid Input for TopN query. Ignoring TopN Request.");
+      }
+    } else if (hostnames != null && hostnames.size() > defaultTopNHostsLimit) {
+      LOG.info("Requesting data for more than " + defaultTopNHostsLimit +  " Hosts. " +
+        "Defaulting to Top " + defaultTopNHostsLimit);
+      conditionBuilder.topN(defaultTopNHostsLimit);
+      conditionBuilder.isBottomN(false);
+    }
+
+    Condition condition = conditionBuilder.build();
 
     TimelineMetrics metrics;
 
@@ -276,54 +305,6 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     }
 
     return metricsFunctions;
-  }
-
-  @Override
-  public TimelineMetric getTimelineMetric(String metricName, List<String> hostnames,
-      String applicationId, String instanceId, Long startTime,
-      Long endTime, Precision precision, Integer limit)
-      throws SQLException, IOException {
-
-    if (metricName == null || metricName.isEmpty()) {
-      throw new IllegalArgumentException("No metric name filter specified.");
-    }
-    if ((startTime == null && endTime != null)
-        || (startTime != null && endTime == null)) {
-      throw new IllegalArgumentException("Open ended query not supported ");
-    }
-    if (limit !=null && limit > PhoenixHBaseAccessor.RESULTSET_LIMIT){
-      throw new IllegalArgumentException("Limit too big");
-    }
-
-    Map<String, List<Function>> metricFunctions =
-      parseMetricNamesToAggregationFunctions(Collections.singletonList(metricName));
-
-    Condition condition = new DefaultCondition(
-      new ArrayList<String>(metricFunctions.keySet()), hostnames, applicationId,
-      instanceId, startTime, endTime, precision, limit, true);
-    TimelineMetrics metrics = hBaseAccessor.getMetricRecords(condition,
-      metricFunctions);
-
-    metrics = postProcessMetrics(metrics);
-
-    TimelineMetric metric = new TimelineMetric();
-    List<TimelineMetric> metricList = metrics.getMetrics();
-
-    if (metricList != null && !metricList.isEmpty()) {
-      metric.setMetricName(metricList.get(0).getMetricName());
-      metric.setAppId(metricList.get(0).getAppId());
-      metric.setInstanceId(metricList.get(0).getInstanceId());
-      metric.setHostName(metricList.get(0).getHostName());
-      // Assumption that metrics are ordered by start time
-      metric.setStartTime(metricList.get(0).getStartTime());
-      TreeMap<Long, Double> metricRecords = new TreeMap<Long, Double>();
-      for (TimelineMetric timelineMetric : metricList) {
-        metricRecords.putAll(timelineMetric.getMetricValues());
-      }
-      metric.setMetricValues(metricRecords);
-    }
-
-    return metric;
   }
 
   @Override

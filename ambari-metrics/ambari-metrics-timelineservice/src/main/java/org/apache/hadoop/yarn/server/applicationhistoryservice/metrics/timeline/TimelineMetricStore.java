@@ -22,6 +22,7 @@ import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -48,20 +49,10 @@ public interface TimelineMetricStore {
    * @throws java.sql.SQLException
    */
   TimelineMetrics getTimelineMetrics(List<String> metricNames, List<String> hostnames,
-      String applicationId, String instanceId, Long startTime,
-      Long endTime, Precision precision, Integer limit, boolean groupedByHosts)
+                                     String applicationId, String instanceId, Long startTime,
+                                     Long endTime, Precision precision, Integer limit, boolean groupedByHosts,
+                                     TopNConfig topNConfig)
     throws SQLException, IOException;
-
-
-  /**
-   * Return all records for a single metric satisfying the filter criteria.
-   * @return {@link TimelineMetric}
-   */
-  TimelineMetric getTimelineMetric(String metricName, List<String> hostname,
-      String applicationId, String instanceId, Long startTime,
-      Long endTime, Precision precision, Integer limit)
-      throws SQLException, IOException;
-
 
   /**
    * Stores metric information to the timeline store. Any errors occurring for
@@ -74,7 +65,7 @@ public interface TimelineMetricStore {
   TimelinePutResponse putMetrics(TimelineMetrics metrics) throws SQLException, IOException;
 
   /**
-   * Store container metric into the timeliens tore
+   * Store container metric into the timeline tore
    */
   TimelinePutResponse putContainerMetrics(List<ContainerMetric> metrics)
       throws SQLException, IOException;

@@ -604,12 +604,14 @@ public class PhoenixHBaseAccessor {
         try {
           metricRecordStmt.executeUpdate();
 
-          // Write to metadata cache on successful write to store
-          metadataManager.putIfModifiedTimelineMetricMetadata(
-            metadataManager.getTimelineMetricMetadata(metric));
+          if (metadataManager != null) {
+            // Write to metadata cache on successful write to store
+            metadataManager.putIfModifiedTimelineMetricMetadata(
+              metadataManager.getTimelineMetricMetadata(metric));
 
-          metadataManager.putIfModifiedHostedAppsMetadata(
-            metric.getHostName(), metric.getAppId());
+            metadataManager.putIfModifiedHostedAppsMetadata(
+              metric.getHostName(), metric.getAppId());
+          }
 
         } catch (SQLException sql) {
           LOG.error("Failed on insert records to store.", sql);

@@ -28,6 +28,7 @@ import org.apache.hadoop.metrics2.annotation.Metric;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
+import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
@@ -311,52 +312,6 @@ public class TimelineWebServices {
   }
 
   /**
-   * Query for a particular metric satisfying the filter criteria.
-   * @return {@link TimelineMetric}
-   */
-  @GET
-  @Path("/metrics/{metricName}")
-  @Produces({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
-  public TimelineMetric getTimelineMetric(
-    @Context HttpServletRequest req,
-    @Context HttpServletResponse res,
-    @PathParam("metricName") String metricName,
-    @QueryParam("appId") String appId,
-    @QueryParam("instanceId") String instanceId,
-    @QueryParam("hostname") String hostname,
-    @QueryParam("startTime") String startTime,
-    @QueryParam("endTime") String endTime,
-    @QueryParam("precision") String precision,
-    @QueryParam("limit") String limit
-  ) {
-    init(res);
-    try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Request for metrics => metricName: " + metricName + ", " +
-          "appId: " + appId + ", instanceId: " + instanceId + ", " +
-          "hostname: " + hostname + ", startTime: " + startTime + ", " +
-          "endTime: " + endTime);
-      }
-
-      return timelineMetricStore.getTimelineMetric(metricName,
-        parseListStr(hostname, ","), appId, instanceId, parseLongStr(startTime),
-        parseLongStr(endTime), Precision.getPrecision(precision),
-        parseIntStr(limit));
-    } catch (NumberFormatException ne) {
-      throw new BadRequestException("startTime, endTime and limit should be " +
-        "numeric values");
-    } catch (Precision.PrecisionFormatException pfe) {
-      throw new BadRequestException("precision should be seconds, minutes " +
-        "or hours");
-    } catch (IllegalArgumentException iae) {
-      throw new BadRequestException(iae.getMessage());
-    } catch (SQLException | IOException sql) {
-      throw new WebApplicationException(sql,
-        Response.Status.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  /**
    * Query for a set of different metrics satisfying the filter criteria.
    * All query params are optional. The default limit will apply if none
    * specified.
@@ -385,7 +340,10 @@ public class TimelineWebServices {
     @QueryParam("endTime") String endTime,
     @QueryParam("precision") String precision,
     @QueryParam("limit") String limit,
-    @QueryParam("grouped") String grouped
+    @QueryParam("grouped") String grouped,
+    @QueryParam("topN") String topN,
+    @QueryParam("topNFunction") String topNFunction,
+    @QueryParam("isBottomN") String isBottomN
   ) {
     init(res);
     try {
@@ -401,7 +359,7 @@ public class TimelineWebServices {
         parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, instanceId,
         parseLongStr(startTime), parseLongStr(endTime),
         Precision.getPrecision(precision), parseIntStr(limit),
-        parseBoolean(grouped));
+        parseBoolean(grouped), parseTopNConfig(topN, topNFunction, isBottomN));
 
     } catch (NumberFormatException ne) {
       throw new BadRequestException("startTime and limit should be numeric " +
@@ -585,6 +543,22 @@ public class TimelineWebServices {
 
   private static boolean parseBoolean(String booleanStr) {
     return booleanStr == null || Boolean.parseBoolean(booleanStr);
+  }
+
+  private static TopNConfig parseTopNConfig(String topN, String topNFunction,
+                                            String bottomN) {
+    if (topN == null || topN.isEmpty()) {
+      return null;
+    }
+    Integer topNValue = parseIntStr(topN);
+
+    if (topNValue == 0) {
+      LOG.info("Invalid Input for TopN query. Ignoring TopN Request.");
+      return null;
+    }
+
+    Boolean isBottomN = (bottomN != null && Boolean.parseBoolean(bottomN));
+    return new TopNConfig(topNValue, topNFunction, isBottomN);
   }
 
   /**

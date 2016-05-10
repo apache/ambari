@@ -298,6 +298,9 @@ public class PhoenixTransactSQL {
     "METRIC_MIN " +
     "FROM %s";
 
+  public static final String TOP_N_INNER_SQL = "SELECT %s %s " +
+    "FROM %s WHERE %s GROUP BY %s ORDER BY %s LIMIT %s";
+
   public static final String GET_METRIC_METADATA_SQL = "SELECT " +
     "METRIC_NAME, APP_ID, UNITS, TYPE, START_TIME, " +
     "SUPPORTS_AGGREGATION FROM METRICS_METADATA";
@@ -457,46 +460,33 @@ public class PhoenixTransactSQL {
     try {
       stmt = connection.prepareStatement(sb.toString());
       int pos = 1;
-      if (condition.getMetricNames() != null) {
-        for (; pos <= condition.getMetricNames().size(); pos++) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos - 1));
-          }
-          stmt.setString(pos, condition.getMetricNames().get(pos - 1));
+      pos = addMetricNames(condition, pos, stmt);
+
+      if (condition instanceof TopNCondition) {
+        TopNCondition topNCondition = (TopNCondition) condition;
+        if (topNCondition.isTopNHostCondition()) {
+          pos = addMetricNames(condition, pos, stmt);
         }
       }
-      if (condition.getHostnames() != null) {
-        for (String hostname : condition.getHostnames()) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Setting pos: " + pos + ", value: " + hostname);
-          }
-          stmt.setString(pos++, hostname);
+
+      pos = addHostNames(condition, pos, stmt);
+
+      if (condition instanceof TopNCondition) {
+        pos = addAppId(condition, pos, stmt);
+        pos = addInstanceId(condition, pos, stmt);
+        pos = addStartTime(condition, pos, stmt);
+        pos = addEndTime(condition, pos, stmt);
+        TopNCondition topNCondition = (TopNCondition) condition;
+        if (topNCondition.isTopNMetricCondition()) {
+          pos = addHostNames(condition, pos, stmt);
         }
       }
-      if (condition.getAppId() != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
-        }
-        stmt.setString(pos++, condition.getAppId());
-      }
-      if (condition.getInstanceId() != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
-        }
-        stmt.setString(pos++, condition.getInstanceId());
-      }
-      if (condition.getStartTime() != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value: " + condition.getStartTime());
-        }
-        stmt.setLong(pos++, condition.getStartTime());
-      }
-      if (condition.getEndTime() != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value: " + condition.getEndTime());
-        }
-        stmt.setLong(pos, condition.getEndTime());
-      }
+
+      pos = addAppId(condition, pos, stmt);
+      pos = addInstanceId(condition, pos, stmt);
+      pos = addStartTime(condition, pos, stmt);
+      addEndTime(condition, pos, stmt);
+
       if (condition.getFetchSize() != null) {
         stmt.setFetchSize(condition.getFetchSize());
       }
@@ -696,24 +686,20 @@ public class PhoenixTransactSQL {
       stmt = connection.prepareStatement(query);
       int pos = 1;
 
-      if (condition.getMetricNames() != null) {
-        for (; pos <= condition.getMetricNames().size(); pos++) {
-          stmt.setString(pos, condition.getMetricNames().get(pos - 1));
-        }
+      pos = addMetricNames(condition, pos, stmt);
+
+      if (condition instanceof TopNCondition) {
+        pos = addAppId(condition, pos, stmt);
+        pos = addInstanceId(condition, pos, stmt);
+        pos = addStartTime(condition, pos, stmt);
+        pos = addEndTime(condition, pos, stmt);
       }
+
       // TODO: Upper case all strings on POST
-      if (condition.getAppId() != null) {
-        stmt.setString(pos++, condition.getAppId());
-      }
-      if (condition.getInstanceId() != null) {
-        stmt.setString(pos++, condition.getInstanceId());
-      }
-      if (condition.getStartTime() != null) {
-        stmt.setLong(pos++, condition.getStartTime());
-      }
-      if (condition.getEndTime() != null) {
-        stmt.setLong(pos, condition.getEndTime());
-      }
+      pos = addAppId(condition, pos, stmt);
+      pos = addInstanceId(condition, pos, stmt);
+      pos = addStartTime(condition, pos, stmt);
+      pos = addEndTime(condition, pos, stmt);
     } catch (SQLException e) {
       if (stmt != null) {
         stmt.close();
@@ -781,4 +767,117 @@ public class PhoenixTransactSQL {
 
     return stmt;
   }
+
+  public static String getTargetTableUsingPrecision(Precision precision, boolean withHosts) {
+
+    String inputTable = null;
+    if (precision != null) {
+      if (withHosts) {
+        switch (precision) {
+          case DAYS:
+            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
+            break;
+          case HOURS:
+            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+            break;
+          case MINUTES:
+            inputTable = PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+            break;
+          default:
+            inputTable = PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+        }
+      } else {
+        switch (precision) {
+          case DAYS:
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
+            break;
+          case HOURS:
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+            break;
+          case MINUTES:
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
+            break;
+          default:
+            inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+        }
+      }
+    } else {
+      if (withHosts) {
+        inputTable = PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+      } else {
+        inputTable = PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+      }
+    }
+    return inputTable;
+  }
+
+  private static int addMetricNames(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+    if (condition.getMetricNames() != null) {
+      for (int pos2 = 1 ; pos2 <= condition.getMetricNames().size(); pos2++,pos++) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos2 - 1));
+        }
+        stmt.setString(pos, condition.getMetricNames().get(pos2 - 1));
+      }
+    }
+    return pos;
+  }
+
+  private static int addHostNames(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+    int i = pos;
+    if (condition.getHostnames() != null) {
+      for (String hostname : condition.getHostnames()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting pos: " + pos + ", value: " + hostname);
+        }
+        stmt.setString(i++, hostname);
+      }
+    }
+    return i;
+  }
+
+
+  private static int addAppId(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+
+    if (condition.getAppId() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
+      }
+      stmt.setString(pos++, condition.getAppId());
+    }
+    return pos;
+  }
+
+  private static int addInstanceId(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+
+    if (condition.getInstanceId() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
+      }
+      stmt.setString(pos++, condition.getInstanceId());
+    }
+    return pos;
+  }
+
+  private static int addStartTime(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+    if (condition.getStartTime() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting pos: " + pos + ", value: " + condition.getStartTime());
+      }
+      stmt.setLong(pos++, condition.getStartTime());
+    }
+    return pos;
+  }
+
+  private static int addEndTime(Condition condition, int pos, PreparedStatement stmt) throws SQLException {
+
+    if (condition.getEndTime() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting pos: " + pos + ", value: " + condition.getEndTime());
+      }
+      stmt.setLong(pos++, condition.getEndTime());
+    }
+    return pos;
+  }
+
 }

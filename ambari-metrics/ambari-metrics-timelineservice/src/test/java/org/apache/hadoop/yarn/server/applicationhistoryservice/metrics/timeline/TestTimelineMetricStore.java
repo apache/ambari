@@ -22,6 +22,7 @@ import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -37,7 +38,7 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   @Override
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
       List<String> hostnames, String applicationId, String instanceId, Long startTime,
-      Long endTime, Precision precision, Integer limit, boolean groupedByHost) throws SQLException,
+      Long endTime, Precision precision, Integer limit, boolean groupedByHost, TopNConfig topNConfig) throws SQLException,
     IOException {
     TimelineMetrics timelineMetrics = new TimelineMetrics();
     List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
@@ -69,14 +70,6 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
     }});
 
     return timelineMetrics;
-  }
-
-  @Override
-  public TimelineMetric getTimelineMetric(String metricName, List<String> hostname,
-      String applicationId, String instanceId, Long startTime, Long endTime,
-      Precision precision, Integer limit) throws SQLException, IOException {
-
-    return null;
   }
 
   @Override

@@ -23,6 +23,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.SplitByMetricNamesCondition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.TopNCondition;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
@@ -553,5 +554,62 @@ public class TestPhoenixTransactSQL {
     }
     Assert.assertTrue(exceptionThrown);
     Assert.assertTrue(requestedSizeFoundInMessage);
+  }
+
+  @Test
+  public void testTopNHostsConditionClause() throws Exception {
+    List<String> hosts = Arrays.asList("h1", "h2", "h3", "h4");
+
+    Condition condition = new TopNCondition(
+      Arrays.asList("cpu_user"), hosts,
+      "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
+
+    String conditionClause = condition.getConditionClause().toString();
+    String expectedClause = "(METRIC_NAME IN (?)) AND HOSTNAME IN (" +
+      "SELECT " + PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),120000l) +
+      " HOSTNAME FROM METRIC_RECORD WHERE " +
+          "(METRIC_NAME IN (?)) AND " +
+          "HOSTNAME IN (? ,? ,? ,?) AND " +
+          "APP_ID = ? AND INSTANCE_ID = ? AND " +
+          "SERVER_TIME >= ? AND SERVER_TIME < ? " +
+          "GROUP BY METRIC_NAME, HOSTNAME, APP_ID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) " +
+      "AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+
+    Assert.assertEquals(conditionClause, expectedClause);
+  }
+
+  @Test
+  public void testTopNMetricsConditionClause() throws Exception {
+    List<String> metricNames = Arrays.asList("m1", "m2", "m3");
+
+    Condition condition = new TopNCondition(
+      metricNames, Collections.singletonList("h1"),
+      "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
+
+    String conditionClause = condition.getConditionClause().toString();
+    String expectedClause = " METRIC_NAME IN (" +
+      "SELECT " + PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),120000l) +
+      " METRIC_NAME FROM METRIC_RECORD WHERE " +
+      "(METRIC_NAME IN (?, ?, ?)) AND " +
+      "HOSTNAME = ? AND " +
+      "APP_ID = ? AND INSTANCE_ID = ? AND " +
+      "SERVER_TIME >= ? AND SERVER_TIME < ? " +
+      "GROUP BY METRIC_NAME, APP_ID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) " +
+      "AND HOSTNAME = ? AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+
+    Assert.assertEquals(conditionClause, expectedClause);
+  }
+
+  @Test
+  public void testTopNMetricsIllegalConditionClause() throws Exception {
+    List<String> metricNames = Arrays.asList("m1", "m2");
+
+    List<String> hosts = Arrays.asList("h1", "h2");
+
+    Condition condition = new TopNCondition(
+      metricNames, hosts,
+      "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
+
+    Assert.assertEquals(condition.getConditionClause(), null);
   }
 }

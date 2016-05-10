@@ -234,6 +234,9 @@ public class TimelineMetricConfiguration {
   public static final String HBASE_BLOCKING_STORE_FILES =
     "hbase.hstore.blockingStoreFiles";
 
+  public static final String DEFAULT_TOPN_HOSTS_LIMIT =
+    "timeline.metrics.default.topn.hosts.limit";
+
   public static final String HOST_APP_ID = "HOST";
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";
