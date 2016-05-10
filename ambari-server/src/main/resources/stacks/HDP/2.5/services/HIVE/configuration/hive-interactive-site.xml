@@ -42,9 +42,9 @@ limitations under the License.
     <name>hive.server2.tez.sessions.per.default.queue</name>
     <value>1</value>
     <description>
-      The maximum number of queries this Hive LLAP cluster will be able to handle concurrently.
+      The maximum number of queries the Hive Interactive cluster will be able to handle concurrently.
     </description>
-    <display-name>Maximum Concurrent Queries</display-name>
+    <display-name>Maximum Total Concurrent Queries</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>
@@ -356,8 +356,8 @@ limitations under the License.
 
   <property>
     <name>hive.llap.io.memory.size</name>
-    <display-name>Cache Size</display-name>
-    <description>The amount of data reserved for Hive's optimized in-memory cache.</description>
+    <display-name>In-Memory Cache per Daemon</display-name>
+    <description>The amount of memory reserved for Hive's optimized in-memory cache.</description>
     <value>0</value>
     <value-attributes>
       <type>int</type>
@@ -393,8 +393,8 @@ limitations under the License.
 
   <property>
     <name>hive.llap.daemon.num.executors</name>
-    <display-name>Number of Executors</display-name>
-    <description>Number of execution threads per Hive LLAP daemon. Generally this should be set to number of CPU cores.</description>
+    <display-name>Maximum CPUs per Daemon</display-name>
+    <description>The maximum number of CPUs a single LLAP daemon will use. Usually this should be equal to the number of available CPUs.</description>
     <value>1</value>
     <value-attributes>
       <type>int</type>
@@ -438,8 +438,8 @@ limitations under the License.
 
   <property>
     <name>hive.llap.daemon.yarn.container.mb</name>
-    <display-name>Total Daemon Size</display-name>
-    <description>The memory per node to be used by Hive LLAP.</description>
+    <display-name>YARN Memory per Daemon</display-name>
+    <description>The total YARN memory per node to be used by Hive LLAP daemons. This includes memory for cache as well as for memory for query processing.</description>
     <value>341</value>
     <value-attributes>
       <type>int</type>
