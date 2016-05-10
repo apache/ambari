@@ -155,6 +155,42 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   /**
+   * Get a sequence value and increment it in <code>ambariSequencesTable</code>.
+   * @param seqName name of sequence to be fetched and incremented
+   * @throws SQLException, IllegalArgumentException
+   */
+  @Transactional
+  public int getAndIncrementSequence(String seqName) throws SQLException{
+    Statement statement = null;
+    ResultSet rs = null;
+    int value = -1;
+    try {
+      statement = dbAccessor.getConnection().createStatement();
+      if (statement != null) {
+        rs = statement.executeQuery(String.format("SELECT sequence_value from %s where sequence_name='%s'", ambariSequencesTable, seqName));
+
+        if((rs != null) && rs.next()) {
+          value = rs.getInt(1);
+          dbAccessor.executeUpdate(String.format("UPDATE %s SET sequence_value = sequence_value + 1 where sequence_name='%s'", ambariSequencesTable, seqName));
+        } else {
+          LOG.error("Sequence {} not found.", seqName);
+          throw new IllegalArgumentException("Sequence " + seqName + " not found.");
+        }
+
+      }
+    } finally {
+      if (rs != null) {
+        rs.close();
+      }
+      if (statement != null) {
+        statement.close();
+      }
+    }
+
+    return value;
+  }
+
+  /**
    * Add several new sequences to <code>ambariSequencesTable</code>.
    * @param seqNames list of sequences to be inserted
    * @param seqDefaultValue initial value for the sequence

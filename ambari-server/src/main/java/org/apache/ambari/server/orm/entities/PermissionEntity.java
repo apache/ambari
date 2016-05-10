@@ -29,7 +29,6 @@ import javax.persistence.JoinColumns;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import java.util.Collection;
@@ -42,7 +41,7 @@ import java.util.Collection;
 @TableGenerator(name = "permission_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "permission_id_seq"
-    , initialValue = 100
+    , initialValue = 8
 )
 public class PermissionEntity {
 
@@ -85,15 +84,6 @@ public class PermissionEntity {
    */
   @Column(name = "permission_label")
   private String permissionLabel;
-
-  /**
-   * The permission's (admin)principal reference
-   */
-  @OneToOne
-  @JoinColumns({
-      @JoinColumn(name = "principal_id", referencedColumnName = "principal_id", nullable = false),
-  })
-  private PrincipalEntity principal;
 
   @ManyToOne
   @JoinColumns({
@@ -175,24 +165,6 @@ public class PermissionEntity {
    */
   public void setPermissionLabel(String permissionLabel) {
     this.permissionLabel = permissionLabel;
-  }
-
-  /**
-   * Get the principal entity.
-   *
-   * @return the principal entity
-   */
-  public PrincipalEntity getPrincipal() {
-    return principal;
-  }
-
-  /**
-   * Set the principal entity.
-   *
-   * @param principal  the principal entity
-   */
-  public void setPrincipal(PrincipalEntity principal) {
-    this.principal = principal;
   }
 
   /**

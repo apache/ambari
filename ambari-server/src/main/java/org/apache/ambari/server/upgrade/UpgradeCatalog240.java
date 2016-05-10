@@ -41,8 +41,6 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.orm.dao.PrincipalDAO;
-import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -50,7 +48,6 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
-import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -85,7 +82,6 @@ import com.google.inject.persist.Transactional;
 public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   protected static final String ADMIN_PERMISSION_TABLE = "adminpermission";
-  protected static final String PRINCIPAL_ID_COL = "principal_id";
   protected static final String ALERT_DEFINITION_TABLE = "alert_definition";
   protected static final String ALERT_TARGET_TABLE = "alert_target";
   protected static final String ALERT_TARGET_ENABLED_COLUMN = "is_enabled";
@@ -156,12 +152,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   @Inject
   ClusterDAO clusterDAO;
-
-  @Inject
-  PrincipalTypeDAO principalTypeDAO;
-
-  @Inject
-  PrincipalDAO principalDAO;
 
   /**
    * Logger.
@@ -276,25 +266,30 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     removeStandardDeviationAlerts();
     updateClusterInheritedPermissionsConfig();
     consolidateUserRoles();
-    createRolePrincipals();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
-    insertClusterInheritedPrincipal("ALL.CLUSTER.ADMINISTRATOR");
-    insertClusterInheritedPrincipal("ALL.CLUSTER.OPERATOR");
-    insertClusterInheritedPrincipal("ALL.CLUSTER.USER");
-    insertClusterInheritedPrincipal("ALL.SERVICE.ADMINISTRATOR");
-    insertClusterInheritedPrincipal("ALL.SERVICE.OPERATIOR");
-  }
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"3", "'ALL.CLUSTER.ADMINISTRATOR'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"4", "'ALL.CLUSTER.OPERATOR'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"5", "'ALL.CLUSTER.USER'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"6", "'ALL.SERVICE.ADMINISTRATOR'"}, true);
+    dbAccessor.insertRow(PRINCIPAL_TYPE_TABLE, new String[]{"principal_type_id", "principal_type_name"}, new String[]{"7", "'ALL.SERVICE.OPERATOR'"}, true);
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
+    getAndIncrementSequence("principal_type_id_seq");
 
-  private void insertClusterInheritedPrincipal(String name) {
-    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
-    principalTypeEntity.setName("ALL.CLUSTER.ADMINISTRATOR");
-    principalTypeEntity = principalTypeDAO.merge(principalTypeEntity);
-
-    PrincipalEntity principalEntity = new PrincipalEntity();
-    principalEntity.setPrincipalType(principalTypeEntity);
-    principalDAO.create(principalEntity);
+    int nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "3"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "4"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "5"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "6"}, true);
+    nextPrincipalSeqId = getAndIncrementSequence("principal_id_seq");
+    dbAccessor.insertRow(PRINCIPAL_TABLE, new String[]{"principal_id", "principal_type_id"}, new String[]{Integer.toString(nextPrincipalSeqId), "7"}, true);
   }
 
   private void createSettingTable() throws SQLException {
@@ -1068,12 +1063,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     // Add the sort_order column to the adminpermission table
     dbAccessor.addColumn(ADMIN_PERMISSION_TABLE,
         new DBColumnInfo(SORT_ORDER_COL, Short.class, null, 1, false));
-
-    // Add the principal_id column to the adminpermission table
-    //   Note: This is set to nullable here, but will be altered once the column has been set
-    //         properly during the DML update phase.
-    dbAccessor.addColumn(ADMIN_PERMISSION_TABLE,
-        new DBColumnInfo(PRINCIPAL_ID_COL, Long.class, null, null, true));
   }
 
   /**
@@ -1145,38 +1134,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
       7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
-  }
-
-  /**
-   * Create and update records to create the role-based principals.
-   * <p>
-   * This includes creating the new "ROLE" principal type, a principal for each role, and finally
-   * updating the princial_id column for the role.
-   */
-  void createRolePrincipals() throws SQLException {
-    // Create Role Principal Type
-    PrincipalTypeEntity rolePrincipalType = new PrincipalTypeEntity();
-    rolePrincipalType.setName("ROLE");
-
-    // creates the new record and returns an entity with the id set.
-    rolePrincipalType = principalTypeDAO.merge(rolePrincipalType);
-
-    // Get the roles (adminpermissions) and create a principal for each.... set the role's principal_id
-    // value as we go...
-    List<PermissionEntity> roleEntities = permissionDAO.findAll();
-
-    for (PermissionEntity roleEntity : roleEntities) {
-      PrincipalEntity principalEntity = new PrincipalEntity();
-      principalEntity.setPrincipalType(rolePrincipalType);
-
-      roleEntity.setPrincipal(principalDAO.merge(principalEntity));
-
-      permissionDAO.merge(roleEntity);
-    }
-
-    // Fix the adminpermission.principal_id column to be non-nullable:
-    dbAccessor.alterColumn(ADMIN_PERMISSION_TABLE,
-        new DBColumnInfo(PRINCIPAL_ID_COL, Long.class, null, null, false));
   }
 
   /**

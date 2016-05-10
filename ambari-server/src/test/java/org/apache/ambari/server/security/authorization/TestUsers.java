@@ -41,8 +41,6 @@ import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
-import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -110,18 +108,9 @@ public class TestUsers {
     resourceEntity.setResourceType(resourceTypeEntity);
     resourceDAO.create(resourceEntity);
 
-    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
-    principalTypeEntity.setName("ROLE");
-    principalTypeEntity = principalTypeDAO.merge(principalTypeEntity);
-
-    PrincipalEntity principalEntity = new PrincipalEntity();
-    principalEntity.setPrincipalType(principalTypeEntity);
-    principalEntity = principalDAO.merge(principalEntity);
-
     PermissionEntity adminPermissionEntity = new PermissionEntity();
     adminPermissionEntity.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
     adminPermissionEntity.setPermissionName(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME);
-    adminPermissionEntity.setPrincipal(principalEntity);
     adminPermissionEntity.setResourceType(resourceTypeEntity);
     permissionDAO.create(adminPermissionEntity);
   }

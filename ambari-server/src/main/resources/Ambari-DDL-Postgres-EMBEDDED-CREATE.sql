@@ -742,11 +742,9 @@ CREATE TABLE ambari.adminpermission (
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
   permission_label VARCHAR(255),
-  principal_id BIGINT NOT NULL,
   sort_order SMALLINT NOT NULL DEFAULT 1,
   CONSTRAINT PK_adminpermission PRIMARY KEY (permission_id),
   CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES ambari.adminresourcetype(resource_type_id),
-  CONSTRAINT FK_permission_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id),
   CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id));
 
 CREATE TABLE ambari.roleauthorization (
@@ -1154,100 +1152,158 @@ CREATE INDEX idx_alert_notice_state on ambari.alert_notice(notify_state);
 ---------inserting some data-----------
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 BEGIN;
-INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value) VALUES
-  ('cluster_id_seq', 1),
-  ('host_id_seq', 0),
-  ('user_id_seq', 2),
-  ('group_id_seq', 1),
-  ('member_id_seq', 1),
-  ('host_role_command_id_seq', 1),
-  ('configgroup_id_seq', 1),
-  ('requestschedule_id_seq', 1),
-  ('resourcefilter_id_seq', 1),
-  ('viewentity_id_seq', 0),
-  ('operation_level_id_seq', 1),
-  ('view_instance_id_seq', 1),
-  ('resource_type_id_seq', 4),
-  ('resource_id_seq', 2),
-  ('principal_type_id_seq', 8),
-  ('principal_id_seq', 13),
-  ('permission_id_seq', 7),
-  ('privilege_id_seq', 1),
-  ('alert_definition_id_seq', 0),
-  ('alert_group_id_seq', 0),
-  ('alert_target_id_seq', 0),
-  ('alert_history_id_seq', 0),
-  ('alert_notice_id_seq', 0),
-  ('alert_current_id_seq', 0),
-  ('config_id_seq', 1),
-  ('repo_version_id_seq', 0),
-  ('cluster_version_id_seq', 0),
-  ('host_version_id_seq', 0),
-  ('service_config_id_seq', 1),
-  ('upgrade_id_seq', 0),
-  ('upgrade_group_id_seq', 0),
-  ('widget_id_seq', 0),
-  ('widget_layout_id_seq', 0),
-  ('upgrade_item_id_seq', 0),
-  ('stack_id_seq', 0),
-  ('topology_host_info_id_seq', 0),
-  ('topology_host_request_id_seq', 0),
-  ('topology_host_task_id_seq', 0),
-  ('topology_logical_request_id_seq', 0),
-  ('topology_logical_task_id_seq', 0),
-  ('topology_request_id_seq', 0),
-  ('topology_host_group_id_seq', 0),
-  ('setting_id_seq', 0),
-  ('hostcomponentstate_id_seq', 0),
-  ('servicecomponentdesiredstate_id_seq', 0),
-  ('servicecomponent_history_id_seq', 0),
-  ('blueprint_setting_id_seq', 0),
-  ('ambari_operation_history_id_seq', 0);
+INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
+  SELECT 'cluster_id_seq', 1
+  UNION ALL
+  SELECT 'host_id_seq', 0
+  UNION ALL
+  SELECT 'user_id_seq', 2
+  UNION ALL
+  SELECT 'group_id_seq', 1
+  UNION ALL
+  SELECT 'member_id_seq', 1
+  UNION ALL
+  SELECT 'host_role_command_id_seq', 1
+  union all
+  select 'configgroup_id_seq', 1
+  union all
+  select 'requestschedule_id_seq', 1
+  union all
+  select 'resourcefilter_id_seq', 1
+  union all
+  select 'viewentity_id_seq', 0
+  union all
+  select 'operation_level_id_seq', 1
+  union all
+  select 'view_instance_id_seq', 1
+  union all
+  select 'resource_type_id_seq', 4
+  union all
+  select 'resource_id_seq', 2
+  union all
+  select 'principal_type_id_seq', 8
+  union all
+  select 'principal_id_seq', 7
+  union all
+  select 'permission_id_seq', 5
+  union all
+  select 'privilege_id_seq', 1
+  union all
+  select 'alert_definition_id_seq', 0
+  union all
+  select 'alert_group_id_seq', 0
+  union all
+  select 'alert_target_id_seq', 0
+  union all
+  select 'alert_history_id_seq', 0
+  union all
+  select 'alert_notice_id_seq', 0
+  union all
+  select 'alert_current_id_seq', 0
+  union all
+  select 'config_id_seq', 1
+  union all
+  select 'repo_version_id_seq', 0
+  union all
+  select 'cluster_version_id_seq', 0
+  union all
+  select 'host_version_id_seq', 0
+  union all
+  select 'service_config_id_seq', 1
+  union all
+  select 'upgrade_id_seq', 0
+  union all
+  select 'upgrade_group_id_seq', 0
+  union all
+  select 'widget_id_seq', 0
+  union all
+  select 'widget_layout_id_seq', 0
+  union all
+  select 'upgrade_item_id_seq', 0
+  union all
+  select 'stack_id_seq', 0
+  union all
+  select 'topology_host_info_id_seq', 0
+  union all
+  select 'topology_host_request_id_seq', 0
+  union all
+  select 'topology_host_task_id_seq', 0
+  union all
+  select 'topology_logical_request_id_seq', 0
+  union all
+  select 'topology_logical_task_id_seq', 0
+  union all
+  select 'topology_request_id_seq', 0
+  union all
+  select 'topology_host_group_id_seq', 0
+  union all
+  select 'setting_id_seq', 0
+  union all
+  select 'hostcomponentstate_id_seq', 0
+  union all
+  select 'servicecomponentdesiredstate_id_seq', 0
+  union all
+  select 'servicecomponent_history_id_seq', 0
+  union all
+  select 'blueprint_setting_id_seq', 0
+  union all
+  select 'ambari_operation_history_id_seq', 0;
 
-INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name) VALUES
-  (1, 'AMBARI'),
-  (2, 'CLUSTER'),
-  (3, 'VIEW');
+INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
+  SELECT 1, 'AMBARI'
+  UNION ALL
+  SELECT 2, 'CLUSTER'
+  UNION ALL
+  SELECT 3, 'VIEW';
 
-INSERT INTO ambari.adminresource (resource_id, resource_type_id) VALUES
-  (1, 1);
+INSERT INTO ambari.adminresource (resource_id, resource_type_id)
+  SELECT 1, 1;
 
-INSERT INTO ambari.adminprincipaltype (principal_type_id, principal_type_name) VALUES
-  (1, 'USER'),
-  (2, 'GROUP'),
-  (3, 'ALL.CLUSTER.ADMINISTRATOR'),
-  (4, 'ALL.CLUSTER.OPERATOR'),
-  (5, 'ALL.CLUSTER.USER'),
-  (6, 'ALL.SERVICE.ADMINISTRATOR'),
-  (7, 'ALL.SERVICE.OPERATOR'),
-  (8, 'ROLE');
+INSERT INTO ambari.adminprincipaltype (principal_type_id, principal_type_name)
+  SELECT 1, 'USER'
+  UNION ALL
+  SELECT 2, 'GROUP'
+  UNION ALL
+  SELECT 3, 'ALL.CLUSTER.ADMINISTRATOR'
+  UNION ALL
+  SELECT 4, 'ALL.CLUSTER.OPERATOR'
+  UNION ALL
+  SELECT 5, 'ALL.CLUSTER.USER'
+  UNION ALL
+  SELECT 6, 'ALL.SERVICE.ADMINISTRATOR'
+  UNION ALL
+  SELECT 7, 'ALL.SERVICE.OPERATOR';
 
-INSERT INTO ambari.adminprincipal (principal_id, principal_type_id) VALUES
-  (1, 1),
-  (2, 3),
-  (3, 4),
-  (4, 5),
-  (5, 6),
-  (6, 7),
-  (7, 8),
-  (8, 8),
-  (9, 8),
-  (10, 8),
-  (11, 8),
-  (12, 8),
-  (13, 8);
+INSERT INTO ambari.adminprincipal (principal_id, principal_type_id)
+  SELECT 1, 1
+  UNION ALL
+  SELECT 2, 3
+  UNION ALL
+  SELECT 3, 4
+  UNION ALL
+  SELECT 4, 5
+  UNION ALL
+  SELECT 5, 6
+  UNION ALL
+  SELECT 6, 7;
 
 INSERT INTO ambari.Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-INSERT INTO ambari.adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
-  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 7, 1 UNION ALL
-  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User', 8, 6 UNION ALL
-  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 9, 2 UNION ALL
-  SELECT 4, 'VIEW.USER', 3, 'View User', 10, 7 UNION ALL
-  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 11, 3 UNION ALL
-  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 12, 4 UNION ALL
-  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 13, 5;
+insert into ambari.adminpermission(permission_id, permission_name, resource_type_id, permission_label, sort_order)
+  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 1
+  UNION ALL
+  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User', 6
+  UNION ALL
+  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 2
+  UNION ALL
+  SELECT 4, 'VIEW.USER', 3, 'View User', 7
+  UNION ALL
+  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 3
+  UNION ALL
+  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 4
+  UNION ALL
+  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 5;
 
 INSERT INTO ambari.roleauthorization(authorization_id, authorization_name)
   SELECT 'VIEW.USE', 'Use View' UNION ALL
@@ -1492,11 +1548,11 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'AMBARI.EDIT_STACK_REPOS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR';
 
 
-INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, principal_id) VALUES
-  (1, 1, 1, 1);
+INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, principal_id)
+  SELECT 1, 1, 1, 1;
 
-INSERT INTO ambari.metainfo (metainfo_key, metainfo_value) VALUES
-  ('version', '${ambariSchemaVersion}');
+INSERT INTO ambari.metainfo (metainfo_key, metainfo_value)
+  SELECT 'version', '${ambariSchemaVersion}';
 COMMIT;
 
 -- Quartz tables
