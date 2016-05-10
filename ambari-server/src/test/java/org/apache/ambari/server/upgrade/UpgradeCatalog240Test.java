@@ -42,8 +42,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.EntityManager;
-
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
@@ -128,7 +126,8 @@ public class UpgradeCatalog240Test {
 
   @Test
   public void testExecuteDDLUpdates() throws SQLException, AmbariException {
-    Capture<DBAccessor.DBColumnInfo> capturedColumnInfo = newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedSortOrderColumnInfo = newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedPermissionIDColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedScColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedScDesiredVersionColumnInfo = newCapture();
 
@@ -139,7 +138,8 @@ public class UpgradeCatalog240Test {
     ResultSet resultSet = createNiceMock(ResultSet.class);
     Capture<List<DBAccessor.DBColumnInfo>> capturedSettingColumns = EasyMock.newCapture();
 
-    dbAccessor.addColumn(eq("adminpermission"), capture(capturedColumnInfo));
+    dbAccessor.addColumn(eq("adminpermission"), capture(capturedSortOrderColumnInfo));
+    dbAccessor.addColumn(eq("adminpermission"), capture(capturedPermissionIDColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.SERVICE_COMPONENT_DESIRED_STATE_TABLE), capture(capturedScColumnInfo));
     dbAccessor.addColumn(eq(UpgradeCatalog240.SERVICE_COMPONENT_DESIRED_STATE_TABLE),
         capture(capturedScDesiredVersionColumnInfo));
@@ -248,13 +248,21 @@ public class UpgradeCatalog240Test {
     UpgradeCatalog240 upgradeCatalog240 = injector.getInstance(UpgradeCatalog240.class);
     upgradeCatalog240.executeDDLUpdates();
 
-    DBAccessor.DBColumnInfo columnInfo = capturedColumnInfo.getValue();
-    Assert.assertNotNull(columnInfo);
-    Assert.assertEquals(UpgradeCatalog240.SORT_ORDER_COL, columnInfo.getName());
-    Assert.assertEquals(null, columnInfo.getLength());
-    Assert.assertEquals(Short.class, columnInfo.getType());
-    Assert.assertEquals(1, columnInfo.getDefaultValue());
-    Assert.assertEquals(false, columnInfo.isNullable());
+    DBAccessor.DBColumnInfo columnSortOrderInfo = capturedSortOrderColumnInfo.getValue();
+    Assert.assertNotNull(columnSortOrderInfo);
+    Assert.assertEquals(UpgradeCatalog240.SORT_ORDER_COL, columnSortOrderInfo.getName());
+    Assert.assertEquals(null, columnSortOrderInfo.getLength());
+    Assert.assertEquals(Short.class, columnSortOrderInfo.getType());
+    Assert.assertEquals(1, columnSortOrderInfo.getDefaultValue());
+    Assert.assertEquals(false, columnSortOrderInfo.isNullable());
+
+    DBAccessor.DBColumnInfo columnPrincipalIDInfo = capturedPermissionIDColumnInfo.getValue();
+    Assert.assertNotNull(columnPrincipalIDInfo);
+    Assert.assertEquals(UpgradeCatalog240.PRINCIPAL_ID_COL, columnPrincipalIDInfo.getName());
+    Assert.assertEquals(null, columnPrincipalIDInfo.getLength());
+    Assert.assertEquals(Long.class, columnPrincipalIDInfo.getType());
+    Assert.assertEquals(null, columnPrincipalIDInfo.getDefaultValue());
+    Assert.assertEquals(true, columnPrincipalIDInfo.isNullable());
 
     // Verify if recovery_enabled column was added to servicecomponentdesiredstate table
     DBAccessor.DBColumnInfo columnScInfo = capturedScColumnInfo.getValue();
@@ -396,18 +404,15 @@ public class UpgradeCatalog240Test {
     Method removeHiveOozieDBConnectionConfigs = UpgradeCatalog240.class.getDeclaredMethod("removeHiveOozieDBConnectionConfigs");
     Method updateClustersAndHostsVersionStateTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateClustersAndHostsVersionStateTableDML");
     Method removeStandardDeviationAlerts = UpgradeCatalog240.class.getDeclaredMethod("removeStandardDeviationAlerts");
-    Method getAndIncrementSequence = AbstractUpgradeCatalog.class.getDeclaredMethod("getAndIncrementSequence", String.class);
     Method consolidateUserRoles = UpgradeCatalog240.class.getDeclaredMethod("consolidateUserRoles");
+    Method updateClusterInheritedPermissionsConfig = UpgradeCatalog240.class.getDeclaredMethod("updateClusterInheritedPermissionsConfig");
+    Method createRolePrincipals = UpgradeCatalog240.class.getDeclaredMethod("createRolePrincipals");
+
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
-    Capture<String> capturedTablesNames = newCapture(CaptureType.ALL);
-    Capture<String[]> captureColumnNames = newCapture(CaptureType.ALL);
-    Capture<String[]> captureColumnValues = newCapture(CaptureType.ALL);
-
 
     DBAccessor dbAccessor = createStrictMock(DBAccessor.class);
     expect(dbAccessor.executeUpdate(capture(capturedStatements))).andReturn(1).times(7);
-    expect(dbAccessor.insertRow(capture(capturedTablesNames), capture(captureColumnNames), capture(captureColumnValues), anyBoolean())).andReturn(true).times(10);
 
     UpgradeCatalog240 upgradeCatalog240 = createMockBuilder(UpgradeCatalog240.class)
             .addMockedMethod(addNewConfigurationsFromXml)
@@ -424,11 +429,10 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(removeHiveOozieDBConnectionConfigs)
             .addMockedMethod(updateClustersAndHostsVersionStateTableDML)
             .addMockedMethod(removeStandardDeviationAlerts)
-            .addMockedMethod(getAndIncrementSequence)
             .addMockedMethod(consolidateUserRoles)
+            .addMockedMethod(updateClusterInheritedPermissionsConfig)
+            .addMockedMethod(createRolePrincipals)
             .createMock();
-
-    expect(upgradeCatalog240.getAndIncrementSequence(anyString())).andReturn(1).anyTimes();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
     field.set(upgradeCatalog240, dbAccessor);
@@ -448,6 +452,8 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateClustersAndHostsVersionStateTableDML();
     upgradeCatalog240.removeStandardDeviationAlerts();
     upgradeCatalog240.consolidateUserRoles();
+    upgradeCatalog240.createRolePrincipals();
+    upgradeCatalog240.updateClusterInheritedPermissionsConfig();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -465,47 +471,6 @@ public class UpgradeCatalog240Test {
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=5 WHERE permission_name='SERVICE.OPERATOR'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=6 WHERE permission_name='CLUSTER.USER'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=7 WHERE permission_name='VIEW.USER'"));
-
-
-    List<String> tableNames = capturedTablesNames.getValues();
-    Assert.assertNotNull(tableNames);
-    Assert.assertEquals(10, tableNames.size());
-    Assert.assertTrue(tableNames.contains("adminprincipaltype"));
-    Assert.assertTrue(tableNames.contains("adminprincipal"));
-
-    List<String[]> tableColumns = captureColumnNames.getValues();
-    Assert.assertNotNull(tableColumns);
-    Assert.assertEquals(10, tableColumns.size());
-    Assert.assertTrue(shouldOnlyHaveValidColumns(tableColumns));
-
-    List<String[]> tableColumnsValue = captureColumnValues.getValues();
-    Assert.assertNotNull(tableColumnsValue);
-    Assert.assertEquals(10, tableColumnsValue.size());
-    isValidValues(tableColumnsValue.get(0), "3", "'ALL.CLUSTER.ADMINISTRATOR'");
-    isValidValues(tableColumnsValue.get(1), "4", "'ALL.CLUSTER.OPERATOR'");
-    isValidValues(tableColumnsValue.get(2), "5", "'ALL.CLUSTER.USER'");
-    isValidValues(tableColumnsValue.get(3), "6", "'ALL.SERVICE.ADMINISTRATOR'");
-    isValidValues(tableColumnsValue.get(4), "7", "'ALL.SERVICE.OPERATOR'");
-    isValidValues(tableColumnsValue.get(5), "1", "3");
-    isValidValues(tableColumnsValue.get(6), "1", "4");
-    isValidValues(tableColumnsValue.get(7), "1", "5");
-    isValidValues(tableColumnsValue.get(8), "1", "6");
-    isValidValues(tableColumnsValue.get(9), "1", "7");
-  }
-
-  private void isValidValues(String[] actual, String expectedFirst, String expectedSecond) {
-    Assert.assertEquals(expectedFirst, actual[0]);
-    Assert.assertEquals(expectedSecond, actual[1]);
-  }
-
-  private boolean shouldOnlyHaveValidColumns(List<String[]> tableColumns) {
-    for(String[] columns: tableColumns) {
-      if (!(("principal_type_id".equalsIgnoreCase(columns[0]) && "principal_type_name".equalsIgnoreCase(columns[1]))
-        || ("principal_id".equalsIgnoreCase(columns[0]) && "principal_type_id".equalsIgnoreCase(columns[1])))) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @Test

@@ -28,7 +28,7 @@ import javax.persistence.*;
 @TableGenerator(name = "principal_type_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "principal_type_id_seq"
-    , initialValue = 3
+    , initialValue = 100
 )
 public class PrincipalTypeEntity {
 

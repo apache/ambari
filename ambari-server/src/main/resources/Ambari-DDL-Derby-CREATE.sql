@@ -633,9 +633,11 @@ CREATE TABLE adminpermission (
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
   permission_label VARCHAR(255),
+  principal_id BIGINT NOT NULL,
   sort_order SMALLINT NOT NULL DEFAULT 1,
   CONSTRAINT PK_adminpermission PRIMARY KEY (permission_id),
   CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id),
+  CONSTRAINT FK_permission_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
   CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id));
 
 CREATE TABLE roleauthorization (
@@ -1027,9 +1029,9 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'principal_type_id_seq', 8 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'principal_id_seq', 7 FROM SYSIBM.SYSDUMMY1
+  select 'principal_id_seq', 13 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'permission_id_seq', 5 FROM SYSIBM.SYSDUMMY1
+  select 'permission_id_seq', 7 FROM SYSIBM.SYSDUMMY1
   union all
   select 'privilege_id_seq', 1 FROM SYSIBM.SYSDUMMY1
   union all
@@ -1117,7 +1119,9 @@ INSERT INTO adminprincipaltype (principal_type_id, principal_type_name)
   UNION ALL
   SELECT 6, 'ALL.SERVICE.ADMINISTRATOR' FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 7, 'ALL.SERVICE.OPERRATOR' FROM SYSIBM.SYSDUMMY1;
+  SELECT 7, 'ALL.SERVICE.OPERRATOR' FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 8, 'ROLE' FROM SYSIBM.SYSDUMMY1;
 
 INSERT INTO adminprincipal (principal_id, principal_type_id)
   SELECT 1, 1 FROM SYSIBM.SYSDUMMY1
@@ -1130,25 +1134,39 @@ INSERT INTO adminprincipal (principal_id, principal_type_id)
   UNION ALL
   SELECT 5, 6 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 6, 7 FROM SYSIBM.SYSDUMMY1;
+  SELECT 6, 7 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 7, 8 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 8, 8 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 9, 8 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 10, 8 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 11, 8 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 12, 8 FROM SYSIBM.SYSDUMMY1
+  UNION ALL
+  SELECT 13, 8 FROM SYSIBM.SYSDUMMY1;
 
 INSERT INTO Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' FROM SYSIBM.SYSDUMMY1;
 
-insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, sort_order)
-  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 1 FROM SYSIBM.SYSDUMMY1
+insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
+  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 7, 1 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User', 6 FROM SYSIBM.SYSDUMMY1
+  SELECT 2, 'CLUSTER.USER', 2, 'Cluster User', 8, 6 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 2 FROM SYSIBM.SYSDUMMY1
+  SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 9, 2 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 4, 'VIEW.USER', 3, 'View User', 7 FROM SYSIBM.SYSDUMMY1
+  SELECT 4, 'VIEW.USER', 3, 'View User', 10, 7 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 3 FROM SYSIBM.SYSDUMMY1
+  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 11, 3 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 4 FROM SYSIBM.SYSDUMMY1
+  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 12, 4 FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 5 FROM SYSIBM.SYSDUMMY1;
+  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator', 13, 5 FROM SYSIBM.SYSDUMMY1;
 
 INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'VIEW.USE', 'Use View' FROM SYSIBM.SYSDUMMY1 UNION ALL

@@ -640,9 +640,11 @@ CREATE TABLE adminpermission (
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
   permission_label VARCHAR(255),
+  principal_id BIGINT NOT NULL,
   sort_order SMALLINT NOT NULL DEFAULT 1,
   CONSTRAINT PK_adminpermission PRIMARY KEY CLUSTERED (permission_id),
   CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES adminresourcetype(resource_type_id),
+  CONSTRAINT FK_permission_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
   CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id));
 
 CREATE TABLE roleauthorization (
@@ -1033,8 +1035,8 @@ BEGIN TRANSACTION
     ('resource_type_id_seq', 4),
     ('resource_id_seq', 2),
     ('principal_type_id_seq', 8),
-    ('principal_id_seq', 7),
-    ('permission_id_seq', 5),
+    ('principal_id_seq', 13),
+    ('permission_id_seq', 7),
     ('privilege_id_seq', 1),
     ('alert_definition_id_seq', 0),
     ('alert_group_id_seq', 0),
@@ -1084,7 +1086,8 @@ BEGIN TRANSACTION
     (4, 'ALL.CLUSTER.OPERATOR'),
     (5, 'ALL.CLUSTER.USER'),
     (6, 'ALL.SERVICE.ADMINISTRATOR'),
-    (7, 'ALL.SERVICE.OPERATOR');
+    (7, 'ALL.SERVICE.OPERATOR'),
+    (8, 'ROLE');
 
   insert into adminprincipal (principal_id, principal_type_id)
   values
@@ -1093,20 +1096,27 @@ BEGIN TRANSACTION
     (3, 4),
     (4, 5),
     (5, 6),
-    (6, 7);
+    (6, 7),
+    (7, 8),
+    (8, 8),
+    (9, 8),
+    (10, 8),
+    (11, 8),
+    (12, 8),
+    (13, 8);
 
   insert into users(user_id, principal_id, user_name, user_password)
     select 1, 1, 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-  insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, sort_order)
+  insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   values
-    (1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 1),
-    (2, 'CLUSTER.USER', 2, 'Cluster User', 6),
-    (3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 2),
-    (4, 'VIEW.USER', 3, 'View User', 7),
-    (5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 3),
-    (6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 4),
-    (7, 'SERVICE.OPERATOR', 2, 'Service Operator', 5);
+    (1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 7, 1),
+    (2, 'CLUSTER.USER', 2, 'Cluster User', 8, 6),
+    (3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 9, 2),
+    (4, 'VIEW.USER', 3, 'View User', 10, 7),
+    (5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator', 11, 3),
+    (6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator', 12, 4),
+    (7, 'SERVICE.OPERATOR', 2, 'Service Operator', 13, 5);
 
   INSERT INTO roleauthorization(authorization_id, authorization_name)
     SELECT 'VIEW.USE', 'Use View' UNION ALL

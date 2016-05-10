@@ -58,6 +58,16 @@ public class PermissionDAO {
   }
 
   /**
+   * Create or updates a permission.
+   *
+   * @param permissionEntity  entity to create or update
+   */
+  @Transactional
+  public PermissionEntity merge(PermissionEntity permissionEntity) {
+    return entityManagerProvider.get().merge(permissionEntity);
+  }
+
+  /**
    * Find a permission entity with the given id.
    *
    * @param id  type id
