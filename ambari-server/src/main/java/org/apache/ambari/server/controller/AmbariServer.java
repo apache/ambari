@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.logging.LogManager;
 
 import javax.crypto.BadPaddingException;
 import javax.servlet.DispatcherType;
@@ -124,6 +125,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -264,6 +266,9 @@ public class AmbariServer {
 
   @SuppressWarnings("deprecation")
   public void run() throws Exception {
+    setupJulLogging();
+
+
     performStaticInjection();
     initDB();
     server = new Server();
@@ -584,6 +589,15 @@ public class AmbariServer {
           "Terminating this instance.", bindException);
       throw bindException;
     }
+  }
+
+  /**
+   * installs bridge handler which redirects log entries from JUL to Slf4J
+   */
+  private void setupJulLogging() {
+    // install handler for jul to slf4j translation
+    LogManager.getLogManager().reset();
+    SLF4JBridgeHandler.install();
   }
 
   /**
