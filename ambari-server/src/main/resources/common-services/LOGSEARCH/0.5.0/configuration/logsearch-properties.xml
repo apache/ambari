@@ -120,4 +120,11 @@
     <display-name>Logfeeder log levels</display-name>
   </property>
 
+  <property>
+    <name>logsearch.solr.metrics.collector.hosts</name>
+    <value>{metrics_collector_hosts}</value>
+    <description>Metrics collector hosts for pushing metrics by LogSearch Solr</description>
+    <display-name>Metrics collector hosts</display-name>
+  </property>
+
 </configuration>

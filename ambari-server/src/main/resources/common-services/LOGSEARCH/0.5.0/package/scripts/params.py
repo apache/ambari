@@ -98,6 +98,9 @@ logsearch_service_logs_merge_factor = config['configurations']['logsearch-servic
 logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
 logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
 
+logsearch_solr_metrics_collector_hosts = format(config['configurations']['logsearch-properties']['logsearch.solr.metrics.collector.hosts'])
+logsearch_solr_jmx_port = config['configurations']['logsearch-solr-env']['logsearch_solr_jmx_port']
+
 logsearch_service_logs_fields = config['configurations']['logsearch-properties']['logsearch.service.logs.fields']
 
 audit_logs_collection_splits_interval_mins = config['configurations']['logsearch-properties']['logsearch.audit.logs.split.interval.mins']

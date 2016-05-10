@@ -2079,6 +2079,13 @@ var hdp2properties = [
     "category": "Advanced logsearch-properties",
     "index": 6
   },
+  {
+    "name": "logsearch.solr.metrics.collector.hosts",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 9
+  },
   /*logsearch-solr-env*/
   {
     "name": "logsearch_solr_datadir",
@@ -2123,25 +2130,32 @@ var hdp2properties = [
     "index": 6
   },
   {
-    "name": "logsearch_solr_minmem",
+    "name": "logsearch_solr_jmx_port",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 7
   },
   {
-    "name": "logsearch_solr_maxmem",
+    "name": "logsearch_solr_minmem",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 8
   },
   {
-    "name": "content",
+    "name": "logsearch_solr_maxmem",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 9
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 10
   },
   /*logsearch-solr-log4j*/
   {

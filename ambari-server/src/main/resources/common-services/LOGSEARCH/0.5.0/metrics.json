@@ -49,5 +49,56 @@
         }
       }
     ]
+  },
+    "LOGSEARCH_SOLR": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/logsearch/solr/cpu/usage": {
+              "metric": "logsearch.solr.cpu.usage",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapUsedM": {
+              "metric": "jvm.JvmMetrics.MemHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapCommittedM": {
+              "metric": "jvm.JvmMetrics.MemHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapMaxM": {
+              "metric": "jvm.JvmMetrics.MemHeapMaxM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapUsedM": {
+              "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapCommittedM": {
+              "metric": "jvm.JvmMetrics.MemNonHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapMaxM": {
+              "metric": "jvm.JvmMetrics.MemNonHeapMaxM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/logsearch/solr/index/size": {
+              "metric": "logsearch.solr.index.size",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ]
   }
 }

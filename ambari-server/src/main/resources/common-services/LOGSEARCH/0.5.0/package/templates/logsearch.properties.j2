@@ -39,7 +39,11 @@ solr.core.history=history
 solr.history.config_name=history
 solr.history.replication_factor=1
 
-#Logfeeder Settings
+# Metrics
+metrics.collector.hosts={{logsearch_solr_metrics_collector_hosts}}
+solr.jmx.port={{logsearch_solr_jmx_port}}
+
+# Logfeeder Settings
 
 logfeeder.include.default.level={{logsearch_logfeeder_log_level_include}}
 
@@ -50,3 +54,4 @@ logsearch.login.credentials.file={{logsearch_admin_credential_file}}
 {% for key, value in logsearch_custom_properties.items() %}
 {{key}}={{value}}
 {% endfor %}
+

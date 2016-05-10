@@ -23,19 +23,17 @@ import org.apache.ambari.logsearch.solr.commands.CreateCollectionCommand;
 import org.apache.ambari.logsearch.solr.commands.CreateShardCommand;
 import org.apache.ambari.logsearch.solr.commands.DownloadConfigZkCommand;
 import org.apache.ambari.logsearch.solr.commands.GetShardsCommand;
+import org.apache.ambari.logsearch.solr.commands.GetSolrHostsCommand;
 import org.apache.ambari.logsearch.solr.commands.ListCollectionCommand;
 import org.apache.ambari.logsearch.solr.commands.UploadConfigZkCommand;
 import org.apache.ambari.logsearch.solr.util.ShardUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -88,7 +86,7 @@ public class AmbariSolrCloudClient {
    * Create Solr collection if exists
    */
   public String createCollection() throws Exception {
-    List <String> collections = listCollections();
+    List<String> collections = listCollections();
     if (!collections.contains(getCollection())) {
       String collection = new CreateCollectionCommand(getRetryTimes(), getInterval()).run(this);
       LOG.info("Collection '{}' created.", collection);
@@ -133,9 +131,11 @@ public class AmbariSolrCloudClient {
   }
 
   /**
-   * Create shard in collection - create a new one if shard name specified, if not create based on
-   * the number of shards logic (with shard_# suffix)
-   * @param shard name of the created shard
+   * Create shard in collection - create a new one if shard name specified, if
+   * not create based on the number of shards logic (with shard_# suffix)
+   * 
+   * @param shard
+   *          name of the created shard
    */
   public Collection<String> createShard(String shard) throws Exception {
     Collection<String> existingShards = getShardNames();
@@ -161,6 +161,13 @@ public class AmbariSolrCloudClient {
   public Collection<String> getShardNames() throws Exception {
     Collection<Slice> slices = new GetShardsCommand(getRetryTimes(), getInterval()).run(this);
     return ShardUtils.getShardNamesFromSlices(slices, this.getCollection());
+  }
+
+  /**
+   * Get Solr Hosts
+   */
+  public Collection<String> getSolrHosts() throws Exception {
+    return new GetSolrHostsCommand(getRetryTimes(), getInterval()).run(this);
   }
 
   public String getZookeeperHosts() {

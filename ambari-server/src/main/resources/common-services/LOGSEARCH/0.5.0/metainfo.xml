@@ -74,6 +74,7 @@
 
         <component>
           <name>LOGSEARCH_SOLR</name>
+          <timelineAppid>logsearch-solr</timelineAppid>
           <displayName>Log Search Solr Instance</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>

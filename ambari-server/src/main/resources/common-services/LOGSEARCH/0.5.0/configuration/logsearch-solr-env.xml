@@ -30,6 +30,13 @@
   </property>
 
   <property>
+    <name>logsearch_solr_jmx_port</name>
+    <value>18886</value>
+    <description>Solr jmx port</description>
+    <display-name>Logsearch Solr jmx port</display-name>
+  </property>
+
+  <property>
     <name>logsearch_solr_pid_dir</name>
     <value>/var/run/ambari-logsearch-solr</value>
     <description>Solr Process ID Directory</description>

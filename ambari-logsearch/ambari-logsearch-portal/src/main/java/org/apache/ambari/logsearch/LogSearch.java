@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Timer;
 
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
+import org.apache.ambari.logsearch.solr.metrics.SolrMetricsLoader;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.hadoop.http.HttpServer2;
 import org.apache.log4j.Logger;
@@ -52,5 +53,7 @@ public class LogSearch {
     } catch (Throwable e) {
       logger.error("Error running logsearch server", e);
     }
+
+    SolrMetricsLoader.startSolrMetricsLoaderTasks();
   }
 }

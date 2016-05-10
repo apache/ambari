@@ -63,62 +63,78 @@
         "description": "This host-level alert is triggered if the Solr index size is over a limit.",
         "interval": 1,
         "scope": "ANY",
-        "enabled" : false,
         "source": {
-          "parameters" : [
-            {
-              "name" : "solr.index.size.warning",
-              "display_name" : "Solr index size warning threshold",
-              "units" : "GB",
-              "value" : 50,
-              "description" : "The maximum size of the Solr index before this alert is considered to be WARNING",
-              "type" : "NUMERIC",
-              "threshold" : "WARNING"
+          "type": "AMS",
+          "uri": {
+            "http": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https_property": "{{ams-site/timeline.metrics.service.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "Solr index size is {0:.1f}GB"
             },
-            {
-              "name" : "solr.index.size.critical",
-              "display_name" : "Solr index size critical threshold",
-              "units" : "GB",
-              "value" : 100,
-              "description" : "The maximum size of the Solr index before this alert is considered to be CRITICAL",
-              "type" : "NUMERIC",
-              "threshold" : "CRITICAL"
-            }
-          ],
-          "path" : "LOGSEARCH/0.5.0/package/alerts/alert_solr_index_size.py",
-          "type" : "SCRIPT"
+            "warning": {
+              "text": "Solr index size is {0:.1f}GB",
+              "value": 50
+            },
+            "critical": {
+              "text": "Solr index size is {0:.1f}GB",
+              "value": 100
+            },
+            "units" : "GB"
+          },
+          "ams": {
+            "app_id": "logsearch-solr",
+            "interval": 1,
+            "metric_list": [
+              "logsearch.solr.index.size"
+            ],
+            "value": "{0}",
+            "compute": "mean"
+          }
         }
       },
       {
-        "name": "logsearch_solr_cpu",
+        "name": "logsearch_solr_cpu_usage",
         "label": "LogSearch Solr CPU Utilization",
         "description": "This host-level alert is triggered if CPU utilization of the LogSearch Solr exceeds certain warning and critical thresholds. It checks the LogSearch Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
-        "enabled": true,
         "source": {
-          "parameters" : [
-            {
-              "name" : "solr.cpu.usage.warning",
-              "display_name" : "Solr cpu usage warning threshold",
-              "units" : "%",
-              "value" : 200,
-              "description" : "The maximum cpu usage of Solr before this alert is considered to be WARNING",
-              "type" : "NUMERIC",
-              "threshold" : "WARNING"
+          "type": "AMS",
+          "uri": {
+            "http": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https_property": "{{ams-site/timeline.metrics.service.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "CPU load {0:.1%}"
             },
-            {
-              "name" : "solr.cpu.usage.critical",
-              "display_name" : "Solr cpu usage critical threshold",
-              "units" : "%",
-              "value" : 250,
-              "description" : "The maximum cpu usage of Solr index before this alert is considered to be CRITICAL",
-              "type" : "NUMERIC",
-              "threshold" : "CRITICAL"
-            }
-          ],
-          "path" : "LOGSEARCH/0.5.0/package/alerts/alert_solr_cpu_usage.py",
-          "type" : "SCRIPT"
+            "warning": {
+              "text": "CPU load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "CPU load {0:.1%}",
+              "value": 250
+            },
+            "units" : "%"
+          },
+          "ams": {
+            "app_id": "logsearch-solr",
+            "interval": 1,
+            "metric_list": [
+              "logsearch.solr.cpu.usage"
+            ],
+            "value": "{0}",
+            "compute": "mean"
+          }
         }
       },
       {
@@ -127,30 +143,39 @@
         "description": "This host-level alert is triggered if CPU utilization of the LogSearch Solr exceeds certain warning and critical thresholds. It checks the LogSearch Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
-        "enabled": true,
         "source": {
-          "parameters" : [
-            {
-              "name" : "solr.memory.usage.warning",
-              "display_name" : "Solr memory usage warning threshold",
-              "units" : "%",
-              "value" : 200,
-              "description" : "The maximum memory usage of Solr before this alert is considered to be WARNING",
-              "type" : "NUMERIC",
-              "threshold" : "WARNING"
+          "type": "AMS",
+          "uri": {
+            "http": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https": "{{ams-site/timeline.metrics.service.webapp.address}}",
+            "https_property": "{{ams-site/timeline.metrics.service.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "Memory usage is {0:.1%}"
             },
-            {
-              "name" : "solr.memory.usage.critical",
-              "display_name" : "Solr memory usage critical threshold",
-              "units" : "%",
-              "value" : 250,
-              "description" : "The maximum memory usage of Solr index before this alert is considered to be CRITICAL",
-              "type" : "NUMERIC",
-              "threshold" : "CRITICAL"
-            }
-          ],
-          "path" : "LOGSEARCH/0.5.0/package/alerts/alert_solr_memory_usage.py",
-          "type" : "SCRIPT"
+            "warning": {
+              "text": "Memory usage is {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "Memory usage is {0:.1%}",
+              "value": 250
+            },
+            "units" : "%"
+          },
+          "ams": {
+            "app_id": "logsearch-solr",
+            "interval": 1,
+            "metric_list": [
+              "jvm.JvmMetrics.MemHeapUsedM",
+              "jvm.JvmMetrics.MemHeapMaxM"
+            ],
+            "value": "{0} / {1}",
+            "compute": "mean"
+          }
         }
       }
     ]
