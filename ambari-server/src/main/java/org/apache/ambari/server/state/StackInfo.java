@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
@@ -63,13 +64,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    * applied to all commands for services in current stack.
    */
   private String stackHooksFolder;
-
   private String upgradesFolder = null;
-
   private volatile Map<String, PropertyInfo> requiredProperties;
-
   private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
-
+  private Set<String> errorSet = new HashSet<String>();
+  private RepositoryXml repoXml = null;
 
   public String getMinJdk() {
     return minJdk;
@@ -104,8 +103,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   public void setValid(boolean valid) {
     this.valid = valid;
   }
-
-  private Set<String> errorSet = new HashSet<String>();
 
   @Override
   public void addError(String error) {
@@ -143,9 +140,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     return repositories;
   }
 
-  public void setRepositories(List<RepositoryInfo> repositories) {
-    this.repositories = repositories;
-  }
 
   public synchronized Collection<ServiceInfo> getServices() {
     if (services == null) services = new ArrayList<ServiceInfo>();
@@ -260,8 +254,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
     // Get the stack-level Kerberos descriptor file path
     String stackDescriptorFileFilePath = getKerberosDescriptorFileLocation();
-
-    String widgetDescriptorFilePath = getWidgetsDescriptorFileLocation();
 
     // Collect the services' Kerberos descriptor files
     Collection<ServiceInfo> serviceInfos = getServices();
@@ -476,6 +468,20 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    */
   public Collection<VersionDefinitionXml> getVersionDefinitions() {
     return versionDefinitions.values();
+  }
+
+  /**
+   * @param rxml  the repository xml object
+   */
+  public void setRepositoryXml(RepositoryXml rxml) {
+    repoXml = rxml;
+  }
+
+  /**
+   * @return the repository xml object, or {@code null} if it couldn't be loaded
+   */
+  public RepositoryXml getRepositoryXml() {
+    return repoXml;
   }
 
 }

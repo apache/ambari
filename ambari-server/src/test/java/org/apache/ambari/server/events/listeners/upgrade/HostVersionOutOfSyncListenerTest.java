@@ -443,7 +443,7 @@ public class HostVersionOutOfSyncListenerTest {
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
+    hostAttributes.put("os_release_version", "6.4");
     host1.setHostAttributes(hostAttributes);
 
     host1.persist();

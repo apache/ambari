@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.AvailableVersion.Component;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Class that wraps a repository definition file.
@@ -62,6 +63,9 @@ import org.apache.commons.io.IOUtils;
 @XmlRootElement(name="repository-version")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class VersionDefinitionXml {
+
+  public static String SCHEMA_LOCATION = "version_definition.xsd";
+
 
   /**
    * Release details.
@@ -102,6 +106,9 @@ public class VersionDefinitionXml {
   @XmlTransient
   private List<ManifestServiceInfo> m_manifest = null;
 
+  @XmlTransient
+  private boolean m_stackDefault = false;
+
 
   /**
    * @param stack the stack info needed to lookup service and component display names
@@ -129,6 +136,14 @@ public class VersionDefinitionXml {
     }
 
     return availableMap.values();
+  }
+
+  /**
+   * Gets if the version definition was built as the default for a stack
+   * @return {@code true} if default for a stack
+   */
+  public boolean isStackDefault() {
+    return m_stackDefault;
   }
 
   /**
@@ -317,6 +332,48 @@ public class VersionDefinitionXml {
   }
 
   /**
+   * Builds a Version Definition that is the default for the stack
+   * @param stack
+   * @return the version definition
+   */
+  public static VersionDefinitionXml build(StackInfo stackInfo) {
+
+    VersionDefinitionXml xml = new VersionDefinitionXml();
+    xml.m_stackDefault = true;
+    xml.release = new Release();
+    xml.repositoryInfo = new RepositoryXml();
+    xml.xsdLocation = SCHEMA_LOCATION;
+
+    StackId stackId = new StackId(stackInfo.getName(), stackInfo.getVersion());
+
+    xml.release.repositoryType = RepositoryType.STANDARD;
+    xml.release.stackId = stackId.toString();
+    xml.release.version = stackInfo.getVersion();
+    xml.release.releaseNotes = "NONE";
+    xml.release.display = stackId.toString();
+
+    for (ServiceInfo si : stackInfo.getServices()) {
+      ManifestService ms = new ManifestService();
+      ms.serviceName = si.getName();
+      ms.version = StringUtils.trimToEmpty(si.getVersion());
+      ms.serviceId = ms.serviceName + "-" + ms.version.replace(".", "");
+      xml.manifestServices.add(ms);
+    }
+
+    if (null != stackInfo.getRepositoryXml()) {
+      xml.repositoryInfo.getOses().addAll(stackInfo.getRepositoryXml().getOses());
+    }
+
+    try {
+      xml.toXml();
+    } catch (Exception e) {
+      throw new IllegalArgumentException(e);
+    }
+
+    return xml;
+  }
+
+  /**
    * Used to facilitate merging when multiple version definitions are provided.  Ambari
    * represents them as a unified entity.  Since there is no knowledge of which one is
    * "correct" - the first one is used for the release meta-info.
@@ -363,7 +420,6 @@ public class VersionDefinitionXml {
     public VersionDefinitionXml merge() {
       return m_seeded ? m_xml : null;
     }
-
   }
 
 }

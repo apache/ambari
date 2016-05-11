@@ -17,20 +17,6 @@
 -->
 <reposinfo>
   <latest>./hdp.json</latest>
-  <os family="centos6">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0</baseurl>
-      <repoid>HDP-2.2.0</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os family="centos5">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0</baseurl>
-      <repoid>HDP-2.2.0</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
   <os family="redhat6">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0</baseurl>
@@ -38,21 +24,7 @@
       <reponame>HDP</reponame>
     </repo>
   </os>
-  <os family="redhat5">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0</baseurl>
-      <repoid>HDP-2.2.0</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
   <os family="suse11">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.2.0.0</baseurl>
-      <repoid>HDP-2.2.0</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-  </os>
-  <os family="sles11">
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.2.0.0</baseurl>
       <repoid>HDP-2.2.0</repoid>

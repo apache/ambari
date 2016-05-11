@@ -269,11 +269,23 @@ public class VersionDefinitionResourceProviderTest {
         VersionDefinitionResourceProvider.SHOW_AVAILABLE).equals("true").toPredicate();
 
     Set<Resource> results = versionProvider.getResources(getRequest, predicate);
-    Assert.assertEquals(1, results.size());
+    Assert.assertEquals(2, results.size());
 
-    Resource res = results.iterator().next();
+    boolean found1 = false;
+    boolean found2 = false;
+    for (Resource res : results) {
+      if ("HDP-2.2.0-2.2.1.0".equals(res.getPropertyValue("VersionDefinition/id"))) {
+        Assert.assertEquals(Boolean.FALSE, res.getPropertyValue("VersionDefinition/stack_default"));
+        found1 = true;
+      } else if ("HDP-2.2.0".equals(res.getPropertyValue("VersionDefinition/id"))) {
+        Assert.assertEquals(Boolean.TRUE, res.getPropertyValue("VersionDefinition/stack_default"));
+        found2 = true;
+      }
+    }
 
-    Assert.assertEquals("HDP-2.2.0-2.2.1.0", res.getPropertyValue("VersionDefinition/id"));
+    Assert.assertTrue(found1);
+    Assert.assertTrue(found2);
+
   }
 
   @Test
