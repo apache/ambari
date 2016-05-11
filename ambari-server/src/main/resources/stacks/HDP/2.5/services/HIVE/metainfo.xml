@@ -91,12 +91,6 @@
             <script>scripts/hive_server_interactive.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
-          <logs>
-            <log>
-              <logId>hive_hiveserver2</logId>
-              <primary>true</primary>
-            </log>
-          </logs>
           <customCommands>
             <customCommand>
               <name>RESTART_LLAP</name>

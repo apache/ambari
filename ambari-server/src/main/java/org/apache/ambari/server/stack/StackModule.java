@@ -333,16 +333,16 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setValid(false);
       String error = "The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
           + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'";
-      setErrors(error);
-      stackInfo.setErrors(error);
+      addError(error);
+      stackInfo.addError(error);
     } else {
       if (baseService.isValid()) {
         service.resolveExplicit(baseService, allStacks, commonServices);
       } else {
         setValid(false);
         stackInfo.setValid(false);
-        setErrors(baseService.getErrors());
-        stackInfo.setErrors(baseService.getErrors());
+        addErrors(baseService.getErrors());
+        stackInfo.addErrors(baseService.getErrors());
       }
     }
   }
@@ -408,7 +408,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     if (smx != null) {
       if (!smx.isValid()) {
         stackInfo.setValid(false);
-        stackInfo.setErrors(smx.getErrors());
+        stackInfo.addErrors(smx.getErrors());
       }
       stackInfo.setMinJdk(smx.getMinJdk());
       stackInfo.setMaxJdk(smx.getMaxJdk());
@@ -431,13 +431,13 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       RepositoryXml rxml = stackDirectory.getRepoFile();
       if (rxml != null && !rxml.isValid()) {
         stackInfo.setValid(false);
-        stackInfo.setErrors(rxml.getErrors());
+        stackInfo.addErrors(rxml.getErrors());
       }
       // Read the service and available configs for this stack
       populateServices();
       if (!stackInfo.isValid()) {
         setValid(false);
-        setErrors(stackInfo.getErrors());
+        addErrors(stackInfo.getErrors());
       }
 
       //todo: shouldn't blindly catch Exception, re-evaluate this.
@@ -446,8 +446,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
           stackInfo.getName() + "-" + stackInfo.getVersion();
       setValid(false);
       stackInfo.setValid(false);
-      setErrors(error);
-      stackInfo.setErrors(error);
+      addError(error);
+      stackInfo.addError(error);
       LOG.error(error);
     }
   }
@@ -474,8 +474,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     if (!metaInfoXml.isValid()){
       stackInfo.setValid(metaInfoXml.isValid());
       setValid(metaInfoXml.isValid());
-      stackInfo.setErrors(metaInfoXml.getErrors());
-      setErrors(metaInfoXml.getErrors());
+      stackInfo.addErrors(metaInfoXml.getErrors());
+      addErrors(metaInfoXml.getErrors());
       return;
     }
     List<ServiceInfo> serviceInfos = metaInfoXml.getServices();
@@ -486,8 +486,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       if (!serviceModule.isValid()){
         stackInfo.setValid(false);
         setValid(false);
-        stackInfo.setErrors(serviceModule.getErrors());
-        setErrors(serviceModule.getErrors());
+        stackInfo.addErrors(serviceModule.getErrors());
+        addErrors(serviceModule.getErrors());
       }
     }
     addServices(serviceModules);
@@ -505,7 +505,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {
         if (stackInfo.isValid()){
           stackInfo.setValid(config.isValid());
-          stackInfo.setErrors(config.getErrors());
+          stackInfo.addErrors(config.getErrors());
         }
         stackInfo.getProperties().addAll(config.getModuleInfo().getProperties());
         stackInfo.setConfigTypeAttributes(config.getConfigType(), config.getModuleInfo().getAttributes());
@@ -556,8 +556,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     if (!stackToBeResolved.isValid() || (stackToBeResolved.getModuleInfo() != null && !stackToBeResolved.getModuleInfo().isValid())) {
       setValid(stackToBeResolved.isValid());
       stackInfo.setValid(stackToBeResolved.stackInfo.isValid());
-      setErrors(stackToBeResolved.getErrors());
-      stackInfo.setErrors(stackToBeResolved.getErrors());
+      addErrors(stackToBeResolved.getErrors());
+      stackInfo.addErrors(stackToBeResolved.getErrors());
     }
   }
 
@@ -721,18 +721,18 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private Set<String> errorSet = new HashSet<String>();
 
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errorSet.add(error);
   }
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
   }
 
   @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
+  public void addErrors(Collection<String> errors) {
+    this.errorSet.addAll(errors);
   }
 
 }

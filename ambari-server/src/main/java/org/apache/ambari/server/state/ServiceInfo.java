@@ -179,18 +179,18 @@ public class ServiceInfo implements Validable{
   private Set<String> errorSet = new HashSet<String>();
 
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errorSet.add(error);
   }
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
   }
 
   @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
+  public void addErrors(Collection<String> errors) {
+    this.errorSet.addAll(errors);
   }
   /**
    * Internal list of os-specific details (loaded from xml). Added at schema ver 2
@@ -921,7 +921,7 @@ public String getVersion() {
     for (String propertyName: servicePropsByName.keySet()) {
       if (servicePropsByName.get(propertyName).size() > 1) {
         setValid(false);
-        setErrors("Duplicate service property with name '" + propertyName + "' found in " + getName() + ":" + getVersion() + " service definition !");
+        addError("Duplicate service property with name '" + propertyName + "' found in " + getName() + ":" + getVersion() + " service definition !");
       }
     }
 
@@ -933,7 +933,7 @@ public String getVersion() {
 
       if (primaryLogs > 1) {
         setValid(false);
-        setErrors("More than one primary log exists for the component " + component.getName());
+        addError("More than one primary log exists for the component " + component.getName());
       }
     }
   }

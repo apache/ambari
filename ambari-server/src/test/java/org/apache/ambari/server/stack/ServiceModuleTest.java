@@ -955,7 +955,7 @@ public class ServiceModuleTest {
     serviceInfo.setName("TEST_SERVICE");
     serviceInfo.setVersion("1.0.0");
     serviceInfo.setValid(false);
-    serviceInfo.setErrors("Test error message");
+    serviceInfo.addError("Test error message");
 
 
     // When

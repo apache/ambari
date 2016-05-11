@@ -73,7 +73,7 @@ public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigur
         String errorMessage = String.format("Unable to parse quicklinks configuration file %s", quickLinksConfigurationFile.getAbsolutePath());
         LOG.error(errorMessage,  e);
         setValid(false);
-        setErrors(errorMessage);
+        addError(errorMessage);
       }
     }
   }
@@ -123,13 +123,13 @@ public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigur
   }
 
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errors.add(error);
   }
 
   @Override
-  public void setErrors(Collection<String> error) {
-    errors.addAll(error);
+  public void addErrors(Collection<String> errors) {
+    errors.addAll(errors);
   }
 
   @Override

@@ -19,7 +19,6 @@
 package org.apache.ambari.server.stack;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -35,6 +34,8 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
 import org.apache.ambari.server.state.ThemeInfo;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 import javax.annotation.Nullable;
 
@@ -364,8 +365,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
           if (isValid()){
             setValid(config.isValid() && info.isValid());
             if (!isValid()){
-              setErrors(config.getErrors());
-              setErrors(info.getErrors());
+              addErrors(config.getErrors());
+              addErrors(info.getErrors());
             }
           }
           serviceInfo.getProperties().addAll(info.getProperties());
@@ -594,25 +595,31 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   private Set<String> errorSet = new HashSet<String>();
 
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errorSet.add(error);
   }
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
   }
 
   @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
+  public void addErrors(Collection<String> errors) {
+    this.errorSet.addAll(errors);
   }
 
 
   private void validateServiceInfo() {
     if (!serviceInfo.isValid()) {
       setValid(false);
-      setErrors(serviceInfo.getErrors());
+      addErrors(serviceInfo.getErrors());
     }
+  }
+  
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
   }
 }

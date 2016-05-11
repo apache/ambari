@@ -38,9 +38,9 @@ public interface Validable {
    */
   public void setValid(boolean valid);
   
-  public void setErrors(String error);
+  public void addError(String error);
   
-  public void setErrors(Collection<String> error);
+  public void addErrors(Collection<String> errors);
   
   public Collection<String> getErrors();
   

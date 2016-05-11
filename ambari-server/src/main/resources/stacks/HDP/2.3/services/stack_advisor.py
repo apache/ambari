@@ -72,8 +72,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "FALCON": self.recommendFalconConfigurations,
       "STORM": self.recommendStormConfigurations,
-      "SQOOP": self.recommendSqoopConfigurations,
-      "LOGSEARCH" : self.recommendLogsearchConfigurations
+      "SQOOP": self.recommendSqoopConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -683,30 +682,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       else:
         application_services_value = " "
     putFalconStartupProperty(application_services_property, application_services_value)
-
-  def recommendLogsearchConfigurations(self, configurations, clusterData, services, hosts):
-    putLogsearchProperty = self.putProperty(configurations, "logsearch-properties", services)
-    logsearchSolrHosts = self.getComponentHostNames(services, "LOGSEARCH", "LOGSEARCH_SOLR")
-
-    if logsearchSolrHosts is not None and len(logsearchSolrHosts) > 0 \
-      and "logsearch-properties" in services["configurations"]:
-      recommendedMinShards = len(logsearchSolrHosts)
-      recommendedShards = 2 * len(logsearchSolrHosts)
-      recommendedMaxShards = 3 * len(logsearchSolrHosts)
-      # recommend number of shard
-      putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
-      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
-      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
-
-      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
-      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
-      putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
-      # recommend replication factor
-      replicationReccomendFloat = math.log(len(logsearchSolrHosts), 5)
-      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
-      putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
-      putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

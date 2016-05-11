@@ -114,11 +114,11 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
             }
             config = new ConfigurationXml();
             config.setValid(false);
-            config.setErrors(error);
+            config.addError(error);
             ConfigurationInfo configInfo = new ConfigurationInfo(parseProperties(config,
                 configFile.getName()), parseAttributes(config));
             configInfo.setValid(false);
-            configInfo.setErrors(error);
+            configInfo.addError(error);
             ConfigurationModule module = new ConfigurationModule(configType, configInfo);
             configurationModules.put(configType, module);
           }

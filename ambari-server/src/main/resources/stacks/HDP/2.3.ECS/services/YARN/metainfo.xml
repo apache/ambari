@@ -34,12 +34,6 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
-          <logs>
-            <log>
-              <logId>yarn_nodemanager</logId>
-              <primary>true</primary>
-            </log>
-          </logs>
           <dependencies>
             <dependency>
               <name>ECS/ECS_CLIENT</name>
@@ -62,12 +56,6 @@
           <displayName>App Timeline Server</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
-          <logs>
-            <log>
-              <logId>yarn_timelineserver</logId>
-              <primary>true</primary>
-            </log>
-          </logs>
           <dependencies>
             <dependency>
               <name>ECS/ECS_CLIENT</name>
@@ -82,18 +70,6 @@
           <name>RESOURCEMANAGER</name>
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
-          <logs>
-            <log>
-              <logId>yarn_resourcemanager</logId>
-              <primary>true</primary>
-            </log>
-            <log>
-              <logId>yarn_historyserver</logId>
-            </log>
-            <log>
-              <logId>yarn_jobsummary</logId>
-            </log>
-          </logs>
           <dependencies>
             <dependency>
                <name>TEZ/TEZ_CLIENT</name>
@@ -131,12 +107,6 @@
             <enabled>true</enabled>
             <co-locate>YARN/RESOURCEMANAGER</co-locate>
           </auto-deploy>
-          <logs>
-            <log>
-              <logId>mapred_historyserver</logId>
-              <primary>true</primary>
-            </log>
-          </logs>
           <dependencies>
             <dependency>
               <name>ECS/ECS_CLIENT</name>

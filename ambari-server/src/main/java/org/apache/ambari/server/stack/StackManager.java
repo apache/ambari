@@ -311,7 +311,7 @@ public class StackManager {
             } else {
               ServiceModule serviceModule = new ServiceModule(stackContext, new ServiceInfo(), serviceDirectory, true);
               serviceModule.setValid(false);
-              serviceModule.setErrors(metaInfoXml.getErrors());
+              serviceModule.addErrors(metaInfoXml.getErrors());
               commonServiceModules.put(metaInfoXml.getSchemaVersion(), serviceModule);
               metaInfoXml.setSchemaVersion(null);
             }

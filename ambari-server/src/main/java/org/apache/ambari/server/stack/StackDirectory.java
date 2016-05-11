@@ -339,7 +339,7 @@ public class StackDirectory extends StackDefinitionDirectory {
           repoFile.setValid(false);
           String msg = "Unable to parse repo file at location: " +
                        repositoryFile.getAbsolutePath();
-          repoFile.setErrors(msg);
+          repoFile.addError(msg);
           LOG.warn(msg);
         }
       }
@@ -375,7 +375,7 @@ public class StackDirectory extends StackDefinitionDirectory {
         metaInfoXml.setValid(false);
         String msg = "Unable to parse stack metainfo.xml file at location: " +
                      stackMetaInfoFile.getAbsolutePath();
-        metaInfoXml.setErrors(msg);
+        metaInfoXml.addError(msg);
         LOG.warn(msg);
       }
     }
