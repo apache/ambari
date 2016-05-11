@@ -42,7 +42,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
 
   services: function() {
     var repoRecord = App.RepositoryVersion.find(this.get('content.id'));
-    var originalServices = repoRecord.get('services');
+    var originalServices = repoRecord.get('stackServices');
     // sort the services in the order the same as service menu
     var sorted = App.Service.find().map(function (service) {
       var latestVersion = '';

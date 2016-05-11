@@ -224,10 +224,11 @@ angular.module('ambariAdminConsole')
         angular.forEach(data.repository_versions[0].RepositoryVersions.stack_services, function (service) {
           services.push({
             name: service.name,
-            version: service.versions[0]
+            version: service.versions[0],
+            displayName: service.display_name
           });
         });
-        response.services = services;
+        response.services = services.sort(function(a, b){return a.name.localeCompare(b.name)});
         deferred.resolve(response);
       })
       .error(function (data) {

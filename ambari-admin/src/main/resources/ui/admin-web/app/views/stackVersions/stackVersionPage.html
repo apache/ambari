@@ -23,7 +23,7 @@
     <li class="active" ng-if="createController">{{'versions.register' | translate}}</li>
   </ol>
 
-  <div class="pull-right top-margin-4">
+  <div class="pull-right top-margin-4" ng-if="editController">
     <a href="#/stackVersions/create" class="btn btn-primary">
       <span class="glyphicon glyphicon-plus"></span>
         {{'versions.register' | translate}}
@@ -142,7 +142,7 @@
       <div class="col-sm-6 version-contents-section">
         <div class="alert alert-info hide-soft" ng-class="{'visible' : !services || !services.length}" role="alert">{{'versions.contents.empty' | translate}}</div>
         <div class="clearfix" ng-repeat="service in services">
-          <div class="version-info col-sm-9">{{service.name}} ({{service.version}})</div>
+          <div class="version-info col-sm-9">{{service.displayName}} ({{service.version}})</div>
         </div>
       </div>
     </div>

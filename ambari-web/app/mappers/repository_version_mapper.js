@@ -35,9 +35,9 @@ App.repoVersionMapper = App.QuickDataMapper.create({
       stack_version_type: repoVersionsKey + '.stack_name',
       stack_version_number: repoVersionsKey + '.stack_version',
       use_redhat_satellite: 'use_redhat_satellite',
-      services_key: 'services',
-      services_type: 'array',
-      services: {
+      stack_services_key: 'stack_services',
+      stack_services_type: 'array',
+      stack_services: {
         item: 'id'
       },
       operating_systems_key: 'operating_systems',
@@ -118,24 +118,24 @@ App.repoVersionMapper = App.QuickDataMapper.create({
               resultOS.push(this.parseIt(os, this.get('modelOS')));
             }, this);
           }
-          if (item[repoVersionsKey].services) {
-            item[repoVersionsKey].services.forEach(function (service) {
-              var serviceObj = {
-                id: service.name,
-                name: service.name,
-                display_name: service.display_name,
-                latest_version: service.versions[0] ? service.versions[0].version : ''
-              };
-              serviceArray.pushObject(serviceObj);
-              resultService.push(this.parseIt(serviceObj, this.get('modelService')));
-            }, this);
-          } else if (item[repoVersionsKey].stack_services) {
+          if (item[repoVersionsKey].stack_services) {
             item[repoVersionsKey].stack_services.forEach(function (service) {
               var serviceObj = {
                 id: service.name,
                 name: service.name,
                 display_name: service.display_name,
-                latest_version: service.versions[0] ? service.versions[0]: ''
+                latest_version: service.versions[0] ? service.versions[0] : ''
+              };
+              serviceArray.pushObject(serviceObj);
+              resultService.push(this.parseIt(serviceObj, this.get('modelService')));
+            }, this);
+          } else if (item[repoVersionsKey].services) {
+            item[repoVersionsKey].services.forEach(function (service) {
+              var serviceObj = {
+                id: service.name,
+                name: service.name,
+                display_name: service.display_name,
+                latest_version: service.versions[0] ? service.versions[0].version: ''
               };
               serviceArray.pushObject(serviceObj);
               resultService.push(this.parseIt(serviceObj, this.get('modelService')));
@@ -143,7 +143,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
           }
           repo.use_redhat_satellite = item.operating_systems[0].OperatingSystems.ambari_managed_repositories === false;
           repo.operating_systems = osArray;
-          repo.services = serviceArray;
+          repo.stack_services = serviceArray;
           resultRepoVersion.push(this.parseIt(repo, this.modelRepoVersion(isCurrentStackOnly)));
         }
       }, this);

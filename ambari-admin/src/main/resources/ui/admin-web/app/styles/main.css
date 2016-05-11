@@ -1631,3 +1631,7 @@ thead.view-permission-header > tr > th {
     padding-bottom: 10px;
     margin-top: 5px;
 }
+
+.glyphicon-question-sign {
+  color: #0572ff;
+}

@@ -442,6 +442,10 @@ App.InstallerController = App.WizardController.extend({
     App.db.setStacks(stacks.slice());
     this.set('content.stacks', stacks);
 
+    App.OperatingSystem.find().filterProperty('isSelected', false).map(function (os) {
+      os.deleteRecord();
+      App.store.commit();
+    });
     var repos = App.Repository.find() || [];
     App.db.setRepos(repos.slice());
   },

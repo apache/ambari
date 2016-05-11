@@ -27,7 +27,7 @@ App.RepositoryVersion = DS.Model.extend({
   stackVersionNumber: DS.attr('string'),
   useRedhatSatellite: DS.attr('boolean'),
   operatingSystems: DS.hasMany('App.OS'),
-  services: DS.hasMany('App.ServiceSimple'),
+  stackServices: DS.hasMany('App.ServiceSimple'),
   stackVersion: DS.belongsTo('App.StackVersion'),
   stack: Em.computed.concat(' ', 'stackVersionType', 'stackVersionNumber'),
   displayNameSimple: function() {
