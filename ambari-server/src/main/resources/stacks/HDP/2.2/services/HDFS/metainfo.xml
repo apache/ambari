@@ -46,6 +46,10 @@
               <condition>should_install_lzo</condition>
             </package>
             <package>
+              <name>hadooplzo_${stack_version}-native</name>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
               <name>hadoop_${stack_version}-libhdfs</name>
             </package>
           </packages>
