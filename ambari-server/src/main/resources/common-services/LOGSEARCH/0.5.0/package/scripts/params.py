@@ -262,7 +262,7 @@ logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 logfeeder_checkpoint_folder = default('/configurations/logfeeder-env/logfeeder.checkpoint.folder',
                                       '/etc/ambari-logsearch-logfeeder/conf/checkpoints')
 
-logfeeder_log_filter_enable = default('/configurations/logfeeder-properties/logfeeder.log.filter.enable', True)
+logfeeder_log_filter_enable = str(default('/configurations/logfeeder-properties/logfeeder.log.filter.enable', True)).lower()
 logfeeder_solr_config_interval = default('/configurations/logfeeder-properties/logfeeder.solr.config.interval', 5)
 
 logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'hbase', 'hdfs', 'hive', 'kafka',

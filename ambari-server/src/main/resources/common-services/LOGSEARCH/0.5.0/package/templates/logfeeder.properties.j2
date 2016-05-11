@@ -19,6 +19,7 @@ config.files={{logfeeder_config_files}}
 logfeeder.log.filter.enable={{logfeeder_log_filter_enable}}
 logfeeder.solr.config.interval={{logfeeder_solr_config_interval}}
 logfeeder.solr.core.history=history
+logfeeder.solr.zkhosts={{zookeeper_quorum}}{{logsearch_solr_znode}}
 
 # Custom properties
 {% for key, value in logfeeder_custom_properties.items() %}
