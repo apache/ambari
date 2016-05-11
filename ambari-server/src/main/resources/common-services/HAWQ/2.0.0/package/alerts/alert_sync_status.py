@@ -60,11 +60,12 @@ def execute(configurations={}, parameters={}, host_name=None):
    return (RESULT_STATE_SKIPPED, ['HAWQSTANDBY is not installed.'])
 
   try:
-    sync_status = get_sync_status(configurations[HAWQMASTER_PORT])
-    if sync_status in ('Synchronized', 'Synchronizing'):
+    summary_state, error_message = get_sync_status(configurations[HAWQMASTER_PORT])
+
+    if summary_state in ('Synchronized', 'Synchronizing'):
       return (RESULT_STATE_OK, ['HAWQSTANDBY is in sync with HAWQMASTER.'])
-    elif sync_status == 'Not Synchronized':
-      return (RESULT_STATE_WARNING, ['HAWQSTANDBY is not in sync with HAWQMASTER.'])
+    elif summary_state == 'Not Synchronized':
+      return (RESULT_STATE_WARNING, ['HAWQSTANDBY is not in sync with HAWQMASTER. ERROR: ' + error_message])
   except Exception, e:
     logger.exception('[Alert] Retrieving HAWQSTANDBY sync status from HAWQMASTER fails on host, {0}:'.format(host_name))
     logger.exception(str(e))
@@ -78,14 +79,17 @@ def get_sync_status(port):
   Gets the sync status of HAWQSTANDBY from HAWQMASTER by running a SQL command.
   summary_state can be of the following values: ('Synchronized', 'Synchronizing', 'Not Synchronized', 'None', 'Not Configured', 'Unknown')
   """
-  query = "SELECT summary_state FROM gp_master_mirroring"
-  cmd = "source {0} && psql -p {1} -t -d template1 -c \"{2};\"".format(HAWQ_GREENPLUM_PATH_FILE, port, query)
+  
+  query = "SELECT summary_state, error_message FROM gp_master_mirroring"
+  cmd = "source {0} && psql -p {1} -t --no-align -d template1 -c \"{2};\"".format(HAWQ_GREENPLUM_PATH_FILE, port, query)
 
-  returncode, output = call(cmd,
-                            user=HAWQ_USER,
-                            timeout=60)
+  returncode, output = call(cmd, user=HAWQ_USER, timeout=60)
 
   if returncode:
     raise
 
-  return output.strip()
+  split_output = output.split("|")
+  summary_state = split_output[0].strip()
+  error_message = split_output[1].strip()
+
+  return (summary_state, error_message)

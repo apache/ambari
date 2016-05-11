@@ -91,7 +91,7 @@ class TestAlertSyncStatus(RMFTestCase):
     }
 
     # Mock calls
-    get_sync_status_mock.return_value = 'Synchronized'
+    get_sync_status_mock.return_value = ('Synchronized', "")
 
     [status, messages] = alert_sync_status.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_OK)
@@ -110,7 +110,7 @@ class TestAlertSyncStatus(RMFTestCase):
     }
 
     # Mock calls
-    get_sync_status_mock.return_value = 'Synchronizing'
+    get_sync_status_mock.return_value = ('Synchronizing', "")
 
     [status, messages] = alert_sync_status.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_OK)
@@ -129,12 +129,12 @@ class TestAlertSyncStatus(RMFTestCase):
     }
 
     # Mock calls
-    get_sync_status_mock.return_value = 'Not Synchronized'
+    get_sync_status_mock.return_value = ('Not Synchronized', "ERROR_MESSAGE")
 
     [status, messages] = alert_sync_status.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_WARNING)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertEqual(messages[0], 'HAWQSTANDBY is not in sync with HAWQMASTER.')
+    self.assertEqual(messages[0], 'HAWQSTANDBY is not in sync with HAWQMASTER. ERROR: ERROR_MESSAGE')
 
 
   @patch("alert_sync_status.get_sync_status")
