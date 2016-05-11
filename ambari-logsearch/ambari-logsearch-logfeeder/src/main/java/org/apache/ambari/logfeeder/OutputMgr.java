@@ -53,7 +53,16 @@ public class OutputMgr {
     try {
       InetAddress ip = InetAddress.getLocalHost();
       ipAddress = ip.getHostAddress();
-      hostName = ip.getHostName();
+      String getHostName = ip.getHostName();
+      String getCanonicalHostName = ip.getCanonicalHostName();
+      if (!getCanonicalHostName.equalsIgnoreCase(ipAddress)) {
+        logger.info("Using getCanonicalHostName()=" + getCanonicalHostName);
+        hostName = getCanonicalHostName;
+      } else {
+        logger.info("Using getHostName()=" + getHostName);
+        hostName = getHostName;
+      }
+      logger.info("ipAddress=" + ipAddress + ", getHostName=" + getHostName + ", getCanonicalHostName=" + getCanonicalHostName + ", hostName=" + hostName);
     } catch (UnknownHostException e) {
       logger.error("Error getting hostname.", e);
     }
