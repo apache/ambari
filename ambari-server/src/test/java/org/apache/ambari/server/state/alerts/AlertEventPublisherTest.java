@@ -304,6 +304,7 @@ public class AlertEventPublisherTest {
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = serviceFactory.createNew(cluster, serviceName);
+    cluster.addService(service);
     service.persist();
     service = cluster.getService(serviceName);
 
