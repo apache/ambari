@@ -260,6 +260,17 @@ class TestHiveServerInteractive(RMFTestCase):
                                   group='hadoop',
                                   mode=0644,
         )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-llapdaemon.properties'),
+                                  content=Template("hadoop-metrics2-llapdaemon.j2"),
+                                  owner='hive',
+                                  group='hadoop'
+        )
+
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-llaptaskscheduler.properties'),
+                                  content=Template("hadoop-metrics2-llaptaskscheduler.j2"),
+                                  owner='hive',
+                                  group='hadoop'
+        )
         pass
 
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
