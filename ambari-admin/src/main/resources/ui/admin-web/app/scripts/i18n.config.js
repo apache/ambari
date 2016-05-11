@@ -145,7 +145,8 @@ angular.module('ambariAdminConsole')
         'tooLong': 'Too long',
         'onlyText': 'Only lowercase alphanumeric characters are allowed.',
         'onlyAnScore': 'Invalid input, only alphanumerics allowed eg: My_default_view',
-        'passwordRequired':'Password Required'
+        'passwordRequired':'Password Required',
+        'unsavedChanges': 'You have unsaved changes. Save changes or discard?'
       }
     },
 
