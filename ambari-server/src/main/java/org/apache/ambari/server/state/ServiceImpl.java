@@ -475,6 +475,7 @@ public class ServiceImpl implements Service {
 
           // publish the service installed event
           StackId stackId = cluster.getDesiredStackVersion();
+          cluster.addService(this);
 
           ServiceInstalledEvent event = new ServiceInstalledEvent(
               getClusterId(), stackId.getStackName(),
@@ -484,6 +485,8 @@ public class ServiceImpl implements Service {
         } else {
           saveIfPersisted();
         }
+      } catch (AmbariException e) {
+        LOG.error("Adding service '{}' is failed before publishing service installed event.", getName(), e);
       } finally {
         readWriteLock.writeLock().unlock();
       }

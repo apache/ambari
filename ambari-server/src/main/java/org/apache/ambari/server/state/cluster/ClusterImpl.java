@@ -172,7 +172,7 @@ public class ClusterImpl implements Cluster {
 
   private volatile boolean desiredStackVersionSet = true;
 
-  private volatile Map<String, Service> services = null;
+  private Map<String, Service> services = null;
 
   /**
    * [ Config Type -> [ Config Version Tag -> Config ] ]
@@ -325,6 +325,8 @@ public class ClusterImpl implements Cluster {
     // Load any active stack upgrades.
     loadStackUpgrade();
 
+    loadServices();
+
     // register to receive stuff
     eventPublisher.register(this);
     this.eventPublisher = eventPublisher;
@@ -395,7 +397,6 @@ public class ClusterImpl implements Cluster {
    * We need this for live status checks.
    */
   public void loadServiceHostComponents() {
-    loadServices();
     if (svcHostsLoaded) {
       return;
     }
@@ -967,7 +968,6 @@ public class ClusterImpl implements Cluster {
   @Override
   public void addService(Service service)
     throws AmbariException {
-    loadServices();
     clusterGlobalLock.writeLock().lock();
     try {
       if (LOG.isDebugEnabled()) {
@@ -988,7 +988,6 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Service addService(String serviceName) throws AmbariException {
-    loadServices();
     clusterGlobalLock.writeLock().lock();
     try {
       if (LOG.isDebugEnabled()) {
@@ -1010,7 +1009,6 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Service getService(String serviceName) throws AmbariException {
-    loadServices();
     clusterGlobalLock.readLock().lock();
     try {
       if (!services.containsKey(serviceName)) {
@@ -1024,7 +1022,6 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public Map<String, Service> getServices() {
-    loadServices();
     clusterGlobalLock.readLock().lock();
     try {
       return new HashMap<String, Service>(services);
@@ -2129,7 +2126,6 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    loadServices();
     loadStackVersion();
     clusterGlobalLock.readLock().lock();
     try {
@@ -2168,7 +2164,6 @@ public class ClusterImpl implements Cluster {
   @Override
   @Transactional
   public void deleteAllServices() throws AmbariException {
-    loadServices();
     clusterGlobalLock.writeLock().lock();
     try {
       LOG.info("Deleting all services for cluster" + ", clusterName="
@@ -2194,7 +2189,6 @@ public class ClusterImpl implements Cluster {
   @Override
   public void deleteService(String serviceName)
     throws AmbariException {
-    loadServices();
     clusterGlobalLock.writeLock().lock();
     try {
       Service service = getService(serviceName);
@@ -2243,7 +2237,6 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public boolean canBeRemoved() {
-    loadServices();
     clusterGlobalLock.readLock().lock();
     try {
       boolean safeToRemove = true;
@@ -3558,6 +3551,8 @@ public class ClusterImpl implements Cluster {
       //TODO investigate reset request executions, it has separate api which is not too heavy
 
       refresh();
+
+      loadServices();
 
     } finally {
       clusterGlobalLock.writeLock().unlock();
