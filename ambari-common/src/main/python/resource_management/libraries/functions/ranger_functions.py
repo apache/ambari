@@ -222,7 +222,7 @@ class Rangeradmin:
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
-  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  @safe_retry(times=75, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def get_policy_by_repo_name(self, name, component, status, usernamepassword):
     """
     :param name: repository name
@@ -255,7 +255,7 @@ class Rangeradmin:
     except TimeoutError:
       raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
-  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  @safe_retry(times=75, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def update_ranger_policy(self, policyId, data, usernamepassword):
     """
     :param policyId: policy id which needs to be updated
