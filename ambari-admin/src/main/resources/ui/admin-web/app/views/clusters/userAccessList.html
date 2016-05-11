@@ -51,7 +51,8 @@
         </div>
       </th>
       <th colspan="2">
-        <label for="">{{'clusters.role' | translate}}</label>
+        <label for="">{{'clusters.role' | translate}}</label>&nbsp;
+        <i class="glyphicon glyphicon-question-sign green-icon cursor-pointer" ng-click="showHelpPage()"></i>
         <select class="form-control statusfilter"
                 ng-model="currentRoleFilter"
                 ng-options="item.label for item in roleFilterOptions"

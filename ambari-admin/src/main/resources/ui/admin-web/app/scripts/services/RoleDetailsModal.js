@@ -21,6 +21,14 @@ angular.module('ambariAdminConsole')
 .factory('RoleDetailsModal', ['$modal', 'Cluster', function($modal, Cluster) {
   return {
     show: function(roles) {
+      roles = roles.map(function(role) {
+        role.authorizations = role.authorizations.map(function(authorization) {
+          return authorization.AuthorizationInfo;
+        });
+        var r = role.PermissionInfo;
+        r.authorizations = role.authorizations;
+        return r;
+      });
       var modalInstance = $modal.open({
         templateUrl: 'views/modals/RoleDetailsModal.html',
         size: 'lg',

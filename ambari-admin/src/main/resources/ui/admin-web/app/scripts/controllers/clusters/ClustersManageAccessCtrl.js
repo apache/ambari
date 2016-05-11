@@ -91,14 +91,7 @@ angular.module('ambariAdminConsole')
 
   $scope.showHelpPage = function() {
     Cluster.getRolesWithAuthorizations().then(function(roles) {
-      RoleDetailsModal.show(roles.map(function(role) {
-        role.authorizations = role.authorizations.map(function(authorization) {
-          return authorization.AuthorizationInfo;
-        });
-        var r = role.PermissionInfo;
-        r.authorizations = role.authorizations;
-        return r;
-      }));
+      RoleDetailsModal.show(roles);
     });
-  }
+  };
 }]);
