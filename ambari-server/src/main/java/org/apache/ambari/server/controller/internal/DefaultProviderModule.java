@@ -122,6 +122,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new SettingResourceProvider();
       case Artifact:
         return new ArtifactResourceProvider(managementController);
+      case RemoteCluster:
+        return new RemoteClusterResourceProvider();
 
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,

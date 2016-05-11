@@ -75,7 +75,7 @@ public class Services {
   public String getRMUrl() {
     String url;
 
-    if (ambariApi.isClusterAssociated()) {
+    if (context.getCluster() != null) {
       url = getRMUrlFromClusterConfig();
     } else {
       url = getRmUrlFromCustomConfig();
@@ -216,7 +216,7 @@ public class Services {
   public String getWebHCatURL() {
     String host = null;
 
-    if (ambariApi.isClusterAssociated()) {
+    if (context.getCluster() != null) {
       List<String> hiveServerHosts = ambariApi.getHostsWithComponent("WEBHCAT_SERVER");
 
       if (!hiveServerHosts.isEmpty()) {
@@ -249,7 +249,7 @@ public class Services {
    * yarn-site.xml else it is retrieved from the view configuration.
    */
   public String getTimelineServerUrl() {
-    String url = ambariApi.isClusterAssociated() ? getATSUrlFromCluster() : getATSUrlFromCustom();
+    String url = context.getCluster() != null ? getATSUrlFromCluster() : getATSUrlFromCustom();
     return removeTrailingSlash(url);
   }
 
@@ -337,7 +337,7 @@ public class Services {
   }
 
   private String getYarnConfig(String key) {
-    return ambariApi.getCluster().getConfigurationValue(YARN_SITE, key);
+    return context.getCluster().getConfigurationValue(YARN_SITE, key);
   }
 
   /**

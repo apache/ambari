@@ -30,6 +30,7 @@ angular.module('ambariAdminConsole')
       'about': 'About',
       'version': 'Version',
       'signOut': 'Sign out',
+      'register':'Register',
       'clusters': 'Clusters',
       'views': 'Views',
       'viewUrls': 'View URLs',
@@ -50,9 +51,12 @@ angular.module('ambariAdminConsole')
       'type': 'Type',
       'add': 'Add {{term}}',
       'delete': 'Delete {{term}}',
+      'deregisterCluster': 'Deregister Cluster',
       'cannotDelete': 'Cannot Delete {{term}}',
       'privileges': 'Privileges',
       'cluster': 'Cluster',
+      'remoteClusters': 'Remote Clusters',
+      'services':'Services',
       'clusterRole': 'Cluster Role',
       'viewPermissions': 'View Permissions',
       'getInvolved': 'Get involved!',
@@ -126,6 +130,7 @@ angular.module('ambariAdminConsole')
         'fieldIsRequired': 'This field is required.',
         'noSpecialChars': 'Must not contain special characters!',
         'nothingToDisplay': 'No {{term}} to display.',
+        'noRemoteClusterDisplay':'No Remote Clusters to display.',
         'noPrivileges': 'No {{term}} privileges',
         'noPrivilegesDescription': 'This {{term}} does not have any privileges.',
         'timeOut': 'You will be automatically logged out in <b>{{time}}</b> seconds due to inactivity.',
@@ -134,11 +139,13 @@ angular.module('ambariAdminConsole')
         'cannotLoadPrivileges': 'Cannot load privileges',
         'cannotLoadClusterStatus': 'Cannot load cluster status',
         'clusterRenamed': 'The cluster has been renamed to {{clusterName}}.',
+        'remoteClusterRegistered': 'The cluster has been registered as {{clusterName}}.',
         'cannotRenameCluster': 'Cannot rename cluster to {{clusterName}}',
         'tooShort': 'Too short',
         'tooLong': 'Too long',
         'onlyText': 'Only lowercase alphanumeric characters are allowed.',
-        'onlyAnScore': 'Invalid input, only alphanumerics allowed eg: My_default_view'
+        'onlyAnScore': 'Invalid input, only alphanumerics allowed eg: My_default_view',
+        'passwordRequired':'Password Required'
       }
     },
 
@@ -195,6 +202,8 @@ angular.module('ambariAdminConsole')
       'instanceDescription': 'Instance Description',
       'clusterConfiguration': 'Cluster Configuration',
       'localCluster': 'Local Ambari Managed Cluster',
+      'remoteCluster': 'Remote Cluster',
+      'registerRemoteCluster' : 'Register Remote Cluster',
       'clusterName': 'Cluster Name',
       'custom': 'Custom',
       'icon': 'Icon',
@@ -241,7 +250,9 @@ angular.module('ambariAdminConsole')
         'cannotDeleteInstance': 'Cannot delete instance',
         'cannotLoadViews': 'Cannot load views',
         'cannotLoadViewUrls': 'Cannot load view URLs',
-        'cannotLoadViewUrl': 'Cannot load view URL'
+        'cannotLoadViewUrl': 'Cannot load view URL',
+        'savedRemoteClusterInformation':'Remote cluster information is saved.',
+        'credentialsUpdated':'Credentials Updated.'
       }
     },
 
@@ -296,7 +307,9 @@ angular.module('ambariAdminConsole')
       'userName': 'User name',
       'admin': 'Admin',
       'ambariAdmin': 'Ambari Admin',
+      'ambariClusterURL':'Ambari Cluster URL',
       'changePassword': 'Change Password',
+      'updateCredentials':'Update Credentials',
       'changePasswordFor': 'Change Password for {{userName}}',
       'yourPassword': 'Your Password',
       'newPassword': 'New User Password',
@@ -335,8 +348,9 @@ angular.module('ambariAdminConsole')
       },
 
       'alerts': {
-        'passwordRequired': 'Password required!',
+        'passwordRequired': 'Password required',
         'wrongPassword': 'Password must match!',
+        'usernameRequired':'Username Required',
         'cannotChange': 'Cannot Change {{term}}',
         'userCreated': 'Created user <a href="#/users/{{encUserName}}">{{userName}}</a>',
         'userCreationError': 'User creation error',

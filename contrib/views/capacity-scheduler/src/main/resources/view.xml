@@ -24,30 +24,7 @@
 
     <validator-class>org.apache.ambari.view.capacityscheduler.PropertyValidator</validator-class>
 
-    <parameter>
-        <name>ambari.server.url</name>
-        <description>Enter the Ambari Server REST API cluster resource.</description>
-        <label>Ambari Cluster URL</label>
-        <placeholder>http://ambari.server:8080/api/v1/clusters/MyCluster</placeholder>
-        <cluster-config>fake</cluster-config>
-        <required>true</required>
-    </parameter>
-    <parameter>
-        <name>ambari.server.username</name>
-        <description>Enter the Cluster Operator username (for example: admin).</description>
-        <label>Operator Username</label>
-        <placeholder>admin</placeholder>
-        <cluster-config>fake</cluster-config>
-        <required>true</required>
-    </parameter>
-    <parameter>
-        <name>ambari.server.password</name>
-        <description>Enter the Cluster Operator password (for example: password).</description>
-        <label>Operator Password</label>
-        <cluster-config>fake</cluster-config>
-        <required>true</required>
-        <masked>true</masked>
-    </parameter>
+    <cluster-config-options>AMBARI-ONLY</cluster-config-options>
 
   <resource>
       <name>scheduler</name>

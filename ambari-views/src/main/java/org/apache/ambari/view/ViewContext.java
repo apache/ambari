@@ -172,6 +172,14 @@ public interface ViewContext {
   public AmbariStreamProvider getAmbariStreamProvider();
 
   /**
+   * Get Ambari stream provider attached as cluster to the view
+   * If view is not attached to ambari managed cluster then it will be null
+   *
+   * @return stream provider for the cluster
+   */
+  public AmbariStreamProvider getAmbariClusterStreamProvider();
+
+  /**
    * Get a data store for view persistence entities.
    *
    * @return a data store; null if no instance is associated

@@ -100,7 +100,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectation(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
     replayAll();
 
     assertEquals(HTTP_RM_URL1, services.getTimelineServerUrl());
@@ -255,7 +255,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectation(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
 
     replayAll();
 
@@ -283,7 +283,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectationWithEmptyWebappConfig(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
 
     Services services = new Services(ambariApi, viewContext);
 
@@ -307,7 +307,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectationInHAWithEmptyWebappConfig(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
 
     Services services = new Services(ambariApi, viewContext);
 
@@ -342,7 +342,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectationInHA(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
     expect(viewContext.getURLStreamProvider()).andReturn(urlStreamProvider).anyTimes();
     expect(urlStreamProvider.readFrom(eq(HTTP_RM_URL1 + RM_INFO_API_ENDPOINT), eq("GET"), anyString(), EasyMock.<Map<String, String>>anyObject())).andReturn(inputStream);
 
@@ -385,7 +385,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectationWithEmptyWebappConfig(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
 
     Services services = new Services(ambariApi, viewContext);
 

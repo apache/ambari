@@ -57,6 +57,7 @@ public class ViewConfigTest {
       "    <system>true</system>\n" +
       "    <icon64>/this/is/the/icon/url/icon64.png</icon64>\n" +
       "    <icon>/this/is/the/icon/url/icon.png</icon>\n" +
+      "    <cluster-config-options>AMBARI-ONLY</cluster-config-options>\n" +
       "    <data-migrator-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyDataMigrator</data-migrator-class>" +
       "    <validator-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyValidator</validator-class>" +
       "    <masker-class>org.apache.ambari.server.view.DefaultMasker</masker-class>" +
@@ -350,6 +351,12 @@ public class ViewConfigTest {
 
     config = getConfig(with_ambari_versions);
     Assert.assertEquals("2.0.0", config.getMaxAmbariVersion());
+  }
+
+  @Test
+  public void testGetClusterConfigOptions() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertEquals("AMBARI-ONLY",config.getClusterConfigOptions());
   }
 
   public static  ViewConfig getConfig() throws JAXBException {

@@ -567,6 +567,7 @@ CREATE TABLE viewinstance (
   xml_driven CHAR(1),
   alter_names SMALLINT NOT NULL DEFAULT 1,
   cluster_handle VARCHAR(255),
+  cluster_type VARCHAR(100) NOT NULL DEFAULT 'LOCAL_AMBARI',
   short_url BIGINT,
   CONSTRAINT PK_viewinstance PRIMARY KEY (view_instance_id),
   CONSTRAINT FK_instance_url_id FOREIGN KEY (short_url) REFERENCES viewurl(url_id),
@@ -601,7 +602,7 @@ CREATE TABLE viewparameter (
   label VARCHAR(255),
   placeholder VARCHAR(255),
   default_value VARCHAR(2000),
-  cluster_config VARCHAR(255),
+  cluster_config VARCHAR(255) ,
   required CHAR(1),
   masked CHAR(1),
   CONSTRAINT PK_viewparameter PRIMARY KEY (view_name, name),
@@ -778,6 +779,26 @@ CREATE TABLE setting (
   CONSTRAINT PK_setting PRIMARY KEY (id)
 );
 
+-- Remote Cluster table
+
+CREATE TABLE remoteambaricluster(
+  cluster_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  username VARCHAR(255) NOT NULL,
+  url VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_remote_ambari_cluster PRIMARY KEY (cluster_id),
+  CONSTRAINT unq_remote_ambari_cluster UNIQUE (name));
+
+CREATE TABLE remoteambariclusterservice(
+  id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_remote_ambari_service PRIMARY KEY (id),
+  CONSTRAINT FK_remote_ambari_cluster_id FOREIGN KEY (cluster_id) REFERENCES remoteambaricluster(cluster_id)
+);
+
+-- Remote Cluster table ends
 
 -- upgrade tables
 CREATE TABLE upgrade (
@@ -1094,7 +1115,11 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'blueprint_setting_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'ambari_operation_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
+  select 'ambari_operation_history_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'remote_cluster_id_seq', 0 FROM SYSIBM.SYSDUMMY1
+  union all
+  select 'remote_cluster_service_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
 
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name)

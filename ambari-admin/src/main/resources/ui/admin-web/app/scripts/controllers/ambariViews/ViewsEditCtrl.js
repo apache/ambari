@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'Cluster', 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', '$translate', function($scope, $routeParams, Cluster, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog, $translate) {
+  .controller('ViewsEditCtrl', ['$scope', '$routeParams', 'RemoteCluster', 'Cluster', 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', '$translate', function($scope, $routeParams, RemoteCluster, Cluster, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog, $translate) {
     var $t = $translate.instant;
     $scope.identity = angular.identity;
     $scope.isConfigurationEmpty = true;
@@ -62,14 +62,16 @@ angular.module('ambariAdminConsole')
     }
 
     function initCtrlVariables(instance) {
-      if(instance.ViewInstanceInfo.cluster_handle) {
-        $scope.isLocalCluster = true;
-        $scope.cluster = instance.ViewInstanceInfo.cluster_handle;
-      }else{
-        $scope.isLocalCluster = false;
-        $scope.cluster = $scope.clusters.length > 0 ? $scope.clusters[0] : $t('common.noClusters');
-      }
-      $scope.originalLocalCluster = $scope.isLocalCluster;
+       $scope.data.clusterType = instance.ViewInstanceInfo.cluster_type;
+       switch($scope.data.clusterType) {
+          case 'LOCAL_AMBARI':
+            $scope.cluster = instance.ViewInstanceInfo.cluster_handle;
+            break;
+          case 'REMOTE_AMBARI':
+            $scope.data.remoteCluster = instance.ViewInstanceInfo.cluster_handle;
+            break;
+       }
+      $scope.originalClusterType = $scope.data.clusterType;
       $scope.isConfigurationEmpty = !$scope.numberOfClusterConfigs;
       $scope.isSettingsEmpty = !$scope.numberOfSettingsConfigs;
     }
@@ -101,7 +103,7 @@ angular.module('ambariAdminConsole')
 
     function filterClusterConfigs() {
       $scope.configurationMeta.forEach(function (element) {
-        if (element.masked && !$scope.editConfigurationDisabled && element.clusterConfig && !$scope.isLocalCluster) {
+        if (element.masked && !$scope.editConfigurationDisabled && element.clusterConfig && $scope.data.clusterType == 'NONE') {
           $scope.configuration[element.name] = '';
         }
         if(!element.clusterConfig) {
@@ -150,9 +152,13 @@ angular.module('ambariAdminConsole')
     $scope.clusterConfigurable = false;
     $scope.clusterConfigurableErrorMsg = "";
     $scope.clusters = [];
+    $scope.remoteClusters = [];
     $scope.cluster = null;
-    $scope.noClusterAvailible = true;
-
+    $scope.noLocalClusterAvailible = true;
+    $scope.noRemoteClusterAvailible = true;
+    $scope.data = {};
+    $scope.data.remoteCluster = null;
+    $scope.data.clusterType = 'NONE';
 
     $scope.editSettingsDisabled = true;
     $scope.editDetailsSettingsDisabled = true;
@@ -199,12 +205,28 @@ angular.module('ambariAdminConsole')
         clusters.forEach(function(cluster) {
           $scope.clusters.push(cluster.Clusters.cluster_name)
         });
-        $scope.noClusterAvailible = false;
+        $scope.noLocalClusterAvailible = false;
       }else{
         $scope.clusters.push($t('common.noClusters'));
       }
       $scope.cluster = $scope.clusters[0];
     });
+
+    loadRemoteClusters();
+
+    function loadRemoteClusters() {
+      RemoteCluster.listAll().then(function (clusters) {
+        if(clusters.length >0){
+          clusters.forEach(function(cluster) {
+            $scope.remoteClusters.push(cluster.ClusterInfo.name)
+          });
+          $scope.noRemoteClusterAvailible = false;
+          }else{
+            $scope.remoteClusters.push($t('common.noClusters'));
+          }
+          $scope.data.remoteCluster = $scope.remoteClusters[0];
+       });
+     }
 
 
     $scope.saveSettings = function(callback) {
@@ -292,18 +314,28 @@ angular.module('ambariAdminConsole')
             'properties':{}
           }
         };
-        if($scope.isLocalCluster) {
-          data.ViewInstanceInfo.cluster_handle = $scope.cluster;
-        } else {
-          data.ViewInstanceInfo.cluster_handle = null;
-          $scope.configurationMeta.forEach(function (element) {
-            if(element.clusterConfig) {
-              data.ViewInstanceInfo.properties[element.name] = $scope.configuration[element.name];
-            }
-          });
-          $scope.clearClusterInheritedPermissions();
-        }
-        $scope.originalLocalCluster = $scope.isLocalCluster;
+
+        data.ViewInstanceInfo.cluster_type = $scope.data.clusterType;
+
+        switch($scope.data.clusterType) {
+          case 'LOCAL_AMBARI':
+            data.ViewInstanceInfo.cluster_handle = $scope.cluster;
+            break;
+          case 'REMOTE_AMBARI':
+            data.ViewInstanceInfo.cluster_handle = $scope.data.remoteCluster;
+            break;
+          default :
+            data.ViewInstanceInfo.cluster_handle = null;
+            $scope.configurationMeta.forEach(function (element) {
+              if(element.clusterConfig) {
+                data.ViewInstanceInfo.properties[element.name] = $scope.configuration[element.name];
+              }
+            });
+            $scope.clearClusterInheritedPermissions();
+
+          }
+
+        $scope.originalClusterType = $scope.data.clusterType;
         return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
           .success(function() {
             $scope.editConfigurationDisabled = true;
@@ -315,7 +347,7 @@ angular.module('ambariAdminConsole')
             //TODO: maybe the BackEnd should sanitize the string beforehand?
             errorMessage = errorMessage.substr(errorMessage.indexOf("\{"));
 
-            if (data.status >= 400 && !$scope.isLocalCluster) {
+            if (data.status >= 400 && $scope.data.clusterType == 'NONE') {
               try {
                 var errorObject = JSON.parse(errorMessage);
                 errorMessage = errorObject.detail;
@@ -335,7 +367,7 @@ angular.module('ambariAdminConsole')
     };
     $scope.cancelConfiguration = function() {
       angular.extend($scope.configuration, $scope.configurationBeforeEdit);
-      $scope.isLocalCluster = $scope.originalLocalCluster;
+      $scope.data.clusterType = $scope.originalClusterType;
       $scope.editConfigurationDisabled = true;
       $scope.propertiesForm.$setPristine();
     };

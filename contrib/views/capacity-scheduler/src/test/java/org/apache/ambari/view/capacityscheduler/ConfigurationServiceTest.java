@@ -57,11 +57,6 @@ public class ConfigurationServiceTest {
         httpHeaders = createNiceMock(HttpHeaders.class);
         ambariCluster = createNiceMock(Cluster.class);
 
-        properties = new HashMap<String, String>();
-        properties.put(AmbariApi.AMBARI_SERVER_URL_INSTANCE_PROPERTY, BASE_URI);
-        properties.put(AmbariApi.AMBARI_SERVER_USERNAME_INSTANCE_PROPERTY, "admin");
-        properties.put(AmbariApi.AMBARI_SERVER_PASSWORD_INSTANCE_PROPERTY, "admin");
-
         EasyMock.expect(ambariCluster.getConfigurationValue("ranger-yarn-plugin-properties", "ranger-yarn-plugin-enabled")).andReturn("Yes").anyTimes();
         EasyMock.expect(context.getCluster()).andReturn(ambariCluster).anyTimes();
         EasyMock.expect(context.getProperties()).andReturn(properties).anyTimes();

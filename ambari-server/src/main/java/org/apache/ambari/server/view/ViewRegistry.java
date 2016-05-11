@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -55,6 +56,7 @@ import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -83,6 +85,8 @@ import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.validation.ValidationException;
+import org.apache.ambari.view.AmbariStreamProvider;
+import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.View;
@@ -134,6 +138,7 @@ public class ViewRegistry {
   protected static final int DEFAULT_REQUEST_READ_TIMEOUT    = 10000;
   private static final String VIEW_AMBARI_VERSION_REGEXP = "^((\\d+\\.)?)*(\\*|\\d+)$";
   private static final String VIEW_LOG_FILE = "view.log4j.properties";
+  public static final String API_PREFIX = "/api/v1/clusters/";
 
   /**
    * Thread pool
@@ -280,6 +285,18 @@ public class ViewRegistry {
    */
   @Inject
   AmbariSessionManager ambariSessionManager;
+
+  /**
+   * Registry for Remote Ambari Cluster
+   */
+  @Inject
+  RemoteAmbariClusterRegistry remoteAmbariClusterRegistry;
+
+  /**
+   * Remote Ambari Cluster Dao
+   */
+  @Inject
+  RemoteAmbariClusterDAO remoteAmbariClusterDAO;
 
 
  // ----- Constructors -----------------------------------------------------
@@ -896,12 +913,14 @@ public class ViewRegistry {
     if (viewInstance != null) {
       String clusterId = viewInstance.getClusterHandle();
 
-      if (clusterId != null) {
+      if (clusterId != null && viewInstance.getClusterType() == ClusterType.LOCAL_AMBARI) {
         try {
           return new ClusterImpl(clustersProvider.get().getCluster(clusterId));
         } catch (AmbariException e) {
           LOG.warn("Could not find the cluster identified by " + clusterId + ".");
         }
+      } else if(clusterId != null && viewInstance.getClusterType() == ClusterType.REMOTE_AMBARI){
+        return remoteAmbariClusterRegistry.get(clusterId);
       }
     }
     return null;
@@ -1409,6 +1428,7 @@ public class ViewRegistry {
     instance1.setResource(instance2.getResource());
     instance1.setViewInstanceId(instance2.getViewInstanceId());
     instance1.setClusterHandle(instance2.getClusterHandle());
+    instance1.setClusterType(instance2.getClusterType());
     instance1.setData(instance2.getData());
     instance1.setEntities(instance2.getEntities());
     instance1.setProperties(instance2.getProperties());
@@ -1882,6 +1902,34 @@ public class ViewRegistry {
             sslConfiguration.getTruststorePassword(),
             sslConfiguration.getTruststoreType());
     return new ViewAmbariStreamProvider(streamProvider, ambariSessionManager, AmbariServer.getController());
+  }
+
+  /**
+   * Get Remote Ambari Cluster Stream provider
+   *
+   * @param clusterName
+   * @return
+   */
+  protected AmbariStreamProvider createRemoteAmbariStreamProvider(String clusterName){
+    RemoteAmbariClusterEntity clusterEntity = remoteAmbariClusterDAO.findByName(clusterName);
+    if(clusterEntity != null) {
+      return new RemoteAmbariStreamProvider(getBaseurl(clusterEntity.getUrl()),
+        clusterEntity.getUsername(),clusterEntity.getPassword(),
+        configuration.getViewAmbariRequestConnectTimeout(),configuration.getViewAmbariRequestReadTimeout());
+    }
+    return null;
+  }
+
+  /**
+   *  Get baseurl of the cluster
+   *  baseurl wil be http://host:port
+   *
+   * @param url will be in format like http://host:port/api/v1/clusters/clusterName
+   * @return baseurl
+   */
+  private String getBaseurl(String url){
+    int index = url.indexOf(API_PREFIX);
+    return url.substring(0,index);
   }
 
 

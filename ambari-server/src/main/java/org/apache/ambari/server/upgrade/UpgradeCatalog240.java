@@ -75,6 +75,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.commons.lang.StringUtils;
@@ -219,6 +220,14 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     return "2.3.0";
   }
 
+  public static final String CLUSTER_TYPE_COLUMN = "cluster_type";
+  public static final String REMOTE_AMBARI_CLUSTER_TABLE = "remoteambaricluster";
+  public static final String REMOTE_AMBARI_CLUSTER_SERVICE_TABLE = "remoteambariclusterservice";
+
+  public static final String CLUSTER_ID = "cluster_id";
+  public static final String SERVICE_NAME = "service_name";
+  public static final String CLUSTER_NAME = "name";
+
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
@@ -236,6 +245,32 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateHostRoleCommandTableDDL();
     createViewUrlTableDDL();
     updateViewInstanceEntityTable();
+    createRemoteClusterTable();
+  }
+
+  private void createRemoteClusterTable() throws SQLException {
+
+    List<DBColumnInfo> columns = new ArrayList<>();
+    LOG.info("Creating {} table", REMOTE_AMBARI_CLUSTER_TABLE);
+    columns.add(new DBColumnInfo(CLUSTER_ID, Long.class, null, null, false));
+    columns.add(new DBColumnInfo(CLUSTER_NAME, String.class, 255, null, false));
+    columns.add(new DBColumnInfo("url", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("username", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("password", String.class, 255, null, false));
+    dbAccessor.createTable(REMOTE_AMBARI_CLUSTER_TABLE, columns, CLUSTER_ID);
+    dbAccessor.addUniqueConstraint(REMOTE_AMBARI_CLUSTER_TABLE , "unq_remote_ambari_cluster" , CLUSTER_NAME);
+    addSequence("remote_cluster_id_seq", 1L, false);
+
+    List<DBColumnInfo> remoteClusterServiceColumns = new ArrayList<>();
+    LOG.info("Creating {} table", REMOTE_AMBARI_CLUSTER_SERVICE_TABLE);
+    remoteClusterServiceColumns.add(new DBColumnInfo(ID, Long.class, null, null, false));
+    remoteClusterServiceColumns.add(new DBColumnInfo(SERVICE_NAME, String.class, 255, null, false));
+    remoteClusterServiceColumns.add(new DBColumnInfo(CLUSTER_ID, Long.class, null, null, false));
+    dbAccessor.createTable(REMOTE_AMBARI_CLUSTER_SERVICE_TABLE, remoteClusterServiceColumns, ID);
+    dbAccessor.addFKConstraint(REMOTE_AMBARI_CLUSTER_SERVICE_TABLE, "FK_remote_ambari_cluster_id",
+      CLUSTER_ID, REMOTE_AMBARI_CLUSTER_TABLE, CLUSTER_ID, false);
+    addSequence("remote_cluster_service_id_seq", 1L, false);
+
   }
 
   private void createViewUrlTableDDL() throws SQLException {
@@ -256,6 +291,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       new DBColumnInfo(SHORT_URL_COLUMN, Long.class, null, null, true));
     dbAccessor.addFKConstraint(VIEWINSTANCE_TABLE, "FK_instance_url_id",
       SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
+    dbAccessor.addColumn(VIEWINSTANCE_TABLE,
+      new DBColumnInfo(CLUSTER_TYPE_COLUMN, String.class, 100, ClusterType.LOCAL_AMBARI, false));
   }
 
   private void updateClusterTableDDL() throws SQLException {

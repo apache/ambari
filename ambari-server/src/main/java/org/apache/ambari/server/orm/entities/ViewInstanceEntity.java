@@ -28,6 +28,8 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -120,6 +122,13 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   @Column(name = "cluster_handle", nullable = true)
   private String clusterHandle;
+
+  /**
+   *  Cluster Type for cluster Handle
+   */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "cluster_type", nullable = false)
+  private ClusterType clusterType;
 
   /**
    * Visible flag.
@@ -251,6 +260,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.clusterHandle = null;
     this.visible = instanceConfig.isVisible() ? 'Y' : 'N';
     this.alterNames = 1;
+    this.clusterType = ClusterType.LOCAL_AMBARI;
 
     String label = instanceConfig.getLabel();
     this.label = (label == null || label.length() == 0) ? view.getLabel() : label;
@@ -439,6 +449,24 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setClusterHandle(String clusterHandle) {
     this.clusterHandle = clusterHandle;
+  }
+
+  /**
+   *  Get the type of cluster the view instance is attached to
+   *
+   * @return clusterType the type of cluster for cluster handle
+   */
+  public ClusterType getClusterType() {
+    return clusterType;
+  }
+
+  /**
+   * Set the type of cluster for cluster handle
+   *
+   * @param clusterType
+   */
+  public void setClusterType(ClusterType clusterType) {
+    this.clusterType = clusterType;
   }
 
   /**
@@ -1029,4 +1057,5 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
       return instanceName;
     }
   }
+
 }

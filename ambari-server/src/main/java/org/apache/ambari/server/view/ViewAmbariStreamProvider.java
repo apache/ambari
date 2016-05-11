@@ -21,11 +21,14 @@ package org.apache.ambari.server.view;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.proxy.ProxyService;
+import org.apache.ambari.view.AmbariHttpException;
 import org.apache.ambari.view.AmbariStreamProvider;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -73,39 +76,37 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
   // ----- AmbariStreamProvider -----------------------------------------------
 
   @Override
-  public InputStream readFrom(String path, String requestMethod, String body, Map<String, String> headers,
-                              boolean useAmbariSession) throws IOException {
-    return getInputStream(path, requestMethod, headers, useAmbariSession, body == null ? null : body.getBytes());
+  public InputStream readFrom(String path, String requestMethod, String body, Map<String, String> headers
+                              ) throws IOException, AmbariHttpException {
+    return getInputStream(path, requestMethod, headers, body == null ? null : body.getBytes());
   }
 
   @Override
-  public InputStream readFrom(String path, String requestMethod, InputStream body, Map<String, String> headers,
-                              boolean useAmbariSession) throws IOException {
+  public InputStream readFrom(String path, String requestMethod, InputStream body, Map<String, String> headers
+                              ) throws IOException, AmbariHttpException {
 
-    return getInputStream(path, requestMethod, headers, useAmbariSession, body == null ? null : IOUtils.toByteArray(body));
+    return getInputStream(path, requestMethod, headers, body == null ? null : IOUtils.toByteArray(body));
   }
 
 
   // ----- helper methods ----------------------------------------------------
 
-  private InputStream getInputStream(String path, String requestMethod, Map<String, String> headers,
-                                     boolean useAmbariSession, byte[] body) throws IOException {
+  private InputStream getInputStream(String path, String requestMethod, Map<String, String> headers
+                                     , byte[] body) throws IOException, AmbariHttpException {
     // add the Ambari session cookie to the given headers
-    if (useAmbariSession) {
-      String sessionId = ambariSessionManager.getCurrentSessionId();
-      if (sessionId != null) {
+    String sessionId = ambariSessionManager.getCurrentSessionId();
+    if (sessionId != null) {
 
-        String ambariSessionCookie = ambariSessionManager.getSessionCookie() + "=" + sessionId;
+      String ambariSessionCookie = ambariSessionManager.getSessionCookie() + "=" + sessionId;
 
-        if (headers == null || headers.isEmpty()) {
-          headers = Collections.singletonMap(URLStreamProvider.COOKIE, ambariSessionCookie);
-        } else {
-          headers = new HashMap<String, String>(headers);
+      if (headers == null || headers.isEmpty()) {
+        headers = Collections.singletonMap(URLStreamProvider.COOKIE, ambariSessionCookie);
+      } else {
+        headers = new HashMap<String, String>(headers);
 
-          String cookies = headers.get(URLStreamProvider.COOKIE);
+        String cookies = headers.get(URLStreamProvider.COOKIE);
 
-          headers.put(URLStreamProvider.COOKIE, URLStreamProvider.appendCookie(cookies, ambariSessionCookie));
-        }
+        headers.put(URLStreamProvider.COOKIE, URLStreamProvider.appendCookie(cookies, ambariSessionCookie));
       }
     }
 
@@ -115,8 +116,16 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
       headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
     }
 
-    return streamProvider.processURL(controller.getAmbariServerURI(path.startsWith("/") ? path : "/" + path),
-        requestMethod, body, headerMap).getInputStream();
+    return getInputStream(streamProvider.processURL(controller.getAmbariServerURI(path.startsWith("/") ? path : "/" + path),
+        requestMethod, body, headerMap));
+  }
+
+  private InputStream getInputStream(HttpURLConnection connection) throws IOException, AmbariHttpException {
+    int responseCode = connection.getResponseCode();
+    if(responseCode >= ProxyService.HTTP_ERROR_RANGE_START){
+      throw new AmbariHttpException(IOUtils.toString(connection.getErrorStream()),responseCode);
+    }
+    return connection.getInputStream();
   }
 }
 

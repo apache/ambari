@@ -1626,6 +1626,31 @@ thead.view-permission-header > tr > th {
   margin:0px;
 }
 
+.proxied-field-wrap {
+  display:block;
+  position:absolute;
+  height:0;
+  width:0;
+  overflow:hidden;
+}
+
+legend.legendStyle {
+  padding-left: 5px;
+  padding-right: 5px;
+  font-size: 16px;
+}
+
+fieldset.fsStyle {
+  border: 1px solid #DDD;
+  padding: 4px;
+  margin: 15px 0;
+}
+
+legend {
+  width: auto;
+  border-bottom: 0;
+}
+
 .cluster-inherited-permission {
     border-bottom: 2px solid #ddd;
     padding-bottom: 10px;

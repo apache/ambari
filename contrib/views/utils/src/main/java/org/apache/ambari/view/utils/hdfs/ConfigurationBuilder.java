@@ -121,9 +121,10 @@ public class ConfigurationBuilder {
 
   private String getProperty(String type, String key, String instanceProperty) {
     String value;
-    try {
-      value = ambariApi.getCluster().getConfigurationValue(type, key);
-    } catch (NoClusterAssociatedException e) {
+
+    if(context.getCluster() != null) {
+      value = context.getCluster().getConfigurationValue(type, key);
+    } else {
       value = context.getProperties().get(instanceProperty);
     }
     return value;
@@ -131,15 +132,16 @@ public class ConfigurationBuilder {
 
   private void copyPropertyIfExists(String type, String key) {
     String value;
-    try {
-      value = ambariApi.getCluster().getConfigurationValue(type, key);
+
+    if(context.getCluster() != null) {
+      value = context.getCluster().getConfigurationValue(type, key);
       if (value != null) {
         conf.set(key, value);
         LOG.debug("set " + key + " = " + value);
       } else {
         LOG.debug("No such property " + type + "/" + key);
       }
-    } catch (NoClusterAssociatedException e) {
+    } else {
       LOG.debug("No such property " + type + "/" + key);
     }
   }

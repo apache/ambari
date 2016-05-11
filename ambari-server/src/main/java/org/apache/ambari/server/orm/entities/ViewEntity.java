@@ -56,6 +56,9 @@ import java.util.Set;
     query = "SELECT view FROM ViewEntity view")
 @Entity
 public class ViewEntity implements ViewDefinition {
+
+  public static final String AMBARI_ONLY = "AMBARI-ONLY";
+
   /**
    * The unique view name.
    */
@@ -728,6 +731,12 @@ public class ViewEntity implements ViewDefinition {
   public void setConfiguration(ViewConfig configuration) {
     this.configuration       = configuration;
     this.clusterConfigurable = false;
+
+    if(configuration.getClusterConfigOptions() != null &&
+       configuration.getClusterConfigOptions().equals(AMBARI_ONLY)){
+      this.clusterConfigurable = true;
+      return;
+    }
 
     // if any of the parameters contain a cluster config element then the view is cluster configurable
     for (ParameterConfig parameterConfig : configuration.getParameters()) {

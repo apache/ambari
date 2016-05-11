@@ -123,6 +123,12 @@ public class ViewConfig {
   private String dataVersion;
 
   /**
+   * Enable views to display cluster options in case of no cluster config properties.
+   */
+  @XmlElement(name="cluster-config-options")
+  private String clusterConfigOptions;
+
+  /**
    * The view class.
    */
   private Class<? extends ViewDataMigrator> dataMigratorClass = null;
@@ -449,5 +455,14 @@ public class ViewConfig {
    */
   public List<PermissionConfig> getPermissions() {
     return permissions == null ? Collections.<PermissionConfig>emptyList() : permissions;
+  }
+
+  /**
+   * Enables views to display cluster options in case of no cluster config properties
+   *
+   * @return clusterConfigOptions
+   */
+  public String getClusterConfigOptions() {
+    return clusterConfigOptions;
   }
 }

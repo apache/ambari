@@ -53,9 +53,9 @@
                 <i class="glyphicon glyphicon-remove"></i>
               </button>
               <button
-                    type="submit"
-                    class="btn btn-primary btn-xs"
-                    ng-class="{'disabled': editClusterNameForm.newClusterName.$invalid || editCluster.name == cluster.Clusters.cluster_name}">
+                  type="submit"
+                  class="btn btn-primary btn-xs"
+                  ng-class="{'disabled': editClusterNameForm.newClusterName.$invalid || editCluster.name == cluster.Clusters.cluster_name}">
                 <i class="glyphicon glyphicon-ok"></i>
               </button>
             </div>
@@ -78,9 +78,12 @@
           <li><p class="noclusters">{{'common.noClusters' | translate}}</p></li>
         </ul>
       </div>
-      <ul class="nav nav-pills nav-stacked" ng-show="cluster && totalRepos > 0">
-        <li ng-class="{active: isActive('stackVersions.list')}">
+      <ul class="nav nav-pills nav-stacked" >
+        <li ng-class="{active: isActive('stackVersions.list')}" ng-show="cluster && totalRepos > 0">
           <a href="#/stackVersions">{{'common.versions' | translate}}</a>
+        </li>
+        <li ng-class="{active: isActive('remoteClusters.list')}">
+          <a href="#/remoteClusters">{{'common.remoteClusters' | translate}}</a>
         </li>
       </ul>
     </div>

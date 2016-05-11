@@ -31,6 +31,7 @@ import org.apache.ambari.server.view.persistence.DataStoreImpl;
 import org.apache.ambari.server.view.persistence.DataStoreModule;
 import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.view.AmbariStreamProvider;
+import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.DataStore;
 import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.MaskException;
@@ -54,7 +55,6 @@ import org.apache.hadoop.security.authentication.util.KerberosUtil;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
-import sun.security.krb5.KrbException;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -302,6 +302,27 @@ public class ViewContextImpl implements ViewContext, ViewController {
   @Override
   public synchronized AmbariStreamProvider getAmbariStreamProvider() {
     return viewRegistry.createAmbariStreamProvider();
+  }
+
+  @Override
+  public AmbariStreamProvider getAmbariClusterStreamProvider() {
+
+    String clusterHandle = viewInstanceEntity.getClusterHandle();
+    ClusterType clusterType = viewInstanceEntity.getClusterType();
+
+    AmbariStreamProvider clusterStreamProvider = null;
+
+    if(clusterHandle != null && clusterType == ClusterType.LOCAL_AMBARI){
+
+      clusterStreamProvider = getAmbariStreamProvider();
+
+    } else if(clusterHandle != null && clusterType == ClusterType.REMOTE_AMBARI){
+
+      clusterStreamProvider = viewRegistry.createRemoteAmbariStreamProvider(clusterHandle);
+
+    }
+
+    return clusterStreamProvider;
   }
 
   @Override

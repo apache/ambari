@@ -17,156 +17,160 @@
 -->
 <!doctype html>
 <html class="no-js">
-  <head>
-    <meta charset="utf-8">
-    <title>Ambari</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="shortcut icon" href="/img/logo.png" type="image/x-icon">
-    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+<head>
+  <meta charset="utf-8">
+  <title>Ambari</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="shortcut icon" href="/img/logo.png" type="image/x-icon">
+  <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-    <!-- build:css styles/vendor.css -->
-    <!-- bower:css -->
-    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="bower_components/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css" />
-    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css"/>
-    <!-- endbower -->
-    <!-- endbuild -->
+  <!-- build:css styles/vendor.css -->
+  <!-- bower:css -->
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+  <link rel="stylesheet" href="bower_components/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css" />
+  <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css"/>
+  <!-- endbower -->
+  <!-- endbuild -->
 
-    <!-- build:css styles/main.css -->
-    <link rel="stylesheet" href="styles/main.css">
-    <!-- endbuild -->
+  <!-- build:css styles/main.css -->
+  <link rel="stylesheet" href="styles/main.css">
+  <!-- endbuild -->
 
-  </head>
-  <body ng-app="ambariAdminConsole">
-    <!--[if lt IE 9]>
-      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-    <![endif]-->
+</head>
+<body ng-app="ambariAdminConsole">
+<!--[if lt IE 9]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<![endif]-->
 
-    <div id="top-nav" ng-controller="MainCtrl">
-      <header class="navbar navbar-static-top navbar-inverse">
-        <div class="navbar-inner">
-          <div class="container">
-            <a href="/#/main/dashboard" class="logo"><img src="/img/logo-white.png" alt="{{'common.apacheAmbari' | translate}}" title="{{'common.apacheAmbari' | translate}}"></a>
-            <a href="/#/main/dashboard" class="brand" title="{{'common.apacheAmbari' | translate}}">{{'common.ambari' | translate}}</a>
-            <ul class="nav navbar-nav navbar-right">
-              <li>
-                <div class="btn-group navbar-views-dropdown" dropdown is-open="viewsdropdown.isopen" ng-mouseover="viewsdropdown.isopen=true" ng-mouseout="viewsdropdown.isopen=false">
-                  <a href="/#/main/views" ng-click="gotoViewsDashboard()" class="dropdown-toggle"><i class="fa fa-th"></i></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li ng-repeat="instance in viewInstances"><a href="/#/main{{instance.context_path}}" ng-click="about()">{{instance.label}}</a></li>
-                    <li ng-show="!viewInstances.length" class="disabled"><a>{{'common.noViews' | translate}}</a></li>
-                  </ul>
-                </div>
-              </li>
-              <li>
-                <div class="btn-group" dropdown is-open="status.isopen">
-                  <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
-                    <i class="fa fa-user"></i> {{currentUser}} <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href ng-click="about()">{{'common.about' | translate}}</a></li>
-                    <li class="divider"></li>
-                    <li><a href ng-click="signOut()">{{'common.signOut' | translate}}</a></li>
-                  </ul>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </header>
-    </div>
-
-
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-3">
-          <div ng-include="'views/leftNavbar.html'" ng-controller="NavbarCtrl"></div>
-        </div>
-        <div class="col-sm-9">
-          <ng-view></ng-view>
-        </div>
+<div id="top-nav" ng-controller="MainCtrl">
+  <header class="navbar navbar-static-top navbar-inverse">
+    <div class="navbar-inner">
+      <div class="container">
+        <a href="/#/main/dashboard" class="logo"><img src="/img/logo-white.png" alt="{{'common.apacheAmbari' | translate}}" title="{{'common.apacheAmbari' | translate}}"></a>
+        <a href="/#/main/dashboard" class="brand" title="{{'common.apacheAmbari' | translate}}">{{'common.ambari' | translate}}</a>
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <div class="btn-group navbar-views-dropdown" dropdown is-open="viewsdropdown.isopen" ng-mouseover="viewsdropdown.isopen=true" ng-mouseout="viewsdropdown.isopen=false">
+              <a href="/#/main/views" ng-click="gotoViewsDashboard()" class="dropdown-toggle"><i class="fa fa-th"></i></a>
+              <ul class="dropdown-menu" role="menu">
+                <li ng-repeat="instance in viewInstances"><a href="/#/main{{instance.context_path}}" ng-click="about()">{{instance.label}}</a></li>
+                <li ng-show="!viewInstances.length" class="disabled"><a>{{'common.noViews' | translate}}</a></li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <div class="btn-group" dropdown is-open="status.isopen">
+              <button type="button" class="btn btn-default dropdown-toggle navbar-btn" ng-disabled="disabled">
+                <i class="fa fa-user"></i> {{currentUser}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href ng-click="about()">{{'common.about' | translate}}</a></li>
+                <li class="divider"></li>
+                <li><a href ng-click="signOut()">{{'common.signOut' | translate}}</a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
+  </header>
+</div>
 
 
-    <!-- build:js scripts/vendor.js -->
-    <!-- bower:js -->
-    <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="bower_components/angular/angular.js"></script>
-    <script src="bower_components/angular-animate/angular-animate.js"></script>
-    <script src="bower_components/angular-route/angular-route.js"></script>
-    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
-    <script src="bower_components/lodash/dist/lodash.compat.js"></script>
-    <script src="bower_components/restangular/dist/restangular.js"></script>
-    <script src="bower_components/angular-bootstrap-toggle-switch/angular-toggle-switch.min.js"></script>
-    <script src="bower_components/angular-translate/angular-translate.min.js"></script>
-    <!-- endbower -->
-    <!-- endbuild -->
+<div class="container">
+  <div class="row">
+    <div class="col-sm-3">
+      <div ng-include="'views/leftNavbar.html'" ng-controller="NavbarCtrl"></div>
+    </div>
+    <div class="col-sm-9">
+      <ng-view></ng-view>
+    </div>
+  </div>
+</div>
 
-    <!-- build:js scripts/plugins.js -->
-    <script src="bower_components/bootstrap/js/affix.js"></script>
-    <script src="bower_components/bootstrap/js/alert.js"></script>
-    <script src="bower_components/bootstrap/js/dropdown.js"></script>
-    <script src="bower_components/bootstrap/js/tooltip.js"></script>
-    <script src="bower_components/bootstrap/js/modal.js"></script>
-    <script src="bower_components/bootstrap/js/transition.js"></script>
-    <script src="bower_components/bootstrap/js/button.js"></script>
-    <script src="bower_components/bootstrap/js/popover.js"></script>
-    <script src="bower_components/bootstrap/js/carousel.js"></script>
-    <script src="bower_components/bootstrap/js/scrollspy.js"></script>
-    <script src="bower_components/bootstrap/js/collapse.js"></script>
-    <script src="bower_components/bootstrap/js/tab.js"></script>
 
-    <!-- endbuild -->
+<!-- build:js scripts/vendor.js -->
+<!-- bower:js -->
+<script src="bower_components/jquery/dist/jquery.js"></script>
+<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/angular-animate/angular-animate.js"></script>
+<script src="bower_components/angular-route/angular-route.js"></script>
+<script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+<script src="bower_components/lodash/dist/lodash.compat.js"></script>
+<script src="bower_components/restangular/dist/restangular.js"></script>
+<script src="bower_components/angular-bootstrap-toggle-switch/angular-toggle-switch.min.js"></script>
+<script src="bower_components/angular-translate/angular-translate.min.js"></script>
+<!-- endbower -->
+<!-- endbuild -->
 
-    <!-- build:js scripts/main.js -->
-    <script src="scripts/app.js"></script>
-    <script src="scripts/routes.js"></script>
-    <script src="scripts/i18n.config.js"></script>
-    <script src="scripts/controllers/mainCtrl.js"></script>
-    <script src="scripts/controllers/NavbarCtrl.js"></script>
-    <script src="scripts/controllers/authentication/AuthenticationMainCtrl.js"></script>
-    <script src="scripts/controllers/loginActivities/LoginActivitiesMainCtrl.js"></script>
-    <script src="scripts/controllers/loginActivities/LoginMessageMainCtrl.js"></script>
-    <script src="scripts/controllers/loginActivities/HomeDirectoryCtrl.js"></script>
-    <script src="scripts/controllers/users/UsersCreateCtrl.js"></script>
-    <script src="scripts/controllers/users/UsersListCtrl.js"></script>
-    <script src="scripts/controllers/users/UsersShowCtrl.js"></script>
-    <script src="scripts/controllers/groups/GroupsListCtrl.js"></script>
-    <script src="scripts/controllers/groups/GroupsCreateCtrl.js"></script>
-    <script src="scripts/controllers/groups/GroupsEditCtrl.js"></script>
-    <script src="scripts/controllers/ambariViews/ViewsListCtrl.js"></script>
-    <script src="scripts/controllers/ambariViews/ViewsEditCtrl.js"></script>
-    <script src="scripts/controllers/ambariViews/ViewUrlCtrl.js"></script>
-    <script src="scripts/controllers/ambariViews/ViewUrlEditCtrl.js"></script>
-    <script src="scripts/controllers/ambariViews/CreateViewInstanceCtrl.js"></script>
-    <script src="scripts/controllers/clusters/ClustersManageAccessCtrl.js"></script>
-    <script src="scripts/controllers/clusters/UserAccessListCtrl.js"></script>
-    <script src="scripts/controllers/stackVersions/StackVersionsCreateCtrl.js"></script>
-    <script src="scripts/controllers/stackVersions/StackVersionsListCtrl.js"></script>
-    <script src="scripts/controllers/stackVersions/StackVersionsEditCtrl.js"></script>
-    <script src="scripts/directives/linkToDir.js"></script>
-    <script src="scripts/directives/PasswordVerify.js"></script>
-    <script src="scripts/directives/disabledTooltip.js"></script>
-    <script src="scripts/directives/editableList.js"></script>
-    <script src="scripts/services/UserConstants.js"></script>
-    <script src="scripts/services/User.js"></script>
-    <script src="scripts/services/Group.js"></script>
-    <script src="scripts/services/View.js"></script>
-    <script src="scripts/services/Cluster.js"></script>
-    <script src="scripts/services/Alert.js"></script>
-    <script src="scripts/services/PermissionLoader.js"></script>
-    <script src="scripts/services/PermissionsSaver.js"></script>
-    <script src="scripts/services/ConfirmationModal.js"></script>
-    <script src="scripts/services/Auth.js"></script>
-    <script src="scripts/services/GetDifference.js"></script>
-    <script src="scripts/services/UnsavedDialog.js"></script>
-    <script src="scripts/services/Stack.js"></script>
-    <script src="scripts/services/AddRepositoryModal.js"></script>
-    <script src="scripts/services/RoleDetailsModal.js"></script>
-    <!-- endbuild -->
+<!-- build:js scripts/plugins.js -->
+<script src="bower_components/bootstrap/js/affix.js"></script>
+<script src="bower_components/bootstrap/js/alert.js"></script>
+<script src="bower_components/bootstrap/js/dropdown.js"></script>
+<script src="bower_components/bootstrap/js/tooltip.js"></script>
+<script src="bower_components/bootstrap/js/modal.js"></script>
+<script src="bower_components/bootstrap/js/transition.js"></script>
+<script src="bower_components/bootstrap/js/button.js"></script>
+<script src="bower_components/bootstrap/js/popover.js"></script>
+<script src="bower_components/bootstrap/js/carousel.js"></script>
+<script src="bower_components/bootstrap/js/scrollspy.js"></script>
+<script src="bower_components/bootstrap/js/collapse.js"></script>
+<script src="bower_components/bootstrap/js/tab.js"></script>
+
+<!-- endbuild -->
+
+<!-- build:js scripts/main.js -->
+<script src="scripts/app.js"></script>
+<script src="scripts/routes.js"></script>
+<script src="scripts/i18n.config.js"></script>
+<script src="scripts/controllers/mainCtrl.js"></script>
+<script src="scripts/controllers/NavbarCtrl.js"></script>
+<script src="scripts/controllers/authentication/AuthenticationMainCtrl.js"></script>
+<script src="scripts/controllers/loginActivities/LoginActivitiesMainCtrl.js"></script>
+<script src="scripts/controllers/loginActivities/LoginMessageMainCtrl.js"></script>
+<script src="scripts/controllers/loginActivities/HomeDirectoryCtrl.js"></script>
+<script src="scripts/controllers/users/UsersCreateCtrl.js"></script>
+<script src="scripts/controllers/users/UsersListCtrl.js"></script>
+<script src="scripts/controllers/users/UsersShowCtrl.js"></script>
+<script src="scripts/controllers/groups/GroupsListCtrl.js"></script>
+<script src="scripts/controllers/groups/GroupsCreateCtrl.js"></script>
+<script src="scripts/controllers/groups/GroupsEditCtrl.js"></script>
+<script src="scripts/controllers/ambariViews/ViewsListCtrl.js"></script>
+<script src="scripts/controllers/ambariViews/ViewsEditCtrl.js"></script>
+<script src="scripts/controllers/ambariViews/ViewUrlCtrl.js"></script>
+<script src="scripts/controllers/ambariViews/ViewUrlEditCtrl.js"></script>
+<script src="scripts/controllers/ambariViews/CreateViewInstanceCtrl.js"></script>
+<script src="scripts/controllers/clusters/ClustersManageAccessCtrl.js"></script>
+<script src="scripts/controllers/clusters/UserAccessListCtrl.js"></script>
+<script src="scripts/controllers/stackVersions/StackVersionsCreateCtrl.js"></script>
+<script src="scripts/controllers/stackVersions/StackVersionsListCtrl.js"></script>
+<script src="scripts/controllers/stackVersions/StackVersionsEditCtrl.js"></script>
+<script src="scripts/controllers/remoteClusters/RemoteClustersCreateCtrl.js"></script>
+<script src="scripts/controllers/remoteClusters/RemoteClustersListCtrl.js"></script>
+<script src="scripts/controllers/remoteClusters/RemoteClustersEditCtrl.js"></script>
+<script src="scripts/directives/linkToDir.js"></script>
+<script src="scripts/directives/PasswordVerify.js"></script>
+<script src="scripts/directives/disabledTooltip.js"></script>
+<script src="scripts/directives/editableList.js"></script>
+<script src="scripts/services/UserConstants.js"></script>
+<script src="scripts/services/User.js"></script>
+<script src="scripts/services/Group.js"></script>
+<script src="scripts/services/RemoteCluster.js"></script>
+<script src="scripts/services/View.js"></script>
+<script src="scripts/services/Cluster.js"></script>
+<script src="scripts/services/Alert.js"></script>
+<script src="scripts/services/PermissionLoader.js"></script>
+<script src="scripts/services/PermissionsSaver.js"></script>
+<script src="scripts/services/ConfirmationModal.js"></script>
+<script src="scripts/services/Auth.js"></script>
+<script src="scripts/services/GetDifference.js"></script>
+<script src="scripts/services/UnsavedDialog.js"></script>
+<script src="scripts/services/Stack.js"></script>
+<script src="scripts/services/AddRepositoryModal.js"></script>
+<script src="scripts/services/RoleDetailsModal.js"></script>
+<!-- endbuild -->
 </body>
 </html>

@@ -347,6 +347,11 @@
             <xs:documentation>The Masker class for masking view parameters.</xs:documentation>
           </xs:annotation>
         </xs:element>
+        <xs:element type="xs:string" name="cluster-config-options" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Enable views to display cluster options in case of no cluster config properties.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
         <xs:element type="xs:string" name="data-migrator-class" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>The data migration class.</xs:documentation>

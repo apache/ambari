@@ -27,7 +27,6 @@ import java.util.Map;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
-import org.apache.ambari.view.utils.ambari.URLStreamProviderBasicAuth;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.IOUtils;
 
@@ -76,10 +75,6 @@ public class BaseHttpClient {
 		return viewContext.getURLStreamProvider();
 	}
 
-	public URLStreamProviderBasicAuth getUrlStreamProviderBasicAuth() {
-		return ambariApi.getUrlStreamProviderBasicAuth();
-	}
-
 	public String getUrl() {
 		return url;
 	}
@@ -118,42 +113,39 @@ public class BaseHttpClient {
 
 	public JsonElement doGetJson(String url, String path) throws HttpException,
 			IOException {
-		InputStream inputStream = null;
+		String response = null;
 		try {
 			Map<String, String> headers = new HashMap<String, String>();
 			if (isNeedsAuthentication()) {
-				inputStream = getUrlStreamProviderBasicAuth().readFrom(
+				response = ambariApi.readFromAmbari(
 						url + path, "GET", (String) null, headers);
 			} else {
-				inputStream = getUrlStreamProviderBasicAuth().readAsCurrent(
-						url + path, "GET", (String) null, headers);
+				response = IOUtils.toString(viewContext.getURLStreamProvider().readAsCurrent(
+						url + path, "GET", (String) null, headers));
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			logger.error("Error while reading from url " + url + path, e);
 			HttpException httpException = new HttpException(
 					e.getLocalizedMessage());
 			throw httpException;
 		}
-		JsonElement jsonElement = new JsonParser().parse(new JsonReader(
-				new InputStreamReader(inputStream)));
+		JsonElement jsonElement = new JsonParser().parse(response);
 		return jsonElement;
 	}
 
 	public String doGet(String path) throws HttpException, IOException {
 		String response = null;
 		try {
-			InputStream inputStream = null;
 			if (isNeedsAuthentication()) {
-				inputStream = getUrlStreamProviderBasicAuth().readFrom(
+				response = ambariApi.readFromAmbari(
 						getUrl() + path, "GET", (String) null,
 						new HashMap<String, String>());
 			} else {
-				inputStream = getUrlStreamProviderBasicAuth().readAsCurrent(
+				response = IOUtils.toString(viewContext.getURLStreamProvider().readAsCurrent(
 						getUrl() + path, "GET", (String) null,
-						new HashMap<String, String>());
+						new HashMap<String, String>()));
 			}
-			response = IOUtils.toString(inputStream);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			logger.error("Error while reading from url " + getUrl() + path, e);
 			HttpException httpException = new HttpException(
 					e.getLocalizedMessage());

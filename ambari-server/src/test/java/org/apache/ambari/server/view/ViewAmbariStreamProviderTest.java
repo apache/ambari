@@ -69,7 +69,7 @@ public class ViewAmbariStreamProviderTest {
 
     ViewAmbariStreamProvider viewAmbariStreamProvider = new ViewAmbariStreamProvider(streamProvider, sessionManager, controller);
 
-    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", "params", headers, true));
+    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", "params", headers));
 
     verify(streamProvider, sessionManager, urlConnection, inputStream);
   }
@@ -104,7 +104,7 @@ public class ViewAmbariStreamProviderTest {
 
     ViewAmbariStreamProvider viewAmbariStreamProvider = new ViewAmbariStreamProvider(streamProvider, sessionManager, controller);
 
-    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers, true));
+    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers));
 
     verify(streamProvider, sessionManager, urlConnection, inputStream);
   }
@@ -139,7 +139,7 @@ public class ViewAmbariStreamProviderTest {
 
     ViewAmbariStreamProvider viewAmbariStreamProvider = new ViewAmbariStreamProvider(streamProvider, sessionManager, controller);
 
-    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers, true));
+    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers));
 
     verify(streamProvider, sessionManager, urlConnection, inputStream);
   }
@@ -174,7 +174,7 @@ public class ViewAmbariStreamProviderTest {
 
     ViewAmbariStreamProvider viewAmbariStreamProvider = new ViewAmbariStreamProvider(streamProvider, sessionManager, controller);
 
-    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers, true));
+    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers));
 
     verify(streamProvider, sessionManager, urlConnection, inputStream);
   }

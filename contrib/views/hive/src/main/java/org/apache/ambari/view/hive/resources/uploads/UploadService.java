@@ -329,7 +329,7 @@ public class UploadService extends BaseService {
   }
 
   private String getHiveMetaStoreLocation() {
-    String dir = this.getAmbariApi().getProperty(HIVE_SITE,HIVE_METASTORE_LOCATION_KEY,HIVE_METASTORE_LOCATION_KEY_VIEW_PROPERTY);
+    String dir = context.getProperties().get(HIVE_METASTORE_LOCATION_KEY_VIEW_PROPERTY);
     if(dir != null && !dir.trim().isEmpty()){
       return dir;
     }else{

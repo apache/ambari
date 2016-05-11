@@ -41,6 +41,7 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
 import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
+import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.validation.Validator;
 
 import java.util.Collections;
@@ -72,6 +73,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   public static final String CONTEXT_PATH_PROPERTY_ID   = "ViewInstanceInfo/context_path";
   public static final String STATIC_PROPERTY_ID         = "ViewInstanceInfo/static";
   public static final String CLUSTER_HANDLE_PROPERTY_ID = "ViewInstanceInfo/cluster_handle";
+  public static final String CLUSTER_TYPE_PROPERTY_ID = "ViewInstanceInfo/cluster_type";
   public static final String SHORT_URL_PROPERTY_ID      = "ViewInstanceInfo/short_url";
   public static final String SHORT_URL_NAME_PROPERTY_ID = "ViewInstanceInfo/short_url_name";
 
@@ -113,6 +115,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
     propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
     propertyIds.add(STATIC_PROPERTY_ID);
     propertyIds.add(CLUSTER_HANDLE_PROPERTY_ID);
+    propertyIds.add(CLUSTER_TYPE_PROPERTY_ID);
     propertyIds.add(SHORT_URL_PROPERTY_ID);
     propertyIds.add(SHORT_URL_NAME_PROPERTY_ID);
     propertyIds.add(VALIDATION_RESULT_PROPERTY_ID);
@@ -245,6 +248,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
     setResourceProperty(resource, VISIBLE_PROPERTY_ID, viewInstanceEntity.isVisible(), requestedIds);
     setResourceProperty(resource, STATIC_PROPERTY_ID, viewInstanceEntity.isXmlDriven(), requestedIds);
     setResourceProperty(resource, CLUSTER_HANDLE_PROPERTY_ID, viewInstanceEntity.getClusterHandle(), requestedIds);
+    setResourceProperty(resource, CLUSTER_TYPE_PROPERTY_ID, viewInstanceEntity.getClusterType(), requestedIds);
     ViewURLEntity viewUrl = viewInstanceEntity.getViewUrl();
     if(viewUrl != null) {
       setResourceProperty(resource, SHORT_URL_PROPERTY_ID, viewUrl.getUrlSuffix(), requestedIds);
@@ -349,6 +353,11 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
 
     if (properties.containsKey(CLUSTER_HANDLE_PROPERTY_ID)) {
       viewInstanceEntity.setClusterHandle((String) properties.get(CLUSTER_HANDLE_PROPERTY_ID));
+    }
+
+    if (properties.containsKey(CLUSTER_TYPE_PROPERTY_ID)) {
+      String clusterType = (String) properties.get(CLUSTER_TYPE_PROPERTY_ID);
+      viewInstanceEntity.setClusterType(ClusterType.valueOf(clusterType));
     }
 
     Map<String, String> instanceProperties = new HashMap<String, String>();

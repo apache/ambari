@@ -243,6 +243,22 @@ public class UpgradeCatalog240Test {
     dbAccessor.addFKConstraint(UpgradeCatalog240.VIEWINSTANCE_TABLE, "FK_instance_url_id",
             UpgradeCatalog240.SHORT_URL_COLUMN, UpgradeCatalog240.VIEWURL_TABLE, "url_id", false);
 
+    Capture<DBAccessor.DBColumnInfo> viewInstanceClusterType = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), capture(viewInstanceClusterType));
+
+    // Test remote Cluster Tables
+    Capture<List<DBAccessor.DBColumnInfo>> capturedRemoteAmbariClusterColumns = EasyMock.newCapture();
+    dbAccessor.createTable(eq(UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_TABLE), capture(capturedRemoteAmbariClusterColumns),anyString());
+    dbAccessor.addUniqueConstraint(UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_TABLE , "unq_remote_ambari_cluster" , UpgradeCatalog240.CLUSTER_NAME);
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.createStatement()).andReturn(statement);
+
+    Capture<List<DBAccessor.DBColumnInfo>> capturedRemoteClusterServiceColumns = EasyMock.newCapture();
+    dbAccessor.createTable(eq(UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_SERVICE_TABLE), capture(capturedRemoteClusterServiceColumns),anyString());
+    dbAccessor.addFKConstraint(UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_SERVICE_TABLE, "FK_remote_ambari_cluster_id",
+      UpgradeCatalog240.CLUSTER_ID, UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_TABLE, UpgradeCatalog240.CLUSTER_ID, false);
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.createStatement()).andReturn(statement);
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
@@ -402,6 +418,20 @@ public class UpgradeCatalog240Test {
     List<DBAccessor.DBColumnInfo> capturedViewUrlColumsValue = capturedViewUrlColums.getValue();
     Assert.assertNotNull(capturedViewUrlColumsValue);
     Assert.assertEquals(capturedViewUrlColumsValue.size(),3);
+
+    // Verify cluster_type column
+    DBAccessor.DBColumnInfo viewInstanceEntityClusterTypeValue = viewInstanceClusterType.getValue();
+    Assert.assertNotNull(viewInstanceClusterType);
+    Assert.assertEquals("cluster_type", viewInstanceEntityClusterTypeValue.getName());
+    Assert.assertEquals(String.class, viewInstanceEntityClusterTypeValue.getType());
+
+    List<DBAccessor.DBColumnInfo> capturedRemoteAmbariClusterColumnsValue = capturedRemoteAmbariClusterColumns.getValue();
+    Assert.assertNotNull(capturedRemoteAmbariClusterColumnsValue);
+    Assert.assertEquals(capturedRemoteAmbariClusterColumnsValue.size(),5);
+
+    List<DBAccessor.DBColumnInfo> capturedRemoteClusterServiceColumnsValue = capturedRemoteClusterServiceColumns.getValue();
+    Assert.assertNotNull(capturedRemoteClusterServiceColumnsValue);
+    Assert.assertEquals(capturedRemoteClusterServiceColumnsValue.size(),3);
 
     verify(dbAccessor);
   }

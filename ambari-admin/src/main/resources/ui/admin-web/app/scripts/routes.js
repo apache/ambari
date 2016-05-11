@@ -136,6 +136,23 @@ angular.module('ambariAdminConsole')
       controller: 'StackVersionsEditCtrl'
     }
   },
+  remoteClusters: {
+    list: {
+      url: '/remoteClusters',
+      templateUrl: 'views/remoteClusters/list.html',
+      controller: 'RemoteClustersListCtrl'
+    },
+    create: {
+      url: '/remoteClusters/create',
+      templateUrl: 'views/remoteClusters/remoteClusterPage.html',
+      controller: 'RemoteClustersCreateCtrl'
+    },
+     edit: {
+     url: '/remoteClusters/:clusterName/edit',
+     templateUrl: 'views/remoteClusters/editRemoteClusterPage.html',
+     controller: 'RemoteClustersEditCtrl'
+     }
+  },
   clusters: {
     manageAccess: {
       url: '/clusters/:id/manageAccess',
