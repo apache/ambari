@@ -167,6 +167,17 @@ def hive_interactive(name=None):
          owner=params.hive_user,
          content=params.beeline_log4j2)
 
+      File(format("{hive_server_interactive_conf_dir}/hadoop-metrics2-llapdaemon.properties"),
+           owner=params.hive_user,
+           group=params.user_group,
+           content=Template("hadoop-metrics2-llapdaemon.j2"))
+
+      File(format("{hive_server_interactive_conf_dir}/hadoop-metrics2-llaptaskscheduler.properties"),
+           owner=params.hive_user,
+           group=params.user_group,
+           content=Template("hadoop-metrics2-llaptaskscheduler.j2"))
+
+
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
             create_parents = True,
