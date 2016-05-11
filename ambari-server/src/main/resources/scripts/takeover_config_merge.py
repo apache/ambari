@@ -28,7 +28,6 @@ import base64
 import time
 import xml
 import xml.etree.ElementTree as ET
-import yaml
 import StringIO
 import ConfigParser
 
@@ -42,20 +41,54 @@ Example:
 "c6401.ambari.apache.org/etc/hive/conf/log4j.properties" : "hive-log4j"}
 """
 
+LICENSE = """
+
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+"""
+
+
 class Parser:
   pass
 
+class ShParser(Parser):
+  def read_data_to_map(self, path):
+    with open(path, 'r') as file:
+      file_content = file.read()
+    return {"content" : file_content}, None
+
 class YamlParser(Parser): # Used Yaml parser to read data into a map
   def read_data_to_map(self, path):
+    try:
+      import yaml
+    except ImportError:
+      logger.error("Module PyYAML not installed. Please try to execute \"pip install pyyaml\" for installing PyYAML module.")
+      sys.exit(1)
+
     configurations = {}
     with open(path, 'r') as file:
       try:
         for name, value in yaml.load(file).iteritems():
           if name != None:
             configurations[name] = str(value)
-      except yaml.YAMLError:
-        logger.exception("Yaml parser error: ")
-        return None
+      except:
+        logger.error("Couldn't parse {0} file. Skipping ...".format(path))
+        return None, None
     return configurations, None
 
 
@@ -121,12 +154,19 @@ class ConfigMerge:
   OUTPUT_DIR = '/tmp'
   OUT_FILENAME = 'ambari_takeover_config_merge.out'
   JSON_FILENAME = 'ambari_takeover_config_merge.json'
-  PARSER_BY_EXTENSIONS = {'.xml' : XmlParser(), '.yaml' : YamlParser(), '.properties' : PropertiesParser()}
-  SUPPORTED_EXTENSIONS = ['.xml', '.yaml', '.properties']
+  PARSER_BY_EXTENSIONS = {'.xml' : XmlParser(), '.yaml' : YamlParser(), '.properties' : PropertiesParser(), '.sh' : ShParser()}
+  SUPPORTED_EXTENSIONS = ['.xml', '.yaml', '.properties', '.sh']
+  SUPPORTED_FILENAME_ENDINGS = {".sh" : "-env"}
   UNKNOWN_FILES_MAPPING_FILE = None
   SERVICE_TO_AMBARI_CONFIG_NAME = {
-    "storm.yaml": "storm-site"
+    "storm.yaml": "storm-site",
+    "runtime.properties" : "falcon-runtime",
+    "startup.properties" : "falcon-startup",
+    "flume-conf.properties" : "flume-conf",
+    "pig.properties" : "pig-properties"
   }
+
+  CONFIGS_WITH_CONTENT = ['pig-properties', '-log4j']
 
   NOT_MAPPED_FILES = ['log4j.properties']
 
@@ -144,7 +184,9 @@ class ConfigMerge:
         root, ext = os.path.splitext(file)
         if ext in extensions:
           file_path = os.path.join(dirName, file)
-
+          if ext in ConfigMerge.SUPPORTED_FILENAME_ENDINGS and not ConfigMerge.SUPPORTED_FILENAME_ENDINGS[ext] in root:
+            logger.warn("File {0} is not configurable by Ambari. Skipping...".format(file_path))
+            continue
           config_name = None
           if file in ConfigMerge.SERVICE_TO_AMBARI_CONFIG_NAME:
             config_name = ConfigMerge.SERVICE_TO_AMBARI_CONFIG_NAME[file]
@@ -196,8 +238,22 @@ class ConfigMerge:
   def format_for_blueprint(configurations, attributes):
     all_configs = []
     for configuration_type, configuration_properties in configurations.iteritems():
+      is_content = False
       all_configs.append({})
-      all_configs[-1][configuration_type] = {'properties' :configuration_properties}
+
+      for config_with_content in ConfigMerge.CONFIGS_WITH_CONTENT:
+        if config_with_content in configuration_type:
+          is_content = True
+          break
+
+      if is_content:
+        content = LICENSE
+        for property_name, property_value in configuration_properties.iteritems():
+          content+=property_name + "=" + property_value + "\n"
+        all_configs[-1][configuration_type] = {'properties': {"content" : content}}
+      else:
+        all_configs[-1][configuration_type] = {'properties' :configuration_properties}
+
       for configuration_type_attributes, properties_attributes in attributes.iteritems():
         if properties_attributes and configuration_type == configuration_type_attributes:
           all_configs[-1][configuration_type].update({"properties_attributes" : {"final" : properties_attributes}})
@@ -215,7 +271,12 @@ class ConfigMerge:
       if len(value_to_filepaths) == 1:
         continue
 
+      first_item = False
       for value, filepaths in value_to_filepaths.iteritems():
+        if not first_item:
+          first_item = True
+          output += "\n\n=== {0} | {1} | {2} |\nHas conflicts with:\n\n".format(property_name,filepaths[0], value)
+          continue
         for filepath in filepaths:
           output += "| {0} | {1} | {2} |\n".format(property_name, filepath, value)
 
