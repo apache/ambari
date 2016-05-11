@@ -1076,7 +1076,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES
   ('blueprint_setting_id_seq', 0),
   ('ambari_operation_history_id_seq', 0),
   ('remote_cluster_id_seq', 0),
-  ('remote_cluster_service_id_seq', 0),;
+  ('remote_cluster_service_id_seq', 0);
 
 INSERT INTO adminresourcetype (resource_type_id, resource_type_name) VALUES
   (1, 'AMBARI'),
