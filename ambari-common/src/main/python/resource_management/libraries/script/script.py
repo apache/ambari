@@ -655,6 +655,14 @@ class Script(object):
         else:
           self.pre_rolling_restart(env)
 
+      try:
+        self.status(env)
+        raise Fail("Stop command finished but process keep running.")
+      except ComponentIsNotRunning as e:
+        pass  # expected
+      except ClientComponentHasNoStatus as e:
+        pass  # expected
+
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
       self.pre_start()

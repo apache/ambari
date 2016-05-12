@@ -118,8 +118,9 @@ class TestRangerUsersync(RMFTestCase):
                        command = "restart",
                        config_file="ranger-usersync-upgrade.json",
                        stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES)
-
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(1, None)]
+    )
     self.assertTrue(setup_usersync_mock.called)
     self.assertResourceCalled("Execute", ("/usr/bin/ranger-usersync-stop",),
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_67'},
@@ -143,7 +144,7 @@ class TestRangerUsersync(RMFTestCase):
                        config_dict = json_content,
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
+                       call_mocks = [(0, None, ''), (1, None), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertTrue(setup_usersync_mock.called)
@@ -152,7 +153,7 @@ class TestRangerUsersync(RMFTestCase):
                               sudo = True)
     self.assertResourceCalledIgnoreEarlier("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'ranger-usersync', '2.3.0.0-1234'), sudo=True)
 
-    self.assertEquals(2, mocks_dict['call'].call_count)
+    self.assertEquals(3, mocks_dict['call'].call_count)
     self.assertEquals(1, mocks_dict['checked_call'].call_count)
     self.assertEquals(
       ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'ranger-usersync', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
