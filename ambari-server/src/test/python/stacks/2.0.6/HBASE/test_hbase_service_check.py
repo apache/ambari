@@ -40,11 +40,15 @@ class TestServiceCheck(RMFTestCase):
       content = StaticFile('hbaseSmokeVerify.sh'),
       mode = 0755,
     )
+    self.assertResourceCalled('File', '/tmp/hbase-smoke-cleanup.sh',
+      content = StaticFile('hbase-smoke-cleanup.sh'),
+      mode = 0755,
+    )
     self.assertResourceCalled('File', '/tmp/hbase-smoke.sh',
       content = Template('hbase-smoke.sh.j2'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase',
+    self.assertResourceCalled('Execute', ' /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase &&  /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke-cleanup.sh',
       logoutput = True,
       tries = 6,
       user = 'ambari-qa',
@@ -65,6 +69,10 @@ class TestServiceCheck(RMFTestCase):
       content = StaticFile('hbaseSmokeVerify.sh'),
       mode = 0755,
     )
+    self.assertResourceCalled('File', '/tmp/hbase-smoke-cleanup.sh',
+      content = StaticFile('hbase-smoke-cleanup.sh'),
+      mode = 0755,
+    )
     self.assertResourceCalled('File', '/tmp/hbase-smoke.sh',
       content = Template('hbase-smoke.sh.j2'),
       mode = 0755,
@@ -78,7 +86,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; /usr/lib/hbase/bin/hbase shell /tmp/hbase_grant_permissions.sh',
       user = 'hbase',
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/lib/hbase/bin/hbase && /usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/lib/hbase/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke-cleanup.sh',
       logoutput = True,
       tries = 6,
       user = 'ambari-qa',
@@ -98,11 +106,15 @@ class TestServiceCheck(RMFTestCase):
       content = StaticFile('hbaseSmokeVerify.sh'),
       mode = 0755,
     )
+    self.assertResourceCalled('File', '/tmp/hbase-smoke-cleanup.sh',
+      content = StaticFile('hbase-smoke-cleanup.sh'),
+      mode = 0755,
+    )
     self.assertResourceCalled('File', '/tmp/hbase-smoke.sh',
       content = Template('hbase-smoke.sh.j2'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', ' /usr/hdp/current/hbase-client/bin/hbase --config /usr/hdp/current/hbase-client/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /usr/hdp/current/hbase-client/conf  /usr/hdp/current/hbase-client/bin/hbase',
+    self.assertResourceCalled('Execute',  ' /usr/hdp/current/hbase-client/bin/hbase --config /usr/hdp/current/hbase-client/conf shell /tmp/hbase-smoke.sh && /tmp/hbaseSmokeVerify.sh /usr/hdp/current/hbase-client/conf  /usr/hdp/current/hbase-client/bin/hbase &&  /usr/hdp/current/hbase-client/bin/hbase --config /usr/hdp/current/hbase-client/conf shell /tmp/hbase-smoke-cleanup.sh',
       logoutput = True,
       tries = 6,
       user = 'ambari-qa',

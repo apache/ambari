@@ -48,9 +48,15 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
     output_file = "/apps/hbase/data/ambarismoketest"
     smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};") if params.security_enabled else ""
     hbase_servicecheck_file = format("{exec_tmp_dir}/hbase-smoke.sh")
-  
+    hbase_servicecheck_cleanup_file = format("{exec_tmp_dir}/hbase-smoke-cleanup.sh")
+
     File( format("{exec_tmp_dir}/hbaseSmokeVerify.sh"),
       content = StaticFile("hbaseSmokeVerify.sh"),
+      mode = 0755
+    )
+
+    File(hbase_servicecheck_cleanup_file,
+      content = StaticFile("hbase-smoke-cleanup.sh"),
       mode = 0755
     )
   
@@ -76,8 +82,8 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
 
     servicecheckcmd = format("{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_file}")
     smokeverifycmd = format("{exec_tmp_dir}/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data} {hbase_cmd}")
-  
-    Execute(format("{servicecheckcmd} && {smokeverifycmd}"),
+    cleanupCmd = format("{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_cleanup_file}")
+    Execute(format("{servicecheckcmd} && {smokeverifycmd} && {cleanupCmd}"),
       tries     = 6,
       try_sleep = 5,
       user = params.smoke_test_user,
