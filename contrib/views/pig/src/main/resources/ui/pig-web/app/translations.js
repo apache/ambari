@@ -68,9 +68,8 @@ Ember.I18n.translations = {
       'copy_created':'Copy Created',
       'continue_editing':'Continue Editing',
       'go_to_copy':'Go to Copy',
-
       'error_empty_title':'Name cannot be empty',
-
+      'error_empty_scriptcontent':'Script content cannot be empty',
       'confirm_delete':'Confirm Delete',
       'confirm_delete_massage':'Are you sure you want to delete {{title}} script?'
     },

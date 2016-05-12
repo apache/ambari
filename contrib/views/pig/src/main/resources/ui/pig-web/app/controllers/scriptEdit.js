@@ -95,6 +95,14 @@ App.ScriptEditController = Em.ObjectController.extend({
       this.set('content.argumentsArray',this.get('content.argumentsArray').removeObject(arg));
     },
     execute: function (script, operation) {
+
+      var isEmpltyScript =  Ember.isEmpty(script.get('pigScript').get('content').get('fileContent'));
+
+      if( isEmpltyScript ){
+        this.send('showAlert', {message:Em.I18n.t('scripts.modal.error_empty_scriptcontent'),status:'error',trace:null});
+        return;
+      }
+
       this.set('isExec',true);
 
       return Ember.RSVP.resolve(script.get('pigScript'))
