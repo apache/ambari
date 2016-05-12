@@ -2231,6 +2231,7 @@ Em.I18n.translations = {
   'services.reassign.step6.tasks.putHostComponentsInMaintenanceMode.title':'Disable {0}',
   'services.reassign.step6.tasks.deleteHostComponents.title': 'Delete disabled {0}',
   'services.reassign.step6.tasks.startAllServices.title': 'Start All Services',
+  'services.reassign.step6.tasks.installPxf.title': 'Install PXF on NameNode',
   'services.reassign.step6.tasks.stopMysqlService.title': 'Stop Mysql Server',
   'services.reassign.step6.tasks.stopHostComponentsInMaintenanceMode.title': 'Stop {0}',
   'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',

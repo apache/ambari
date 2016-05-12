@@ -138,6 +138,101 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     });
   });
 
+  describe('#loadStep() for reassign NameNode with PXF service installed', function () {
+
+    var serviceStub, hostComponentStub, pxfHosts, dataNodeHosts;
+
+    var commands = [
+      'stopMysqlService',
+      'putHostComponentsInMaintenanceMode',
+      'stopHostComponentsInMaintenanceMode',
+      'deleteHostComponents',
+      'startAllServices'
+    ];
+
+    var reassignHosts = {
+      "source": "c6401.ambari.apache.org",
+      "target": "c6403.ambari.apache.org"
+    };
+
+    beforeEach(function () {
+      controller.set('content.reassign.service_id', 'HDFS');
+      controller.set('content.reassign.component_name', 'NAMENODE');
+      controller.set('commands', commands.copy());
+      controller.set('content.reassignHosts', reassignHosts);
+      sinon.stub(controller, 'onTaskStatusChange', Em.K);
+      sinon.stub(controller, 'initializeTasks', Em.K);
+      serviceStub = sinon.stub(App.Service.find(), 'someProperty');
+      hostComponentStub = sinon.stub(App.HostComponent.find(), 'filterProperty');
+      serviceStub.withArgs('serviceName', 'PXF').returns(true);
+    });
+
+    afterEach(function () {
+      controller.onTaskStatusChange.restore();
+      controller.initializeTasks.restore();
+      serviceStub.restore();
+      hostComponentStub.restore();
+    });
+
+    var setUpHosts = function (pxfHosts, dataNodeHosts) {
+      hostComponentStub.withArgs('componentName', 'PXF').returns(pxfHosts);
+      hostComponentStub.withArgs('componentName', 'DATANODE').returns(dataNodeHosts);
+    };
+
+    it('does not delete PXF from source host if PXF and DATANODE are not installed on the source host', function () {
+      pxfHosts = [{"hostName": "c6402.ambari.apache.org"}];
+      dataNodeHosts = [{"hostName": "c6402.ambari.apache.org"}];
+      setUpHosts(pxfHosts, dataNodeHosts);
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['NAMENODE']);
+    });
+
+    it('does not delete PXF from source host if PXF is not installed on the source host and DATANODE is installed on the source host', function () {
+      pxfHosts = [{"hostName": "c6402.ambari.apache.org"}];
+      dataNodeHosts = [{"hostName": "c6401.ambari.apache.org"}, {"hostName": "c6402.ambari.apache.org"}];
+      setUpHosts(pxfHosts, dataNodeHosts);
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['NAMENODE']);
+    });
+
+    it('deletes PXF from source host if PXF is installed on the source host and DATANODE is not installed on the source host', function () {
+      pxfHosts = [{"hostName": "c6401.ambari.apache.org"}, {"hostName": "c6402.ambari.apache.org"}];
+      dataNodeHosts = [{"hostName": "c6402.ambari.apache.org"}];
+      setUpHosts(pxfHosts, dataNodeHosts);
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['NAMENODE', 'PXF']);
+    });
+
+    it('does not delete PXF from source host if PXF and DATANODE are installed on the source host', function () {
+      pxfHosts = [{"hostName": "c6401.ambari.apache.org"}, {"hostName": "c6402.ambari.apache.org"}];
+      dataNodeHosts = [{"hostName": "c6401.ambari.apache.org"}, {"hostName": "c6402.ambari.apache.org"}];
+      setUpHosts(pxfHosts, dataNodeHosts);
+
+      controller.loadStep();
+      expect(controller.get('hostComponents')).to.eql(['NAMENODE']);
+    });
+
+    it('does not install PXF on the target host if PXF is already installed on the target host', function () {
+      pxfHosts = [{"hostName": "c6403.ambari.apache.org"}];
+      setUpHosts(pxfHosts, []);
+
+      controller.loadStep();
+      expect(controller.get('commands').indexOf('installPxf')).to.eql(-1);
+    });
+
+    it('installs PXF on the target host if PXF is not installed on the target host', function () {
+      pxfHosts = [{"hostName": "c6401.ambari.apache.org"}, {"hostName": "c6402.ambari.apache.org"}];
+      setUpHosts(pxfHosts, []);
+
+      controller.loadStep();
+      expect(controller.get('commands').indexOf('installPxf')).to.eql(4);
+    });
+
+  });
+
   describe('#deleteHostComponents()', function () {
 
     it('No host components', function () {

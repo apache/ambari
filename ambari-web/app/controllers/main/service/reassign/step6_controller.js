@@ -42,6 +42,20 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     } else {
       this.set('hostComponents', [this.get('content.reassign.component_name')]);
     }
+
+    if (App.Service.find().someProperty('serviceName', 'PXF') && this.get('content.reassign.component_name') === 'NAMENODE') {
+      var pxfHosts = App.HostComponent.find().filterProperty('componentName', 'PXF').mapProperty('hostName');
+      var dataNodeHosts = App.HostComponent.find().filterProperty('componentName', 'DATANODE').mapProperty('hostName');
+
+      // If NAMENODE is being moved and source host does not have DATANODE, PXF should be removed from source host
+      if (pxfHosts.contains(this.get('content.reassignHosts.source')) && !dataNodeHosts.contains(this.get('content.reassignHosts.source')))
+        this.get('hostComponents').push('PXF');
+
+      // If NAMENODE is being moved and target host does not have PXF, PXF should be added to target host
+      if (!pxfHosts.contains(this.get('content.reassignHosts.target')))
+        this.get('commands').splice(this.get('commands').indexOf('startAllServices'), 0, 'installPxf');
+    }
+
     this._super();
   },
 
@@ -116,6 +130,10 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     if (this.get('multiTaskCounter') <= 0) {
       this.onTaskCompleted();
     }
+  },
+
+  installPxf: function () {
+    this.createInstallComponentTask('PXF', this.get('content.reassignHosts.target'), "PXF");
   },
 
   startAllServices: function () {
