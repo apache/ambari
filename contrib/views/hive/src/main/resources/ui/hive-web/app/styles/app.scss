@@ -675,6 +675,11 @@ td.data-upload-form-field {
   padding-right: 10px;
 }
 
+.accordion-body {
+   word-break: break-all;
+   overflow-y: scroll;
+}
+
 table.no-border, table.no-border tr, table.no-border tr td {
   border: none;
 }
