@@ -2974,6 +2974,14 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    expected_hive_interactive_site_only_memory = {
+      "hive-interactive-site": {
+        "properties": {
+          'hive.llap.daemon.yarn.container.mb': '341'
+        }
+      }
+    }
+
     # Expected 'hive_interactive_env' with 'llap_queue_capacity' set to 20.
     expected_llap_queue_capacity_20 = '20'
 
@@ -3430,7 +3438,7 @@ class TestHDP25StackAdvisor(TestCase):
                       expected_capacity_scheduler_empty['properties'])
 
     self.assertEquals(configurations['hive-interactive-site']['properties'],
-                      expected_hive_interactive_site_empty['hive-interactive-site']['properties'])
+                      expected_hive_interactive_site_only_memory['hive-interactive-site']['properties'])
 
     self.assertEquals(configurations['hive-interactive-env']['properties'],
                       expected_hive_interactive_env_empty['hive-interactive-env']['properties'])

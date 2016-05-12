@@ -239,6 +239,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             Logger.debug("Selected YARN queue is '{0}'. Setting LLAP queue capacity slider visibility to True".format(llap_queue_name))
         else:
           putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "false")
+          Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size (" + str(self.get_yarn_min_container_size(services)) + " MB).")
+          putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', long(self.get_yarn_min_container_size(services)))
           Logger.debug("Queue selected for LLAP app is : '{0}'. Current YARN queues : {1}. "
                     "Setting LLAP queue capacity slider visibility to False. "
                     "Skipping updating values for LLAP related configs".format(llap_daemon_selected_queue_name, list(leafQueueNames)))
