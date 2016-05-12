@@ -19,8 +19,6 @@ limitations under the License.
 """
 
 from resource_management.core.resources.packaging import Package
-from resource_management.core.resources.system import Directory
-from resource_management.core.resources.system import Link
 from ambari_commons import OSCheck
 
 import os
@@ -33,20 +31,3 @@ def setup_atlas_falcon():
     if not params.host_sys_prepped:
       Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package,
               retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability, retry_count=params.agent_stack_retry_count)
-
-    atlas_falcon_hook_dir = os.path.join(params.atlas_home_dir, "hook", "falcon")
-    if os.path.exists(atlas_falcon_hook_dir):
-      Link(os.path.join(params.falcon_conf_dir, params.atlas_conf_file),
-           to = os.path.join(params.atlas_conf_dir, params.atlas_conf_file)
-           )
-
-      Directory(params.falcon_webinf_lib,
-                owner = params.falcon_user,
-                create_parents = True)
-
-      src_files = os.listdir(atlas_falcon_hook_dir)
-      for file_name in src_files:
-        atlas_falcon_hook_file_name = os.path.join(atlas_falcon_hook_dir, file_name)
-        falcon_lib_file_name = os.path.join(params.falcon_webinf_lib, file_name)
-        if (os.path.isfile(atlas_falcon_hook_file_name)):
-          Link(falcon_lib_file_name, to = atlas_falcon_hook_file_name)

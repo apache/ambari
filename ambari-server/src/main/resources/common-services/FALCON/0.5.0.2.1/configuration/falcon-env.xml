@@ -157,6 +157,9 @@ export FALCON_DATA_DIR={{falcon_embeddedmq_data}}
 
 # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
 #export FALCON_EXPANDED_WEBAPP_DIR=
+
+# Add the Atlas Falcon hook to the Falcon classpath
+export FALCON_EXTRA_CLASS_PATH={{atlas_hook_cp}}${FALCON_EXTRA_CLASS_PATH}
     </value>
     <value-attributes>
       <type>content</type>
