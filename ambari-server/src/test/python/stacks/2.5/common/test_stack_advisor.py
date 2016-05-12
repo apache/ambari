@@ -3471,7 +3471,7 @@ class TestHDP25StackAdvisor(TestCase):
     expected = {
       'application-properties': {
         'properties': {
-          'atlas.graph.index.search.solr.zookeeper-url': '{{zookeeper_quorum}}/logsearch',
+          'atlas.graph.index.search.solr.zookeeper-url': '{{solr_zookeeper_url}}',
         }
       },
       "logsearch-solr-env": {

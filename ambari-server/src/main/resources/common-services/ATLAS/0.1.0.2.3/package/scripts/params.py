@@ -62,6 +62,7 @@ conf_dir = status_params.conf_dir # "/etc/metadata/conf"
 conf_file = status_params.conf_file
 
 atlas_login_credentials_file = os.path.join(conf_dir, "users-credentials.properties")
+atlas_policy_store_file = os.path.join(conf_dir, "policy-store.txt")
 
 atlas_hbase_conf_dir = os.path.join(metadata_home, "hbase", "conf")
 atlas_hbase_log_dir = os.path.join(metadata_home, "hbase", "logs")
@@ -161,13 +162,23 @@ for host in atlas_hosts:
   id += 1
   first_id = False
 
+zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-# get comma separated list of zookeeper hosts from clusterHostInfo
+logsearch_solr_znode = default("/configurations/logsearch-solr-env/logsearch_solr_znode", None)
+
+# get comma separated lists of zookeeper hosts from clusterHostInfo
 index = 0
 zookeeper_quorum = ""
-for host in config['clusterHostInfo']['zookeeper_hosts']:
-  zookeeper_quorum += host + ":" + str(zookeeper_port)
-  index += 1
-  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
-    zookeeper_quorum += ","
+solr_zookeeper_url = ""
 
+for host in zookeeper_hosts:
+  zookeeper_host = host + ":" + str(zookeeper_port)
+
+  if logsearch_solr_znode is not None:
+    solr_zookeeper_url += zookeeper_host + logsearch_solr_znode
+
+  zookeeper_quorum += zookeeper_host
+  index += 1
+  if index < len(zookeeper_hosts):
+    zookeeper_quorum += ","
+    solr_zookeeper_url += ","

@@ -114,6 +114,13 @@ def metadata():
          content=StaticFile('users-credentials.properties')
     )
 
+    File(format("{conf_dir}/policy-store.txt"),
+         mode=0644,
+         owner=params.metadata_user,
+         group=params.user_group,
+         content=StaticFile('policy-store.txt')
+    )
+
     if params.atlas_has_embedded_hbase:
       # hbase-site for embedded hbase used by Atlas
       XmlConfig( "hbase-site.xml",

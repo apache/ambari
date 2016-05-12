@@ -65,6 +65,8 @@
   <property>
     <name>atlas.graph.index.search.solr.zookeeper-url</name>
     <description>The ZooKeeper quorum setup for Solr as comma separated value.</description>
+  </property>
+  <property>
     <name>atlas.login.method</name>
     <value>file</value>
     <description>Atlas login method (e.g. file).</description>
@@ -73,5 +75,10 @@
     <name>atlas.login.credentials.file</name>
     <value>{{atlas_login_credentials_file}}</value>
     <description>File path for file based login.</description>
+  </property>
+  <property>
+    <name>atlas.auth.policy.file</name>
+    <value>{{atlas_policy_store_file}}</value>
+    <description>Path for the Atlas policy file.</description>
   </property>
 </configuration>
