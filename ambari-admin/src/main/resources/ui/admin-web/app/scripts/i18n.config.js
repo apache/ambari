@@ -122,7 +122,9 @@ angular.module('ambariAdminConsole')
         'confirmChange': 'Confirm Change',
         'discard': 'Discard',
         'remove': 'Remove',
-        'update':'Update'
+        'update':'Update',
+        'checkAll': 'Check All',
+        'clearAll': 'Clear All'
       },
 
       'alerts': {
@@ -222,12 +224,14 @@ angular.module('ambariAdminConsole')
       'urlDelete':'Delete URL',
 
       'clusterPermissions': {
-        'label': 'Inherit Cluster Permission',
-        'allclusteradministrator': 'All Cluster Administrator',
-        'allclusteroperator': 'All Cluster Operator',
-        'allclusteruser': 'All Cluster User',
-        'allserviceadministrator': 'All Service Administrator',
-        'allserviceoperator': 'All Service Operator'
+        'label': 'Local Cluster Permissions',
+        'allclusteradministrator': 'Cluster Administrator',
+        'allclusteroperator': 'Cluster Operator',
+        'allclusteruser': 'Cluster User',
+        'allserviceadministrator': 'Service Administrator',
+        'allserviceoperator': 'Service Operator',
+        'infoMessage': 'Grant <strong>Use</strong> permission for the following <strong>{{cluster}}</strong>',
+        'nonLocalClusterMessage': 'The ability to inherit view <strong>Use</strong> permission based on Cluster Roles is only available when using a Local Cluster configuration.'
       },
 
       'alerts': {

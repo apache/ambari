@@ -278,16 +278,23 @@
       <div class="col-sm-12 cluster-inherited-permission">
         <strong>{{'views.clusterPermissions.label' | translate}}</strong>
       </div>
-      <div class="col-sm-offset-3 col-sm-9">
-        <div class="checkbox col-sm-4" ng-repeat="key in clusterInheritedPermissionKeys">
+      <div class="col-sm-12">
+        <span translate="views.clusterPermissions.infoMessage" translate-values="{cluster: cluster}"></span>
+        <div>{{'common.roles' | translate}}:</div>
+      </div>
+      <div class="col-sm-offset-2 col-sm-10">
+        <div class="checkbox col-sm-12" ng-repeat="key in clusterInheritedPermissionKeys">
           <div ng-init="i18nKey = 'views.clusterPermissions.' + key.split('.').join('').toLowerCase()">
             <label>
               <input type="checkbox" ng-model="permissionsEdit['VIEW.USER'][key]"> {{i18nKey | translate}}
             </label>
           </div>
         </div>
+        <a href ng-click="checkAllRoles()">{{'common.controls.checkAll' | translate}}</a> | <a href ng-click="clearAllRoles()">{{'common.controls.clearAll' | translate}}</a>
       </div>
-
+    </div>
+    <div ng-show="data.clusterType != 'LOCAL_AMBARI'" class="alert alert-info">
+      <span translate="views.clusterPermissions.nonLocalClusterMessage"></span>
     </div>
     <div ng-show="isPermissionsEmpty">
       <div class="alert alert-info">{{'views.alerts.notDefined' | translate: '{term: constants.perms}'}}</div>
