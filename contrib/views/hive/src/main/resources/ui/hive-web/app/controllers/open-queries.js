@@ -364,7 +364,10 @@ export default Ember.ArrayController.extend({
             });
           }, function () {
             model.rollback();
-            query.rollback();
+            // Rollback the query if it is a DS model
+            if(query.get('constructor.typeKey') !== undefined) {
+              query.rollback();
+            }
             self.closeTab(tab, true);
           });
         }
