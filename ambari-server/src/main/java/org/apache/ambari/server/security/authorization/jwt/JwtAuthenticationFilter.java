@@ -320,7 +320,10 @@ public class JwtAuthenticationFilter implements Filter {
       } else {
         // if any of the configured audiences is found then consider it
         // acceptable
-        boolean found = false;
+        if (tokenAudienceList == null) {
+          LOG.warn("JWT token has no audiences, validation failed.");
+          return false;
+        }
         for (String aud : tokenAudienceList) {
           if (audiences.contains(aud)) {
             LOG.debug("JWT token audience has been successfully validated");
