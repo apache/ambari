@@ -8,7 +8,7 @@
     "links": [
       {
         "name": "logsearch_ui",
-        "label": "Logsearch UI",
+        "label": "Log Search UI",
         "component_name": "LOGSEARCH_SERVER",
         "url": "%@://%@:%@",
         "requires_user_name": "false",

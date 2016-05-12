@@ -2990,7 +2990,7 @@ class TestHDP23StackAdvisor(TestCase):
                 "cardinality": "1",
                 "component_category": "MASTER",
                 "component_name": "LOGSEARCH_SOLR",
-                "display_name": "LogSearch Solr Instance",
+                "display_name": "Log Search Solr Instance",
                 "is_client": "false",
                 "is_master": "true",
                 "hostnames": []

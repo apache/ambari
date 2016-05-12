@@ -25,15 +25,15 @@
   <property>
     <name>logsearch_ui_port</name>
     <value>61888</value>
-    <description>Default port for LogSearch UI</description>
-    <display-name>Logsearch UI Port</display-name>
+    <description>Default port for Log Search UI</description>
+    <display-name>Log Search UI Port</display-name>
   </property>
 
   <property>
     <name>logsearch_pid_dir</name>
     <value>/var/run/ambari-logsearch-portal</value>
-    <description>Logsearch Process ID Directory</description>
-    <display-name>Logsearch pid dir</display-name>
+    <description>Log Search Process ID Directory</description>
+    <display-name>Log Search pid dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -42,8 +42,8 @@
   <property>
     <name>logsearch_log_dir</name>
     <value>/var/log/ambari-logsearch-portal</value>
-    <description>Log directory for Logsearch</description>
-    <display-name>Logsearch log dir</display-name>
+    <description>Log directory for Log Search</description>
+    <display-name>Log Search log dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -53,8 +53,8 @@
     <name>logsearch_user</name>
     <value>logsearch</value>
     <property-type>USER</property-type>
-    <description>Logsearch user</description>
-    <display-name>Logsearch User</display-name>
+    <description>Log Search user</description>
+    <display-name>Log Search User</display-name>
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
@@ -65,15 +65,15 @@
     <name>logsearch_group</name>
     <value>logsearch</value>
     <property-type>GROUP</property-type>
-    <description>Logsearch group</description>
-    <display-name>Logsearch Group</display-name>
+    <description>Log Search group</description>
+    <display-name>Log Search Group</display-name>
   </property>
 
   <property>
     <name>logsearch_app_max_memory</name>
     <value>1024</value>
-    <description>Max memory for LogSearch Portal</description>
-    <display-name>Logsearch Max Memory</display-name>
+    <description>Max memory for Log Search Portal</description>
+    <display-name>Log Search Maximum Memory</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
@@ -97,8 +97,8 @@
   <property>
     <name>logsearch_debug_enabled</name>
     <value>false</value>
-    <display-name>Logsearch Debug Enabled</display-name>
-    <description>Enable debug mode for Logsearch Server</description>
+    <display-name>Log Search Debug Enabled</display-name>
+    <description>Enable debug mode for Log Search Server</description>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
@@ -107,8 +107,8 @@
   <property>
     <name>logsearch_debug_port</name>
     <value>5005</value>
-    <display-name>Logsearch Debug Port</display-name>
-    <description>Debug port for Logsearch Server</description>
+    <display-name>Log Search Debug Port</display-name>
+    <description>Debug port for Log Search Server</description>
   </property>
 
   <property>

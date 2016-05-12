@@ -358,7 +358,7 @@ App.QuickLinks.FIXTURES = [
   },
   {
     id:38,
-    label:'Logsearch UI',
+    label:'Log Search UI',
     url:'%@://%@:%@',
     service_id: 'LOGSEARCH',
     template:'%@://%@:%@',

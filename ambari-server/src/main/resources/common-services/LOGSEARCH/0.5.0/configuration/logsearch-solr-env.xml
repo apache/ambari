@@ -26,21 +26,21 @@
     <name>logsearch_solr_port</name>
     <value>8886</value>
     <description>Solr port</description>
-    <display-name>Logsearch Solr port</display-name>
+    <display-name>Log Search Solr port</display-name>
   </property>
 
   <property>
     <name>logsearch_solr_jmx_port</name>
     <value>18886</value>
-    <description>Solr jmx port</description>
-    <display-name>Logsearch Solr jmx port</display-name>
+    <description>Solr JMX port</description>
+    <display-name>Log Search Solr JMX port</display-name>
   </property>
 
   <property>
     <name>logsearch_solr_pid_dir</name>
     <value>/var/run/ambari-logsearch-solr</value>
     <description>Solr Process ID Directory</description>
-    <display-name>Logsearch Solr pid dir</display-name>
+    <display-name>Log Search Solr pid dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -50,7 +50,7 @@
     <name>logsearch_solr_log_dir</name>
     <value>/var/log/ambari-logsearch-solr</value>
     <description>Directory for Solr logs</description>
-    <display-name>Logsearch Solr log dir</display-name>
+    <display-name>Log Search Solr log dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -60,7 +60,7 @@
     <name>logsearch_solr_client_log_dir</name>
     <value>/var/log/ambari-logsearch-solr-client</value>
     <description>Directory for Solr client logs</description>
-    <display-name>Logsearch Solr Client log dir</display-name>
+    <display-name>Log Search Solr Client log dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -71,7 +71,7 @@
     <value>solr</value>
     <property-type>USER</property-type>
     <description>Solr user</description>
-    <display-name>Logsearch Solr User</display-name>
+    <display-name>Log Search Solr User</display-name>
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
@@ -83,13 +83,13 @@
     <value>solr</value>
     <property-type>GROUP</property-type>
     <description>Solr group</description>
-    <display-name>Logsearch Solr Group</display-name>
+    <display-name>Log Search Solr Group</display-name>
   </property>
 
   <property>
     <name>logsearch_solr_datadir</name>
     <value>/opt/logsearch_solr/data</value>
-    <display-name>Logsearch Solr data dir</display-name>
+    <display-name>Log Search Solr data dir</display-name>
     <description>Directory for storting Solr index. Make sure you have enough disk space</description>
     <value-attributes>
       <type>directory</type>
@@ -101,7 +101,7 @@
     <name>logsearch_solr_znode</name>
     <value>/ambari-solr</value>
     <description>Zookeeper znode, e.g: /logsearch</description>
-    <display-name>Logsearch Solr ZNode</display-name>
+    <display-name>Log Search Solr ZNode</display-name>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -110,7 +110,7 @@
   <property>
     <name>logsearch_solr_minmem</name>
     <value>512</value>
-    <display-name>Logsearch Solr minimum heap size</display-name>
+    <display-name>Log Search Solr Minimum Heap Size</display-name>
     <description>Solr minimum heap size e.g.512m</description>
     <value-attributes>
       <type>int</type>
@@ -124,7 +124,7 @@
   <property>
     <name>logsearch_solr_maxmem</name>
     <value>1024</value>
-    <display-name>Logsearch Solr maximum heap size</display-name>
+    <display-name>Log Search Solr Maximum Heap Size</display-name>
     <description>Solr maximum heap size e.g. 512m</description>
     <value-attributes>
       <type>int</type>

@@ -15,7 +15,7 @@
               "sections": [
                 {
                   "name": "section-logsearch-solr",
-                  "display-name": "LogSearch Solr",
+                  "display-name": "Log Search Solr",
                   "row-index": "0",
                   "column-index": "0",
                   "row-span": "1",
@@ -34,7 +34,7 @@
                 },
                 {
                   "name": "section-logsearch-server",
-                  "display-name": "LogSearch Server",
+                  "display-name": "Log Search Server",
                   "row-index": "0",
                   "column-index": "1",
                   "row-span": "1",

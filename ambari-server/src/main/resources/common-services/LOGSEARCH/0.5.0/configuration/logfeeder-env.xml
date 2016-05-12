@@ -67,8 +67,8 @@
   <property>
     <name>logfeeder_max_mem</name>
     <value>512m</value>
-    <description>Max memory for LogFeeder</description>
-    <display-name>Logsfeeder max memory</display-name>
+    <description>Max Memory for Logfeeder</description>
+    <display-name>Logfeeder max memory</display-name>
   </property>
 
   <property>

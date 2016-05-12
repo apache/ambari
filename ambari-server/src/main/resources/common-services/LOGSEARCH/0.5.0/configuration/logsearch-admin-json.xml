@@ -25,7 +25,7 @@
     <name>logsearch_admin_username</name>
     <value>ambari_logsearch_admin</value>
     <display-name>Admin username</display-name>
-    <description>LogSearch admin username</description>
+    <description>Log Search admin username</description>
   </property>
 
   <property require-input="true">
@@ -33,7 +33,7 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Admin password</display-name>
-    <description>LogSearch admin password</description>
+    <description>Log Search admin password</description>
     <value-attributes>
       <overridable>false</overridable>
       <type>password</type>

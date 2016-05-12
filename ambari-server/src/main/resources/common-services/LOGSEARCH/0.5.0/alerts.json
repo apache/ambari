@@ -3,8 +3,8 @@
     "LOGSEARCH_SERVER": [
       {
         "name": "logsearch_ui",
-        "label": "LogSearch Web UI",
-        "description": "This host-level alert is triggered if the LogSearch UI is unreachable.",
+        "label": "Log Search Web UI",
+        "description": "This host-level alert is triggered if the Log Search UI is unreachable.",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -32,7 +32,7 @@
     "LOGSEARCH_SOLR": [
       {
         "name": "logsearch_solr",
-        "label": "LogSearch Solr Web UI",
+        "label": "Log Search Solr Web UI",
         "description": "This host-level alert is triggered if the Solr Cloud Instance is unreachable.",
         "interval": 1,
         "scope": "ANY",
@@ -59,7 +59,7 @@
       },
       {
         "name": "logsearch_solr_index_size",
-        "label": "LogSearch Solr Index Size",
+        "label": "Log Search Solr Index Size",
         "description": "This host-level alert is triggered if the Solr index size is over a limit.",
         "interval": 1,
         "scope": "ANY",
@@ -99,8 +99,8 @@
       },
       {
         "name": "logsearch_solr_cpu_usage",
-        "label": "LogSearch Solr CPU Utilization",
-        "description": "This host-level alert is triggered if CPU utilization of the LogSearch Solr exceeds certain warning and critical thresholds. It checks the LogSearch Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
+        "label": "Log Search Solr CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the Log Search Solr exceeds certain warning and critical thresholds. It checks the Log Search Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
         "source": {
@@ -139,8 +139,8 @@
       },
       {
         "name": "logsearch_solr_memory",
-        "label": "LogSearch Solr Memory Utilization",
-        "description": "This host-level alert is triggered if CPU utilization of the LogSearch Solr exceeds certain warning and critical thresholds. It checks the LogSearch Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
+        "label": "Log Search Solr Memory Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the Log Search Solr exceeds certain warning and critical thresholds. It checks the Log Search Solr JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
         "source": {
