@@ -37,8 +37,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -46,9 +44,9 @@ import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
-import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -75,15 +73,17 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
+import org.apache.ambari.view.ClusterType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
 import com.google.common.collect.Lists;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -292,7 +292,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(VIEWINSTANCE_TABLE, "FK_instance_url_id",
       SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
     dbAccessor.addColumn(VIEWINSTANCE_TABLE,
-      new DBColumnInfo(CLUSTER_TYPE_COLUMN, String.class, 100, ClusterType.LOCAL_AMBARI, false));
+      new DBColumnInfo(CLUSTER_TYPE_COLUMN, String.class, 100, ClusterType.LOCAL_AMBARI.name(), false));
   }
 
   private void updateClusterTableDDL() throws SQLException {
