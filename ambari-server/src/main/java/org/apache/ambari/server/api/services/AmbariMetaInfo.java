@@ -82,6 +82,7 @@ import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1354,14 +1355,35 @@ public class AmbariMetaInfo {
    * Ensures that the map of version definition files is populated
    */
   private void ensureVersionDefinitions() {
-    if (null == versionDefinitions) {
-      versionDefinitions = new HashMap<>();
+    if (null != versionDefinitions) {
+      return;
     }
+
+    versionDefinitions = new HashMap<>();
+
     for (StackInfo stack : getStacks()) {
       for (VersionDefinitionXml definition : stack.getVersionDefinitions()) {
         versionDefinitions.put(String.format("%s-%s-%s", stack.getName(),
             stack.getVersion(), definition.release.version), definition);
       }
+
+      if (stack.isActive() && stack.isValid()) {
+        try {
+          VersionDefinitionXml xml = VersionDefinitionXml.build(stack);
+          versionDefinitions.put(String.format("%s-%s", stack.getName(), stack.getVersion()), xml);
+        } catch (Exception e) {
+          LOG.warn("Could not make a stack VDF for {}-{}: {}",
+              stack.getName(), stack.getVersion(), e.getMessage());
+        }
+      } else {
+        StackId stackId = new StackId(stack);
+        if (!stack.isValid()) {
+          LOG.info("Stack {} is not valid, skipping VDF: {}", stackId, StringUtils.join(stack.getErrors(), "; "));
+        } else if (!stack.isActive()) {
+          LOG.info("Stack {} is not active, skipping VDF", stackId);
+        }
+      }
+
     }
   }
 
@@ -1383,5 +1405,6 @@ public class AmbariMetaInfo {
 
     return versionDefinitions;
   }
+
 
 }

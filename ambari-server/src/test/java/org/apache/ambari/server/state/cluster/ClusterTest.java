@@ -1884,7 +1884,7 @@ public class ClusterTest {
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
+    hostAttributes.put("os_release_version", "6.4");
 
     Cluster cluster = createClusterForRU(clusterName, stackId, hostAttributes);
 
@@ -2044,7 +2044,7 @@ public class ClusterTest {
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
+    hostAttributes.put("os_release_version", "6.4");
 
     Cluster cluster = createClusterForRU(clusterName, stackId, hostAttributes);
 

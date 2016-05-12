@@ -97,6 +97,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_RELEASE_COMPATIBLE_WITH  = "VersionDefinition/release/compatible_with";
   protected static final String VERSION_DEF_AVAILABLE_SERVICES       = "VersionDefinition/services";
   protected static final String VERSION_DEF_STACK_SERVICES           = "VersionDefinition/stack_services";
+  protected static final String VERSION_DEF_STACK_DEFAULT            = "VersionDefinition/stack_default";
   protected static final String SHOW_AVAILABLE                       = "VersionDefinition/show_available";
 
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemResourceDefinition().getPluralName();
@@ -144,6 +145,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       VERSION_DEF_RELEASE_BUILD,
       VERSION_DEF_AVAILABLE_SERVICES,
       VERSION_DEF_STACK_SERVICES,
+      VERSION_DEF_STACK_DEFAULT,
       SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
       SHOW_AVAILABLE);
 
@@ -259,9 +261,11 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         VERSION_DEF_AVAILABLE_SERVICES,
         VERSION_DEF_STACK_SERVICES);
 
-      boolean fromAvailable = null != definitionName;
-
-      res = toResource(null, xmlHolder.xml, ids, fromAvailable);
+      res = toResource(null, xmlHolder.xml, ids);
+      // !!! if the definition name is not null, it can only be from available
+      if (null != definitionName) {
+        res.setProperty(SHOW_AVAILABLE, true);
+      }
 
       addSubresources(res, xmlHolder.entity);
     } else {
@@ -298,7 +302,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             Boolean.parseBoolean(propertyMap.get(SHOW_AVAILABLE).toString())) {
 
           for (Entry<String, VersionDefinitionXml> entry : s_metaInfo.get().getVersionDefinitions().entrySet()) {
-            results.add(toResource(entry.getKey(), entry.getValue(), requestPropertyIds, true));
+            Resource res = toResource(entry.getKey(), entry.getValue(), requestPropertyIds);
+            res.setProperty(SHOW_AVAILABLE, true);
+            results.add(res);
+
           }
 
         } else {
@@ -318,8 +325,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
                 throw new NoSuchResourceException(String.format("Could not find version %s",
                     id));
               }
-              results.add(toResource(id, xml, requestPropertyIds, true));
-
+              Resource res = toResource(id, xml, requestPropertyIds);
+              res.setProperty(SHOW_AVAILABLE, true);
+              results.add(res);
             }
           } else {
             List<RepositoryVersionEntity> versions = s_repoVersionDAO.findAllDefinitions();
@@ -514,13 +522,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * @return the resource
    * @throws SystemException
    */
-  private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds, boolean fromAvailable) throws SystemException {
+  private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds) throws SystemException {
 
     Resource resource = new ResourceImpl(Resource.Type.VersionDefinition);
     resource.setProperty(VERSION_DEF_ID, id);
-    if (fromAvailable) {
-      resource.setProperty(SHOW_AVAILABLE, Boolean.TRUE);
-    }
 
     StackId stackId = new StackId(xml.release.stackId);
 
@@ -541,6 +546,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     setResourceProperty(resource, VERSION_DEF_RELEASE_COMPATIBLE_WITH, xml.release.compatibleWith, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_VERSION, xml.release.version, requestedIds);
+    setResourceProperty(resource, VERSION_DEF_STACK_DEFAULT, xml.isStackDefault(), requestedIds);
 
     setResourceProperty(resource, VERSION_DEF_AVAILABLE_SERVICES, xml.getAvailableServices(stack), requestedIds);
     setResourceProperty(resource, VERSION_DEF_STACK_SERVICES, xml.getStackServices(stack), requestedIds);
@@ -584,6 +590,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     setResourceProperty(resource, VERSION_DEF_RELEASE_COMPATIBLE_WITH, xml.release.compatibleWith, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_VERSION, xml.release.version, requestedIds);
+    setResourceProperty(resource, VERSION_DEF_STACK_DEFAULT, xml.isStackDefault(), requestedIds);
 
     StackInfo stack = null;
 

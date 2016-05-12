@@ -164,7 +164,6 @@ public class LatestRepoCallable implements Callable<Void> {
 
     // !!! each key is a version number, and the value is a map containing
     // os_family -> VDF link
-    VersionDefinitionXml.Merger merger = new VersionDefinitionXml.Merger();
 
     for (Entry<String, Object> entry : versionMap.entrySet()) {
       String version = entry.getKey();
@@ -172,26 +171,8 @@ public class LatestRepoCallable implements Callable<Void> {
       @SuppressWarnings("unchecked")
       Map<String, String> osMap = (Map<String, String>) entry.getValue();
 
-      for (Entry<String, String> versionEntry : osMap.entrySet()) {
-        String uriString = versionEntry.getValue();
+      VersionDefinitionXml xml = mergeDefinitions(stackId, version, osMap);
 
-        if ('.' == uriString.charAt(0)) {
-          uriString = new File(stackRepoFolder, uriString).toURI().toString();
-        }
-
-        try {
-          URI uri = new URI(uriString);
-
-          VersionDefinitionXml xml = VersionDefinitionXml.load(uri.toURL());
-
-          merger.add(version, xml);
-        } catch (Exception e) {
-          LOG.warn("Could not load version definition for {} identified by {}. {}",
-              stackId, uriString, e.getMessage(), e);
-        }
-      }
-
-      VersionDefinitionXml xml = merger.merge();
       if (null != xml) {
         stack.addVersionDefinition(version, xml);
       }
@@ -199,6 +180,41 @@ public class LatestRepoCallable implements Callable<Void> {
 
     return null;
   }
+
+  /**
+   * Merges definitions loaded from the common file
+   * @param stackId the stack id
+   * @param version the version string
+   * @param osMap   the map containing all the VDF for an OS
+   * @return the merged version definition
+   * @throws Exception
+   */
+  private VersionDefinitionXml mergeDefinitions(StackId stackId, String version, Map<String, String> osMap) throws Exception {
+    VersionDefinitionXml.Merger merger = new VersionDefinitionXml.Merger();
+
+    for (Entry<String, String> versionEntry : osMap.entrySet()) {
+      String uriString = versionEntry.getValue();
+
+      if ('.' == uriString.charAt(0)) {
+        uriString = new File(stackRepoFolder, uriString).toURI().toString();
+      }
+
+      try {
+        URI uri = new URI(uriString);
+
+        VersionDefinitionXml xml = VersionDefinitionXml.load(uri.toURL());
+
+        merger.add(version, xml);
+      } catch (Exception e) {
+        LOG.warn("Could not load version definition for {} identified by {}. {}",
+            stackId, uriString, e.getMessage(), e);
+      }
+    }
+
+    return merger.merge();
+  }
+
+
 
   /**
    * Resolves a base url given that certain OS types can be used interchangeably.

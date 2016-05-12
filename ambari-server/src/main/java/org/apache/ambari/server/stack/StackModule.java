@@ -654,6 +654,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       return;
     }
 
+    stackInfo.setRepositoryXml(rxml);
+
     LOG.debug("Adding repositories to stack" +
         ", stackName=" + stackInfo.getName() +
         ", stackVersion=" + stackInfo.getVersion() +
