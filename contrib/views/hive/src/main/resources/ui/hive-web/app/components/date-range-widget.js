@@ -68,6 +68,7 @@ export default Ember.Component.extend({
 
     this.$(".toDate").datepicker({
       defaultDate: new Date(dateRange.get('to')),
+
       minDate: new Date(dateRange.get('from')),
 
       onSelect: function (selectedDate) {
@@ -77,6 +78,18 @@ export default Ember.Component.extend({
 
         dateRange.set('to', new Date(selectedDate).getTime());
         self.sendAction('rangeChanged', dateRange);
+      }
+    });
+
+    this.$(".fromDate").on('blur', () => {
+      if(moment(self.$(".fromDate").val(), 'MM/DD/YYYY', true).format() === 'Invalid date'){
+        self.$(".fromDate").val('')
+      }
+    });
+
+    this.$(".toDate").on('blur', () => {
+      if(moment(self.$(".toDate").val(), 'MM/DD/YYYY', true).format() === 'Invalid date'){
+        self.$(".toDate").val('')
       }
     });
 
