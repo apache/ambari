@@ -289,9 +289,11 @@ describe('App.MainHostSummaryView', function() {
 
     beforeEach(function() {
       this.mock = sinon.stub(App.StackServiceComponent, 'find');
+      sinon.stub(mainHostSummaryView, 'hasCardinalityConflict').returns(false);
     });
     afterEach(function() {
       App.StackServiceComponent.find.restore();
+      mainHostSummaryView.hasCardinalityConflict.restore();
     });
 
     var tests = Em.A([
@@ -596,6 +598,49 @@ describe('App.MainHostSummaryView', function() {
       });
       mainHostSummaryView.propertyDidChange('installableClientComponents');
       expect(mainHostSummaryView.get('installableClientComponents').mapProperty('componentName')).to.eql(['C1']);
+    });
+  });
+
+  describe("#hasCardinalityConflict()", function () {
+
+    beforeEach(function() {
+      this.mockSlave = sinon.stub(App.SlaveComponent, 'find');
+      this.mockStack = sinon.stub(App.StackServiceComponent, 'find');
+    });
+
+    afterEach(function() {
+      this.mockSlave.restore();
+      this.mockStack.restore();
+    });
+
+    it("totalCount equal to maxToInstall", function() {
+      this.mockSlave.returns(Em.Object.create({
+        totalCount: 1
+      }));
+      this.mockStack.returns(Em.Object.create({
+        maxToInstall: 1
+      }));
+      expect(mainHostSummaryView.hasCardinalityConflict('C1')).to.be.true;
+    });
+
+    it("totalCount more than maxToInstall", function() {
+      this.mockSlave.returns(Em.Object.create({
+        totalCount: 2
+      }));
+      this.mockStack.returns(Em.Object.create({
+        maxToInstall: 1
+      }));
+      expect(mainHostSummaryView.hasCardinalityConflict('C1')).to.be.true;
+    });
+
+    it("totalCount less than maxToInstall", function() {
+      this.mockSlave.returns(Em.Object.create({
+        totalCount: 0
+      }));
+      this.mockStack.returns(Em.Object.create({
+        maxToInstall: 1
+      }));
+      expect(mainHostSummaryView.hasCardinalityConflict('C1')).to.be.false;
     });
   });
 });

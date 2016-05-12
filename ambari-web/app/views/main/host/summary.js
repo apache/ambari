@@ -265,7 +265,9 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
       var installedServices = this.get('installedServices');
 
       addableToHostComponents.forEach(function (addableComponent) {
-        if (installedServices.contains(addableComponent.get('serviceName')) && !installedComponents.contains(addableComponent.get('componentName'))) {
+        if (installedServices.contains(addableComponent.get('serviceName'))
+            && !installedComponents.contains(addableComponent.get('componentName'))
+            && !this.hasCardinalityConflict(addableComponent.get('componentName'))) {
           if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable')) {
             return;
           }
@@ -274,10 +276,21 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
             'serviceName': addableComponent.get('serviceName')
           }));
         }
-      });
+      }, this);
     }
     return components;
   }.property('content.hostComponents.length', 'App.components.addableToHost.@each'),
+
+  /**
+   *
+   * @param {string} componentName
+   * @returns {boolean}
+   */
+  hasCardinalityConflict: function(componentName) {
+    var totalCount = App.SlaveComponent.find(componentName).get('totalCount');
+    var maxToInstall = App.StackServiceComponent.find(componentName).get('maxToInstall');
+    return !(totalCount < maxToInstall);
+  },
 
   /**
    * Formatted with <code>$.timeago</code> value of host's last heartbeat

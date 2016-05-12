@@ -598,27 +598,37 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     return returnFunc;
   },
+
   /**
    * Send command to server to install client on selected host
-   * @param component
+   * @param {App.HostComponent} component
+   * @param {boolean} isManualKerberos
+   * @returns {*}
    */
   addClientComponent: function (component, isManualKerberos) {
-    var self = this;
-    var message = this.formatClientsMessage(component);
+    var self = this,
+      displayName = this.formatClientsMessage(component);
 
-    return this.showAddComponentPopup(message, isManualKerberos, function () {
+    return this.showAddComponentPopup(displayName, isManualKerberos, function () {
       self.installHostComponentCall(self.get('content.hostName'), component);
     });
   },
 
-  showAddComponentPopup: function (message, isManualKerberos, primary) {
+  /**
+   *
+   * @param {string} displayName
+   * @param {boolean} isManualKerberos
+   * @param {Function} primary
+   * @returns {*}
+   */
+  showAddComponentPopup: function (displayName, isManualKerberos, primary) {
     isManualKerberos = isManualKerberos || false;
 
     return App.ModalPopup.show({
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
 
-      addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(message),
+      addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(displayName),
 
       manualKerberosWarning: isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
 
