@@ -126,9 +126,9 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    *  Cluster Type for cluster Handle
    */
-  @Enumerated(EnumType.STRING)
-  @Column(name = "cluster_type", nullable = false)
-  private ClusterType clusterType;
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "cluster_type", nullable = false, length = 100)
+  private ClusterType clusterType = ClusterType.LOCAL_AMBARI;
 
   /**
    * Visible flag.
