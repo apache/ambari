@@ -99,7 +99,7 @@
 
   <property>
     <name>logsearch_solr_znode</name>
-    <value>/logsearch</value>
+    <value>/ambari-solr</value>
     <description>Zookeeper znode, e.g: /logsearch</description>
     <display-name>Logsearch Solr ZNode</display-name>
     <value-attributes>
