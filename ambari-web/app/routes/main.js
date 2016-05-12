@@ -527,7 +527,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     adminServiceAccounts: Em.Route.extend({
       route: '/serviceAccounts',
       enter: function (router, transition) {
-        if (router.get('loggedIn') && !App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUP')) {
+        if (router.get('loggedIn') && !App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS')) {
           router.transitionTo('main.dashboard.index');
         }
       },
