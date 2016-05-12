@@ -1744,5 +1744,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       })
 
     });
+  },
+
+  downloadCSV: function() {
+    App.router.get('kerberosWizardStep5Controller').getCSVData(false);
   }
 });
