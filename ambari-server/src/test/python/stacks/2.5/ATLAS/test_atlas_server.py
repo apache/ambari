@@ -114,6 +114,12 @@ class TestAtlasServer(RMFTestCase):
                               group='hadoop',
                               mode=0644,
                               )
+    self.assertResourceCalled('File', '/etc/atlas/conf/policy-store.txt',
+                              content=StaticFile('policy-store.txt'),
+                              owner='atlas',
+                              group='hadoop',
+                              mode=0644,
+                              )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
                               owner = 'atlas',
                               group = 'hadoop',
