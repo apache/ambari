@@ -721,15 +721,6 @@ table.no-border tr td{
 /*.login-message-pane .well {height: 74px;}
 .login-message-pane input {margin-left: 3px;}*/
 
-.views-permissions-panel .panel-body{
-  padding-bottom: 0;
-}
-
-.views-permissions-panel .panel-body table{
-  margin-bottom: 0;
-}
-
-
 .views-list-pane accordion .panel-group .panel-heading{
   cursor: pointer;
 }

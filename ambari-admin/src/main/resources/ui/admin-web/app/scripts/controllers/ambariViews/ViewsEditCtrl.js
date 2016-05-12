@@ -461,4 +461,21 @@ angular.module('ambariAdminConsole')
         event.preventDefault();
       }
     });
+
+    $scope.checkAllRoles = function () {
+      setAllViewRoles(true);
+    };
+
+    $scope.clearAllRoles = function () {
+      setAllViewRoles(false);
+    };
+
+    function setAllViewRoles(value) {
+      var viewRoles = $scope.permissionsEdit["VIEW.USER"];
+      for (var role in viewRoles) {
+        if ($scope.clusterInheritedPermissionKeys.indexOf(role) !== -1) {
+          viewRoles[role] = value;
+        }
+      }
+    }
   }]);
