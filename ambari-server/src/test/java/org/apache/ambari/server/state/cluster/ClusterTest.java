@@ -685,20 +685,8 @@ public class ClusterTest {
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
 
-    c1.addService(s1);
-    c1.addService(s2);
-
     s1.persist();
     s2.persist();
-
-    Service s3 = serviceFactory.createNew(c1, "MAPREDUCE");
-
-    try {
-      c1.addService(s3);
-      fail("Expected error on adding dup service");
-    } catch (Exception e) {
-      // Expected
-    }
 
     Service s = c1.getService("HDFS");
     Assert.assertNotNull(s);

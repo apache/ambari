@@ -58,6 +58,7 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
@@ -347,6 +348,11 @@ public class OrmTestHelper {
 
     clusterDAO.create(clusterEntity);
 
+    ClusterStateEntity clusterStateEntity = new ClusterStateEntity();
+    clusterStateEntity.setCurrentStack(stackEntity);
+    clusterStateEntity.setClusterEntity(clusterEntity);
+    getEntityManager().persist(clusterStateEntity);
+
     clusterEntity = clusterDAO.findByName(clusterEntity.getClusterName());
     assertNotNull(clusterEntity);
     assertTrue(clusterEntity.getClusterId() > 0);
@@ -415,7 +421,6 @@ public class OrmTestHelper {
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String serviceName = "HDFS";
     Service service = serviceFactory.createNew(cluster, serviceName);
-    cluster.addService(service);
     service.persist();
     service = cluster.getService(serviceName);
     assertNotNull(service);
@@ -461,7 +466,6 @@ public class OrmTestHelper {
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String serviceName = "YARN";
     Service service = serviceFactory.createNew(cluster, serviceName);
-    cluster.addService(service);
     service.persist();
     service = cluster.getService(serviceName);
     assertNotNull(service);

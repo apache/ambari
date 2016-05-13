@@ -475,6 +475,7 @@ public class ServiceImpl implements Service {
 
           // publish the service installed event
           StackId stackId = cluster.getDesiredStackVersion();
+          cluster.addService(this);
 
           ServiceInstalledEvent event = new ServiceInstalledEvent(
               getClusterId(), stackId.getStackName(),

@@ -356,7 +356,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       s.setDesiredState(state);
       s.setDesiredStackVersion(cluster.getDesiredStackVersion());
       s.persist();
-      cluster.addService(s);
       // Initialize service widgets
       getManagementController().initializeWidgetsAndLayouts(cluster, s);
     }
