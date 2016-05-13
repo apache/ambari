@@ -1617,6 +1617,7 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.notAllowed':'Not allowed by the current version',
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg': 'You are about to perform an <b>Express Upgrade</b> from <b>{0}</b> to <b>{1}</b>. This will incur cluster downtime. Are you sure you want to proceed?',
   'admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg': 'You are about to perform a <b>Rolling Upgrade</b> from <b>{0}</b> to <b>{1}</b>. Are you sure you want to proceed?',
+  'admin.stackVersions.version.upgrade.alertsWarning': 'Cluster alerts will still be visible and recorded in Ambari but notifications (such as Email and SNMP) will be suppressed during the upgrade.',
 
   'admin.stackVersions.version.column.showDetails': "Show Details",
   'admin.stackVersions.version.column.showDetails.title': "Version Details",
