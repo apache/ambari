@@ -744,6 +744,10 @@ public class AmbariServer {
    * at server properties)
    */
   private void disableInsecureProtocols(SslContextFactory factory) {
+    // by default all protocols should be available
+    factory.setExcludeProtocols();
+    factory.setIncludeProtocols(new String[] { "SSLv2Hello","TLSv1"});
+    
     if (!configs.getSrvrDisabledCiphers().isEmpty()) {
       String[] masks = configs.getSrvrDisabledCiphers().split(DISABLED_ENTRIES_SPLITTER);
       factory.setExcludeCipherSuites(masks);
