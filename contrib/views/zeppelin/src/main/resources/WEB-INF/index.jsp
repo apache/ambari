@@ -35,8 +35,8 @@
                 data['items'][0]['Clusters']['cluster_name'] +
                 '/hosts?fields=Hosts%2Fpublic_host_name%2Chost_components%2FHostRoles%2Fcomponent_name',
                 function (data) {
-                    for (var i in data['items']) {
-                        for (var j in data['items'][i]['host_components']) {
+                    for (var i = 0; i < data['items'].length; i++) {
+                        for (var j = 0; j < data['items'][i]['host_components'].length; j++) {
                             if (data['items'][i]['host_components'][j]['HostRoles']['component_name'] == 'ZEPPELIN_MASTER') {
                                 var url = '//' + data['items'][i]['host_components'][j]['HostRoles']['host_name'] + ':' + port;
                                 iframe.src = url;
