@@ -1796,7 +1796,6 @@ Em.I18n.translations = {
   // Node Manager custom command to refresh YARN Apps on Slider
   'services.service.actions.run.createYARNDirectories':'Create YARN Directories',
   'services.service.actions.run.createYARNDirectories.confirmation':'Please confirm. This will create necessary folders on the NodeManagers required for running YARN Apps on Slider, such as LLAP. This does not need to restart NodeManagers.',
-  
   'services.service.actions.run.immediateStopHawqService.context':'Stop HAWQ Service (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqService.label':'Stop HAWQ Service (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqSegment.label':'Stop (Immediate Mode)',
@@ -2654,7 +2653,8 @@ Em.I18n.translations = {
   'dashboard.widgets.error.invalid': 'Invalid! Enter a number between 0 - {0}',
   'dashboard.widgets.error.smaller': 'Threshold 1 should be smaller than threshold 2!',
   'dashboard.widgets.HawqSegmentUp': 'HAWQ Segments Live',
-  'dashboard.widgets.PxfUp': 'PXFs Live',
+  'dashboard.widgets.PxfUp': 'PXF Agents Live',
+  'dashboard.widgets.PXFAgents': 'PXF Agents',
 
   'dashboard': {
     'widgets': {
@@ -2663,7 +2663,8 @@ Em.I18n.translations = {
         'common': 'Edit the percentage thresholds to change the color of current pie chart. <br />Enter two numbers between 0 to {0}',
         'hint1': 'Edit the percentage of thresholds to change the color of current widget. <br />Assume all components UP is 100, and all DOWN is 0. <br /> So enter two numbers between 0 to {0}',
         'hint2': 'Edit the thresholds to change the color of current widget.<br /><br />So enter two numbers larger than 0.',
-        'hint3': 'Edit the thresholds to change the color of current widget.<br />The unit is milli-second. <br />So enter two numbers larger than 0. '
+        'hint3': 'Edit the thresholds to change the color of current widget.<br />The unit is milli-second. <br />So enter two numbers larger than 0. ',
+        'hint4': 'Edit the threshold value representing the number of {0} that are down to change the color of the widget. <br />If the number of {0} that are down is greater than the threshold, the widget will show warning in Red. <br />Choose a number between 0 and {1}. '
       }
     }
   },

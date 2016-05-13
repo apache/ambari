@@ -491,7 +491,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     visible: [],
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [70, 90], 14: [150, 250], 15: [3, 10], 16: [],
-      17: [70, 90], 18: [], 19: [50, 75], 20: [50, 75], 21: [85, 95], 22: [85, 95], 23: [], 24: [75, 90], 25: [75, 90]} // id:[thresh1, thresh2]
+      17: [70, 90], 18: [], 19: [50, 75], 20: [50, 75], 21: [85, 95], 22: [85, 95], 23: [], 24: [75, 90], 25: []} // id:[thresh1, thresh2]
   }),
 
   /**
@@ -540,4 +540,3 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
   showAlertsPopup: Em.K
 
 });
-
