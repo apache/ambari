@@ -1989,6 +1989,35 @@ class TestHDP23StackAdvisor(TestCase):
 
   def test_recommendHAWQConfigurations(self):
 
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "host_name": "c6401.ambari.apache.org",
+            "total_mem": 12345678
+          }
+        },
+        {
+          "Hosts": {
+            "host_name": "c6402.ambari.apache.org",
+            "total_mem": 12345678
+          }
+        },
+        {
+          "Hosts": {
+            "host_name": "c6403.ambari.apache.org",
+            "total_mem": 12345678
+          }
+        },
+        {
+          "Hosts": {
+            "host_name": "c6404.ambari.apache.org",
+            "total_mem": 12345678
+          }
+        }
+      ]
+    }
+
     # original cluster data with 3 segments
     services = self.load_json("services-normal-hawq-3-hosts.json")
     componentsListList = [service["components"] for service in services["services"]]
@@ -2012,7 +2041,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test 1 - with 3 segments
     self.assertEquals(len(hawqSegmentComponent["hostnames"]), 3)
     serviceAdvisor = self.createHAWQServiceAdvisor()
-    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, None)
+    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, hosts)
     self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(3 * 6))
     self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "false")
 
@@ -2022,19 +2051,19 @@ class TestHDP23StackAdvisor(TestCase):
 
     # Test 2 - with 100 segments
     hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(100)]
-    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, None)
+    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, hosts)
     self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], str(100 * 5))
     self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
 
     # Test 3 - with 512 segments
     hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(512)]
-    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, None)
+    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, hosts)
     self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
     self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
 
     # Test 4 - with 513 segments
     hawqSegmentComponent["hostnames"] = ["host" + str(i) for i in range(513)]
-    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, None)
+    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, hosts)
     self.assertEquals(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "512")
     self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "true")
 
@@ -2042,7 +2071,7 @@ class TestHDP23StackAdvisor(TestCase):
     configurations = {}
     services["configurations"]["hawq-site"] = {"properties":{'hawq-site': {'properties': {}}}}
     hawqSegmentComponent["hostnames"] = []
-    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, None)
+    serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, hosts)
     self.assertEquals(configurations, {'hdfs-client': {'properties': {'output.replace-datanode-on-failure': 'false'}},
                                        'hawq-site': {'properties': {}},  'hdfs-site': {'properties': {'dfs.allow.truncate': 'true'}}})
 

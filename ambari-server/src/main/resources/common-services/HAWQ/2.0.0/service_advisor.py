@@ -120,11 +120,15 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     # Set dfs.allow.truncate to true
     putHdfsSiteProperty('dfs.allow.truncate', 'true')
 
-    if any(x in services["configurations"] for x in ["hawq-site", "hdfs-client"]):
+    if any(x in services["configurations"] for x in ["hawq-site", "hdfs-client", "hawq-sysctl-env"]):
       componentsListList = [service["components"] for service in services["services"]]
       componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
       servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-      numSegments = len(self.getHosts(componentsList, "HAWQSEGMENT"))
+      hawqMasterHosts = set(self.getHosts(componentsList, "HAWQMASTER")).union(set(self.getHosts(componentsList, "HAWQSTANDBY")))
+      hawqSegmentHosts = set(self.getHosts(componentsList, "HAWQSEGMENT"))
+      hawqHosts = hawqMasterHosts.union(hawqSegmentHosts)
+      numSegments = len(hawqSegmentHosts)
+      minHawqHostsMemory = min([host['Hosts']['total_mem'] for host in hosts['items'] if host['Hosts']['host_name'] in hawqHosts])
 
     if "hawq-site" in services["configurations"]:
       hawq_site = services["configurations"]["hawq-site"]["properties"]
@@ -157,11 +161,21 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           if hs_prop in hawq_site and ys_prop in yarn_site:
             putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
 
+    # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
+    if "hawq-sysctl-env" in services["configurations"]:
+      MEM_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
+      hawq_sysctl_env = services["configurations"]["hawq-sysctl-env"]["properties"]
+      if "vm.overcommit_memory" in hawq_sysctl_env:
+        propertyValue = "2" if minHawqHostsMemory >= MEM_THRESHOLD else "1"
+        putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
+        putHawqSysctlEnvProperty("vm.overcommit_memory", propertyValue)
+
     # set output.replace-datanode-on-failure in HAWQ hdfs-client depending on the cluster size
     if "hdfs-client" in services["configurations"]:
+      MIN_NUM_SEGMENT_THRESHOLD = 3
       hdfs_client = services["configurations"]["hdfs-client"]["properties"]
       if "output.replace-datanode-on-failure" in hdfs_client:
-        propertyValue = "true" if numSegments > 3 else "false"
+        propertyValue = "true" if numSegments > MIN_NUM_SEGMENT_THRESHOLD else "false"
         putHdfsClientProperty = self.putProperty(configurations, "hdfs-client", services)
         putHdfsClientProperty("output.replace-datanode-on-failure", propertyValue)
 
@@ -272,13 +286,13 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       numSegments = len(self.getHosts(componentsList, "HAWQSEGMENT"))
 
       message = None
-      limit = 3
-      if numSegments > limit and value != 'TRUE':
+      MIN_NUM_SEGMENT_THRESHOLD = 3
+      if numSegments > MIN_NUM_SEGMENT_THRESHOLD and value != 'TRUE':
         message = "{0} should be set to true (checked) for clusters with more than {1} HAWQ Segments"
-      elif numSegments <= limit and value != 'FALSE':
+      elif numSegments <= MIN_NUM_SEGMENT_THRESHOLD and value != 'FALSE':
         message = "{0} should be set to false (unchecked) for clusters with {1} or less HAWQ Segments"
 
       if message:
-        validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(limit)))})
+        validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(MIN_NUM_SEGMENT_THRESHOLD)))})
 
     return stackAdvisor.toConfigurationValidationProblems(validationItems, "hdfs-client")
