@@ -36,4 +36,22 @@
     </value-attributes>
   </property>
 
+  <property>
+    <name>ranger.usersync.policymgr.username</name>
+    <value>rangerusersync</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.usersync.policymgr.alias</name>
+    <value>ranger.usersync.policymgr.password</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.usersync.policymgr.keystore</name>
+    <value>/usr/hdp/current/ranger-usersync/conf/ugsync.jceks</value>
+    <description></description>
+  </property>
+
 </configuration>

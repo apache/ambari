@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
@@ -30,6 +30,19 @@ class RangerUsersync(Script):
   
   def install(self, env):
     self.install_packages(env)
+    import params
+    env.set_params(params)
+
+    if params.stack_supports_usersync_passwd:
+      from setup_ranger_xml import ranger_credential_helper
+      ranger_credential_helper(params.ugsync_cred_lib, params.ugsync_policymgr_alias, 'rangerusersync', params.ugsync_policymgr_keystore)
+
+      File(params.ugsync_policymgr_keystore,
+        owner = params.unix_user,
+        group = params.unix_group,
+        mode = 0640
+      )
+
     self.configure(env)
     
   def configure(self, env, upgrade_type=None):

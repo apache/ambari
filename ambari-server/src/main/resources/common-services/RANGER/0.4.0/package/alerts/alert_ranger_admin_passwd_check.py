@@ -24,6 +24,8 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 import logging
 from resource_management.core.environment import Environment
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 logger = logging.getLogger()
 RANGER_ADMIN_URL = '{{admin-properties/policymgr_external_url}}'
@@ -65,7 +67,8 @@ def execute(configurations={}, parameters={}, host_name=None):
   ranger_admin_password = None
   security_enabled = False
 
-  stack_is_hdp25_or_further = Script.is_stack_greater_or_equal("2.5")
+  stack_version_formatted = Script.get_stack_version()
+  stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
   if RANGER_ADMIN_URL in configurations:
     ranger_link = configurations[RANGER_ADMIN_URL]
@@ -93,7 +96,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   result_code = 'OK'
 
   try:
-    if security_enabled and stack_is_hdp25_or_further:
+    if security_enabled and stack_supports_ranger_kerberos:
       result_code = 'UNKNOWN'
       label = 'This alert will get skipped for Ranger Admin on kerberos env'
     else:

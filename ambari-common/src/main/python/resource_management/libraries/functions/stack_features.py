@@ -233,6 +233,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "ranger_kerberos_support",
       "description": "Ranger Kerberos support",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_usersync_password_jceks",
+      "description": "Saving Ranger Usersync credentials in jceks",
+      "min_version": "2.5.0.0"
     }
   ]
 }

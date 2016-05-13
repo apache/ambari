@@ -11,8 +11,8 @@
         "source": {
           "type": "WEB",
           "uri": {
-              "http": "{{admin-properties/policymgr_external_url}}",
-              "https": "{{admin-properties/policymgr_external_url}}",
+              "http": "{{admin-properties/policymgr_external_url}}/login.jsp",
+              "https": "{{admin-properties/policymgr_external_url}}/login.jsp",
               "kerberos_keytab": "{{ranger-admin-site/ranger.spnego.kerberos.keytab}}",
               "kerberos_principal": "{{ranger-admin-site/ranger.spnego.kerberos.principal}}",
               "https_property": "{{ranger-admin-site/ranger.service.https.attrib.ssl.enabled}}",

@@ -27,13 +27,22 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
-from setup_ranger_xml import ranger
+from setup_ranger_xml import ranger, ranger_credential_helper
 import upgrade
 
 class RangerTagsync(Script):
 
   def install(self, env):
     self.install_packages(env)
+    import params
+    env.set_params(params)
+
+    ranger_credential_helper(params.tagsync_cred_lib, 'tagadmin.user.password', 'rangertagsync', params.tagsync_jceks_path)
+    File(params.tagsync_jceks_path,
+       owner = params.unix_user,
+       group = params.unix_group,
+       mode = 0640
+    )
     self.configure(env)
 
   def configure(self, env, upgrade_type=None):

@@ -62,6 +62,7 @@ stack_supports_ranger_tagsync =  stack_version_formatted and check_stack_feature
 stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
 stack_supports_ranger_log4j =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, stack_version_formatted)
 stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
+stack_supports_usersync_passwd = stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -196,6 +197,7 @@ ranger_jpa_audit_jdbc_credential_alias = config["configurations"]["ranger-admin-
 ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"]) if stack_supports_ranger_audit_db else None
 
 ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.credstore.filename"]
+ugsync_cred_lib = os.path.join(usersync_home,"lib","*")
 cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
 cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
 ranger_audit_source_type = config["configurations"]["ranger-admin-site"]["ranger.audit.source.type"]
@@ -225,10 +227,10 @@ has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
 
 tagsync_enabled = config["configurations"]["ranger-tagsync-site"]['ranger.tagsync.enabled']
 tagsync_log_dir = default("/configurations/ranger-tagsync-site/ranger.tagsync.logdir", "/var/log/ranger/tagsync")
-ranger_tagsync_tagadmin_password = unicode(config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.tagadmin.password"]) if has_ranger_tagsync else None
-tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.tagadmin.keystore"]
+tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.keystore.filename"]
 tagsync_application_properties = dict(config["configurations"]["tagsync-application-properties"]) if has_ranger_tagsync else None
 tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
+tagsync_cred_lib = os.path.join(ranger_tagsync_home, "lib", "*")
 
 # ranger log4j.properties
 admin_log4j = config['configurations']['admin-log4j']['content']
@@ -239,3 +241,6 @@ tagsync_log4j = config['configurations']['tagsync-log4j']['content']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 namenode_hosts = default("/clusterHostInfo/namenode_host", [])
 has_namenode = len(namenode_hosts) > 0
+
+ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.alias"]
+ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.keystore"]

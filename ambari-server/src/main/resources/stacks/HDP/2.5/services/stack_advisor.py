@@ -1043,12 +1043,17 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       ranger_tagsync_host = self.__getHostsForComponent(services, "RANGER", "RANGER_TAGSYNC")
       has_ranger_tagsync = len(ranger_tagsync_host) > 0
 
+    if 'ATLAS' in servicesList:
+      putTagsyncSiteProperty('ranger.tagsync.source.atlas', 'true')
+    else:
+      putTagsyncSiteProperty('ranger.tagsync.source.atlas', 'false')
+
     zookeeper_host_port = self.getZKHostPortString(services)
     if zookeeper_host_port and has_ranger_tagsync:
       zookeeper_host_list = zookeeper_host_port.split(',')
       putTagsyncAppProperty('atlas.kafka.zookeeper.connect', zookeeper_host_list[0])
     else:
-      putTagsyncAppProperty('atlas.kafka.zookeeper.connect', 'localhost:6667')
+      putTagsyncAppProperty('atlas.kafka.zookeeper.connect', 'localhost:2181')
 
     if 'KAFKA' in servicesList and has_ranger_tagsync:
       kafka_hosts = self.getHostNamesWithComponent("KAFKA", "KAFKA_BROKER", services)
@@ -1063,23 +1068,22 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       final_kafka_host = ",".join(kafka_host_port)
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', final_kafka_host)
     else:
-      putTagsyncAppProperty('atlas.kafka.bootstrap.servers', 'localhost:2181')
+      putTagsyncAppProperty('atlas.kafka.bootstrap.servers', 'localhost:6667')
 
   def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = getSiteProperties(configurations, "ranger-tagsync-site")
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    has_ranger_tagsync = False
+    has_atlas = False
     if "RANGER" in servicesList:
-      ranger_tagsync_host = self.__getHostsForComponent(services, "RANGER", "RANGER_TAGSYNC")
-      has_ranger_tagsync = len(ranger_tagsync_host) == 0
+      has_atlas = not "ATLAS" in servicesList
 
-      if has_ranger_tagsync and 'ranger.tagsync.enabled' in ranger_tagsync_properties and \
-        ranger_tagsync_properties['ranger.tagsync.enabled'].lower() == 'true':
-        validationItems.append({"config-name": "ranger.tagsync.enabled",
+      if has_atlas and 'ranger.tagsync.source.atlas' in ranger_tagsync_properties and \
+        ranger_tagsync_properties['ranger.tagsync.source.atlas'].lower() == 'true':
+        validationItems.append({"config-name": "ranger.tagsync.source.atlas",
                                   "item": self.getWarnItem(
-                                    "Need to Install RANGER TAGSYNC component to set ranger.tagsync.enabled as true.")})
+                                    "Need to Install ATLAS service to set ranger.tagsync.source.atlas as true.")})
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-tagsync-site")
 

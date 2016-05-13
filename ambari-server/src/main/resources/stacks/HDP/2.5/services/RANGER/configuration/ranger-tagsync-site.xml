@@ -22,36 +22,18 @@
 <configuration supports_final="true">
 
   <property>
-    <name>ranger.tagsync.enabled</name>
-    <display-name>Enable Tagsync</display-name>
-    <value>false</value>
-    <description>Enable/Disable Ranger Tagsync</description>
+    <name>ranger.tagsync.logdir</name>
+    <value>/var/log/ranger/tagsync</value>
+    <description>Ranger Log dir</description>
     <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-      <type>value-list</type>
+      <type>directory</type>
       <overridable>false</overridable>
-      <entries>
-        <entry>
-          <value>true</value>
-          <label>Yes</label>
-        </entry>
-        <entry>
-          <value>false</value>
-          <label>No</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
+      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
   </property>
 
   <property>
-    <name>ranger.tagsync.logdir</name>
-    <value>/var/log/ranger/tagsync</value>
-    <description>Ranger Log dir</description>
-  </property>
-
-  <property>
-    <name>ranger.tagsync.tagadmin.rest.url</name>
+    <name>ranger.tagsync.dest.ranger.endpoint</name>
     <value>{{ranger_external_url}}</value>
     <description>Ranger TagAdmin REST URL</description>
     <value-attributes>
@@ -60,7 +42,43 @@
   </property>
 
   <property>
-    <name>ranger.tagsync.filesource.modtime.check.interval</name>
+    <name>ranger.tagsync.source.atlas</name>
+    <display-name>Enable Atlas Tag Source</display-name>
+    <value>false</value>
+    <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.server.bind.address</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>ranger.tagsync.source.atlasrest</name>
+    <display-name>Enable AtlasRest Tag Source</display-name>
+    <value>false</value>
+    <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.tagsync.source.file</name>
+    <display-name>Enable File Tag Source</display-name>
+    <value>false</value>
+    <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.tagsync.source.file.check.interval.millis</name>
     <display-name>File Source: File update polling interval</display-name>
     <value></value>
     <description></description>
@@ -70,7 +88,7 @@
   </property>
 
   <property>
-    <name>ranger.tagsync.atlasrestsource.download.interval</name>
+    <name>ranger.tagsync.source.atlasrest.download.interval.millis</name>
     <display-name>AtlasREST Source: Atlas source download interval</display-name>
     <value></value>
     <value-attributes>
@@ -79,13 +97,13 @@
   </property>
 
   <property>
-    <name>ranger.tagsync.tagadmin.rest.ssl.config.file</name>
+    <name>ranger.tagsync.dest.ranger.ssl.config.filename</name>
     <value>/usr/hdp/current/ranger-tagsync/conf/mytruststore.jks</value>
     <description>Truststore used for tagsync, required if tagsync -&gt; ranger admin communication is SSL enabled</description>
   </property>
 
   <property>
-    <name>ranger.tagsync.filesource.filename</name>
+    <name>ranger.tagsync.source.file.filename</name>
     <display-name>File Source: Filename</display-name>
     <value></value>
     <description>File Source Filename</description>
@@ -95,34 +113,7 @@
   </property>
 
   <property>
-    <name>ranger.tagsync.source.impl.class</name>
-    <display-name>Tag Source</display-name>
-    <value>atlas</value>
-    <description>Tagsync Source IMPL class</description>
-    <value-attributes>
-      <type>value-list</type>
-      <empty-value-valid>true</empty-value-valid>
-      <overridable>false</overridable>
-      <entries>
-        <entry>
-          <value>atlas</value>
-          <label>ATLAS</label>
-        </entry>
-        <entry>
-          <value>file</value>
-          <label>FILE</label>
-        </entry>
-        <entry>
-          <value>atlasrest</value>
-          <label>ATLASREST</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>ranger.tagsync.tagadmin.keystore</name>
+    <name>ranger.tagsync.keystore.filename</name>
     <value>/usr/hdp/current/ranger-tagsync/conf/rangertagsync.jceks</value>
     <description>Keystore file</description>
     <value-attributes>
@@ -131,24 +122,7 @@
   </property>
 
   <property>
-    <name>ranger.tagsync.tagadmin.alias</name>
-    <value>tagsync.tagadmin</value>
-    <description></description>
-  </property>
-
-  <property>
-    <name>ranger.tagsync.tagadmin.password</name>
-    <display-name>Tagsync admin password</display-name>
-    <value></value>
-    <description>Tagadmin password</description>
-    <value-attributes>
-      <type>password</type>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>ranger.tagsync.atlas.to.service.mapping</name>
-    <display-name>Tagsync Atlas to Ranger service mapping</display-name>
+    <name>ranger.tagsync.atlas.to.ranger.service.mapping</name>
     <value></value>
     <description>Service Mapping</description>
     <value-attributes>
@@ -157,7 +131,7 @@
   </property>
 
   <property>
-    <name>ranger.tagsync.atlasrestsource.endpoint</name>
+    <name>ranger.tagsync.source.atlasrest.endpoint</name>
     <display-name>AtlasREST Source: Atlas endpoint</display-name>
     <value></value>
     <description></description>
@@ -167,17 +141,8 @@
   </property>
 
   <property>
-    <name>ranger.tagsync.source.atlas.custom.resource.mappers</name>
+    <name>ranger.tagsync.atlas.custom.resource.mappers</name>
     <value></value>
-    <description></description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>ranger.tagsync.sink.impl.class</name>
-    <value>org.apache.ranger.tagsync.sink.tagadmin.TagAdminRESTSink</value>
     <description></description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
@@ -200,6 +165,12 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.tagsync.dest.ranger.username</name>
+    <value>rangertagsync</value>
+    <description></description>
   </property>
 
 </configuration>
