@@ -1128,7 +1128,7 @@ insert into users(user_id, principal_id, user_name, user_password)
 select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
-  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 7, 1 from dual
+  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 from dual
   union all
   select 2, 'CLUSTER.USER', 2, 'Cluster User', 8, 6 from dual
   union all

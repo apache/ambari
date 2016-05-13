@@ -1106,7 +1106,7 @@ INSERT INTO Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
 INSERT INTO adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
-  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 7, 1 UNION ALL
+  SELECT 1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1 UNION ALL
   SELECT 2, 'CLUSTER.USER', 2, 'Cluster User', 8, 6 UNION ALL
   SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 9, 2 UNION ALL
   SELECT 4, 'VIEW.USER', 3, 'View User', 10, 7 UNION ALL

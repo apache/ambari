@@ -238,7 +238,7 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
     // Set permission labels
     updateQueryPattern = "UPDATE adminpermission SET permission_label='%s' WHERE permission_id=%d";
     expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
-        "Administrator", PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)))
+        "Ambari Administrator", PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)))
         .andReturn(1).once();
     expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
         "Cluster User", PermissionEntity.CLUSTER_USER_PERMISSION)))
