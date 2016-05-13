@@ -24,19 +24,20 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,8 +59,7 @@ public class JSONUtil {
   Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
 
   // Conversion from JSONArray to List<String>
-  public static List<String> JSONToList(JSONArray jarray)
-    throws JSONException {
+  public static List<String> JSONToList(JSONArray jarray) throws JSONException {
     ArrayList<String> list = new ArrayList<String>();
     JSONArray jsonArray = jarray;
     if (jsonArray != null) {
@@ -80,22 +80,22 @@ public class JSONUtil {
     ObjectMapper mapper = new ObjectMapper();
     try {
       Object tempObject = mapper.readValue(jsonStr,
-        new TypeReference<HashMap<String, String>>() {
-        });
+          new TypeReference<HashMap<String, String>>() {
+          });
       return (HashMap<String, String>) tempObject;
 
     } catch (JsonParseException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     } catch (JsonMappingException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     } catch (IOException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     }
 
   }
@@ -109,22 +109,22 @@ public class JSONUtil {
     ObjectMapper mapper = new ObjectMapper();
     try {
       Object tempObject = mapper.readValue(jsonStr,
-        new TypeReference<HashMap<String, Object>>() {
-        });
+          new TypeReference<HashMap<String, Object>>() {
+          });
       return (HashMap<String, Object>) tempObject;
 
     } catch (JsonParseException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     } catch (JsonMappingException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     } catch (IOException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     }
 
   }
@@ -137,22 +137,22 @@ public class JSONUtil {
     ObjectMapper mapper = new ObjectMapper();
     try {
       Object tempObject = mapper.readValue(jsonStr,
-        new TypeReference<List<HashMap<String, Object>>>() {
-        });
+          new TypeReference<List<HashMap<String, Object>>>() {
+          });
       return (List<HashMap<String, Object>>) tempObject;
 
     } catch (JsonParseException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     } catch (JsonMappingException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     } catch (IOException e) {
       throw restErrorUtil.createRESTException(
-        "Invalid input data: " + e.getMessage(),
-        MessageEnums.INVALID_INPUT_DATA);
+          "Invalid input data: " + e.getMessage(),
+          MessageEnums.INVALID_INPUT_DATA);
     }
 
   }
@@ -178,8 +178,8 @@ public class JSONUtil {
     ObjectMapper mapper = new ObjectMapper();
     try {
       HashMap<String, Object> jsonmap = mapper.readValue(jsonFile,
-        new TypeReference<HashMap<String, Object>>() {
-        });
+          new TypeReference<HashMap<String, Object>>() {
+          });
       return jsonmap;
     } catch (JsonParseException e) {
       logger.error(e, e.getCause());
@@ -209,13 +209,13 @@ public class JSONUtil {
 
   /**
    * WRITE JOSN IN FILE ( Delete existing file and create new file)
-   *
+   * 
    * @param jsonStr
    * @param outputFile
    * @param beautify
    */
   public synchronized void writeJSONInFile(String jsonStr, File outputFile,
-                              boolean beautify) {
+      boolean beautify) {
     FileWriter fileWriter = null;
     if (outputFile == null) {
       logger.error("user_pass json file can't be null.");
@@ -231,13 +231,14 @@ public class JSONUtil {
         if (beautify) {
           ObjectMapper mapper = new ObjectMapper();
           Object json = mapper.readValue(jsonStr, Object.class);
-          jsonStr = mapper.writerWithDefaultPrettyPrinter()
-            .writeValueAsString(json);
+          jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(
+              json);
         }
         fileWriter.write(jsonStr);
       } else {
-        logger.error("Applcation does not have permission to update file to write enc_password. file="
-          + outputFile.getAbsolutePath());
+        logger
+            .error("Applcation does not have permission to update file to write enc_password. file="
+                + outputFile.getAbsolutePath());
       }
     } catch (IOException e) {
       logger.error("Error writing to password file.", e.getCause());
@@ -260,5 +261,80 @@ public class JSONUtil {
 
   public Object jsonToObj(String json, Class<?> klass) {
     return gson.fromJson(json, klass);
+  }
+
+  /**
+   * GET VALUES FROM JSON BY GIVING KEY RECURSIVELY
+   * 
+   * @param jsonStr
+   * @param keyName
+   * @return
+   */
+  @SuppressWarnings("rawtypes")
+  public static String getValuesOfKey(String jsonStr, String keyName,
+      List<String> values) {
+    if (values == null) {
+      return null;
+    }
+    Object jsonObj = null;
+    try {
+      jsonObj = new JSONObject(jsonStr);
+    } catch (Exception e) {
+      // ignore
+    }
+    if (jsonObj == null) {
+      try {
+        JSONArray jsonArray = new JSONArray(jsonStr);
+        String str = null;
+        for (int i = 0; i < jsonArray.length(); i++) {
+
+          str = getValuesOfKey(jsonArray.getString(i), keyName, values);
+          if (str != null) {
+            return str;
+          }
+        }
+
+      } catch (Exception e) {
+        // ignore
+      }
+    }
+    if (jsonObj == null) {
+      return null;
+    }
+
+    Iterator iterator = ((JSONObject) jsonObj).keys();
+    if (iterator == null) {
+      return null;
+    }
+    while (iterator.hasNext()) {
+      String key = (String) iterator.next();
+
+      if (key != null && key.equals(keyName)) {
+
+        try {
+          String val = ((JSONObject) jsonObj).getString(key);
+          values.add(val);
+        } catch (Exception e) {
+          // ignore
+        }
+
+      } else if ((((JSONObject) jsonObj).optJSONArray(key) != null)
+          || (((JSONObject) jsonObj).optJSONObject(key) != null)) {
+
+        String str = null;
+        try {
+          str = getValuesOfKey("" + ((JSONObject) jsonObj).getString(key),
+              keyName, values);
+        } catch (Exception e) {
+          // ignore
+        }
+        if (str != null) {
+          return str;
+        }
+
+      }
+
+    }
+    return null;
   }
 }

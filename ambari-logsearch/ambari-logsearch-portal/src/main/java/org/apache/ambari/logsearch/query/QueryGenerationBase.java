@@ -417,7 +417,7 @@ public abstract class QueryGenerationBase extends QueryBase {
       String[] values = paramValue.split(LogSearchConstants.LIST_SEPARATOR);
       switch (condition) {
       case OR:
-        return solrUtil.orList(solrFieldName, values,"*");
+        return solrUtil.orList(solrFieldName, values,"");
       case AND:
         return solrUtil.andList(solrFieldName, values, "");
       default:
