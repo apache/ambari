@@ -174,9 +174,9 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
       hostComponentStub.restore();
     });
 
-    var setUpHosts = function (pxfHosts, dataNodeHosts) {
-      hostComponentStub.withArgs('componentName', 'PXF').returns(pxfHosts);
-      hostComponentStub.withArgs('componentName', 'DATANODE').returns(dataNodeHosts);
+    var setUpHosts = function (_pxfHosts, _dataNodeHosts) {
+      hostComponentStub.withArgs('componentName', 'PXF').returns(_pxfHosts);
+      hostComponentStub.withArgs('componentName', 'DATANODE').returns(_dataNodeHosts);
     };
 
     it('does not delete PXF from source host if PXF and DATANODE are not installed on the source host', function () {
@@ -228,7 +228,7 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
       setUpHosts(pxfHosts, []);
 
       controller.loadStep();
-      expect(controller.get('commands').indexOf('installPxf')).to.eql(4);
+      expect(controller.get('commands').indexOf('installPxf')).to.be.equal(4);
     });
 
   });
