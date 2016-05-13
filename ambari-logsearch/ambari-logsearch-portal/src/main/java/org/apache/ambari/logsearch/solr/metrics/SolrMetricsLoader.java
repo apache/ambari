@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 
 import javax.management.MalformedObjectNameException;
 
@@ -38,9 +39,14 @@ import org.slf4j.LoggerFactory;
 public class SolrMetricsLoader extends TimerTask {
   private static final Logger LOG = LoggerFactory.getLogger(SolrMetricsLoader.class);
 
+  private static final int RETRY = 3;
+  private static final int MAX_METRIC_SIZE= 1000;
+
   private final String solrHost;
   private final SolrJmxAdapter solrJmxAdapter;
   private final SolrAmsClient solrAmsClient;
+  
+  private final TimelineMetrics metrics = new TimelineMetrics();
 
   public SolrMetricsLoader(String solrHost, int solrJmxPort, String collectorHost) throws IOException {
     this.solrHost = solrHost;
@@ -54,21 +60,20 @@ public class SolrMetricsLoader extends TimerTask {
   public void run() {
     LOG.info("Loading Solr Metrics for the host " + solrHost);
 
-    TimelineMetrics metrics = new TimelineMetrics();
+    addCpuUsageMetric();
+    addHeapMemoryUsageMetric();
+    addIndexSizeMetric();
 
-    addCpuUsageMetric(metrics);
-    addHeapMemoryUsageMetric(metrics);
-    addIndexSizeMetric(metrics);
-
-    solrAmsClient.emitMetrics(metrics);
+    emitMetrics();
+    removeOverTheLimitMetrics();
   }
 
-  private void addCpuUsageMetric(TimelineMetrics metrics) {
+  private void addCpuUsageMetric() {
     Exception lastException = null;
-    for (int retries = 0; retries < 3; retries++) {
+    for (int retries = 0; retries < RETRY; retries++) {
       try {
         double processCpuLoad = solrJmxAdapter.getProcessCpuLoad();
-        addMetric("logsearch.solr.cpu.usage", "Float", processCpuLoad, metrics);
+        addMetric("logsearch.solr.cpu.usage", "Float", processCpuLoad);
         return;
       } catch (MalformedObjectNameException e) {
         lastException = e;
@@ -82,17 +87,17 @@ public class SolrMetricsLoader extends TimerTask {
     LOG.info("Could not load solr cpu usage metric, last exception:", lastException);
   }
 
-  private void addHeapMemoryUsageMetric(TimelineMetrics metrics) {
+  private void addHeapMemoryUsageMetric() {
     Exception lastException = null;
-    for (int retries = 0; retries < 3; retries++) {
+    for (int retries = 0; retries < RETRY; retries++) {
       try {
         Map<String, Long> memoryData = solrJmxAdapter.getMemoryData();
-        addMetric("jvm.JvmMetrics.MemHeapUsedM", "Long", memoryData.get("heapMemoryUsed").doubleValue() / 1024 / 1024, metrics);
-        addMetric("jvm.JvmMetrics.MemHeapCommittedM", "Long", memoryData.get("heapMemoryCommitted").doubleValue() / 1024 / 1024, metrics);
-        addMetric("jvm.JvmMetrics.MemHeapMaxM", "Long", memoryData.get("heapMemoryMax").doubleValue() / 1024 / 1024, metrics);
-        addMetric("jvm.JvmMetrics.MemNonHeapUsedM", "Long", memoryData.get("nonHeapMemoryUsed").doubleValue() / 1024 / 1024, metrics);
-        addMetric("jvm.JvmMetrics.MemNonHeapCommittedM", "Long", memoryData.get("nonHeapMemoryCommitted").doubleValue() / 1024 / 1024, metrics);
-        addMetric("jvm.JvmMetrics.MemNonHeapMaxM", "Long", memoryData.get("nonHeapMemoryMax").doubleValue() / 1024 / 1024, metrics);
+        addMetric("jvm.JvmMetrics.MemHeapUsedM", "Long", memoryData.get("heapMemoryUsed").doubleValue() / 1024 / 1024);
+        addMetric("jvm.JvmMetrics.MemHeapCommittedM", "Long", memoryData.get("heapMemoryCommitted").doubleValue() / 1024 / 1024);
+        addMetric("jvm.JvmMetrics.MemHeapMaxM", "Long", memoryData.get("heapMemoryMax").doubleValue() / 1024 / 1024);
+        addMetric("jvm.JvmMetrics.MemNonHeapUsedM", "Long", memoryData.get("nonHeapMemoryUsed").doubleValue() / 1024 / 1024);
+        addMetric("jvm.JvmMetrics.MemNonHeapCommittedM", "Long", memoryData.get("nonHeapMemoryCommitted").doubleValue() / 1024 / 1024);
+        addMetric("jvm.JvmMetrics.MemNonHeapMaxM", "Long", memoryData.get("nonHeapMemoryMax").doubleValue() / 1024 / 1024);
         return;
       } catch (MalformedObjectNameException e) {
         lastException = e;
@@ -106,12 +111,12 @@ public class SolrMetricsLoader extends TimerTask {
     LOG.info("Could not load solr heap memory usage metric, last exception:", lastException);
   }
 
-  private void addIndexSizeMetric(TimelineMetrics metrics) {
+  private void addIndexSizeMetric() {
     Exception lastException = null;
-    for (int retries = 0; retries < 3; retries++) {
+    for (int retries = 0; retries < RETRY; retries++) {
       try {
         double indexSize = solrJmxAdapter.getIndexSize();
-        addMetric("logsearch.solr.index.size", "Long", indexSize / 1024 / 1024 / 1024, metrics);
+        addMetric("logsearch.solr.index.size", "Long", indexSize / 1024 / 1024 / 1024);
         return;
       } catch (Exception e) {
         lastException = e;
@@ -125,7 +130,7 @@ public class SolrMetricsLoader extends TimerTask {
     LOG.info("Could not load solr index size metric, last exception:", lastException);
   }
 
-  private void addMetric(String metricName, String type, Double value, TimelineMetrics metrics) {
+  private void addMetric(String metricName, String type, Double value) {
     Long currMS = System.currentTimeMillis();
 
     TimelineMetric metric = new TimelineMetric();
@@ -138,6 +143,31 @@ public class SolrMetricsLoader extends TimerTask {
     metric.getMetricValues().put(currMS, value);
 
     metrics.addOrMergeTimelineMetric(metric);
+  }
+
+  private void emitMetrics() {
+    Exception lastException = null;
+    for (int retries = 0; retries < RETRY; retries++) {
+      try {
+        if (solrAmsClient.emitMetrics(metrics)) {
+          metrics.getMetrics().clear();
+          return;
+        }
+      } catch (Exception e) {
+        lastException = e;
+      }
+    }
+
+    LOG.info("Could not emit metrics, last exception:", lastException);
+  }
+
+  private void removeOverTheLimitMetrics() {
+    for (TimelineMetric metric : metrics.getMetrics()) {
+      TreeMap<Long, Double> metricValues = metric.getMetricValues();
+      while (metricValues.size() > MAX_METRIC_SIZE) {
+        metricValues.remove(metricValues.firstKey());
+      }
+    }
   }
 
   public static void startSolrMetricsLoaderTasks() {
@@ -158,7 +188,7 @@ public class SolrMetricsLoader extends TimerTask {
       Collection<String> solrHosts = ambariSolrCloudClient.getSolrHosts();
       for (String solrHost : solrHosts) {
         SolrMetricsLoader sml = new SolrMetricsLoader(solrHost, solrJmxPort, collectorHosts);
-        Timer timer = new Timer("Solr Metrics Loader - " + solrHost, false);
+        Timer timer = new Timer("Solr Metrics Loader - " + solrHost, true);
         timer.scheduleAtFixedRate(sml, 0, 10000);
       }
     } catch (Exception e) {
