@@ -172,7 +172,8 @@ class ServiceAdvisor(object):
   Returns the hosts which are running the given component.
   """
   def getHosts(self, componentsList, componentName):
-    return [component["hostnames"] for component in componentsList if component["component_name"] == componentName][0]
+    hostNamesList = [component["hostnames"] for component in componentsList if component["component_name"] == componentName]
+    return hostNamesList[0] if len(hostNamesList) > 0 else []
 
   """
   Utility method for setting a configuration property value.
