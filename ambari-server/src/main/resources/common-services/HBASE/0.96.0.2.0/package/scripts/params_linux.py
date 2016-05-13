@@ -353,6 +353,8 @@ if has_ranger_admin:
       'type': 'hbase'
     }
 
+  ranger_hbase_principal = None
+  ranger_hbase_keytab = None
   if stack_supports_ranger_kerberos and security_enabled and 'hbase-master' in component_directory.lower():
     ranger_hbase_principal = master_jaas_princ
     ranger_hbase_keytab = master_keytab_path

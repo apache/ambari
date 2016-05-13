@@ -301,6 +301,8 @@ if has_ranger_admin:
       'type': 'storm'
     }
 
+  ranger_storm_principal = None
+  ranger_storm_keytab = None
   if stack_supports_ranger_kerberos and security_enabled and 'storm-nimbus' in status_params.component_directory.lower():
     ranger_storm_principal = nimbus_jaas_principal
     ranger_storm_keytab = nimbus_keytab_path
