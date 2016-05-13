@@ -75,6 +75,10 @@ public class BaseHttpClient {
 		return viewContext.getURLStreamProvider();
 	}
 
+	public URLStreamProviderBasicAuth getUrlStreamProviderBasicAuth() {
+		return new URLStreamProviderBasicAuth(getUrlStreamProvider(),getUserId(),getPassword());
+	}
+
 	public String getUrl() {
 		return url;
 	}
@@ -113,39 +117,42 @@ public class BaseHttpClient {
 
 	public JsonElement doGetJson(String url, String path) throws HttpException,
 			IOException {
-		String response = null;
+		InputStream inputStream = null;
 		try {
 			Map<String, String> headers = new HashMap<String, String>();
 			if (isNeedsAuthentication()) {
-				response = ambariApi.readFromAmbari(
+				inputStream = getUrlStreamProviderBasicAuth().readFrom(
 						url + path, "GET", (String) null, headers);
 			} else {
-				response = IOUtils.toString(viewContext.getURLStreamProvider().readAsCurrent(
-						url + path, "GET", (String) null, headers));
+				inputStream = getUrlStreamProvider().readAsCurrent(
+						url + path, "GET", (String) null, headers);
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			logger.error("Error while reading from url " + url + path, e);
 			HttpException httpException = new HttpException(
 					e.getLocalizedMessage());
 			throw httpException;
 		}
-		JsonElement jsonElement = new JsonParser().parse(response);
+		JsonElement jsonElement = new JsonParser().parse(new JsonReader(
+				new InputStreamReader(inputStream)));
 		return jsonElement;
 	}
 
 	public String doGet(String path) throws HttpException, IOException {
 		String response = null;
 		try {
+			InputStream inputStream = null;
 			if (isNeedsAuthentication()) {
-				response = ambariApi.readFromAmbari(
+				inputStream = getUrlStreamProviderBasicAuth().readFrom(
 						getUrl() + path, "GET", (String) null,
 						new HashMap<String, String>());
 			} else {
-				response = IOUtils.toString(viewContext.getURLStreamProvider().readAsCurrent(
+				inputStream = getUrlStreamProvider().readAsCurrent(
 						getUrl() + path, "GET", (String) null,
-						new HashMap<String, String>()));
+						new HashMap<String, String>());
 			}
-		} catch (Exception e) {
+			response = IOUtils.toString(inputStream);
+		} catch (IOException e) {
 			logger.error("Error while reading from url " + getUrl() + path, e);
 			HttpException httpException = new HttpException(
 					e.getLocalizedMessage());
