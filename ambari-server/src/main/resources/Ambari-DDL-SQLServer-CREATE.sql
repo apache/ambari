@@ -1134,7 +1134,7 @@ BEGIN TRANSACTION
 
   insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label, principal_id, sort_order)
   values
-    (1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator', 7, 1),
+    (1, 'AMBARI.ADMINISTRATOR', 1, 'Ambari Administrator', 7, 1),
     (2, 'CLUSTER.USER', 2, 'Cluster User', 8, 6),
     (3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator', 9, 2),
     (4, 'VIEW.USER', 3, 'View User', 10, 7),

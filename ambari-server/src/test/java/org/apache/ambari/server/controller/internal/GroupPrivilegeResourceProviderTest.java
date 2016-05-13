@@ -96,7 +96,7 @@ public class GroupPrivilegeResourceProviderTest extends EasyMockSupport {
   public void testToResource_AMBARI() {
     PermissionEntity permissionEntity = createMock(PermissionEntity.class);
     expect(permissionEntity.getPermissionName()).andReturn("ADMINISTRATOR").atLeastOnce();
-    expect(permissionEntity.getPermissionLabel()).andReturn("Administrator").atLeastOnce();
+    expect(permissionEntity.getPermissionLabel()).andReturn("Ambari Administrator").atLeastOnce();
 
     PrincipalTypeEntity principalTypeEntity = createMock(PrincipalTypeEntity.class);
     expect(principalTypeEntity.getName()).andReturn("GROUP").atLeastOnce();

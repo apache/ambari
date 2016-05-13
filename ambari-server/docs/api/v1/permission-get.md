@@ -72,7 +72,7 @@ Get the permission with the permission_id of 1.
       "PermissionInfo" : {
         "permission_id" : 1,
         "permission_name" : "AMBARI.ADMINISTRATOR",
-        "permission_label" : "Administrator",
+        "permission_label" : "Ambari Administrator",
         "resource_name" : "AMBARI"
       }
     }

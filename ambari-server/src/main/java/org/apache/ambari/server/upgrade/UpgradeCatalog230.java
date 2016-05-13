@@ -380,7 +380,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
 
     LOG.info("Setting permission labels");
     dbAccessor.executeUpdate(String.format(updateStatement,
-        "Administrator", PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION));
+        "Ambari Administrator", PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION));
     dbAccessor.executeUpdate(String.format(updateStatement,
         "Cluster User", PermissionEntity.CLUSTER_USER_PERMISSION));
     dbAccessor.executeUpdate(String.format(updateStatement,
