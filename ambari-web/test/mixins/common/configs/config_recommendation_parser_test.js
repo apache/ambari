@@ -339,7 +339,8 @@ describe('App.ConfigRecommendationParser', function() {
           'value': 'recommendedValue',
           'recommendedValue': 'recommendedValue',
           'initialValue': 'recommendedValue',
-          'savedValue': null
+          'savedValue': null,
+          'isNotSaved': false
         }
       },
       {
@@ -350,7 +351,8 @@ describe('App.ConfigRecommendationParser', function() {
           'value': 'recommendedValue',
           'recommendedValue': 'recommendedValue',
           'initialValue': 'initValue',
-          'savedValue': null
+          'savedValue': null,
+          'isNotSaved': false
         }
       },
       {
@@ -361,7 +363,8 @@ describe('App.ConfigRecommendationParser', function() {
           'value': 'recommendedValue',
           'recommendedValue': 'recommendedValue',
           'initialValue': 'initValue',
-          'savedValue': 'initValue'
+          'savedValue': 'initValue',
+          'isNotSaved': false
         }
       }
     ];
@@ -472,6 +475,46 @@ describe('App.ConfigRecommendationParser', function() {
 
     it('default value for allowUpdateProperty is true', function() {
       expect(instanceObject.allowUpdateProperty()).to.be.true;
+    });
+  });
+
+  describe('#_configHasInitialValue', function() {
+    it('throws error when config is null', function() {
+      expect(instanceObject._configHasInitialValue.bind(instanceObject, null)).to.throw(App.ObjectTypeError);
+    });
+
+    it('throws error when config is not object', function() {
+      expect(instanceObject._configHasInitialValue.bind(instanceObject, 'not object')).to.throw(App.ObjectTypeError);
+    });
+
+    it('returns true if initial and saved value is defined', function() {
+      expect(instanceObject._configHasInitialValue({'savedValue': 'some', 'initialValue': 'most of all the same'})).to.be.true;
+    });
+
+    it('returns false if saved value is not defined', function() {
+      expect(instanceObject._configHasInitialValue({'savedValue': null, 'initialValue': 'some'})).to.be.false;
+    });
+
+    it('returns false if initial value is not defined', function() {
+      expect(instanceObject._configHasInitialValue({'savedValue': 'some', 'initialValue': null })).to.be.false;
+    });
+  });
+
+  describe('#addModifiedFileName', function() {
+    it('throws error when filename is not defined', function() {
+      expect(instanceObject.addModifiedFileName.bind(instanceObject, null)).to.throw(App.NotNullTypeError);
+    });
+
+    it('add new file name', function() {
+      instanceObject.set('modifiedFileNames', ['someFile']);
+      instanceObject.addModifiedFileName('otherFile');
+      expect(instanceObject.get('modifiedFileNames').join(',')).to.eql('someFile,otherFile');
+    });
+
+    it('do not add file that already in list', function() {
+      instanceObject.set('modifiedFileNames', ['someFile']);
+      instanceObject.addModifiedFileName('someFile');
+      expect(instanceObject.get('modifiedFileNames').join(',')).to.eql('someFile');
     });
   });
 });

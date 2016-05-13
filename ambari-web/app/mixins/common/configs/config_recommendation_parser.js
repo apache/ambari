@@ -23,6 +23,19 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 
 	stepConfigs: [],
 
+  modifiedFileNames: [],
+
+  /**
+   * Adds new modified file name if it's not in the list yet
+   *
+   * @param filename
+   */
+  addModifiedFileName: function(filename) {
+    App.assertExists(filename);
+    if (!this.get('modifiedFileNames').contains(filename))
+      this.get('modifiedFileNames').push(filename);
+  },
+
 	/**
 	 * Method that goes through all configs
 	 * and apply recommendations using callbacks
@@ -190,7 +203,8 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       "value": recommendedValue,
       "recommendedValue": recommendedValue,
       "initialValue": this.updateInitialOnRecommendations(serviceName) ? recommendedValue : initialValue,
-      "savedValue": !this.useInitialValue(serviceName) ? initialValue : null
+      "savedValue": !this.useInitialValue(serviceName) ? initialValue : null,
+      "isNotSaved": Em.isNone(initialValue)
     }
   },
 
@@ -207,11 +221,27 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     App.assertObject(config);
     App.assertArray(configsCollection);
 
+    if (this._configHasInitialValue(config)) {
+      this.addModifiedFileName(Em.get(config, 'filename'));
+    }
+
 		configsCollection.removeObject(config);
 
 		this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'),
 			null, this._getInitialValue(config), parentProperties);
 	},
+
+  /**
+   * Defines if property was defined on initial load or was saved.
+   *
+   * @param config
+   * @returns {boolean}
+   * @private
+   */
+  _configHasInitialValue: function(config) {
+    App.assertObject(config);
+    return !Em.isNone(Em.get(config, 'savedValue')) && !Em.isNone(Em.get(config, 'initialValue'));
+  },
 
 	/**
 	 * Update config valueAttributes by recommendations
