@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os, json, crypt
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
@@ -37,7 +38,7 @@ class TestHawqSegment(RMFTestCase):
         gid = self.GPADMIN,
         groups = [self.GPADMIN, u'hadoop'],
         ignore_failures = True,
-        password = 'saNIJ3hOyqasU'
+        password = crypt.crypt(self.getConfig()['configurations']['hawq-env']['hawq_password'], "$1$salt$")
         )
 
     self.assertResourceCalled('Group', self.POSTGRES,

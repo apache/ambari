@@ -16,8 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-
 import sys
+import json
 from resource_management.core.source import InlineTemplate
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
@@ -50,7 +50,7 @@ def setup_passwordless_ssh():
   failed_hosts = []
   for host in params.hawq_all_hosts:
     try:
-      utils.exec_hawq_operation("ssh-exkeys", format('-h {hawq_host} -p {hawq_password!p}', hawq_host=host, hawq_password=params.hawq_password))
+      utils.exec_hawq_operation("ssh-exkeys", format('-h {hawq_host} -p {hawq_password!p}', hawq_host=host, hawq_password=json.dumps(params.hawq_password)))
     except:
       failed_hosts.append(host)
 

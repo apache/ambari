@@ -51,7 +51,7 @@ def __create_hawq_user():
 
   User(hawq_constants.hawq_user,
        gid=hawq_constants.hawq_group,
-       password=crypt.crypt(params.hawq_password, "salt"),
+       password=crypt.crypt(params.hawq_password, "$1$salt$"),
        groups=[hawq_constants.hawq_group, params.user_group],
        ignore_failures=True)
 
