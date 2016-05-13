@@ -1089,24 +1089,43 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
-    var stackMasterComponents = App.get('components.masters').uniq();
-    if (!masterComponentHosts) {
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts'),
+      self = this,
+      observerContext = {
+        setMasterComponentHosts: function () {
+          if (App.get('router.clusterController.isServiceMetricsLoaded')) {
+            var stackMasterComponents = App.get('components.masters').uniq();
+            App.HostComponent.find().filter(function(component) {
+              return stackMasterComponents.contains(component.get('componentName'));
+            }).forEach(function (item) {
+                masterComponentHosts.push({
+                  component: item.get('componentName'),
+                  hostName: item.get('hostName'),
+                  isInstalled: true,
+                  serviceId: item.get('service.id'),
+                  display_name: item.get('displayName')
+                })
+              });
+            self.setDBProperty('masterComponentHosts', masterComponentHosts);
+            self.set('content.masterComponentHosts', masterComponentHosts);
+            self.removeObserver('App.router.clusterController.isServiceMetricsLoaded', this, 'setMasterComponentHosts');
+            dfd.resolve();
+          }
+        }
+      },
+      dfd = $.Deferred();
+    if (Em.isNone(masterComponentHosts)) {
       masterComponentHosts = [];
-      App.HostComponent.find().filter(function(component) {
-        return stackMasterComponents.contains(component.get('componentName'));
-      }).forEach(function (item) {
-        masterComponentHosts.push({
-          component: item.get('componentName'),
-          hostName: item.get('hostName'),
-          isInstalled: true,
-          serviceId: item.get('service.id'),
-          display_name: item.get('displayName')
-        })
-      });
-      this.setDBProperty('masterComponentHosts', masterComponentHosts);
+      if (App.get('router.clusterController.isServiceMetricsLoaded')) {
+        observerContext.setMasterComponentHosts();
+      } else {
+        this.addObserver('App.router.clusterController.isServiceMetricsLoaded', observerContext, 'setMasterComponentHosts');
+      }
+    } else {
+      this.set('content.masterComponentHosts', masterComponentHosts);
+      dfd.resolve();
     }
-    this.set("content.masterComponentHosts", masterComponentHosts);
+    return dfd.promise();
   },
 
   /**

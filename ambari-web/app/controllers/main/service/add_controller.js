@@ -90,10 +90,11 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           var dfd = $.Deferred();
           var self = this;
           this.loadHosts().done(function () {
-            self.loadMasterComponentHosts();
-            self.load('hosts');
-            self.loadRecommendations();
-            dfd.resolve();
+            self.loadMasterComponentHosts().done(function () {
+              self.load('hosts');
+              self.loadRecommendations();
+              dfd.resolve();
+            });
           });
           return dfd.promise();
         }
@@ -266,9 +267,14 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    this._super();
-    this.set('content.skipMasterStep', App.StackService.find().filterProperty('isSelected').filterProperty('hasMaster').everyProperty('isInstalled', true));
-    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep') || (this.get('currentStep') == 7 || this.get('currentStep') == 8));
+    var self = this,
+      dfd = $.Deferred();
+    this._super().done(function () {
+      self.set('content.skipMasterStep', App.StackService.find().filterProperty('isSelected').filterProperty('hasMaster').everyProperty('isInstalled', true));
+      self.get('isStepDisabled').findProperty('step', 2).set('value', self.get('content.skipMasterStep') || (self.get('currentStep') == 7 || self.get('currentStep') == 8));
+      dfd.resolve();
+    });
+    return dfd.promise();
   },
 
   /**

@@ -85,6 +85,66 @@ App.ReassignMasterController = App.WizardController.extend({
     'requestIds'
   ],
 
+  /**
+   * Load data for all steps until <code>current step</code>
+   */
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadComponentToReassign();
+          this.loadDatabaseType();
+          this.loadServiceProperties();
+          this.load('cluster');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'async',
+        callback: function () {
+          var self = this,
+            dfd = $.Deferred();
+          this.loadServicesFromServer();
+          this.loadMasterComponentHosts().done(function () {
+            self.loadConfirmedHosts();
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    '3': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadReassignHosts();
+        }
+      }
+    ],
+    '4': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadTasksStatuses();
+          this.loadTasksRequestIds();
+          this.loadRequestIds();
+          this.loadReassignComponentsInMM();
+        }
+      }
+    ],
+    '5': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadSecureConfigs();
+          this.loadComponentDir();
+        }
+      }
+    ]
+  },
+
   addManualSteps: function () {
     var hasManualSteps = this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name'));
     this.set('content.hasManualSteps', hasManualSteps);
@@ -254,36 +314,6 @@ App.ReassignMasterController = App.WizardController.extend({
   saveReassignComponentsInMM: function (reassignComponentsInMM) {
     this.setDBProperty('reassignComponentsInMM', reassignComponentsInMM);
     this.set('content.reassignComponentsInMM', reassignComponentsInMM);
-  },
-
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '7':
-      case '6':
-      case '5':
-        this.loadSecureConfigs();
-        this.loadComponentDir();
-      case '4':
-        this.loadTasksStatuses();
-        this.loadTasksRequestIds();
-        this.loadRequestIds();
-        this.loadReassignComponentsInMM();
-      case '3':
-        this.loadReassignHosts();
-      case '2':
-        this.loadServicesFromServer();
-        this.loadMasterComponentHosts();
-        this.loadConfirmedHosts();
-      case '1':
-        this.loadComponentToReassign();
-        this.loadDatabaseType();
-        this.loadServiceProperties();
-        this.load('cluster');
-    }
   },
 
   /**

@@ -36,6 +36,47 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
     controllerName: 'rMHighAvailabilityWizardController'
   }),
 
+  /**
+   * Load data for all steps until <code>current step</code>
+   */
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('cluster');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'async',
+        callback: function () {
+          var self = this,
+            dfd = $.Deferred();
+          this.loadRmHosts();
+          this.loadServicesFromServer();
+          this.loadMasterComponentHosts().done(function () {
+            self.loadConfirmedHosts();
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    '4': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadTasksStatuses();
+          this.loadTasksRequestIds();
+          this.loadRequestIds();
+          this.loadConfigs();
+        }
+      }
+    ]
+  },
+
   init: function () {
     this._super();
     this.clearStep();
@@ -86,28 +127,6 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
   loadConfigs: function() {
     var configs = this.getDBProperty('configs');
     this.set('content.configs', configs);
-  },
-
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '4':
-        this.loadTasksStatuses();
-        this.loadTasksRequestIds();
-        this.loadRequestIds();
-        this.loadConfigs();
-      case '3':
-      case '2':
-        this.loadRmHosts();
-        this.loadServicesFromServer();
-        this.loadMasterComponentHosts();
-        this.loadConfirmedHosts();
-      case '1':
-        this.load('cluster');
-    }
   },
 
   /**

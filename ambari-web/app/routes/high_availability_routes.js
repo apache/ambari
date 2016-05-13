@@ -96,17 +96,14 @@ module.exports = App.WizardRoute.extend({
   step1: Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router) {
-      var controller = router.get('highAvailabilityWizardController');
+      var controller = router.get('highAvailabilityWizardController'),
+        highAvailabilityWizardStep1Controller = router.get('highAvailabilityWizardStep1Controller');
       controller.dataLoading().done(function () {
         controller.setCurrentStep('1');
-        controller.usersLoading().done(function () {
-          controller.saveHdfsUser();
-          var highAvailabilityWizardStep1Controller = router.get('highAvailabilityWizardStep1Controller');
-          highAvailabilityWizardStep1Controller.setHawqInstalled();
-          controller.loadAllPriorSteps().done(function () {
-            controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
-          });
-        })
+        highAvailabilityWizardStep1Controller.setHawqInstalled();
+        controller.loadAllPriorSteps().done(function () {
+          controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
+        });
       })
     },
     unroutePath: function () {
