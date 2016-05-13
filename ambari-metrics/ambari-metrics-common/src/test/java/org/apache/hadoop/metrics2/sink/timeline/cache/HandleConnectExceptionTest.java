@@ -98,8 +98,8 @@ public class HandleConnectExceptionTest {
     }
 
     @Override
-    public void emitMetrics(TimelineMetrics metrics) {
-      super.emitMetrics(metrics);
+    public boolean emitMetrics(TimelineMetrics metrics) {
+      return super.emitMetrics(metrics);
     }
   }
 }

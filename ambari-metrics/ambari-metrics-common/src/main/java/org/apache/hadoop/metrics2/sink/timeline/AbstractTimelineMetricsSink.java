@@ -79,7 +79,7 @@ public abstract class AbstractTimelineMetricsSink {
     LOG = LogFactory.getLog(this.getClass());
   }
 
-  protected void emitMetricsJson(String connectUrl, String jsonData) {
+  protected boolean emitMetricsJson(String connectUrl, String jsonData) {
     int timeout = getTimeoutSeconds() * 1000;
     HttpURLConnection connection = null;
     try {
@@ -115,6 +115,7 @@ public abstract class AbstractTimelineMetricsSink {
       cleanupInputStream(connection.getInputStream());
       //reset failedCollectorConnectionsCounter to "0"
       failedCollectorConnectionsCounter.set(0);
+      return true;
     } catch (IOException ioe) {
       StringBuilder errorMessage =
           new StringBuilder("Unable to connect to collector, " + connectUrl + "\n"
@@ -139,11 +140,12 @@ public abstract class AbstractTimelineMetricsSink {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("Ignoring %s AMS connection exceptions", NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS));
         }
+        return false;
       }
     }
   }
 
-  protected void emitMetrics(TimelineMetrics metrics) {
+  protected boolean emitMetrics(TimelineMetrics metrics) {
     String connectUrl = getCollectorUri();
     String jsonData = null;
     try {
@@ -152,8 +154,9 @@ public abstract class AbstractTimelineMetricsSink {
       LOG.error("Unable to parse metrics", e);
     }
     if (jsonData != null) {
-      emitMetricsJson(connectUrl, jsonData);
+      return emitMetricsJson(connectUrl, jsonData);
     }
+    return false;
   }
 
   /**

@@ -40,7 +40,7 @@ public class SolrAmsClient extends AbstractTimelineMetricsSink {
   }
 
   @Override
-  protected void emitMetrics(TimelineMetrics metrics) {
-    super.emitMetrics(metrics);
+  protected boolean emitMetrics(TimelineMetrics metrics) {
+    return super.emitMetrics(metrics);
   }
 }
