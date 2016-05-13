@@ -255,6 +255,7 @@ var files = [
   'test/views/main/dashboard/widget_test',
   'test/views/main/dashboard/widgets_test',
   'test/views/main/dashboard/widgets/text_widget_test',
+  'test/views/main/dashboard/widgets/text_widget_single_threshold_test',
   'test/views/main/dashboard/widgets/uptime_text_widget_test',
   'test/views/main/dashboard/widgets/node_managers_live_test',
   'test/views/main/dashboard/widgets/datanode_live_test',

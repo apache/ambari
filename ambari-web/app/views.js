@@ -226,6 +226,7 @@ require('views/main/dashboard/cluster_metrics/network');
 require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets');
 require('views/main/dashboard/widgets/text_widget');
+require('views/main/dashboard/widgets/text_widget_single_threshold');
 require('views/main/dashboard/widgets/uptime_text_widget');
 require('views/main/dashboard/widgets/links_widget');
 require('views/main/dashboard/widgets/pie_chart_widget');

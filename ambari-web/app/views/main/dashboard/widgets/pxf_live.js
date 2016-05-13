@@ -29,7 +29,7 @@ function counterOrNA(key) {
   });
 }
 
-App.PxfUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
+App.PxfUpView = App.TextDashboardSingleThresholdWidgetView.extend(App.SingleNumericThresholdMixin,{
 
   title: Em.I18n.t('dashboard.widgets.PxfUp'),
   id: '25',
@@ -46,9 +46,8 @@ App.PxfUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMi
 
   hiddenInfoClass: "hidden-info-three-line",
 
-  thresh1: 75,
-  thresh2: 90,
-  maxValue: 100,
+  thresh1: 0,
+  maxValue: counterOrNA('pxfsTotal'),
 
   pxfsStarted: counterOrNA('pxfsStarted'),
 
@@ -63,7 +62,7 @@ App.PxfUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMi
     if (this.get('someMetricsNA')) {
       return null;
     }
-    return (this.get('pxfsStarted') / this.get('model.pxfsTotal')).toFixed(2) * 100;
+    return (this.get('pxfsTotal') - this.get('pxfsStarted') );
   }.property('model.pxfsTotal', 'pxfsStarted', 'someMetricsNA'),
 
   /**
@@ -78,7 +77,7 @@ App.PxfUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMi
 
   hintInfo: function () {
     var maxTmp = parseFloat(this.get('maxValue'));
-    return Em.I18n.t('dashboard.widgets.hintInfo.hint1').format(maxTmp);
+    return Em.I18n.t('dashboard.widgets.hintInfo.hint4').format(Em.I18n.t('dashboard.widgets.PXFAgents'),maxTmp);
   }.property('maxValue'),
 
   /**
