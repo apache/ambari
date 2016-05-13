@@ -107,7 +107,6 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
           });
         });
       }, self);
-      App.router.get('backgroundOperationsController').showPopup();
     }
   },
 
@@ -159,7 +158,6 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
           });
         });
       }, self);
-      App.router.get('backgroundOperationsController').showPopup();
     }
   },
 
