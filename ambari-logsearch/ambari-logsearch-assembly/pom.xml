@@ -320,6 +320,23 @@
                         <group>root</group>
                         <prefix>${solr.mapping.path}</prefix>
                       </mapper>
+                      <excludes>
+                        bin/**,server/scripts/**
+                      </excludes>
+                    </data>
+                    <data>
+                      <src>${project.build.directory}/solr</src>
+                      <type>directory</type>
+                      <mapper>
+                        <type>perm</type>
+                        <user>root</user>
+                        <group>root</group>
+                        <filemode>755</filemode>
+                        <prefix>${solr.mapping.path}</prefix>
+                      </mapper>
+                      <includes>
+                        bin/**,server/scripts/**
+                      </includes>
                     </data>
                   </dataSet>
                 </configuration>
