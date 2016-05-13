@@ -24,7 +24,7 @@
       <version>3.4.6</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>zookeeper_${stack_version}</name>
