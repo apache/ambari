@@ -68,28 +68,4 @@
     </value-attributes>
   </property>
 
-  <property>
-    <name>atlas.notification.embedded</name>
-    <value>false</value>
-    <description></description>
-  </property>
-
-  <property>
-    <name>atlas.kafka.acks</name>
-    <value>1</value>
-    <description></description>
-  </property>
-
-  <property>
-    <name>atlas.kafka.data</name>
-    <value>/usr/hdp/current/atlas-server/data/kafka</value>
-    <description></description>
-  </property>
-
-  <property>
-    <name>atlas.kafka.hook.group.id</name>
-    <value>atlas</value>
-    <description></description>
-  </property>
-
 </configuration>

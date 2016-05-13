@@ -215,6 +215,11 @@
       "name": "hive_metastore_site_support",
       "description": "Hive Metastore site support",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_usersync_password_jceks",
+      "description": "Saving Ranger Usersync credentials in jceks",
+      "min_version": "2.5.0.0"
     }
   ]
 }

@@ -386,14 +386,12 @@ def setup_usersync(upgrade_type=None):
   if os.path.isfile(params.cred_validator_file):
     File(params.cred_validator_file, group=params.unix_group, mode=04555)
 
-  cred_lib = os.path.join(usersync_home,"lib","*")
-
-  ranger_credential_helper(cred_lib, 'usersync.ssl.key.password', params.ranger_usersync_keystore_password, params.ugsync_jceks_path)
+  ranger_credential_helper(params.ugsync_cred_lib, 'usersync.ssl.key.password', params.ranger_usersync_keystore_password, params.ugsync_jceks_path)
 
   if not is_empty(params.ranger_usersync_ldap_ldapbindpassword) and params.ug_sync_source == 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder':
-    ranger_credential_helper(cred_lib, 'ranger.usersync.ldap.bindalias', params.ranger_usersync_ldap_ldapbindpassword, params.ugsync_jceks_path)
+    ranger_credential_helper(params.ugsync_cred_lib, 'ranger.usersync.ldap.bindalias', params.ranger_usersync_ldap_ldapbindpassword, params.ugsync_jceks_path)
 
-  ranger_credential_helper(cred_lib, 'usersync.ssl.truststore.password', params.ranger_usersync_truststore_password, params.ugsync_jceks_path)
+  ranger_credential_helper(params.ugsync_cred_lib, 'usersync.ssl.truststore.password', params.ranger_usersync_truststore_password, params.ugsync_jceks_path)
 
   File(params.ugsync_jceks_path,
        owner = params.unix_user,
@@ -435,8 +433,6 @@ def setup_tagsync(upgrade_type=None):
   ranger_home = params.ranger_home
   ranger_tagsync_conf = params.ranger_tagsync_conf
 
-  tagsync_log4j_file = format('{ranger_tagsync_conf}/log4j.xml')
-
   Directory(format("{ranger_tagsync_conf}"),
     owner = params.unix_user,
     group = params.unix_group,
@@ -474,42 +470,19 @@ def setup_tagsync(upgrade_type=None):
     group=params.unix_group,
     mode=0644)
 
-  PropertiesFile(format('{ranger_tagsync_conf}/application.properties'),
+  PropertiesFile(format('{ranger_tagsync_conf}/atlas-application.properties'),
     properties = params.tagsync_application_properties,
     mode=0755,
     owner=params.unix_user,
     group=params.unix_group
   )
 
-  if params.stack_supports_ranger_log4j:
-    File(format('{ranger_tagsync_conf}/log4j.properties'),
-      owner=params.unix_user,
-      group=params.unix_group,
-      content=params.tagsync_log4j,
-      mode=0644
-    )
-    src_file = format('{ranger_tagsync_home}/conf.dist/log4j.xml')
-    dst_file = format('{tagsync_log4j_file}')
-    Execute(('cp', '-f', src_file, dst_file), sudo=True)
-
-  if os.path.isfile(tagsync_log4j_file):
-    File(tagsync_log4j_file, owner=params.unix_user, group=params.unix_group)
-  else:
-    Logger.warning('Required file {0} does not exist, copying the file to {1} path'.format(tagsync_log4j_file, ranger_tagsync_conf))
-    src_file = format('{ranger_tagsync_home}/conf.dist/log4j.xml')
-    dst_file = format('{tagsync_log4j_file}')
-    Execute(('cp', '-f', src_file, dst_file), sudo=True)
-    File(tagsync_log4j_file, owner=params.unix_user, group=params.unix_group)
-
-  cred_lib = os.path.join(ranger_tagsync_home,"lib","*")
-
-  if not is_empty(params.tagsync_jceks_path) and not is_empty(params.ranger_tagsync_tagadmin_password) and params.tagsync_enabled:
-    ranger_credential_helper(cred_lib, 'tagadmin.user.password', params.ranger_tagsync_tagadmin_password, params.tagsync_jceks_path)
-    File(params.tagsync_jceks_path,
-         owner = params.unix_user,
-         group = params.unix_group,
-         mode = 0640
-    )
+  File(format('{ranger_tagsync_conf}/log4j.properties'),
+    owner=params.unix_user,
+    group=params.unix_group,
+    content=params.tagsync_log4j,
+    mode=0644
+  )
 
   File(params.tagsync_services_file,
     mode = 0755,
