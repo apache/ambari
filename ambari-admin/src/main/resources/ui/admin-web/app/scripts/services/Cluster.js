@@ -230,6 +230,25 @@ angular.module('ambariAdminConsole')
 
       return deferred.promise;
     },
+    getPrivilegesForResource: function(params) {
+      var deferred = $q.defer();
+      var isUser = (params.typeFilter.value == 'USER');
+      var endpoint = isUser ? '/users' : '/groups';
+      var nameURL = isUser ? '&Users/user_name.matches(' : '&Groups/group_name.matches(';
+      var nameFilter = params.nameFilter ? (nameURL + params.nameFilter + ')') : '';
+      $http({
+        method : 'GET',
+        url : Settings.baseUrl + endpoint + '?' + 'fields=privileges/PrivilegeInfo/*' + nameFilter
+      })
+      .success(function(data) {
+        deferred.resolve(data);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
     createPrivileges: function(params, data) {
       return $http({
         method: 'POST',
@@ -242,6 +261,12 @@ angular.module('ambariAdminConsole')
         method: 'DELETE',
         url: Settings.baseUrl + '/clusters/'+params.clusterId+'/privileges',
         data: data
+      });
+    },
+    deleteMultiplePrivileges: function(clusterId, privilege_ids) {
+      return $http({
+        method: 'DELETE',
+        url: Settings.baseUrl + '/clusters/'+clusterId+'/privileges?PrivilegeInfo/privilege_id.in\('+privilege_ids+'\)'
       });
     },
     updatePrivileges: function(params, privileges) {
