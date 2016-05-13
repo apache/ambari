@@ -22,11 +22,40 @@ require('controllers/main/admin/kerberos/step4_controller');
 
 App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   name: 'mainAdminKerberosController',
+
+  /**
+   * @type {boolean}
+   * @deafult false
+   */
   securityEnabled: false,
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   defaultKerberosLoaded: false,
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   dataIsLoaded: false,
+
+  /**
+   * @type {boolean}
+   * @default true
+   */
   isRecommendedLoaded: true,
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   isEditMode: false,
+
+  /**
+   * @type {string}
+   */
   kdc_type: '',
 
   kdcTypesValues: {
