@@ -36,6 +36,47 @@ App.AddHawqStandbyWizardController = App.WizardController.extend({
     controllerName: 'addHawqStandbyWizardController'
   }),
 
+  /**
+   * Load data for all steps until <code>current step</code>
+   */
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('cluster');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'async',
+        callback: function () {
+          var self = this,
+            dfd = $.Deferred();
+          this.loadHawqHosts();
+          this.loadServicesFromServer();
+          this.loadMasterComponentHosts().done(function () {
+            self.loadConfirmedHosts();
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    '4': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadTasksStatuses();
+          this.loadTasksRequestIds();
+          this.loadRequestIds();
+          this.loadConfigs();
+        }
+      }
+    ]
+  },
+
   init: function () {
     this._super();
     this.clearStep();
@@ -56,7 +97,7 @@ App.AddHawqStandbyWizardController = App.WizardController.extend({
 
   /**
    * Save hosts for hawq master and hawq standby to local db and <code>controller.content</code>
-   * @param rmHosts
+   * @param hawqHosts
    */
   saveHawqHosts: function (hawqHosts) {
     this.set('content.hawqHosts', hawqHosts);
@@ -84,28 +125,6 @@ App.AddHawqStandbyWizardController = App.WizardController.extend({
    */
   loadConfigs: function() {
     this.set('content.configs', this.getDBProperty('configs'));
-  },
-
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '4':
-        this.loadTasksStatuses();
-        this.loadTasksRequestIds();
-        this.loadRequestIds();
-        this.loadConfigs();
-      case '3':
-      case '2':
-        this.loadHawqHosts();
-        this.loadServicesFromServer();
-        this.loadMasterComponentHosts();
-        this.loadConfirmedHosts();
-      case '1':
-        this.load('cluster');
-    }
   },
 
   /**

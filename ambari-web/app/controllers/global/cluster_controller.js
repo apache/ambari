@@ -212,14 +212,14 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     /**
      * Order of loading:
      * 1. load all created service components
-     * 1. request for service components supported by stack
-     * 2. load stack components to model
-     * 3. request for services
-     * 4. put services in cache
-     * 5. request for hosts and host-components (single call)
-     * 6. request for service metrics
-     * 7. load host-components to model
-     * 8. load services from cache with metrics to model
+     * 2. request for service components supported by stack
+     * 3. load stack components to model
+     * 4. request for services
+     * 5. put services in cache
+     * 6. request for hosts and host-components (single call)
+     * 7. request for service metrics
+     * 8. load host-components to model
+     * 9. load services from cache with metrics to model
      */
     self.loadStackServiceComponents(function (data) {
       data.items.forEach(function (service) {

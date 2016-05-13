@@ -36,6 +36,45 @@ App.ActivateHawqStandbyWizardController = App.WizardController.extend({
     controllerName: 'activateHawqStandbyWizardController'
   }),
 
+  /**
+   * Load data for all steps until <code>current step</code>
+   */
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('cluster');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'async',
+        callback: function () {
+          var dfd = $.Deferred();
+          this.loadHawqHosts();
+          this.loadServicesFromServer();
+          this.loadMasterComponentHosts().done(function () {
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    '3': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadTasksStatuses();
+          this.loadTasksRequestIds();
+          this.loadRequestIds();
+          this.loadConfigs();
+        }
+      }
+    ]
+  },
+
   init: function () {
     this._super();
     this.clearStep();
@@ -86,26 +125,6 @@ App.ActivateHawqStandbyWizardController = App.WizardController.extend({
   loadConfigs: function() {
     var configs = this.getDBProperty('configs');
     this.set('content.configs', configs);
-  },
-
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '3':
-        this.loadTasksStatuses();
-        this.loadTasksRequestIds();
-        this.loadRequestIds();
-        this.loadConfigs();
-      case '2':
-        this.loadHawqHosts();
-        this.loadServicesFromServer();
-        this.loadMasterComponentHosts();
-      case '1':
-        this.load('cluster');
-    }
   },
 
   /**

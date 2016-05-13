@@ -49,17 +49,24 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   ],
 
   loadStep: function () {
-    this.initData();
-    this.clearStep();
-    this.loadTasks();
-    this.addObserver('tasks.@each.status', this, 'onTaskStatusChange');
-    this.onTaskStatusChange();
+    var self = this;
+    this.initData().done(function () {
+      self.clearStep();
+      self.loadTasks();
+      self.addObserver('tasks.@each.status', self, 'onTaskStatusChange');
+      self.onTaskStatusChange();
+    });
   },
 
   initData: function () {
-    this.loadMasterComponentHosts();
-    this.loadFailedTask();
-    this.loadHdfsClientHosts();
+    var self = this,
+      dfd = $.Deferred();
+    this.loadMasterComponentHosts().done(function () {
+      self.loadFailedTask();
+      self.loadHdfsClientHosts();
+      dfd.resolve();
+    });
+    return dfd.promise();
   },
 
   setCommandsAndTasks: function(tmpTasks) {
