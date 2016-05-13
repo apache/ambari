@@ -231,8 +231,6 @@ public class UserConfigMgr extends MgrBase {
       userConfigList.setPageSize((int) searchCriteria.getMaxRows());
 
       userConfigList.setTotalCount((long) solrList.getNumFound());
-      userConfigList.setResultSize((int) (configList.size() - searchCriteria
-          .getStartIndex()));
     } catch (SolrException | SolrServerException | IOException e) {
       // do nothing
       logger.error(e);

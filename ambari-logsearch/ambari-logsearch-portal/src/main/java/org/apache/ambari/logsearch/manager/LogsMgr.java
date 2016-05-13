@@ -1534,11 +1534,13 @@ public class LogsMgr extends MgrBase {
           List<PivotField> levelList = singlePivotField.getPivot();
           List<VNameValue> levelCountList = new ArrayList<VNameValue>();
           comp.setLogLevelCount(levelCountList);
+          if(levelList != null){
           for (PivotField levelPivot : levelList) {
-            VNameValue level = new VNameValue();
-            level.setName(("" + levelPivot.getValue()).toUpperCase());
-            level.setValue("" + levelPivot.getCount());
-            levelCountList.add(level);
+		  VNameValue level = new VNameValue();
+		  level.setName(("" + levelPivot.getValue()).toUpperCase());
+		  level.setValue("" + levelPivot.getCount());
+		  levelCountList.add(level);
+		}
           }
           datatList.add(comp);
         }
@@ -1841,19 +1843,19 @@ public class LogsMgr extends MgrBase {
         sequenceId, maxRows).getList();
       SolrDocumentList after = whenScrollDown(searchCriteria, logTime,
         sequenceId, maxRows).getList();
-      if (before == null || before.isEmpty()){
-        return convertObjToString(vSolrLogList);
-      }
-      for (SolrDocument solrDoc : Lists.reverse(before)) {
-        initial.add(solrDoc);
-      }
+			if (before != null && !before.isEmpty()) {
+				for (SolrDocument solrDoc : Lists.reverse(before)) {
+					initial.add(solrDoc);
+				}
+			}
+
       initial.add(docList.get(0));
-      if (after == null || after.isEmpty()){
-        return convertObjToString(vSolrLogList);
+      if (after != null && !after.isEmpty()){
+        for (SolrDocument solrDoc : after) {
+          initial.add(solrDoc);
+	      }
       }
-      for (SolrDocument solrDoc : after) {
-        initial.add(solrDoc);
-      }
+
       vSolrLogList.setSolrDocuments(initial);
      
         return convertObjToString(vSolrLogList);
