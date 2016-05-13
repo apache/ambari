@@ -13,9 +13,10 @@
       "configurations": [
         {
           "yarn-site": {
-            "yarn.timeline-service.enabled": "false",
+            "yarn.timeline-service.enabled": "true",
             "yarn.timeline-service.http-authentication.type": "kerberos",
             "yarn.acl.enable": "true",
+            "yarn.admin.acl": "${yarn-env/yarn_user},dr.who",
             "yarn.timeline-service.http-authentication.signature.secret": "",
             "yarn.timeline-service.http-authentication.signature.secret.file": "",
             "yarn.timeline-service.http-authentication.signer.secret.provider": "",
@@ -38,6 +39,15 @@
           "core-site": {
             "hadoop.proxyuser.${yarn-env/yarn_user}.groups": "*",
             "hadoop.proxyuser.${yarn-env/yarn_user}.hosts": "${clusterHostInfo/rm_host}"
+          }
+        },
+        {
+          "capacity-scheduler": {
+            "yarn.scheduler.capacity.root.acl_administer_queue": "${yarn-env/yarn_user}",
+            "yarn.scheduler.capacity.root.default.acl_administer_queue": "${yarn-env/yarn_user}",
+            "yarn.scheduler.capacity.root.acl_administer_jobs": "${yarn-env/yarn_user}",
+            "yarn.scheduler.capacity.root.default.acl_administer_jobs": "${yarn-env/yarn_user}",
+            "yarn.scheduler.capacity.root.default.acl_submit_applications": "${yarn-env/yarn_user}"
           }
         }
       ],
