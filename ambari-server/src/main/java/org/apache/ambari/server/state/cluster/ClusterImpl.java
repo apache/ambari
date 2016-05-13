@@ -944,8 +944,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public void addService(Service service)
-    throws AmbariException {
+  public void addService(Service service) {
     loadServices();
     clusterGlobalLock.writeLock().lock();
     try {
@@ -953,11 +952,6 @@ public class ClusterImpl implements Cluster {
         LOG.debug("Adding a new Service" + ", clusterName=" + getClusterName()
           + ", clusterId=" + getClusterId() + ", serviceName="
           + service.getName());
-      }
-      if (services.containsKey(service.getName())) {
-        throw new AmbariException("Service already exists" + ", clusterName="
-            + getClusterName() + ", clusterId=" + getClusterId()
-            + ", serviceName=" + service.getName());
       }
       services.put(service.getName(), service);
     } finally {

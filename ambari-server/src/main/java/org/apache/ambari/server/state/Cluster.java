@@ -66,7 +66,7 @@ public interface Cluster {
    * Add a service to a cluster
    * @param service
    */
-  void addService(Service service) throws AmbariException;
+  void addService(Service service);
 
   /**
    * Get a service
