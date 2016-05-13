@@ -363,7 +363,9 @@ angular.module('ambariAdminConsole')
         'cannotAddUser': 'Cannot add user to group',
         'passwordChanged': 'Password changed.',
         'cannotChangePassword': 'Cannot change password',
-        'roleChanged': '{{name}} changed to {{role}}'
+        'roleChanged': '{{name}} changed to {{role}}',
+        'roleChangedToNone': '{{user_name}}\'s explicit privilege has been changed to \'NONE\'. Any privilege now seen for this user comes through its Group(s).',
+        'usersEffectivePrivilege': '{{user_name}}\'s effective privilege through its Group(s) is higher than your selected privilege.'
       }
     },
 

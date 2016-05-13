@@ -72,7 +72,9 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         var privilege = $scope.pickEffectivePrivilege(user.privileges);
         // Redefine principal_name and principal type in case of None
         privilege.principal_name = user.Users? user.Users.user_name : user.Groups.group_name;
-        privilege.principal_type = user.Users? 'USER' : 'GROUP';
+        if (privilege.permission_label === "None") {
+          privilege.principal_type = user.Users ? 'USER' : 'GROUP';
+        }
         var name = encodeURIComponent(privilege.principal_name);
         privilege.encoded_name = name;
         privilege.original_perm = privilege.permission_name;
@@ -86,11 +88,10 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
   };
 
   $scope.pickEffectivePrivilege = function(privileges) {
-    var orderedRoles = Cluster.orderedRoles.concat(['VIEW.USER']);
     if (privileges && privileges.length > 0) {
       return privileges.reduce(function(prev, cur) {
-        var prevIndex = orderedRoles.indexOf(prev.PrivilegeInfo.permission_name);
-        var curIndex = orderedRoles.indexOf(cur.PrivilegeInfo.permission_name)
+        var prevIndex = $scope.getRoleRank(prev.PrivilegeInfo.permission_name);
+        var curIndex = $scope.getRoleRank(cur.PrivilegeInfo.permission_name)
         return (prevIndex < curIndex) ? prev : cur;
       }).PrivilegeInfo;
     } else {
@@ -123,20 +124,111 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
     });
   };
 
+  $scope.getRoleRank = function(permission_name) {
+    var orderedRoles = Cluster.orderedRoles.concat(['VIEW.USER','CLUSTER.NONE']);
+    var index = orderedRoles.indexOf(permission_name);
+    return index;
+  };
+
   $scope.save = function(user) {
-    var fromNone = user.original_perm == $scope.NONE_ROLE.permission_name;
+    var fromNone = (user.original_perm === $scope.NONE_ROLE.permission_name);
     if (fromNone) {
       $scope.addPrivilege(user);
       return;
     }
-    Cluster.deletePrivilege(
-      $routeParams.id,
-      user.privilege_id
-    ).then(
-      function() {
-        $scope.addPrivilege(user);
-      }
-    );
+
+    if ($scope.isUserActive) {
+      Cluster.getPrivilegesForResource({
+          nameFilter : user.user_name,
+          typeFilter : $scope.currentTypeFilter,
+      }).then(function(data) {
+        var arrayOfPrivileges = data.items[0].privileges;
+        var privilegesOfTypeUser = [];
+        var privilegesOfTypeGroup = [];
+        for (var i = 0; i < arrayOfPrivileges.length; i++) {
+          if(arrayOfPrivileges[i].PrivilegeInfo.principal_type === "GROUP"){
+            privilegesOfTypeGroup.push(arrayOfPrivileges[i]);
+          } else {
+            privilegesOfTypeUser.push(arrayOfPrivileges[i].PrivilegeInfo);
+          }
+        }
+
+        var effectivePrivilege = $scope.pickEffectivePrivilege(arrayOfPrivileges);
+        var effectivePrivilegeFromGroups = $scope.pickEffectivePrivilege(privilegesOfTypeGroup);
+        user.principal_type = 'USER';
+        user.original_perm = effectivePrivilege.permission_name;
+        user.editable = (Cluster.ineditableRoles.indexOf(effectivePrivilege.permission_name) === -1);
+
+        //add a new privilege of type USER only if it is also the effective privilege considering the user's Group privileges
+        var curIndex = $scope.getRoleRank(user.permission_name);
+        var prevIndex = -1;
+        if (privilegesOfTypeGroup.length !== 0) {
+          prevIndex = $scope.getRoleRank(effectivePrivilegeFromGroups.permission_name);
+        }
+        if ((curIndex === 6) || (curIndex <= prevIndex)) {
+          var privilege_ids = [];
+          privilegesOfTypeUser.forEach(function(privilegeOfTypeUser) {
+            privilege_ids.push(privilegeOfTypeUser.privilege_id);
+          });
+
+          //delete all privileges of type USER, if they exist
+          //then add the privilege for the user, after which the user displays the effective privilege
+          if(privilege_ids.length !== 0) {
+            Cluster.deleteMultiplePrivileges(
+                $routeParams.id,
+                privilege_ids
+            )
+            .then(function() {
+              $scope.addPrivilege(user);
+            });
+          } else {
+            $scope.addPrivilege(user);
+          }
+        } else {
+          Alert.error($t('common.alerts.cannotSavePermissions'),
+              $t('users.alerts.usersEffectivePrivilege', {user_name : user.user_name})
+          );
+          $scope.loadUsers();
+        }
+      });
+    } else {
+      Cluster.getPrivilegesForResource({
+          nameFilter : user.group_name,
+          typeFilter : $scope.currentTypeFilter
+      }).then(function(data) {
+        var arrayOfPrivileges = data.items[0].privileges;
+        var privilegesOfTypeGroup = [];
+        var privilege = $scope.pickEffectivePrivilege(arrayOfPrivileges);
+        user.principal_type = 'GROUP';
+        user.original_perm = privilege.permission_name;
+        user.editable = (Cluster.ineditableRoles.indexOf(privilege.permission_name) === -1);
+
+        arrayOfPrivileges.forEach(function(privilegeOfTypeGroup) {
+          if (privilegeOfTypeGroup.PrivilegeInfo.principal_type === "GROUP") {
+            privilegesOfTypeGroup.push(privilegeOfTypeGroup.PrivilegeInfo);
+          }
+        });
+
+        var privilege_ids = [];
+        privilegesOfTypeGroup.forEach(function(privilegeOfTypeGroup) {
+          privilege_ids.push(privilegeOfTypeGroup.privilege_id);
+        });
+
+        //delete all privileges of type GROUP, if they exist
+        //then add the privilege for the group, after which the group displays the effective privilege
+        if(privilege_ids.length !== 0) {
+          Cluster.deleteMultiplePrivileges(
+              $routeParams.id,
+              privilege_ids
+          )
+          .then(function() {
+            $scope.addPrivilege(user);
+          });
+        } else {
+          $scope.addPrivilege(user);
+        }
+      });
+    }
   };
 
   $scope.cancel = function(user) {
@@ -146,7 +238,13 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
   $scope.addPrivilege = function(user) {
     var changeToNone = user.permission_name == $scope.NONE_ROLE.permission_name;
     if (changeToNone) {
-      $scope.showSuccess(user);
+      if ($scope.isUserActive) {
+        Alert.success($t('users.alerts.roleChangedToNone', {
+            user_name : user.user_name
+        }));
+      } else {
+        $scope.showSuccess(user);
+      }
       $scope.loadUsers();
       return;
     }
