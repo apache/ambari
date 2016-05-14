@@ -236,11 +236,16 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         # E.g., output:
         # Prepared llap-slider-05Apr2016/run.sh for running LLAP on Slider
         exp = r"Prepared (.*?run.sh) for running LLAP"
-        m = re.match(exp, output, re.I)
-        if m and len(m.groups()) == 1:
-          run_file_name = m.group(1)
-          run_file_path = os.path.join(params.hive_user_home_dir, run_file_name)
-        else:
+        run_file_path = None
+        out_splits = output.split("\n")
+        for line in out_splits:
+          line = line.strip()
+          m = re.match(exp, line, re.I)
+          if m and len(m.groups()) == 1:
+            run_file_name = m.group(1)
+            run_file_path = os.path.join(params.hive_user_home_dir, run_file_name)
+            break
+        if not run_file_path:
           raise Fail("Did not find run.sh file in output: " + str(output))
 
         Logger.info(format("Run file path: {run_file_path}"))
