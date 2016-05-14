@@ -17,9 +17,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management import Directory, Fail, Logger, File, \
-    InlineTemplate, PropertiesFile, StaticFile, XmlConfig
-from resource_management.libraries.functions import format
+
+from resource_management.core.resources.system import Directory, File   
+from resource_management.core.exceptions import Fail 
+from resource_management.core.logger import Logger
+from resource_management.core.source import StaticFile, InlineTemplate
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.template_config import TemplateConfig
 
 

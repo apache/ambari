@@ -24,8 +24,7 @@ import tempfile
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import tar_archive
-from resource_management.core.resources.system import Execute
-from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Execute, Directory
 
 BACKUP_TEMP_DIR = "falcon-upgrade-backup"
 BACKUP_DATA_ARCHIVE = "falcon-local-backup.tar"

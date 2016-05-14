@@ -18,8 +18,14 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import os
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.source import InlineTemplate, StaticFile
+from resource_management.core.shell import as_user
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.resources.xml_config import XmlConfig
 
 def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or 'tracer' or 'client'
   import params

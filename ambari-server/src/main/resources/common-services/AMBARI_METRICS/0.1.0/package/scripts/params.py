@@ -22,9 +22,14 @@ from functions import calc_xmn_from_xms
 from functions import check_append_heap_property
 from functions import trim_heap_property
 from resource_management.core.logger import Logger
-from resource_management import *
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries import functions
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.substitute_vars import substitute_vars
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 import status_params
 from ambari_commons import OSCheck
 import ConfigParser

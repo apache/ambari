@@ -16,7 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Execute
+from resource_management.core.shell import as_sudo
+from resource_management.libraries.functions.format import format
 
 
 def monitor(action=None):# 'start' or 'stop'

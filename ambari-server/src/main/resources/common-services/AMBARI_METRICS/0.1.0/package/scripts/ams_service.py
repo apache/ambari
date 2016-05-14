@@ -18,8 +18,10 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.resources.service import Service
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.format import format
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from hbase_service import hbase_service

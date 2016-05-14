@@ -16,9 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
 import os
+from resource_management.libraries.script.script import Script
 from status_params import *
 
 config = Script.get_config()

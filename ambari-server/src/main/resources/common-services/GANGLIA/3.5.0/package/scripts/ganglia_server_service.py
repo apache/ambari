@@ -16,8 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from resource_management import *
-
+from resource_management.core.shell import as_sudo
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.resources.monitor_webserver import MonitorWebserver
 
 def server(action=None):# 'start' or 'stop'
   command = as_sudo(('service', 'hdp-gmetad', action)) + " >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"

@@ -16,9 +16,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management import Script, Logger, ComponentIsNotRunning, \
-  Execute
-from resource_management.libraries.functions import format
+
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.core.logger import Logger  
+from resource_management.core.resources.system import Execute
+from resource_management.core.exceptions import ComponentIsNotRunning
 
 
 class AtlasServiceCheck(Script):

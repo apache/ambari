@@ -19,7 +19,11 @@ limitations under the License.
 import sys
 import os
 from os import path
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import Template
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.functions.format import format
 from ganglia import generate_daemon
 import ganglia
 import functions

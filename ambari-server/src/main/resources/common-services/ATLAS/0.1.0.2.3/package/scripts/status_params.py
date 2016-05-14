@@ -18,8 +18,9 @@ limitations under the License.
 
 """
 import os
-from resource_management import Script
-from resource_management.libraries.functions import  get_kinit_path, format
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import  get_kinit_path
 from resource_management.libraries.functions.default import default
 
 

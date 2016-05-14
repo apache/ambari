@@ -19,8 +19,9 @@ limitations under the License.
 """
 import os
 import sys
-from resource_management import format_stack_version, Script
-from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 
 import status_params

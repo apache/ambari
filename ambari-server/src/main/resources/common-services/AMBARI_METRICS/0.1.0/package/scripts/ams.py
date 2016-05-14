@@ -18,7 +18,12 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.functions.format import format
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.str_utils import compress_backslashes

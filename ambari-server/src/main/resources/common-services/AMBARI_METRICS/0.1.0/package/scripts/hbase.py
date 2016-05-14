@@ -19,7 +19,11 @@ limitations under the License.
 """
 import os
 from ambari_commons import OSConst
-from resource_management import *
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.source import Template, InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)

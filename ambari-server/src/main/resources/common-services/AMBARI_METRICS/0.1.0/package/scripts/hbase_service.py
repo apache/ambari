@@ -18,7 +18,8 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions.format import format
 
 def hbase_service(
   name,

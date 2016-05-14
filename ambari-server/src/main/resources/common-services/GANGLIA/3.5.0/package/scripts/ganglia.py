@@ -16,7 +16,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.exceptions import Fail
+from resource_management.core.source import StaticFile
 import os
 
 

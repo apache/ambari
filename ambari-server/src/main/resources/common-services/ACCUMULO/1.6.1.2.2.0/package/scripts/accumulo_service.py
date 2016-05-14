@@ -17,9 +17,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
+from resource_management.core.resources.system import Directory, Execute
+from resource_management.core.shell import as_user
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.format import format
 import time
 import os
 

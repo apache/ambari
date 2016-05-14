@@ -20,7 +20,14 @@ limitations under the License.
 import glob
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.exceptions import Fail
+from resource_management.core.shell import as_user, as_sudo
+from resource_management.core.source import Template, InlineTemplate
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.functions.flume_agent_helper import is_flume_process_live
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import await_flume_process_termination

@@ -16,19 +16,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+import shutil
 from metadata import metadata
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
-from resource_management import Execute, File, check_process_status, Script
-from resource_management.libraries.functions import format
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_PROPERTIES
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
-import os
-import shutil
+from resource_management.libraries.functions.constants import StackFeature
 
 class MetadataServer(Script):
 

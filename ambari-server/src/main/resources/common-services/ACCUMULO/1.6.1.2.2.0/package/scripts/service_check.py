@@ -18,8 +18,12 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import os
+
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import InlineTemplate
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.script.script import Script
 
 class AccumuloServiceCheck(Script):
   def service_check(self, env):
