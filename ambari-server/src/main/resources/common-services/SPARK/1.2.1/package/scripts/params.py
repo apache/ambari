@@ -28,7 +28,6 @@ import resource_management.libraries.functions
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -41,7 +40,9 @@ from resource_management.libraries.script.script import Script
 SERVER_ROLE_DIRECTORY_MAP = {
   'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
   'SPARK_CLIENT' : 'spark-client',
-  'SPARK_THRIFTSERVER' : 'spark-thriftserver'
+  'SPARK_THRIFTSERVER' : 'spark-thriftserver',
+  'LIVY_SERVER' : 'livy-server',
+  'LIVY_CLIENT' : 'livy-client'
 }
 
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "SPARK_CLIENT")
@@ -177,6 +178,43 @@ default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']
 
 dfs_type = default("/commandParams/dfs_type", "")
+
+# livy related config
+
+# livy is only supported from HDP 2.5
+has_livyserver = False
+
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted):
+  livy_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY_SERVER")
+  livy_conf = format("{stack_root}/current/{livy_component_directory}/conf")
+  livy_log_dir = config['configurations']['livy-env']['livy_log_dir']
+  livy_pid_dir = status_params.livy_pid_dir
+  livy_home = format("{stack_root}/current/{livy_component_directory}")
+  livy_user = status_params.livy_user
+  livy_group = status_params.livy_group
+  user_group = status_params.user_group
+  livy_hdfs_user_dir = format("/user/{livy_user}")
+  livy_server_pid_file = status_params.livy_server_pid_file
+
+  livy_server_start = format("{livy_home}/bin/livy-server start")
+  livy_server_stop = format("{livy_home}/bin/livy-server stop")
+  livy_logs_dir = format("{livy_home}/logs")
+
+  livy_env_sh = config['configurations']['livy-env']['content']
+  livy_log4j_properties = config['configurations']['livy-log4j-properties']['content']
+
+  livy_kerberos_keytab =  config['configurations']['livy-defaults']['livy.server.kerberos.keytab']
+  livy_kerberos_principal = config['configurations']['livy-defaults']['livy.server.kerberos.principal']
+
+  livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
+
+  if len(livy_livyserver_hosts) > 0:
+    livy_livyserver_host = livy_livyserver_hosts[0]
+    has_livyserver = True
+
+  livy_livyserver_port = default('configurations/livy-defaults/livy.server.port',8998)
+
+
 
 import functools
 #create partial functions with common arguments for every HdfsResource call

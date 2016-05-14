@@ -238,6 +238,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "ranger_usersync_password_jceks",
       "description": "Saving Ranger Usersync credentials in jceks",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "spark_livy",
+      "description": "Livy as slave component of spark",
+      "min_version": "2.5.0.0"
     }
   ]
 }
