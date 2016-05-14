@@ -41,6 +41,9 @@
        HAWQ service or when new HAWQ hosts are added. By default, ssh keys are exchanged every time with HAWQ Master start/restart.
        For larger clusters, this may be set to false temporarily to allow faster start time. Valid values are true/false.
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
 </configuration>
