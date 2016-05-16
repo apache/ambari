@@ -1177,6 +1177,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       popupHeader = Em.I18n.t('services.service.delete.popup.header'),
       dependentServicesToDeleteFmt = this.servicesDisplayNames(interDependentServices);
 
+    if (serviceName === 'KERBEROS') {
+      this.kerberosDeleteWarning(popupHeader);
+      return;
+    }
+
     if (App.Service.find().get('length') === 1) {
       //at least one service should be installed
       App.ModalPopup.show({
@@ -1209,6 +1214,25 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         body: body
       });
     }
+  },
+
+  /**
+   * show dialog with Kerberos warning prior to service delete
+   * @param {string} header
+   * @returns {App.ModalPopup}
+   */
+  kerberosDeleteWarning: function(header) {
+    return App.ModalPopup.show({
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('services.alerts.goTo').format('Kerberos'),
+      header: header,
+      encodeBody: false,
+      body: Em.I18n.t('services.service.delete.popup.kerberos'),
+      onSecondary: function() {
+        this._super();
+        App.router.transitionTo('main.admin.adminKerberos.index');
+      }
+    });
   },
 
   /**
