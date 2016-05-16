@@ -30,12 +30,11 @@ describe('App.stackMapper', function () {
       "items" : [
       {
         "VersionDefinition" : {
-          "id" : 1,
+          "id" : "HDP-2.3",
           "show_available": true,
           "stack_name" : "HDP",
           "stack_version" : "2.3",
-          "repository_version" : "2.3.4.0-3396",
-          "type" : "STANDARD",
+          "repository_version" : "2.3",
           "version_url" : "file:/Users/ncole/src/hwx/ambari/contrib/version-builder/version_234-3396.xml",
           "release" : {
             "build" : "3396",
@@ -158,12 +157,11 @@ describe('App.stackMapper', function () {
 
       {
         "VersionDefinition" : {
-          "id" : 2,
+          "id" : "HDP-2.3-2.3.4.0",
           "stack_name" : "HDP",
           "stack_version" : "2.3",
           "show_available": true,
-          "repository_version" : "2.3.4.0-3397",
-          "type" : "STANDARD",
+          "repository_version" : "2.3.4.0",
           "version_url" : "file:/Users/ncole/src/hwx/ambari/contrib/version-builder/version_234-3397.xml",
           "release" : {
             "build" : "3397",
@@ -302,12 +300,11 @@ describe('App.stackMapper', function () {
 
       {
         "VersionDefinition" : {
-          "id" : 5,
+          "id" : "HDP-2.3-2.3.6.0",
           "stack_name" : "HDP",
           "stack_version" : "2.3",
           "show_available": true,
-          "repository_version" : "2.3.6.0-3646",
-          "type" : "STANDARD",
+          "repository_version" : "2.3.6.0",
           "version_url" : "file:/Users/ncole/src/hwx/ambari/contrib/version-builder/version_234-3646.xml",
           "release" : {
             "build" : "3646",
@@ -447,12 +444,11 @@ describe('App.stackMapper', function () {
 
       {
         "VersionDefinition" : {
-          "id" : 3,
+          "id" : "HDP-2.4-2.4.0.0",
           "stack_name" : "HDP",
           "stack_version" : "2.4",
           "show_available": true,
-          "repository_version" : "2.4.0.0-169",
-          "type" : "STANDARD",
+          "repository_version" : "2.4.0.0",
           "version_url" : "file:/Users/ncole/src/hwx/ambari/contrib/version-builder/version_169.xml",
           "release" : {
             "build" : "169",
@@ -607,19 +603,14 @@ describe('App.stackMapper', function () {
       expect(App.Stack.find().everyProperty('isSelected')).to.equal(false);
     });
 
-    it ('stack ids are valid', function() {
-      expect(App.Stack.find().mapProperty('id')).to.eql(
-        ['HDP-2.4-2.4.0.0-169','HDP-2.3-2.3.6.0-3646', 'HDP-2.3-2.3.4.0-3397', 'HDP-2.3-2.3.4.0-3396']);
-    });
-
     it ('7 OSes are mapped', function() {
       expect(App.OperatingSystem.find().get('length')).to.equal(7);
     });
 
     it ('OSes have valid ids', function() {
       expect(App.OperatingSystem.find().mapProperty('id')).to.eql(
-        ['HDP-2.4-2.4.0.0-169-debian7', 'HDP-2.3-2.3.6.0-3646-debian7', 'HDP-2.3-2.3.6.0-3646-redhat6', 'HDP-2.3-2.3.4.0-3397-debian7',
-        'HDP-2.3-2.3.4.0-3397-redhat6', 'HDP-2.3-2.3.4.0-3396-debian7', 'HDP-2.3-2.3.4.0-3396-redhat6']);
+        ['HDP-2.4-2.4.0.0-debian7', 'HDP-2.3-2.3.6.0-debian7', 'HDP-2.3-2.3.6.0-redhat6', 'HDP-2.3-2.3.4.0-debian7',
+        'HDP-2.3-2.3.4.0-redhat6', 'HDP-2.3-debian7', 'HDP-2.3-redhat6']);
     });
 
     it ('14 repositories are mapped', function() {
@@ -628,13 +619,13 @@ describe('App.stackMapper', function () {
 
     it ('Repositories ids are valid', function() {
       expect(App.Repository.find().mapProperty('id')).to.eql(
-        ['HDP-2.4-2.4.0.0-169-debian7-HDP-2.4', 'HDP-2.4-2.4.0.0-169-debian7-HDP-UTILS-1.1.0.20',
-          'HDP-2.3-2.3.6.0-3646-debian7-HDP-2.3', 'HDP-2.3-2.3.6.0-3646-debian7-HDP-UTILS-1.1.0.20',
-          'HDP-2.3-2.3.6.0-3646-redhat6-HDP-2.3','HDP-2.3-2.3.6.0-3646-redhat6-HDP-UTILS-1.1.0.20',
-          'HDP-2.3-2.3.4.0-3397-debian7-HDP-2.3','HDP-2.3-2.3.4.0-3397-debian7-HDP-UTILS-1.1.0.20',
-          'HDP-2.3-2.3.4.0-3397-redhat6-HDP-2.3', 'HDP-2.3-2.3.4.0-3397-redhat6-HDP-UTILS-1.1.0.20',
-          'HDP-2.3-2.3.4.0-3396-debian7-HDP-2.3', 'HDP-2.3-2.3.4.0-3396-debian7-HDP-UTILS-1.1.0.20',
-          'HDP-2.3-2.3.4.0-3396-redhat6-HDP-2.3', 'HDP-2.3-2.3.4.0-3396-redhat6-HDP-UTILS-1.1.0.20'
+        ['HDP-2.4-2.4.0.0-debian7-HDP-2.4', 'HDP-2.4-2.4.0.0-debian7-HDP-UTILS-1.1.0.20',
+          'HDP-2.3-2.3.6.0-debian7-HDP-2.3', 'HDP-2.3-2.3.6.0-debian7-HDP-UTILS-1.1.0.20',
+          'HDP-2.3-2.3.6.0-redhat6-HDP-2.3','HDP-2.3-2.3.6.0-redhat6-HDP-UTILS-1.1.0.20',
+          'HDP-2.3-2.3.4.0-debian7-HDP-2.3','HDP-2.3-2.3.4.0-debian7-HDP-UTILS-1.1.0.20',
+          'HDP-2.3-2.3.4.0-redhat6-HDP-2.3', 'HDP-2.3-2.3.4.0-redhat6-HDP-UTILS-1.1.0.20',
+          'HDP-2.3-debian7-HDP-2.3', 'HDP-2.3-debian7-HDP-UTILS-1.1.0.20',
+          'HDP-2.3-redhat6-HDP-2.3', 'HDP-2.3-redhat6-HDP-UTILS-1.1.0.20'
         ]);
     });
   });
