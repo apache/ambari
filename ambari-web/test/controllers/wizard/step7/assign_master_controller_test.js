@@ -147,18 +147,21 @@ describe('App.AssignMasterOnStep7Controller', function () {
         value: '',
         displayName: 'c1'
       }),
-      setValue: Em.K
+      setValue: Em.K,
+      toggleProperty: Em.K
     });
 
     beforeEach(function() {
       sinon.stub(stringUtils, 'getFormattedStringFromArray');
       sinon.stub(mock, 'setValue');
+      sinon.stub(mock, 'toggleProperty');
       sinon.spy(App.ModalPopup, 'show');
     });
 
     afterEach(function() {
       stringUtils.getFormattedStringFromArray.restore();
       mock.setValue.restore();
+      mock.toggleProperty.restore();
       App.ModalPopup.show.restore();
     });
 
@@ -354,7 +357,8 @@ describe('App.AssignMasterOnStep7Controller', function () {
                 configName: 'conf1'
               }
             },
-            serviceName: 'S1'
+            serviceName: 'S1',
+            toggleProperty: Em.K
           }),
           controller: Em.Object.create({
             stepConfigs: [
