@@ -24,6 +24,7 @@ import constants from 'hive/utils/constants';
 export default Ember.Controller.extend({
   isLocalUpload : Ember.computed.equal("uploadSource","local"),
   uploadSource : "local",
+  COLUMN_NAME_PREFIX : "column",
   hdfsPath : "",
   jobService: Ember.inject.service(constants.namingConventions.job),
   notifyService: Ember.inject.service(constants.namingConventions.notify),
@@ -85,21 +86,22 @@ export default Ember.Controller.extend({
     "VARCHAR", // -- (Note: Available in Hive 0.12.0 and later)
     "CHAR" // -- (Note: Available in Hive 0.13.0 and later)
   ],
+  _setHeaderElements : function(header,valueArray){
+    header.forEach(function (item, index) {
+      Ember.set(item, 'name',  valueArray.objectAt(index));
+    }, this);
+  },
   isFirstRowHeaderDidChange: function () {
     console.log("inside onFirstRowHeader : isFirstRowHeader : " + this.get('isFirstRowHeader'));
     if (this.get('isFirstRowHeader') != null && typeof this.get('isFirstRowHeader') !== 'undefined') {
       if (this.get('isFirstRowHeader') == false) {
         if (this.get('rows')) {
           this.get('rows').unshiftObject({row: this.get('firstRow')});
+          this._setHeaderElements(this.get('header'),this.get('defaultColumnNames'));
         }
       } else if( this.get('header') ) { // headers are available
         // take first row of
-        this.get('header').forEach(function (item, index) {
-          console.log("item : ", item);
-          console.log("this.get('firstRow').objectAt(index)  : ", this.get('firstRow').objectAt(index));
-          Ember.set(item, 'name', this.get('firstRow')[index]);
-        }, this);
-
+        this._setHeaderElements(this.get('header'),this.get('firstRow'));
         this.get('rows').removeAt(0);
       }
 
@@ -231,6 +233,11 @@ export default Ember.Controller.extend({
 
   previewTable: function (data) {
     console.log('inside previewTable');
+    var self = this;
+    var defaultColumnNames = data.header.map(function(item,index){
+      return self.COLUMN_NAME_PREFIX + index;
+    });
+    this.set("defaultColumnNames",defaultColumnNames);
     this.set("header", data.header);
     this.set("firstRow", data.rows[0].row);
     console.log("firstRow : ", this.get('firstRow'));
