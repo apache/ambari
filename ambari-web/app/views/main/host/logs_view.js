@@ -37,18 +37,10 @@ App.MainHostLogsView = App.TableView.extend({
     return App.HostComponentLog.find().filterProperty('hostName', this.get('host.hostName'));
   }.property('App.HostComponentLog.length'),
 
-  logSearchUrlTemplate: function() {
-    var quickLink = App.QuickLinks.find().findProperty('site', 'logsearch-env'),
-        logSearchServerHost = App.HostComponent.find().findProperty('componentName', 'LOGSEARCH_SERVER').get('host.hostName');
-
-    if (quickLink) {
-      return quickLink.get('template').fmt('http', logSearchServerHost, quickLink.get('default_http_port')) + '?host_name=' + this.get('host.hostName') + '&file_name={0}&component_name={1}';
-    }
-    return '#';
-  }.property(),
-
   content: function() {
-    var self = this;
+    var self = this,
+        linkTailTpl = '?host_name={0}&file_name={1}&component_name={2}';
+
     return this.get('hostLogs').map(function(i) {
       return Em.Object.create({
         serviceName: i.get('hostComponent.service.serviceName'),
@@ -61,7 +53,7 @@ App.MainHostLogsView = App.TableView.extend({
           return {
             fileName: fileUtils.fileNameFromPath(filePath),
             filePath: filePath,
-            url: self.get('logSearchUrlTemplate').format(filePath, i.get('name'))
+            linkTail: linkTailTpl.format(i.get('hostName'), filePath, i.get('name'))
           };
         }),
         fileNamesFilterValue: i.get('logFileNames').join(',')

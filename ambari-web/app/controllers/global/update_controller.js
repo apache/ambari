@@ -643,6 +643,34 @@ App.UpdateController = Em.Controller.extend({
 
   updateWizardWatcher: function(callback) {
     App.router.get('wizardWatcherController').getUser().complete(callback);
-  }
+  },
 
+  /**
+   * Request to fetch logging info for specified host.
+   *
+   * @method updateLogging
+   * @param {string} hostName
+   * @param {string[]|boolean} fields additional fields to request e.g. ['field1', 'field2']
+   * @param {function} callback execute on when request succeed, json response will be passed to first argument
+   * @returns {$.Deferred.promise()}
+   */
+  updateLogging: function(hostName, fields, callback) {
+    var flds = !!fields ? "," + fields.join(',') : "" ;
+
+    return App.ajax.send({
+      name: 'host.logging',
+      sender: this,
+      data: {
+        hostName: hostName,
+        callback: callback,
+        fields: flds
+      },
+      success: 'updateLoggingSuccess'
+    });
+  },
+
+  updateLoggingSuccess: function(data, opt, params) {
+    var clbk = params.callback || function() {};
+    clbk(data);
+  }
 });

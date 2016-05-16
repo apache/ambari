@@ -161,22 +161,26 @@
       </div>
     </div>
     <div id="host-log">
-      {{#if view.isTasksEmptyList}}
-        <div class="log-list-wrap">{{t hostPopup.noTasksToShow}}</div>
-      {{else}}
-        {{#each taskInfo in view.tasks}}
-          <div {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
-            <div class="task-list-line-cursor">
-              <div class="operation-name-icon-wrap">
-                {{view statusIcon servicesInfoBinding="taskInfo"}}
-                <a href="#">
-                  {{taskInfo.commandDetail}}
-                </a>
+      {{#if view.hostInfoLoaded}}
+        {{#if view.isTasksEmptyList}}
+          <div class="log-list-wrap">{{t hostPopup.noTasksToShow}}</div>
+        {{else}}
+          {{#each taskInfo in view.tasks}}
+            <div {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
+              <div class="task-list-line-cursor">
+                <div class="operation-name-icon-wrap">
+                  {{view statusIcon servicesInfoBinding="taskInfo"}}
+                  <a href="#">
+                    {{taskInfo.commandDetail}}
+                  </a>
+                </div>
+                <div class="show-details"><i class="icon-caret-right"></i></div>
               </div>
-              <div class="show-details"><i class="icon-caret-right"></i></div>
             </div>
-          </div>
-        {{/each}}
+          {{/each}}
+        {{/if}}
+      {{else}}
+        {{view App.SpinnerView}}
       {{/if}}
     </div>
   </div>
@@ -256,9 +260,11 @@
                 <p {{bindAttr class="view.isClipBoardActive:hidden"}}>
                   <span class="text-bold">{{t common.file}}: &nbsp; </span>
                   <span class="text-bold muted">{{hostLog.fileName}}</span>
-                  <a class="pull-right" {{bindAttr href="hostLog.url"}} target="_blank">
-                    <i class="icon-external-link"></i>
-                    {{t popup.logTail.openInLogSearch}}</a>
+                  {{#view App.LogSearchUILinkView linkQueryParamsBinding="hostLog.linkTail" tagName="span"}}
+                    <a {{bindAttr href="view.formatedLink" class=":pull-right view.isLodaded::disabled"}} target="_blank">
+                      <i class="icon-external-link"></i>
+                      {{t popup.logTail.openInLogSearch}}</a>
+                  {{/view}}
                 </p>
                 <div {{bindAttr class="view.isClipBoardActive:hidden"}}>
                   {{view view.logTailView contentBinding="hostLog"}}
