@@ -99,8 +99,6 @@ App.stackMapper = App.QuickDataMapper.create({
     var operatingSystemsArray = [];
     var servicesArray = [];
 
-    stack.id = stack.stack_name + "-" + stack.stack_version + "-" + stack.repository_version; //HDP-2.5-2.5.0.0
-
     item.operating_systems.forEach(function(ops) {
       var operatingSystems = ops.OperatingSystems;
 
