@@ -23,10 +23,35 @@
   <services>
     <service>
       <name>RANGER</name>
-      <displayName>Ranger</displayName>
-      <comment>Comprehensive security for Hadoop</comment>
       <extends>common-services/RANGER/0.5.0</extends>
-      <version>0.5.0.2.3</version>
+      <version>0.6.0</version>
+
+      <components>
+        <component>
+          <name>RANGER_TAGSYNC</name>
+          <displayName>Ranger Tagsync</displayName>
+          <category>SLAVE</category>
+          <cardinality>0-1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/ranger_tagsync.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+          <configuration-dependencies>
+            <config-type>ranger-tagsync-site</config-type>
+            <config-type>tagsync-application-properties</config-type>
+          </configuration-dependencies>
+        </component>
+      </components>
+
+      <themes>
+        <theme>
+          <fileName>theme_version_3.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
     </service>
   </services>
 </metainfo>

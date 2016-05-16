@@ -24,50 +24,7 @@
     <service>
       <name>RANGER</name>
       <extends>common-services/RANGER/0.4.0</extends>
-      <themes>
-        <theme>
-          <fileName>theme_version_1.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>ranger_${stack_version}-admin</name>
-            </package>
-            <package>
-              <name>ranger_${stack_version}-usersync</name>
-            </package>
-            <package>
-              <name>ranger_${stack_version}-tagsync</name>
-              <condition>should_install_ranger_tagsync</condition>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>ranger-${stack_version}-admin</name>
-            </package>
-            <package>
-              <name>ranger-${stack_version}-usersync</name>
-            </package>
-            <package>
-              <name>ranger-${stack_version}-tagsync</name>
-              <condition>should_install_ranger_tagsync</condition>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-      <quickLinksConfigurations>
-        <quickLinksConfiguration>
-          <fileName>quicklinks.json</fileName>
-          <default>true</default>
-        </quickLinksConfiguration>
-      </quickLinksConfigurations>
+      <version>0.5.0.2.2</version>
     </service>
   </services>
 </metainfo>

@@ -19,35 +19,38 @@
 <configuration>
 
   <property>
-    <name>ranger.usersync.keystore.file</name>
-    <value>/usr/hdp/current/ranger-usersync/conf/unixauthservice.jks</value>
-    <description>Keystore file used for usersync</description>
-  </property>
-
-  <property>
-    <name>ranger.usersync.truststore.file</name>
-    <value>/usr/hdp/current/ranger-usersync/conf/mytruststore.jks</value>
-    <description>Truststore used for usersync, required if usersync -&gt; ranger admin communication is SSL enabled</description>
-  </property>
-
-  <property>
-    <name>ranger.usersync.ldap.bindkeystore</name>
+    <name>ranger.usersync.kerberos.principal</name>
     <value></value>
-    <description>Set same value as ranger.usersync.keystore.file property i.e default value /usr/hdp/current/ranger-usersync/conf/ugsync.jceks</description>
+    <description></description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
 
   <property>
-    <name>ranger.usersync.credstore.filename</name>
-    <value>/usr/hdp/current/ranger-usersync/conf/ugsync.jceks</value>
-    <description>Credential store file name for user sync, specify full path</description>
+    <name>ranger.usersync.kerberos.keytab</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.usersync.policymgr.username</name>
+    <value>rangerusersync</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.usersync.policymgr.alias</name>
+    <value>ranger.usersync.policymgr.password</value>
+    <description></description>
   </property>
 
   <property>
     <name>ranger.usersync.policymgr.keystore</name>
-    <value>/usr/hdp/current/ranger-usersync/conf/ugsync.jceks</value>
+    <value>/etc/ranger/usersync/conf/ugsync.jceks</value>
     <description></description>
   </property>
 
