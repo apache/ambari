@@ -53,6 +53,18 @@
                      replace-with="" />
 
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hbase_audit_db">
+            <type>ranger-hbase-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+
         </changes>
       </component>
     </service>
@@ -65,6 +77,10 @@
             <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
           </definition>
           <definition xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property">
+            <type>tez-site</type>
+            <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_tez_client_adjust_tez_lib_uris_property">
             <type>tez-site</type>
             <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
           </definition>
@@ -158,6 +174,43 @@
             <transfer operation="delete" delete-key="hive.server2.authentication.kerberos.principal" if-key="hive.server2.authentication" if-type="hive-site" if-value="custom"/>
           </definition>
 
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db">
+            <type>ranger-hive-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_hive_server_set_transport_mode">
+            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
+              <type>hive-site</type>
+              <key>hive.server2.thrift.port</key>
+              <value>10010</value>
+            </condition>
+            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
+              <type>hive-site</type>
+              <key>hive.server2.http.port</key>
+              <value>10011</value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_hive_server_restore_transport_mode_on_downgrade">
+            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
+              <type>hive-site</type>
+              <key>hive.server2.thrift.port</key>
+              <value>10000</value>
+            </condition>
+            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
+              <type>hive-site</type>
+              <key>hive.server2.http.port</key>
+              <value>10001</value>
+            </condition>
+          </definition>
+
         </changes>
       </component>
       <component name="WEBHCAT_SERVER">
@@ -170,72 +223,203 @@
             <replace key="templeton.hcat" find="/usr/hdp/current/hive-client" replace-with="/usr/hdp/${hdp.version}/hive"/>
             <set key="templeton.hive.extra.files" value="/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_webhcat_server_update_configuration_paths" summary="Updating Configuration Paths">
+            <type>webhcat-site</type>
+            <replace key="templeton.jar" find="/usr/hdp/current/hive-webhcat" replace-with="/usr/hdp/${hdp.version}/hive"/>
+            <replace key="templeton.libjars" find="/usr/hdp/current/zookeeper-client" replace-with="/usr/hdp/${hdp.version}/zookeeper,/usr/hdp/${hdp.version}/hive/lib/hive-common.jar"/>
+            <replace key="templeton.hadoop" find="/usr/hdp/current/hadoop-client" replace-with="/usr/hdp/${hdp.version}/hadoop"/>
+            <replace key="templeton.hcat" find="/usr/hdp/current/hive-client" replace-with="/usr/hdp/${hdp.version}/hive"/>
+            <set key="templeton.hive.extra.files" value="/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib"/>
+          </definition>
         </changes>
       </component>
     </service>
+
+    <service name="RANGER">
+      <component name="RANGER_ADMIN">
+        <changes>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_admin_properties">
+            <type>admin-properties</type>
+            <transfer operation="delete" delete-key="audit_db_name" />
+            <transfer operation="delete" delete-key="audit_db_user" />
+            <transfer operation="delete" delete-key="audit_db_password" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_ranger_admin_site">
+            <type>ranger-admin-site</type>
+            <set key="ranger.audit.source.type" value="solr"/>
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.driver" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.url" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.user" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.password" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.credential.alias" />
+            <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.dialect" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db">
+            <type>ranger-kms-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments">
+            <type>hdfs-site</type>
+            <transfer operation="delete" delete-key="dfs.namenode.rpc-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+            <transfer operation="delete" delete-key="dfs.namenode.http-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+            <transfer operation="delete" delete-key="dfs.namenode.https-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db">
+            <type>ranger-hdfs-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK">
+      <component name="SPARK_JOBHISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver">
+            <type>spark-defaults</type>
+            <transfer operation="delete" delete-key="spark.yarn.services" />
+            <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_thriftserver">
+            <type>spark-thrift-sparkconf</type>
+            <transfer operation="delete" delete-key="spark.yarn.executor.memoryOverhead" />
+            <transfer operation="delete" delete-key="spark.yarn.driver.memoryOverhead" />
+            <transfer operation="delete" delete-key="spark.yarn.scheduler.heartbeat.interval-ms" />
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
+            <transfer operation="delete" delete-key="spark.yarn.containerLauncherMaxThreads" />
+            <transfer operation="delete" delete-key="spark.yarn.submit.file.replication" />
+            <transfer operation="delete" delete-key="spark.yarn.preserve.staging.files" />
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" summary="Updating Oozie Service classes">
+            <type>oozie-site</type>
+            <replace key="oozie.services" find="org.apache.oozie.service.CoordinatorStoreService," replace-with="" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_kafka_broker_deprecate_port">
+            <type>kafka-broker</type>
+            <!-- Deprecate "port" property since "listeners" will be added. -->
+            <transfer operation="delete" delete-key="port"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db">
+            <type>ranger-kafka-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+
+        </changes>
+      </component>
+    </service>
+
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db">
+            <type>ranger-yarn-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="STORM">
+      <component name="NIMBUS">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_storm_audit_db">
+            <type>ranger-storm-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_knox_audit_db">
+            <type>ranger-knox-audit</type>
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.url" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.user" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.password" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
+            <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
+            <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
   </services>
-
-  <service name="HDFS">
-    <component name="NAMENODE">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments">
-          <type>hdfs-site</type>
-          <transfer operation="delete" delete-key="dfs.namenode.rpc-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
-          <transfer operation="delete" delete-key="dfs.namenode.http-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
-          <transfer operation="delete" delete-key="dfs.namenode.https-address" if-type="hdfs-site" if-key="dfs.nameservices" if-key-state="present"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
-
-  <service name="SPARK">
-    <component name="SPARK_JOBHISTORYSERVER">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver">
-          <type>spark-defaults</type>
-          <transfer operation="delete" delete-key="spark.yarn.services" />
-          <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
-        </definition>
-      </changes>
-    </component>
-    <component name="SPARK_THRIFTSERVER">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_4_0_0_spark_thriftserver">
-          <type>spark-thrift-sparkconf</type>
-          <transfer operation="delete" delete-key="spark.yarn.executor.memoryOverhead" />
-          <transfer operation="delete" delete-key="spark.yarn.driver.memoryOverhead" />
-          <transfer operation="delete" delete-key="spark.yarn.scheduler.heartbeat.interval-ms" />
-          <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
-          <transfer operation="delete" delete-key="spark.yarn.containerLauncherMaxThreads" />
-          <transfer operation="delete" delete-key="spark.yarn.submit.file.replication" />
-          <transfer operation="delete" delete-key="spark.yarn.preserve.staging.files" />
-          <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
-        </definition>
-      </changes>
-    </component>
-  </service>
-
-  <service name="OOZIE">
-    <component name="OOZIE_SERVER">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" summary="Updating Oozie Service classes">
-          <type>oozie-site</type>
-          <replace key="oozie.services" find="org.apache.oozie.service.CoordinatorStoreService," replace-with="" />
-        </definition>
-      </changes>
-    </component>
-  </service>
-
-  <service name="KAFKA">
-    <component name="KAFKA_BROKER">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_4_0_0_kafka_broker_deprecate_port">
-          <type>kafka-broker</type>
-          <!-- Deprecate "port" property since "listeners" will be added. -->
-          <transfer operation="delete" delete-key="port"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
 
 </upgrade-config-changes>

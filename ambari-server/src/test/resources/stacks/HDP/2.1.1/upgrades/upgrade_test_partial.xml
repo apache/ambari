@@ -159,7 +159,7 @@
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="configure" id="2.2.0" />
+          <task xsi:type="configure" id="hdp_2_1_1_zookeeper_new_config_type" />
         </post-upgrade>
       </component>
     </service>

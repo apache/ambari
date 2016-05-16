@@ -40,6 +40,12 @@
             <type>hdfs-site</type>
             <set key="myproperty" value="mynewvalue"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_2_0_nn_pre_upgrade">
+            <type>hdfs-site</type>
+            <set key="myproperty" value="mynewvalue"/>
+          </definition>
+
           <definition xsi:type="configure" id="hdp_2_1_1_nn_test">
             <type>hdfs-site</type>
             <key>myproperty</key>

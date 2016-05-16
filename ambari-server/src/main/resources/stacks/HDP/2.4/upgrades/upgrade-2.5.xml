@@ -509,7 +509,6 @@
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db" />
         </pre-upgrade>
 
@@ -712,18 +711,12 @@
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
-        <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver"/>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="SPARK_THRIFTSERVER">
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
-        <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_4_0_0_spark_thriftserver"/>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -738,8 +731,6 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
-
           <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
 
           <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
@@ -796,7 +787,6 @@
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
         <pre-upgrade>
-          <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db" />
         </pre-upgrade>
 

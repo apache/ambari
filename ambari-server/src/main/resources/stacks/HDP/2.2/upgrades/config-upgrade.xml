@@ -529,657 +529,657 @@
         </changes>
       </component>
     </service>
-  </services>
 
-  <service name="STORM">
-    <component name="NIMBUS">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_2_0_0_nimbus_no_ranger" summary="Nimbus properties without Ranger">
-          <!-- In HDP 2.1, RANGER was not present, so this property must not be added even though it is new in the
-           HDP 2.2 stack. The property is only valid in HDP 2.2 and higher if RANGER is present. -->
-          <type>storm-site</type>
-          <transfer operation="delete" delete-key="nimbus.authorizer"/>
-        </definition>
-        <definition id="hdp_2_3_0_0_update_storm_env">
-          <type>storm-env</type>
-          <set key="storm_logs_supported" value="true"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment">
-          <condition type="storm-site" key="nimbus.monitor.freq.secs" value="10">
+    <service name="STORM">
+      <component name="NIMBUS">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_2_0_0_nimbus_no_ranger" summary="Nimbus properties without Ranger">
+            <!-- In HDP 2.1, RANGER was not present, so this property must not be added even though it is new in the
+             HDP 2.2 stack. The property is only valid in HDP 2.2 and higher if RANGER is present. -->
             <type>storm-site</type>
-            <key>nimbus.monitor.freq.secs</key>
-            <value>120</value>
-          </condition>
-        </definition>
+            <transfer operation="delete" delete-key="nimbus.authorizer"/>
+          </definition>
+          <definition id="hdp_2_3_0_0_update_storm_env">
+            <type>storm-env</type>
+            <set key="storm_logs_supported" value="true"/>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"
-                    summary="Converting nimbus.host into nimbus.seeds">
-          <type>storm-site</type>
-          <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array"/>
-          <transfer operation="delete" delete-key="nimbus.host"/>
-          <replace key="nimbus.authorizer" find="com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer"
-                   replace-with="org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer"/>
-        </definition>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment">
+            <condition type="storm-site" key="nimbus.monitor.freq.secs" value="10">
+              <type>storm-site</type>
+              <key>nimbus.monitor.freq.secs</key>
+              <value>120</value>
+            </condition>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"
-                    summary="Updating Storm home and configuration environment variables">
-          <type>storm-env</type>
-          <replace key="content" find="# export STORM_CONF_DIR=&quot;&quot;"
-                   replace-with="export STORM_CONF_DIR={{conf_dir}}"/>
-          <replace key="content" find="export STORM_HOME=/usr/hdp/current/storm-client"
-                   replace-with="export STORM_HOME={{storm_component_home_dir}}"/>
-        </definition>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"
+                      summary="Converting nimbus.host into nimbus.seeds">
+            <type>storm-site</type>
+            <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array"/>
+            <transfer operation="delete" delete-key="nimbus.host"/>
+            <replace key="nimbus.authorizer" find="com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer"
+                     replace-with="org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer"/>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_configure_ranger_policy"
-                    summary="Configuring Ranger Storm Policy">
-          <type>ranger-storm-policymgr-ssl</type>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH"
-                    to-key="xasecure.policymgr.clientssl.keystore"
-                    default-value="/usr/hdp/current/storm-client/conf/ranger-plugin-keystore.jks"/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD"
-                    to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword"
-                    mask="true"/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH"
-                    to-key="xasecure.policymgr.clientssl.truststore"
-                    default-value="/usr/hdp/current/storm-client/conf/ranger-plugin-truststore.jks"/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD"
-                    to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
-        </definition>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"
+                      summary="Updating Storm home and configuration environment variables">
+            <type>storm-env</type>
+            <replace key="content" find="# export STORM_CONF_DIR=&quot;&quot;"
+                     replace-with="export STORM_CONF_DIR={{conf_dir}}"/>
+            <replace key="content" find="export STORM_HOME=/usr/hdp/current/storm-client"
+                     replace-with="export STORM_HOME={{storm_component_home_dir}}"/>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_configure_ranger_audit"
-                    summary="Configuring Ranger Storm Audit">
-          <type>ranger-storm-audit</type>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED"
-                    to-key="xasecure.audit.destination.db" default-value="true"/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties"
-                    from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY" to-key="xasecure.audit.destination.hdfs.dir"
-                    default-value="hdfs://NAMENODE_HOSTNAME:8020/ranger/audit"/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED"
-                    to-key="xasecure.audit.destination.hdfs" default-value="true"/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties"
-                    from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"
-                    to-key="xasecure.audit.destination.hdfs.batch.filespool.dir"
-                    default-value="/var/log/storm/audit/hdfs/spool"/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.USER_NAME"
-                    to-key="xasecure.audit.destination.db.user" default-value=""/>
-          <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.PASSWORD"
-                    to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
-          <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
-          <set key="xasecure.audit.destination.solr" value="false"/>
-          <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
-          <set key="xasecure.audit.destination.solr.zookeepers" value="none"/>
-          <set key="xasecure.audit.destination.solr.batch.filespool.dir" value="/var/log/storm/audit/solr/spool"/>
-          <set key="xasecure.audit.destination.db.jdbc.driver" value="{{jdbc_driver}}"/>
-          <set key="xasecure.audit.destination.db.jdbc.url" value="{{audit_jdbc_url}}"/>
-          <set key="xasecure.audit.provider.summary.enabled" value="false"/>
-        </definition>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_configure_ranger_policy"
+                      summary="Configuring Ranger Storm Policy">
+            <type>ranger-storm-policymgr-ssl</type>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH"
+                      to-key="xasecure.policymgr.clientssl.keystore"
+                      default-value="/usr/hdp/current/storm-client/conf/ranger-plugin-keystore.jks"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD"
+                      to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword"
+                      mask="true"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH"
+                      to-key="xasecure.policymgr.clientssl.truststore"
+                      default-value="/usr/hdp/current/storm-client/conf/ranger-plugin-truststore.jks"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD"
+                      to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_remove_deprecated_ranger_properties"
-                    summary="Removing Deprecated Ranger Storm Plugin Configurations">
-          <type>ranger-storm-plugin-properties</type>
-          <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
-          <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
-          <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
-          <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="SQL_CONNECTOR_JAR"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.FLAVOUR"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.DATABASE_NAME"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME"/>
-          <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
-          <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_configure_ranger_audit"
+                      summary="Configuring Ranger Storm Audit">
+            <type>ranger-storm-audit</type>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED"
+                      to-key="xasecure.audit.destination.db" default-value="true"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties"
+                      from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY" to-key="xasecure.audit.destination.hdfs.dir"
+                      default-value="hdfs://NAMENODE_HOSTNAME:8020/ranger/audit"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED"
+                      to-key="xasecure.audit.destination.hdfs" default-value="true"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties"
+                      from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"
+                      to-key="xasecure.audit.destination.hdfs.batch.filespool.dir"
+                      default-value="/var/log/storm/audit/hdfs/spool"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.USER_NAME"
+                      to-key="xasecure.audit.destination.db.user" default-value=""/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.PASSWORD"
+                      to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
+            <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
+            <set key="xasecure.audit.destination.solr" value="false"/>
+            <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
+            <set key="xasecure.audit.destination.solr.zookeepers" value="none"/>
+            <set key="xasecure.audit.destination.solr.batch.filespool.dir" value="/var/log/storm/audit/solr/spool"/>
+            <set key="xasecure.audit.destination.db.jdbc.driver" value="{{jdbc_driver}}"/>
+            <set key="xasecure.audit.destination.db.jdbc.url" value="{{audit_jdbc_url}}"/>
+            <set key="xasecure.audit.provider.summary.enabled" value="false"/>
+          </definition>
 
-  <service name="RANGER">
-    <component name="RANGER_ADMIN">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env">
-          <type>ranger-env</type>
-          <set key="xml_configurations_supported" value="true"/>
-          <set key="xasecure.audit.destination.solr" value="false"/>
-        </definition>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_remove_deprecated_ranger_properties"
+                      summary="Removing Deprecated Ranger Storm Plugin Configurations">
+            <type>ranger-storm-plugin-properties</type>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="SQL_CONNECTOR_JAR"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.FLAVOUR"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.DATABASE_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME"/>
+            <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
+            <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
-          <type>ranger-admin-site</type>
-          <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_CLIENT_AUTH"
-                    to-key="ranger.service.https.attrib.clientAuth" default-value=""/>
-          <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_FILE"
-                    to-key="ranger.https.attrib.keystore.file" default-value=""/>
-          <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_PASS"
-                    to-key="ranger.service.https.attrib.keystore.pass" default-value="" mask="true"/>
-          <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEY_ALIAS"
-                    to-key="ranger.service.https.attrib.keystore.keyalias" default-value=""/>
-          <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_SERVICE_PORT"
-                    to-key="ranger.service.https.port" default-value=""/>
-          <transfer operation="copy" from-type="ranger-site" from-key="HTTP_ENABLED"
-                    to-key="ranger.service.http.enabled" default-value=""/>
-          <transfer operation="copy" from-type="ranger-site" from-key="HTTP_SERVICE_PORT"
-                    to-key="ranger.service.http.port" default-value=""/>
-
-          <transfer operation="copy" from-type="admin-properties" from-key="authServiceHostName"
-                    to-key="ranger.unixauth.service.hostname" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="authServicePort"
-                    to-key="ranger.unixauth.service.port" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="authentication_method"
-                    to-key="ranger.authentication.method" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="remoteLoginEnabled"
-                    to-key="ranger.unixauth.remote.login.enabled" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_url" to-key="ranger.ldap.url"
-                    default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_userDNpattern"
-                    to-key="ranger.ldap.user.dnpattern" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupSearchBase"
-                    to-key="ranger.ldap.group.searchbase" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupSearchFilter"
-                    to-key="ranger.ldap.group.searchfilter" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupRoleAttribute"
-                    to-key="ranger.ldap.group.roleattribute" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_ad_domain"
-                    to-key="ranger.ldap.ad.domain" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_ad_url" to-key="ranger.ldap.ad.url"
-                    default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="db_user" to-key="ranger.jpa.jdbc.user"
-                    default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="db_password"
-                    to-key="ranger.jpa.jdbc.password" default-value="" mask="true"/>
-          <transfer operation="copy" from-type="admin-properties" from-key="audit_db_user"
-                    to-key="ranger.jpa.audit.jdbc.user" default-value=""/>
-          <transfer operation="copy" from-type="admin-properties" from-key="audit_db_password"
-                    to-key="ranger.jpa.audit.jdbc.password" default-value="" mask="true"/>
-
-          <set key="ranger.externalurl" value="{{ranger_external_url}}"/>
-          <set key="ranger.audit.source.type" value="db"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site">
-          <type>ranger-site</type>
-          <transfer operation="delete" delete-key="HTTPS_CLIENT_AUTH"/>
-          <transfer operation="delete" delete-key="HTTPS_KEYSTORE_FILE"/>
-          <transfer operation="delete" delete-key="HTTPS_KEYSTORE_PASS"/>
-          <transfer operation="delete" delete-key="HTTPS_KEY_ALIAS"/>
-          <transfer operation="delete" delete-key="HTTPS_SERVICE_PORT"/>
-          <transfer operation="delete" delete-key="HTTP_ENABLED"/>
-          <transfer operation="delete" delete-key="HTTP_SERVICE_PORT"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_delete_oracle_home">
-          <type>ranger-env</type>
-          <transfer operation="delete" delete-key="oracle_home"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit">
-          <condition type="ranger-env" key="xasecure.audit.destination.hdfs" value="false">
+    <service name="RANGER">
+      <component name="RANGER_ADMIN">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env">
             <type>ranger-env</type>
-            <key>xasecure.audit.destination.hdfs</key>
-            <value>false</value>
-          </condition>
-        </definition>
+            <set key="xml_configurations_supported" value="true"/>
+            <set key="xasecure.audit.destination.solr" value="false"/>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit">
-          <condition type="ranger-env" key="xasecure.audit.destination.db" value="true">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
+            <type>ranger-admin-site</type>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_CLIENT_AUTH"
+                      to-key="ranger.service.https.attrib.clientAuth" default-value=""/>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_FILE"
+                      to-key="ranger.https.attrib.keystore.file" default-value=""/>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_PASS"
+                      to-key="ranger.service.https.attrib.keystore.pass" default-value="" mask="true"/>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEY_ALIAS"
+                      to-key="ranger.service.https.attrib.keystore.keyalias" default-value=""/>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_SERVICE_PORT"
+                      to-key="ranger.service.https.port" default-value=""/>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTP_ENABLED"
+                      to-key="ranger.service.http.enabled" default-value=""/>
+            <transfer operation="copy" from-type="ranger-site" from-key="HTTP_SERVICE_PORT"
+                      to-key="ranger.service.http.port" default-value=""/>
+
+            <transfer operation="copy" from-type="admin-properties" from-key="authServiceHostName"
+                      to-key="ranger.unixauth.service.hostname" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="authServicePort"
+                      to-key="ranger.unixauth.service.port" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="authentication_method"
+                      to-key="ranger.authentication.method" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="remoteLoginEnabled"
+                      to-key="ranger.unixauth.remote.login.enabled" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_url" to-key="ranger.ldap.url"
+                      default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_userDNpattern"
+                      to-key="ranger.ldap.user.dnpattern" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupSearchBase"
+                      to-key="ranger.ldap.group.searchbase" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupSearchFilter"
+                      to-key="ranger.ldap.group.searchfilter" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_groupRoleAttribute"
+                      to-key="ranger.ldap.group.roleattribute" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_ad_domain"
+                      to-key="ranger.ldap.ad.domain" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="xa_ldap_ad_url" to-key="ranger.ldap.ad.url"
+                      default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="db_user" to-key="ranger.jpa.jdbc.user"
+                      default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="db_password"
+                      to-key="ranger.jpa.jdbc.password" default-value="" mask="true"/>
+            <transfer operation="copy" from-type="admin-properties" from-key="audit_db_user"
+                      to-key="ranger.jpa.audit.jdbc.user" default-value=""/>
+            <transfer operation="copy" from-type="admin-properties" from-key="audit_db_password"
+                      to-key="ranger.jpa.audit.jdbc.password" default-value="" mask="true"/>
+
+            <set key="ranger.externalurl" value="{{ranger_external_url}}"/>
+            <set key="ranger.audit.source.type" value="db"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site">
+            <type>ranger-site</type>
+            <transfer operation="delete" delete-key="HTTPS_CLIENT_AUTH"/>
+            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_FILE"/>
+            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_PASS"/>
+            <transfer operation="delete" delete-key="HTTPS_KEY_ALIAS"/>
+            <transfer operation="delete" delete-key="HTTPS_SERVICE_PORT"/>
+            <transfer operation="delete" delete-key="HTTP_ENABLED"/>
+            <transfer operation="delete" delete-key="HTTP_SERVICE_PORT"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_delete_oracle_home">
             <type>ranger-env</type>
-            <key>xasecure.audit.destination.db</key>
-            <value>true</value>
-          </condition>
-        </definition>
+            <transfer operation="delete" delete-key="oracle_home"/>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync" summary="Updating Ranger Usersync">
-          <type>ranger-ugsync-site</type>
-          <transfer operation="copy" from-type="usersync-properties" from-key="CRED_KEYSTORE_FILENAME"
-                    to-key="ranger.usersync.credstore.filename" default-value="/etc/ranger/usersync/ugsync.jceks"/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="MIN_UNIX_USER_ID_TO_SYNC"
-                    to-key="ranger.usersync.unix.minUserId" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_DN"
-                    to-key="ranger.usersync.ldap.binddn" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_PASSWORD"
-                    to-key="ranger.usersync.ldap.ldapbindpassword" default-value="" mask="true"/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION"
-                    to-key="ranger.usersync.ldap.groupname.caseconversion" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_URL"
-                    to-key="ranger.usersync.ldap.url" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USERNAME_CASE_CONVERSION"
-                    to-key="ranger.usersync.ldap.username.caseconversion" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE"
-                    to-key="ranger.usersync.ldap.user.groupnameattribute" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_NAME_ATTRIBUTE"
-                    to-key="ranger.usersync.ldap.user.nameattribute" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_OBJECT_CLASS"
-                    to-key="ranger.usersync.ldap.user.objectclass" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_BASE"
-                    to-key="ranger.usersync.ldap.user.searchbase" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_FILTER"
-                    to-key="ranger.usersync.ldap.user.searchfilter" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_SCOPE"
-                    to-key="ranger.usersync.ldap.user.searchscope" default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="logdir" to-key="ranger.usersync.logdir"
-                    default-value=""/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_SOURCE"
-                    to-key="ranger.usersync.sync.source" default-value="unix"/>
-          <transfer operation="copy" from-type="usersync-properties" from-key="POLICY_MGR_URL"
-                    to-key="ranger.usersync.policymanager.baseURL" default-value="{{ranger_external_url}}"/>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit">
+            <condition type="ranger-env" key="xasecure.audit.destination.hdfs" value="false">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.hdfs</key>
+              <value>false</value>
+            </condition>
+          </definition>
 
-          <set key="ranger.usersync.source.impl.class" value=""/>
-          <set key="ranger.usersync.ldap.searchBase" value=""/>
-          <set key="ranger.usersync.group.memberattributename" value=""/>
-          <set key="ranger.usersync.group.nameattribute" value=""/>
-          <set key="ranger.usersync.group.objectclass" value=""/>
-          <set key="ranger.usersync.group.searchbase" value=""/>
-          <set key="ranger.usersync.group.searchenabled" value=""/>
-          <set key="ranger.usersync.group.searchfilter" value=""/>
-          <set key="ranger.usersync.group.searchscope" value=""/>
-          <set key="ranger.usersync.group.usermapsyncenabled" value=""/>
-          <set key="ranger.usersync.sleeptimeinmillisbetweensynccycle" value="60000"/>
-        </definition>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit">
+            <condition type="ranger-env" key="xasecure.audit.destination.db" value="true">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.db</key>
+              <value>true</value>
+            </condition>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source">
-          <condition type="usersync-properties" key="SYNC_SOURCE" value="unix">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync" summary="Updating Ranger Usersync">
             <type>ranger-ugsync-site</type>
-            <key>ranger.usersync.source.impl.class</key>
-            <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
-          </condition>
+            <transfer operation="copy" from-type="usersync-properties" from-key="CRED_KEYSTORE_FILENAME"
+                      to-key="ranger.usersync.credstore.filename" default-value="/etc/ranger/usersync/ugsync.jceks"/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="MIN_UNIX_USER_ID_TO_SYNC"
+                      to-key="ranger.usersync.unix.minUserId" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_DN"
+                      to-key="ranger.usersync.ldap.binddn" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_PASSWORD"
+                      to-key="ranger.usersync.ldap.ldapbindpassword" default-value="" mask="true"/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION"
+                      to-key="ranger.usersync.ldap.groupname.caseconversion" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_URL"
+                      to-key="ranger.usersync.ldap.url" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USERNAME_CASE_CONVERSION"
+                      to-key="ranger.usersync.ldap.username.caseconversion" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE"
+                      to-key="ranger.usersync.ldap.user.groupnameattribute" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_NAME_ATTRIBUTE"
+                      to-key="ranger.usersync.ldap.user.nameattribute" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_OBJECT_CLASS"
+                      to-key="ranger.usersync.ldap.user.objectclass" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_BASE"
+                      to-key="ranger.usersync.ldap.user.searchbase" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_FILTER"
+                      to-key="ranger.usersync.ldap.user.searchfilter" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_USER_SEARCH_SCOPE"
+                      to-key="ranger.usersync.ldap.user.searchscope" default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="logdir" to-key="ranger.usersync.logdir"
+                      default-value=""/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_SOURCE"
+                      to-key="ranger.usersync.sync.source" default-value="unix"/>
+            <transfer operation="copy" from-type="usersync-properties" from-key="POLICY_MGR_URL"
+                      to-key="ranger.usersync.policymanager.baseURL" default-value="{{ranger_external_url}}"/>
 
-          <condition type="usersync-properties" key="SYNC_SOURCE" value="ldap">
-            <type>ranger-ugsync-site</type>
-            <key>ranger.usersync.source.impl.class</key>
-            <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
-          </condition>
-        </definition>
+            <set key="ranger.usersync.source.impl.class" value=""/>
+            <set key="ranger.usersync.ldap.searchBase" value=""/>
+            <set key="ranger.usersync.group.memberattributename" value=""/>
+            <set key="ranger.usersync.group.nameattribute" value=""/>
+            <set key="ranger.usersync.group.objectclass" value=""/>
+            <set key="ranger.usersync.group.searchbase" value=""/>
+            <set key="ranger.usersync.group.searchenabled" value=""/>
+            <set key="ranger.usersync.group.searchfilter" value=""/>
+            <set key="ranger.usersync.group.searchscope" value=""/>
+            <set key="ranger.usersync.group.usermapsyncenabled" value=""/>
+            <set key="ranger.usersync.sleeptimeinmillisbetweensynccycle" value="60000"/>
+          </definition>
 
-        <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties">
-          <type>usersync-properties</type>
-          <transfer operation="delete" delete-key="CRED_KEYSTORE_FILENAME"/>
-          <transfer operation="delete" delete-key="MIN_UNIX_USER_ID_TO_SYNC"/>
-          <transfer operation="delete" delete-key="SYNC_INTERVAL"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_BIND_DN"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_BIND_PASSWORD"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_URL"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_USERNAME_CASE_CONVERSION"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_USER_NAME_ATTRIBUTE"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_USER_OBJECT_CLASS"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_BASE"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_FILTER"/>
-          <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_SCOPE"/>
-          <transfer operation="delete" delete-key="logdir"/>
-          <transfer operation="delete" delete-key="SYNC_SOURCE"/>
-          <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source">
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="unix">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
+            </condition>
 
-  <service name="HBASE">
-    <component name="HBASE_MASTER">
-      <changes>
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_adjust_phoenix_scheduler_factory">
-          <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="ldap">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties">
+            <type>usersync-properties</type>
+            <transfer operation="delete" delete-key="CRED_KEYSTORE_FILENAME"/>
+            <transfer operation="delete" delete-key="MIN_UNIX_USER_ID_TO_SYNC"/>
+            <transfer operation="delete" delete-key="SYNC_INTERVAL"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_BIND_DN"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_BIND_PASSWORD"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_URL"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_USERNAME_CASE_CONVERSION"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_NAME_ATTRIBUTE"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_OBJECT_CLASS"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_BASE"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_FILTER"/>
+            <transfer operation="delete" delete-key="SYNC_LDAP_USER_SEARCH_SCOPE"/>
+            <transfer operation="delete" delete-key="logdir"/>
+            <transfer operation="delete" delete-key="SYNC_SOURCE"/>
+            <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
+        <changes>
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_adjust_phoenix_scheduler_factory">
+            <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+              <type>hbase-site</type>
+              <key>hbase.region.server.rpc.scheduler.factory.class</key>
+              <value>org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory
+              </value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_adjust_phoenix_rpc_controller_factory">
+            <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+              <type>hbase-site</type>
+              <key>hbase.rpc.controllerfactory.class</key>
+              <value>
+                org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory
+              </value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_set_global_memstore_size">
             <type>hbase-site</type>
-            <key>hbase.region.server.rpc.scheduler.factory.class</key>
-            <value>org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory
-            </value>
-          </condition>
-        </definition>
+            <transfer operation="copy" from-type="hbase-site"
+                      from-key="hbase.regionserver.global.memstore.upperLimit"
+                      to-key="hbase.regionserver.global.memstore.size"
+                      default-value="0.4"/>
+          </definition>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_adjust_phoenix_rpc_controller_factory">
-          <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_adjust_phoenix_indexed_wal_edit_codec">
+            <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+              <type>hbase-site</type>
+              <key>hbase.regionserver.wal.codec</key>
+              <value>
+                org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec
+              </value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_adjust_authorization_coprocessors"
+                      summary="Updating Authorization Coprocessors">
             <type>hbase-site</type>
-            <key>hbase.rpc.controllerfactory.class</key>
-            <value>
-              org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory
-            </value>
-          </condition>
-        </definition>
+            <replace key="hbase.coprocessor.master.classes"
+                     find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+                     replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"/>
+            <replace key="hbase.coprocessor.region.classes"
+                     find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+                     replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"/>
+          </definition>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_set_global_memstore_size">
-          <type>hbase-site</type>
-          <transfer operation="copy" from-type="hbase-site"
-                    from-key="hbase.regionserver.global.memstore.upperLimit"
-                    to-key="hbase.regionserver.global.memstore.size"
-                    default-value="0.4"/>
-        </definition>
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_policy"
+                      summary="Transitioning Ranger HBase Policy">
+            <type>ranger-hbase-policymgr-ssl</type>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="SSL_KEYSTORE_FILE_PATH"
+                      to-key="xasecure.policymgr.clientssl.keystore"
+                      default-value="/usr/hdp/current/hbase-client/conf/ranger-plugin-keystore.jks"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="SSL_KEYSTORE_PASSWORD"
+                      to-key="xasecure.policymgr.clientssl.keystore.password"
+                      mask="true" default-value="myKeyFilePassword"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="SSL_TRUSTSTORE_FILE_PATH"
+                      to-key="xasecure.policymgr.clientssl.truststore"
+                      default-value="/usr/hdp/current/hbase-client/conf/ranger-plugin-truststore.jks"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="SSL_TRUSTSTORE_PASSWORD"
+                      to-key="xasecure.policymgr.clientssl.truststore.password"
+                      mask="true" default-value="changeit"/>
+          </definition>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_adjust_phoenix_indexed_wal_edit_codec">
-          <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_audit"
+                      summary="Transitioning Ranger HBase Audit">
+            <type>ranger-hbase-audit</type>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="XAAUDIT.DB.IS_ENABLED"
+                      to-key="xasecure.audit.destination.db"
+                      default-value="false"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"
+                      to-key="xasecure.audit.destination.hdfs.dir"
+                      default-value="hdfs://NAMENODE_HOSTNAME:8020/ranger/audit"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="XAAUDIT.HDFS.IS_ENABLED"
+                      to-key="xasecure.audit.destination.hdfs"
+                      default-value="true"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"
+                      to-key="xasecure.audit.destination.hdfs.batch.filespool.dir"
+                      default-value="/var/log/hbase/audit/hdfs/spool"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="XAAUDIT.DB.USER_NAME"
+                      to-key="xasecure.audit.destination.db.user"
+                      default-value=""/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="XAAUDIT.DB.PASSWORD"
+                      to-key="xasecure.audit.destination.db.password"
+                      mask="true" default-value=""/>
+            <set key="xasecure.audit.credential.provider.file"
+                 value="jceks://file{{credential_file}}"/>
+            <set key="xasecure.audit.destination.solr" value="false"/>
+            <set key="xasecure.audit.destination.solr.urls"
+                 value="{{ranger_audit_solr_urls}}"/>
+            <set key="xasecure.audit.destination.solr.zookeepers" value="none"/>
+            <set key="xasecure.audit.destination.solr.batch.filespool.dir"
+                 value="/var/log/hbase/audit/solr/spool"/>
+            <set key="xasecure.audit.destination.db.jdbc.driver"
+                 value="{{jdbc_driver}}"/>
+            <set key="xasecure.audit.destination.db.jdbc.url"
+                 value="{{audit_jdbc_url}}"/>
+            <set key="xasecure.audit.provider.summary.enabled" value="true"/>
+          </definition>
+
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_copy_ranger_policies">
+            <type>ranger-hbase-security</type>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="UPDATE_XAPOLICIES_ON_GRANT_REVOKE"
+                      to-key="xasecure.hbase.update.xapolicies.on.grant.revoke"
+                      default-value="true"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="POLICY_MGR_URL"
+                      to-key="ranger.plugin.hbase.policy.rest.url"
+                      default-value="{{policymgr_mgr_url}}"/>
+            <transfer operation="copy"
+                      from-type="ranger-hbase-plugin-properties"
+                      from-key="REPOSITORY_NAME"
+                      to-key="ranger.plugin.hbase.service.name"
+                      default-value="{{repo_name}}"/>
+          </definition>
+
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_delete_old_ranger_properties">
+            <type>ranger-hbase-plugin-properties</type>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="SQL_CONNECTOR_JAR"/>
+            <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
+            <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
+            <transfer operation="delete"
+                      delete-key="UPDATE_XAPOLICIES_ON_GRANT_REVOKE"/>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
+            <transfer operation="delete"
+                      delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.FLAVOUR"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.DATABASE_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME"/>
+          </definition>
+
+          <!-- These HBASE configs changed in HDP 2.3.4.0, so upgrades like HDP 2.2 to 2.3.4.0+ still need them. -->
+          <definition xsi:type="configure" id="hdp_2_3_4_0_hbase_remove_local_indexing">
             <type>hbase-site</type>
-            <key>hbase.regionserver.wal.codec</key>
-            <value>
-              org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec
-            </value>
-          </condition>
-        </definition>
+            <set key="phoenix.functions.allowUserDefinedFunctions" value="true"/>
+            <transfer operation="delete" delete-key="hbase.master.loadbalancer.class"
+                      if-key="hbase.master.loadbalancer.class"
+                      if-type="hbase-site"
+                      if-value="org.apache.phoenix.hbase.index.balancer.IndexLoadBalancer"/>
+            <replace key="hbase.coprocessor.master.classes"
+                     find="org.apache.phoenix.hbase.index.master.IndexMasterObserver"
+                     replace-with=""/>
+            <replace key="hbase.coprocessor.regionserver.classes"
+                     find="org.apache.hadoop.hbase.regionserver.LocalIndexMerger"
+                     replace-with=""/>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_adjust_authorization_coprocessors"
-                    summary="Updating Authorization Coprocessors">
-          <type>hbase-site</type>
-          <replace key="hbase.coprocessor.master.classes"
-                   find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-                   replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"/>
-          <replace key="hbase.coprocessor.region.classes"
-                   find="com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-                   replace-with="org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"/>
-        </definition>
+          </definition>
+        </changes>
+      </component>
+    </service>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_policy"
-                    summary="Transitioning Ranger HBase Policy">
-          <type>ranger-hbase-policymgr-ssl</type>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="SSL_KEYSTORE_FILE_PATH"
-                    to-key="xasecure.policymgr.clientssl.keystore"
-                    default-value="/usr/hdp/current/hbase-client/conf/ranger-plugin-keystore.jks"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="SSL_KEYSTORE_PASSWORD"
-                    to-key="xasecure.policymgr.clientssl.keystore.password"
-                    mask="true" default-value="myKeyFilePassword"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="SSL_TRUSTSTORE_FILE_PATH"
-                    to-key="xasecure.policymgr.clientssl.truststore"
-                    default-value="/usr/hdp/current/hbase-client/conf/ranger-plugin-truststore.jks"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="SSL_TRUSTSTORE_PASSWORD"
-                    to-key="xasecure.policymgr.clientssl.truststore.password"
-                    mask="true" default-value="changeit"/>
-        </definition>
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations">
+            <summary>Updating oozie-site to remove redundant configurations</summary>
+            <type>oozie-site</type>
+            <transfer operation="delete" delete-key="*" preserve-edits="true">
+              <keep-key>oozie.base.url</keep-key>
+              <keep-key>oozie.services.ext</keep-key>
+              <keep-key>oozie.db.schema.name</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.username</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.password</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.driver</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.url</keep-key>
+              <keep-key>oozie.service.AuthorizationService.security.enabled</keep-key>
+              <keep-key>oozie.authentication.type</keep-key>
+              <keep-key>oozie.authentication.simple.anonymous.allowed</keep-key>
+              <keep-key>oozie.authentication.kerberos.name.rules</keep-key>
+              <keep-key>oozie.service.HadoopAccessorService.hadoop.configurations</keep-key>
+              <keep-key>oozie.service.HadoopAccessorService.kerberos.enabled</keep-key>
+              <keep-key>oozie.service.URIHandlerService.uri.handlers</keep-key>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_audit"
-                    summary="Transitioning Ranger HBase Audit">
-          <type>ranger-hbase-audit</type>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="XAAUDIT.DB.IS_ENABLED"
-                    to-key="xasecure.audit.destination.db"
-                    default-value="false"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"
-                    to-key="xasecure.audit.destination.hdfs.dir"
-                    default-value="hdfs://NAMENODE_HOSTNAME:8020/ranger/audit"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="XAAUDIT.HDFS.IS_ENABLED"
-                    to-key="xasecure.audit.destination.hdfs"
-                    default-value="true"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"
-                    to-key="xasecure.audit.destination.hdfs.batch.filespool.dir"
-                    default-value="/var/log/hbase/audit/hdfs/spool"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="XAAUDIT.DB.USER_NAME"
-                    to-key="xasecure.audit.destination.db.user"
-                    default-value=""/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="XAAUDIT.DB.PASSWORD"
-                    to-key="xasecure.audit.destination.db.password"
-                    mask="true" default-value=""/>
-          <set key="xasecure.audit.credential.provider.file"
-               value="jceks://file{{credential_file}}"/>
-          <set key="xasecure.audit.destination.solr" value="false"/>
-          <set key="xasecure.audit.destination.solr.urls"
-               value="{{ranger_audit_solr_urls}}"/>
-          <set key="xasecure.audit.destination.solr.zookeepers" value="none"/>
-          <set key="xasecure.audit.destination.solr.batch.filespool.dir"
-               value="/var/log/hbase/audit/solr/spool"/>
-          <set key="xasecure.audit.destination.db.jdbc.driver"
-               value="{{jdbc_driver}}"/>
-          <set key="xasecure.audit.destination.db.jdbc.url"
-               value="{{audit_jdbc_url}}"/>
-          <set key="xasecure.audit.provider.summary.enabled" value="true"/>
-        </definition>
+              <!-- required by Falcon and should be preserved -->
+              <keep-key>oozie.service.ELService.ext.functions.coord-job-submit-instances</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-action-create-inst</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-action-create</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-job-submit-data</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-action-start</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-sla-submit</keep-key>
+              <keep-key>oozie.service.ELService.ext.functions.coord-sla-create</keep-key>
+            </transfer>
+            <set key="oozie.credentials.credentialclasses"
+                 value="hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials"/>
+          </definition>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_copy_ranger_policies">
-          <type>ranger-hbase-security</type>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="UPDATE_XAPOLICIES_ON_GRANT_REVOKE"
-                    to-key="xasecure.hbase.update.xapolicies.on.grant.revoke"
-                    default-value="true"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="POLICY_MGR_URL"
-                    to-key="ranger.plugin.hbase.policy.rest.url"
-                    default-value="{{policymgr_mgr_url}}"/>
-          <transfer operation="copy"
-                    from-type="ranger-hbase-plugin-properties"
-                    from-key="REPOSITORY_NAME"
-                    to-key="ranger.plugin.hbase.service.name"
-                    default-value="{{repo_name}}"/>
-        </definition>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" summary="Updating Oozie Service classes">
+            <type>oozie-site</type>
+            <replace key="oozie.services" find="org.apache.oozie.service.CoordinatorStoreService," replace-with="" />
+          </definition>
+        </changes>
+      </component>
+    </service>
 
-        <definition xsi:type="configure"
-                    id="hdp_2_3_0_0_hbase_master_delete_old_ranger_properties">
-          <type>ranger-hbase-plugin-properties</type>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="SQL_CONNECTOR_JAR"/>
-          <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
-          <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
-          <transfer operation="delete"
-                    delete-key="UPDATE_XAPOLICIES_ON_GRANT_REVOKE"/>
-          <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
-          <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
-          <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
-          <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
-          <transfer operation="delete"
-                    delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.FLAVOUR"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.DATABASE_NAME"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME"/>
-        </definition>
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_deprecate_port">
+            <type>kafka-broker</type>
+            <!-- Deprecate "port" property since "listeners" will be added. -->
+            <transfer operation="delete" delete-key="port"/>
+          </definition>
 
-        <!-- These HBASE configs changed in HDP 2.3.4.0, so upgrades like HDP 2.2 to 2.3.4.0+ still need them. -->
-        <definition xsi:type="configure" id="hdp_2_3_4_0_hbase_remove_local_indexing">
-          <type>hbase-site</type>
-          <set key="phoenix.functions.allowUserDefinedFunctions" value="true"/>
-          <transfer operation="delete" delete-key="hbase.master.loadbalancer.class"
-                    if-key="hbase.master.loadbalancer.class"
-                    if-type="hbase-site"
-                    if-value="org.apache.phoenix.hbase.index.balancer.IndexLoadBalancer"/>
-          <replace key="hbase.coprocessor.master.classes"
-                   find="org.apache.phoenix.hbase.index.master.IndexMasterObserver"
-                   replace-with=""/>
-          <replace key="hbase.coprocessor.regionserver.classes"
-                   find="org.apache.hadoop.hbase.regionserver.LocalIndexMerger"
-                   replace-with=""/>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_kafka_broker_deprecate_port">
+            <type>kafka-broker</type>
+            <!-- Deprecate "port" property since "listeners" will be added. -->
+            <transfer operation="delete" delete-key="port"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
 
-        </definition>
-      </changes>
-    </component>
-  </service>
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_knox_configure_ranger_policy"
+                      summary="Configuring Ranger Knox Policy">
+            <type>ranger-knox-policymgr-ssl</type>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH"
+                      to-key="xasecure.policymgr.clientssl.keystore"
+                      default-value="/usr/hdp/current/knox-server/conf/ranger-plugin-keystore.jks"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD"
+                      to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword"
+                      mask="true"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH"
+                      to-key="xasecure.policymgr.clientssl.truststore"
+                      default-value="/usr/hdp/current/knox-server/conf/ranger-plugin-truststore.jks"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD"
+                      to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
+          </definition>
 
-  <service name="OOZIE">
-    <component name="OOZIE_SERVER">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations">
-          <summary>Updating oozie-site to remove redundant configurations</summary>
-          <type>oozie-site</type>
-          <transfer operation="delete" delete-key="*" preserve-edits="true">
-            <keep-key>oozie.base.url</keep-key>
-            <keep-key>oozie.services.ext</keep-key>
-            <keep-key>oozie.db.schema.name</keep-key>
-            <keep-key>oozie.service.JPAService.jdbc.username</keep-key>
-            <keep-key>oozie.service.JPAService.jdbc.password</keep-key>
-            <keep-key>oozie.service.JPAService.jdbc.driver</keep-key>
-            <keep-key>oozie.service.JPAService.jdbc.url</keep-key>
-            <keep-key>oozie.service.AuthorizationService.security.enabled</keep-key>
-            <keep-key>oozie.authentication.type</keep-key>
-            <keep-key>oozie.authentication.simple.anonymous.allowed</keep-key>
-            <keep-key>oozie.authentication.kerberos.name.rules</keep-key>
-            <keep-key>oozie.service.HadoopAccessorService.hadoop.configurations</keep-key>
-            <keep-key>oozie.service.HadoopAccessorService.kerberos.enabled</keep-key>
-            <keep-key>oozie.service.URIHandlerService.uri.handlers</keep-key>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_knox_configure_ranger_knox_audit"
+                      summary="Configuring Ranger Knox Audit">
+            <type>ranger-knox-audit</type>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED"
+                      to-key="xasecure.audit.destination.db" default-value="true"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties"
+                      from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY" to-key="xasecure.audit.destination.hdfs.dir"
+                      default-value="hdfs://NAMENODE_HOSTNAME:8020/ranger/audit"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED"
+                      to-key="xasecure.audit.destination.hdfs" default-value="true"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties"
+                      from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"
+                      to-key="xasecure.audit.destination.hdfs.batch.filespool.dir"
+                      default-value="/var/log/knox/audit/hdfs/spool"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.USER_NAME"
+                      to-key="xasecure.audit.destination.db.user" default-value=""/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.PASSWORD"
+                      to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
+            <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
+            <set key="xasecure.audit.destination.solr" value="false"/>
+            <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
+            <set key="xasecure.audit.destination.solr.zookeepers" value="none"/>
+            <set key="xasecure.audit.destination.solr.batch.filespool.dir" value="/var/log/knox/audit/solr/spool"/>
+            <set key="xasecure.audit.destination.db.jdbc.driver" value="{{jdbc_driver}}"/>
+            <set key="xasecure.audit.destination.db.jdbc.url" value="{{audit_jdbc_url}}"/>
+            <set key="xasecure.audit.provider.summary.enabled" value="false"/>
+          </definition>
 
-            <!-- required by Falcon and should be preserved -->
-            <keep-key>oozie.service.ELService.ext.functions.coord-job-submit-instances</keep-key>
-            <keep-key>oozie.service.ELService.ext.functions.coord-action-create-inst</keep-key>
-            <keep-key>oozie.service.ELService.ext.functions.coord-action-create</keep-key>
-            <keep-key>oozie.service.ELService.ext.functions.coord-job-submit-data</keep-key>
-            <keep-key>oozie.service.ELService.ext.functions.coord-action-start</keep-key>
-            <keep-key>oozie.service.ELService.ext.functions.coord-sla-submit</keep-key>
-            <keep-key>oozie.service.ELService.ext.functions.coord-sla-create</keep-key>
-          </transfer>
-          <set key="oozie.credentials.credentialclasses"
-               value="hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" summary="Updating Oozie Service classes">
-          <type>oozie-site</type>
-          <replace key="oozie.services" find="org.apache.oozie.service.CoordinatorStoreService," replace-with="" />
-        </definition>
-      </changes>
-    </component>
-  </service>
-
-  <service name="KAFKA">
-    <component name="KAFKA_BROKER">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_deprecate_port">
-          <type>kafka-broker</type>
-          <!-- Deprecate "port" property since "listeners" will be added. -->
-          <transfer operation="delete" delete-key="port"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_4_0_0_kafka_broker_deprecate_port">
-          <type>kafka-broker</type>
-          <!-- Deprecate "port" property since "listeners" will be added. -->
-          <transfer operation="delete" delete-key="port"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
-
-  <service name="KNOX">
-    <component name="KNOX_GATEWAY">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_3_0_0_knox_configure_ranger_policy"
-                    summary="Configuring Ranger Knox Policy">
-          <type>ranger-knox-policymgr-ssl</type>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH"
-                    to-key="xasecure.policymgr.clientssl.keystore"
-                    default-value="/usr/hdp/current/knox-server/conf/ranger-plugin-keystore.jks"/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD"
-                    to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword"
-                    mask="true"/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH"
-                    to-key="xasecure.policymgr.clientssl.truststore"
-                    default-value="/usr/hdp/current/knox-server/conf/ranger-plugin-truststore.jks"/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD"
-                    to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_3_0_0_knox_configure_ranger_knox_audit"
-                    summary="Configuring Ranger Knox Audit">
-          <type>ranger-knox-audit</type>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED"
-                    to-key="xasecure.audit.destination.db" default-value="true"/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties"
-                    from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY" to-key="xasecure.audit.destination.hdfs.dir"
-                    default-value="hdfs://NAMENODE_HOSTNAME:8020/ranger/audit"/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED"
-                    to-key="xasecure.audit.destination.hdfs" default-value="true"/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties"
-                    from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"
-                    to-key="xasecure.audit.destination.hdfs.batch.filespool.dir"
-                    default-value="/var/log/knox/audit/hdfs/spool"/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.USER_NAME"
-                    to-key="xasecure.audit.destination.db.user" default-value=""/>
-          <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.PASSWORD"
-                    to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
-          <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
-          <set key="xasecure.audit.destination.solr" value="false"/>
-          <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
-          <set key="xasecure.audit.destination.solr.zookeepers" value="none"/>
-          <set key="xasecure.audit.destination.solr.batch.filespool.dir" value="/var/log/knox/audit/solr/spool"/>
-          <set key="xasecure.audit.destination.db.jdbc.driver" value="{{jdbc_driver}}"/>
-          <set key="xasecure.audit.destination.db.jdbc.url" value="{{audit_jdbc_url}}"/>
-          <set key="xasecure.audit.provider.summary.enabled" value="false"/>
-        </definition>
-
-        <definition xsi:type="configure" id="hdp_2_3_0_0_knox_remove_deprecated_ranger_properties"
-                    summary="Removing Deprecated Ranger Knox Plugin Configurations">
-          <type>ranger-knox-plugin-properties</type>
-          <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
-          <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
-          <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
-          <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
-          <transfer operation="delete" delete-key="SQL_CONNECTOR_JAR"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.FLAVOUR"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.DATABASE_NAME"/>
-          <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME"/>
-          <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
-          <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_knox_remove_deprecated_ranger_properties"
+                      summary="Removing Deprecated Ranger Knox Plugin Configurations">
+            <type>ranger-knox-plugin-properties</type>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="SQL_CONNECTOR_JAR"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.FLAVOUR"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.DATABASE_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME"/>
+            <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
+            <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+  </services>
 
 </upgrade-config-changes>

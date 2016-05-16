@@ -815,7 +815,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (pack.getType() == UpgradeType.NON_ROLLING) {
       boolean foundGroupWithNameUPDATE_DESIRED_STACK_ID = false;
       for (UpgradeGroupHolder group : groups) {
-        if (group.name.equalsIgnoreCase(this.CONST_UPGRADE_GROUP_NAME)) {
+        if (group.name.equalsIgnoreCase(CONST_UPGRADE_GROUP_NAME)) {
           foundGroupWithNameUPDATE_DESIRED_STACK_ID = true;
           break;
         }
@@ -823,7 +823,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       if (foundGroupWithNameUPDATE_DESIRED_STACK_ID == false) {
         throw new AmbariException(String.format("NonRolling Upgrade Pack %s requires a Group with name %s",
-            pack.getName(), this.CONST_UPGRADE_GROUP_NAME));
+            pack.getName(), CONST_UPGRADE_GROUP_NAME));
       }
     }
 
@@ -846,27 +846,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, pack, userName);
     }
 
-    // Resolve or build a proper config upgrade pack
-    List<UpgradePack.IntermediateStack> intermediateStacks = pack.getIntermediateStacks();
-    ConfigUpgradePack configUpgradePack;
-
-    // No intermediate stacks
-    if (intermediateStacks == null || intermediateStacks.isEmpty()) {
-      configUpgradePack = s_metaProvider.get().getConfigUpgradePack(
-              targetStackId.getStackName(), targetStackId.getStackVersion());
-    } else {
-      // For cross-stack upgrade, follow all major stacks and merge a new config upgrade pack from all
-      // target stacks involved into upgrade
-      ArrayList<ConfigUpgradePack> intermediateConfigUpgradePacks = new ArrayList<>();
-      // Config change definitions are taken from all stacks up to (but excluding) target stack
-      intermediateStacks = intermediateStacks.subList(0, intermediateStacks.size() - 1);
-      for (UpgradePack.IntermediateStack intermediateStack : intermediateStacks) {
-        ConfigUpgradePack intermediateConfigUpgradePack = s_metaProvider.get().getConfigUpgradePack(
-                targetStackId.getStackName(), intermediateStack.version);
-        intermediateConfigUpgradePacks.add(intermediateConfigUpgradePack);
-      }
-      configUpgradePack = ConfigUpgradePack.merge(intermediateConfigUpgradePacks);
-    }
+    // resolve or build a proper config upgrade pack - always start out with the config pack
+    // for the current stack and merge into that
+    //
+    // HDP 2.2 to 2.3 should start with the config-upgrade.xml from HDP 2.2
+    // HDP 2.2 to 2.4 should start with HDP 2.2 and merge in HDP 2.3's config-upgrade.xml
+    ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(pack, sourceStackId);
 
     // TODO: for now, all service components are transitioned to upgrading state
     // TODO: When performing patch upgrade, we should only target supported services/components
@@ -1716,6 +1701,64 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       } catch (AmbariException e) {
         LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
       }
+    }
+  }
+
+  /**
+   * Builds the correct {@link ConfigUpgradePack} based on the upgrade and
+   * source stack.
+   * <ul>
+   * <li>HDP 2.2 to HDP 2.2
+   * <ul>
+   * <li>Uses {@code config-upgrade.xml} from HDP 2.2
+   * </ul>
+   * <li>HDP 2.2 to HDP 2.3
+   * <ul>
+   * <li>Uses {@code config-upgrade.xml} from HDP 2.2
+   * </ul>
+   * <li>HDP 2.2 to HDP 2.4
+   * <ul>
+   * <li>Uses {@code config-upgrade.xml} from HDP 2.2 merged with the one from
+   * HDP 2.3
+   * </ul>
+   * <ul>
+   */
+  public static final class ConfigurationPackBuilder {
+
+    /**
+     * Builds the configurations to use for the specified upgrade and source
+     * stack.
+     *
+     * @param upgradePack
+     *          the upgrade pack (not {@code null}).
+     * @param sourceStackId
+     *          the source stack (not {@code null}).
+     * @return the {@link ConfigUpgradePack} which contains all of the necessary
+     *         configuration definitions for the upgrade.
+     */
+    public static ConfigUpgradePack build(UpgradePack upgradePack, StackId sourceStackId) {
+      List<UpgradePack.IntermediateStack> intermediateStacks = upgradePack.getIntermediateStacks();
+      ConfigUpgradePack configUpgradePack = s_metaProvider.get().getConfigUpgradePack(
+          sourceStackId.getStackName(), sourceStackId.getStackVersion());
+
+      // merge in any intermediate stacks
+      if (null != intermediateStacks) {
+
+        // start out with the source stack's config pack
+        ArrayList<ConfigUpgradePack> configPacksToMerge = Lists.newArrayList(configUpgradePack);
+
+        for (UpgradePack.IntermediateStack intermediateStack : intermediateStacks) {
+          ConfigUpgradePack intermediateConfigUpgradePack = s_metaProvider.get().getConfigUpgradePack(
+              sourceStackId.getStackName(), intermediateStack.version);
+
+          configPacksToMerge.add(intermediateConfigUpgradePack);
+        }
+
+        // merge all together
+        configUpgradePack = ConfigUpgradePack.merge(configPacksToMerge);
+      }
+
+      return configUpgradePack;
     }
   }
 }
