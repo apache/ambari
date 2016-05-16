@@ -983,7 +983,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   createClusterSuccess: function (data, xhr, params) {
-    App.set('clusterName', params.cluster)
+    App.set('clusterName', params.cluster);
   },
 
   /**

@@ -45,4 +45,26 @@ describe('App.MainDashboardServiceRangerView', function () {
     });
   });
 
+  describe("#isRangerTagsyncInStack", function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.StackServiceComponent, 'find');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("no RANGER_TAGSYNC component", function() {
+      this.mock.returns([]);
+      view.propertyDidChange('isRangerTagsyncInStack');
+      expect(view.get('isRangerTagsyncInStack')).to.be.false;
+    });
+
+    it("NFS_GATEWAY component present", function() {
+      this.mock.returns([{componentName: 'RANGER_TAGSYNC'}]);
+      view.propertyDidChange('isRangerTagsyncInStack');
+      expect(view.get('isRangerTagsyncInStack')).to.be.true;
+    });
+  });
+
 });

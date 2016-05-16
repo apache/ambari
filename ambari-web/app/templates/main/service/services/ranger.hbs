@@ -19,22 +19,24 @@
 {{view view.dashboardMasterComponentView}}
 
 <!-- Ranger Tagsyncs -->
-<tr {{bindAttr class=":component view.rangerTagsyncComponent.componentName"}}>
-  <td class="summary-label">
-    <a href="#" {{action filterHosts view.rangerTagsyncComponent}}>{{t dashboard.services.ranger.rangerTagsyncs}}</a>
-  </td>
-  <td class="summary-value">
-    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-      <span>
-        {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.rangerTagsyncsStarted" totalComponentsBinding="view.service.rangerTagsyncsTotal"}}
-          {{view.liveComponents}}/{{view.totalComponents}}
-        {{/view}}
-      </span>{{t common.started}}
-    {{else}}
-      {{t common.loading.eclipses}}
-    {{/if}}
-  </td>
-</tr>
+{{#if view.isRangerTagsyncInStack}}
+  <tr {{bindAttr class=":component view.rangerTagsyncComponent.componentName"}}>
+    <td class="summary-label">
+      <a href="#" {{action filterHosts view.rangerTagsyncComponent}}>{{t dashboard.services.ranger.rangerTagsyncs}}</a>
+    </td>
+    <td class="summary-value">
+      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+        <span>
+          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.rangerTagsyncsStarted" totalComponentsBinding="view.service.rangerTagsyncsTotal"}}
+            {{view.liveComponents}}/{{view.totalComponents}}
+          {{/view}}
+        </span>{{t common.started}}
+      {{else}}
+        {{t common.loading.eclipses}}
+      {{/if}}
+    </td>
+  </tr>
+{{/if}}
 
 {{#each item in controller.rangerPlugins}}
   {{#if item.isDisplayed}}
