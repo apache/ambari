@@ -51,7 +51,6 @@
 
   <!-- Instructs the upgrade pack how to build the configuration pack -->
   <upgrade-path>
-    <intermediate-stack version="2.3"/>
     <intermediate-stack version="2.4"/>
   </upgrade-path>
 
