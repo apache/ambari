@@ -66,8 +66,9 @@ export default Ember.Controller.extend({
     "RCFILE"      ,
     "ORC"         ,
     "PARQUET"     ,
-    "AVRO"        ,
-    "INPUTFORMAT"
+    "AVRO"
+    //,
+    //"INPUTFORMAT"  -- not supported as of now.
   ],
   selectedFileType: "ORC",
   dataTypes: [
