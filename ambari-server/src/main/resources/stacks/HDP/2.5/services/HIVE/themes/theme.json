@@ -264,7 +264,7 @@
       {
         "config": "hive-interactive-site/hive.llap.io.memory.size",
         "widget": {
-          "type": "slider",
+          "type": "label",
           "units": [
             {
               "unit-name": "GB"
