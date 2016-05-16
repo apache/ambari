@@ -79,7 +79,7 @@
             {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.showPreview"}}</button></td>
         {{/if}}
       </tr>
-      {{#if rows}}
+      {{#if showPreview}}
         <tr>
           <td class="data-upload-form-label"><label>Database</label></td>
           <td class="data-upload-form-field">
@@ -114,21 +114,20 @@
       {{/if}}
     </table>
 
+    {{#if showPreview}}
     <table class="pull-right">
       <tr>
         <td>
-          {{#if rows}}
             <button type="button" {{action "uploadTable"}}
               {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.uploadTable"}}</button>
-          {{/if}}
         </td>
       </tr>
     </table>
-
+    {{/if}}
   </div>
 
   <div>
-    {{#if rows}}
+    {{#if showPreview}}
       <div id="upload-table">
         <table class="table table-expandable no-border">
           <thead>

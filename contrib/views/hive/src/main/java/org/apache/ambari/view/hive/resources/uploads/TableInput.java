@@ -24,7 +24,7 @@ import java.util.List;
  * used as input in REST call
  */
 class TableInput {
-  public Boolean isFirstRowHeader;
+  public Boolean isFirstRowHeader = Boolean.FALSE;
   public List<ColumnDescriptionImpl> header;
   public String tableName;
   public String databaseName;
@@ -32,10 +32,6 @@ class TableInput {
    * the format of the file created for the table inside hive : ORC TEXTFILE etc.
    */
   public String fileType;
-  /**
-   * the format of the file uploaded. CSV, JSON, XML etc.
-   */
-  public String fileFormat;
 
   public TableInput() {
   }
@@ -80,11 +76,15 @@ class TableInput {
     this.fileType = fileType;
   }
 
-  public String getFileFormat() {
-    return fileFormat;
-  }
-
-  public void setFileFormat(String fileFormat) {
-    this.fileFormat = fileFormat;
+  public void validate(){
+    if( null == this.getFileType()){
+      throw new IllegalArgumentException("fileType parameter cannot be null.");
+    }
+    if( null == this.getTableName()){
+      throw new IllegalArgumentException("tableName parameter cannot be null.");
+    }
+    if( null == this.getDatabaseName()){
+      throw new IllegalArgumentException("databaseName parameter cannot be null.");
+    }
   }
 }

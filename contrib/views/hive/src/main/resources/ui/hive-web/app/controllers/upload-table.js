@@ -31,7 +31,7 @@ export default Ember.Controller.extend({
   showErrors: false,
   uploader: Uploader.create(),
   baseUrl: "/resources/upload",
-  isFirstRowHeader: true, // is first row  header
+  isFirstRowHeader: false, // is first row  header
   header: null,  // header received from server
   files: null, // files that need to be uploaded only file[0] is relevant
   firstRow: [], // the actual first row of the table.
@@ -41,6 +41,7 @@ export default Ember.Controller.extend({
   filePath: null,
   tableName: null,
   uploadProgressInfos : [],
+  showPreview : false,
   onChangeUploadSource : function(){
     this.clearFields();
   }.observes("uploadSource"),
@@ -135,11 +136,12 @@ export default Ember.Controller.extend({
   },
 
   clearFields: function () {
+    this.set("showPreview",false);
     this.set("hdfsPath");
     this.set("header");
     this.set("rows");
     this.set("error");
-    this.set('isFirstRowHeader',true);
+    this.set('isFirstRowHeader',false);
     this.set('files');
     this.set("firstRow");
     this.set("selectedDatabase",null);
@@ -242,12 +244,14 @@ export default Ember.Controller.extend({
 
   onGeneratePreviewSuccess: function (data) {
     console.log("onGeneratePreviewSuccess");
+    this.set("showPreview",true);
     this.hideUploadModal();
     this.previewTable(data);
   },
 
   onGeneratePreviewFailure: function (error) {
     console.log("onGeneratePreviewFailure");
+    this.set("showPreview",false);
     this.hideUploadModal();
     this.setError(error);
   },

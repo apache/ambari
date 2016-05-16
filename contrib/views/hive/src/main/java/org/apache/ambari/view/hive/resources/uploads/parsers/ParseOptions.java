@@ -29,7 +29,9 @@ public class ParseOptions {
 
   public enum HEADER {
     FIRST_RECORD,
-    PROVIDED_BY_USER
+    PROVIDED_BY_USER, // not used right now but can be used when some metadata of file provide this information
+    EMBEDDED, // this one is for JSON/ XML and may be other file formats where its embedded with the data
+    NONE   // if the file does not contain header information at all
   }
   final public static String OPTIONS_FILE_TYPE = "FILE_TYPE";
   final public static String OPTIONS_HEADER = "HEADER";

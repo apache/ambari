@@ -59,7 +59,7 @@ public class DataParserJSONTest {
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
-    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_NUMBER_OF_PREVIEW_ROWS, 7);
 
     DataParser dp = null;
@@ -69,7 +69,7 @@ public class DataParserJSONTest {
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
       Assert.assertNotNull(pd.getHeader());
-      Assert.assertEquals(8, pd.getPreviewRows().size()); // header row + preview rows
+      Assert.assertEquals(7, pd.getPreviewRows().size()); // header row + preview rows
       Assert.assertEquals(14, pd.getHeader().size());
       ColumnDescription[] cd = {new ColumnDescriptionImpl("col1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
               new ColumnDescriptionImpl("col2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1),
@@ -86,7 +86,6 @@ public class DataParserJSONTest {
               new ColumnDescriptionImpl("col13", ColumnDescriptionShort.DataTypes.STRING.toString(), 12),
               new ColumnDescriptionImpl("col14", ColumnDescriptionShort.DataTypes.DOUBLE.toString(), 13)};
 
-      Row row1 = new Row(new Object[]{"col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14"});
       Row row2 = new Row(new Object[]{"a", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "4.4"});
       Row row3 = new Row(new Object[]{"b", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "5.4"});
       Row row4 = new Row(new Object[]{"c", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "6.4"});
@@ -95,7 +94,7 @@ public class DataParserJSONTest {
       Row row7 = new Row(new Object[]{"f", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "9.4"});
       Row row8 = new Row(new Object[]{"g", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "10.4"});
 
-      Row[] rows = {row1, row2, row3, row4, row5, row6, row7, row8};
+      Row[] rows = { row2, row3, row4, row5, row6, row7, row8};
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
@@ -160,13 +159,13 @@ public class DataParserJSONTest {
     try {
       ParseOptions parseOptions = new ParseOptions();
       parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
-      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
 
       dp = new DataParser(sr, parseOptions);
 
       PreviewData pd = dp.parsePreview();
 
-      Assert.assertNull(pd.getPreviewRows().get(2).getRow()[13]);
+      Assert.assertNull(pd.getPreviewRows().get(1).getRow()[13]);
     } finally {
       if (null != dp)
         dp.close();
@@ -194,7 +193,7 @@ public class DataParserJSONTest {
     try {
       ParseOptions parseOptions = new ParseOptions();
       parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
-      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
 
       dp = new DataParser(sr, parseOptions);
 
@@ -206,4 +205,93 @@ public class DataParserJSONTest {
       sr.close();
     }
   }
+
+  /**
+   * One row JSON will give embedde column names and 1st row in preview if HEADER.EMBEDDED is selected
+   * @throws IOException
+   */
+  @Test
+  public void testParsePreview1RowJSON() throws IOException {
+    String str = "[ "
+      + "{\"col1\": \"d\", \n\"col2\": \"abcd\"  }"       // extra comma in this line
+      + "]";
+    StringReader sr = new StringReader(str);
+
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
+
+    DataParser dp = null;
+    try {
+      dp = new DataParser(sr, parseOptions);
+
+      PreviewData pd = dp.parsePreview();
+      Assert.assertNotNull(pd.getPreviewRows());
+      Assert.assertNotNull(pd.getHeader());
+      Assert.assertEquals(1, pd.getPreviewRows().size());
+      Assert.assertEquals(2, pd.getHeader().size());
+      ColumnDescription[] cd = {new ColumnDescriptionImpl("col1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
+        new ColumnDescriptionImpl("col2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1)};
+
+      Object cols1[] = new Object[2];
+      cols1[0] = "d";
+      cols1[1] = "abcd";
+      Row row1 = new Row(cols1);
+
+      Row[] rows = {row1};
+
+      Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
+      Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
+    } finally {
+      if (null != dp)
+        dp.close();
+
+      sr.close();
+    }
+  }
+
+  /**
+   * One row JSON will give default column names and 1st row in preview if HEADER.PROVIDED_BY_USER is selected
+   * @throws IOException
+   */
+  @Test
+  public void testParsePreview1RowJSONHeaderProvided() throws IOException {
+    String str = "[ "
+      + "{\"col1\": \"d\", \n\"col2\": \"abcd\"  }"       // extra comma in this line
+      + "]";
+    StringReader sr = new StringReader(str);
+
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.PROVIDED_BY_USER.toString());
+
+    DataParser dp = null;
+    try {
+      dp = new DataParser(sr, parseOptions);
+
+      PreviewData pd = dp.parsePreview();
+      Assert.assertNotNull(pd.getPreviewRows());
+      Assert.assertNotNull(pd.getHeader());
+      Assert.assertEquals(1, pd.getPreviewRows().size());
+      Assert.assertEquals(2, pd.getHeader().size());
+      ColumnDescription[] cd = {new ColumnDescriptionImpl("Column1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
+        new ColumnDescriptionImpl("Column2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1)};
+
+      Object cols1[] = new Object[2];
+      cols1[0] = "d";
+      cols1[1] = "abcd";
+      Row row1 = new Row(cols1);
+
+      Row[] rows = {row1};
+
+      Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
+      Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
+    } finally {
+      if (null != dp)
+        dp.close();
+
+      sr.close();
+    }
+  }
+
 }
