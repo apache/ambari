@@ -32,7 +32,8 @@ else:
   # The logic for LZO also exists in OOZIE's params.py
   io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
   lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-  lzo_packages = get_lzo_packages(stack_version_unformatted)
+  current_stack_full_version = default("/hostLevelParams/current_version", None)
+  lzo_packages = get_lzo_packages(stack_version_unformatted, current_stack_full_version)
 
   exclude_packages = []
   if not lzo_enabled:
