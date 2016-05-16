@@ -267,8 +267,11 @@ def hive(name=None):
        content=Template("hive.conf.j2")
        )
 
-  if (name == 'metastore' or name == 'hiveserver2') and params.target_hive is not None and not os.path.exists(params.target_hive):
-    jdbc_connector(params.target_hive)
+  if name == 'metastore' or name == 'hiveserver2':
+    if params.target_hive is not None and not os.path.exists(params.target_hive):
+      jdbc_connector(params.target_hive)
+    if params.target_hive2 is not None and not os.path.exists(params.target_hive2):
+      jdbc_connector(params.target_hive2)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -288,13 +291,13 @@ def hive(name=None):
     )
     if params.init_metastore_schema:
       create_schema_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
-                                 "{hive_bin}/schematool -initSchema "
+                                 "{hive_schematool_bin}/schematool -initSchema "
                                  "-dbType {hive_metastore_db_type} "
                                  "-userName {hive_metastore_user_name} "
                                  "-passWord {hive_metastore_user_passwd!p} -verbose")
 
       check_schema_created_cmd = as_user(format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
-                                        "{hive_bin}/schematool -info "
+                                        "{hive_schematool_bin}/schematool -info "
                                         "-dbType {hive_metastore_db_type} "
                                         "-userName {hive_metastore_user_name} "
                                         "-passWord {hive_metastore_user_passwd!p} -verbose"), params.hive_user)

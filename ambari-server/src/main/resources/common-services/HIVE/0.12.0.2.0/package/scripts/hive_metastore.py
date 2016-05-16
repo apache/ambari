@@ -223,7 +223,7 @@ class HiveMetastoreDefault(HiveMetastore):
       File(target_directory_and_filename, mode = 0644)
 
     # build the schema tool command
-    binary = format("{stack_root}/{version}/hive/bin/schematool")
+    binary = format("{hive_schematool_ver_bin}/schematool")
 
     # the conf.server directory changed locations between stack versions
     # since the configurations have not been written out yet during an upgrade
