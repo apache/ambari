@@ -26,18 +26,16 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions import StackFeature
 
 # TODO: Make list of lzo packages stack driven
-def get_lzo_packages(stack_version_unformatted, current_stack_full_version):
+def get_lzo_packages(stack_version_unformatted):
   lzo_packages = []
-  current_stack_full_version = current_stack_full_version.replace(".", "_")
-  current_stack_full_version = current_stack_full_version.replace("-", "_")
-
+ 
   if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
     lzo_packages += ["lzo", "hadoop-lzo-native"]
   elif OSCheck.is_ubuntu_family():
     lzo_packages += ["liblzo2-2"]
 
   if stack_version_unformatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_unformatted):
-    lzo_packages += ["hadooplzo_" + current_stack_full_version, "hadooplzo_" + current_stack_full_version + "-native"]
+    lzo_packages += ["hadooplzo_*"]
   else:
     lzo_packages += ["hadoop-lzo"]
 
