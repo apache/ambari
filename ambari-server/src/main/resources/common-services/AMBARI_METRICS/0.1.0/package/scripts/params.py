@@ -213,9 +213,10 @@ else:
   hbase_heapsize = master_heapsize
 
 max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
+hostname = config["hostname"]
 
 if not is_hbase_distributed:
-  zookeeper_quorum_hosts = 'localhost'
+  zookeeper_quorum_hosts = hostname
   zookeeper_clientPort = '61181'
 else:
   zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
@@ -295,7 +296,6 @@ ams_grafana_ini_template = config['configurations']['ams-grafana-ini']['content'
 hbase_staging_dir = default("/configurations/ams-hbase-site/hbase.bulkload.staging.dir", "/amshbase/staging")
 
 #for create_hdfs_directory
-hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
