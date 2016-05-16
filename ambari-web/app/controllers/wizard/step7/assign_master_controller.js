@@ -131,6 +131,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       body: Em.I18n.t('installer.step7.missing.service.body').format(displayServices, configDisplayName),
       primaryClass: 'btn-danger',
       onPrimary: function () {
+        configWidgetContext.toggleProperty('controller.forceUpdateBoundaries');
         var value = config.get('initialValue');
         config.set('value', value);
         configWidgetContext.setValue(value);
@@ -350,6 +351,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   submit: function () {
     this.get('popup').hide();
     var context = this.get('configWidgetContext');
+    context.toggleProperty('controller.forceUpdateBoundaries');
     var configActionComponent = this.get('configActionComponent');
     var componentHostName = this.getSelectedHostName(configActionComponent.componentName);
     if (this.get('content.controllerName')) {
