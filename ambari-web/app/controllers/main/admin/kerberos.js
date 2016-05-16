@@ -524,6 +524,10 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     this.makeConfigsUneditable(true);
   },
 
+  /**
+   * @method makeConfigsUneditable
+   * @param configsUpdated
+   */
   makeConfigsUneditable: function (configsUpdated) {
     this.set('isEditMode', false);
     this.get('stepConfigs').forEach(function (_stepConfig) {
@@ -532,7 +536,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
           _config.set('savedValue', _config.get('value'));
           _config.set('defaultValue', _config.get('value'));
         } else {
-          _config.set('value', _config.get('savedValue'));
+          _config.set('value', _config.get('savedValue') || _config.get('defaultValue'));
         }
         _config.set('isEditable', false);
       });
