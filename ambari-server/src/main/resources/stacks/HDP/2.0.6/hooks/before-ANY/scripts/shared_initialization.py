@@ -165,7 +165,7 @@ def setup_hadoop_env():
     Directory(params.hadoop_java_io_tmpdir,
               owner=params.hdfs_user,
               group=params.user_group,
-              mode=0777
+              mode=01777
     )
 
 def setup_java():
