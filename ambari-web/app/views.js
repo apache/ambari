@@ -20,6 +20,7 @@
 // load all views here
 
 require('views/application');
+require('views/common/log_search_ui_link_view');
 require('views/common/log_file_search_view');
 require('views/common/log_tail_view');
 require('views/common/global/spinner');

@@ -95,6 +95,14 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   isClipBoardActive: false,
 
   /**
+   * Determines that host information become loaded and mapped with <code>App.hostsMapper</code>.
+   * This property play in only when Log Search service installed.
+   *
+   * @type {boolean}
+   */
+  hostInfoLoaded: true,
+
+  /**
    * Alias for <code>controller.hosts</code>
    *
    * @type {wrappedHost[]}
@@ -835,8 +843,39 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     this.set('currentHost.tasks', tasksInfo);
     this.set("parentView.isHostListHidden", true);
     this.set("parentView.isTaskListHidden", false);
+    this.preloadHostModel(Em.getWithDefault(event.context || {}, 'name', false));
     $(".modal").scrollTop(0);
     $(".modal-body").scrollTop(0);
+  },
+
+  /**
+   * Will add <code>App.Host</code> model with relevant host info by specified host name only when it missed
+   * and Log Search service installed.
+   * This update needed to get actual status of logs for components located on this host and get appropriate model
+   * for navigation to hosts/:host_id/logs route.
+   *
+   * @method preloadHostModel
+   * @param {string} hostName host name to get info
+   */
+  preloadHostModel: function(hostName) {
+    var self = this,
+        fields;
+    if (!hostName) {
+      self.set('hostInfoLoaded', true);
+      return;
+    }
+    if (this.get('isLogSearchInstalled') && App.get('supports.logSearch') && !App.Host.find().someProperty('hostName', hostName)) {
+      this.set('hostInfoLoaded', false);
+      fields = ['stack_versions/repository_versions/RepositoryVersions/repository_version',
+                'host_components/HostRoles/host_name'];
+      App.router.get('updateController').updateLogging(hostName, fields, function(data) {
+        App.hostsMapper.map({ items: [data] });
+      }).always(function() {
+        self.set('hostInfoLoaded', true);
+      });
+    } else {
+      self.set('hostInfoLoaded', true);
+    }
   },
 
   /**
@@ -956,6 +995,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
         componentName,
         hostName,
         logFile,
+        linkTailTpl = '?host_name={0}&file_name={1}&component_name={2}',
         self = this;
 
     if (this.get('openedTask.id')) {
@@ -979,7 +1019,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
                 tabClassName: tabClassName,
                 tabClassNameSelector: '.' + tabClassName,
                 displayedFileName: fileUtils.fileNameFromPath(logFileName),
-                url: self.get('logSearchUrlTemplate').format(hostName, logFileName, logComponentName),
+                linkTail: linkTailTpl.format(hostName, logFileName, logComponentName),
                 isActive: false
               });
             }));
@@ -989,22 +1029,6 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     }
     return [];
   }.property('openedTaskId', 'isLevelLoaded'),
-
-
-  /**
-   * Log Search UI link template used for 'Open In Log Search' links.
-   *
-   * @property {string}
-   */
-  logSearchUrlTemplate: function() {
-    var quickLink = App.QuickLinks.find().findProperty('site', 'logsearch-env'),
-        logSearchServerHost = App.HostComponent.find().findProperty('componentName', 'LOGSEARCH_SERVER').get('host.hostName');
-
-    if (quickLink) {
-      return quickLink.get('template').fmt('http', logSearchServerHost, quickLink.get('default_http_port')) + '?host_name={0}&file_name={1}&component_name={2}';
-    }
-    return '#';
-  }.property('hostComponentLogsExists'),
 
   /**
    * Determines if there are component logs for selected component within 'TASK_DETAILS' level.
