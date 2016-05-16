@@ -55,15 +55,10 @@ public class DataParserCSVTest {
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
       Assert.assertNotNull(pd.getHeader());
-      Assert.assertEquals(3, pd.getPreviewRows().size());
+      Assert.assertEquals(2, pd.getPreviewRows().size()); // now it will not return the first row which is header
       Assert.assertEquals(2, pd.getHeader().size());
       ColumnDescription[] cd = {new ColumnDescriptionImpl("1", ColumnDescriptionShort.DataTypes.INT.toString(), 0),
               new ColumnDescriptionImpl("a", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1)};
-
-      Object cols1[] = new Object[2];
-      cols1[0] = "1";
-      cols1[1] = "a";
-      Row row1 = new Row(cols1);
 
       Object cols2[] = new Object[2];
       cols2[0] = "2";
@@ -75,10 +70,78 @@ public class DataParserCSVTest {
       cols3[1] = "c";
       Row row3 = new Row(cols3);
 
-      Row[] rows = {row1, row2, row3};
+      Row[] rows = { row2, row3};
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
+    } finally {
+      if (null != dp)
+        dp.close();
+
+      sr.close();
+    }
+  }
+
+  /**
+   * One row csv will give default column names and 1st row in preview if HEADER.PROVIDED_BY_USER is selected
+   * @throws IOException
+   */
+  @Test
+  public void testParsePreview1RowCSV() throws IOException {
+    String str = "1,a\n" ;
+    StringReader sr = new StringReader(str);
+
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.PROVIDED_BY_USER.toString());
+
+    DataParser dp = null;
+    try {
+      dp = new DataParser(sr, parseOptions);
+
+      PreviewData pd = dp.parsePreview();
+      Assert.assertNotNull(pd.getPreviewRows());
+      Assert.assertNotNull(pd.getHeader());
+      Assert.assertEquals(1, pd.getPreviewRows().size());
+      Assert.assertEquals(2, pd.getHeader().size());
+      ColumnDescription[] cd = {new ColumnDescriptionImpl("Column1", ColumnDescriptionShort.DataTypes.INT.toString(), 0),
+        new ColumnDescriptionImpl("Column2", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1)};
+
+      Object cols1[] = new Object[2];
+      cols1[0] = "1";
+      cols1[1] = "a";
+      Row row1 = new Row(cols1);
+
+      Row[] rows = {row1};
+
+      Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
+      Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
+    } finally {
+      if (null != dp)
+        dp.close();
+
+      sr.close();
+    }
+  }
+
+  /**
+   * One row csv will throw exception in preview if HEADER.FIRST_RECORD is selected.
+   * @throws IOException
+   */
+  @Test(expected = java.util.NoSuchElementException.class)
+  public void testParsePreview1RowCSVFirstRowHeader() throws IOException {
+    String str = "col1,col2\n" ;
+    StringReader sr = new StringReader(str);
+
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+
+    DataParser dp = null;
+    try {
+      dp = new DataParser(sr, parseOptions);
+
+      PreviewData pd = dp.parsePreview();
     } finally {
       if (null != dp)
         dp.close();
@@ -109,9 +172,9 @@ public class DataParserCSVTest {
       dp = new DataParser(sr, parseOptions);
 
       PreviewData pd = dp.parsePreview();
-      Row row2 = new Row(new Object[]{"2","b"});
+      Row row = new Row(new Object[]{"2","b"});
 
-      Assert.assertArrayEquals("Additional columns not properly handled.", row2.getRow(),pd.getPreviewRows().get(1).getRow());
+      Assert.assertArrayEquals("Additional columns not properly handled.", row.getRow(),pd.getPreviewRows().get(0).getRow());
     } finally {
       if (null != dp) {
         dp.close();
@@ -135,7 +198,6 @@ public class DataParserCSVTest {
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
-//    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
     DataParser dp = null;
     try {
@@ -160,7 +222,6 @@ public class DataParserCSVTest {
     String str = "1,a,x\n" +
             "2,,y\n" +  // contains 1 col, less number of columns
             "3,c,z\n";
-//    System.out.println("str : " + str);
     StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
@@ -172,7 +233,7 @@ public class DataParserCSVTest {
       dp = new DataParser(sr, parseOptions);
 
       PreviewData pd = dp.parsePreview();
-      Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(1).getRow()[1],"");
+      Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(0).getRow()[1],"");
     } finally {
       if (null != dp)
         dp.close();
@@ -190,7 +251,6 @@ public class DataParserCSVTest {
     String str = "1,a,x\n" +
             "2,,\n" +  // contains 1 col, less number of columns
             "3,c,z\n";
-//    System.out.println("str : " + str);
     StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
@@ -202,8 +262,8 @@ public class DataParserCSVTest {
       dp = new DataParser(sr, parseOptions);
 
       PreviewData pd = dp.parsePreview();
-      Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(1).getRow()[1],"");
-      Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(1).getRow()[2],"");
+      Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(0).getRow()[1],"");
+      Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(0).getRow()[2],"");
     } finally {
       if (null != dp)
         dp.close();

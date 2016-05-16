@@ -85,14 +85,13 @@ public abstract class Parser implements IParser {
     Integer numOfCols = null;
     int[][] typeCounts = null;
 
-    if (parseOptions.getOption(ParseOptions.OPTIONS_HEADER) != null && parseOptions.getOption(ParseOptions.OPTIONS_HEADER).equals(ParseOptions.HEADER.FIRST_RECORD.toString())) {
-      if (!this.iterator().hasNext()) {
-        throw new NoSuchElementException("Cannot parse Header");
-      }
+    if (parseOptions.getOption(ParseOptions.OPTIONS_HEADER) != null &&
+      ( parseOptions.getOption(ParseOptions.OPTIONS_HEADER).equals(ParseOptions.HEADER.FIRST_RECORD.toString()) ||
+        parseOptions.getOption(ParseOptions.OPTIONS_HEADER).equals(ParseOptions.HEADER.EMBEDDED.toString())
+      )) {
       headerRow = extractHeader();
       numOfCols = headerRow.getRow().length;
       typeCounts = new int[numOfCols][ColumnDescription.DataTypes.values().length];
-      previewRows.add(headerRow);
     }
 
     // find data types.
@@ -141,7 +140,7 @@ public abstract class Parser implements IParser {
     for (int colNum = 0; colNum < numOfCols; colNum++) {
       int dataTypeId = getLikelyDataType(typeCounts, colNum);
       ColumnDescription.DataTypes type = ColumnDescription.DataTypes.values()[dataTypeId];
-      String colName = "Column" + colNum;
+      String colName = "Column" + (colNum + 1);
       if (null != headerRow)
         colName = (String) headerRow.getRow()[colNum];
 
