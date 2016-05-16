@@ -71,22 +71,21 @@ App.ModalPopup = Ember.View.extend({
     this.fitZIndex();
     var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
     this.focusElement(firstInputElement);
-    this.resizeHandler();
-    $(window).on('resize', this.resizeHandler.bind(this));
+    this.subscribeResize();
   },
 
-  resizeHandler: function() {
-    if (this.autoHeight && !$.mocho) {
-      var block = this.$().find('#modal > .modal-body').first();
-      if(block.offset()) {
-        block.css('max-height', $(window).height() - block.offset().top - this.marginBottom + $(window).scrollTop()); // fix popup height
-      }
+  subscribeResize: function() {
+    if (this.get('autoHeight') && !$.mocho) {
+      this.fitHeight();
+      $(window).on('resize', this.fitHeight.bind(this));
     }
   },
 
   willDestroyElement: function() {
     this.$().find('#modal').off('enter-key-pressed').off('escape-key-pressed');
-    $(window).off('resize', this.resizeHandler);
+    if (this.get('autoHeight') && !$.mocho) {
+      $(window).off('resize', this.fitHeight);
+    }
   },
 
   escapeKeyPressed: function (event) {
@@ -132,6 +131,7 @@ App.ModalPopup = Ember.View.extend({
   },
 
   fitHeight: function () {
+    if (this.get('state') === 'destroyed') return;
     var popup = this.$().find('#modal');
     var block = this.$().find('#modal > .modal-body');
     var wh = $(window).height();
