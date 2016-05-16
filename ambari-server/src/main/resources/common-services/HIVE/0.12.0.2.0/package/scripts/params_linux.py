@@ -86,7 +86,10 @@ hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
 hive_user_home_dir = "/home/hive"
 hive_bin = '/usr/lib/hive/bin'
+hive_schematool_bin = '/usr/lib/hive/bin'
+hive_schematool_ver_bin = hive_schematool_bin
 hive_lib = '/usr/lib/hive/lib/'
+hive_lib2 = None
 hive_var_lib = '/var/lib/hive'
 
 # Hive Interactive related paths
@@ -148,6 +151,17 @@ if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UP
   hive_interactive_bin = format('{stack_root}/current/{component_directory_interactive}/bin')
   hive_lib = format('{stack_root}/current/{component_directory}/lib')
   hive_interactive_lib = format('{stack_root}/current/{component_directory_interactive}/lib')
+
+  if stack_version_unformatted is not None and check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_unformatted):
+    schema_hive_component_ver = "hive2"
+    schema_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER_INTERACTIVE"]
+    hive_lib2 = format('{stack_root}/current/{schema_hive_component}/lib')
+  else:
+    schema_hive_component_ver = "hive"
+    schema_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER"]
+
+  hive_schematool_ver_bin = format('{stack_root}/{version}/{schema_hive_component_ver}/bin')
+  hive_schematool_bin = format('{stack_root}/current/{schema_hive_component}/bin')
 
   # there are no client versions of these, use server versions directly
   hcat_lib = format('{stack_root}/current/hive-webhcat/share/hcatalog')
@@ -230,6 +244,7 @@ if not hive_use_existing_db:
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 target_hive = format("{hive_lib}/{jdbc_jar_name}")
+target_hive2 = format("{hive_lib2}/{jdbc_jar_name}") if hive_lib2 is not None else None
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 
 if not (stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)):
