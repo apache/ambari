@@ -676,7 +676,7 @@ class BootstrapDefault(Bootstrap):
     params = self.shared_state
     user = params.user
 
-    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0} ; sudo chmod 755 {3} ; sudo chmod 755 {2} ; sudo chmod 777 {0}".format(
+    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0} ; sudo chmod 755 {3} ; sudo chmod 755 {2} ; sudo chmod 1777 {0}".format(
       self.TEMP_FOLDER, quote_bash_args(params.user), DEFAULT_AGENT_DATA_FOLDER, DEFAULT_AGENT_LIB_FOLDER)
 
     ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,

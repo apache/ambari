@@ -357,7 +357,7 @@ class TestBootstrap(TestCase):
                      "sudo chown -R root /var/lib/ambari-agent/tmp ; "
                      "sudo chmod 755 /var/lib/ambari-agent ; "
                      "sudo chmod 755 /var/lib/ambari-agent/data ; "
-                     "sudo chmod 777 /var/lib/ambari-agent/tmp")
+                     "sudo chmod 1777 /var/lib/ambari-agent/tmp")
 
   @patch.object(BootstrapDefault, "getOsCheckScript")
   @patch.object(BootstrapDefault, "getOsCheckScriptRemoteLocation")

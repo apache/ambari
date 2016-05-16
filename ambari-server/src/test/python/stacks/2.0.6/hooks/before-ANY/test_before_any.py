@@ -183,7 +183,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', '/tmp/hadoop_java_io_tmpdir',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0777
+                              mode = 01777
     )
 
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
