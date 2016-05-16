@@ -1329,6 +1329,7 @@ describe('App.MainServiceItemController', function () {
       sinon.stub(App, 'showConfirmationPopup');
       sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
+      sinon.stub(mainServiceItemController, 'kerberosDeleteWarning');
 
       mainServiceItemController.reopen({
         interDependentServices: []
@@ -1343,6 +1344,13 @@ describe('App.MainServiceItemController', function () {
       App.showConfirmationPopup.restore();
       App.ModalPopup.show.restore();
       App.format.role.restore();
+      mainServiceItemController.kerberosDeleteWarning.restore();
+    });
+
+    it("Kerberos delete should show specific warning", function() {
+      mainServiceItemController.deleteService('KERBEROS');
+      expect(mainServiceItemController.kerberosDeleteWarning.
+        calledWith(Em.I18n.t('services.service.delete.popup.header'))).to.be.true;
     });
 
     it("only one service installed", function() {
@@ -1390,6 +1398,28 @@ describe('App.MainServiceItemController', function () {
         encodeBody: false,
         body: Em.I18n.t('services.service.delete.popup.mustBeStopped').format('S1')
       })).to.be.true;
+    });
+  });
+
+  describe("#kerberosDeleteWarning()", function () {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(App.router, 'transitionTo');
+    });
+
+    afterEach(function() {
+      App.ModalPopup.show.restore();
+      App.router.transitionTo.restore();
+    });
+
+    it("App.ModalPopup.show should be called", function() {
+      var popup = mainServiceItemController.kerberosDeleteWarning('header');
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+      popup.onSecondary();
+      expect(App.router.transitionTo.calledWith('main.admin.adminKerberos.index')).to.be.true;
     });
   });
 

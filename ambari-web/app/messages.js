@@ -517,6 +517,7 @@ Em.I18n.translations = {
   'services.alerts.brLastCheck': '<br>Last Checked {0}',
   'services.alerts.occurredOn': 'Occurred on {0}, {1}',
   'services.alerts.goToService': 'Go to Service',
+  'services.alerts.goTo': 'Go to {0}',
 
   'services.summary.selectHostForComponent': 'Select the host to add {0} component',
   'services.summary.allHostsAlreadyRunComponent': 'All hosts already running {0} component',
@@ -1808,6 +1809,9 @@ Em.I18n.translations = {
   'services.service.actions.serviceActions':'Service Actions',
 
   'services.service.delete.popup.header': 'Delete Service',
+  'services.service.delete.popup.kerberos': 'The Kerberos Service <i>cannot be deleted</i> because Kerberos is ' +
+  'currently enabled, and in use by the cluster. The Kerberos Service can only be removed by disabling Kerberos,' +
+  ' which can be found by browsing to <b>Admin > Kerberos</b> and selecting <b>Disable Kerberos</b>.',
   'services.service.delete.configVersionNote': 'Update configs after {0} has been removed',
   'services.service.delete.configVersionNote.plural': 'Update configs after {0} have been removed',
   'services.service.delete.lastService.popup.body': 'The <b>{0}</b> service can\'t be deleted, at least one service must be installed.',
