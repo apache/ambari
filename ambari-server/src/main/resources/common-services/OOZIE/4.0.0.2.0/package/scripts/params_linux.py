@@ -285,5 +285,4 @@ is_webhdfs_enabled = config['configurations']['hdfs-site']['dfs.webhdfs.enabled'
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
 lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
 
-current_stack_full_version = default("/hostLevelParams/current_version", None)
-all_lzo_packages = get_lzo_packages(stack_version_unformatted, current_stack_full_version)
+all_lzo_packages = get_lzo_packages(stack_version_unformatted)
