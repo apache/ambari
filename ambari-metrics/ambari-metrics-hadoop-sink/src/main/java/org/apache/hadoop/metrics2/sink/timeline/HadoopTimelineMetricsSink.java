@@ -31,6 +31,7 @@ import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.util.Servers;
 import org.apache.hadoop.net.DNS;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -44,10 +45,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink implements MetricsSink {
+public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink implements MetricsSink, Closeable {
   private Map<String, Set<String>> useTagsMap = new HashMap<String, Set<String>>();
   private TimelineMetricsCache metricsCache;
   private String hostName = "UNKNOWN.example.com";
@@ -63,6 +66,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private SubsetConfiguration conf;
   // Cache the rpc port used and the suffix to use if the port tag is found
   private Map<String, String> rpcPortSuffixes = new HashMap<>(10);
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
 
   @Override
   public void init(SubsetConfiguration conf) {
@@ -386,4 +391,18 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     // TODO: Buffering implementation
   }
 
+  @Override
+  public void close() throws IOException {
+
+    executorService.submit(new Runnable() {
+      @Override
+      public void run() {
+        LOG.info("Closing HadoopTimelineMetricSink. Flushing metrics to collector...");
+        TimelineMetrics metrics = metricsCache.getAllMetrics();
+        if (metrics != null) {
+          emitMetrics(metrics);
+        }
+      }
+    });
+  }
 }
