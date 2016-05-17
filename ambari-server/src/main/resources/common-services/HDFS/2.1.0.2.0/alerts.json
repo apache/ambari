@@ -933,6 +933,14 @@
               "value": "MB",
               "description": "The units that the metric data points are reported in.",
               "visibility": "HIDDEN"
+            },
+            {
+              "name": "minimumValue",
+              "display_name": "Minimum Heap increase in a day.",
+              "value": 100,
+              "type": "NUMERIC",
+              "units": "MB",
+              "description": "The minimum heap increase in a day."
             }
           ]
         }
@@ -1325,6 +1333,14 @@
               "value": "B",
               "description": "The units that the metric data points are reported in.",
               "visibility": "HIDDEN"
+            },
+            {
+              "name": "minimumValue",
+              "display_name": "Minimum Capacity usage increase in a day.",
+              "value": 100,
+              "type": "NUMERIC",
+              "units": "MB",
+              "description": "The minimum capacity increase in a day."
             }
           ]
         }
@@ -1397,6 +1413,14 @@
               "value": "MB",
               "description": "The units that the metric data points are reported in.",
               "visibility": "HIDDEN"
+            },
+            {
+              "name": "minimumValue",
+              "display_name": "Minimum Heap increase in a week.",
+              "value": 1000,
+              "type": "NUMERIC",
+              "units": "MB",
+              "description": "The minimum heap increase in a week."
             }
           ]
         }
@@ -1469,6 +1493,14 @@
               "value": "B",
               "description": "The units that the metric data points are reported in.",
               "visibility": "HIDDEN"
+            },
+            {
+              "name": "minimumValue",
+              "display_name": "Minimum Capacity increase in a week.",
+              "value": 1000,
+              "type": "NUMERIC",
+              "units": "MB",
+              "description": "The minimum capacity increase in a week."
             }
           ]
         }

@@ -328,9 +328,15 @@ def execute(configurations={}, parameters={}, host_name=None):
     return (RESULT_STATE_SKIPPED, ["There are not enough data points to calculate the standard deviation ({0} sampled)".format(
       number_of_data_points)])
 
+  minimum_value_multiplier = 1
+  if 'storage_capacity_usage' in metric_name:
+    minimum_value_multiplier = 1024 * 1024  # MB to bytes
+  elif 'service_rpc' in metric_name or 'client_rpc' in metric_name:
+    minimum_value_multiplier = 1000  # seconds to millis
+
   if minimum_value_threshold:
     # Filter out points below min threshold
-    metrics = [metric for metric in metrics if metric > (minimum_value_threshold * 1000)]
+    metrics = [metric for metric in metrics if metric > (minimum_value_threshold * minimum_value_multiplier)]
     if len(metrics) < 2:
       return (RESULT_STATE_OK, ['There were no data points above the minimum threshold of {0} seconds'.format(minimum_value_threshold)])
 
