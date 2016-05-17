@@ -332,5 +332,12 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     });
 
     return options;
-  }.property('controller')
+  }.property('controller'),
+
+  /**
+   * Call installClients method from controller for not installed components
+   */
+  installClients: function () {
+    this.get('controller').installClients(this.get('notInstalledClientComponents'));
+  }
 });

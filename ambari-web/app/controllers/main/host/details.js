@@ -2367,13 +2367,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
 
-  installClients: function (event) {
+  installClients: function (components) {
     var clientsToInstall = [],
       clientsToAdd = [],
       missedComponents = [],
       dependentComponents = [],
       self = this;
-    event.context.forEach(function (component) {
+    components.forEach(function (component) {
       if (['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'))) {
         clientsToInstall.push(component);
       } else if (typeof component.get('workStatus') == 'undefined') {
