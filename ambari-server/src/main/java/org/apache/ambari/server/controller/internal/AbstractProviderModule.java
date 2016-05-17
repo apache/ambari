@@ -122,6 +122,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
     componentServiceMap.put("JOURNALNODE", Service.Type.HDFS);
     componentServiceMap.put("HBASE_MASTER", Service.Type.HBASE);
+    componentServiceMap.put("HBASE_REGIONSERVER", Service.Type.HBASE);
     componentServiceMap.put("RESOURCEMANAGER", Service.Type.YARN);
     componentServiceMap.put("NODEMANAGER", Service.Type.YARN);
     componentServiceMap.put("HISTORYSERVER", Service.Type.MAPREDUCE2);
@@ -139,6 +140,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("HBASE_MASTER", new String[]{"hbase.master.info.port"});
+    initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.regionserver.info.port"});
     serviceDesiredProperties.put(Service.Type.HBASE, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
