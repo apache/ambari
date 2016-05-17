@@ -112,7 +112,7 @@
         <name>webhdfs.auth</name>
         <description>Semicolon-separated authentication configs. Default: auth=SIMPLE</description>
         <label>WebHDFS Authentication</label>
-        <default-value>auth=SIMPLE</default-value>
+        <placeholder>auth=SIMPLE</placeholder>
         <required>false</required>
     </parameter>
 

@@ -67,6 +67,14 @@ public class ConfigurationBuilder {
   public static final String UMASK_CLUSTER_PROPERTY = "fs.permissions.umask-mode";
   public static final String UMASK_INSTANCE_PROPERTY = "hdfs.umask-mode";
 
+  public static final String DFS_WEBHDFS_ENABLED = "dfs.webhdfs.enabled";
+  public static final String DFS_HTTP_POLICY = "dfs.http.policy";
+  public static final String DFS_HTTP_POLICY_HTTPS_ONLY = "HTTPS";
+
+  public static final String DFS_NAMENODE_HTTP_ADDERSS = "dfs.namenode.http-address";
+  public static final String DFS_NAMENODE_HTTPS_ADDERSS = "dfs.namenode.https-address";
+
+
   private Configuration conf = new Configuration();
   private ViewContext context;
   private AmbariApi ambariApi = null;
@@ -93,7 +101,7 @@ public class ConfigurationBuilder {
 
         LOG.info("HA HDFS cluster found.");
       } else {
-        if (defaultFS.startsWith("hdfs://") && !hasPort(defaultFS)) {
+        if (defaultFS.startsWith("webhdfs://") && !hasPort(defaultFS)) {
           defaultFS = addPortIfMissing(defaultFS);
         }
       }
@@ -116,6 +124,33 @@ public class ConfigurationBuilder {
       throw new HdfsApiException("HDFS070 fs.defaultFS is not configured");
 
     defaultFS = addProtocolIfMissing(defaultFS);
+
+    if(context.getCluster() != null){
+      try {
+        URI fsUri = new URI(defaultFS);
+        String protocol = fsUri.getScheme();
+        String hostWithPort = defaultFS.substring(protocol.length() + 3);
+
+        Boolean webHdfsEnabled = Boolean.valueOf(getProperty(HDFS_SITE,DFS_WEBHDFS_ENABLED));
+        Boolean isHttps = DFS_HTTP_POLICY_HTTPS_ONLY.equals(getProperty(HDFS_SITE,DFS_HTTP_POLICY));
+
+        boolean isHA = isHAEnabled(defaultFS);
+
+        if(webHdfsEnabled && isHttps){
+          protocol = "swebhdfs";
+          String httpAddr = getProperty(HDFS_SITE,DFS_NAMENODE_HTTPS_ADDERSS);
+          if(!isHA && httpAddr != null) hostWithPort = httpAddr ;
+        }else if(webHdfsEnabled){
+          protocol = "webhdfs";
+          String httpsAddr = getProperty(HDFS_SITE,DFS_NAMENODE_HTTP_ADDERSS);
+          if(!isHA) hostWithPort = httpsAddr;
+        }
+
+        return protocol + "://" +hostWithPort;
+      } catch (URISyntaxException e) {
+        throw new HdfsApiException("Invalid URI format."+e.getMessage(),e);
+      }
+    }
     return defaultFS;
   }
 
@@ -128,6 +163,13 @@ public class ConfigurationBuilder {
       value = context.getProperties().get(instanceProperty);
     }
     return value;
+  }
+
+  private String getProperty(String type,String key){
+    if(context.getCluster() != null){
+      return context.getCluster().getConfigurationValue(type,key);
+    }
+    return null;
   }
 
   private void copyPropertyIfExists(String type, String key) {

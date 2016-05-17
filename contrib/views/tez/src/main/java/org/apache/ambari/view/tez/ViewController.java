@@ -26,7 +26,7 @@ import com.google.inject.ImplementedBy;
 @ImplementedBy(ViewControllerImpl.class)
 public interface ViewController {
 
-  public static final String PARAM_YARN_ATS_URL = "yarn.timeline-server.url";
+  public static final String PARAM_YARN_ATS_URL = "yarn.ats.url";
   public static final String PARAM_YARN_RESOURCEMANAGER_URL = "yarn.resourcemanager.url";
   public static final String PARAM_YARN_PROTOCOL = "yarn.protocol";
 

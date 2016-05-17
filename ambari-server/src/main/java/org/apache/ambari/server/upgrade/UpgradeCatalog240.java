@@ -328,6 +328,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     consolidateUserRoles();
     createRolePrincipals();
     updateHDFSWidgetDefinition();
+    updateTezViewProperty();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
@@ -2007,5 +2008,13 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   *  Update properties with name
+   *  yarn.timeline-server.url to yarn.ats.url
+   */
+  private void updateTezViewProperty() throws SQLException {
+    dbAccessor.executeUpdate("UPDATE viewinstanceproperty SET name = 'yarn.ats.url' where name = 'yarn.timeline-server.url'");
   }
 }

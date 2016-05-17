@@ -63,7 +63,7 @@ public class ServicesTest extends EasyMockSupport {
   @Test
   public void shouldReturnATSUrlConfiguredInCustomMode() throws Exception {
     Map<String, String> map = new HashMap<>();
-    map.put("yarn.timeline-server.url", HTTP_RM_URL1);
+    map.put("yarn.ats.url", HTTP_RM_URL1);
     ViewContext viewContext = getViewContext(map);
 
     AmbariApi ambariApi = createNiceMock(AmbariApi.class);
@@ -78,7 +78,7 @@ public class ServicesTest extends EasyMockSupport {
   @Test(expected = AmbariApiException.class)
   public void shouldThrowExceptionIfNoProtocolInCustomMode() {
     Map<String, String> map = new HashMap<>();
-    map.put("yarn.timeline-server.url", RM_URL1_HOST_PORT);
+    map.put("yarn.ats.url", RM_URL1_HOST_PORT);
     ViewContext viewContext = getViewContext(map);
 
     AmbariApi ambariApi = createNiceMock(AmbariApi.class);

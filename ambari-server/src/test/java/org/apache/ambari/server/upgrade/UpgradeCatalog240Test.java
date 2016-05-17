@@ -462,6 +462,9 @@ public class UpgradeCatalog240Test {
     DBAccessor dbAccessor = createStrictMock(DBAccessor.class);
     expect(dbAccessor.executeUpdate(capture(capturedStatements))).andReturn(1).times(7);
 
+    Capture<String> capturedTezViewUpdate = newCapture();
+    expect(dbAccessor.executeUpdate(capture(capturedTezViewUpdate))).andReturn(1).once();
+
     UpgradeCatalog240 upgradeCatalog240 = createMockBuilder(UpgradeCatalog240.class)
             .addMockedMethod(addNewConfigurationsFromXml)
             .addMockedMethod(updateAlerts)
@@ -521,6 +524,10 @@ public class UpgradeCatalog240Test {
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=5 WHERE permission_name='SERVICE.OPERATOR'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=6 WHERE permission_name='CLUSTER.USER'"));
     Assert.assertTrue(statements.contains("UPDATE adminpermission SET sort_order=7 WHERE permission_name='VIEW.USER'"));
+
+    Assert.assertNotNull(capturedTezViewUpdate.getValue());
+    Assert.assertEquals("UPDATE viewinstanceproperty SET name = 'yarn.ats.url' where name = 'yarn.timeline-server.url'",
+      capturedTezViewUpdate.getValue());
   }
 
   @Test

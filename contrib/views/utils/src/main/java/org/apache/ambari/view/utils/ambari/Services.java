@@ -51,7 +51,7 @@ public class Services {
   private static final String YARN_RESOURCEMANAGER_DEFAULT_HTTPS_PORT = "8090";
 
 
-  private static final String YARN_ATS_URL = "yarn.timeline-server.url";
+  private static final String YARN_ATS_URL = "yarn.ats.url";
   private final static String YARN_TIMELINE_WEBAPP_HTTP_ADDRESS_KEY = "yarn.timeline-service.webapp.address";
   private final static String YARN_TIMELINE_WEBAPP_HTTPS_ADDRESS_KEY = "yarn.timeline-service.webapp.https.address";
   public static final String RM_INFO_API_ENDPOINT = "/ws/v1/cluster/info";

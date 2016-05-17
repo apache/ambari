@@ -80,7 +80,6 @@
       <description>Semicolon-separated authentication configs.</description>
       <label>Hive Authentication</label>
       <placeholder>auth=NONE</placeholder>
-      <default-value>auth=NONE</default-value>
       <required>false</required>
     </parameter>
 
