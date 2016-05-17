@@ -19,7 +19,12 @@
 package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.cluster.Cluster;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * View associated cluster implementation.
@@ -58,4 +63,15 @@ public class ClusterImpl implements Cluster {
 
     return config == null ? null : config.getProperties().get(key);
   }
+
+  @Override
+  public List<String> getHostsForServiceComponent(String serviceName, String componentName){
+    List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(serviceName, componentName);
+    List<String> hosts = new ArrayList<String>();
+    for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+      hosts.add(serviceComponentHost.getHostName());
+    }
+    return hosts;
+  }
+
 }

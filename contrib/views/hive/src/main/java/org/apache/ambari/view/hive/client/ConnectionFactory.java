@@ -78,10 +78,10 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
   }
 
   private String getHiveHost() {
-    if (ambariApi.isClusterAssociated()) {
+    if (context.getCluster() != null) {
       List<String> hiveServerHosts;
       try {
-        hiveServerHosts = ambariApi.getHostsWithComponent("HIVE_SERVER");
+        hiveServerHosts = context.getCluster().getHostsForServiceComponent("HIVE","HIVE_SERVER");
       } catch (AmbariApiException e) {
         throw new ServiceFormattedException(e);
       }

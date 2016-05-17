@@ -19,14 +19,18 @@
 package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
+import org.apache.ambari.view.AmbariHttpException;
 import org.apache.ambari.view.AmbariStreamProvider;
 import org.easymock.IAnswer;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import static org.easymock.EasyMock.anyObject;
@@ -35,6 +39,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
 public class RemoteAmbariClusterTest {
@@ -86,5 +91,41 @@ public class RemoteAmbariClusterTest {
     assertEquals(value, "test property value");
     assertEquals(desiredConfigPolls[0], 1);  // cache hit
     assertEquals(testConfigPolls[0], 1);
+  }
+
+  @Test
+  public void testGetHostsForServiceComponent() throws IOException, AmbariHttpException {
+
+    final String componentHostsString = "{\"host_components\": [{" +
+      "\"HostRoles\": {" +
+      "\"cluster_name\": \"Ambari\"," +
+      "\"host_name\": \"host1\"}}, {" +
+      "\"HostRoles\": {" +
+      "\"cluster_name\": \"Ambari\"," +
+      "\"host_name\": \"host2\"}}]}";
+
+    AmbariStreamProvider clusterStreamProvider = createNiceMock(AmbariStreamProvider.class);
+
+    String service = "SERVICE";
+    String component = "COMPONENT";
+
+    expect(clusterStreamProvider.readFrom(eq(String.format("services/%s/components/%s?" +
+        "fields=host_components/HostRoles/host_name",service,component)),
+      eq("GET"), (String) isNull(), (Map<String, String>) anyObject()))
+      .andReturn(new ByteArrayInputStream(componentHostsString.getBytes()));
+
+    RemoteAmbariClusterEntity entity = createNiceMock(RemoteAmbariClusterEntity.class);
+
+    replay(clusterStreamProvider,entity);
+
+    RemoteAmbariCluster cluster = new RemoteAmbariCluster("Test", clusterStreamProvider);
+
+    List<String> hosts = cluster.getHostsForServiceComponent(service,component);
+    Assert.assertEquals(2, hosts.size());
+    Assert.assertEquals("host1",hosts.get(0));
+    Assert.assertEquals("host2",hosts.get(1));
+
+    verify(clusterStreamProvider, entity);
+
   }
 }

@@ -474,7 +474,7 @@ public class ConfigurationService {
   private String getRMHosts() {
     StringBuilder hosts = new StringBuilder();
     boolean first = true;
-    for (String host : ambariApi.getHostsWithComponent("RESOURCEMANAGER")) {
+    for (String host : context.getCluster().getHostsForServiceComponent("YARN", "RESOURCEMANAGER")) {
       if (!first) {
         hosts.append(",");
       }

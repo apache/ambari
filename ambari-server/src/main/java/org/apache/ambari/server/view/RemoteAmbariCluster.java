@@ -120,6 +120,35 @@ public class RemoteAmbariCluster implements Cluster {
     return property.getAsJsonPrimitive().getAsString();
   }
 
+  @Override
+  public List<String> getHostsForServiceComponent(String serviceName, String componentName) {
+    String url = String.format("services/%s/components/%s?" +
+      "fields=host_components/HostRoles/host_name",serviceName,componentName);
+
+    List<String> hosts = new ArrayList<String>();
+
+    try {
+      JsonElement response = configurationCache.get(url);
+
+      if(response == null || !response.isJsonObject()) return hosts;
+
+      JsonElement hostComponents = response.getAsJsonObject().get("host_components");
+
+      if(hostComponents == null || !hostComponents.isJsonArray()) return hosts;
+
+      for (JsonElement element : hostComponents.getAsJsonArray()) {
+        JsonElement hostRoles = element.getAsJsonObject().get("HostRoles");
+        String hostName = hostRoles.getAsJsonObject().get("host_name").getAsString();
+        hosts.add(hostName);
+      }
+
+    } catch (ExecutionException e) {
+      throw new RemoteAmbariConfigurationReadException("Can't retrieve host information from Remote Ambari", e);
+    }
+
+    return hosts;
+  }
+
   /**
    * Get list of services installed on the remote cluster
    *

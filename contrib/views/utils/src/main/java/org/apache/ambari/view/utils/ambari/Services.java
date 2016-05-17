@@ -217,7 +217,7 @@ public class Services {
     String host = null;
 
     if (context.getCluster() != null) {
-      List<String> hiveServerHosts = ambariApi.getHostsWithComponent("WEBHCAT_SERVER");
+      List<String> hiveServerHosts = context.getCluster().getHostsForServiceComponent("HIVE","WEBHCAT_SERVER");
 
       if (!hiveServerHosts.isEmpty()) {
         host = hiveServerHosts.get(0);
