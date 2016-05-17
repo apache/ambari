@@ -307,7 +307,7 @@ module.exports = {
       return;
     }
     return App.ajax.send({
-      name: 'rolling_restart.post',
+      name: 'common.batch.request_schedules',
       sender: {
         successCallback: successCallback,
         errorCallback: errorCallback

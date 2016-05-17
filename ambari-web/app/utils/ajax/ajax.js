@@ -330,6 +330,28 @@ var urls = {
     'mock': ''
   },
 
+  'common.batch.request_schedules': {
+    'real': '/clusters/{clusterName}/request_schedules',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify([{
+          "RequestSchedule": {
+            "batch": [{
+              "requests": data.batches
+            }, {
+              "batch_settings": {
+                "batch_separation_in_seconds": data.intervalTimeSeconds,
+                "task_failure_tolerance": data.tolerateSize
+              }
+            }]
+          }
+        }])
+      }
+    }
+  },
+
   'common.delete.host': {
     'real': '/clusters/{clusterName}/hosts/{hostName}',
     'type': 'DELETE'
@@ -941,27 +963,6 @@ var urls = {
           },
           "Requests/resource_filters": [{"service_name": data.serviceName, "component_name": data.componentName}]
         })
-      }
-    }
-  },
-  'host.host_component.recommission_and_restart': {
-    'real': '/clusters/{clusterName}/request_schedules',
-    'mock': '',
-    'format': function (data) {
-      return {
-        type: 'POST',
-        data: JSON.stringify([{
-          "RequestSchedule": {
-            "batch": [{
-              "requests": data.batches
-            }, {
-              "batch_settings": {
-                "batch_separation_in_seconds": data.intervalTimeSeconds,
-                "task_failure_tolerance": data.tolerateSize
-              }
-            }]
-          }
-        }])
       }
     }
   },
@@ -2273,27 +2274,6 @@ var urls = {
       return {
         type: 'PUT',
         data: JSON.stringify(data.data)
-      }
-    }
-  },
-  'rolling_restart.post': {
-    'real': '/clusters/{clusterName}/request_schedules',
-    'mock': '',
-    'format': function (data) {
-      return {
-        type: 'POST',
-        data: JSON.stringify([{
-          "RequestSchedule": {
-            "batch": [{
-              "requests": data.batches
-            }, {
-              "batch_settings": {
-                "batch_separation_in_seconds": data.intervalTimeSeconds,
-                "task_failure_tolerance": data.tolerateSize
-              }
-            }]
-          }
-        }])
       }
     }
   },
