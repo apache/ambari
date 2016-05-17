@@ -41,7 +41,7 @@
           <logs>
             <log>
               <logId>yarn_resourcemanager</logId>
-              <primary>true</primary>h
+              <primary>true</primary>
             </log>
             <log>
               <logId>yarn_historyserver</logId>
