@@ -294,8 +294,6 @@ def create_ams_dashboards():
           dashboard_def['tags'].append(version)
         else:
           dashboard_def['tags'] = [ 'builtin', version ]
-
-        dashboard_def['overwrite'] = True
         
         for dashboard in existing_dashboards:
           if dashboard.title == dashboard_def['title']:
@@ -311,7 +309,7 @@ def create_ams_dashboards():
                       (dashboard_def['title'], dashboard_def['tags']))
 
           # Discrepancy in grafana export vs import format
-          dashboard_def_payload = { "dashboard" : dashboard_def }
+          dashboard_def_payload = { "dashboard" : dashboard_def, 'overwrite': True }
           paylaod = json.dumps(dashboard_def_payload).strip()
 
           (response, data) = perform_grafana_post_call(GRAFANA_DASHBOARDS_URL, paylaod, server)
