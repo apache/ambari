@@ -71,15 +71,23 @@ metric_truststore_ca_certs='ca.pem'
 
 agent_cache_dir = config['hostLevelParams']['agentCacheDir']
 service_package_folder = config['commandParams']['service_package_folder']
-dashboards_dir = os.path.join(agent_cache_dir, service_package_folder, 'files', 'grafana-dashboards')
+stack_name = default("/hostLevelParams/stack_name", None)
+dashboards_dirs = []
+# Stack specific
+dashboards_dirs.append(os.path.join(agent_cache_dir, service_package_folder,
+                                   'files', 'grafana-dashboards', stack_name))
+# Default
+dashboards_dirs.append(os.path.join(agent_cache_dir, service_package_folder,
+                                   'files', 'grafana-dashboards', 'default'))
 
 def get_grafana_dashboard_defs():
   dashboard_defs = []
-  if os.path.exists(dashboards_dir):
-    for root, dirs, files in os.walk(dashboards_dir):
-      for file in files:
-        if 'grafana' in file:
-          dashboard_defs.append(os.path.join(root, file))
+  for dashboards_dir in dashboards_dirs:
+    if os.path.exists(dashboards_dir):
+      for root, dirs, files in os.walk(dashboards_dir):
+        for file in files:
+          if 'grafana' in file:
+            dashboard_defs.append(os.path.join(root, file))
   return dashboard_defs
 
 # find ambari version for grafana dashboards
