@@ -68,50 +68,6 @@ public class AmbariApi {
   }
 
   /**
-   * Provides ability to get cluster topology
-   * @param requestComponent name of component
-   * @return list of hostnames with component
-   * @throws AmbariApiException
-   */
-  public List<String> getHostsWithComponent(String requestComponent) throws AmbariApiException {
-    String method = "hosts?fields=Hosts/public_host_name,host_components/HostRoles/component_name";
-    String response = requestClusterAPI(method);
-
-    List<String> foundHosts = new ArrayList<String>();
-
-    JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
-    JSONArray hosts = (JSONArray) jsonObject.get("items");
-    for (Object host : hosts) {
-      JSONObject hostJson = (JSONObject) host;
-      JSONArray hostComponents = (JSONArray) hostJson.get("host_components");
-      for (Object component : hostComponents) {
-        JSONObject componentJson = (JSONObject) component;
-        JSONObject hostRoles = (JSONObject) componentJson.get("HostRoles");
-        String componentName = (String) hostRoles.get("component_name");
-        if (componentName.equals(requestComponent)) {
-          foundHosts.add((String) hostRoles.get("host_name"));
-        }
-      }
-    }
-    return foundHosts;
-  }
-
-  /**
-   * Returns first host with requested component installed
-   * @param requestComponent name of component
-   * @return any hostname of node that contains the component
-   * @throws AmbariApiException
-   */
-  public String getAnyHostWithComponent(String requestComponent) throws AmbariApiException {
-    List<String> foundHosts = getHostsWithComponent(requestComponent);
-
-    if (foundHosts.size() == 0) {
-      throw new AmbariApiException("RA100 Host with component " + requestComponent + " not found");
-    }
-    return foundHosts.get(0);
-  }
-
-  /**
    * Shortcut for GET method
    * @param path REST API path
    * @return response
