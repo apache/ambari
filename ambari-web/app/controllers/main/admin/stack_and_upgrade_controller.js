@@ -560,22 +560,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} event
    */
   downgrade: function (currentVersion, event) {
+    var self = this;
     this.set('requestInProgress', true);
-    this.abortUpgrade();
-    App.ajax.send({
-      name: 'admin.downgrade.start',
-      sender: this,
-      data: {
-        from: App.RepositoryVersion.find().findProperty('displayName', this.get('upgradeVersion')).get('repositoryVersion'),
-        value: currentVersion.repository_version,
-        label: currentVersion.repository_name,
-        isDowngrade: true,
-        upgradeType: this.get('upgradeType')
-      },
-      success: 'upgradeSuccessCallback',
-      callback: function() {
-        this.sender.set('requestInProgress', false);
-      }
+    this.abortUpgrade().done(function() {
+      self.startDowngrade(currentVersion);
     });
   },
 
@@ -594,7 +582,29 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       error: errorCallback
     });
   },
-  
+
+  /**
+   * just request ro start downgrade,
+   * should be performed only if <code>abortUpgrade<code> was completed
+   */
+  startDowngrade: function(currentVersion) {
+   App.ajax.send({
+      name: 'admin.downgrade.start',
+      sender: this,
+      data: {
+        from: App.RepositoryVersion.find().findProperty('displayName', this.get('upgradeVersion')).get('repositoryVersion'),
+        value: currentVersion.repository_version,
+        label: currentVersion.repository_name,
+        isDowngrade: true,
+        upgradeType: this.get('upgradeType')
+      },
+      success: 'upgradeSuccessCallback',
+      callback: function() {
+        this.sender.set('requestInProgress', false);
+      }
+    });
+  },
+
   /**
    * suspend upgrade (in order to restart it later)
    */
