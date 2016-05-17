@@ -85,16 +85,6 @@ do_install(){
     update-rc.d ambari-agent defaults
   fi
 
-  BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
-  ORIG=/etc/ambari-agent/conf/ambari-agent.ini
-
-  if [ -f $BAK ]; then
-    if [ -f "/var/lib/ambari-agent/upgrade_agent_configs.py" ]; then
-      /var/lib/ambari-agent/upgrade_agent_configs.py
-    fi
-    mv $BAK ${BAK}_$(date '+%d_%m_%y_%H_%M').save
-  fi
-
   # remove old python wrapper
   rm -f "$PYTHON_WRAPER_TARGET"
 
@@ -110,10 +100,22 @@ do_install(){
     fi
   done
 
+  BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
+  ORIG=/etc/ambari-agent/conf/ambari-agent.ini
+  UPGRADE_AGENT_CONFIGS_SCRIPT=/var/lib/ambari-agent/upgrade_agent_configs.py
+
   if [ -z "$AMBARI_PYTHON" ] ; then
-    >&2 echo "Cannot detect python for ambari to use. Please manually set $PYTHON_WRAPER link to point to correct python binary"
+    >&2 echo "Cannot detect python for Ambari to use. Please manually set $PYTHON_WRAPER_TARGET link to point to correct python binary"
+    >&2 echo "Cannot upgrade agent configs because python for Ambari is not configured. The old config file is saved as $BAK . Execution of $UPGRADE_AGENT_CONFIGS_SCRIPT was skipped."
   else
     ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"
+
+    if [ -f $BAK ]; then
+      if [ -f "$UPGRADE_AGENT_CONFIGS_SCRIPT" ]; then
+        $UPGRADE_AGENT_CONFIGS_SCRIPT
+      fi
+      mv $BAK ${BAK}_$(date '+%d_%m_%y_%H_%M').save
+    fi
   fi
 }
 
