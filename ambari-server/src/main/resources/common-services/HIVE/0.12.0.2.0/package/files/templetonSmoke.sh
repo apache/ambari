@@ -57,6 +57,7 @@ fi
 
 #try hcat ddl command
 echo "user.name=${smoke_test_user}&exec=show databases;" > ${tmp_dir}/show_db.post.txt
+/var/lib/ambari-agent/ambari-sudo.sh chown ${smoke_test_user} ${tmp_dir}/show_db.post.txt
 cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  @${tmp_dir}/show_db.post.txt  $ttonurl/ddl 2>&1"
 retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
@@ -77,6 +78,7 @@ fi
 
 #create, copy post args file
 echo -n "user.name=${smoke_test_user}&file=/tmp/$ttonTestScript" > ${tmp_dir}/pig_post.txt
+/var/lib/ambari-agent/ambari-sudo.sh chown ${smoke_test_user} ${tmp_dir}/pig_post.txt
 
 #submit pig query
 cmd="curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  @${tmp_dir}/pig_post.txt  $ttonurl/pig 2>&1"
