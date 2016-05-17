@@ -87,7 +87,9 @@ define(['require',
                 if(this.buttonLabel){
                 	this.$(".goBtn").text(this.buttonLabel);
                 }
-                if (!this.params.dateRangeLabel) this.params['dateRangeLabel'] = "Today"
+                if (!this.params.dateRangeLabel) {
+                    this.params['dateRangeLabel'] = "Today";
+                }
                 this.initializeDateRangePicker();
                 this.setValues(this.params);
                 this.unit = that.checkDateRange(that.ui.dateRange.data("daterangepicker"));

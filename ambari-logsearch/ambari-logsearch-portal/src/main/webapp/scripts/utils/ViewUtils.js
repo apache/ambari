@@ -30,7 +30,7 @@ define(['require',
     var ViewUtil = {};
 
     ViewUtil.setdefaultParams = function() {
-        var fromSolr, toSolr;
+        var fromSolr, toSolr,that=this;
         var params = Utils.getQueryParams(window.location.search);
         this.defaultParams = {
             q: "*:*",
@@ -73,6 +73,9 @@ define(['require',
                         }
                         if (model.get('name') == "To") {
                             toSolr = moment(parseInt(model.get('value'))).toJSON();
+                        }
+                        if(fromSolr && toSolr){
+                            that.defaultParams['dateRangeLabel'] = "Custom Range";
                         }
                     })
 

@@ -16,14 +16,47 @@
  * limitations under the License.
  */
 
-define(['require','intro'],function(require,IntroJs) {
+define(['require', 'intro'], function(require, IntroJs) {
     'use strict';
     var Intro = {};
     Intro.Start = function() {
 
         var intro = IntroJs();
         intro.setOptions({
+
+            skipLabel: "Close",
+
+            showBullets : false,
+
             steps: [{
+                element: $('[data-id="troubleshoot"]').get(0),
+                intro: "Welcome, This is the landing page of the LogSearch app, its displays high-level info about services and its components along with graph.",
+                position: "right"
+            }, {
+                element: $('#troubleShootHeader').get(0),
+                intro: "In this section you can choose specific service to focus the issue along with their dependency.",
+                position: "bottom"
+            }, {
+                element: $('div[data-id="dateRange"] .selectDateRange').get(0),
+                intro: "This is date time picker by clicking on it you can select time frame and also there are pre-defined time slots.",
+                position: "top"
+            }, {
+                element: $("#showServicelog").get(0),
+                intro: " After selecting the service and time frame you can navigate to the logs detail page [Service log tab].",
+                position: "top"
+            }, {
+                element: $('[data-id="hierarchy"]').get(0),
+                intro: " This tab holds the logs of all services and its components with different views and aggregation and you can also apply filters for getting into the issues in detail.",
+                position: "right"
+            }, {
+                element: $("#searchIncludeExclude").get(0),
+                intro: "This filter allows you to query the log data column wise(log_message, level, host etc). Include Search is basically \"or\" condition and Exclude Search is \"and\" condition between multiple input.",
+                position: "top"
+            }, {
+                element: $("#compInculdeExculde").get(0),
+                intro: "This filter allows you to filter the log data depending upon the component selection. Include Component is again \"or\" condition and Exclude Component is \"and\" condition between multiple selection.",
+                position: "top"
+            }, {
                 element: $('#r_EventHistory').get(0),
                 intro: "This section will track the ongoing filters applied to the query, you can navigate back and forth.",
                 position: "top"
@@ -53,8 +86,24 @@ define(['require','intro'],function(require,IntroJs) {
                 child: 'li[data-parent="true"]'
             }, {
                 element: $(document.querySelectorAll('#r_BubbleTable')[1]).find('td.logTime:first').get(0),
-                intro: "This is quick menu for every log entry with has options for getting into the detail of that log.",
+                intro: "This is quick menu for every log entry which has options for getting into the detail of that log.",
                 position: "right"
+            }, {
+                element: $('li[data-id="audit"]').get(0),
+                intro: "This tab holds the access information across services and its components with different views and aggregation and you can also apply filters for viewing access info in detail.",
+                position: "right"
+            }, {
+                element: $('#r_AuditLine').get(0),
+                intro: "This section shows the component which are accessed related to time.",
+                position: "bottom"
+            }, {
+                element: $('#AuditSearch').get(0),
+                intro: "This filter allows you to query the data column wise(Access Enforcer, Access type etc). Include Search is basically \"or\" condition and Exclude Search is \"and\" condition between multiple input.",
+                position: "top"
+            }, {
+                element: $('li[data-id="createFilters"]').get(0),
+                intro: "This is the feature to filter out the data that is handled by LogSearch. For ex if you are only interested in logs with level ERROR,FATAL etc to be tracked by LogSearch.",
+                position: "left"
             }].filter(function(obj) {
                 if (obj.child)
                     return $(obj.element).find(obj.child).length
@@ -65,10 +114,14 @@ define(['require','intro'],function(require,IntroJs) {
         Intro.bindEvent(intro)
 
         this.dataAttribute = $('div[role="tabpanel"]').find('.nav-tabs .active').attr('data-id');
-        if (this.dataAttribute != "hierarchy") {
-            $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
+        if (this.dataAttribute != "troubleshoot") {
+            $('div[role="tabpanel"]').find('.nav-tabs [data-id="troubleshoot"] a').click();
         }
         intro.start();
+
+        //Hiding Back button
+        $('.introjs-prevbutton').hide();
+
         if ($('#r_EventHistory').find(".fa-chevron-down").length > 0) {
             $('#r_EventHistory').find('a.collapse-link').click();
         }
@@ -92,7 +145,7 @@ define(['require','intro'],function(require,IntroJs) {
         var options = {
             0: {
                 css: {
-                    'top': '38px',
+                    'top': '0px',
                     'left': '98px'
                 },
                 handDirection: 'down',
@@ -100,13 +153,69 @@ define(['require','intro'],function(require,IntroJs) {
             },
             1: {
                 css: {
+                    'top': '0px',
+                    'left': '98px'
+                },
+                handDirection: 'down',
+                handClass: "up-down"
+            },
+            2: {
+                css: {
+                    'top': '0',
+                    'right': '95px'
+                },
+                handDirection: 'left',
+                handClass: "left-right"
+            },
+            3: {
+                css: {
+                    'top': '0',
+                    'left': '40px'
+                },
+                handDirection: 'right',
+                handClass: "left-right"
+            },
+            4: {
+                css: {
+                    'top': '0px',
+                    'left': '98px'
+                },
+                handDirection: 'down',
+                handClass: "up-down"
+            },
+            5: {
+                css: {
+                    'top': '10px',
+                    'left': '10px'
+                },
+                handDirection: 'right',
+                handClass: "right-left"
+            },
+            6: {
+                css: {
+                    'top': '10px',
+                    'left': '10px'
+                },
+                handDirection: 'right',
+                handClass: "right-left"
+            },
+            7: {
+                css: {
+                    'top': '38px',
+                    'left': '98px'
+                },
+                handDirection: 'down',
+                handClass: "up-down"
+            },
+            8: {
+                css: {
                     'top': '38px',
                     'left': '98px'
                 },
                 handDirection: 'up',
                 handClass: "up-down"
             },
-            2: {
+            9: {
                 css: {
                     'top': '38px',
                     'left': '98px'
@@ -115,7 +224,7 @@ define(['require','intro'],function(require,IntroJs) {
                 handDirection: 'down',
                 handClass: "up-down"
             },
-            3: {
+            10: {
                 css: {
                     'top': '14px',
                     'left': '142px'
@@ -126,7 +235,7 @@ define(['require','intro'],function(require,IntroJs) {
                 handClass: "left-right"
 
             },
-            4: {
+            11: {
                 css: {
                     'top': '45px',
                     'right': '0'
@@ -135,7 +244,7 @@ define(['require','intro'],function(require,IntroJs) {
                 handDirection: 'left',
                 handClass: "left-right"
             },
-            5: {
+            12: {
                 css: {
                     'top': '25px',
                     'left': '190px'
@@ -144,7 +253,7 @@ define(['require','intro'],function(require,IntroJs) {
                 handDirection: 'up',
                 handClass: "up-down"
             },
-            6: {
+            13: {
                 css: {
                     'top': '50%',
                     'left': '0'
@@ -152,68 +261,171 @@ define(['require','intro'],function(require,IntroJs) {
                 appendIndex: 0,
                 handDirection: 'up',
                 handClass: "up-down"
+            },
+            14: {
+                css: {
+                    'top': '0',
+                    'left': '0'
+                },
+                handDirection: 'right',
+                handClass: "left-right"
+            },
+            15: {
+                css: {
+                    'top': '0',
+                    'left': '0'
+                },
+                handDirection: 'right',
+                handClass: "left-right"
+            },
+            16: {
+                css: {
+                    'top': '0',
+                    'left': '0'
+                },
+                handDirection: 'right',
+                handClass: "left-right"
+            },
+            17: {
+                css: {
+                    'top': '0',
+                    'left': '0'
+                },
+                handDirection: 'right',
+                handClass: "left-right"
+            },
+            18: {
+                css: {
+                    'top': '0',
+                    'left': '0'
+                },
+                handDirection: 'right',
+                handClass: "left-right"
             }
         }
 
 
         //Onafter step Callback
         intro.onafterchange(function(targetElement) {
-            if (this._currentStep == 2) {
-                scroll(targetElement, 0);
-            } else if (this._currentStep == 3) {
-                scroll(targetElement, 0);
-            } else if (this._currentStep == 4) {
-                scroll(targetElement, 0);
-            } else if (this._currentStep == 5) {
+            if (this._currentStep == 0) {
+
+            } else if (this._currentStep == 1) {
                 scroll(targetElement, -200);
+            } else if (this._currentStep == 2) {
+                // scroll(targetElement, 0);
+            }else if (this._currentStep == 3) {
+                // scroll(targetElement, 0);
+            } else if (this._currentStep == 4) {
+                // scroll(targetElement, 0);
+            } else if (this._currentStep == 5) {
+                // scroll(targetElement, 0);
             } else if (this._currentStep == 6) {
+               
+            } else if (this._currentStep == 7) {
+                
+            } else if (this._currentStep == 8) {
+                scroll(targetElement, -200);
+            } else if (this._currentStep == 9) {
+                scroll(targetElement, -150);
+            } else if (this._currentStep == 10) {
+                scroll(targetElement, 0);
+            } else if (this._currentStep == 1) {
+                scroll(targetElement, -250);
+            } else if (this._currentStep == 12) {
+                scroll(targetElement, -150);
+            } else if (this._currentStep == 13) {
                 setTimeout(function() {
                     $(targetElement).mouseover();
                 }, 100);
-                setTimeout(function(){
+                setTimeout(function() {
                     $('#rLogTable').find('.btn-quickMenu').first().click();
-                },800);
+                }, 800);
+            } else if (this._currentStep == 14) {
+
+            } else if (this._currentStep == 15) {
+
+            }else if (this._currentStep == 16) {
 
             }
 
 
         });
+
         //OnBefore step Callback
         intro.onbeforechange(function(targetElement) {
             removeFingerAndOverlayDiv();
-            if (this._currentStep == 1) {
+            if (this._currentStep == 0) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="troubleshoot"] a').click();
                 dispatchResizeEvent();
-                appendFingerAndOverlayDiv(targetElement, options[this._currentStep])
+            } else if (this._currentStep == 1) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="troubleshoot"] a').click();
+                dispatchResizeEvent();
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
             } else if (this._currentStep == 2) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="troubleshoot"] a').click();
+                dispatchResizeEvent();
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 3) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="troubleshoot"] a').click();
+                dispatchResizeEvent();
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 4) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
+                dispatchResizeEvent();
+            } else if (this._currentStep == 5) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
+                dispatchResizeEvent();
+            } else if (this._currentStep == 6) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
+                dispatchResizeEvent();
+            } else if (this._currentStep == 7) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
+                dispatchResizeEvent();
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 8) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
                 $(targetElement).find('input[value="H"]').click();
                 $(targetElement).find('li[data-parent="true"]').first().find('span[data-state="expand"]').first().click();
                 dispatchResizeEvent();
-                appendFingerAndOverlayDiv(targetElement, options[this._currentStep])
-            } else if (this._currentStep == 3) {
-                $(targetElement).find('li[data-parent="true"]').first().find('span[data-state="collapse"]').first().click();
-                if ($(targetElement).find('li[data-parent="true"]').length == 0) {
-
-                }
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 9) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();               
                 $(document.querySelectorAll('#r_BubbleTable')[1]).find('input[value="H"]').click();
-                $(targetElement).find('li[data-parent="true"]').first().find('span[data-state="collapse"]').first().click();
                 dispatchResizeEvent();
-                appendFingerAndOverlayDiv(targetElement, options[this._currentStep])
-            } else if (this._currentStep == 4) {
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 10) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
                 $(document.querySelectorAll('#r_BubbleTable')[1]).find('li[data-parent="true"]').first().find('span[data-state="collapse"]').first().click();
                 $(document.querySelectorAll('#r_BubbleTable')[1]).find('input[value="H"]').click();
                 $(targetElement).find('ul[role="group"]').find('li').first().mouseover();
                 dispatchResizeEvent();
-                appendFingerAndOverlayDiv(targetElement, options[this._currentStep])
-            } else if (this._currentStep == 5) {
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 11) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
                 $(targetElement).find('input[value="T"]').click();
-                $(targetElement).find('[data-id="r_tableList"]').css('height','200px');
+                $(targetElement).find('[data-id="r_tableList"]').css('height', '200px');
                 dispatchResizeEvent();
-                appendFingerAndOverlayDiv(targetElement, options[this._currentStep])
-            } else if (this._currentStep == 6) {
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 12) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
                 $(document.querySelectorAll('#r_BubbleTable')[1]).find('input[value="T"]').click();
-                appendFingerAndOverlayDiv(targetElement, options[this._currentStep])
+                dispatchResizeEvent();
+                appendFingerAndOverlayDiv(targetElement, options[this._currentStep]);
+            } else if (this._currentStep == 13) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="hierarchy"] a').click();
+            } else if (this._currentStep == 14) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="audit"] a').click();
+                dispatchResizeEvent();
+            }else if (this._currentStep == 15) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="audit"] a').click();
+                dispatchResizeEvent();
+            }else if (this._currentStep == 15) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="audit"] a').click();
+                dispatchResizeEvent();
+            }else if (this._currentStep == 16) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="audit"] a').click();
+                dispatchResizeEvent();
             }
-
         });
 
         //OnDone Callback
@@ -221,7 +433,7 @@ define(['require','intro'],function(require,IntroJs) {
             $($('#r_EventHistory').get(0)).find('a.collapse-link').click();
             $(document.querySelectorAll('#r_BubbleTable')[1]).find('input[value="H"]').click();
             $(document.querySelectorAll('#r_BubbleTable')[1]).find('li[data-parent="true"]').first().find('span[data-state="expand"]').first().click();
-            $(document.querySelectorAll('#r_BubbleTable')[1]).find('[data-id="r_tableList"]').css('height','');
+            $(document.querySelectorAll('#r_BubbleTable')[1]).find('[data-id="r_tableList"]').css('height', '');
             removeFingerAndOverlayDiv(true);
             tabClick();
         });
@@ -231,7 +443,7 @@ define(['require','intro'],function(require,IntroJs) {
             $(document.querySelectorAll('#r_BubbleTable')[1]).find('input[value="H"]').click();
             $(document.querySelectorAll('#r_BubbleTable')[1]).find('li[data-parent="true"]').first().find('span[data-state="expand"]').first().click();
             $('#r_EventHistory').find('a.collapse-link').click();
-            $(document.querySelectorAll('#r_BubbleTable')[1]).find('[data-id="r_tableList"]').css('height','');
+            $(document.querySelectorAll('#r_BubbleTable')[1]).find('[data-id="r_tableList"]').css('height', '');
             if (that.histoGram) {
                 $('#r_Histogram').find('a.collapse-link').click();
             }
@@ -244,8 +456,8 @@ define(['require','intro'],function(require,IntroJs) {
 
         //remove all animation and overlay div
         function removeFingerAndOverlayDiv(overlay) {
-            if(overlay){
-                 $('body').find('.overlayIntro').remove();
+            if (overlay) {
+                $('body').find('.overlayIntro').remove();
             }
             $('body').find('.box-content .finger').remove();
 
@@ -262,8 +474,14 @@ define(['require','intro'],function(require,IntroJs) {
                     $($(targetElementObject).find('.box-content')[options.appendIndex]).find('.finger').css(options.css);
                 }
             } else {
-                $(targetElementObject).find('.box-content').append('<div class="animated infinite finger ' + options.handClass + '"><i class="fa fa-hand-o-' + options.handDirection + ' fa-2x"></i></div>');
-                $(targetElementObject).find('.box-content').find('.finger').css(options.css);
+                var flag = $(targetElementObject).find('.box-content');
+                if (flag.length != 0) {
+                    $(targetElementObject).find('.box-content').append('<div class="animated infinite finger ' + options.handClass + '"><i class="fa fa-hand-o-' + options.handDirection + ' fa-2x"></i></div>');
+                    $(targetElementObject).find('.box-content').find('.finger').css(options.css);
+                } else {
+                    $(targetElementObject).append('<div class="animated infinite finger ' + options.handClass + '"><i class="fa fa-hand-o-' + options.handDirection + ' fa-2x"></i></div>');
+                    $(targetElementObject).find('.finger').css(options.css);
+                }
             }
 
         }
@@ -281,7 +499,9 @@ define(['require','intro'],function(require,IntroJs) {
         }
 
         function tabClick() {
-            if (that.dataAttribute != "hierarchy") {
+            if (!that.dataAttribute) {
+                $('div[role="tabpanel"]').find('.nav-tabs [data-id="troubleshoot"] a').click();
+            } else {
                 $('div[role="tabpanel"]').find('.nav-tabs [data-id=' + that.dataAttribute + '] a').click();
             }
             window.scrollTo(0, 0);

@@ -366,10 +366,22 @@ define(['require',
                     that.RHistogram.show(new GraphLayoutView({
                         vent: that.vent,
                         globalVent: that.globalVent,
-                        params: that.params
-                            //parentView : this
+                        params: that.params,
+                        showUnit : true
                     }));
                 });
+            },
+            getIdRowForTableLayout : function(){
+            	var IdRow =  Backgrid.Row.extend({
+				    render: function() {
+				        IdRow.__super__.render.apply(this, arguments);
+				        if (this.model.has("id")) {
+				            this.$el.attr("data-id", this.model.get('id'));
+				        }
+				        return this;
+				    }
+				});
+            	return IdRow;
             },
             renderTableLikeLogFile: function() {
                 var that = this;
@@ -379,6 +391,7 @@ define(['require',
                         columns: cols,
                         includeColumnManager: false,
                         gridOpts: {
+                        	row: that.getIdRowForTableLayout(),
                             className: "table table-bordered table-striped table-hover table-condensed backgrid logFileFont table-quickMenu",
                         },
                     })));
@@ -389,7 +402,10 @@ define(['require',
                 require(['views/common/TableLayout'], function(TableLayout) {
                     var cols = new Backgrid.Columns(that.getColumns());
                     that.RLogFileTable.show(new TableLayout(_.extend({}, that.commonTableOptions, {
-                        columns: cols
+                        columns: cols,
+                        gridOpts: {
+                        	row: that.getIdRowForTableLayout(),
+                        }
                     })));
                 });
             },

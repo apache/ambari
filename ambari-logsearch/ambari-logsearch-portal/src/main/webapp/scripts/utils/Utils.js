@@ -909,7 +909,7 @@ define(['require',
 	        } else if ((moment(startDate).isBefore(now)) || (moment(now).diff(startDate, 'days'))) {
 	            if ((moment(now).diff(startDate, 'days')) === 6) {
 	                //console.log("last 7 days");
-	                return "+1DAY";
+	                return "+8HOUR";
 	            } else if ((moment(now).diff(startDate, 'days') === 29) || (moment(now).diff(startDate, 'days') === 28) || (moment(now).diff(startDate, 'days') === 30)) {
 	                //console.log("Last 30 days");
 	                return that.getMonthDiff(startDate, endDate, dayGap, checkTime);
@@ -1164,7 +1164,33 @@ define(['require',
 				
 	    	}
         });	   
-	}
+	},
+
+	/* This Method for handling graph unit.
+		which seperate number from the string and again append to 
+		the string by formatting it
+	
+	*/
+	Utils.graphUnitParse = function(unitVal){
+		if(! unitVal){
+			return "";
+		}
+		var pattern = /(\d)\s+(?=\d)/g;
+		var number = unitVal.match(/\d+/g).map(Number);
+		var numString = number.toString().replace(pattern , '$1');
+        var str = unitVal.replace(/\d+/g, '').replace(/\+/g,'');
+        return numString +" " + Utils.getCamelCase(str) + "(s) gap";
+	},
+
+	Utils.getCamelCase = function(str){
+		if(!str){
+			return "";
+		}
+		var str = str.toLowerCase();
+		return str.replace(/(?:^|\s)\w/g, function(match) {
+        	return match.toUpperCase()
+        });
+	};
     
 	return Utils;
 });

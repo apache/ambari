@@ -61,7 +61,7 @@ define(['require',
                 this.collection = new VLogList([], {
                     state: {
                         firstPage: 0,
-                        pageSize: 10
+                        pageSize: 25
                     }
                 });
                 this.dateUtil = Utils.dateUtil;

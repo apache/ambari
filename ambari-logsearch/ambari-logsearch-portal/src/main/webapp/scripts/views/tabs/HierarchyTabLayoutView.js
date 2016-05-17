@@ -231,7 +231,8 @@ define(['require',
 	    		that.RHistogram.show(new GraphLayoutView({
 					vent : that.vent,
 					globalVent:that.globalVent,
-					params : that.defaultParams
+					params : that.defaultParams,
+					showUnit : true
 				}));
             });
 		},
@@ -436,6 +437,7 @@ define(['require',
 		reRenderComponents : function(params){
 			var iComponents = this.ui.includeComponents.val(),eComponents = this.ui.excludeComponents.val(),that=this;
 			this.componentsList.fetch({
+				reset : true,
 				complete : function(){
 					that.ui.includeComponents.select2('val',iComponents.split(","));
 					that.ui.excludeComponents.select2('val',eComponents.split(","));

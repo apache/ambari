@@ -19,12 +19,13 @@
 define(['require',
 	'backbone',
 	'utils/Utils',
+	'utils/ViewUtils',
 	'utils/Globals',
 	'hbs!tmpl/dashboard/MainLayoutView_tmpl',
 	'select2',
 	'sparkline',
 	'd3.tip'
-],function(require,Backbone,Utils,Globals,MainLayoutViewTmpl){
+],function(require,Backbone,Utils,ViewUtils,Globals,MainLayoutViewTmpl){
     'use strict';
 	
 	var MainLayoutView = Backbone.Marionette.Layout.extend(
@@ -125,6 +126,19 @@ define(['require',
 			this.bindTabCheckboxClick();
 			this.bindTabClickListener();
 			this.tabScrollBind();
+		},
+		onShow : function(){
+			//navigating to specific component tab
+			var params = ViewUtils.getDefaultParams();
+			if(params.host_name && params.component_name){
+				this.globalVent.trigger("render:tab",{
+					params:_.extend({},{
+						host :  params.host_name,
+						component : params.component_name
+					},params),
+					globalVent : this.globalVent
+				});
+			}
 		},
 		renderLogFileTab : function(view){
 			var that = this;
