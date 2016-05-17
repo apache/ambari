@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
@@ -206,6 +207,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
     InputStream in = null;
 
+    String spec = null;
     try {
       try {
         for (String hostName : hostNames) {
@@ -215,10 +217,11 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
               LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
               return resource;
             }
+            spec = getSpec(protocol, hostName, port, "/jmx");
             if (LOG.isDebugEnabled()) {
-              LOG.debug("Spec: " + getSpec(protocol, hostName, port, "/jmx"));
+              LOG.debug("Spec: " + spec);
             }
-            in = streamProvider.readFrom(getSpec(protocol, hostName, port, "/jmx"));
+            in = streamProvider.readFrom(spec);
             // if the ticket becomes invalid (timeout) then bail out
             if (!ticket.isValid()) {
               return resource;
@@ -227,7 +230,9 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
             getHadoopMetricValue(in, ids, resource, request, ticket);
 
           } catch (IOException e) {
-            logException(e);
+            AmbariException detailedException = new AmbariException(
+                String.format("Unable to get JMX metrics from the host %s for the component %s. Spec: %s", hostName, componentName, spec), e);
+            logException(detailedException);
           }
         }
       } finally {

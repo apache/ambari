@@ -222,8 +222,10 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
     HashMap<String, Set<String>> urls = extractPropertyURLs(resultIds, propertyInfos);
 
     for (String url : urls.keySet()) {
+      String spec = null;
       try {
-        InputStream in = streamProvider.readFrom(getSpec(protocol, hostname, port, url));
+        spec = getSpec(protocol, hostname, port, url);
+        InputStream in = streamProvider.readFrom(spec);
         if (!ticket.isValid()) {
           if (in != null) {
             in.close();
@@ -236,7 +238,9 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
             in.close();
           }
       } catch (IOException e) {
-        logException(e);
+        AmbariException detailedException = new AmbariException(
+            String.format("Unable to get REST metrics from the host %s for the component %s. Spec: %s", hostname, resourceComponentName, spec), e);
+        logException(detailedException);
       }
     }
     return resource;
