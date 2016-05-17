@@ -81,7 +81,14 @@ public class AuthConfigurationBuilder {
   private String getConfigurationFromAmbari() throws NoClusterAssociatedException {
     String authMethod = context.getCluster().getConfigurationValue(
         "core-site", "hadoop.security.authentication");
-    return String.format("auth=%s", authMethod);
+
+    String authString = String.format("auth=%s", authMethod);
+
+    String proxyUser = context.getCluster().getConfigurationValue("cluster-env","ambari_principal_name");
+    if(proxyUser != null && !authMethod.equalsIgnoreCase("SIMPLE")){
+      authString = authString + String.format(";proxyuser=%s",proxyUser.split("@")[0]);
+    }
+    return authString;
   }
 
   /**

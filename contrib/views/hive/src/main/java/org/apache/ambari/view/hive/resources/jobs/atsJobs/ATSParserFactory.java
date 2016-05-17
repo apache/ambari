@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive.resources.jobs.atsJobs;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.utils.ambari.AmbariApi;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,17 +27,19 @@ import java.util.Map;
 public class ATSParserFactory {
 
   private ViewContext context;
+  private final AmbariApi ambariApi;
 
   public ATSParserFactory(ViewContext context) {
     this.context = context;
+    this.ambariApi = new AmbariApi(context);
   }
 
   public ATSParser getATSParser() {
-    ATSRequestsDelegateImpl delegate = new ATSRequestsDelegateImpl(context, getATSUrl(context));
+    ATSRequestsDelegateImpl delegate = new ATSRequestsDelegateImpl(context, getATSUrl());
     return new ATSParser(delegate);
   }
 
-  public static String getATSUrl(ViewContext context) {
-    return context.getProperties().get("yarn.ats.url");
+  public String getATSUrl() {
+    return ambariApi.getServices().getTimelineServerUrl();
   }
 }

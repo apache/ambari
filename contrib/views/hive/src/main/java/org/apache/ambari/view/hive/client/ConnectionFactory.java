@@ -41,6 +41,11 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
   private AmbariApi ambariApi;
   private HdfsApi hdfsApi = null;
 
+  public static String HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication" ;
+  public static String HIVE_SITE = "hive-site" ;
+  public static String HIVE_SERVER2_KERBEROS_PRINCIPAL = "hive.server2.authentication.kerberos.principal" ;
+  public static String HIVE_SASL_QOP = "hive.server2.thrift.sasl.qop" ;
+
   public ConnectionFactory(ViewContext context, HiveAuthCredentials credentials) {
     this.context = context;
     this.credentials = credentials;
@@ -105,20 +110,50 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
   private Map<String, String> getHiveAuthParams() {
     String auth = context.getProperties().get("hive.auth");
     Map<String, String> params = new HashMap<String, String>();
-    if (auth == null || auth.isEmpty()) {
-      auth = "auth=NOSASL";
-    }
-    for(String param : auth.split(";")) {
-      String[] keyvalue = param.split("=");
-      if (keyvalue.length != 2) {
-        //Should never happen because validator already checked this
-        throw new ServiceFormattedException("H010 Can not parse authentication param " + param + " in " + auth);
+    if ((auth == null || auth.isEmpty()) && context.getCluster() != null) {
+      params.putAll(getDefaultAuthParams());
+    } else if(auth == null || auth.isEmpty()) {
+      params.put("auth","NOSASL");
+    } else {
+      for (String param : auth.split(";")) {
+        String[] keyvalue = param.split("=");
+        if (keyvalue.length != 2) {
+          //Should never happen because validator already checked this
+          throw new ServiceFormattedException("H010 Can not parse authentication param " + param + " in " + auth);
+        }
+        params.put(keyvalue[0], keyvalue[1]);
       }
-      params.put(keyvalue[0], keyvalue[1]);
     }
     params.put(Utils.HiveAuthenticationParams.TRANSPORT_MODE,context.getProperties().get("hive.transport.mode"));
     params.put(Utils.HiveAuthenticationParams.HTTP_PATH,context.getProperties().get("hive.http.path"));
     return params;
+  }
+
+  private Map<String,String> getDefaultAuthParams(){
+    Map<String,String> params = new HashMap<String,String>();
+    String auth = getProperty(HIVE_SITE,HIVE_SERVER2_AUTHENTICATION);
+    params.put("auth",auth);
+
+    if(auth.equalsIgnoreCase("KERBEROS")){
+      params.put("principal",getProperty(HIVE_SITE,HIVE_SERVER2_KERBEROS_PRINCIPAL));
+      params.put(Utils.HiveAuthenticationParams.HS2_PROXY_USER,"${username}");
+    } else if(auth.equalsIgnoreCase("LDAP") || auth.equalsIgnoreCase("CUSTOM")){
+      params.put("auth","NONE");
+      params.put("password","${ask_password}");
+    }
+
+    String qop = getProperty(HIVE_SITE,HIVE_SASL_QOP);
+    if(qop != null && !qop.equals("auth")){
+      params.put(Utils.HiveAuthenticationParams.AUTH_QOP,qop);
+    }
+    return params;
+  }
+
+  private String getProperty(String type,String key){
+    if(context.getCluster() != null){
+      return context.getCluster().getConfigurationValue(type,key);
+    }
+    return null;
   }
 
   public HiveAuthCredentials getCredentials() {

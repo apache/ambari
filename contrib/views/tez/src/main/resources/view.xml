@@ -22,7 +22,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <description>Ambari view for Apache Tez</description>
 
   <parameter>
-    <name>yarn.timeline-server.url</name>
+    <name>yarn.ats.url</name>
     <description>The URL to the YARN Application Timeline Server, used to provide Tez information. Typically this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
     <label>YARN Timeline Server URL</label>
     <placeholder>yarn.timeline-service.hostname:8188</placeholder>
