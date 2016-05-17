@@ -135,7 +135,8 @@ else:
 
 # kafka
 kafka_bootstrap_servers = ""
-kafka_broker_hosts = config['clusterHostInfo']['kafka_broker_hosts']
+kafka_broker_hosts = default('/clusterHostInfo/kafka_broker_hosts', [])
+
 if not len(kafka_broker_hosts) == 0:
   kafka_broker_port = default("/configurations/kafka-broker/port", 6667)
   kafka_bootstrap_servers = kafka_broker_hosts[0] + ":" + str(kafka_broker_port)
