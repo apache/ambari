@@ -134,12 +134,6 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
-        <task xsi:type="manual">
-          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
-        </task>
-      </execute-stage>
-
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>

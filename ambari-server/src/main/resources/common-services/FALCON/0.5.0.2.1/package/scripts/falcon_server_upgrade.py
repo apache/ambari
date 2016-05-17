@@ -17,14 +17,12 @@ limitations under the License.
 
 """
 import os
-import shutil
-import tarfile
 import tempfile
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import tar_archive
-from resource_management.core.resources.system import Execute, Directory
+from resource_management.core.resources.system import Directory
 
 BACKUP_TEMP_DIR = "falcon-upgrade-backup"
 BACKUP_DATA_ARCHIVE = "falcon-local-backup.tar"
@@ -32,11 +30,10 @@ BACKUP_CONF_ARCHIVE = "falcon-conf-backup.tar"
 
 def post_stop_backup():
   """
-  Backs up the falcon configuration and data directories as part of the
-  upgrade process.
+  Backs up falcon directories as part of the upgrade process.
   :return:
   """
-  Logger.info('Backing up Falcon data and configuration directories before upgrade...')
+  Logger.info('Backing up Falcon directories before upgrade...')
   directoryMappings = _get_directory_mappings()
 
   absolute_backup_dir = os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR)
@@ -59,11 +56,11 @@ def post_stop_backup():
 
 def pre_start_restore():
   """
-  Restores the data and configuration backups to their proper locations
+  Restores the directory backups to their proper locations
   after an upgrade has completed.
   :return:
   """
-  Logger.info('Restoring Falcon data and configuration directories after upgrade...')
+  Logger.info('Restoring Falcon backed up directories after upgrade...')
   directoryMappings = _get_directory_mappings()
 
   for directory in directoryMappings:
@@ -76,9 +73,7 @@ def pre_start_restore():
     tar_archive.untar_archive(archive, directory)
 
   # cleanup
-  Directory(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR),
-            action = "delete",
-  )
+  Directory(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR), action = "delete" )
 
 
 def _get_directory_mappings():
@@ -89,5 +84,4 @@ def _get_directory_mappings():
   """
   import params
 
-  return { params.falcon_local_dir : BACKUP_DATA_ARCHIVE,
-    params.falcon_conf_dir : BACKUP_CONF_ARCHIVE }
+  return { params.falcon_local_dir : BACKUP_DATA_ARCHIVE }

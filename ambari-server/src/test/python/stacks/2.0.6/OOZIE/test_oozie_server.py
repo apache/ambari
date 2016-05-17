@@ -1234,35 +1234,20 @@ class TestOozieServer(RMFTestCase):
      call_mocks = [(0, prepare_war_stdout)])
     
     self.assertTrue(isfile_mock.called)
-    self.assertEqual(isfile_mock.call_count,3)
+    self.assertEqual(isfile_mock.call_count,2)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
 
     self.assertTrue(glob_mock.called)
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.2.1.0-2135/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', u'2.2.1.0-2135'),
       sudo = True )
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
-    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',
-        mode = 0644,
-    )
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
     self.assertNoMoreResources()
 
   @patch("os.path.isdir")
@@ -1306,39 +1291,23 @@ class TestOozieServer(RMFTestCase):
      mocks_dict = mocks_dict)
 
     self.assertTrue(isfile_mock.called)
-    self.assertEqual(isfile_mock.call_count,3)
+    self.assertEqual(isfile_mock.call_count,2)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
 
     self.assertTrue(glob_mock.called)
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
     self.assertResourceCalled('Link', '/etc/oozie/conf',
                               to = '/usr/hdp/current/oozie-client/conf',
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
-
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
-    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',
-        mode = 0644,
-    )
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip', mode = 0644)
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)
@@ -1376,31 +1345,15 @@ class TestOozieServer(RMFTestCase):
      call_mocks = [(0, prepare_war_stdout)])
 
     self.assertTrue(isfile_mock.called)
-    self.assertEqual(isfile_mock.call_count,2)
+    self.assertEqual(isfile_mock.call_count,1)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', u'2.2.0.0-0000'), sudo = True)
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
-
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',mode = 0777)
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
     self.assertResourceCalled('Execute', ('chown', 'oozie:hadoop', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip'), sudo=True)
-    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',
-        mode = 0644,
-    )
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-server/libext/ext-2.2.zip',mode = 0644)
     self.assertNoMoreResources()
 
 
@@ -1581,32 +1534,16 @@ class TestOozieServer(RMFTestCase):
      mocks_dict = mocks_dict)
 
     self.assertTrue(isfile_mock.called)
-    self.assertEqual(isfile_mock.call_count,3)
+    self.assertEqual(isfile_mock.call_count,2)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
 
     self.assertTrue(glob_mock.called)
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
-    self.assertResourceCalled('Link', '/etc/oozie/conf',
-                              to = '/usr/hdp/current/oozie-client/conf',
-    )
+    self.assertResourceCalled('Link', '/etc/oozie/conf', to = '/usr/hdp/current/oozie-client/conf')
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
-    self.assertResourceCalled('Execute',
-      ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True,
-      tries = 3,
-      try_sleep = 1
-    )
-
-    self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
 
     self.assertResourceCalled('Execute', ('cp', '/usr/share/HDP-oozie/ext-2.2.zip', '/usr/hdp/current/oozie-server/libext'), sudo=True)
