@@ -1339,7 +1339,7 @@ img.quickLinkNav{
   margin-right: 7px;
 }
 .comparisonTab div[data-id="r_tableList"]{
-  height: 300px;
+  height: 310px;
 }
 .compare .closeComponent{
   position: absolute;
@@ -2078,4 +2078,68 @@ input.filterInput{
 }
 .nav-tabs > li{
   margin-bottom:-2px;
+}
+.unitposition{
+  font: 300 11px Arial;
+  position: absolute;
+  top:7%;
+  left: 45%;
+}
+.comparisonTab #r_VSSearch  .VS-search .VS-search-box{
+  min-height: 25px !important;
+}
+.comparisonTab #r_VSSearch .VS-search .VS-icon-search{
+  top: 6px;
+}
+
+.comparisonTab #r_VSSearch  .VS-search .VS-placeholder{
+  top: 6px;
+  font-size: 11px;
+ }
+.comparisonTab #r_VSSearch  .VS-search .VS-search-box .VS-search-inner .search_input{
+  height: 20px;
+ }
+.comparisonTab #r_VSSearch .VS-search .VS-icon-cancel{
+  top: 6px;
+ }
+.comparisonTab #r_VSSearch  .VS-search .search_facet{
+  margin: 0 -3px 3px 0;
+}
+.comparisonTab #r_DatePicker .selectDateRange .iStyle{
+  margin-top: 1px;
+  font-size: 15px
+}
+.comparisonTab #r_DatePicker  .selectDateRange input{
+    padding-left: 36px;
+    height: 20px;
+    padding-top: 0;
+    font-size: 12px;
+}
+.comparisonTab #r_DatePicker  .selectDateRange .btn{
+    padding: 2px 7px;
+    font-size: 10px;
+    margin-top: 0;
+}
+.comparisonTab #r_DatePicker .dateRangeTitle{
+    margin-top: 0;
+}
+.comparisonTab  .box-content hr{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.comparisonTab #rLogTable .form-control{
+  height: 18px;
+  font-size: 10px;
+}
+.comparisonTab #rLogTable .dropdown-button{
+  height:19px;
+}
+.comparisonTab #rLogTable .columnmanager-visibilitycontrol{
+  height:15px;
+}
+.comparisonTab pre{
+  font-size: 10;
+}
+[data-id=tabTitle] {
+  font-weight : bold;
 }

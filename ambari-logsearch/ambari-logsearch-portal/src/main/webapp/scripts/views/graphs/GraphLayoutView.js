@@ -42,7 +42,8 @@ define(['require',
                 dateRange: "#dateRange",
                 selectDateRange: ".selectDateRange",
                 dateRangeTitle: "span[data-id='dateRangeTitle']",
-                graphHeader: "div[data-id='graphHeader']"
+                graphHeader: "div[data-id='graphHeader']",
+                showUnit : "span[data-id='showUnit']"
 
             },
 
@@ -59,7 +60,7 @@ define(['require',
              * @constructs
              */
             initialize: function(options) {
-                _.extend(this, _.pick(options, 'vent', 'globalVent', 'params', 'viewType', 'showDatePicker'));
+                _.extend(this, _.pick(options, 'vent', 'globalVent', 'params', 'viewType', 'showDatePicker', 'showUnit'));
                 /* if (this.showDatePicker) {
                      this.graphVent = new Backbone.Wreqr.EventAggregator();
                  }*/
@@ -71,7 +72,6 @@ define(['require',
 
                     }
                 });
-
                 this.dateUtil = Utils.dateUtil;
                 this.dateRangeLabel = new String();
 
@@ -95,6 +95,11 @@ define(['require',
                     this.createDataForGraph();
                     this.$(".loader").hide();
                     this.$("#loaderGraph").hide();
+                    if(this.showUnit && this.collection.length > 0){
+                        this.showUnitCheck();
+                    }else{
+                        this.ui.showUnit.hide();
+                    }
                 }, this);
                 this.listenTo(this.collection, 'request', function() {
                     this.$(".loader").show();
@@ -185,6 +190,9 @@ define(['require',
                     } else
                         that.$(".nvtooltip.xy-tooltip").show();
                 })
+            },
+            showUnitCheck : function(){
+                this.ui.showUnit.show().html(Utils.graphUnitParse(this.unit));
             },
             renderDatePicker: function(regionName) {
                 var that = this;

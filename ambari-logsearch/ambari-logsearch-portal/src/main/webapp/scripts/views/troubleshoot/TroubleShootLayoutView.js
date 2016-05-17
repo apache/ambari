@@ -71,7 +71,7 @@ define(['backbone',
                 this.vent = new Backbone.Wreqr.EventAggregator();
                 //this.servicesData = {services:{ranger:{label:"Ranger",components:[{name:"ranger_admin"}],dealsWithServices:[{name:"hdfs"},{name:"kms"}],dealsWithComponents:[{name:"security_admin"},{name:"portal"}],},ambari:{label:"Ambari",dealsWithServices:[{name:"ranger"},{name:"hive"}]},hdfs:{label:"Hdfs",components:[{name:"hdfs_namenode"},{name:"hdfs_datanode"}],dealsWithServices:[],dealsWithComponents:[],}}};
                 var todayRange = Utils.dateUtil.getTodayRange();
-                this.params = _.pick(ViewUtils.getDefaultParamsForHierarchy(),"from","to","bundle_id","host_name","component_name","file_name");
+                this.params = _.pick(ViewUtils.getDefaultParamsForHierarchy(),"dateRangeLabel","from","to","bundle_id","host_name","component_name","file_name");
                 this.initializeCollection();
                 this.bindEvents();
             },
