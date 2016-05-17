@@ -21,12 +21,12 @@ filename="version_241-12345.xml"
 
 rm $filename
 
-python version_builder.py --file $filename --release-type PATCH
+python version_builder.py --file $filename --release-type STANDARD
 python version_builder.py --file $filename --release-stack HDP-2.4
 python version_builder.py --file $filename --release-version 2.4.1.1
 python version_builder.py --file $filename --release-build 12345
 python version_builder.py --file $filename --release-notes http://example.com
-python version_builder.py --file $filename --release-display HDP-2.4.1.1-1234-patch
+python version_builder.py --file $filename --release-display HDP-2.4.1.1-1234
 python version_builder.py --file $filename --release-compatible 2.4.[0-1].0
 
 # call any number of times for each service in the repo
