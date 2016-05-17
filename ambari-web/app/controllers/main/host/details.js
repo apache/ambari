@@ -1749,7 +1749,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     });
     App.ajax.send({
-      name: 'host.host_component.recommission_and_restart',
+      name: 'common.batch.request_schedules',
       sender: this,
       data: {
         intervalTimeSeconds: 1,
@@ -1856,7 +1856,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       id++;
     }
     App.ajax.send({
-      name: 'host.host_component.recommission_and_restart',
+      name: 'common.batch.request_schedules',
       sender: this,
       data: {
         intervalTimeSeconds: 1,

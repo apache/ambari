@@ -91,22 +91,30 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @method {configActionComponents}
    */
   doComponentDeleteActions: function(configActionComponents) {
-    var self = this;
     var componentsToDelete = this.getComponentsToDelete(configActionComponents);
     if (componentsToDelete.length) {
-      componentsToDelete.forEach(function(_componentToDelete){
-        var displayName = App.StackServiceComponent.find().findProperty('componentName',  _componentToDelete.componentName).get('displayName');
-        var context = Em.I18n.t('requestInfo.stop').format(displayName);
-        self.refreshYarnQueues().done(function(data) {
-          self.isRequestCompleted(data).always(function() {
-            self.installHostComponents( _componentToDelete.hostName, _componentToDelete.componentName, context).done(function(data){
-              self.isRequestCompleted(data).done(function() {
-                self.deleteHostComponent(_componentToDelete.hostName, _componentToDelete.componentName);
-              });
-            });
-          });
-        });
-      }, self);
+      // There is always only one item to delete when doing config actions.
+      var componentToDelete  =  componentsToDelete[0];
+      var componentName = componentToDelete.componentName;
+      var hostName = componentToDelete.hostName;
+      var displayName = App.StackServiceComponent.find().findProperty('componentName',  componentToDelete.componentName).get('displayName');
+      var context = Em.I18n.t('requestInfo.stop').format(displayName);
+      var batches =[];
+
+      this.setRefreshYarnQueueRequest(batches);
+      batches.push(this.getInstallHostComponentsRequest(hostName, componentName, context));
+      batches.push(this.getDeleteHostComponentRequest(hostName, componentName));
+      this.setOrderIdForBatches(batches);
+
+      App.ajax.send({
+        name: 'common.batch.request_schedules',
+        sender: this,
+        data: {
+          intervalTimeSeconds: 1,
+          tolerateSize: 0,
+          batches: batches
+        }
+      });
     }
   },
 
@@ -141,33 +149,50 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       allComponentsToAddHosts.forEach(function(_hostName){
         var hostComponents = allComponentsToAdd.filterProperty('hostName', _hostName).mapProperty('componentName').uniq();
         var masterHostComponents =  allComponentsToAdd.filterProperty('hostName', _hostName).filterProperty('isClient', false).mapProperty('componentName').uniq();
-        self.refreshYarnQueues().done(function(data) {
-          self.isRequestCompleted(data).always(function() {
-            self.createHostComponents(_hostName, hostComponents).done(function() {
-              self.installHostComponents(_hostName, hostComponents).done(function(data){
-                self.isRequestCompleted(data).done(function() {
-                  var displayNames = masterHostComponents.map(function(item) {
-                    return App.StackServiceComponent.find().findProperty('componentName', item).get('displayName');
-                  });
-                  var displayStr =  stringUtils.getFormattedStringFromArray(displayNames);
-                  var context = Em.I18n.t('requestInfo.start').format(displayStr);
-                  self.startHostComponents(_hostName, masterHostComponents, context);
-                });
-              });
-            });
-          });
+        var displayNames = masterHostComponents.map(function(item) {
+          return App.StackServiceComponent.find().findProperty('componentName', item).get('displayName');
         });
-      }, self);
+        var displayStr =  stringUtils.getFormattedStringFromArray(displayNames);
+        var context = Em.I18n.t('requestInfo.start').format(displayStr);
+        var batches =[];
+        this.setRefreshYarnQueueRequest(batches);
+        batches.push(this.getCreateHostComponentsRequest(_hostName, hostComponents));
+        batches.push(this.getInstallHostComponentsRequest(_hostName, hostComponents));
+        batches.push(this.getStartHostComponentsRequest(_hostName, masterHostComponents, context));
+        this.setOrderIdForBatches(batches);
+
+        App.ajax.send({
+          name: 'common.batch.request_schedules',
+          sender: this,
+          data: {
+            intervalTimeSeconds: 1,
+            tolerateSize: 0,
+            batches: batches
+          }
+        });
+      }, this);
     }
   },
 
   /**
-   * Calls the API to create multiple components on a host
+   * Sets order_id for each batch request in the `batches` array
+   * @param batches {Array}
+   * @private
+   * @method {setOrderIdForBatches}
+   */
+  setOrderIdForBatches: function(batches) {
+    batches.forEach(function(_batch, index){
+      _batch.order_id = index + 1;
+    }, this);
+  },
+
+  /**
+   * Gets the API request to create multiple components on a host
    * @param hostName {String}
    * @param components {String[]}|{String}
    * @return {Object} Deferred promise
    */
-  createHostComponents: function(hostName, components) {
+  getCreateHostComponentsRequest: function(hostName, components) {
     var query =  "Hosts/host_name.in(" + hostName + ")";
     components = (Array.isArray(components)) ? components : [components];
     var hostComponent = components.map(function(_componentName){
@@ -177,94 +202,104 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         }
       }
     }, this);
-    return App.ajax.send({
-      name: 'common.host.host_components.create',
-      sender: this,
-      data: {
-        query: query,
-        host_components: hostComponent,
-        type: ''
+
+    return  {
+      "type": 'POST',
+      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts",
+      "RequestBodyInfo": {
+        "RequestInfo": {
+          "query": query
+        },
+        "Body": {
+          "host_components": hostComponent
+        }
       }
-    });
+    };
   },
 
   /**
-   * Calls the API to install multiple components on a host
+   * Gets the API request to install multiple components on a host
    * @param hostName {String}
    * @param components {String[]}
    * @param context {String} Optional
-   * @return {Object} Deferred promise
+   * @return {Object}
    */
-  installHostComponents: function(hostName, components, context) {
+  getInstallHostComponentsRequest: function(hostName, components, context) {
     context = context || Em.I18n.t('requestInfo.installComponents');
-    return this.updateHostComponents(hostName, components, App.HostComponentStatus.stopped, context);
+    return this.getUpdateHostComponentsRequest(hostName, components, App.HostComponentStatus.stopped, context);
   },
 
   /**
-   * Calls the API to start multiple components on a host
+   * Gets the API request to start multiple components on a host
    * @param hostName {String}
    * @param components {String[]}
    * @param context {String} Optional
-   * @return {Object} Deferred promise
+   * @return {Object}
    */
-  startHostComponents: function(hostName, components, context) {
+  getStartHostComponentsRequest: function(hostName, components, context) {
     context = context || Em.I18n.t('requestInfo.startHostComponents');
-    return this.updateHostComponents(hostName, components, App.HostComponentStatus.started, context);
+    return this.getUpdateHostComponentsRequest(hostName, components, App.HostComponentStatus.started, context);
   },
 
+
   /**
-   * Calls the API to start/stop multiple components on a host
+   * Gets the API request to start/stop multiple components on a host
    * @param hostName {String}
    * @param components
    * @param desiredState
    * @param context {String}
    * @private
-   * @method {updateHostComponents}
-   * @return {Object} Deferred promise
+   * @method {getUpdateHostComponentsRequest}
+   * @return {Object}
    */
-  updateHostComponents: function(hostName, components, desiredState, context) {
-    var data = {
-      hostName: hostName,
-      context: context,
-      HostRoles: {
-        state: desiredState
+  getUpdateHostComponentsRequest: function(hostName, components, desiredState, context) {
+    components = (Array.isArray(components)) ? components : [components];
+    var query = "HostRoles/component_name.in(" + components.join(',') + ")";
+
+    return  {
+      "type": 'PUT',
+      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components",
+      "RequestBodyInfo": {
+        "RequestInfo": {
+          "context": context,
+          "operation_level": {
+            "level": "HOST",
+            "cluster_name": App.get('clusterName'),
+            "host_names": hostName
+          },
+          "query": query
+        },
+        "Body": {
+          "HostRoles": {
+            "state": desiredState
+          }
+        }
       }
     };
-    components = (Array.isArray(components)) ? components : [components];
-    data.query = "HostRoles/component_name.in(" + components.join(',') + ")";
-
-    return App.ajax.send({
-      name: 'common.host.host_components.update',
-      sender: this,
-      data: data
-    });
   },
 
   /**
-   * Calls the API to delete component on a host
+   * Gets the API request to delete component on a host
    * @param hostName {String}
    * @param component {String}
-   * @return {Object} Deferred
+   * @private
+   * @method {getDeleteHostComponentRequest}
+   * @return {Object}
    */
-  deleteHostComponent: function(hostName, component) {
-    return App.ajax.send({
-      name: 'common.delete.host_component',
-      sender: this,
-      data: {
-        hostName: hostName,
-        componentName: component
-      }
-    });
+  getDeleteHostComponentRequest: function(hostName, component) {
+    return {
+      "type": 'DELETE',
+      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + component
+    }
   },
 
   /**
-   * Calls the API to refresh yarn queue
+   * Add `Refresh YARN Queue` as a request in the batched API call
+   * @param batches  {Array}
    * @private
-   * @method {refreshYarnQueues}
-   * @return {Object} Deferred
+   * @method {setRefreshYarnQueueRequest}
    */
-  refreshYarnQueues: function () {
-    var dfd = $.Deferred();
+  setRefreshYarnQueueRequest: function(batches) {
     var capacitySchedulerConfigs = this.get('allConfigs').filterProperty('filename', 'capacity-scheduler.xml').filter(function(item){
       return item.get('value') !== item.get('initialValue');
     });
@@ -274,83 +309,25 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       var componentName = 'RESOURCEMANAGER';
       var commandName = 'REFRESHQUEUES';
       var tag = 'capacity-scheduler';
-      var hosts = App.Service.find(serviceName).get('hostComponents').filterProperty('componentName', componentName).mapProperty('hostName');
-      return App.ajax.send({
-        name : 'service.item.refreshQueueYarnRequest',
-        sender: this,
-        data : {
-          command : commandName,
-          context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context') ,
-          hosts : hosts.join(','),
-          serviceName : serviceName,
-          componentName : componentName,
-          forceRefreshConfigTags : tag
+      var hostNames = App.Service.find(serviceName).get('hostComponents').filterProperty('componentName', componentName).mapProperty('hostName');
+      batches.push({
+        "type": 'POST',
+        "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
+            "command": commandName,
+            "parameters/forceRefreshConfigTags": tag
+          },
+          "Requests/resource_filters": [
+            {
+              service_name: serviceName,
+              component_name: componentName,
+              hosts: hostNames.join(',')
+            }
+          ]
         }
       });
-    } else {
-      dfd.resolve();
     }
-    return dfd.promise();
-  },
-
-  /**
-   * Fetched the Request Id to poll and starts the polling to check
-   * if the request is ongoing or completed until deferred is resolved
-   * @param data {Object} Json
-   * @private
-   * @method {isRequestCompleted}
-   * @return {Object} Deferred promise
-   */
-  isRequestCompleted: function(data) {
-    var dfd = $.Deferred();
-    if (!data) {
-      dfd.resolve();
-    } else {
-      var requestId = data.Requests.id;
-      this.getRequestStatus(requestId, dfd);
-    }
-    return dfd.promise();
-  },
-
-  /**
-   * keeps checking on requestId if the request is ongoing or completed until deferred is resolved
-   * @param requestId {Integer}
-   * @param requestCompletedDfd {Object} Deferred Object to resolve when the requestId shows that the request is completed
-   * @private
-   * @method {isRequestCompleted}
-   */
-  getRequestStatus: function(requestId, requestCompletedDfd) {
-    var self = this;
-    var POLL_INTERVAL = 5000;
-    var TIMEOUT = 3000;
-
-    var dfdPromise =  App.ajax.send({
-      name: 'common.get.request.status',
-      sender: this,
-      data: {
-        requestId: requestId,
-        timeout: TIMEOUT
-      }
-    });
-
-    var successCallback = function(data) {
-      if (['PENDING','IN_PROGRESS'].contains(data.Requests.request_status)) {
-        window.setTimeout(function () {
-          self.getRequestStatus(requestId, requestCompletedDfd);
-        }, POLL_INTERVAL);
-      } else if (data.Requests.request_status === 'COMPLETED') {
-        requestCompletedDfd.resolve();
-      } else {
-        requestCompletedDfd.reject();
-      }
-    };
-
-    var errorCallback = function()  {
-      window.setTimeout(function () {
-        self.getRequestStatus(requestId, requestCompletedDfd);
-      }, POLL_INTERVAL);
-    };
-
-    dfdPromise.then(successCallback, errorCallback);
   }
 });
