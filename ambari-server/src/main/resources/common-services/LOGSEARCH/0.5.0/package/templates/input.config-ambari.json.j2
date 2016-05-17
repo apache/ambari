@@ -26,6 +26,37 @@
       "type":"ambari_server",
       "rowtype":"service",
       "path":"{{ambari_server_log_dir}}/ambari-server.log"
+    },
+    {
+      "type":"ambari_alerts",
+      "rowtype":"service",
+      "add_fields":{
+        "level":"INFO"
+      },
+      "path":"{{ambari_server_log_dir}}/ambari-alerts.log"
+    },
+    {
+      "type":"ambari_config_changes",
+      "rowtype":"service",
+      "path":"{{ambari_server_log_dir}}/ambari-config-changes.log"
+    },
+    {
+      "type":"ambari_eclipselink",
+      "rowtype":"service",
+      "path":"{{ambari_server_log_dir}}/ambari-eclipselink.log"
+    },
+    {
+      "type":"ambari_server_check_database",
+      "rowtype":"service",
+      "path":"{{ambari_server_log_dir}}/ambari-server-check-database.log"
+    },
+    {
+      "type":"ambari_audit",
+      "rowtype":"service",
+      "add_fields":{
+        "level":"INFO"
+      },
+      "path":"{{ambari_server_log_dir}}/ambari-audit.log"
     }
 
   ],
@@ -80,6 +111,138 @@
         "logtime":{
           "map_date":{
             "date_pattern":"dd MMM yyyy HH:mm:ss"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_alerts"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_config_changes"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_eclipselink"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(\\[EL%{SPACE}%{LOGLEVEL:level}\\])",
+      "message_pattern":"(?m)^\\[EL%{SPACE}%{LOGLEVEL:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        },
+        "level":{
+          "map_fieldvalue":{
+            "pre_value":"Warning",
+            "post_value":"Warn"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_server_check_database"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_audit"
+          ]
+
+        }
+
+      },
+      "log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime},%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"yyyy-MM-dd'T'HH:mm:ss,SSSZ"
           }
 
         }
