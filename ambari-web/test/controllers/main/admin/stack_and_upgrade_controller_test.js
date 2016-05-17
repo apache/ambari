@@ -998,9 +998,32 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#downgrade()", function() {
+  describe("#downgrade", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'abortUpgrade');
+      sinon.stub(controller, 'abortUpgrade').returns({
+        done: function(callback) {callback()}
+      });
+      sinon.stub(controller, 'startDowngrade');
+      controller.downgrade('versionInfo');
+    });
+
+    afterEach(function () {
+      controller.abortUpgrade.restore();
+      controller.startDowngrade.restore();
+    });
+
+    it('should run abortUpgrade', function() {
+      expect(controller.abortUpgrade.calledOnce).to.be.true;
+    });
+
+    it('should run startDowngrade on done', function() {
+      expect(controller.startDowngrade.calledWith('versionInfo')).to.be.true;
+    });
+
+  });
+
+  describe("#startDowngrade()", function() {
+    beforeEach(function () {
       sinon.stub(App.RepositoryVersion, 'find').returns([
         Em.Object.create({
           displayName: 'HDP-2.3',
@@ -1009,21 +1032,17 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       ]);
       controller.set('upgradeVersion', 'HDP-2.3');
       controller.set('upgradeType', 'NON_ROLLING');
-      controller.downgrade(Em.Object.create({
+      controller.startDowngrade(Em.Object.create({
         repository_version: '2.2',
         repository_name: 'HDP-2.2'
-      }), {context: 'context'});
+      }));
       this.callArgs = testHelpers.findAjaxRequest('name', 'admin.downgrade.start')[0];
     });
 
     afterEach(function () {
-      controller.abortUpgrade.restore();
       App.RepositoryVersion.find.restore();
     });
 
-    it('abortUpgrade is called once', function() {
-      expect(controller.abortUpgrade.calledOnce).to.be.true;
-    });
     it('request-data is valid', function () {
       expect(this.callArgs.data).to.eql({
         from: '2.3',
