@@ -17,23 +17,20 @@ limitations under the License.
 
 """
 
-import flume_upgrade
-
 from flume import flume
 from flume import get_desired_state
 
-from resource_management import *
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
-from resource_management.libraries.functions.flume_agent_helper import get_flume_status
-from resource_management.libraries.functions.default import default
-
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names, get_flume_status
+from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.logger import Logger
+from resource_management.core.resources.service import Service
 import service_mapping
 from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.constants import StackFeature
 
 class FlumeHandler(Script):
   def configure(self, env):
@@ -61,10 +58,6 @@ class FlumeHandlerLinux(FlumeHandler):
     import params
     env.set_params(params)
     flume(action='stop')
-
-    # only backup data on upgrade
-    if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE:
-      flume_upgrade.post_stop_backup()
 
   def status(self, env):
     import params
@@ -99,10 +92,6 @@ class FlumeHandlerLinux(FlumeHandler):
     conf_select.select(params.stack_name, "flume", params.version)
     stack_select.select("flume-server", params.version)
 
-    # only restore on upgrade, not downgrade
-    if params.upgrade_direction == Direction.UPGRADE:
-      flume_upgrade.pre_start_restore()
-      
   def get_log_folder(self):
     import params
     return params.flume_log_dir
@@ -114,6 +103,7 @@ class FlumeHandlerLinux(FlumeHandler):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FlumeHandlerWindows(FlumeHandler):
   def install(self, env):
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
     if not check_windows_service_exists(service_mapping.flume_win_service_name):
       self.install_packages(env)
     self.configure(env)
@@ -129,6 +119,7 @@ class FlumeHandlerWindows(FlumeHandler):
 
   def status(self, env):
     import params
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
     check_windows_service_status(service_mapping.flume_win_service_name)
 
 if __name__ == "__main__":

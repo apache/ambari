@@ -19,9 +19,7 @@ limitations under the License.
 import glob
 import os
 import shutil
-import tempfile
 
-from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
@@ -30,7 +28,6 @@ from resource_management.core.resources.system import File
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import tar_archive
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import StackFeature
@@ -42,59 +39,6 @@ BACKUP_TEMP_DIR = "oozie-upgrade-backup"
 BACKUP_CONF_ARCHIVE = "oozie-conf-backup.tar"
 
 class OozieUpgrade(Script):
-
-  @staticmethod
-  def backup_configuration():
-    """
-    Backs up the oozie configuration as part of the upgrade process.
-    :return:
-    """
-    Logger.info('Backing up Oozie configuration directory before upgrade...')
-    directoryMappings = OozieUpgrade._get_directory_mappings()
-
-    absolute_backup_dir = os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR)
-    if not os.path.isdir(absolute_backup_dir):
-      os.makedirs(absolute_backup_dir)
-
-    for directory in directoryMappings:
-      if not os.path.isdir(directory):
-        raise Fail("Unable to backup missing directory {0}".format(directory))
-
-      archive = os.path.join(absolute_backup_dir, directoryMappings[directory])
-      Logger.info('Compressing {0} to {1}'.format(directory, archive))
-
-      if os.path.exists(archive):
-        os.remove(archive)
-
-      # backup the directory, following symlinks instead of including them
-      tar_archive.archive_directory_dereference(archive, directory)
-
-
-  @staticmethod
-  def restore_configuration():
-    """
-    Restores the configuration backups to their proper locations after an
-    upgrade has completed.
-    :return:
-    """
-    Logger.info('Restoring Oozie configuration directory after upgrade...')
-    directoryMappings = OozieUpgrade._get_directory_mappings()
-
-    for directory in directoryMappings:
-      archive = os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR,
-        directoryMappings[directory])
-
-      if not os.path.isfile(archive):
-        raise Fail("Unable to restore missing backup archive {0}".format(archive))
-
-      Logger.info('Extracting {0} to {1}'.format(archive, directory))
-
-      tar_archive.untar_archive(archive, directory)
-
-    # cleanup
-    Directory(os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR),
-              action="delete",
-    )
 
   @staticmethod
   def prepare_libext_directory():
@@ -288,20 +232,6 @@ class OozieUpgrade(Script):
       params.stack_root, stack_version, params.fs_root)
 
     Execute(sharelib_command, user=params.oozie_user, logoutput=True)
-
-
-  @staticmethod
-  def _get_directory_mappings():
-    """
-    Gets a dictionary of directory to archive name that represents the
-    directories that need to be backed up and their output tarball archive targets
-    :return:  the dictionary of directory to tarball mappings
-    """
-    import params
-
-    # the trailing "/" is important here so as to not include the "conf" folder itself
-    return { params.conf_dir + "/" : BACKUP_CONF_ARCHIVE }
-
 
 if __name__ == "__main__":
   OozieUpgrade().execute()

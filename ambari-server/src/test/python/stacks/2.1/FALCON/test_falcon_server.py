@@ -200,7 +200,7 @@ class TestFalconServer(RMFTestCase):
   def test_upgrade(self, isfile_mock, exists_mock, isdir_mock):
 
     isdir_mock.return_value = True
-    exists_mock.side_effect = [False,False,True, True,True]
+    exists_mock.side_effect = [False,True, True, True]
     isfile_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
@@ -218,25 +218,12 @@ class TestFalconServer(RMFTestCase):
 
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
-     '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
-     '/usr/hdp/current/falcon-server/conf'),
-        sudo = True, tries = 3, try_sleep = 1,
-    )
-    self.assertResourceCalled('Execute', ('tar',
-     '-zcvhf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
      u'/hadoop/falcon'),
         sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', u'2.2.1.0-2135'),
         sudo = True,
-    )
-    self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
-     '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
-     '-C',
-     '/usr/hdp/current/falcon-server/conf/'),
-        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-xvf',
@@ -522,15 +509,6 @@ class TestFalconServer(RMFTestCase):
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
     self.assertResourceCalled('Execute', ('tar',
                                           '-xvf',
-                                          '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
-                                          '-C',
-                                          '/usr/hdp/current/falcon-server/conf/'),
-                              tries = 3,
-                              sudo = True,
-                              try_sleep = 1,
-                              )
-    self.assertResourceCalled('Execute', ('tar',
-                                          '-xvf',
                                           '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
                                           '-C',
                                           u'/hadoop/falcon/'),
@@ -569,13 +547,6 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalledIgnoreEarlier('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
 
-    self.assertResourceCalled('Execute', ('tar',
-     '-xvf',
-     '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
-     '-C',
-     '/usr/hdp/current/falcon-server/conf/'),
-        sudo = True, tries = 3, try_sleep = 1,
-    )
     self.assertResourceCalled('Execute', ('tar',
      '-xvf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',

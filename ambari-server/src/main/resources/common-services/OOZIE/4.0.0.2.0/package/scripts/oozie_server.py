@@ -192,13 +192,10 @@ class OozieServerDefault(OozieServer):
 
     Logger.info("Executing Oozie Server Stack Upgrade pre-restart")
 
-    OozieUpgrade.backup_configuration()
-
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "oozie", params.version)
       stack_select.select("oozie-server", params.version)
 
-    OozieUpgrade.restore_configuration()
     OozieUpgrade.prepare_libext_directory()
     
   def get_log_folder(self):
