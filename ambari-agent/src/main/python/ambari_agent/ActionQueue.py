@@ -283,8 +283,8 @@ class ActionQueue(threading.Thread):
     if isAutoExecuteCommand:
       retryAble = False
 
-    logger.debug("Command execution metadata - retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}".
-                 format(retryAble=retryAble, retryDuration=retryDuration))
+    logger.info("Command execution metadata - taskId = {taskId}, retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}".
+                 format(taskId=taskId, retryAble=retryAble, retryDuration=retryDuration))
     while retryDuration >= 0:
       numAttempts += 1
       start = 0
@@ -303,6 +303,8 @@ class ActionQueue(threading.Thread):
 
       # dumping results
       if isCommandBackground:
+        logger.info("Command is background command, quit retrying. Exit code: {exitCode}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
+                    .format(cid=taskId, exitCode=commandresult['exitcode'], retryAble=retryAble, retryDuration=retryDuration, delay=delay))
         return
       else:
         if commandresult['exitcode'] == 0:
@@ -320,6 +322,8 @@ class ActionQueue(threading.Thread):
         time.sleep(delay)
         continue
       else:
+        logger.info("Quit retrying for command id {cid}. Status: {status}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
+                    .format(cid=taskId, status=status, retryAble=retryAble, retryDuration=retryDuration, delay=delay))
         break
 
     # final result to stdout
