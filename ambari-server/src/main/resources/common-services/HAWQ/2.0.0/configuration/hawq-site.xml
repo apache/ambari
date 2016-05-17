@@ -262,44 +262,6 @@
   </property>
 
   <property>
-    <name>hawq_re_cpu_enable</name>
-    <value>false</value>
-    <description>
-      Determines whether to enable or disable CPU resource enforcement.
-      The default is false (disabled).
-    </description>
-    <value-attributes>
-      <type>boolean</type>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>hawq_re_cgroup_mount_point</name>
-    <value>/sys/fs/cgroup</value>
-    <description>
-     The mount point of CGroup file system for resource enforcement.
-     For example, /sys/fs/cgroup/cpu/hawq for CPU subsystem.
-     The default is '/sys/fs/cgroup'.
-    </description>
-    <value-attributes>
-      <type>directory</type>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>hawq_re_cgroup_hierarchy_name</name>
-    <value>hawq</value>
-    <description>
-      The name of the hierarchy to accommodate CGroup directories/files for resource enforcement.
-      For example, /sys/fs/cgroup/cpu/hawq for CPU subsystem.
-      The default is 'hawq'.
-    </description>
-    <value-attributes>
-      <type>string</type>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>default_hash_table_bucket_number</name>
     <display-name>Default buckets for Hash Distributed tables</display-name>
     <value>6</value>
