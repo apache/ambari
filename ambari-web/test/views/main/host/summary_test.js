@@ -643,4 +643,23 @@ describe('App.MainHostSummaryView', function() {
       expect(mainHostSummaryView.hasCardinalityConflict('C1')).to.be.false;
     });
   });
+
+  describe("#installClients()", function () {
+
+    beforeEach(function () {
+      var controller = {installClients: Em.K};
+      sinon.spy(controller, 'installClients');
+      mainHostSummaryView.set('controller', controller);
+      mainHostSummaryView.reopen({'notInstalledClientComponents': [1,2,3]});
+    });
+
+    afterEach(function () {
+      mainHostSummaryView.get('controller.installClients').restore();
+    });
+
+    it("should call installClients method from controller", function () {
+      mainHostSummaryView.installClients();
+      expect(mainHostSummaryView.get('controller.installClients').calledWith([1,2,3])).to.be.true;
+    });
+  });
 });

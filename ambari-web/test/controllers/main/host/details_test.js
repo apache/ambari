@@ -2917,9 +2917,7 @@ describe('App.MainHostDetailsController', function () {
           sinon.stub(controller, 'checkComponentDependencies', function (componentName) {
             return item.dependencies[componentName];
           });
-          controller.installClients({
-            context: item.context
-          });
+          controller.installClients(item.context);
         });
 
         it('getSecurityType is ' + (item.getKDCSessionStateCalled ? '' : 'not') + ' called', function() {
