@@ -986,7 +986,7 @@ class TestActionQueue(TestCase):
       'status': 'FAILED'
     }
 
-    times_arr = [8, 10, 14, 18, 22, 26]
+    times_arr = [8, 10, 14, 18, 22, 26, 30, 34]
     if self.logger.isEnabledFor(logging.INFO):
       times_arr.insert(0, 4)
     time_mock.side_effect = times_arr
@@ -1003,7 +1003,7 @@ class TestActionQueue(TestCase):
     self.assertTrue(runCommand_mock.called)
     self.assertEqual(2, runCommand_mock.call_count)
     self.assertEqual(1, sleep_mock.call_count)
-    sleep_mock.assert_has_calls([call(2)], False)
+    sleep_mock.assert_has_calls([call(1)], False)
     runCommand_mock.assert_has_calls([
       call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
            os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=True, retry=False),
