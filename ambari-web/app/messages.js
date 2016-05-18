@@ -3004,6 +3004,7 @@ Em.I18n.translations = {
   'config.infoMessage.wrong.value.for.widget': 'Configuration value cannot be converted into UI control value',
   'config.warnMessage.outOfBoundaries.greater': 'Values greater than {0} are not recommended',
   'config.warnMessage.outOfBoundaries.less': 'Values smaller than {0} are not recommended',
+  'config.warnMessage.llap_queue_capacity.max': 'LLAP will consume entire Yarn queue',
 
   'errorMessage.config.required': 'This is required',
   'errorMessage.config.number.integer': 'Must contain digits only',
