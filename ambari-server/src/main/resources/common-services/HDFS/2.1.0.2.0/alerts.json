@@ -936,7 +936,7 @@
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Heap increase in a day.",
+              "display_name": "Minimum Heap",
               "value": 100,
               "type": "NUMERIC",
               "units": "MB",
@@ -1336,7 +1336,7 @@
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Capacity usage increase in a day.",
+              "display_name": "Minimum Capacity",
               "value": 100,
               "type": "NUMERIC",
               "units": "MB",
@@ -1416,7 +1416,7 @@
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Heap increase in a week.",
+              "display_name": "Minimum Heap",
               "value": 1000,
               "type": "NUMERIC",
               "units": "MB",
@@ -1496,7 +1496,7 @@
             },
             {
               "name": "minimumValue",
-              "display_name": "Minimum Capacity increase in a week.",
+              "display_name": "Minimum Capacity",
               "value": 1000,
               "type": "NUMERIC",
               "units": "MB",
