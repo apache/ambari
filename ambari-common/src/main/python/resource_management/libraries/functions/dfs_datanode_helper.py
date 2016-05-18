@@ -155,6 +155,7 @@ def handle_dfs_data_dir(func, params, update_cache=True):
     if os.path.isdir(data_dir) and data_dir not in data_dirs_unmounted:
       curr_mount_point = get_mount_point_for_dir(data_dir)
       data_dir_to_mount_point[data_dir] = curr_mount_point
+      func(data_dir, params)
 
   if error_messages and len(error_messages) > 0:
     header = " ERROR ".join(["*****"] * 6)
