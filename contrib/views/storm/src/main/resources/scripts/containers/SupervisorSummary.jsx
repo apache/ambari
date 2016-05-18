@@ -29,6 +29,9 @@ define(['react',
 
 	return React.createClass({
 		displayName: 'SupervisorSummary',
+		propTypes: {
+			fromDashboard: React.PropTypes.bool
+		},
 		getInitialState: function(){
 			this.initializeCollection();
 			return null;
@@ -58,11 +61,17 @@ define(['react',
 		getColumns: function(){
 			return [
 				{name: 'host', title: 'Host', tooltip:'The hostname reported by the remote host. (Note that this hostname is not the result of a reverse lookup at the Nimbus node.)', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return ( <a href={this.props.model.get('logLink')} target="_blank"> {this.props.model.get('host')} </a> );
 					}
 				})},
 				{name: 'slotsTotal', title: 'Slots', tooltip:'Slots are Workers (processes).', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<RadialChart innerRadius="19" outerRadius="21" 
 							color={["#bcbcbc", "#235693"]} 
@@ -72,6 +81,9 @@ define(['react',
 					}
 				})},
 				{name: 'totalCpu', title: 'CPU', tooltip:'CPU that has been allocated.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<RadialChart innerRadius="19" outerRadius="21" 
 							color={["#bcbcbc", "#235693"]} 
@@ -81,6 +93,9 @@ define(['react',
 					}
 				})},
 				{name: 'totalMem', title: 'Memory', tooltip:'Memory that has been allocated.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<RadialChart innerRadius="19" outerRadius="21" 
 							color={["#bcbcbc", "#235693"]} 
@@ -90,6 +105,9 @@ define(['react',
 					}
 				})},
 				{name: 'uptime', title: 'Uptime', tooltip:'The length of time a Supervisor has been registered to the cluster.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<small>{this.props.model.get('uptime')}</small>);
 					}
@@ -112,7 +130,7 @@ define(['react',
 		        pagination = ( <Pagination collection={this.collection} /> );
 		        elemBox = (
 		        		<div className="input-group col-sm-4">
-								<input type="text"  onKeyUp={this.handleFilter} className="form-control" placeholder="Search By Key" />
+								<input type="text"  onKeyUp={this.handleFilter} className="form-control" placeholder="Search By Host" />
 								<span className="input-group-btn">
 								<button className="btn btn-primary" type="button"><i className="fa fa-search"></i></button>
 								</span>

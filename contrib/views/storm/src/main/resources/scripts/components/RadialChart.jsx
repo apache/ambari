@@ -20,10 +20,19 @@ define(['react', 'react-dom', 'd3', 'd3.tip'], function(React, ReactDOM, d3) {
 	'use strict';
 	return React.createClass({
 		displayName: 'RadialChart',
+		propTypes: {
+			data: React.PropTypes.array.isRequired,
+			labels: React.PropTypes.array.isRequired,
+			width: React.PropTypes.string,
+			height: React.PropTypes.string,
+			innerRadius: React.PropTypes.string.isRequired,
+			outerRadius: React.PropTypes.string.isRequired,
+			color: React.PropTypes.array
+		},
 		getInitialState: function(){
 			this.const = {
 				tau: 2 * Math.PI,
-				width: this.props.width || "64",
+				width: this.props.width || "44",
 				height: this.props.height || "52",
 				innerRadius: parseInt(this.props.innerRadius, 10) || 20,
 				outerRadius: parseInt(this.props.outerRadius, 10) || 25,

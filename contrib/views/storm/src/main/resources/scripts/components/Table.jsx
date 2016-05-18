@@ -20,6 +20,9 @@ define(['react', 'react-dom'], function(React, ReactDOM) {
 	'use strict';
 	var Row = React.createClass({
 		displayName: 'Row',
+		propTypes: {
+			model: React.PropTypes.object.isRequired
+		},
 		componentDidMount: function(){
 			if(!this.props.model._highlighted){
 				$(ReactDOM.findDOMNode(this)).addClass('');
@@ -32,6 +35,12 @@ define(['react', 'react-dom'], function(React, ReactDOM) {
 	});
 	return React.createClass({
 		displayName: 'Table',
+		propTypes: {
+			collection: React.PropTypes.object.isRequired,
+			emptyText: React.PropTypes.string,
+			columns: React.PropTypes.array.isRequired,
+			limitRows: React.PropTypes.string
+		},
 		getInitialState: function(){
 			this.highlight = false;
 			return null;
@@ -84,7 +93,7 @@ define(['react', 'react-dom'], function(React, ReactDOM) {
 		getHeaderTHs: function(){
 			var ths = this.props.columns.map(function(column, i){
 				var stringTitle = typeof column.title === 'string' ? true : false;
-				return (<th key={i}><span data-rel="tooltip" title={column.tooltip ? column.tooltip : ""}>{stringTitle ? column.title : <column.title/>}</span></th>);
+				return (<th key={i}><span data-rel="tooltip" data-placement="bottom" title={column.tooltip ? column.tooltip : ""}>{stringTitle ? column.title : <column.title/>}</span></th>);
 			});
 			return ths;			
 		}

@@ -52,7 +52,29 @@ define(['require',
             this.getFirstPage().fullCollection.reset(this.unfilteredCollection.models);
           }
           var results = _.filter(this.fullCollection.models,function(model) {
-             var regexTest = new RegExp(letters,"i");
+              var pattern = letters;
+              if(pattern.indexOf('\\') > -1)
+                pattern = pattern.replace(/\\/g, '\\\\');
+              if(pattern.indexOf('*') > -1)
+                pattern = pattern.replace(/\*/g, '\\*');
+              if(pattern.indexOf('$') > -1)
+                pattern = pattern.replace(/\$/g, '\\$');
+              if(pattern.indexOf('^') > -1)
+                pattern = pattern.replace(/\^/g, '\\^');
+              if(pattern.indexOf('+') > -1)
+                pattern = pattern.replace(/\+/g, '\\+');
+              if(pattern.indexOf('?') > -1)
+                pattern = pattern.replace(/\?/g, '\\?');
+              if(pattern.indexOf('(') > -1)
+                pattern = pattern.replace(/\(/g, '\\(');
+              if(pattern.indexOf(')') > -1)
+                pattern = pattern.replace(/\)/g, '\\)');
+              if(pattern.indexOf('[') > -1)
+                pattern = pattern.replace(/\[/g, '\\[');
+              if(pattern.indexOf(']') > -1)
+                pattern = pattern.replace(/\]/g, '\\]');
+
+             var regexTest = new RegExp(pattern,"i");
              var result = false;
               _.each(this.searchFields, function(field) {
                 if(regexTest.test(model.get(field))) {

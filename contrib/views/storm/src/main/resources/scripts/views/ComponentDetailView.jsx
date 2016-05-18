@@ -34,6 +34,10 @@ define([
 
 	return React.createClass({
 		displayName: 'ComponentDetailView',
+		propTypes: {
+			id: React.PropTypes.string.isRequired,
+			name: React.PropTypes.string.isRequired
+		},
 		getInitialState: function(){
 			this.model = new VTopology({'id': this.props.id});
 			this.systemFlag = (this.props.name.startsWith('__')) ? true : false;
@@ -262,6 +266,9 @@ define([
 					{name: 'id', title: 'Id', tooltip: 'The unique executor ID.'},
 					{name: 'uptime', title: 'Uptime', tooltip: 'The length of time an Executor (thread) has been alive.'},
 					{name: 'port', title: 'Host:Port', tooltip: 'The hostname reported by the remote host. (Note that this hostname is not the result of a reverse lookup at the Nimbus node.) Click on it to open the logviewer page for this Worker.', component: React.createClass({
+						propTypes: {
+							model: React.PropTypes.object.isRequired
+						},
 						render: function(){
 							return ( <a href={this.props.model.get('workerLogLink')} target="_blank"> {this.props.model.get('host')}:{this.props.model.get('port')} </a>);
 						}
@@ -272,6 +279,9 @@ define([
 					{name: 'acked', title: 'Acked', tooltip: 'The number of Tuple "trees" successfully processed. A value of 0 is expected if no acking is done.'},
 					{name: 'failed', title: 'Failed', tooltip: 'The number of Tuple "trees" that were explicitly failed or timed out before acking was completed. A value of 0 is expected if no acking is done.'},
 					{name: 'workerLogLink', title: 'Dumps', component: React.createClass({
+						propTypes: {
+							model: React.PropTypes.object.isRequired
+						},
 						render: function(){
 							var link = this.props.model.get('workerLogLink');
 							link = ""+link.split('/log')[0]+"/dumps/"+self.props.id+"/"+this.props.model.get('host')+":"+this.props.model.get('port');
@@ -284,6 +294,9 @@ define([
 					{name: 'id', title: 'Id', tooltip: 'The unique executor ID.'},
 					{name: 'uptime', title: 'Uptime', tooltip: 'The length of time an Executor (thread) has been alive.'},
 					{name: 'port', title: 'Host:Port', tooltip: 'The hostname reported by the remote host. (Note that this hostname is not the result of a reverse lookup at the Nimbus node.) Click on it to open the logviewer page for this Worker.', component: React.createClass({
+						propTypes: {
+							model: React.PropTypes.object.isRequired
+					    },
 						render: function(){
 							return ( <a href={this.props.model.get('workerLogLink')} target="_blank"> {this.props.model.get('host')}:{this.props.model.get('port')} </a>);
 						}
@@ -297,6 +310,9 @@ define([
 					{name: 'acked', title: 'Acked', tooltip: 'The number of Tuples acknowledged by this Bolt.'},
 					{name: 'failed', title: 'Failed', tooltip: 'The number of tuples Failed by this Bolt.'},
 					{name: 'workerLogLink', title: 'Dumps', component: React.createClass({
+						propTypes: {
+							model: React.PropTypes.object.isRequired
+						},
 						render: function(){
 							var link = this.props.model.get('workerLogLink');
 							link = ""+link.split('/log')[0]+"/dumps/"+self.props.id+"/"+this.props.model.get('host')+":"+this.props.model.get('port');
@@ -321,15 +337,21 @@ define([
 		getErrorColumns: function(){
 			return [
 				{name: 'errorTime', title: 'Time', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						if(this.props.model.get('errorTime') != 0) {
-							var d = new Date(this.props.model.get('errorTime')),
+							var d = new Date(this.props.model.get('errorTime') * 1000),
 							date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
 							return (<span>{date}</span>);
 						} else return (<span></span>);
 					}
 				})},
 				{name: 'errorPort', title: 'Host:Port', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return ( <a href={this.props.model.get('errorWorkerLogLink')} target="_blank"> {this.props.model.get('errorHost')}:{this.props.model.get('errorPort')} </a>);
 					}
@@ -441,7 +463,7 @@ define([
     		if(toEnableFlag){
     			bootbox.prompt({
 			        title: 'Do you really want to debug this component ? If yes, please, specify sampling percentage.',
-			        value: "10",
+			        value: this.state.componentObj.samplingPct ? this.state.componentObj.samplingPct : "10",
 			        buttons: {
 			          confirm: {
 			            label: 'Yes',
@@ -453,7 +475,12 @@ define([
 			          }
 			        },
 			        callback: function(result) {
-			          if(result != null){
+					  if(result == null) {
+						$(".boot-switch.debug").bootstrapSwitch('toggleState', true);
+			          } else if(result == "" || isNaN(result) || result < 0) {
+						Utils.notifyError("Enter valid sampling percentage");
+						$(".boot-switch.debug").bootstrapSwitch('toggleState', true)
+			          } else {
 			            this.model.debugComponent({
 			    			id: this.state.componentObj.topologyId,
 			    			name: this.state.componentObj.id,
@@ -471,8 +498,6 @@ define([
 								Utils.notifyError("Error occured in enabling debugging.");
 							}
 			    		});
-			          } else {
-			          	$(".boot-switch.debug").bootstrapSwitch('toggleState', true)
 			          }
 			        }.bind(this)
 			    });

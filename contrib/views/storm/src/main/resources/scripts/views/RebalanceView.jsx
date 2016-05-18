@@ -26,6 +26,13 @@ define(['react',
 	'use strict';
 	return React.createClass({
 		displayName: 'Rebalance',
+		propTypes: {
+			modalId: React.PropTypes.string.isRequired,
+			topologyId: React.PropTypes.string.isRequired,
+			topologyExecutors: React.PropTypes.string.isRequired,
+			spouts: React.PropTypes.array.isRequired,
+			bolts: React.PropTypes.array.isRequired
+		},
 		getInitialState: function(){
 			var spoutArr = [];
 			var boltArr = [];
@@ -175,7 +182,7 @@ define(['react',
 		render: function() {
 			var totalExecutor = this.state.workers + this.state.freeSlots;
 			return (
-				<div className="modal fade" id={this.props.modalId} role="dialog">
+				<div className="modal fade" id={this.props.modalId} role="dialog" data-backdrop="static">
 				    <div className="modal-dialog">
 				      	<div className="modal-content">
 				        	<div className="modal-header">

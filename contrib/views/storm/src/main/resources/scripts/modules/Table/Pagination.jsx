@@ -20,7 +20,10 @@ define(['react', 'utils/Globals'], function(React, Globals){
   'use strict';
   return React.createClass({
     displayName: 'Pagination',
-    
+    propTypes: {
+      collection: React.PropTypes.object.isRequired,
+      maximumPages: React.PropTypes.number
+    },
     getInitialState: function(){
       this.props.collection.on('reset', function(data){
         this.setState({'collection': data});

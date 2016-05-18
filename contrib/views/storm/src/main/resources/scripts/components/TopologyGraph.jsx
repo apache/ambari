@@ -20,6 +20,11 @@ define(['react', 'react-dom', 'd3', 'd3.tip'], function(React, ReactDOM, d3) {
 	'use strict';
 	return React.createClass({
 		displayName: 'TopologyGraph',
+        propTypes: {
+            data: React.PropTypes.object.isRequired,
+            width: React.PropTypes.string,
+            height: React.PropTypes.string
+        },
 		getInitialState: function(){
 			this.width = this.props.width || '1100';
 			this.height = this.props.height || '260';

@@ -38,6 +38,9 @@ define([
 
 	return React.createClass({
 		displayName: 'TopologyDetailView',
+		propTypes: {
+			id: React.PropTypes.string.isRequired
+		},
 		getInitialState: function(){
 			this.model = new VTopology({'id': this.props.id});
 			this.spoutCollection = new BaseCollection();
@@ -230,6 +233,9 @@ define([
 			var self = this;
 			return [
 				{name: 'spoutId', title: 'Id', tooltip:'The ID assigned to a the Component by the Topology. Click on the name to view the Component\'s page.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						var topologyId = self.state.model.has('id') ? self.state.model.get('id') : "";
 						return ( <a href={"#!/topology/"+topologyId+"/component/"+this.props.model.get('spoutId')}>{this.props.model.get('spoutId')}</a>);
@@ -243,15 +249,21 @@ define([
 				{name: 'acked', title: 'Acked', tooltip:'The number of Tuple "trees" successfully processed. A value of 0 is expected if no acking is done.'},
 				{name: 'failed', title: 'Failed', tooltip:'The number of Tuple "trees" that were explicitly failed or timed out before acking was completed. A value of 0 is expected if no acking is done.'},
 				{name: 'errorHost', title: 'Error Host:Port', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<span>{this.props.model.has('errorHost') && this.props.model.get('errorHost') !== '' ? this.props.model.get('errorHost')+':'+this.props.model.get('errorPort') : null}</span>);
 					}
 				})},
 				{name: 'lastError', title: 'Last Error'},
 				{name: 'errorTime', title: 'Error Time', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						if(this.props.model.get('errorTime') != 0) {
-							var d = new Date(this.props.model.get('errorTime')),
+							var d = new Date(this.props.model.get('errorTime') * 1000),
 							date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
 							return (<span>{date}</span>);
 						} else return (<span></span>);
@@ -279,6 +291,9 @@ define([
 			var self = this;
 			return [
 				{name: 'boltId', title: 'Id', tooltip:'The ID assigned to a the Component by the Topology. Click on the name to view the Component\'s page.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						var topologyId = self.state.model.has('id') ? self.state.model.get('id') : "";
 						return ( <a href={"#!/topology/"+topologyId+"/component/"+this.props.model.get('boltId')}>{this.props.model.get('boltId')}</a>);
@@ -295,15 +310,21 @@ define([
 				{name: 'acked', title: 'Acked', tooltip:'The number of Tuples acknowledged by this Bolt.'},
 				{name: 'failed', title: 'Failed', tooltip:'The number of tuples Failed by this Bolt.'},
 				{name: 'errorHost', title: 'Error Host:Port', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<span>{this.props.model.has('errorHost') && this.props.model.get('errorHost') !== '' ? this.props.model.get('errorHost')+':'+this.props.model.get('errorPort') : null}</span>);
 					}
 				})},
 				{name: 'lastError', title: 'Last Error'},
 				{name: 'errorTime', title: 'Error Time', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						if(this.props.model.get('errorTime') != 0) {
-							var d = new Date(this.props.model.get('errorTime')),
+							var d = new Date(this.props.model.get('errorTime') * 1000),
 							date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
 							return (<span>{date}</span>);
 						} else return (<span></span>);
@@ -441,6 +462,9 @@ define([
 			var self = this;
 			return [
 				{name: 'logger', title: 'Logger', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						if(this.props.model.get('isAdd'))
 							return (<a href="javascript:void(0)" className="x-editable logger">{this.props.model.get('logger')}</a>);
@@ -453,6 +477,9 @@ define([
 					}})
 			    },
 				{name: 'target_level', title: 'Level', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function() {
 						return (
 							<select className="form-control target-level" defaultValue={this.props.model.get('target_level')}>
@@ -469,6 +496,9 @@ define([
 					}
 				})},
 				{name: 'timeout', title: 'Timeout', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<a href="javascript:void(0)" className="x-editable timeout">{this.props.model.get('timeout')}</a>);
 					},
@@ -479,6 +509,9 @@ define([
 					}})
 			    },
 				{name: 'timeout_epoch', title: 'Expires At', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						if(this.props.model.get('timeout_epoch') != 0) {
 							var d = new Date(this.props.model.get('timeout_epoch')),
@@ -490,6 +523,9 @@ define([
 					})
 				},
 				{name: 'action', title: 'Action', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						if(this.props.model.get('isAdd'))
 							return(
@@ -645,10 +681,10 @@ define([
 					</div>
 					<div className="row">
 						<div className="col-sm-12">
-							<TopologyConfiguration configArr={this.state.model.get('configuration')}/>
+							<TopologyConfiguration configArr={this.state.model.get('configuration') ? this.state.model.get('configuration') : {}}/>
 						</div>
 					</div>
-					{this.state.rebalanceModalOpen ? <RebalanceView modalId="modal-rebalance" topologyId={this.state.model.get('id')} topologyExecutors={workersTotal} spouts={this.state.model.get('spouts')} bolts={this.state.model.get('bolts')}/> : null}
+					{this.state.rebalanceModalOpen ? <RebalanceView modalId="modal-rebalance" topologyId={this.state.model.get('id')} topologyExecutors={workersTotal} spouts={this.state.model.get('spouts') ? this.state.model.get('spouts') : []} bolts={this.state.model.get('bolts') ? this.state.model.get('bolts') : []}/> : null}
 				</div>
 			);
 	    },
@@ -742,7 +778,7 @@ define([
     		if(toEnableFlag){
     			bootbox.prompt({
 			        title: 'Do you really want to debug this topology ? If yes, please, specify sampling percentage.',
-			        value: "10",
+			        value: this.model.get("samplingPct") ? this.model.get("samplingPct") : '10',
 			        buttons: {
 			          confirm: {
 			            label: 'Yes',
@@ -754,7 +790,12 @@ define([
 			          }
 			        },
 			        callback: function(result) {
-			          if(result != null){
+					  if(result == null) {
+						$(".boot-switch.debug").bootstrapSwitch('toggleState', true);
+			          } else if(result == "" || isNaN(result) || result < 0) {
+						Utils.notifyError("Enter valid sampling percentage");
+						$(".boot-switch.debug").bootstrapSwitch('toggleState', true);
+			          } else {
 			            this.model.debugTopology({
 			    			id: this.model.get('id'),
 			    			debugType: 'enable',
@@ -771,8 +812,6 @@ define([
 								Utils.notifyError("Error occured in enabling debugging.");
 							}
 			    		});
-			          } else {
-			          	$(".boot-switch.debug").bootstrapSwitch('toggleState', true)
 			          }
 			        }.bind(this)
 			    });

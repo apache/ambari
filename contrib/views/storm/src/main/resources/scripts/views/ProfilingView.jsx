@@ -28,6 +28,11 @@ define(['react',
 	'use strict';
 	return React.createClass({
 		displayName: 'Profiling',
+		propTypes: {
+			modalId: React.PropTypes.string.isRequired,
+			topologyId: React.PropTypes.string.isRequired,
+			executorStats: React.PropTypes.array.isRequired
+		},
 		getInitialState: function(){
 			this.model = new VTopology();
 			this.selectedWorker = [];
@@ -130,6 +135,9 @@ define(['react',
 						}
 					}), 
 					component: React.createClass({
+						propTypes: {
+							model: React.PropTypes.object.isRequired
+						},
 						handleChange: function(e){
 							var hostPort = this.props.model.get('hostPort')
 							if($(e.currentTarget).prop('checked')){
@@ -150,6 +158,9 @@ define(['react',
 				},
 				{name: 'hostPort', title:'Host:Port'},
 				{name: 'executorId', title:'Executor Id', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						var executors = this.props.model.get('executorId').join(', ');
 						return (

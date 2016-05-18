@@ -28,6 +28,9 @@ define(['react',
 
 	return React.createClass({
 		displayName: 'NimbusSummary',
+		propTypes: {
+			fromDashboard: React.PropTypes.bool
+		},
 		getInitialState: function(){
 			this.initializeCollection();
 			return null;
@@ -58,11 +61,17 @@ define(['react',
 		getColumns: function(){
 			return [
 				{name: 'host', title: 'Host:Port', tooltip: 'Nimbus hostname and port number', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return ( <a href={this.props.model.get('nimbusLogLink')} target="_blank"> {this.props.model.get('host:port')} </a> );
 					}
 				})},
 				{name: 'status', title: 'Status', tooltip: 'Leader if this host is leader, Not a Leader for all other live hosts, note that these hosts may or may not be in leader lock queue, and Dead for hosts that are part of nimbus.seeds list but are not alive.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						var classname="label ";
 						switch(this.props.model.get("status")){
@@ -80,6 +89,9 @@ define(['react',
 					}
 				})},
 				{name: 'nimbusUpTime', title: 'Uptime', tooltip: 'Time since this nimbus host has been running.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return (<small>{this.props.model.get('nimbusUpTime')}</small>);
 					}
@@ -102,7 +114,7 @@ define(['react',
 		        pagination = ( <Pagination collection={this.collection} /> );
 		        elemBox = (
 		        		<div className="input-group col-sm-4">
-								<input type="text"  onKeyUp={this.handleFilter} className="form-control" placeholder="Search By Key" />
+								<input type="text"  onKeyUp={this.handleFilter} className="form-control" placeholder="Search By Host Name" />
 								<span className="input-group-btn">
 								<button className="btn btn-primary" type="button"><i className="fa fa-search"></i></button>
 								</span>

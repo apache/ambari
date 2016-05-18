@@ -28,6 +28,9 @@ define(['react',
 
 	return React.createClass({
 		displayName: 'TopologyConfiguration',
+		propTypes: {
+			configArr: React.PropTypes.object.isRequired
+		},
 		getInitialState: function(){
 			this.collection = new VTopologyConfigList();
 			this.collection.comparator = "key";
