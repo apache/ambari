@@ -546,7 +546,7 @@ class RecoveryManager:
     """
 
     recovery_enabled = False
-    auto_start_only = True
+    auto_start_only = False
     max_count = 6
     window_in_min = 60
     retry_gap = 5
@@ -561,8 +561,8 @@ class RecoveryManager:
       if "type" in config:
         if config["type"] in ["AUTO_START", "FULL"]:
           recovery_enabled = True
-          if config["type"] == "FULL":
-            auto_start_only = False
+          if config["type"] == "AUTO_START":
+            auto_start_only = True
       if "maxCount" in config:
         max_count = self._read_int_(config["maxCount"], max_count)
       if "windowInMinutes" in config:
