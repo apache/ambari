@@ -68,10 +68,6 @@
         <name>enable_hive_interactive</name>
       </property>
       <property>
-        <type>hive-interactive-env</type>
-        <name>num_llap_nodes</name>
-      </property>
-      <property>
         <type>hive-interactive-site</type>
         <name>hive.llap.daemon.queue.name</name>
       </property>
@@ -88,9 +84,6 @@
     <display-name>Number of LLAP Daemons</display-name>
     <value-attributes>
       <type>int</type>
-      <minimum>0</minimum>
-      <maximum>8</maximum>
-      <increment-step>1</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -108,6 +101,10 @@
       <property>
         <type>capacity-scheduler</type>
         <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
       </property>
     </depends-on>
   </property>
@@ -148,6 +145,10 @@
         <type>capacity-scheduler</type>
         <name>yarn.scheduler.capacity.root.queues</name>
       </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
     </depends-on>
   </property>
   <property>
@@ -175,6 +176,10 @@
       <property>
         <type>capacity-scheduler</type>
         <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.server2.tez.sessions.per.default.queue</name>
       </property>
     </depends-on>
   </property>
