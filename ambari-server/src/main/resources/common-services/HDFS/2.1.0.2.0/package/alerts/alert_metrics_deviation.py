@@ -329,7 +329,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       number_of_data_points)])
 
   minimum_value_multiplier = 1
-  if 'jvm.JvmMetrics.MemHeapUsedM' in metric_name or 'dfs.FSNamesystem.CapacityUsed' in metric_name:
+  if 'dfs.FSNamesystem.CapacityUsed' in metric_name:
     minimum_value_multiplier = 1024 * 1024  # MB to bytes
   elif 'rpc.rpc.datanode' in metric_name or 'rpc.rpc.client' in metric_name:
     minimum_value_multiplier = 1000  # seconds to millis
