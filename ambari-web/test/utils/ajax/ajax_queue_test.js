@@ -26,14 +26,12 @@ describe('App.ajaxQueue', function () {
     ajaxQueue = App.ajaxQueue.create();
     sinon.spy(ajaxQueue, 'runNextRequest');
     sinon.spy(ajaxQueue, 'finishedCallback');
-    sinon.spy(App.ajax, 'send');
   });
 
   afterEach(function() {
     ajaxQueue.clear();
     ajaxQueue.runNextRequest.restore();
     ajaxQueue.finishedCallback.restore();
-    App.ajax.send.restore();
   });
 
   describe('#clear', function() {
@@ -93,18 +91,12 @@ describe('App.ajaxQueue', function () {
     it('for empty queue App.ajax.send shouldn\'t be called', function() {
       ajaxQueue.clear();
       ajaxQueue.runNextRequest();
-      expect(App.ajax.send.called).to.equal(false);
+      expect(App.ajax.send.called).to.equal(false); // eslint-disable-line mocha-cleanup/disallowed-usage
     });
     it('when queue is empty finishedCallback should be called', function() {
       ajaxQueue.clear();
       ajaxQueue.runNextRequest();
       expect(ajaxQueue.finishedCallback.called).to.equal(true);
-    });
-    it('if abortOnError is false queue shouldn\'t be interrupted', function() {
-      ajaxQueue.clear();
-      ajaxQueue.set('abortOnError', false);
-      ajaxQueue.addRequest({name:'some_fake', sender: Em.Object.create()}).addRequest({name: 'some_fake2', sender: Em.Object.create()}).start();
-      expect(ajaxQueue.runNextRequest.callCount).to.equal(3); // One for empty-queue
     });
   });
 

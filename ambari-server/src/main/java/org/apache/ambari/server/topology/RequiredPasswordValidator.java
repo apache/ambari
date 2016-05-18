@@ -81,7 +81,7 @@ public class RequiredPasswordValidator implements TopologyValidator {
       Stack stack = blueprint.getStack();
 
       HostGroup hostGroup = blueprint.getHostGroup(hostGroupName);
-      for (String component : hostGroup.getComponents()) {
+      for (String component : hostGroup.getComponentNames()) {
         //for now, AMBARI is not recognized as a service in Stacks
         if (component.equals("AMBARI_SERVER")) {
           continue;

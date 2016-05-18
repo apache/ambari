@@ -47,6 +47,26 @@ public class StackServiceDirectory extends ServiceDirectory {
 
   @Override
   /**
+   * Obtain the advisor name.
+   *
+   * @return advisor name
+   */
+  public String getAdvisorName(String serviceName) {
+    if (getAdvisorFile() == null || serviceName == null)
+      return null;
+
+    File serviceDir = new File(getAbsolutePath());
+    File stackVersionDir = serviceDir.getParentFile().getParentFile();
+    File stackDir = stackVersionDir.getParentFile();
+
+    String stackName = stackDir.getName();
+    String versionString = stackVersionDir.getName().replaceAll("\\.", "");
+
+    return stackName + versionString + serviceName + "ServiceAdvisor";
+  }
+
+  @Override
+  /**
    * Parse stack service directory.
    * packageDir Format: stacks/<stackName>/<stackVersion>/services/<serviceName>/package
    * Example:

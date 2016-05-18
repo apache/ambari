@@ -19,10 +19,12 @@ package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
 import java.util.List;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,6 +47,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
   private ThreadLocal<LdapServerProperties> ldapServerProperties = new ThreadLocal<LdapServerProperties>();
   private ThreadLocal<LdapAuthenticationProvider> providerThreadLocal = new ThreadLocal<LdapAuthenticationProvider>();
+  private ThreadLocal<String> ldapUserSearchFilterThreadLocal = new ThreadLocal<>();
 
   @Inject
   public AmbariLdapAuthenticationProvider(Configuration configuration, AmbariLdapAuthoritiesPopulator authoritiesPopulator) {
@@ -54,10 +57,13 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-
     if (isLdapEnabled()) {
+      String username = getUserName(authentication);
+
       try {
-        return loadLdapAuthenticationProvider().authenticate(authentication);
+        Authentication auth = loadLdapAuthenticationProvider(username).authenticate(authentication);
+
+        return new AmbariAuthentication(auth);
       } catch (AuthenticationException e) {
         LOG.debug("Got exception during LDAP authentification attempt", e);
         // Try to help in troubleshooting
@@ -73,6 +79,12 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
           }
         }
         throw e;
+      } catch (IncorrectResultSizeDataAccessException multipleUsersFound) {
+        String message = configuration.isLdapAlternateUserSearchEnabled() ?
+          String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username) :
+          "Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration";
+
+        throw new DuplicateLdapUserFoundAuthenticationException(message);
       }
     } else {
       return null;
@@ -89,9 +101,14 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
    * Reloads LDAP Context Source and depending objects if properties were changed
    * @return corresponding LDAP authentication provider
    */
-  LdapAuthenticationProvider loadLdapAuthenticationProvider() {
-    if (reloadLdapServerProperties()) {
-      LOG.info("LDAP Properties changed - rebuilding Context");
+  LdapAuthenticationProvider loadLdapAuthenticationProvider(String userName) {
+    boolean ldapConfigPropertiesChanged = reloadLdapServerProperties();
+
+    String ldapUserSearchFilter = getLdapUserSearchFilter(userName);
+
+    if (ldapConfigPropertiesChanged|| !ldapUserSearchFilter.equals(ldapUserSearchFilterThreadLocal.get())) {
+
+      LOG.info("Either LDAP Properties or user search filter changed - rebuilding Context");
       LdapContextSource springSecurityContextSource = new LdapContextSource();
       List<String> ldapUrls = ldapServerProperties.get().getLdapUrls();
       springSecurityContextSource.setUrls(ldapUrls.toArray(new String[ldapUrls.size()]));
@@ -111,17 +128,16 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
       //TODO change properties
       String userSearchBase = ldapServerProperties.get().getUserSearchBase();
-      String userSearchFilter = ldapServerProperties.get().getUserSearchFilter();
-
-      FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(userSearchBase, userSearchFilter, springSecurityContextSource);
+      FilterBasedLdapUserSearch userSearch = new FilterBasedLdapUserSearch(userSearchBase, ldapUserSearchFilter, springSecurityContextSource);
 
       AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(springSecurityContextSource, configuration);
       bindAuthenticator.setUserSearch(userSearch);
 
       LdapAuthenticationProvider authenticationProvider = new LdapAuthenticationProvider(bindAuthenticator, authoritiesPopulator);
-
       providerThreadLocal.set(authenticationProvider);
     }
+
+    ldapUserSearchFilterThreadLocal.set(ldapUserSearchFilter);
 
     return providerThreadLocal.get();
   }
@@ -133,6 +149,16 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
    */
   boolean isLdapEnabled() {
     return configuration.getClientSecurityType() == ClientSecurityType.LDAP;
+  }
+
+  /**
+   * Extracts the user name from the passed authentication object.
+   * @param authentication
+   * @return
+   */
+  protected String getUserName(Authentication authentication) {
+    UsernamePasswordAuthenticationToken userToken = (UsernamePasswordAuthenticationToken)authentication;
+    return userToken.getName();
   }
 
   /**
@@ -149,4 +175,11 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
     }
     return false;
   }
+
+
+  private String getLdapUserSearchFilter(String userName) {
+    return ldapServerProperties.get()
+      .getUserSearchFilter(configuration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
+  }
+
 }

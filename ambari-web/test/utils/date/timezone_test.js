@@ -48,10 +48,12 @@ describe('timezoneUtils', function () {
     });
 
     it('should map regions and cities correctly', function () {
-      var expected = ['(UTC+01:00) a / Aa, Bb',
-      '(UTC+01:00) b / Ee, Ff',
-      '(UTC+02:00) a / Cc, Dd',
-      '(UTC+02:00) b / Gg, Hh'];
+      var expected = [
+        '(UTC+01:00 UTC) a / Aa, Bb',
+        '(UTC+01:00 UTC) b / Ee, Ff',
+        '(UTC+02:00 UTC) a / Cc, Dd',
+        '(UTC+02:00 UTC) b / Gg, Hh'
+      ];
       var values = this.result.mapProperty('label');
       expect(values).to.eql(expected);
       expect(values.join('')).to.not.contain('II');
@@ -92,27 +94,25 @@ describe('timezoneUtils', function () {
 
   describe('#getAllTimezoneNames', function () {
 
-    before(function () {
-      this.result = timezoneUtils.getAllTimezoneNames();
-    });
-
-    after(function () {
-      this.result = undefined;
-    });
+    var result = timezoneUtils.getAllTimezoneNames();
 
     it('timezone names are parsed', function () {
       expect(this.result).to.have.length.above(0);
     });
 
-    it('Etc/* are excluded', function () {
-      this.result.forEach(function (tz) {
-        expect(tz.indexOf('Etc/')).to.equal(-1);
+    describe('Etc/* are excluded', function () {
+      result.forEach(function (tz) {
+        it(tz, function () {
+          expect(tz.indexOf('Etc/')).to.equal(-1);
+        });
       });
     });
 
-    it('Abbreviations are excluded', function () {
-      this.result.forEach(function (tz) {
-        expect(tz).to.not.equal(tz.toUpperCase());
+    describe('Abbreviations are excluded', function () {
+      result.forEach(function (tz) {
+        it(tz, function () {
+          expect(tz).to.not.equal(tz.toUpperCase());
+        });
       });
     });
 

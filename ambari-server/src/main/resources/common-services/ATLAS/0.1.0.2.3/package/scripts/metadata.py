@@ -17,9 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management import Directory, Fail, Logger, File, \
-    InlineTemplate, PropertiesFile, StaticFile
-from resource_management.libraries.functions import format
+
+from resource_management.core.resources.system import Directory, File   
+from resource_management.core.exceptions import Fail 
+from resource_management.core.logger import Logger
+from resource_management.core.source import StaticFile, InlineTemplate
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.template_config import TemplateConfig
 
 
 def metadata():
@@ -30,7 +36,7 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.conf_dir,
@@ -38,7 +44,7 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.log_dir,
@@ -46,15 +52,31 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
+
+    Directory(params.atlas_hbase_log_dir,
+              mode=0755,
+              cd_access='a',
+              owner=params.metadata_user,
+              group=params.user_group,
+              create_parents = True
+              )
+
+    Directory(params.atlas_hbase_data_dir,
+              mode=0755,
+              cd_access='a',
+              owner=params.metadata_user,
+              group=params.user_group,
+              create_parents = True
+              )
 
     Directory(params.data_dir,
               mode=0644,
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.expanded_war_dir,
@@ -62,14 +84,14 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     File(format("{expanded_war_dir}/atlas.war"),
          content = StaticFile(format('{metadata_home}/server/webapp/atlas.war'))
     )
 
-    PropertiesFile(format('{conf_dir}/application.properties'),
+    PropertiesFile(format('{conf_dir}/{conf_file}'),
          properties = params.application_properties,
          mode=0644,
          owner=params.metadata_user,
@@ -87,5 +109,33 @@ def metadata():
          mode=0644,
          owner=params.metadata_user,
          group=params.user_group,
-         content=StaticFile('atlas-log4j.xml')
+         content=InlineTemplate(params.metadata_log4j_content)
     )
+
+    File(format("{conf_dir}/users-credentials.properties"),
+         mode=0644,
+         owner=params.metadata_user,
+         group=params.user_group,
+         content=StaticFile('users-credentials.properties')
+    )
+
+    File(format("{conf_dir}/policy-store.txt"),
+         mode=0644,
+         owner=params.metadata_user,
+         group=params.user_group,
+         content=StaticFile('policy-store.txt')
+    )
+
+    if params.atlas_has_embedded_hbase:
+      # hbase-site for embedded hbase used by Atlas
+      XmlConfig( "hbase-site.xml",
+             conf_dir = params.atlas_hbase_conf_dir,
+             configurations = params.config['configurations']['atlas-hbase-site'],
+             configuration_attributes=params.config['configuration_attributes']['atlas-hbase-site'],
+             owner = params.metadata_user,
+             group = params.user_group
+             )
+
+    if params.security_enabled:
+        TemplateConfig(format(params.atlas_jaas_file),
+                         owner=params.metadata_user)

@@ -33,7 +33,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "configure",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -44,7 +44,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "start",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -60,7 +60,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "stop",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
@@ -74,7 +74,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "configure",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -85,7 +85,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "start",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -101,7 +101,7 @@ class TestRangerAdmin(RMFTestCase):
                    classname = "RangerAdmin",
                    command = "stop",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-stop',
@@ -114,7 +114,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('Execute', 'mysql -u root --password=aa -h localhost  -s -e "select version();"',logoutput = True,
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
         mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -135,6 +135,9 @@ class TestRangerAdmin(RMFTestCase):
     custom_config['unix_group'] = "ranger"
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = custom_config,
+    )
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+        properties = {'SQL_CONNECTOR_JAR': '/usr/share/java/mysql-connector-java.jar'}
     )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,
@@ -156,7 +159,7 @@ class TestRangerAdmin(RMFTestCase):
     self.assertResourceCalled('Execute', 'mysql -u root --password=rootpassword -h localhost  -s -e "select version();"',logoutput = True,
                               environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
         mode = 0644
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -177,6 +180,9 @@ class TestRangerAdmin(RMFTestCase):
     custom_config['unix_group'] = "ranger"
     self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
         properties = custom_config,
+    )
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+        properties = {'SQL_CONNECTOR_JAR': '/usr/share/java/mysql-connector-java.jar'}
     )
     self.assertResourceCalled('Execute', 'cd /usr/hdp/current/ranger-admin && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/ranger-admin/setup.sh',
         logoutput = True,
@@ -206,7 +212,7 @@ class TestRangerAdmin(RMFTestCase):
                        classname = "RangerAdmin",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

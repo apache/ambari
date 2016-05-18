@@ -55,6 +55,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_master</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <customCommands>
             <customCommand>
               <name>DECOMMISSION</name>
@@ -73,11 +79,23 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
           <timelineAppid>HBASE</timelineAppid>
           <commandScript>
             <script>scripts/hbase_regionserver.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <bulkCommands>
+            <displayName>RegionServers</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>HBASE_MASTER</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>hbase_regionserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -147,6 +165,7 @@
         <config-type>ranger-hbase-audit</config-type>
         <config-type>ranger-hbase-policymgr-ssl</config-type>
         <config-type>ranger-hbase-security</config-type>
+        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
 
     </service>

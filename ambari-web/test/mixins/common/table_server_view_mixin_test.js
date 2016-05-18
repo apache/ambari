@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('mixins/common/table_server_view_mixin');
+require('utils/load_timer');
 
 describe('App.MainConfigHistoryView', function() {
   var view = Em.View.create(App.TableServerViewMixin, {
@@ -82,53 +83,99 @@ describe('App.MainConfigHistoryView', function() {
       App.db.setDisplayLength.restore();
     });
 
-    it('displayLength is correct', function() {
-      view.set('displayLength', '50');
-      view.set('startIndex', null);
+    describe('displayLength is correct', function() {
+      beforeEach(function () {
+        view.set('displayLength', '50');
+        view.set('startIndex', null);
+        view.updatePagination();
+      });
 
-      view.updatePagination();
+      it('refresh is called once', function () {
+        expect(view.refresh.calledOnce).to.be.true;
+      });
+      it('setStartIndex is called once', function () {
+        expect(App.db.setStartIndex.called).to.be.false;
+      });
+      it('setDisplayLength is called with correct arguments', function () {
+        expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '50')).to.be.true;
+      });
+      it('paginationProps.startIndex = 0', function () {
+        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(0);
+      });
+      it('paginationProps.displayLength = 50', function () {
+        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
+      });
+    });
 
-      expect(view.refresh.calledOnce).to.be.true;
+    describe('startIndex is correct', function() {
+
+      beforeEach(function () {
+        view.set('displayLength', null);
+        view.set('startIndex', 10);
+        view.updatePagination();
+      });
+      it('refresh is called once', function () {
+        expect(view.refresh.calledOnce).to.be.true;
+      });
+      it('setStartIndex is called with valid arguments', function () {
+        expect(App.db.setStartIndex.calledWith('mainConfigHistoryController', 10)).to.be.true;
+      });
+      it('setDisplayLength is not called', function () {
+        expect(App.db.setDisplayLength.called).to.be.false;
+      });
+      it('paginationProps.startIndex = 10', function () {
+        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(10);
+      });
+      it('paginationProps.displayLength = 50', function () {
+        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
+      });
+    });
+
+    describe('displayLength and startIndex are correct', function() {
+      beforeEach(function () {
+        view.set('displayLength', '100');
+        view.set('startIndex', 20);
+        view.updatePagination();
+      });
+
+      it('refresh is called once', function () {
+        expect(view.refresh.calledOnce).to.be.true;
+      });
+      it('setStartIndex is called with valid arguments', function () {
+        expect(App.db.setStartIndex.calledWith('mainConfigHistoryController', 20)).to.be.true;
+      });
+      it('setDisplayLength is called with valid arguments', function () {
+        expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '100')).to.be.true;
+      });
+      it('paginationProps.startIndex = 20', function () {
+        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
+      });
+      it('paginationProps.displayLength = 100', function () {
+        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
+      });
+    });
+
+    describe('displayLength and startIndex are null', function() {
+      beforeEach(function () {
+        view.set('displayLength', null);
+        view.set('startIndex', null);
+        view.updatePagination();
+      });
+      it('refresh is called once', function () {
+        expect(view.refresh.calledOnce).to.be.true;
+      });
+      it('setStartIndex is not called', function () {
       expect(App.db.setStartIndex.called).to.be.false;
-      expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '50')).to.be.true;
-      expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(0);
-      expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
-    });
-    it('startIndex is correct', function() {
-      view.set('displayLength', null);
-      view.set('startIndex', 10);
-
-      view.updatePagination();
-
-      expect(view.refresh.calledOnce).to.be.true;
-      expect(App.db.setStartIndex.calledWith('mainConfigHistoryController', 10)).to.be.true;
+      });
+      it('setDisplayLength is not called', function () {
       expect(App.db.setDisplayLength.called).to.be.false;
-      expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(10);
-      expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
-    });
-    it('displayLength and startIndex are correct', function() {
-      view.set('displayLength', '100');
-      view.set('startIndex', 20);
-
-      view.updatePagination();
-
-      expect(view.refresh.calledOnce).to.be.true;
-      expect(App.db.setStartIndex.calledWith('mainConfigHistoryController', 20)).to.be.true;
-      expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '100')).to.be.true;
+      });
+      it('paginationProps.startIndex = 20', function () {
       expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
-      expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
-    });
-    it('displayLength and startIndex are null', function() {
-      view.set('displayLength', null);
-      view.set('startIndex', null);
-
-      view.updatePagination();
-
-      expect(view.refresh.calledOnce).to.be.true;
-      expect(App.db.setStartIndex.called).to.be.false;
-      expect(App.db.setDisplayLength.called).to.be.false;
-      expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
-      expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
+      });
+      it('paginationProps.displayLength = 100', function () {
+        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
+      });
     });
   });
 
@@ -137,14 +184,16 @@ describe('App.MainConfigHistoryView', function() {
       sinon.stub(view, 'saveFilterConditions', Em.K);
       sinon.stub(view, 'refresh', Em.K);
       sinon.spy(view, 'updateFilter');
+      this.clock = sinon.useFakeTimers();
     });
     afterEach(function () {
       view.saveFilterConditions.restore();
       view.updateFilter.restore();
       view.refresh.restore();
+      this.clock.restore();
     });
     it('filteringComplete is false', function() {
-      this.clock = sinon.useFakeTimers();
+
 
       view.set('filteringComplete', false);
       view.updateFilter(1, '1', 'string');
@@ -153,7 +202,7 @@ describe('App.MainConfigHistoryView', function() {
       view.set('filteringComplete', true);
       this.clock.tick(view.get('filterWaitingTime'));
       expect(view.updateFilter.calledWith(1, '1', 'string')).to.be.true;
-      this.clock.restore();
+
     });
     it('filteringComplete is true', function() {
       view.set('filteringComplete', true);
@@ -165,7 +214,6 @@ describe('App.MainConfigHistoryView', function() {
     });
 
     it('clear filters - refresh() clears timer', function () {
-      this.clock = sinon.useFakeTimers();
 
       //clear filters simulation
       view.set('filteringComplete', false);
@@ -179,7 +227,6 @@ describe('App.MainConfigHistoryView', function() {
 
       //should not call update filter again
       expect(view.updateFilter.calledOnce).to.be.true;
-      this.clock.restore();
     })
   });
 
@@ -217,14 +264,16 @@ describe('App.MainConfigHistoryView', function() {
   describe("#updaterSuccessCb()", function () {
     beforeEach(function () {
       sinon.stub(view, 'propertyDidChange');
+      view.set('filteringComplete', false);
+      view.updaterSuccessCb();
     });
     afterEach(function () {
       view.propertyDidChange.restore();
     });
-    it("", function () {
-      view.set('filteringComplete', false);
-      view.updaterSuccessCb();
+    it('pageContent is forced to be recalculated', function () {
       expect(view.propertyDidChange.calledWith('pageContent')).to.be.true;
+    });
+    it('filteringComplete is updated', function () {
       expect(view.get('filteringComplete')).to.be.true;
     });
   });

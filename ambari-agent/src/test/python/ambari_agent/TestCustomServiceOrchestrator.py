@@ -46,6 +46,7 @@ from only_for_platform import get_platform, os_distro_value, PLATFORM_WINDOWS
 
 class TestCustomServiceOrchestrator(TestCase):
 
+
   def setUp(self):
     # disable stdout
     out = StringIO.StringIO()
@@ -54,6 +55,7 @@ class TestCustomServiceOrchestrator(TestCase):
     tmpdir = tempfile.gettempdir()
     exec_tmp_dir = os.path.join(tmpdir, 'tmp')
     self.config = ConfigParser.RawConfigParser()
+    self.config.get = AmbariConfig().get
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/cachedir")
@@ -106,7 +108,7 @@ class TestCustomServiceOrchestrator(TestCase):
                          'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
                          'all_ping_ports': ['8670', '8670']}
     
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     dummy_controller = MagicMock()
@@ -134,6 +136,7 @@ class TestCustomServiceOrchestrator(TestCase):
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json
     self.assertEquals(command['public_hostname'], "test.hst")
+    self.assertEquals(command['agentConfigParams']['agent']['parallel_execution'], 0)
     self.assertTrue(unlink_mock.called)
 
 
@@ -166,7 +169,7 @@ class TestCustomServiceOrchestrator(TestCase):
       'hostLevelParams':{}
     }
 
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     dummy_controller = MagicMock()
@@ -190,6 +193,7 @@ class TestCustomServiceOrchestrator(TestCase):
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json
     self.assertEquals(command['public_hostname'], "test.hst")
+    self.assertEquals(command['agentConfigParams']['agent']['parallel_execution'], 0)
     self.assertTrue(unlink_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -381,22 +385,18 @@ class TestCustomServiceOrchestrator(TestCase):
     except:
       pass
 
-  from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
-
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(CustomServiceOrchestrator, "get_py_executor")
   @patch("ambari_commons.shell.kill_process_with_children")
   @patch.object(FileCache, "__init__")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
-  @patch.object(StackVersionsFileHandler, "read_stack_version")
-  def test_cancel_backgound_command(self, read_stack_version_mock, resolve_hook_script_path_mock,
+  def test_cancel_backgound_command(self, resolve_hook_script_path_mock,
                                     resolve_script_path_mock, FileCache_mock, kill_process_with_children_mock,
                                     get_py_executor_mock):
     FileCache_mock.return_value = None
     FileCache_mock.cache_dir = MagicMock()
     resolve_hook_script_path_mock.return_value = None
-#     shell.kill_process_with_children = MagicMock()
     dummy_controller = MagicMock()
     cfg = AmbariConfig()
     cfg.set('agent', 'tolerate_download_failures', 'true')
@@ -455,13 +455,15 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(runningCommand['status'], ActionQueue.FAILED_STATUS)
 
 
+  @patch.object(AmbariConfig, "get")
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
   @patch.object(PythonExecutor, "run_file")
   @patch.object(FileCache, "__init__")
   @patch.object(FileCache, "get_custom_actions_base_dir")
   def test_runCommand_custom_action(self, get_custom_actions_base_dir_mock,
                                     FileCache_mock,
-                                    run_file_mock, dump_command_to_json_mock):
+                                    run_file_mock, dump_command_to_json_mock, ambari_config_get):
+    ambari_config_get.return_value = "0"
     FileCache_mock.return_value = None
     get_custom_actions_base_dir_mock.return_value = "some path"
     _, script = tempfile.mkstemp()

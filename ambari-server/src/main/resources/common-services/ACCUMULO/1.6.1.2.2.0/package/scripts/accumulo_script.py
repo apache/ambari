@@ -22,13 +22,15 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 from accumulo_configuration import setup_conf_dir
 from accumulo_service import accumulo_service
@@ -36,8 +38,8 @@ from accumulo_service import accumulo_service
 class AccumuloScript(Script):
 
   # a mapping between the component named used by these scripts and the name
-  # which is used by hdp-select
-  COMPONENT_TO_HDP_SELECT_MAPPING = {
+  # which is used by <stack-selector-tool>
+  COMPONENT_TO_STACK_SELECT_MAPPING = {
     "gc" : "accumulo-gc",
     "master" : "accumulo-master",
     "monitor" : "accumulo-monitor",
@@ -49,17 +51,17 @@ class AccumuloScript(Script):
     self.component = component
 
 
-  def get_stack_to_component(self):
+  def get_component_name(self):
     """
-    Gets the hdp-select component name given the script component
-    :return:  the name of the component on the HDP stack which is used by
-              hdp-select
+    Gets the <stack-selector-tool> component name given the script component
+    :return:  the name of the component on the stack which is used by
+              <stack-selector-tool>
     """
-    if self.component not in self.COMPONENT_TO_HDP_SELECT_MAPPING:
+    if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
       return None
 
-    hdp_component = self.COMPONENT_TO_HDP_SELECT_MAPPING[self.component]
-    return {"HDP": hdp_component}
+    stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
+    return stack_component
 
 
   def install(self, env):
@@ -101,22 +103,22 @@ class AccumuloScript(Script):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if Script.is_hdp_stack_less_than("2.2"):
+    # the stack does not support rolling upgrade
+    if not (params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted)):
       return
 
-    if self.component not in self.COMPONENT_TO_HDP_SELECT_MAPPING:
+    if self.component not in self.COMPONENT_TO_STACK_SELECT_MAPPING:
       Logger.info("Unable to execute an upgrade for unknown component {0}".format(self.component))
       raise Fail("Unable to execute an upgrade for unknown component {0}".format(self.component))
 
-    hdp_component = self.COMPONENT_TO_HDP_SELECT_MAPPING[self.component]
+    stack_component = self.COMPONENT_TO_STACK_SELECT_MAPPING[self.component]
 
-    Logger.info("Executing Accumulo Upgrade pre-restart for {0}".format(hdp_component))
+    Logger.info("Executing Accumulo Upgrade pre-restart for {0}".format(stack_component))
     conf_select.select(params.stack_name, "accumulo", params.version)
-    hdp_select.select(hdp_component, params.version)
+    stack_select.select(stack_component, params.version)
 
     # some accumulo components depend on the client, so update that too
-    hdp_select.select("accumulo-client", params.version)
+    stack_select.select("accumulo-client", params.version)
 
 
   def security_status(self, env):
@@ -167,7 +169,14 @@ class AccumuloScript(Script):
         issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
       self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
       self.put_structured_out({"securityState": "UNSECURED"})
+      
+  def get_log_folder(self):
+    import params
+    return params.log_dir
 
+  def get_user(self):
+    import params
+    return params.accumulo_user
 
 if __name__ == "__main__":
   AccumuloScript().fail_with_error('component unspecified')

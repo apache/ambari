@@ -22,55 +22,58 @@ module.exports = App.WizardRoute.extend({
   route: 'stack/upgrade',
 
   enter: function (router) {
-    Ember.run.next(function () {
-      //if upgrade id is absent then upgrade is completed
-      if (Em.isNone(App.db.get('MainAdminStackAndUpgrade', 'upgradeId'))) {
-        router.transitionTo('main.admin.stackAndUpgrade.versions');
-        return null;
-      }
-
-      App.router.get('updateController').set('isWorking', false);
-
-      return App.ModalPopup.show({
-        classNames: ['full-width-modal'],
-        header: function () {
-          var controller = App.router.get('mainAdminStackAndUpgradeController');
-          if (controller.get('isDowngrade')) {
-            return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(controller.get('upgradeVersion'));
-          } else {
-            return Em.I18n.t('admin.stackUpgrade.dialog.header').format(controller.get('upgradeTypeDisplayName'), controller.get('upgradeVersion'));
-          }
-        }.property('App.router.mainAdminStackAndUpgradeController.upgradeVersion', 'App.router.mainAdminStackAndUpgradeController.isDowngrade'),
-        bodyClass: App.upgradeWizardView,
-        primary: Em.I18n.t('common.dismiss'),
-        secondary: null,
-        didInsertElement: function () {
-          this.fitHeight();
-          this.fitInnerHeight();
-        },
-
-        /**
-         * fir height of scrollable block inside of modal body
-         */
-        fitInnerHeight: function () {
-          var block = this.$().find('#modal > .modal-body');
-          var scrollable = this.$().find('#modal .scrollable-block');
-
-          scrollable.css('max-height', Number(block.css('max-height').slice(0, -2)) - block.height());
-          block.css('max-height', 'none');
-        },
-        onPrimary: function () {
-          this.closeWizard();
-        },
-        onClose: function () {
-          this.closeWizard();
-        },
-        closeWizard: function () {
-          App.router.get('updateController').set('isWorking', true);
-          App.router.transitionTo('main.admin.stackAndUpgrade.versions');
-          this.hide();
-          location.reload();
+    router.get('mainController').dataLoading().done(function () {
+      Ember.run.next(function () {
+        //if upgrade id is absent then upgrade is completed
+        if (Em.isNone(App.db.get('MainAdminStackAndUpgrade', 'upgradeId'))) {
+          router.transitionTo('main.admin.stackAndUpgrade.versions');
+          return null;
         }
+
+        App.router.get('updateController').set('isWorking', false);
+
+        return App.ModalPopup.show({
+          classNames: ['full-width-modal'],
+          header: function () {
+            var controller = App.router.get('mainAdminStackAndUpgradeController');
+            if (controller.get('isDowngrade')) {
+              return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(controller.get('upgradeVersion'));
+            } else {
+              return Em.I18n.t('admin.stackUpgrade.dialog.header').format(controller.get('upgradeTypeDisplayName'), controller.get('upgradeVersion'));
+            }
+          }.property('App.router.mainAdminStackAndUpgradeController.upgradeVersion', 'App.router.mainAdminStackAndUpgradeController.isDowngrade'),
+          bodyClass: App.upgradeWizardView,
+          primary: Em.I18n.t('common.dismiss'),
+          secondary: null,
+          didInsertElement: function () {
+            this._super();
+            this.fitHeight();
+            this.fitInnerHeight();
+          },
+
+          /**
+           * fit height of scrollable block inside of modal body
+           */
+          fitInnerHeight: function () {
+            var block = this.$().find('#modal > .modal-body');
+            var scrollable = this.$().find('#modal .scrollable-block');
+
+            scrollable.css('max-height', Number(block.css('max-height').slice(0, -2)) - block.height());
+            block.css('max-height', 'none');
+          },
+          onPrimary: function () {
+            this.closeWizard();
+          },
+          onClose: function () {
+            this.closeWizard();
+          },
+          closeWizard: function () {
+            App.router.get('updateController').set('isWorking', true);
+            App.router.transitionTo('main.admin.stackAndUpgrade.versions');
+            this.hide();
+            location.reload();
+          }
+        });
       });
     });
   }

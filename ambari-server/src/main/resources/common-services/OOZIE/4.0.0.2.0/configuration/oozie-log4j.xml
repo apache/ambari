@@ -47,12 +47,26 @@
 # If the Java System property 'oozie.log.dir' is not defined at Oozie start up time
 # XLogService sets its value to '${oozie.home}/logs'
 
-log4j.appender.oozie=org.apache.log4j.DailyRollingFileAppender
-log4j.appender.oozie.DatePattern='.'yyyy-MM-dd-HH
+# The appender that Oozie uses must be named 'oozie' (i.e. log4j.appender.oozie)
+
+# Using the RollingFileAppender with the OozieRollingPolicy will roll the log file every hour and retain up to MaxHistory number of
+# log files. If FileNamePattern ends with ".gz" it will create gzip files.
+log4j.appender.oozie=org.apache.log4j.rolling.RollingFileAppender
+log4j.appender.oozie.RollingPolicy=org.apache.oozie.util.OozieRollingPolicy
 log4j.appender.oozie.File=${oozie.log.dir}/oozie.log
 log4j.appender.oozie.Append=true
 log4j.appender.oozie.layout=org.apache.log4j.PatternLayout
 log4j.appender.oozie.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n
+# The FileNamePattern must end with "-%d{yyyy-MM-dd-HH}.gz" or "-%d{yyyy-MM-dd-HH}" and also start with the
+# value of log4j.appender.oozie.File
+log4j.appender.oozie.RollingPolicy.FileNamePattern=${log4j.appender.oozie.File}-%d{yyyy-MM-dd-HH}
+# The MaxHistory controls how many log files will be retained (720 hours / 24 hours per day = 30 days); -1 to disable
+log4j.appender.oozie.RollingPolicy.MaxHistory=720
+
+# Uncomment the below two lines to use the DailyRollingFileAppender instead
+# The DatePattern must end with either "dd" or "HH"
+#log4j.appender.oozie=org.apache.log4j.DailyRollingFileAppender
+#log4j.appender.oozie.DatePattern='.'yyyy-MM-dd-HH
 
 log4j.appender.oozieops=org.apache.log4j.DailyRollingFileAppender
 log4j.appender.oozieops.DatePattern='.'yyyy-MM-dd
@@ -90,7 +104,7 @@ log4j.logger.org.apache.oozie=INFO, oozie
 log4j.logger.org.apache.hadoop=WARN, oozie
 log4j.logger.org.mortbay=WARN, oozie
 log4j.logger.org.hsqldb=WARN, oozie
-log4j.logger.org.apache.hadoop.security.authentication.server=INFO, oozie
+log4j.logger.org.apache.hadoop.security.authentication.server=WARN, oozie
     </value>
     <value-attributes>
       <type>content</type>

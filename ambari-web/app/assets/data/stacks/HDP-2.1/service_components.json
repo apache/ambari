@@ -172,11 +172,15 @@
                     "hbase.security.authentication" : "kerberos",
                     "hbase.coprocessor.region.classes" : "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.AccessController",
                     "hbase.security.authorization" : "true",
-                    "zookeeper.znode.parent" : "/ams-hbase-secure",
                     "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal" : "true",
                     "hbase.zookeeper.property.jaasLoginRenew" : "3600000",
                     "hbase.zookeeper.property.authProvider.1" : "org.apache.zookeeper.server.auth.SASLAuthenticationProvider",
                     "hbase.zookeeper.property.kerberos.removeHostFromPrincipal" : "true"
+                  }
+                },
+                {
+                  "ams-hbase-site": {
+                    "zookeeper.znode.parent": "/ams-hbase-secure"
                   }
                 }
               ],

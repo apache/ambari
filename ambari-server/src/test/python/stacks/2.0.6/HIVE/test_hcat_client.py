@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
@@ -29,22 +30,22 @@ class TestHcatClient(RMFTestCase):
                        classname = "HCatClient",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
     )
     self.assertResourceCalled('Directory', '/etc/hive-hcatalog/conf',
       owner = 'hcat',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
@@ -68,22 +69,22 @@ class TestHcatClient(RMFTestCase):
                          classname = "HCatClient",
                          command = "configure",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
-                              recursive = True,
+                              create_parents = True,
                               owner = 'hcat',
                               group = 'hadoop',
     )
     self.assertResourceCalled('Directory', '/etc/hive-hcatalog/conf',
-      recursive = True,
+      create_parents = True,
       owner = 'hcat',
       group = 'hadoop',
     )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
@@ -99,4 +100,27 @@ class TestHcatClient(RMFTestCase):
                               group = 'hadoop',
                               )
 
+    self.assertNoMoreResources()
+
+
+  @patch("resource_management.core.shell.call")
+  def test_pre_upgrade_restart(self, call_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hcat_client.py",
+      classname = "HCatClient",
+      command = "pre_upgrade_restart",
+      config_dict = json_content,
+      stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
+      mocks_dict = mocks_dict)
+
+    self.assertResourceCalled('Execute',('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
     self.assertNoMoreResources()

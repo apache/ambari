@@ -19,7 +19,8 @@ limitations under the License.
 import sys
 import os
 from os import path
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.system import Directory, File
 from ganglia import generate_daemon
 import ganglia
 import functions
@@ -71,7 +72,7 @@ class GangliaMonitor(Script):
     Directory(params.ganglia_conf_dir,
               owner="root",
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     ganglia.config()

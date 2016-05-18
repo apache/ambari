@@ -32,52 +32,36 @@ App.AddSecurityConfigs = Em.Mixin.create({
   /**
    * security configs, which values should be modified after APPLY CONFIGURATIONS stage
    */
-  secureConfigs: function () {
-    var configs = [
-      {
-        name: 'zookeeper_principal_name',
-        serviceName: 'ZOOKEEPER'
-      },
-      {
-        name: 'knox_principal_name',
-        serviceName: 'KNOX'
-      },
-      {
-        name: 'storm_principal_name',
-        serviceName: 'STORM'
-      }
-    ];
-    if (App.get('isHadoop22Stack')) {
-      configs.push({
-        name: 'nimbus_principal_name',
-        serviceName: 'STORM'
-      });
+  secureConfigs: [
+    {
+      name: 'zookeeper_principal_name',
+      serviceName: 'ZOOKEEPER'
+    },
+    {
+      name: 'knox_principal_name',
+      serviceName: 'KNOX'
+    },
+    {
+      name: 'storm_principal_name',
+      serviceName: 'STORM'
+    },
+    {
+      name: 'nimbus_principal_name',
+      serviceName: 'STORM'
     }
-    return configs;
-  }.property('App.isHadoop22Stack'),
+  ],
 
   /**
-   * Generate stack descriptor configs.
-   *  - Load kerberos artifacts from stack endpoint
-   *  - Load kerberos artifacts from cluster resource and merge them with stack descriptor.
-   * When cluster descriptor is absent then stack artifacts used.
+   * Store status of kerberos descriptor located in cluster artifacts.
+   * This status needed for Add Service Wizard to select appropriate method to create
+   * or update descriptor.
    *
-   * @returns {$.Deferred}
+   * @param  {Boolean} isExists <code>true</code> if cluster descriptor present
    */
-  getDescriptorConfigs: function () {
-    var dfd = $.Deferred();
-    var self = this;
-    this.loadStackDescriptorConfigs().then(function(data) {
-      var stackArtifacts = data;
-      self.loadClusterDescriptorConfigs().then(function(clusterArtifacts) {
-        dfd.resolve(self.createServicesStackDescriptorConfigs($.extend(true, {}, stackArtifacts, clusterArtifacts)));
-      }, function() {
-        dfd.resolve(self.createServicesStackDescriptorConfigs(stackArtifacts));
-      });
-    }, function() {
-      dfd.reject();
-    });
-    return dfd.promise();
+  storeClusterDescriptorStatus: function(isExists) {
+    if (this.get('isWithinAddService')) {
+      this.get('wizardController').setDBProperty('isClusterDescriptorExists', isExists);
+    }
   },
 
   /**
@@ -89,7 +73,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var self = this;
     var configs = [];
     var clusterConfigs = [];
-    var kerberosDescriptor = items.artifact_data;
+    var kerberosDescriptor = Em.get(items, 'KerberosDescriptor.kerberos_descriptor');
     this.set('kerberosDescriptor', kerberosDescriptor);
     // generate configs for root level properties object, currently realm, keytab_dir
     clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties, 'Cluster', 'stackConfigs'));
@@ -182,7 +166,12 @@ App.AddSecurityConfigs = Em.Mixin.create({
         configObject.referenceProperty = name.substring(1) + ':' + item;
         configObject.isEditable = false;
       }
-      configObject.defaultValue = configObject.savedValue = configObject.value = itemValue;
+      Em.setProperties(configObject, {
+        recommendedValue: itemValue,
+        initialValue: itemValue,
+        defaultValue: itemValue,
+        value: itemValue
+      });
       configObject.filename = prop.configuration ? prop.configuration.split('/')[0] : 'cluster-env';
       configObject.name = prop.configuration ? prop.configuration.split('/')[1] : name + '_' + item;
       predefinedProperty = self.get('kerberosDescriptorProperties').findProperty('name', configObject.name);
@@ -205,8 +194,11 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @method _getDisplayNameForConfig
    * @private
    */
-  _getDisplayNameForConfig: function(name, fileName) {
-    return fileName == 'cluster-env' ? App.format.normalizeName(name) : name;
+  _getDisplayNameForConfig: function (name, fileName) {
+    var predefinedConfig = App.config.get('kerberosIdentitiesMap')[App.config.configId(name, fileName)];
+    return (predefinedConfig && predefinedConfig.displayName)
+      ? predefinedConfig.displayName
+      : fileName == 'cluster-env' ? App.format.normalizeName(name) : name;
   },
 
   /**
@@ -222,17 +214,20 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
     for (var propertyName in kerberosProperties) {
       var predefinedProperty = this.get('kerberosDescriptorProperties').findProperty('name', propertyName);
+      var value = kerberosProperties[propertyName];
+      var isRequired = propertyName == 'additional_realms' ? false : value !== "";
       var propertyObject = {
         name: propertyName,
-        value: kerberosProperties[propertyName],
-        defaultValue: kerberosProperties[propertyName],
-        savedValue: kerberosProperties[propertyName],
+        value: value,
+        defaultValue: value,
+        recommendedValue: value,
+        initialValue: value,
         serviceName: serviceName,
         filename: filename,
         displayName: serviceName == "Cluster" ? App.format.normalizeName(propertyName) : propertyName,
         isOverridable: false,
         isEditable: propertyName != 'realm',
-        isRequired: propertyName != 'additional_realms',
+        isRequired: isRequired,
         isSecureConfig: true,
         placeholderText: predefinedProperty && !Em.isNone(predefinedProperty.index) ? predefinedProperty.placeholderText : '',
         index: predefinedProperty && !Em.isNone(predefinedProperty.index) ? predefinedProperty.index : Infinity
@@ -253,13 +248,49 @@ App.AddSecurityConfigs = Em.Mixin.create({
    */
   processConfigReferences: function (kerberosDescriptor, configs) {
     var identities = kerberosDescriptor.identities;
-    identities = identities.concat(kerberosDescriptor.services.map(function (service) {
-      if (service.components && !!service.components.length) {
-        identities = identities.concat(service.components.mapProperty('identities').reduce(function (p, c) {
-          return p.concat(c);
-        }, []));
-        return identities;
+
+    /**
+     * Returns indentity object with additional attribute `referencePath`.
+     * Reference path depends on how deep identity is. Each level separated by `/` sign.
+     *
+     * @param {object} identity
+     * @param {string} [prefix=false] prefix to append e.g. 'SERVICE_NAME'
+     * @returns {object} identity object
+     */
+    var setReferencePath = function(identity, prefix) {
+      var name = Em.getWithDefault(identity, 'name', false);
+      if (name) {
+        if (prefix) {
+          name = prefix + '/' + name;
+        }
+        identity.referencePath = name;
       }
+      return identity;
+    };
+
+    // map all identities and add attribute `referencePath`
+    // `referencePath` is a path to identity it can be 1-3 levels
+    // 1 for "/global" identity e.g. `/spnego`
+    // 2 for "/SERVICE/identity"
+    // 3 for "/SERVICE/COMPONENT/identity"
+    identities = identities.map(function(i) {
+      return setReferencePath(i);
+    })
+    .concat(kerberosDescriptor.services.map(function (service) {
+      var serviceName = Em.getWithDefault(service, 'name', false);
+      var serviceIdentities = Em.getWithDefault(service, 'identities', []).map(function(i) {
+        return setReferencePath(i, serviceName);
+      });
+      var componentIdentities = Em.getWithDefault(service || {}, 'components', []).map(function(i) {
+        var componentName = Em.getWithDefault(i, 'name', false);
+        return Em.getWithDefault(i, 'identities', []).map(function(componentIdentity) {
+          return setReferencePath(componentIdentity, serviceName + '/' + componentName);
+        });
+      }).reduce(function(p, c) {
+        return p.concat(c);
+      }, []);
+      serviceIdentities.pushObjects(componentIdentities);
+      return serviceIdentities;
     }).reduce(function (p, c) {
       return p.concat(c);
     }, []));
@@ -268,7 +299,10 @@ App.AddSecurityConfigs = Em.Mixin.create({
     configs.forEach(function (item) {
       var reference = item.get('referenceProperty');
       if (!!reference) {
-        var identity = identities.findProperty('name', reference.split(':')[0])[reference.split(':')[1]];
+        // first find identity by `name`
+        // if not found try to find by `referencePath`
+        var identity = Em.getWithDefault(identities.findProperty('name', reference.split(':')[0]) || {}, reference.split(':')[1], false) ||
+              Em.getWithDefault(identities.findProperty('referencePath', reference.split(':')[0]) || {}, reference.split(':')[1], false);
         if (identity && !!identity.configuration) {
           item.set('observesValueFrom', identity.configuration.split('/')[1]);
         } else {

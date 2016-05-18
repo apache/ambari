@@ -1,0 +1,19 @@
+{
+  "PXF": {
+    "PXF": [
+      {
+        "name": "pxf_process",
+        "label": "PXF Process",
+        "description": "This host-level alert is triggered if the PXF process cannot be established to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PXF/3.0.0/package/alerts/api_status.py",
+          "parameters": []
+        }
+      }
+    ]
+  }
+}

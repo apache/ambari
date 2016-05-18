@@ -35,7 +35,6 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
 
   describe('#customClientSideValidation', function () {
     var hostComponents = [];
-    var isSubmitDisabled = false;
 
     beforeEach(function () {
       sinon.stub(App.HostComponent, 'find', function () {
@@ -89,14 +88,12 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
     });
 
     it('submitDisabled is already true', function () {
-      isSubmitDisabled = true;
-
       expect(controller.customClientSideValidation()).to.be.false;
     });
   });
 
   describe("#mastersToShow", function() {
-    it("", function() {
+    it("should be like array with `content.reassign.component_name`", function() {
       controller.set('content.reassign.component_name', 'C1');
       controller.propertyDidChange('mastersToShow');
       expect(controller.get('mastersToShow')).to.eql(['C1']);
@@ -104,7 +101,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
   });
 
   describe("#mastersToMove", function() {
-    it("", function() {
+    it("should be like array with `content.reassign.component_name`", function() {
       controller.set('content.reassign.component_name', 'C1');
       controller.propertyDidChange('mastersToMove');
       expect(controller.get('mastersToMove')).to.eql(['C1']);

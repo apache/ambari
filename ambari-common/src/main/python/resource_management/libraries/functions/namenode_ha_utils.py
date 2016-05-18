@@ -17,7 +17,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from resource_management.libraries.script import UnknownConfiguration
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.jmx import get_value_from_jmx
@@ -26,14 +25,18 @@ from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.decorator import retry
 
-__all__ = ["get_namenode_states", "get_active_namenode", "get_property_for_active_namenode"]
+__all__ = ["get_namenode_states", "get_active_namenode",
+           "get_property_for_active_namenode", "get_nameservice"]
 
 HDFS_NN_STATE_ACTIVE = 'active'
 HDFS_NN_STATE_STANDBY = 'standby'
 
 NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
+NAMENODE_RPC_FRAGMENT = 'dfs.namenode.rpc-address.{0}.{1}'
+NAMENODE_RPC_NON_HA = 'dfs.namenode.rpc-address'
 JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
+INADDR_ANY = '0.0.0.0'
 
 def get_namenode_states(hdfs_site, security_enabled, run_user, times=10, sleep_time=1, backoff_factor=2):
   """
@@ -64,7 +67,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
   standby_namenodes = []
   unknown_namenodes = []
   
-  name_service = hdfs_site['dfs.nameservices']
+  name_service = get_nameservice(hdfs_site)
   nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
 
   # now we have something like 'nn1,nn2,nn3,nn4'
@@ -72,8 +75,9 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
   # ie dfs.namenode.http-address.hacluster.nn1
   nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
   for nn_unique_id in nn_unique_ids:
-    is_https_enabled = hdfs_site['dfs.https.enable'] if not is_empty(hdfs_site['dfs.https.enable']) else False
-    
+    is_https_enabled = is_empty(hdfs_site['dfs.http.policy']) and hdfs_site['dfs.http.policy'].upper() == "HTTPS_ONLY"
+
+    rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,nn_unique_id)
     if not is_https_enabled:
       key = NAMENODE_HTTP_FRAGMENT.format(name_service,nn_unique_id)
       protocol = "http"
@@ -84,13 +88,18 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
     if key in hdfs_site:
       # use str() to ensure that unicode strings do not have the u' in them
       value = str(hdfs_site[key])
+      if INADDR_ANY in value and rpc_key in hdfs_site:
+        rpc_value = str(hdfs_site[rpc_key])
+        if INADDR_ANY not in rpc_value:
+          rpc_host = rpc_value.split(":")[0]
+          value = value.replace(INADDR_ANY, rpc_host)
 
       jmx_uri = JMX_URI_FRAGMENT.format(protocol, value)
       
       state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled)
       # If JMX parsing failed
       if not state:
-        check_service_cmd = "hdfs haadmin -getServiceState {0}".format(nn_unique_id)
+        check_service_cmd = "hdfs haadmin -ns {0} -getServiceState {1}".format(get_nameservice(hdfs_site), nn_unique_id)
         code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
         if code == 0 and out:
           if HDFS_NN_STATE_STANDBY in out:
@@ -108,7 +117,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
   return active_namenodes, standby_namenodes, unknown_namenodes
 
 def is_ha_enabled(hdfs_site):
-  dfs_ha_nameservices = hdfs_site['dfs.nameservices']
+  dfs_ha_nameservices = get_nameservice(hdfs_site)
   
   if is_empty(dfs_ha_nameservices):
     return False
@@ -130,8 +139,8 @@ def get_active_namenode(hdfs_site, security_enabled, run_user):
   active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
   if active_namenodes:
     return active_namenodes[0]
-  else:
-    return UnknownConfiguration('fs_root')
+
+  raise Fail('No active NameNode was found.')
   
 def get_property_for_active_namenode(hdfs_site, property_name, security_enabled, run_user):
   """
@@ -139,16 +148,54 @@ def get_property_for_active_namenode(hdfs_site, property_name, security_enabled,
     - In non-ha mode it will return hdfs_site[dfs.namenode.rpc-address]
     - In ha-mode it will return hdfs_site[dfs.namenode.rpc-address.nnha.nn2], where nnha is the name of HA, and nn2 is id of active NN
   """
+  value = None
+  rpc_key = None
   if is_ha_enabled(hdfs_site):
-    name_service = hdfs_site['dfs.nameservices']
+    name_service = get_nameservice(hdfs_site)
     active_namenodes = get_namenode_states(hdfs_site, security_enabled, run_user)[0]
     
     if not len(active_namenodes):
       raise Fail("There is no active namenodes.")
     
     active_namenode_id = active_namenodes[0][0]
-    
-    return hdfs_site[format("{property_name}.{name_service}.{active_namenode_id}")]
+    value = hdfs_site[format("{property_name}.{name_service}.{active_namenode_id}")]
+    rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,active_namenode_id)
   else:
-    return hdfs_site[property_name]
-  
+    value = hdfs_site[property_name]
+    rpc_key = NAMENODE_RPC_NON_HA
+
+  if INADDR_ANY in value and rpc_key in hdfs_site:
+    rpc_value = str(hdfs_site[rpc_key])
+    if INADDR_ANY not in rpc_value:
+      rpc_host = rpc_value.split(":")[0]
+      value = value.replace(INADDR_ANY, rpc_host)
+
+  return value
+
+def get_nameservice(hdfs_site):
+  """
+  Multiple nameservices can be configured for example to support seamless distcp
+  between two HA clusters. The nameservices are defined as a comma separated
+  list in hdfs_site['dfs.nameservices']. The parameter
+  hdfs['dfs.internal.nameservices'] was introduced in Hadoop 2.6 to denote the
+  nameservice for the current cluster (HDFS-6376).
+
+  This method uses hdfs['dfs.internal.nameservices'] to get the current
+  nameservice, if that parameter is not available it tries to splits the value
+  in hdfs_site['dfs.nameservices'] returning the first string or what is
+  contained in hdfs_site['dfs.namenode.shared.edits.dir'].
+
+  By default hdfs_site['dfs.nameservices'] is returned.
+  :param hdfs_site:
+  :return: string or empty
+  """
+  name_service = hdfs_site.get('dfs.internal.nameservices', None)
+  if not name_service:
+    import re
+    name_service = hdfs_site.get('dfs.nameservices', None)
+    if name_service:
+      for ns in name_service.split(","):
+        if 'dfs.namenode.shared.edits.dir' in hdfs_site and re.match(r'.*%s$' % ns, hdfs_site['dfs.namenode.shared.edits.dir']): # better would be core_site['fs.defaultFS'] but it's not available
+          return ns
+      return name_service.split(",")[0] # default to return the first nameservice
+  return name_service

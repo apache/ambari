@@ -27,21 +27,23 @@
         <component>
           <name>APP_TIMELINE_SERVER</name>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
         </component>
       </components>
-      
+
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_2_*-yarn</name>
+              <name>hadoop_${stack_version}-yarn</name>
             </package>
             <package>
-              <name>hadoop_2_2_*-mapreduce</name>
+              <name>hadoop_${stack_version}-mapreduce</name>
             </package>
             <package>
-              <name>hadoop_2_2_*-hdfs</name>
+              <name>hadoop_${stack_version}-hdfs</name>
             </package>
           </packages>
         </osSpecific>
@@ -49,10 +51,10 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hadoop-2-2-.*-yarn</name>
+              <name>hadoop-${stack_version}-yarn</name>
             </package>
             <package>
-              <name>hadoop-2-2-.*-mapreduce</name>
+              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -72,10 +74,10 @@
       <version>2.6.0.2.2</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_2_*-mapreduce</name>
+              <name>hadoop_${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -83,7 +85,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hadoop-2-2-.*-mapreduce</name>
+              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>

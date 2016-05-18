@@ -78,4 +78,61 @@ describe('Ember functionality extension', function () {
 
   });
 
+  describe('#Em.Route', function() {
+    describe('#serializeQueryParams', function() {
+      var route,
+          cases = [
+        {
+          m: 'No query params',
+          params: undefined,
+          e: {
+            result: {query: ''},
+            serializedQuery: {}
+          }
+        },
+        {
+          m: 'Query params ?param1=value1&param2=value2',
+          params: { query: '?param1=value1&param2=value2'},
+          e: {
+            result: {query: '?param1=value1&param2=value2'},
+            serializedQuery: {param1: 'value1', param2: 'value2'}
+          }
+        },
+        {
+          m: 'Query params with encodedComponent ?param1=value1%30&param2=value2',
+          params: { query: '?param1=value1%30&param2=value2'},
+          e: {
+            result: {query: '?param1=value1%30&param2=value2'},
+            serializedQuery: {param1: 'value10', param2: 'value2'}
+          }
+        }
+      ];
+
+      beforeEach(function() {
+        route = Ember.Route.create({
+          route: 'demo:query',
+          serialize: function(router, params) {
+            return this.serializeQueryParams(router, params, 'testController');
+          }
+        });
+      });
+
+      afterEach(function() {
+        route.destroy();
+        route = null;
+      });
+
+      cases.forEach(function(test) {
+        it(test.m, function() {
+          var ctrl = Em.Object.create({});
+          var router = Em.Object.create({
+            testController: ctrl
+          });
+          var ret = route.serialize(router, test.params);
+          expect(ret).to.be.eql(test.e.result);
+          expect(ctrl.get('serializedQuery')).to.be.eql(test.e.serializedQuery);
+        });
+      });
+    });
+  });
 });

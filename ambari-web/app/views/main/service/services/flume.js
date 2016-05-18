@@ -29,14 +29,13 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
 
   selectedHost: null,
 
-  flumeAgentsCount:0,
+  flumeAgentsCount: 0,
 
   content: function () {
     var flumeAgents = this.get('service.agents'),
-    hostNames = flumeAgents.mapProperty('hostName').uniq(),
-    content = [],
-    self = this;
-    hostNames.forEach(function(hostName) {
+      content = [];
+
+    flumeAgents.mapProperty('hostName').uniq().forEach(function (hostName) {
       var agents = flumeAgents.filterProperty('hostName', hostName);
       content.push(
         Em.Object.create({
@@ -51,13 +50,11 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
     return content;
   }.property('App.FlumeAgent.@each.id', 'flumeAgentsCount'),
 
-
-
   summaryHeader: function () {
-    var agents = App.FlumeService.find().objectAt(0).get('agents'),
-    agentCount = agents.get('length'),
-    hostCount = this.get('service.flumeHandlersTotal');
-    return this.t("dashboard.services.flume.summary.title").format(hostCount, (hostCount > 1 ? "s" : ""), agentCount,  (agentCount > 1 ? "s" : ""));
+    var agentCount = App.FlumeService.find().objectAt(0).get('agents.length'),
+      hostCount = this.get('service.flumeHandlersTotal');
+    return this.t("dashboard.services.flume.summary.title")
+      .format(hostCount, (hostCount > 1 ? "s" : ""), agentCount, (agentCount > 1 ? "s" : ""));
   }.property('service.agents', 'service.hostComponents.length'),
 
   flumeHandlerComponent: Em.Object.create({
@@ -70,13 +67,13 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
 
     click: function (e) {
       var numberOfAgents = this.get('content.agents').length;
-      if($(e.target).attr('class') == "agent-host-name" || $(e.target).attr('class') == "agent-host-link"){
+      if ($(e.target).attr('class') == "agent-host-name" || $(e.target).attr('class') == "agent-host-link") {
         var currentTargetRow = $(e.currentTarget);
         if ($(e.target).attr('class') == "agent-host-link") {
           currentTargetRow = currentTargetRow.parent(".agent-host-name").parent();
         }
         currentTargetRow.parents("table:first").find('tr').removeClass('highlight');
-        currentTargetRow.addClass('highlight').nextAll("tr").slice(0,numberOfAgents - 1).addClass('highlight');
+        currentTargetRow.addClass('highlight').nextAll("tr").slice(0, numberOfAgents - 1).addClass('highlight');
         this.get('parentView').showAgentInfo(this.get('content'));
       }
     }
@@ -93,7 +90,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
   didInsertElement: function () {
     var self = this;
     this.filter();
-    this.$().on('click','.flume-agents-actions .dropdown-toggle', function (e){
+    this.$().on('click', '.flume-agents-actions .dropdown-toggle', function (e) {
       self.setDropdownPosition(this);
     });
   },
@@ -117,7 +114,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
    * Change classes for dropdown DOM elements after status change of selected agent
    */
   setActionsDropdownClasses: function () {
-    this.get('content').forEach(function(hosts){
+    this.get('content').forEach(function (hosts) {
       hosts.agents.forEach(function (agent) {
         agent.set('isStartAgentDisabled', agent.get('status') !== 'NOT_RUNNING');
         agent.set('isStopAgentDisabled', agent.get('status') !== 'RUNNING');
@@ -130,11 +127,11 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
   }.observes('service.agents.length'),
 
   /**
-   * Action handler from flume tepmlate.
+   * Action handler from flume template.
    * Highlight selected row and show metrics graphs of selected agent.
    *
    * @method showAgentInfo
-   * @param {object} agent
+   * @param {object} host
    */
   showAgentInfo: function (host) {
     this.set('selectedHost', host);
@@ -144,7 +141,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
    * Show Flume agent metric.
    *
    * @method setFlumeAgentMetric
-   * @param {object} agent - DS.model of agent
+   * @param {object} host
    */
   setAgentMetrics: function (host) {
     var mockMetricData = [

@@ -288,6 +288,11 @@
             <xs:documentation>The build number of the view.</xs:documentation>
           </xs:annotation>
         </xs:element>
+        <xs:element type="xs:string" name="data-version" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>The data version. Used for data migrations.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
         <xs:element type="xs:string" name="min-ambari-version" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>The minimum version of Ambari server required to run this view.</xs:documentation>
@@ -340,6 +345,16 @@
         <xs:element type="xs:string" name="masker-class" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>The Masker class for masking view parameters.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element type="xs:string" name="cluster-config-options" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Enable views to display cluster options in case of no cluster config properties.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element type="xs:string" name="data-migrator-class" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>The data migration class.</xs:documentation>
           </xs:annotation>
         </xs:element>
         <xs:element type="ParameterType" name="parameter" minOccurs="0" maxOccurs="unbounded">

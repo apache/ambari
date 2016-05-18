@@ -30,7 +30,6 @@
       <th>{{t popup.clusterCheck.Upgrade.configsMerge.configType}}</th>
       <th>{{t popup.clusterCheck.Upgrade.configsMerge.propertyName}}</th>
       <th>{{t popup.clusterCheck.Upgrade.configsMerge.currentValue}}</th>
-      <th><span class="recommended-value">{{t popup.clusterCheck.Upgrade.configsMerge.recommendedValue}}</span></th>
       <th>{{t popup.clusterCheck.Upgrade.configsMerge.resultingValue}}</th>
     </tr>
     </thead>
@@ -44,7 +43,6 @@
         <td>{{type}}</td>
         <td>{{name}}</td>
         <td>{{currentValue}}</td>
-        <td {{bindAttr class="isDeprecated:no-value"}}>{{recommendedValue}}</td>
         <td {{bindAttr class="willBeRemoved:no-value"}}>{{resultingValue}}</td>
       </tr>
     {{/each}}

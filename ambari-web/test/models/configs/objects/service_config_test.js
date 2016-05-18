@@ -21,178 +21,83 @@ var App = require('app');
 require('models/configs/objects/service_config');
 
 var serviceConfig,
-  group,
-  configsData = [
-    Ember.Object.create({
-      category: 'c0',
-      overrides: [
-        {
-          error: true,
-          errorMessage: 'error'
-        },
-        {
-          error: true
-        },
-        {}
-      ]
-    }),
-    Ember.Object.create({
-      category: 'c1',
-      isValid: false,
-      isVisible: true
-    }),
-    Ember.Object.create({
-      category: 'c0',
-      isValid: true,
-      isVisible: true
-    }),
-    Ember.Object.create({
-      category: 'c1',
-      isValid: false,
-      isVisible: false
-    })
-  ],
-  configCategoriesData = [
+  configs = [
+      Em.Object.create({
+        'name': 'p1',
+        'isVisible': true,
+        'hiddenBySection': false,
+        'isRequiredByAgent': true,
+        'isValid': true,
+        'isValidOverride': true
+      }),
+      Em.Object.create({
+        'name': 'p2',
+        'isVisible': false,
+        'hiddenBySection': false,
+        'isRequiredByAgent': true,
+        'isValid': true,
+        'isValidOverride': true
+      }),
+      Em.Object.create({
+        'name': 'p3',
+        'isVisible': true,
+        'hiddenBySection': true,
+        'isRequiredByAgent': true,
+        'isValid': true,
+        'isValidOverride': true
+      }),
+      Em.Object.create({
+        'name': 'p4',
+        'isVisible': true,
+        'hiddenBySection': false,
+        'isRequiredByAgent': true,
+        'isValid': false,
+        'isValidOverride': true
+      }),
+      Em.Object.create({
+        'name': 'p5',
+        'isVisible': true,
+        'hiddenBySection': false,
+        'isRequiredByAgent': true,
+        'isValid': true,
+        'isValidOverride': false
+      }),
     Em.Object.create({
-      name: 'c0',
-      slaveErrorCount: 1
-    }),
-    Em.Object.create({
-      name: 'c1',
-      slaveErrorCount: 2
+      'name': 'p6',
+      'isVisible': true,
+      'hiddenBySection': false,
+      'isRequiredByAgent': false,
+      'isValid': true,
+      'isValidOverride': false
     })
-  ],
-  components = [
-    {
-      name: 'NameNode',
-      master: true
-    },
-    {
-      name: 'SNameNode',
-      master: true
-    },
-    {
-      name: 'JobTracker',
-      master: true
-    },
-    {
-      name: 'HBase Master',
-      master: true
-    },
-    {
-      name: 'Oozie Master',
-      master: true
-    },
-    {
-      name: 'Hive Metastore',
-      master: true
-    },
-    {
-      name: 'WebHCat Server',
-      master: true
-    },
-    {
-      name: 'ZooKeeper Server',
-      master: true
-    },
-    {
-      name: 'Ganglia',
-      master: true
-    },
-    {
-      name: 'DataNode',
-      slave: true
-    },
-    {
-      name: 'TaskTracker',
-      slave: true
-    },
-    {
-      name: 'RegionServer',
-      slave: true
-    }
-  ],
-  masters = components.filterProperty('master'),
-  slaves = components.filterProperty('slave'),
-  groupNoErrorsData = [].concat(configsData.slice(2)),
-  groupErrorsData = [configsData[1]];
+  ];
 
 describe('App.ServiceConfig', function () {
 
   beforeEach(function () {
-    serviceConfig = App.ServiceConfig.create();
+    serviceConfig = App.ServiceConfig.create({
+      configs: configs
+    });
   });
 
-  describe('#errorCount', function () {
-    it('should be 0', function () {
-      serviceConfig.setProperties({
-        configs: [],
-        configCategories: []
+  describe('#activeProperties', function() {
+    it('returns collection of properties that should be shown', function() {
+      expect(serviceConfig.get('activeProperties').mapProperty('name')).to.be.eql(['p1','p4','p5']);
+    });
+  });
+
+  describe('#configsWithErrors', function() {
+    it('returns collection of properties with errors', function() {
+      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5']);
+    })
+  });
+
+  describe('#errorCount', function() {
+    it('returns collection of properties with errors', function() {
+      serviceConfig.reopen({
+        configsWithErrors: [{}, {}]
       });
-      expect(serviceConfig.get('errorCount')).to.equal(0);
-    });
-    it('should sum counts of all errors', function () {
-      serviceConfig.setProperties({
-        configs: configsData,
-        configCategories: configCategoriesData
-      });
-      expect(serviceConfig.get('errorCount')).to.equal(6);
-      expect(serviceConfig.get('configCategories').findProperty('name', 'c0').get('nonSlaveErrorCount')).to.equal(2);
-      expect(serviceConfig.get('configCategories').findProperty('name', 'c1').get('nonSlaveErrorCount')).to.equal(1);
-    });
-    it('should include invalid properties with widgets', function() {
-      serviceConfig.setProperties({
-        configs: [
-          Em.Object.create({
-            isValid: false,
-            widgetType: 'type',
-            isVisible: true,
-            category: 'some1'
-          }),
-          Em.Object.create({
-            isValid: false,
-            widgetType: 'type',
-            isVisible: true,
-            category: 'some2'
-          }),
-          Em.Object.create({
-            isValid: false,
-            widgetType: null,
-            isVisible: true,
-            category: 'some2'
-          }),
-          Em.Object.create({
-            isValid: false,
-            widgetType: 'type',
-            isVisible: true
-          })
-        ],
-        configCategories: [
-          Em.Object.create({ name: 'some1', slaveErrorCount: 0}),
-          Em.Object.create({ name: 'some2', slaveErrorCount: 0})
-        ]
-      });
-      expect(serviceConfig.get('errorCount')).to.equal(4);
+      expect(serviceConfig.get('errorCount')).to.equal(2);
     });
   });
-
-});
-
-describe('App.Group', function () {
-
-  beforeEach(function () {
-    group = App.Group.create();
-  });
-
-  describe('#errorCount', function () {
-    it('should be 0', function () {
-      group.set('properties', groupNoErrorsData);
-      expect(group.get('errorCount')).to.equal(0);
-    });
-    it('should be 1', function () {
-      group.set('properties', groupErrorsData);
-      expect(group.get('errorCount')).to.equal(1);
-    });
-  });
-
 });

@@ -20,28 +20,8 @@
   <services>
     <service>
       <name>KAFKA</name>
-      <version>0.8.2.2.3</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>kafka_2_3_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>kafka-2-3-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-      <configuration-dependencies>
-        <config-type>kafka-broker</config-type>
-      </configuration-dependencies>
+      <version>0.9.0.2.3</version>
+      <extends>common-services/KAFKA/0.9.0</extends>
     </service>
   </services>
 </metainfo>

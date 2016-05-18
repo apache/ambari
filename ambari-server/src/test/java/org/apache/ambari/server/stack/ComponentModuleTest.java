@@ -19,6 +19,7 @@
 package org.apache.ambari.server.stack;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -385,6 +386,106 @@ public class ComponentModuleTest {
 
     component = new ComponentModule(info);
     assertTrue(component.isDeleted());
+  }
+
+  @Test
+  public void testResolve_BulkCommandsDefinition(){
+    BulkCommandDefinition bulkCommandsDefinition = new BulkCommandDefinition();
+    ComponentInfo info = new ComponentInfo();
+    ComponentInfo parentInfo = new ComponentInfo();
+
+    // parent has value set, child value is null
+    parentInfo.setBulkCommands(bulkCommandsDefinition);
+    assertSame(bulkCommandsDefinition, resolveComponent(info, parentInfo).getModuleInfo().getBulkCommandDefinition());
+
+    // child has value set, parent value is null
+    info.setBulkCommands(bulkCommandsDefinition);
+    parentInfo.setBulkCommands(null);
+    assertSame(bulkCommandsDefinition, resolveComponent(info, parentInfo).getModuleInfo().getBulkCommandDefinition());
+
+    // value set in both parent and child; child overwrites
+    BulkCommandDefinition bulkCommandsDefinition2 = createNiceMock(BulkCommandDefinition.class);
+    info.setBulkCommands(bulkCommandsDefinition);
+    parentInfo.setBulkCommands(bulkCommandsDefinition2);
+    assertSame(bulkCommandsDefinition, resolveComponent(info, parentInfo).getModuleInfo().getBulkCommandDefinition());
+  }
+
+  @Test
+  public void testResolve_DecommissionAllowedInheritance(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child doesn't
+    parentInfo.setDecommissionAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
+  }
+
+  @Test
+  public void testResolve_DecommissionAllowed(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent doesn't have it, child has it
+    info.setDecommissionAllowed("false");
+    assertSame("false", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
+  }
+
+  @Test
+  public void testResolve_DecommissionAllowedOverwrite(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child overwrites it
+    parentInfo.setDecommissionAllowed("false");
+    info.setDecommissionAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getDecommissionAllowed());
+  }
+
+  @Test
+  public void testResolve_Reassignable(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent doesn't have it, child has it
+    info.setReassignAllowed("false");
+    assertSame("false", resolveComponent(info, parentInfo).getModuleInfo().getReassignAllowed());
+  }
+
+  @Test
+  public void testResolve_ReassignableInheritance(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child doesn't
+    parentInfo.setReassignAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getReassignAllowed());
+  }
+
+  @Test
+  public void testResolve_ReassignableOverwrite(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child overwrites it
+    parentInfo.setReassignAllowed("false");
+    info.setReassignAllowed("true");
+    assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getReassignAllowed());
+  }
+
+  private List<ComponentInfo> createComponentInfo(int count){
+    List<ComponentInfo> result = new ArrayList<ComponentInfo>();
+    if(count > 0) {
+      for(int i = 0; i < count; i++){
+        result.add(new ComponentInfo());
+      }
+    }
+    return result;
   }
 
   private ComponentModule resolveComponent(ComponentInfo info, ComponentInfo parentInfo) {

@@ -20,20 +20,23 @@ var App = require('app');
 require('views/wizard/step9_view');
 
 var v;
+function getView() {
+  return App.WizardStep9View.create({
+    onStatus: function () {},
+    content: [],
+    pageContent: function () {
+      return this.get('content');
+    }.property('content')
+  });
+}
+
 describe('App.WizardStep9View', function () {
   beforeEach(function () {
     v = App.WizardStep9View.create({
       controller: App.WizardStep9Controller.create()
     });
   });
-  var view = App.WizardStep9View.create({
-    onStatus: function () {
-    },
-    content: [],
-    pageContent: function () {
-      return this.get('content');
-    }.property('content')
-  });
+  var view = getView();
   var testCases = [
     {
       title: 'none hosts',
@@ -194,12 +197,20 @@ describe('App.WizardStep9View', function () {
 
   describe('#countCategoryHosts', function () {
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        view.set('content', test.content);
-        view.countCategoryHosts();
-        view.get('categories').forEach(function (category) {
-          expect(category.get('hostsCount')).to.equal(test.result[category.get('hostStatus')])
-        })
+      describe(test.title, function () {
+        var _v;
+        beforeEach(function () {
+          _v = getView();
+          _v.set('content', test.content);
+          _v.countCategoryHosts();
+        });
+
+        Object.keys(test.result).forEach(function (categoryName) {
+          it('`' + categoryName + '`', function () {
+            expect(_v.get('categories').findProperty('hostStatus', categoryName).get('hostsCount')).to.equal(test.result[categoryName])
+          });
+        });
+
       });
     }, this);
   });
@@ -231,16 +242,20 @@ describe('App.WizardStep9View', function () {
   });
 
   describe('#content', function () {
-    it('should be equal to controller.hosts', function () {
+
+    var hosts = [{}, {}, {}];
+
+    beforeEach(function () {
       sinon.stub(v, 'hostStatusObserver', Em.K);
-      var hosts = [
-        {},
-        {},
-        {}
-      ];
       v.set('controller.hosts', hosts);
-      expect(v.get('content')).to.eql(hosts);
+    });
+
+    afterEach(function () {
       v.hostStatusObserver.restore();
+    });
+
+    it('should be equal to controller.hosts', function () {
+      expect(v.get('content')).to.eql(hosts);
     });
   });
 
@@ -371,11 +386,17 @@ describe('App.WizardStep9View', function () {
           }
         }
       ]).forEach(function (test) {
-        it(test.status, function () {
-          v.set('controller.status', test.status);
-          v.onStatus();
-          Em.keys(test.e).forEach(function (k) {
-            expect(v.get(k)).to.equal(test.e[k]);
+        describe(test.status, function () {
+
+          beforeEach(function () {
+            v.set('controller.status', test.status);
+            v.onStatus();
+          });
+
+          Object.keys(test.e).forEach(function (k) {
+            it(k, function () {
+              expect(v.get(k)).to.equal(test.e[k]);
+            });
           });
         });
       });
@@ -552,11 +573,18 @@ describe('App.HostStatusView', function () {
   });
 
   describe('#didInsertElement', function () {
-    it('should call onStatus', function () {
+
+    beforeEach(function () {
       sinon.stub(hv, 'onStatus', Em.K);
+    });
+
+    afterEach(function () {
+      hv.onStatus.restore();
+    });
+
+    it('should call onStatus', function () {
       hv.didInsertElement();
       expect(hv.onStatus.calledOnce).to.equal(true);
-      hv.onStatus.restore();
     });
   });
 
@@ -625,11 +653,17 @@ describe('App.HostStatusView', function () {
           }
         }
       ]).forEach(function (test) {
-        it(JSON.stringify(test.obj), function () {
-          hv.set('obj', test.obj);
-          hv.onStatus();
-          Em.keys(test.e).forEach(function (k) {
-            expect(hv.get(k)).to.equal(test.e[k]);
+        describe(JSON.stringify(test.obj), function () {
+
+          beforeEach(function () {
+            hv.set('obj', test.obj);
+            hv.onStatus();
+          });
+
+          Object.keys(test.e).forEach(function (k) {
+            it(k, function () {
+              expect(hv.get(k)).to.equal(test.e[k]);
+            });
           });
         });
       });
@@ -667,34 +701,58 @@ describe('App.HostStatusView', function () {
           e: false
         }
       ]).forEach(function (test) {
-        it(JSON.stringify(test.obj) + ' ' + test.progress, function() {
-          hv.set('barColor', '');
-          hv.set('obj', test.obj);
-          hv.set('obj.message', '');
-          hv.set('controller', {progress: test.progress});
-          hv.onStatus();
-          expect(hv.get('obj.message') === Em.I18n.t('installer.step9.host.status.success')).to.equal(test.e);
-          expect(hv.get('barColor') === 'progress-success').to.equal(test.e);
+        describe(JSON.stringify(test.obj) + ' ' + test.progress, function() {
+          beforeEach(function () {
+            hv.setProperties({
+              barColor: '',
+              obj: test.obj
+            });
+            hv.set('obj.message', '');
+            hv.set('controller', {progress: test.progress});
+            hv.onStatus();
+          });
+
+          if (test.e) {
+            it('completed successful', function () {
+              expect(hv.get('obj.message')).to.be.equal(Em.I18n.t('installer.step9.host.status.success'));
+              expect(hv.get('barColor')).to.be.equal('progress-success');
+            });
+          }
+          else {
+            it('completed not successful', function () {
+              expect(hv.get('obj.message')).to.be.not.equal(Em.I18n.t('installer.step9.host.status.success'));
+              expect(hv.get('barColor')).to.be.not.equal('progress-success');
+            });
+          }
         });
       });
   });
 
   describe('#hostLogPopup', function() {
+
     describe('#onClose', function() {
+
       beforeEach(function() {
         hv.set('controller', {currentOpenTaskId: 123});
         hv.set('obj', Em.Object.create());
+        this.p = hv.hostLogPopup();
+        sinon.spy(this.p, 'hide');
       });
+
+      afterEach(function () {
+        this.p.hide.restore();
+      });
+
       it('popup should clear currentOpenTaskId', function() {
-        hv.hostLogPopup().onClose();
+        this.p.onClose();
         expect(hv.get('controller.currentOpenTaskId')).to.equal(0);
       });
+
       it('onClose popup should hide popup', function() {
-        var p = hv.hostLogPopup();
-        sinon.spy(p, 'hide');
-        p.onClose();
-        expect(p.hide.calledOnce).to.equal(true);
+        this.p.onClose();
+        expect(this.p.hide.calledOnce).to.equal(true);
       });
+
     });
   });
 

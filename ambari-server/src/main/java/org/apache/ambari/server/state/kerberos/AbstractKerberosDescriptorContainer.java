@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * AbstractKerberosDescriptorContainer is an abstract class implementing AbstractKerberosDescriptor
@@ -84,6 +85,17 @@ import java.util.Set;
  * left up to the implementing class to do so.
  */
 public abstract class AbstractKerberosDescriptorContainer extends AbstractKerberosDescriptor {
+
+  /**
+   * Regular expression pattern used to parse auth_to_local property specifications into the following
+   * parts:
+   * <ul>
+   * <li>configuration type (optional, if _global_)</li>
+   * <li>property name</li>
+   * <li>concatenation type (optional, if using the default behavior)</li>
+   * </ul>
+   */
+  public static final Pattern AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN = Pattern.compile("^(?:(.+?)/)?(.+?)(?:\\|(.+?))?$");
 
   /**
    * A List of KerberosIdentityDescriptors contained in this AbstractKerberosDescriptorContainer

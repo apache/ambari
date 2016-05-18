@@ -144,7 +144,7 @@ class ExecuteUpgradeTasks(Script):
                             self.logging_level,
                             Script.get_tmp_dir()]
 
-          task.command = " ".join(command_params)
+          task.command = "source /var/lib/ambari-agent/ambari-env.sh ; " + " ".join(command_params)
           # Replace redundant whitespace to make the unit tests easier to validate
           task.command = re.sub("\s+", " ", task.command).strip()
 

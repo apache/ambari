@@ -42,7 +42,7 @@ public class StackServiceResourceDefinitionTest {
     ResourceDefinition def = new StackServiceResourceDefinition();
 
     Set<SubResourceDefinition> subResources = def.getSubResourceDefinitions();
-    assertEquals(4, subResources.size());
+    assertEquals(5, subResources.size());
 
     boolean configReturned = false;
     boolean componentReturned = false;

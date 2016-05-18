@@ -30,15 +30,21 @@ class TestSqoop(RMFTestCase):
                        classname = "SqoopClient",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Link', '/usr/lib/sqoop/lib/mysql-connector-java.jar',
                               to = '/usr/share/java/mysql-connector-java.jar',)
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',
-                              recursive = True,
+                              create_parents = True,
                               owner = 'sqoop',
                               group = 'hadoop',)
+    self.assertResourceCalled('XmlConfig', 'sqoop-site.xml',
+                              owner = 'sqoop',
+                              group = 'hadoop',
+                              conf_dir = '/usr/lib/sqoop/conf',
+                              configurations = self.getConfig()['configurations']['sqoop-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['sqoop-site'])
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
                               owner = 'sqoop',
                               group = 'hadoop',
@@ -70,25 +76,31 @@ class TestSqoop(RMFTestCase):
                        classname = "SqoopClient",
                        command = "configure",
                        config_dict = loaded_json,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Link', '/usr/lib/sqoop/lib/mysql-connector-java.jar',
                               to = '/usr/share/java/mysql-connector-java.jar',
                               )
-    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/ojdbc.jar',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//oracle-jdbc-driver.jar'),
+    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/test-postgres-jdbc.jar',
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//test-postgres-jdbc.jar'),
                               mode = 0644,
                               )
-    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/postgresql-jdbc.jar',
-                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//postgres-jdbc-driver.jar'),
+    self.assertResourceCalled('File', '/usr/lib/sqoop/lib/oracle-jdbc-driver.jar',
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//oracle-jdbc-driver.jar'),
                               mode = 0644,
                               )
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',
                               owner = 'sqoop',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               )
+    self.assertResourceCalled('XmlConfig', 'sqoop-site.xml',
+                              owner = 'sqoop',
+                              group = 'hadoop',
+                              conf_dir = '/usr/lib/sqoop/conf',
+                              configurations = self.getConfig()['configurations']['sqoop-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['sqoop-site'])
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['sqoop-env']['content']),
                               owner = 'sqoop',
@@ -124,7 +136,7 @@ class TestSqoop(RMFTestCase):
                        classname = "SqoopClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

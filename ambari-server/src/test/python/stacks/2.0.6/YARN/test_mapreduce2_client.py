@@ -29,7 +29,7 @@ origin_exists = os.path.exists
 @patch.object(os.path, "exists", new=MagicMock(
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
-@patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.2.0.0-1234"))
+@patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.2.0.0-1234"))
 class TestMapReduce2Client(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -39,55 +39,56 @@ class TestMapReduce2Client(RMFTestCase):
                        classname = "MapReduce2Client",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
-      recursive = True,
+      group = 'hadoop',
+      create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
     )
@@ -160,7 +161,7 @@ class TestMapReduce2Client(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access="a"
     )
@@ -207,54 +208,55 @@ class TestMapReduce2Client(RMFTestCase):
                        classname = "MapReduce2Client",
                        command = "configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
-      recursive = True,
+      group = 'hadoop',
+      create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
     )
@@ -327,7 +329,7 @@ class TestMapReduce2Client(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access="a"
     )
@@ -375,17 +377,17 @@ class TestMapReduce2Client(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  @patch.object(functions, "get_hdp_version", new=MagicMock(return_value="2.2.0.0-2041"))
+  @patch.object(functions, "get_stack_version", new=MagicMock(return_value="2.2.0.0-2041"))
   def test_upgrade(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapreduce2_client.py",
                    classname = "MapReduce2Client",
                    command = "restart",
                    config_file="client-upgrade.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    # for now, it's enough that hdp-select is confirmed
+    # for now, it's enough that <stack-selector-tool> is confirmed
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
 
@@ -401,7 +403,7 @@ class TestMapReduce2Client(RMFTestCase):
                        classname = "MapReduce2Client",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

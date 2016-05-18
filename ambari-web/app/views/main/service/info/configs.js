@@ -28,10 +28,28 @@ App.MainServiceInfoConfigsView = Em.View.extend({
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isConfigsPropertiesLoaded').done(function () {
       self.get('controller').loadStep();
     });
+    this.resetConfigTabSelection();
   },
+
+  /**
+   * If user A is on the Service Configs page and B starts some Wizard, user A should be moved-out and then moved-in this page
+   * It's done to properly disable "admin"-elements
+   * This code can't be moved to the controller, because it should work only if user is in the configs page (this view exists)
+   */
+  simulateRefresh: function() {
+    App.router.transitionTo('main.services.service.summary', this.get('controller.content'));
+    App.router.transitionTo('main.services.service.configs', this.get('controller.content'));
+  }.observes('App.router.wizardWatcherController.isWizardRunning'),
 
   willDestroyElement: function() {
     this.get('controller').clearStep();
+  },
+
+  /**
+   * reset selection flag of tabs on entering Configs page
+   */
+  resetConfigTabSelection: function() {
+    App.Tab.find().filterProperty('serviceName', this.get('controller.content.serviceName')).setEach('isActive', false);
   },
 
   /**
@@ -79,7 +97,7 @@ App.MainServiceInfoConfigsView = Em.View.extend({
    */
   rollingRestartActionName : function() {
     var componentName = this.get('rollingRestartSlaveComponentName');
-    return componentName ? Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName)) : '';
+    return componentName ? Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName, false)) : '';
   }.property('rollingRestartSlaveComponentName'),
 
   /**

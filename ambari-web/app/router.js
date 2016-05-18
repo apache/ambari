@@ -55,6 +55,7 @@ App.Router = Em.Router.extend({
   isFwdNavigation: true,
   backBtnForHigherStep: false,
   transitionInProgress: false,
+  nextBtnClickInProgress: false,
 
   /**
    * Path for local login page. This page will be always accessible without
@@ -146,6 +147,8 @@ App.Router = Em.Router.extend({
     return this.getLoginName();
   }.property('loggedIn'),
 
+  displayLoginName: Em.computed.truncate('loginName', 10, 10),
+
   getAuthenticated: function () {
     var dfd = $.Deferred();
     var self = this;
@@ -173,6 +176,8 @@ App.Router = Em.Router.extend({
             },
             success: 'loginSuccessCallback',
             error: 'loginErrorCallback'
+          }).then(function() {
+            dfd.resolve(true);
           });
         } else {
           self.setAuthenticated(false);
@@ -310,24 +315,19 @@ App.Router = Em.Router.extend({
     var self = this;
     App.router.set('loginController.isSubmitDisabled', false);
     App.usersMapper.map({"items": [data]});
-    this.setUserLoggedIn(decodeURIComponent(params.loginName));
+    this.setUserLoggedIn(data.Users.user_name);
     var requestData = {
-      loginName: params.loginName,
+      loginName: data.Users.user_name,
       loginData: data
     };
     App.router.get('clusterController').loadAuthorizations().complete(function() {
-      // no need to load cluster data if it's already loaded
-      if (self.get('clusterData')) {
-        self.loginGetClustersSuccessCallback(self.get('clusterData'), {}, requestData);
-      }
-      else {
-        App.ajax.send({
-          name: 'router.login.clusters',
-          sender: self,
-          data: requestData,
-          success: 'loginGetClustersSuccessCallback'
-        });
-      }
+      App.ajax.send({
+        name: 'router.login.message',
+        sender: self,
+        data: requestData,
+        success: 'showLoginMessageSuccessCallback',
+        error: 'showLoginMessageErrorCallback'
+      });
     });
   },
 
@@ -349,6 +349,95 @@ App.Router = Em.Router.extend({
     }
 
   },
+
+  /**
+   * success callback of router.login.message
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   */
+  showLoginMessageSuccessCallback: function (data, opt, params) {
+    try {
+      var response = JSON.parse(data.Settings.content.replace(/\n/g, "\\n"))
+    } catch (e) {
+      this.setClusterData(data, opt, params);
+      return false;
+    }
+
+    var
+      text = response.text ? response.text.replace(/(\r\n|\n|\r)/gm, '<br>') : "",
+      buttonText = response.button ? response.button : Em.I18n.t('ok'),
+      status = response.status && response.status == "true" ? true : false,
+      self = this;
+
+    if(text && status){
+      return App.ModalPopup.show({
+        classNames: ['sixty-percent-width-modal'],
+        header: Em.I18n.t('login.message.title'),
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile(text)
+        }),
+        primary:null,
+        secondary: null,
+        footerClass: Ember.View.extend({
+          template: Ember.Handlebars.compile(
+            '<div class="modal-footer">' +
+            '<button class="btn btn-success" {{action onPrimary target="view"}}>' + buttonText + '</button>'+
+            '</div>'
+          ),
+          onPrimary: function() {
+            this.get('parentView').onPrimary();
+          }
+        }),
+
+        onPrimary: function () {
+          self.setClusterData(data, opt, params);
+          this.hide();
+        },
+        onClose: function () {
+          self.setClusterData(data, opt, params);
+          this.hide();
+        }
+      });
+    }else{
+      this.setClusterData(data, opt, params);
+      return false;
+    }
+  },
+
+  /**
+   * error callback of router.login.message
+   * @param {object} request
+   * @param {string} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @param {object} params
+   */
+  showLoginMessageErrorCallback: function (request, ajaxOptions, error, opt, params) {
+    this.showLoginMessageSuccessCallback(null, opt, params);
+  },
+
+  setClusterData: function (data, opt, params) {
+    var
+      self = this,
+      requestData = {
+        loginName: params.loginName,
+        loginData: params.loginData
+      };
+    // no need to load cluster data if it's already loaded
+    if (this.get('clusterData')) {
+      this.loginGetClustersSuccessCallback(self.get('clusterData'), {}, requestData);
+    }
+    else {
+      App.ajax.send({
+        name: 'router.login.clusters',
+        sender: self,
+        data: requestData,
+        success: 'loginGetClustersSuccessCallback'
+      });
+    }
+  },
+
 
   /**
    * success callback of login request
@@ -373,19 +462,20 @@ App.Router = Em.Router.extend({
       if (clusterPermissions.contains('CLUSTER.ADMINISTRATOR')) {
         App.setProperties({
           isAdmin: true,
-          isOperator: true
+          isOperator: true,
+          isClusterUser: false
         });
       }
-      if (isAdmin || clusterPermissions.contains('CLUSTER.USER') || clusterPermissions.contains('CLUSTER.ADMINISTRATOR')) {
-        router.transitionToApp();
-      } else {
+      if (App.get('isOnlyViewUser')) {
         router.transitionToViews();
+      } else {
+        router.transitionToApp();
       }
     } else {
-      if (isAdmin) {
-        router.transitionToAdminView();
-      } else {
+      if (App.get('isOnlyViewUser')) {
         router.transitionToViews();
+      } else {
+        router.transitionToAdminView();
       }
     }
     App.set('isPermissionDataLoaded', true);
@@ -494,6 +584,7 @@ App.Router = Em.Router.extend({
       isAdmin: false,
       auth: null,
       isOperator: false,
+      isClusterUser: false,
       isPermissionDataLoaded: false
     });
     this.set('loggedIn', false);
@@ -587,6 +678,9 @@ App.Router = Em.Router.extend({
         }
         if (user.operator) {
           App.set('isOperator', true);
+        }
+        if (user.cluster_user) {
+          App.set('isClusterUser', true);
         }
         App.set('isPermissionDataLoaded', true);
       }
@@ -687,6 +781,9 @@ App.Router = Em.Router.extend({
        *  If the user is already logged in, redirect to where the user was previously
        */
       enter: function (router, context) {
+        if ($.mocho) {
+          return;
+        }
         var location = router.location.location.hash;
         router.getAuthenticated().done(function (loggedIn) {
           if (loggedIn) {

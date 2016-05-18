@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.state;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -34,12 +36,16 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,7 +96,7 @@ public class ServiceComponentTest {
     Assert.assertNotNull(cluster);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
 
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
@@ -148,14 +154,8 @@ public class ServiceComponentTest {
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO =
         injector.getInstance(ServiceComponentDesiredStateDAO.class);
 
-    ServiceComponentDesiredStateEntityPK primaryKey =
-        new ServiceComponentDesiredStateEntityPK();
-    primaryKey.setClusterId(cluster.getClusterId());
-    primaryKey.setComponentName(componentName);
-    primaryKey.setServiceName(serviceName);
-
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity =
-        serviceComponentDesiredStateDAO.findByPK(primaryKey);
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
 
     ServiceComponent sc1 = serviceComponentFactory.createExisting(service,
         serviceComponentDesiredStateEntity);
@@ -341,20 +341,223 @@ public class ServiceComponentTest {
   }
 
   @Test
-  public void testCanBeRemoved() throws Exception{
+  public void testCanBeRemoved() throws Exception {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
-        componentName);
+                                                                   componentName);
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
+    component.addServiceComponentHost(sch);
 
     for (State state : State.values()) {
       component.setDesiredState(state);
 
-      if (state.isRemovableState()) {
-        org.junit.Assert.assertTrue(component.canBeRemoved());
-      }
-      else {
-        org.junit.Assert.assertFalse(component.canBeRemoved());
+      for (State hcState : State.values()) {
+        sch.setDesiredState(hcState);
+        sch.setState(hcState);
+
+        if (hcState.isRemovableState()) {
+          org.junit.Assert.assertTrue(component.canBeRemoved());
+        } else {
+          org.junit.Assert.assertFalse(component.canBeRemoved());
+        }
       }
     }
+  }
+
+  @Test
+  public void testHistoryCreation() throws AmbariException {
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
+        ServiceComponentDesiredStateDAO.class);
+
+    String componentName = "NAMENODE";
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    service.addServiceComponent(component);
+    component.persist();
+
+    ServiceComponent sc = service.getServiceComponent(componentName);
+    Assert.assertNotNull(sc);
+
+    sc.setDesiredState(State.INSTALLED);
+    Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
+
+    sc.setDesiredStackVersion(new StackId("HDP-2.2.0"));
+    StackId stackId = sc.getDesiredStackVersion();
+    Assert.assertEquals(new StackId("HDP", "2.2.0"), stackId);
+
+    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
+
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertNotNull(serviceComponentDesiredStateEntity);
+
+    UpgradeEntity upgradeEntity = createUpgradeEntity("2.2.0.0", "2.2.0.1");
+    ServiceComponentHistoryEntity history = new ServiceComponentHistoryEntity();
+    history.setFromStack(serviceComponentDesiredStateEntity.getDesiredStack());
+    history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
+    history.setUpgrade(upgradeEntity);
+    history.setServiceComponentDesiredState(serviceComponentDesiredStateEntity);
+    history = serviceComponentDesiredStateDAO.merge(history);
+
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertEquals(history, serviceComponentDesiredStateEntity.getHistory().iterator().next());
+  }
+
+
+  @Test
+  public void testServiceComponentRemove() throws AmbariException {
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
+        ServiceComponentDesiredStateDAO.class);
+
+    String componentName = "NAMENODE";
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    service.addServiceComponent(component);
+    component.persist();
+
+    ServiceComponent sc = service.getServiceComponent(componentName);
+    Assert.assertNotNull(sc);
+
+    sc.setDesiredState(State.STARTED);
+    Assert.assertEquals(State.STARTED, sc.getDesiredState());
+
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertNotNull(serviceComponentDesiredStateEntity);
+
+    Assert.assertTrue(sc.getServiceComponentHosts().isEmpty());
+
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    addHostToCluster("h2", service.getCluster().getClusterName());
+
+    HostEntity hostEntity1 = hostDAO.findByName("h1");
+    assertNotNull(hostEntity1);
+
+    ServiceComponentHost sch1 =
+        serviceComponentHostFactory.createNew(sc, "h1");
+    ServiceComponentHost sch2 =
+        serviceComponentHostFactory.createNew(sc, "h2");
+
+    Map<String, ServiceComponentHost> compHosts =
+        new HashMap<String, ServiceComponentHost>();
+    compHosts.put("h1", sch1);
+    compHosts.put("h2", sch2);
+    sc.addServiceComponentHosts(compHosts);
+
+    sch1.setState(State.STARTED);
+    sch2.setState(State.STARTED);
+
+    try {
+      // delete the SC
+      sc.delete();
+      Assert.assertTrue("Delete must fail as some SCH are in STARTED state", false);
+    }catch(AmbariException e) {
+      // expected
+    }
+
+    sch1.setState(State.INSTALLED);
+    sch2.setState(State.INSTALL_FAILED);
+    sc.delete();
+
+    // verify history is gone, too
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertNull(serviceComponentDesiredStateEntity);
+ }
+
+  /**
+   * Tests the CASCADE nature of removing a service component also removes the
+   * history.
+   *
+   * @throws AmbariException
+   */
+  @Test
+  public void testHistoryRemoval() throws AmbariException {
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
+        ServiceComponentDesiredStateDAO.class);
+
+    String componentName = "NAMENODE";
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    service.addServiceComponent(component);
+    component.persist();
+
+    ServiceComponent sc = service.getServiceComponent(componentName);
+    Assert.assertNotNull(sc);
+
+    sc.setDesiredState(State.INSTALLED);
+    Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
+
+    sc.setDesiredStackVersion(new StackId("HDP-2.2.0"));
+    StackId stackId = sc.getDesiredStackVersion();
+    Assert.assertEquals(new StackId("HDP", "2.2.0"), stackId);
+
+    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
+
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertNotNull(serviceComponentDesiredStateEntity);
+
+    UpgradeEntity upgradeEntity = createUpgradeEntity("2.2.0.0", "2.2.0.1");
+    ServiceComponentHistoryEntity history = new ServiceComponentHistoryEntity();
+    history.setFromStack(serviceComponentDesiredStateEntity.getDesiredStack());
+    history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
+    history.setUpgrade(upgradeEntity);
+    history.setServiceComponentDesiredState(serviceComponentDesiredStateEntity);
+    history = serviceComponentDesiredStateDAO.merge(history);
+
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertEquals(history, serviceComponentDesiredStateEntity.getHistory().iterator().next());
+
+    // verify that we can retrieve the history directly
+    List<ServiceComponentHistoryEntity> componentHistoryList = serviceComponentDesiredStateDAO.findHistory(
+        sc.getClusterId(), sc.getServiceName(), sc.getName());
+
+    assertEquals(1, componentHistoryList.size());
+
+    // delete the SC
+    sc.delete();
+
+    // verify history is gone, too
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        cluster.getClusterId(), serviceName, componentName);
+
+    Assert.assertNull(serviceComponentDesiredStateEntity);
+
+    // verify that we cannot retrieve the history directly
+    componentHistoryList = serviceComponentDesiredStateDAO.findHistory(sc.getClusterId(),
+        sc.getServiceName(), sc.getName());
+
+    assertEquals(0, componentHistoryList.size());
+  }
+
+  /**
+   * Creates an upgrade entity, asserting it was created correctly.
+   *
+   * @param fromVersion
+   * @param toVersion
+   * @return
+   */
+  private UpgradeEntity createUpgradeEntity(String fromVersion, String toVersion) {
+    UpgradeDAO upgradeDao = injector.getInstance(UpgradeDAO.class);
+    UpgradeEntity upgradeEntity = new UpgradeEntity();
+    upgradeEntity.setClusterId(cluster.getClusterId());
+    upgradeEntity.setDirection(Direction.UPGRADE);
+    upgradeEntity.setFromVersion(fromVersion);
+    upgradeEntity.setToVersion(toVersion);
+    upgradeEntity.setUpgradePackage("upgrade_test");
+    upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
+    upgradeEntity.setRequestId(1L);
+
+    upgradeDao.create(upgradeEntity);
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+    return upgradeEntity;
   }
 }

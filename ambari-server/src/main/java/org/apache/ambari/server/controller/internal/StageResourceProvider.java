@@ -44,13 +44,20 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.SecretReference;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+
+import com.google.common.collect.Sets;
 
 /**
  * ResourceProvider for Stage
@@ -90,6 +97,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   public static final String STAGE_SKIPPABLE = "Stage/skippable";
   public static final String STAGE_PROGRESS_PERCENT = "Stage/progress_percent";
   public static final String STAGE_STATUS = "Stage/status";
+  public static final String STAGE_DISPLAY_STATUS = "Stage/display_status";
   public static final String STAGE_START_TIME = "Stage/start_time";
   public static final String STAGE_END_TIME = "Stage/end_time";
 
@@ -117,6 +125,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     PROPERTY_IDS.add(STAGE_SKIPPABLE);
     PROPERTY_IDS.add(STAGE_PROGRESS_PERCENT);
     PROPERTY_IDS.add(STAGE_STATUS);
+    PROPERTY_IDS.add(STAGE_DISPLAY_STATUS);
     PROPERTY_IDS.add(STAGE_START_TIME);
     PROPERTY_IDS.add(STAGE_END_TIME);
 
@@ -125,6 +134,11 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster, STAGE_CLUSTER_NAME);
     KEY_PROPERTY_IDS.put(Resource.Type.Request, STAGE_REQUEST_ID);
   }
+
+  /**
+   * These fields may contain password in them, so have to mask with.
+   */
+  static final Set<String> PROPERTIES_TO_MASK_PASSWORD_IN = Sets.newHashSet(STAGE_COMMAND_PARAMS, STAGE_HOST_PARAMS);
 
   // ----- Constructors ------------------------------------------------------
 
@@ -181,7 +195,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException();
@@ -207,11 +221,31 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
     cache.clear();
 
-    Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
-    for (StageEntity entity : topologyManagerStages) {
-      Resource stageResource = toResource(entity, propertyIds);
-      if (predicate.evaluate(stageResource)) {
-        results.add(stageResource);
+    // !!! check the id passed to see if it's a LogicalRequest.  This safeguards against
+    // iterating all stages for all requests.  That is a problem when the request
+    // is for an Upgrade, but was pulling the data anyway.
+    Map<String, Object> map = PredicateHelper.getProperties(predicate);
+
+    if (map.containsKey(STAGE_REQUEST_ID)) {
+      Long requestId = NumberUtils.toLong(map.get(STAGE_REQUEST_ID).toString());
+      LogicalRequest lr = topologyManager.getRequest(requestId);
+
+      if (null != lr) {
+        Collection<StageEntity> topologyManagerStages = lr.getStageEntities();
+        for (StageEntity entity : topologyManagerStages) {
+          Resource stageResource = toResource(entity, propertyIds);
+          if (predicate.evaluate(stageResource)) {
+            results.add(stageResource);
+          }
+        }
+      }
+    } else {
+      Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
+      for (StageEntity entity : topologyManagerStages) {
+        Resource stageResource = toResource(entity, propertyIds);
+        if (predicate.evaluate(stageResource)) {
+          results.add(stageResource);
+        }
       }
     }
 
@@ -274,12 +308,20 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
     // this property is lazy loaded in JPA; don't use it unless requested
     if (isPropertyRequested(STAGE_COMMAND_PARAMS, requestedIds)) {
-      resource.setProperty(STAGE_COMMAND_PARAMS, entity.getCommandParamsStage());
+      String value = entity.getCommandParamsStage();
+      if (!StringUtils.isBlank(value)) {
+        value = SecretReference.maskPasswordInPropertyMap(value);
+      }
+      resource.setProperty(STAGE_COMMAND_PARAMS, value);
     }
 
     // this property is lazy loaded in JPA; don't use it unless requested
     if (isPropertyRequested(STAGE_HOST_PARAMS, requestedIds)) {
-      resource.setProperty(STAGE_HOST_PARAMS, entity.getHostParamsStage());
+      String value = entity.getHostParamsStage();
+      if (!StringUtils.isBlank(value)) {
+        value = SecretReference.maskPasswordInPropertyMap(value);
+      }
+      resource.setProperty(STAGE_HOST_PARAMS, value);
     }
 
     setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);
@@ -303,7 +345,8 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     }
 
     setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
-    setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
+    setResourceProperty(resource, STAGE_STATUS, status.getStatus(), requestedIds);
+    setResourceProperty(resource, STAGE_DISPLAY_STATUS, status.getDisplayStatus(), requestedIds);
 
     return resource;
   }
@@ -370,7 +413,8 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
 
     setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
-    setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
+    setResourceProperty(resource, STAGE_STATUS, status.getStatus(), requestedIds);
+    setResourceProperty(resource, STAGE_DISPLAY_STATUS, status.getDisplayStatus(), requestedIds);
 
     return resource;
   }

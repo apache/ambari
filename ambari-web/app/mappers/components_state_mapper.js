@@ -28,6 +28,7 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     service_id: 'ServiceComponentInfo.service_name',
     stack_info_id: 'ServiceComponentInfo.component_name',
     component_name: 'ServiceComponentInfo.component_name',
+    display_name: 'ServiceComponentInfo.display_name',
     service_name: 'ServiceComponentInfo.service_name',
     installed_count: 'ServiceComponentInfo.installed_count',
     started_count: 'ServiceComponentInfo.started_count',
@@ -59,6 +60,16 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       node_managers_installed: 'INSTALLED_PATH',
       node_managers_total: 'TOTAL_PATH'
     },
+    'HAWQSEGMENT': {
+      hawq_segments_started: 'STARTED_PATH',
+      hawq_segments_installed: 'INSTALLED_PATH',
+      hawq_segments_total: 'TOTAL_PATH'
+    },
+    'PXF': {
+      pxfs_started: 'STARTED_PATH',
+      pxfs_installed: 'INSTALLED_PATH',
+      pxfs_total: 'TOTAL_PATH'
+    },
     'HBASE_REGIONSERVER': {
       region_servers_started: 'STARTED_PATH',
       region_servers_installed: 'INSTALLED_PATH',
@@ -78,6 +89,11 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       super_visors_started: 'STARTED_PATH',
       super_visors_installed: 'INSTALLED_PATH',
       super_visors_total: 'TOTAL_PATH'
+    },
+    'RANGER_TAGSYNC': {
+      ranger_tagsyncs_started: 'STARTED_PATH',
+      ranger_tagsyncs_installed: 'INSTALLED_PATH',
+      ranger_tagsyncs_total: 'TOTAL_PATH'
     },
     'MAPREDUCE2_CLIENT': {
       map_reduce2_clients: 'INSTALLED_PATH'

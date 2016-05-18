@@ -130,7 +130,7 @@ public class BlueprintFactoryTest {
     HostGroup group1 = hostGroups.get("group1");
     assertEquals("group1", group1.getName());
     assertEquals("1", group1.getCardinality());
-    Collection<String> components = group1.getComponents();
+    Collection<String> components = group1.getComponentNames();
     assertEquals(2, components.size());
     assertTrue(components.contains("component1"));
     assertTrue(components.contains("component2"));
@@ -147,7 +147,7 @@ public class BlueprintFactoryTest {
     HostGroup group2 = hostGroups.get("group2");
     assertEquals("group2", group2.getName());
     assertEquals("2", group2.getCardinality());
-    components = group2.getComponents();
+    components = group2.getComponentNames();
     assertEquals(1, components.size());
     assertTrue(components.contains("component1"));
     services = group2.getServices();

@@ -36,11 +36,18 @@ public interface ViewContext {
   public static final String CONTEXT_ATTRIBUTE = "ambari-view-context";
 
   /**
-   * Get the current user name.
+   * Get the current user name after auth_to_local conversion
    *
    * @return the current user name
    */
   public String getUsername();
+
+  /**
+   * Get the current ambari user.
+   *
+   * @return the current user name
+   */
+  public String getLoggedinUser();
 
   /**
    * Determine whether or not the access specified by the given permission name
@@ -163,6 +170,14 @@ public interface ViewContext {
    * @return an Ambari stream provider
    */
   public AmbariStreamProvider getAmbariStreamProvider();
+
+  /**
+   * Get Ambari stream provider attached as cluster to the view
+   * If view is not attached to ambari managed cluster then it will be null
+   *
+   * @return stream provider for the cluster
+   */
+  public AmbariStreamProvider getAmbariClusterStreamProvider();
 
   /**
    * Get a data store for view persistence entities.

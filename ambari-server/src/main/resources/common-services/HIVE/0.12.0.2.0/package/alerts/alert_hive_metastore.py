@@ -24,11 +24,13 @@ import time
 import traceback
 import logging
 
+from resource_management.core import global_lock
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 
 OK_MESSAGE = "Metastore OK - Hive command took {0:.3f}s"
 CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
@@ -53,14 +55,18 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
-HIVE_CONF_DIR = '/usr/hdp/current/hive-metastore/conf/conf.server'
+STACK_ROOT = '{{cluster-env/stack_root}}'
+
 HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
 
-HIVE_BIN_DIR = '/usr/hdp/current/hive-metastore/bin'
 HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
+
+CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
+CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
 
 HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
 HADOOPUSER_DEFAULT = 'hadoop'
+
 logger = logging.getLogger('ambari_alerts')
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -70,7 +76,8 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,
-    HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
+    HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+    STACK_ROOT)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_tokens():
@@ -102,6 +109,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
     security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+
+  check_command_timeout = CHECK_COMMAND_TIMEOUT_DEFAULT
+  if CHECK_COMMAND_TIMEOUT_KEY in parameters:
+    check_command_timeout = float(parameters[CHECK_COMMAND_TIMEOUT_KEY])
 
   # defaults
   smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
@@ -138,13 +149,19 @@ def execute(configurations={}, parameters={}, host_name=None):
         kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
       else:
         kerberos_executable_search_paths = None
-             
+
       kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
       kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
 
-      Execute(kinitcmd, user=smokeuser,
-        path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-        timeout=10)
+      # prevent concurrent kinit
+      kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
+      kinit_lock.acquire()
+      try:
+        Execute(kinitcmd, user=smokeuser,
+          path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+          timeout=10)
+      finally:
+        kinit_lock.release()
 
     if host_name is None:
       host_name = socket.getfqdn()
@@ -156,9 +173,14 @@ def execute(configurations={}, parameters={}, host_name=None):
     conf_dir = HIVE_CONF_DIR_LEGACY
     bin_dir = HIVE_BIN_DIR_LEGACY
 
-    if os.path.exists(HIVE_CONF_DIR):
-      conf_dir = HIVE_CONF_DIR
-      bin_dir = HIVE_BIN_DIR
+
+    if STACK_ROOT in configurations:
+      hive_conf_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/conf/conf.server")
+      hive_bin_dir = configurations[STACK_ROOT] + format("/current/hive-metastore/bin")
+
+      if os.path.exists(hive_conf_dir):
+        conf_dir = hive_conf_dir
+        bin_dir = hive_bin_dir
 
     cmd = format("export HIVE_CONF_DIR='{conf_dir}' ; "
                  "hive --hiveconf hive.metastore.uris={metastore_uri}\
@@ -173,7 +195,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     try:
       Execute(cmd, user=smokeuser,
         path=["/bin/", "/usr/bin/", "/usr/sbin/", bin_dir],
-        timeout=30 )
+        timeout=int(check_command_timeout) )
 
       total_time = time.time() - start_time
 

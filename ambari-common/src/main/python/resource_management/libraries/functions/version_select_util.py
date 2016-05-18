@@ -25,6 +25,8 @@ import tempfile
 
 from resource_management.core.logger import Logger
 from resource_management.core import shell
+from resource_management.libraries.functions import stack_tools
+import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 
 def get_component_version(stack_name, component_name):
@@ -44,43 +46,41 @@ def get_component_version(stack_name, component_name):
 
   out = None
   code = -1
-  if stack_name == "HDP":
-    tmpfile = tempfile.NamedTemporaryFile()
-
-    get_hdp_comp_version_cmd = ""
-    try:
-      # This is necessary because Ubuntu returns "stdin: is not a tty", see AMBARI-8088
-      with open(tmpfile.name, 'r') as file:
-        get_hdp_comp_version_cmd = '/usr/bin/hdp-select status %s > %s' % (component_name, tmpfile.name)
-        code, stdoutdata = shell.call(get_hdp_comp_version_cmd)
-        out = file.read()
-
-      if code != 0 or out is None:
-        raise Exception("Code is nonzero or output is empty")
-
-      Logger.debug("Command: %s\nOutput: %s" % (get_hdp_comp_version_cmd, str(out)))
-      matches = re.findall(r"([\d\.]+\-\d+)", out)
-      version = matches[0] if matches and len(matches) > 0 else None
-    except Exception, e:
-      Logger.error("Could not determine HDP version for component %s by calling '%s'. Return Code: %s, Output: %s." %
-                   (component_name, get_hdp_comp_version_cmd, str(code), str(out)))
-  elif stack_name == "HDPWIN":
-    pass
-  elif stack_name == "GlusterFS":
-    pass
-  elif stack_name == "PHD":
-    pass
-  elif stack_name == "BIGTOP":
-    pass
+  if not stack_name:
+    Logger.error("Stack name not provided")
+  elif not component_name:
+    Logger.error("Component name not provided")
   else:
-    Logger.error("Could not find a stack for stack name: %s" % str(stack_name))
+    (stack_selector_name, stack_selector_path, stack_selector_package) = stack_tools.get_stack_tool(stack_tools.STACK_SELECTOR_NAME)
+    if stack_selector_name and stack_selector_path and os.path.exists(stack_selector_path):
+      tmpfile = tempfile.NamedTemporaryFile()
+
+      get_stack_comp_version_cmd = ""
+      try:
+        # This is necessary because Ubuntu returns "stdin: is not a tty", see AMBARI-8088
+        with open(tmpfile.name, 'r') as file:
+          get_stack_comp_version_cmd = '%s status %s > %s' % (stack_selector_path, component_name, tmpfile.name)
+          code, stdoutdata = shell.call(get_stack_comp_version_cmd, quiet=True)
+          out = file.read()
+
+        if code != 0 or out is None:
+          raise Exception("Code is nonzero or output is empty")
+
+        Logger.debug("Command: %s\nOutput: %s" % (get_stack_comp_version_cmd, str(out)))
+        matches = re.findall(r"([\d\.]+\-\d+)", out)
+        version = matches[0] if matches and len(matches) > 0 else None
+      except Exception, e:
+        Logger.error("Could not determine stack version for component %s by calling '%s'. Return Code: %s, Output: %s." %
+                     (component_name, get_stack_comp_version_cmd, str(code), str(out)))
+    else:
+      Logger.error("Could not find stack selector for stack: %s" % str(stack_name))
 
   return version
 
 
 def get_versions_from_stack_root(stack_root):
   """
-  Given a stack install root (/usr/hdp), returns a list of stack versions currently installed.
+  Given a stack install root, returns a list of stack versions currently installed.
   The list of installed stack versions is determined purely based on the stack version directories
   found in the stack install root.
   Because each stack name may have different logic, the input is a generic dictionary.

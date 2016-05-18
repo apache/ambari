@@ -17,16 +17,17 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 /**
  * Configuration class that reads properties from ams-site.xml. All values
@@ -39,6 +40,7 @@ public class TimelineMetricConfiguration {
 
   public static final String HBASE_SITE_CONFIGURATION_FILE = "hbase-site.xml";
   public static final String METRICS_SITE_CONFIGURATION_FILE = "ams-site.xml";
+  public static final String METRICS_ENV_CONFIGURATION_FILE = "ams-env.xml";
 
   public static final String TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR =
     "timeline.metrics.aggregator.checkpoint.dir";
@@ -51,6 +53,9 @@ public class TimelineMetricConfiguration {
 
   public static final String HBASE_COMPRESSION_SCHEME =
     "timeline.metrics.hbase.compression.scheme";
+
+  public static final String CONTAINER_METRICS_TTL =
+    "timeline.container-metrics.ttl";
 
   public static final String PRECISION_TABLE_TTL =
     "timeline.metrics.host.aggregator.ttl";
@@ -181,6 +186,9 @@ public class TimelineMetricConfiguration {
   public static final String HANDLER_THREAD_COUNT =
     "timeline.metrics.service.handler.thread.count";
 
+  public static final String WATCHER_DISABLED =
+    "timeline.metrics.service.watcher.disabled";
+
   public static final String WATCHER_INITIAL_DELAY =
     "timeline.metrics.service.watcher.initial.delay";
 
@@ -199,10 +207,43 @@ public class TimelineMetricConfiguration {
   public static final String AGGREGATE_TABLE_SPLIT_POINTS =
     "timeline.metrics.cluster.aggregate.splitpoints";
 
+  public static final String AGGREGATORS_SKIP_BLOCK_CACHE =
+    "timeline.metrics.aggregators.skip.blockcache.enabled";
+
+  public static final String TIMELINE_SERVICE_HTTP_POLICY =
+    "timeline.metrics.service.http.policy";
+
+  public static final String DISABLE_METRIC_METADATA_MGMT =
+    "timeline.metrics.service.metadata.management.disabled";
+
+  public static final String METRICS_METADATA_SYNC_INIT_DELAY =
+    "timeline.metrics.service.metadata.sync.init.delay";
+
+  public static final String METRICS_METADATA_SYNC_SCHEDULE_DELAY =
+    "timeline.metrics.service.metadata.sync.delay";
+
+  public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED =
+    "timeline.metrics.cluster.aggregator.interpolation.enabled";
+
+  public static final String TIMELINE_METRICS_TABLES_DURABILITY =
+    "timeline.metrics.tables.durability";
+
+  public static final String TIMELINE_METRIC_METADATA_FILTERS =
+    "timeline.metrics.service.metadata.filters";
+
+  public static final String HBASE_BLOCKING_STORE_FILES =
+    "hbase.hstore.blockingStoreFiles";
+
+  public static final String DEFAULT_TOPN_HOSTS_LIMIT =
+    "timeline.metrics.default.topn.hosts.limit";
+
   public static final String HOST_APP_ID = "HOST";
+
+  public static final String DEFAULT_INSTANCE_PORT = "12001";
 
   private Configuration hbaseConf;
   private Configuration metricsConf;
+  private Configuration amsEnvConf;
   private volatile boolean isInitialized = false;
 
   public void initialize() throws URISyntaxException, MalformedURLException {
@@ -229,6 +270,7 @@ public class TimelineMetricConfiguration {
     hbaseConf.addResource(hbaseResUrl.toURI().toURL());
     metricsConf = new Configuration(true);
     metricsConf.addResource(amsResUrl.toURI().toURL());
+
     isInitialized = true;
   }
 
@@ -246,8 +288,39 @@ public class TimelineMetricConfiguration {
     return metricsConf;
   }
 
+  public String getZKClientPort() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return hbaseConf.getTrimmed("hbase.zookeeper.property.clientPort", "2181");
+  }
+
+  public String getZKQuorum() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return hbaseConf.getTrimmed("hbase.zookeeper.quorum");
+  }
+
+  public String getInstanceHostnameFromEnv() throws UnknownHostException {
+    String amsInstanceName = System.getProperty("AMS_INSTANCE_NAME");
+    if (amsInstanceName == null) {
+      amsInstanceName = InetAddress.getLocalHost().getHostName();
+    }
+    return amsInstanceName;
+  }
+
+  public String getInstancePort() throws MalformedURLException, URISyntaxException {
+    String amsInstancePort = System.getProperty("AMS_INSTANCE_PORT");
+    if (amsInstancePort == null) {
+      // Check config
+      return getMetricsConf().get("timeline.metrics.availability.instance.port", DEFAULT_INSTANCE_PORT);
+    }
+    return DEFAULT_INSTANCE_PORT;
+  }
+
   public String getWebappAddress() {
-    String defaultHttpAddress = "0.0.0.0:8188";
+    String defaultHttpAddress = "0.0.0.0:6188";
     if (metricsConf != null) {
       return metricsConf.get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
     }
@@ -261,11 +334,18 @@ public class TimelineMetricConfiguration {
     return 20;
   }
 
+  public boolean isTimelineMetricsServiceWatcherDisabled() {
+    if (metricsConf != null) {
+      return Boolean.parseBoolean(metricsConf.get(WATCHER_DISABLED, "false"));
+    }
+    return false;
+  }
+
   public int getTimelineMetricsServiceWatcherInitDelay() {
     if (metricsConf != null) {
-      return Integer.parseInt(metricsConf.get(WATCHER_INITIAL_DELAY, "120"));
+      return Integer.parseInt(metricsConf.get(WATCHER_INITIAL_DELAY, "600"));
     }
-    return 120;
+    return 600;
   }
 
   public int getTimelineMetricsServiceWatcherDelay() {
@@ -295,5 +375,13 @@ public class TimelineMetricConfiguration {
       return metricsConf.get(TIMELINE_SERVICE_RPC_ADDRESS, defaultRpcAddress);
     }
     return defaultRpcAddress;
+  }
+
+  public boolean isDistributedOperationModeEnabled() {
+    try {
+      return getMetricsConf().get("timeline.metrics.service.operation.mode").equals("distributed");
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

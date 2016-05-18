@@ -211,6 +211,8 @@ class Options(Const):
   ZK_OPTIONS = "zoo.cfg"
   KAFKA_BROKER_CONF = "kafka-broker"
   RANGER_ADMIN = "admin-properties"
+  RANGER_USERSYNC = "usersync-properties"
+  RANGER_ENV = "ranger-env"
   KAFKA_PORT = "port"
   RANGER_EXTERNAL_URL = "policymgr_external_url"
   ZK_CLIENTPORT = "clientPort"
@@ -1514,6 +1516,28 @@ def get_hdfs_batch_filespool_dir(config_name, component):
   return path
 
 
+def get_usersync_sync_source():
+  ug_sync_source = 'org.apache.ranger.unixusersync.process.UnixUserGroupBuilder'
+  sync_source = 'unix'
+  if Options.server_config_factory is not None and Options.RANGER_USERSYNC in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.RANGER_USERSYNC)
+    if "SYNC_SOURCE" in props.properties:
+      sync_source = props.properties['SYNC_SOURCE']
+
+    if sync_source == 'ldap':
+      ug_sync_source = 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder'
+  return ug_sync_source
+
+def get_audit_check(audit_type):
+  audit_check_flag = "false"
+  if Options.server_config_factory is not None and Options.RANGER_ENV in Options.server_config_factory.items():
+    props = Options.server_config_factory.get_config(Options.RANGER_ENV)
+    audit_property = "xasecure.audit.destination.{0}".format(audit_type)
+    if audit_property in props.properties:
+      audit_check_flag = props.properties[audit_property]
+
+  return audit_check_flag
+
 def get_jt_host(catalog):
   """
   :type catalog: UpgradeCatalog
@@ -1554,11 +1578,13 @@ def get_ranger_service_details():
     data['RANGER_JDBC_DIALECT'] = 'org.eclipse.persistence.platform.database.MySQLPlatform'
     data['RANGER_JDBC_URL'] = 'jdbc:mysql://{0}/{1}'.format(properties_latest['db_host'], properties_latest['db_name'])
     data['RANGER_AUDIT_JDBC_URL'] = 'jdbc:mysql://{0}/{1}'.format(properties_latest['db_host'], properties_latest['audit_db_name'])
+    data['RANGER_ROOT_JDBC_URL'] = 'jdbc:mysql://{0}'.format(properties_latest['db_host'])
   elif properties_latest['DB_FLAVOR'].lower() == 'oracle':
     data['RANGER_JDBC_DRIVER'] = 'oracle.jdbc.OracleDriver'
     data['RANGER_JDBC_DIALECT'] = 'org.eclipse.persistence.platform.database.OraclePlatform'
     data['RANGER_JDBC_URL'] = 'jdbc:oracle:thin:@//{0}'.format(properties_latest['db_host'])
     data['RANGER_AUDIT_JDBC_URL'] = 'jdbc:oracle:thin:@//{0}'.format(properties_latest['db_host'])
+    data['RANGER_ROOT_JDBC_URL'] = 'jdbc:oracle:thin:@//{0}'.format(properties_latest['db_host'])
 
   return data
 
@@ -1762,8 +1788,6 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_audit_jdbc_url())
     elif token == "{STORM_AUDIT_JDBC_URL}":
       value = value.replace(token, get_audit_jdbc_url())
-    elif token == "{AUDIT_DB_PASSWD}":
-      value = value.replace(token, get_audit_db_passwd())
     elif token == "{AUDIT_TO_DB_HDFS}":
       value = value.replace(token, get_audit_to_db_enabled("ranger-hdfs-plugin-properties"))
     elif token == "{AUDIT_TO_DB_HBASE}":
@@ -1794,6 +1818,14 @@ def _substitute_handler(upgrade_catalog, tokens, value):
       value = value.replace(token, get_hdfs_batch_filespool_dir("ranger-knox-plugin-properties", "knox"))
     elif token == "{AUDIT_HDFS_FILESPOOL_DIR_STORM}":
       value = value.replace(token, get_hdfs_batch_filespool_dir("ranger-storm-plugin-properties", "storm"))
+    elif token == "{USERSYNC_SYNC_SOURCE}":
+      value = value.replace(token, get_usersync_sync_source())
+    elif token == "{AUDIT_TO_DB}":
+      value =  value.replace(token, get_audit_check("db"))
+    elif token == "{AUDIT_TO_HDFS}":
+      value =  value.replace(token, get_audit_check("hdfs"))
+    elif token == "{RANGER_ROOT_JDBC_URL}":
+      value = value.replace(token, get_ranger_service_details()['RANGER_ROOT_JDBC_URL'])
 
   return value
 

@@ -108,7 +108,16 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
 
+
   // ----- ClusterController -------------------------------------------------
+
+  @Override
+  public Predicate getAmendedPredicate(Type type, Predicate predicate) {
+    ExtendedResourceProviderWrapper provider = ensureResourceProviderWrapper(type);
+    ensurePropertyProviders(type);
+
+    return provider.getAmendedPredicate(predicate);
+  }
 
   @Override
   public QueryResponse getResources(Type type, Request request, Predicate predicate)
@@ -313,7 +322,7 @@ public class ClusterControllerImpl implements ClusterController {
   }
 
   @Override
-  public RequestStatus deleteResources(Type type, Predicate predicate)
+  public RequestStatus deleteResources(Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
              SystemException,
              NoSuchResourceException,
@@ -327,7 +336,7 @@ public class ClusterControllerImpl implements ClusterController {
           return null;
         }
       }
-        return provider.deleteResources(predicate);
+      return provider.deleteResources(request, predicate);
     }
     return null;
   }
@@ -937,6 +946,18 @@ public class ClusterControllerImpl implements ClusterController {
     }
 
 
+    /**
+     * @return the amended predicate, or {@code null} to use the provided one
+     */
+    public Predicate getAmendedPredicate(Predicate predicate) {
+      if (ReadOnlyResourceProvider.class.isInstance(resourceProvider)) {
+        return ((ReadOnlyResourceProvider) resourceProvider).amendPredicate(predicate);
+      } else {
+        return null;
+      }
+    }
+
+
     // ----- ExtendedResourceProvider ----------------------------------------
 
     @Override
@@ -970,9 +991,9 @@ public class ClusterControllerImpl implements ClusterController {
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate)
+    public RequestStatus deleteResources(Request request, Predicate predicate)
         throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-      return resourceProvider.deleteResources(predicate);
+      return resourceProvider.deleteResources(request, predicate);
     }
 
     @Override

@@ -43,9 +43,10 @@
 
 .alert-state-single-host {
   display: inline-block;
-  width: 70px;
+  width: 115px;
   text-align: center;
   line-height: 20px;
+  margin-bottom: 4px;
 }
 
 .groups-filter {
@@ -70,7 +71,7 @@
 
   .filter-row {
     th {
-      padding: 0px;
+      padding: 0;
       padding-left: 4px;
     }
   }
@@ -155,24 +156,30 @@
   .col0,
   td:first-child,
   th:first-child {
-    width: 30%;
+    width: 10%;
   }
 
   .col1,
   td:first-child + td,
   th:first-child + th {
-    width: 23%;
+    width: 20%;
   }
 
   .col2,
   td:first-child + td + td,
   th:first-child + th + th {
-    width: 7%
+    width: 23%;
   }
 
   .col3,
   td:first-child + td + td + td,
   th:first-child + th + th + th {
+    width: 7%;
+  }
+
+  .col4,
+  td:first-child + td + td + td + td,
+  th:first-child + th + th + th + th {
     width: 40%;
   }
 
@@ -195,7 +202,7 @@
         margin: 5px;
       }
     }
-    margin-bottom: 0px;
+    margin-bottom: 0;
   }
   .definition-details-block {
     margin-top: 30px;
@@ -247,16 +254,16 @@
   .definition-name {
     .name-text-field{
       margin-left: 2px;
-      margin-bottom: 0px;
+      margin-bottom: 0;
       input {
         width: 99%;
-        margin-bottom: 0px;
+        margin-bottom: 0;
         margin-top: -4px;
         margin-left: -5px;
       }
     }
     .edit-buttons {
-      margin-bottom: 0px;
+      margin-bottom: 0;
       margin-top: -4px;
       float: left;
       margin-left: 7px;
@@ -294,6 +301,10 @@
     width: 170px;
   }
 
+  .stuck-left {
+    margin-left: 0!important;
+  }
+
   .controls.shifted {
     margin-left: 190px;
   }
@@ -328,7 +339,8 @@
 
   .badge-container {
     height: 26px;
-    .alert-threshold-badge {
+    .alert-threshold-badge,
+    .alert-parameter-badge {
       line-height: 26px;
       height: 26px;
     }
@@ -397,7 +409,7 @@
 
 #manage-alert-notification-content {
   .notification-info .global-info .global-checkbox {
-    margin: 0px;
+    margin: 0;
   }
   .input-label {
     font-weight: bold;
@@ -455,7 +467,7 @@
 
 .create-edit-alert-notification-popup {
   .modal {
-    margin-top: 0px;
+    margin-top: 0;
     top: 5%;
     width: 600px;
   }
@@ -466,17 +478,21 @@
     padding: 4px 5px;
     margin: 4px;
     font-size: 14px;
-    cursor: pointer;
   }
-  .alerts-crit-count {
-    background: @health-status-red;
-  }
-  .alerts-warn-count {
-    background: @health-status-orange;
-  }
-  .no-alerts-label {
-    background: @health-status-green;
-  }
+}
+
+.alerts-crit-count, .alerts-warn-count, .no-alerts-label {
+  cursor: pointer;
+}
+
+.alerts-crit-count {
+  background: @health-status-red;
+}
+.alerts-warn-count {
+  background: @health-status-orange;
+}
+.no-alerts-label {
+  background: @health-status-green;
 }
 
 #summary-alerts-popup {
@@ -502,10 +518,10 @@
     height: 250px;
   }
   .btn-toolbar {
-    margin-top: 0px;
+    margin-top: 0;
   }
   .manage-configuration-group-content {
-    margin-bottom: 0px;
+    margin-bottom: 0;
   }
   .notification-editable-list {
     .title {
@@ -566,12 +582,17 @@
 }
 
 .alerts-popup-wrap {
+  .trim_hostname{
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .top-wrap {
     width: 100%;
     border-bottom: 1px solid #CCC;
     text-align: center;
     font-size: 15px;
-    padding: 0px 0px 20px 0px;
+    padding: 0 0 20px 0;
     height: 20px;
     .name-top {
       width: 32%;
@@ -629,7 +650,7 @@
       cursor: pointer;
       border-top: 1px solid #CCC;
       text-align: center;
-      padding: 10px 10px 10px 0px;
+      padding: 10px 10px 10px 0;
       font-size: 16px;
     }
   }

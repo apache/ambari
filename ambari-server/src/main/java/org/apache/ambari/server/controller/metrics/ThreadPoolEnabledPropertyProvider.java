@@ -18,12 +18,18 @@
 
 package org.apache.ambari.server.controller.metrics;
 
+import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
+import org.apache.ambari.server.controller.utilities.BufferedThreadPoolExecutorCompletionService;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,12 +38,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 /**
  * Unites common functionality for multithreaded metrics providers
@@ -51,14 +56,22 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   public static final Set<String> healthyStates = Collections.singleton("STARTED");
   protected final String hostNamePropertyId;
   private final MetricHostProvider metricHostProvider;
+  private final String clusterNamePropertyId;
 
   /**
    * Executor service is shared between all childs of current class
    */
-  private static final ExecutorService EXECUTOR_SERVICE = initExecutorService();
-  private static final int THREAD_POOL_CORE_SIZE = 20;
-  private static final int THREAD_POOL_MAX_SIZE = 100;
+  private static ThreadPoolExecutor EXECUTOR_SERVICE;
+  private static int THREAD_POOL_CORE_SIZE;
+  private static int THREAD_POOL_MAX_SIZE;
   private static final long THREAD_POOL_TIMEOUT_MILLIS = 30000L;
+
+  @Inject
+  public static void init(Configuration configuration) {
+    THREAD_POOL_CORE_SIZE = configuration.getPropertyProvidersThreadPoolCoreSize();
+    THREAD_POOL_MAX_SIZE = configuration.getPropertyProvidersThreadPoolMaxSize();
+    EXECUTOR_SERVICE = initExecutorService();
+  }
 
   private static final long DEFAULT_POPULATE_TIMEOUT_MILLIS = 10000L;
   /**
@@ -69,6 +82,10 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   protected long populateTimeout = DEFAULT_POPULATE_TIMEOUT_MILLIS;
   public static final String TIMED_OUT_MSG = "Timed out waiting for metrics.";
 
+  private static final Cache<String, Throwable> exceptionsCache = CacheBuilder.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .build();
+
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -78,10 +95,12 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
    */
   public ThreadPoolEnabledPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics,
                                            String hostNamePropertyId,
-                                           MetricHostProvider metricHostProvider) {
+                                           MetricHostProvider metricHostProvider,
+                                           String clusterNamePropertyId) {
     super(componentMetrics);
     this.hostNamePropertyId = hostNamePropertyId;
     this.metricHostProvider = metricHostProvider;
+    this.clusterNamePropertyId = clusterNamePropertyId;
   }
 
   // ----- Thread pool -------------------------------------------------------
@@ -89,26 +108,15 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   /**
    * Generates thread pool with default parameters
    */
-
-
-  private static ExecutorService initExecutorService() {
-    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>(); // unlimited Queue
-
+  private static ThreadPoolExecutor initExecutorService() {
     ThreadPoolExecutor threadPoolExecutor =
-        new ThreadPoolExecutor(
+        new ScalingThreadPoolExecutor(
             THREAD_POOL_CORE_SIZE,
             THREAD_POOL_MAX_SIZE,
             THREAD_POOL_TIMEOUT_MILLIS,
-            TimeUnit.MILLISECONDS,
-            queue);
-
+            TimeUnit.MILLISECONDS);
     threadPoolExecutor.allowCoreThreadTimeOut(true);
-
     return threadPoolExecutor;
-  }
-
-  public static ExecutorService getExecutorService() {
-    return EXECUTOR_SERVICE;
   }
 
   // ----- Common PropertyProvider implementation details --------------------
@@ -117,11 +125,14 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
       throws SystemException {
 
+    if(!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
+      return resources;
+    }
     // Get a valid ticket for the request.
     Ticket ticket = new Ticket();
 
     CompletionService<Resource> completionService =
-        new ExecutorCompletionService<Resource>(EXECUTOR_SERVICE);
+        new BufferedThreadPoolExecutorCompletionService<Resource>(EXECUTOR_SERVICE);
 
     // In a large cluster we could have thousands of resources to populate here.
     // Distribute the work across multiple threads.
@@ -214,6 +225,20 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
     return request.getPropertyIds().isEmpty() || propertyId.startsWith(requestedPropertyId);
   }
 
+  protected static String getCacheKeyForException(final Throwable throwable) {
+    if (throwable == null) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder();
+    for (Throwable t : Throwables.getCausalChain(throwable)) {
+      if (t != null) {
+        sb.append(t.getClass().getName());
+      }
+      sb.append('\n');
+    }
+    return sb.toString();
+  }
+
   /**
    * Log an error for the given exception.
    *
@@ -221,10 +246,28 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
    *
    * @return the error message that was logged
    */
-  protected static String logException(Throwable throwable) {
-    String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
+  protected static String logException(final Throwable throwable) {
+    final String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
 
-    LOG.debug(msg, throwable);
+    // JsonParseException includes InputStream's hash code into the message.
+    // getMessage and printStackTrace returns a different String every time.
+    String cacheKey = getCacheKeyForException(throwable);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(msg, throwable);
+    } else {
+      try {
+        exceptionsCache.get(cacheKey, new Callable<Throwable>() {
+          @Override
+          public Throwable call() {
+            LOG.error(msg + ", skipping same exceptions for next 5 minutes", throwable);
+            return throwable;
+          }
+        });
+      } catch (ExecutionException ignored) {
+      }
+    }
+
 
     return msg;
   }

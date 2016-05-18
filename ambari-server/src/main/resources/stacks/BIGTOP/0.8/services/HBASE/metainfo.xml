@@ -53,6 +53,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_master</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <customCommands>
             <customCommand>
               <name>DECOMMISSION</name>
@@ -74,6 +80,12 @@
             <script>scripts/hbase_regionserver.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_regionserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>

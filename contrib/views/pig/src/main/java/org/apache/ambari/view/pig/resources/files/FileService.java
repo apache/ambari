@@ -69,6 +69,8 @@ public class FileService extends BaseService {
                           @QueryParam("page") Long page,
                           @QueryParam("action") String action) throws IOException, InterruptedException {
     try {
+
+      filePath = sanitizeFilePath(filePath);
       if (action != null && action.equals("ls")) {
         LOG.debug("List directory " + filePath);
         List<String> ls = new LinkedList<String>();
@@ -113,6 +115,9 @@ public class FileService extends BaseService {
   @Path("{filePath:.*}")
   public Response deleteFile(@PathParam("filePath") String filePath) throws IOException, InterruptedException {
     try {
+
+      filePath = sanitizeFilePath(filePath);
+
       LOG.debug("Deleting file " + filePath);
       if (getHdfsApi().delete(filePath, false)) {
         return Response.status(204).build();
@@ -134,6 +139,7 @@ public class FileService extends BaseService {
   public Response updateFile(FileResourceRequest request,
                              @PathParam("filePath") String filePath) throws IOException, InterruptedException {
     try {
+      filePath = sanitizeFilePath(filePath);
       LOG.debug("Rewriting file " + filePath);
       FSDataOutputStream output = getHdfsApi().create(filePath, true);
       output.writeBytes(request.file.getFileContent());
@@ -195,5 +201,12 @@ public class FileService extends BaseService {
    */
   public static class FileResourceRequest {
     public FileResource file;
+  }
+
+  private String sanitizeFilePath(String filePath){
+    if (!filePath.startsWith("/") && !filePath.startsWith(".")) {
+      filePath = "/" + filePath;  // some servers strip double slashes in URL
+    }
+    return filePath;
   }
 }

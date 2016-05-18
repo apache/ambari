@@ -25,24 +25,26 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>hbase_2_2_*</name>
+              <name>hbase_${stack_version}</name>
             </package>
             <package>
-              <name>phoenix_2_2_*</name>
+              <name>phoenix_${stack_version}</name>
+              <condition>should_install_phoenix</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>hbase-2-2-.*</name>
+              <name>hbase-${stack_version}</name>
             </package>
             <package>
-              <name>phoenix-2-2-.*</name>
+              <name>phoenix-${stack_version}</name>
+              <condition>should_install_phoenix</condition>
             </package>
           </packages>
         </osSpecific>

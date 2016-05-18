@@ -137,7 +137,7 @@ public class CalculatedStatus {
 
     Map<HostRoleStatus, Integer> taskStatusCounts = CalculatedStatus.calculateTaskEntityStatusCounts(tasks);
 
-    HostRoleStatus status = calculateSummaryStatus(taskStatusCounts, size, skippable);
+    HostRoleStatus status = calculateSummaryStatusOfStage(taskStatusCounts, size, skippable);
 
     double progressPercent = calculateProgressPercent(taskStatusCounts, size);
 
@@ -153,7 +153,6 @@ public class CalculatedStatus {
    * @return a calculated status
    */
   public static CalculatedStatus statusFromStageEntities(Collection<StageEntity> stages) {
-
     Collection<HostRoleStatus> stageStatuses = new HashSet<HostRoleStatus>();
     Collection<HostRoleCommandEntity> tasks = new HashSet<HostRoleCommandEntity>();
 
@@ -163,7 +162,7 @@ public class CalculatedStatus {
 
       // calculate the stage status from the task status counts
       HostRoleStatus stageStatus =
-          calculateSummaryStatus(calculateTaskEntityStatusCounts(stageTasks), stageTasks.size(), stage.isSkippable());
+          calculateSummaryStatusOfStage(calculateTaskEntityStatusCounts(stageTasks), stageTasks.size(), stage.isSkippable());
 
       stageStatuses.add(stageStatus);
 
@@ -172,7 +171,7 @@ public class CalculatedStatus {
     }
 
     // calculate the overall status from the stage statuses
-    HostRoleStatus status = calculateSummaryStatus(calculateStatusCounts(stageStatuses), stageStatuses.size(), false);
+    HostRoleStatus status = calculateSummaryStatusOfUpgrade(calculateStatusCounts(stageStatuses), stageStatuses.size());
 
     // calculate the progress from the task status counts
     double progressPercent = calculateProgressPercent(calculateTaskEntityStatusCounts(tasks), tasks.size());
@@ -199,7 +198,7 @@ public class CalculatedStatus {
 
       // calculate the stage status from the task status counts
       HostRoleStatus stageStatus =
-          calculateSummaryStatus(calculateTaskStatusCounts(stageTasks), stageTasks.size(), stage.isSkippable());
+          calculateSummaryStatusOfStage(calculateTaskStatusCounts(stageTasks), stageTasks.size(), stage.isSkippable());
 
       stageStatuses.add(stageStatus);
 
@@ -208,7 +207,7 @@ public class CalculatedStatus {
     }
 
     // calculate the overall status from the stage statuses
-    HostRoleStatus status = calculateSummaryStatus(calculateStatusCounts(stageStatuses), stageStatuses.size(), false);
+    HostRoleStatus status = calculateSummaryStatusOfUpgrade(calculateStatusCounts(stageStatuses), stageStatuses.size());
 
     // calculate the progress from the task status counts
     double progressPercent = calculateProgressPercent(calculateTaskStatusCounts(tasks), tasks.size());
@@ -292,7 +291,7 @@ public class CalculatedStatus {
   }
 
   /**
-   * Calculates the overall status
+   * Calculates the overall status of an upgrade.
    * @param stageDto  the map of stage-to-summary value objects
    * @param stageIds  the stage ids to consider from the value objects
    * @return the calculated status
@@ -300,10 +299,9 @@ public class CalculatedStatus {
   public static CalculatedStatus statusFromStageSummary(Map<Long, HostRoleCommandStatusSummaryDTO> stageDto,
       Set<Long> stageIds) {
 
-    Collection<HostRoleStatus> stageStatuses = new HashSet<HostRoleStatus>();
-    Collection<HostRoleStatus> taskStatuses = new ArrayList<HostRoleStatus>();
-
-    HostRoleStatus displayStatus = null;
+    Collection<HostRoleStatus> stageStatuses = new HashSet<>();
+    Collection<HostRoleStatus> stageDisplayStatuses = new HashSet<>();
+    Collection<HostRoleStatus> taskStatuses = new ArrayList<>();
 
     for (Long stageId : stageIds) {
       if (!stageDto.containsKey(stageId)) {
@@ -315,17 +313,20 @@ public class CalculatedStatus {
       int total = summary.getTaskTotal();
       boolean skip = summary.isStageSkippable();
       Map<HostRoleStatus, Integer> counts = calculateStatusCounts(summary.getTaskStatuses());
-      displayStatus = calculateDisplayStatus(counts, displayStatus);
-
-      HostRoleStatus stageStatus = calculateSummaryStatus(counts, total, skip);
+      HostRoleStatus stageStatus = calculateSummaryStatusOfStage(counts, total, skip);
+      HostRoleStatus stageDisplayStatus = calculateSummaryDisplayStatus(counts, total, skip);
 
       stageStatuses.add(stageStatus);
-
+      stageDisplayStatuses.add(stageDisplayStatus);
       taskStatuses.addAll(summary.getTaskStatuses());
     }
 
     // calculate the overall status from the stage statuses
-    HostRoleStatus status = calculateSummaryStatus(calculateStatusCounts(stageStatuses), stageStatuses.size(), false);
+    Map<HostRoleStatus, Integer> counts = calculateStatusCounts(stageStatuses);
+    Map<HostRoleStatus, Integer> displayCounts = calculateStatusCounts(stageDisplayStatuses);
+
+    HostRoleStatus status = calculateSummaryStatusOfUpgrade(counts, stageStatuses.size());
+    HostRoleStatus displayStatus = calculateSummaryDisplayStatus(displayCounts, stageDisplayStatuses.size(), false);
 
     double progressPercent = calculateProgressPercent(calculateStatusCounts(taskStatuses), taskStatuses.size());
 
@@ -367,7 +368,59 @@ public class CalculatedStatus {
   }
 
   /**
-   * Calculate an overall status based on the given status counts.
+   * Calculate overall status of a stage or upgrade based on the given status counts.
+   *
+   * @param counters   counts of resources that are in various states
+   * @param total      total number of resources in request. NOTE, completed tasks may be counted twice.
+   * @param skippable  true if a single failed status should NOT result in an overall failed status return
+   *
+   * @return summary request status based on statuses of tasks in different states.
+   */
+  public static HostRoleStatus calculateSummaryStatusOfStage(Map<HostRoleStatus, Integer> counters,
+      int total, boolean skippable) {
+    if (counters.get(HostRoleStatus.PENDING) == total) {
+      return HostRoleStatus.PENDING;
+    }
+    // By definition, any tasks in a future stage must be held in a PENDING status.
+    if (counters.get(HostRoleStatus.HOLDING) > 0 || counters.get(HostRoleStatus.HOLDING_FAILED) > 0 || counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0) {
+      return counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
+      counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
+      HostRoleStatus.HOLDING_TIMEDOUT;
+    }
+    // Because tasks are not skippable, guaranteed to be FAILED
+    if (counters.get(HostRoleStatus.FAILED) > 0 && !skippable) {
+      return HostRoleStatus.FAILED;
+    }
+    // Because tasks are not skippable, guaranteed to be TIMEDOUT
+    if (counters.get(HostRoleStatus.TIMEDOUT) > 0  && !skippable) {
+      return HostRoleStatus.TIMEDOUT;
+    }
+
+    int numActiveTasks = counters.get(HostRoleStatus.PENDING) + counters.get(HostRoleStatus.QUEUED) + counters.get(HostRoleStatus.IN_PROGRESS);
+    // ABORTED only if there are no other active tasks
+    if (counters.get(HostRoleStatus.ABORTED) > 0 && numActiveTasks == 0) {
+      return HostRoleStatus.ABORTED;
+    }
+    if (counters.get(HostRoleStatus.COMPLETED) == total) {
+      return HostRoleStatus.COMPLETED;
+    }
+    return HostRoleStatus.IN_PROGRESS;
+  }
+
+  /**
+   * Calculate overall status of an upgrade.
+   *
+   * @param counters   counts of resources that are in various states
+   * @param total      total number of resources in request
+   *
+   * @return summary request status based on statuses of tasks in different states.
+   */
+  private static HostRoleStatus calculateSummaryStatusOfUpgrade(Map<HostRoleStatus, Integer> counters, int total) {
+    return calculateSummaryStatusOfStage(counters, total, false);
+  }
+
+  /**
+   * Calculate an overall display status based on the given status counts.
    *
    * @param counters   counts of resources that are in various states
    * @param total      total number of resources in request
@@ -375,32 +428,10 @@ public class CalculatedStatus {
    *
    * @return summary request status based on statuses of tasks in different states.
    */
-  private static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters,
-      int total, boolean skippable) {
-    return counters.get(HostRoleStatus.PENDING) == total ? HostRoleStatus.PENDING :
-        counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
-        counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
-        counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0 ? HostRoleStatus.HOLDING_TIMEDOUT :
-        counters.get(HostRoleStatus.FAILED) > 0 && !skippable ? HostRoleStatus.FAILED :
-        counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED:
-        counters.get(HostRoleStatus.TIMEDOUT) > 0 && !skippable ? HostRoleStatus.TIMEDOUT :
-        counters.get(HostRoleStatus.COMPLETED) == total ? HostRoleStatus.COMPLETED : HostRoleStatus.IN_PROGRESS;
-  }
-
-  /**
-   * Calculate a display status for upgrade group.
-   * Since we iterate over all tasks in all stages that belong to group, we have to
-   * pass a previous status from previous stages, so the most severe status is selected
-   *
-   * @param counters   counts of resources that are in various states
-   * @param previousStatus previous status (from previous stages)
-   *
-   * @return display status based on statuses of tasks in different states. May be SKIPPED_FAILED, FAILED
-   * or null if there is no failures at all
-   */
-  private static HostRoleStatus calculateDisplayStatus(Map<HostRoleStatus, Integer> counters, HostRoleStatus previousStatus) {
-    return previousStatus != null && previousStatus.equals(HostRoleStatus.SKIPPED_FAILED) || counters.get(HostRoleStatus.SKIPPED_FAILED) > 0 ? HostRoleStatus.SKIPPED_FAILED :
-           previousStatus != null && previousStatus.equals(HostRoleStatus.FAILED) || counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
-           null;
+  private static HostRoleStatus calculateSummaryDisplayStatus(Map<HostRoleStatus, Integer> counters,
+                                                              int total, boolean skippable) {
+    return counters.get(HostRoleStatus.SKIPPED_FAILED) > 0 ? HostRoleStatus.SKIPPED_FAILED :
+           counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED:
+           calculateSummaryStatusOfStage(counters, total, skippable);
   }
 }

@@ -19,15 +19,15 @@
 var properties = [
   {
     "name": "keytab_dir",
-    "index": 2
-  },
-  {
-    "name": "realm",
     "index": 3
   },
   {
+    "name": "realm",
+    "index": 4
+  },
+  {
     "name": "additional_realms",
-    "index": 4,
+    "index": 5,
     "placeholderText": "(" + Em.I18n.t("common.optional") + ")"
   }
 ];

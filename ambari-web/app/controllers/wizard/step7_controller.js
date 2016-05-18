@@ -42,7 +42,7 @@ var App = require('app');
  * @property {?object[]} slaveComponentHosts
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, {
+App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, {
 
   name: 'wizardStep7Controller',
 
@@ -56,11 +56,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   selectedService: null,
 
-  slaveHostToGroup: null,
-
   addMiscTabToPage: true,
-
-  selectedServiceNameTrigger: null,
 
   /**
    * Is Submit-click processing now
@@ -134,13 +130,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * Number of errors in the configs in the selected service
    * @type {number}
    */
-  errorsCount: function () {
-    return this.get('selectedService.configs').filter(function (config) {
-      return Em.isNone(config.get('widgetType'));
-    }).filter(function(config) {
-      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
-    }).filterProperty('isVisible').length;
-  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.isVisible','selectedService.configs.@each.overrideErrorTrigger'),
+  errorsCount: function() {
+    return this.get('selectedService.configsWithErrors').filter(function(c) {
+      return Em.isNone(c.get('widget'));
+    }).length;
+  }.property('selectedService.configsWithErrors.length'),
 
   /**
    * Should Next-button be disabled
@@ -149,7 +143,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   isSubmitDisabled: function () {
     if (!this.get('stepConfigs.length')) return true;
     if (this.get('submitButtonClicked')) return true;
-    return (!this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
+    return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible");
   }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked'),
 
   /**
@@ -184,6 +178,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return serviceNames;
   }.property('content.services').cacheable(),
 
+  installedServices: function () {
+    return App.StackService.find().toArray().toMapByCallback('serviceName', function (item) {
+      return Em.get(item, 'isInstalled');
+    });
+  }.property(),
+
   /**
    * List of master components
    * @type {Ember.Enumerable}
@@ -196,8 +196,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   slaveComponentHosts: Em.computed.alias('content.slaveGroupProperties'),
 
-  customData: [],
-
   /**
    * Filter text will be located here
    * @type {string}
@@ -205,21 +203,25 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   filter: '',
 
   /**
+   * Defines if configs can be editable
+   * @type {boolean}
+   */
+  canEdit: true,
+
+  /**
    * list of dependencies that are user to set init value of config
    *
    * @type {Object}
    */
   configDependencies: function() {
-    var dependencies = {
-      'sliderSelected': this.get('allSelectedServiceNames').contains('SLIDER')
-    };
+    var dependencies = {};
     var hiveMetastore = App.configsCollection.getConfigByName('hive.metastore.uris', 'hive-site.xml');
     var clientPort = App.configsCollection.getConfigByName('clientPort', 'zoo.cfg.xml');
 
     if (hiveMetastore) dependencies['hive.metastore.uris'] = hiveMetastore.recommendedValue;
-    if (clientPort) dependencies['clientPort']  = clientPort.recommendedValue;
-    return dependencies
-  }.property('allSelectedServiceNames'),
+    if (clientPort) dependencies.clientPort = clientPort.recommendedValue;
+    return dependencies;
+  }.property(),
 
   /**
    * List of filters for config properties to populate filter combobox
@@ -243,8 +245,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   ],
 
   issuesFilterText: function () {
-    return (this.get('isSubmitDisabled') && !this.get('submitButtonClicked') &&
-      this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected')) ?
+    return this.get('isSubmitDisabled') && !this.get('submitButtonClicked') &&
+      this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected') ?
         Em.I18n.t('installer.step7.showingPropertiesWithIssues') : '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
 
@@ -253,11 +255,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       return Em.I18n.t('installer.step7.showAllProperties');
     }
 
-    return (this.get('isSubmitDisabled') && !this.get('submitButtonClicked')) ?
-      (
+    return this.get('isSubmitDisabled') && !this.get('submitButtonClicked') ?
         this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected') ?
           Em.I18n.t('installer.step7.showAllProperties') : Em.I18n.t('installer.step7.showPropertiesWithIssues')
-      ) : '';
+       : '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
 
   /**
@@ -324,188 +325,81 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * Are some changes available
    */
   hasChanges: function () {
-    return this.get('hash') != this.getHash();
+    return this.get('hash') !== this.getHash();
   },
 
   /**
-   * Load config groups for installed services
-   * One ajax-request for each service
-   * @param {string[]} servicesNames
-   * @method loadInstalledServicesConfigGroups
+   * load all overrides for all config groups
+   *
+   * @returns {*|$.ajax}
    */
-  loadInstalledServicesConfigGroups: function (servicesNames) {
-    servicesNames.forEach(function (serviceName) {
-      App.ajax.send({
-        name: 'config.tags_and_groups',
-        sender: this,
-        data: {
-          serviceName: serviceName,
-          serviceConfigsDef: App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName)
-        },
-        success: 'loadServiceTagsSuccess'
+  loadOverrides: function() {
+    return App.ajax.send({
+      name: 'service.serviceConfigVersions.get.current.not.default',
+      sender: this,
+      success: 'parseOverrides'
+    })
+  },
+
+  /**
+   * add overriden configs to stepConfigs
+   *
+   * @param data
+   */
+  parseOverrides: function(data) {
+    var self = this;
+    data.items.forEach(function(group) {
+      var stepConfig = self.get('stepConfigs').findProperty('serviceName', group.service_name),
+        serviceConfigs = stepConfig.get('configs'),
+        configGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', group.service_name).findProperty('name', group.group_name);
+
+      var isEditable = self.get('canEdit') && configGroup.get('name') == stepConfig.get('selectedConfigGroup.name');
+
+      group.configurations.forEach(function (config) {
+        for (var prop in config.properties) {
+          var fileName = App.config.getOriginalFileName(config.type);
+          var serviceConfig = serviceConfigs.filterProperty('name', prop).findProperty('filename', fileName);
+          if (serviceConfig) {
+            var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
+            var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
+
+            App.config.createOverride(serviceConfig, {
+              "value": value,
+              "savedValue": value,
+              "isFinal": isFinal,
+              "savedIsFinal": isFinal,
+              "isEditable": isEditable
+            }, configGroup);
+
+          } else {
+
+            serviceConfigs.push(App.config.createCustomGroupConfig({
+              propertyName: prop,
+              filename: fileName,
+              value: config.properties[prop],
+              savedValue: config.properties[prop],
+              isEditable: isEditable
+            }, configGroup));
+
+          }
+        }
       });
-    }, this);
-  },
-
-  /**
-   * Create site to tag map. Format:
-   * <code>
-   *   {
-   *    site1: tag1,
-   *    site1: tag2,
-   *    site2: tag3
-   *    ...
-   *   }
-   * </code>
-   * @param {object} desired_configs
-   * @param {string[]} sites
-   * @returns {object}
-   * @private
-   * @method _createSiteToTagMap
-   */
-  _createSiteToTagMap: function (desired_configs, sites) {
-    var siteToTagMap = {};
-    for (var site in desired_configs) {
-      if (desired_configs.hasOwnProperty(site)) {
-        if (!!sites[site]) {
-          siteToTagMap[site] = desired_configs[site].tag;
-        }
-      }
-    }
-    return siteToTagMap;
-  },
-
-  /**
-   * Load config groups success callback
-   * @param {object} data
-   * @param {object} opt
-   * @param {object} params
-   * @method loadServiceTagsSuccess
-   */
-  loadServiceTagsSuccess: function (data, opt, params) {
-    var serviceName = params.serviceName,
-      service = this.get('stepConfigs').findProperty('serviceName', serviceName),
-      defaultConfigGroupHosts = this.get('wizardController.allHosts').mapProperty('hostName'),
-      siteToTagMap = this._createSiteToTagMap(data.Clusters.desired_configs, params.serviceConfigsDef.get('configTypes'));
-    this.set('loadedClusterSiteToTagMap', siteToTagMap);
-
-    //parse loaded config groups
-    var configGroups = [];
-    if (data.config_groups.length) {
-      data.config_groups.forEach(function (item) {
-        item = item.ConfigGroup;
-        if (item.tag === serviceName) {
-          var groupHosts = item.hosts.mapProperty('host_name');
-          configGroups.push({
-            id: serviceName + item.id,
-            config_group_id: item.id,
-            name: item.group_name,
-            description: item.description,
-            is_default: false,
-            parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
-            service_id: serviceName,
-            service_name: serviceName,
-            hosts: groupHosts,
-            desired_configs: item.desired_configs
-          });
-          groupHosts.forEach(function (host) {
-            defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
-          }, this);
-        }
-      }, this);
-    }
-
-    var defaultConfigGroup = App.configGroupsMapper.generateDefaultGroup(serviceName, defaultConfigGroupHosts);
-
-    configGroups = configGroups.sortProperty('name');
-    configGroups.unshift(defaultConfigGroup);
-    App.store.loadMany(App.ServiceConfigGroup, configGroups);
-    App.store.commit();
-    service.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', serviceName));
-
-    var loadedGroupToOverrideSiteToTagMap = {};
-    configGroups.forEach(function (item) {
-      var groupName = item.name;
-      loadedGroupToOverrideSiteToTagMap[groupName] = {};
-      item.desired_configs.forEach(function (site) {
-        loadedGroupToOverrideSiteToTagMap[groupName][site.type] = site.tag;
-      }, this);
-    }, this);
-    this.set('preSelectedConfigGroup', App.ServiceConfigGroup.find(App.ServiceConfigGroup.getParentConfigGroupId(serviceName)));
-    this.loadServiceConfigGroupOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'));
-  },
-
-  /**
-   * Get properties from server by type and tag with properties, that belong to group
-   * push them to common {serviceConfigs} and call callback function
-   */
-  loadServiceConfigGroupOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
-    var configKeyToConfigMap = {};
-    serviceConfigs.forEach(function (item) {
-      if (!configKeyToConfigMap[item.filename]) {
-        configKeyToConfigMap[item.filename] = {};
-      }
-      configKeyToConfigMap[item.filename][item.name] = item;
     });
-    var typeTagToGroupMap = {};
-    var urlParams = [];
-    for (var group in loadedGroupToOverrideSiteToTagMap) {
-      var overrideTypeTags = loadedGroupToOverrideSiteToTagMap[group];
-      for (var type in overrideTypeTags) {
-        var tag = overrideTypeTags[type];
-        typeTagToGroupMap[type + "///" + tag] = configGroups.findProperty('name', group);
-        urlParams.push('(type=' + type + '&tag=' + tag + ')');
-      }
-    }
-    var params = urlParams.join('|');
-    if (urlParams.length) {
-      App.ajax.send({
-        name: 'config.host_overrides',
-        sender: this,
-        data: {
-          params: params,
-          configKeyToConfigMap: configKeyToConfigMap,
-          typeTagToGroupMap: typeTagToGroupMap,
-          serviceConfigs: serviceConfigs
-        },
-        success: 'loadServiceConfigGroupOverridesSuccess'
-      });
-    } else {
-      this.onLoadOverrides(serviceConfigs);
-    }
+    this.onLoadOverrides();
   },
 
-  loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
-    data.items.forEach(function (config) {
-      var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
-      var properties = config.properties;
-      for (var prop in properties) {
-        var fileName = App.config.getOriginalFileName(config.type);
-        var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
-        var hostOverrideValue = App.config.formatPropertyValue(serviceConfig, properties[prop]);
-        var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
-        if (serviceConfig) {
-          // Value of this property is different for this host.
-          if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
-          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
-        } else {
-          params.serviceConfigs.push(App.config.createCustomGroupConfig(prop, config, group));
-        }
-      }
-    });
-    this.onLoadOverrides(params.serviceConfigs);
-  },
+  onLoadOverrides: function () {
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      stepConfig.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', stepConfig.get('serviceName')));
 
+      stepConfig.get('configGroups').filterProperty('isDefault', false).forEach(function (configGroup) {
+        configGroup.set('hash', this.get('wizardController').getConfigGroupHash(configGroup));
+      }, this);
 
-  onLoadOverrides: function (configs) {
-    var serviceName = configs[0].serviceName,
-      service = this.get('stepConfigs').findProperty('serviceName', serviceName);
-    var serviceConfig = App.config.createServiceConfig(serviceName);
-    service.set('selectedConfigGroup', this.get('preSelectedConfigGroup'));
-    this.loadComponentConfigs(service.get('configs'), serviceConfig, service);
-    // override if a property isRequired or not
-    this.overrideConfigIsRequired(service);
-    service.set('configs', serviceConfig.get('configs'));
+      this.addOverride(stepConfig);
+      // override if a property isRequired or not
+      this.overrideConfigIsRequired(stepConfig);
+    }, this);
   },
 
   /**
@@ -518,11 +412,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   _updateIsEditableFlagForConfig: function (serviceConfigProperty, defaultGroupSelected) {
     if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
-      if (defaultGroupSelected && !this.get('isHostsConfigsPage') && !Em.get(serviceConfigProperty, 'group')) {
-        serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
-      } else if (Em.get(serviceConfigProperty, 'group') && Em.get(serviceConfigProperty, 'group.name') == this.get('selectedConfigGroup.name')) {
-        serviceConfigProperty.set('isEditable', true);
-      } else {
+      if (defaultGroupSelected && !Em.get(serviceConfigProperty, 'group')) {
+        if (serviceConfigProperty.get('serviceName') === 'MISC') {
+          var service = App.config.get('serviceByConfigTypeMap')[App.config.getConfigTagFromFileName(serviceConfigProperty.get('filename'))];
+          serviceConfigProperty.set('isEditable', service && !this.get('installedServiceNames').contains(service.get('serviceName')));
+        } else {
+          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isEditable') && serviceConfigProperty.get('isReconfigurable'));
+        }
+      } else if (!(Em.get(serviceConfigProperty, 'group') && Em.get(serviceConfigProperty, 'group.name') === this.get('selectedConfigGroup.name'))) {
         serviceConfigProperty.set('isEditable', false);
       }
     }
@@ -533,84 +430,18 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * Set <code>overrides</code>-property to <code>serviceConfigProperty<code>
-   * @param {Ember.Object} serviceConfigProperty
-   * @param {Ember.Object} component
-   * @return {Ember.Object} Updated config-object
-   * @method _updateOverridesForConfig
-   */
-  _updateOverridesForConfig: function (serviceConfigProperty, component) {
-
-    var overrides = serviceConfigProperty.get('overrides');
-
-    if (Em.isNone(overrides)) {
-      serviceConfigProperty.set('overrides', Em.A([]));
-      return serviceConfigProperty;
-    }
-    serviceConfigProperty.set('overrides', null);
-    var defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
-
-    // Wrap each override to App.ServiceConfigProperty
-    overrides.forEach(function (override) {
-      var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-      newSCP.set('value', override.value);
-      newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-      newSCP.set('parentSCP', serviceConfigProperty);
-      if (defaultGroupSelected) {
-        var group = component.get('configGroups').findProperty('name', override.group.get('name'));
-        // prevent cycle in proto object, clean link
-        if (group.get('properties').length == 0) {
-          group.set('properties', Em.A([]));
-        }
-        group.get('properties').push(newSCP);
-        newSCP.set('group', override.group);
-        newSCP.set('isEditable', false);
-      }
-      var parentOverridesArray = serviceConfigProperty.get('overrides');
-      if (Em.isNone(parentOverridesArray)) {
-        parentOverridesArray = Em.A([]);
-        serviceConfigProperty.set('overrides', parentOverridesArray);
-      }
-      serviceConfigProperty.get('overrides').pushObject(newSCP);
-      newSCP.validate();
-    }, this);
-    return serviceConfigProperty;
-  },
-
-  /**
-   * Set configs with overrides, recommended defaults to component
-   * @param {Ember.Object[]} configs
-   * @param {Ember.Object} componentConfig
-   * @param {Ember.Object} component
+   * Set configs with overrides, recommended defaults to stepConfig
+   * @param {Ember.Object} stepConfig
    * @method loadComponentConfigs
    */
-  loadComponentConfigs: function (configs, componentConfig, component) {
-    var defaultGroupSelected = component.get('selectedConfigGroup.isDefault');
-
-    configs.forEach(function (serviceConfigProperty) {
-      if (!serviceConfigProperty) return;
-
-      if (Em.isNone(serviceConfigProperty.get('isOverridable'))) {
-        serviceConfigProperty.set('isOverridable', true);
-      }
-      this._updateOverridesForConfig(serviceConfigProperty, component);
-      this._updateIsEditableFlagForConfig(serviceConfigProperty, defaultGroupSelected);
-
-      componentConfig.get('configs').pushObject(serviceConfigProperty);
-      serviceConfigProperty.validate();
-
-    }, this);
-    component.get('configGroups').filterProperty('isDefault', false).forEach(function (configGroup) {
-      configGroup.set('hash', this.get('wizardController').getConfigGroupHash(configGroup));
-    }, this);
+  addOverride: function (stepConfig) {
     var overrideToAdd = this.get('overrideToAdd');
     if (overrideToAdd) {
-      overrideToAdd = componentConfig.get('configs').findProperty('name', overrideToAdd.name);
+      overrideToAdd = stepConfig.get('configs').filterProperty('filename', overrideToAdd.filename)
+        .findProperty('name', overrideToAdd.name);
       if (overrideToAdd) {
-        var group = this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
-        var newSCP = App.config.createOverride(overrideToAdd, {isEditable: true}, group);
-        group.get('properties').pushObject(newSCP);
-        component.set('overrideToAdd', null);
+        App.config.createOverride(overrideToAdd, {isEditable: true}, stepConfig.get('selectedConfigGroup'));
+        this.set('overrideToAdd', null);
       }
     }
   },
@@ -634,8 +465,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
     var configs = (storedConfigs && storedConfigs.length) ? storedConfigs : App.configsCollection.getAll();
 
-    this.resolveConfigThemeConditions(configs);
-
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     if (this.get('wizardController.name') === 'addServiceController' && !this.get('content.serviceConfigProperties.length')) {
       App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
@@ -648,95 +477,99 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * Resolve config theme conditions
-   * in order to correctly calculate config errors number of service
+   * Update hawq configuration depending on the state of the cluster
    * @param {Array} configs
    */
-  resolveConfigThemeConditions: function (configs) {
-    App.ThemeCondition.find().forEach(function (configCondition) {
-      var _configs = Em.A(configCondition.get('configs'));
-      if (configCondition.get("resource") === 'config' && _configs.length > 0) {
-        var isConditionTrue = App.config.calculateConfigCondition(configCondition.get("if"), configs);
-        var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
-        if (configCondition.get('id')) {
-          var valueAttributes = action.property_value_attributes;
-          if (valueAttributes && !Em.none(valueAttributes['visible'])) {
-            var themeResource;
-            if (configCondition.get('type') === 'subsection') {
-              themeResource = App.SubSection.find().findProperty('name', configCondition.get('name'));
-            } else if (configCondition.get('type') === 'subsectionTab') {
-              themeResource = App.SubSectionTab.find().findProperty('name', configCondition.get('name'));
-            }
-            if (themeResource) {
-              themeResource.get('configProperties').forEach(function (_configId) {
-                configs.find(function (item) {
-                  if (App.config.configId(item.name, item.filename) === _configId) {
-                    item.hiddenBySection = !valueAttributes['visible'];
-                    return true;
-                  }
-                  return false;
-                });
-              }, this);
-            }
-          }
-        }
-      }
-    });
+  updateHawqConfigs: function (configs) {
+    if (this.get('wizardController.name') === 'addServiceController') {
+      if (App.get('isHaEnabled')) this.addHawqConfigsOnNnHa(configs);
+      if (App.get('isRMHaEnabled')) this.addHawqConfigsOnRMHa(configs);
+    }
+    if (this.get('content.hosts') && Object.keys(this.get('content.hosts')).length === 1) this.removeHawqStandbyHostAddressConfig(configs);
+    return configs
+  },
+
+  /**
+   * Remove hawq_standby_address_host config from HAWQ configs
+   * @param {Array} configs
+   */
+  removeHawqStandbyHostAddressConfig: function(configs) {
+    var hawqStandbyAddressHostIndex = configs.indexOf(configs.findProperty('name', 'hawq_standby_address_host'));
+    if (hawqStandbyAddressHostIndex > -1) configs.removeAt(hawqStandbyAddressHostIndex) ;
+    return configs
   },
 
   applyServicesConfigs: function (configs) {
-    if (this.get('allSelectedServiceNames').contains('YARN')) {
-      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
+    if (!this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
+      this.updateHawqConfigs(configs);
     }
-    if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
+    if (App.get('isKerberosEnabled') && this.get('wizardController.name') === 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
+    App.configTheme.resolveConfigThemeConditions(configs);
     var stepConfigs = this.createStepConfigs();
     var serviceConfigs = this.renderConfigs(stepConfigs, configs);
     // if HA is enabled -> Make some reconfigurations
-    if (this.get('wizardController.name') === 'addServiceController' && App.get('isHaEnabled')) {
-      serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
+    if (this.get('wizardController.name') === 'addServiceController') {
+      this.updateComponentActionConfigs(configs, serviceConfigs);
+      if (App.get('isHaEnabled')) {
+        serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
+      }
     }
     this.set('stepConfigs', serviceConfigs);
     this.checkHostOverrideInstaller();
     this.selectProperService();
-    var self = this;
     var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
-      App.config.removeRangerConfigs(self.get('stepConfigs'));
+      App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
-    this.loadServerSideConfigsRecommendations().always(function() {
-      self.updateConfigsRecommendations();
-      self.completeConfigLoading();
-    });
+    this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
   },
 
   /**
-   * update dependent configs based on recommendations from
-   * stack adviser
    *
-   * @method updateConfigsRecommendations
+   * Makes installed service's configs resulting into component actions (add/delete) non editable on Add Service Wizard
+   * @param configs Object[]
+   * @param  stepConfigs Object[]
+   * @private
+   * @method updateComponentActionConfigs
    */
-  updateConfigsRecommendations: function() {
-    if (this.get('wizardController.name') == 'addServiceController') {
-      // for Add Service just remove or add dependent properties and ignore config values changes
-      // for installed services only
-      this.clearDependenciesForInstalledServices(this.get('installedServiceNames'), this.get('stepConfigs'));
-    }
-    // * add dependencies based on recommendations
-    // * update config values with recommended
-    // * remove properties received from recommendations
-    this.updateDependentConfigs();
+  updateComponentActionConfigs: function(configs, stepConfigs) {
+    App.ConfigAction.find().forEach(function(item){
+      var configName = item.get('configName');
+      var fileName = item.get('fileName');
+      var config = configs.filterProperty('filename', fileName).findProperty('name', configName);
+      if (config) {
+        var isServiceInstalled = App.Service.find().findProperty('serviceName', config.serviceName);
+        if (isServiceInstalled) {
+          var serviceConfigs = stepConfigs.findProperty('serviceName', config.serviceName).get('configs');
+          var serviceConfig = serviceConfigs.filterProperty('filename', fileName).findProperty('name', configName);
+          serviceConfig.set('isReconfigurable', false);
+          config.isReconfigurable = false;
+        }
+      }
+    }, this);
   },
 
   completeConfigLoading: function() {
-    this.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
+    this.clearRecommendationsByServiceName(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
     console.timeEnd('wizard loadStep: ');
     this.set('isRecommendedLoaded', true);
     if (this.get('content.skipConfigStep')) {
       App.router.send('next');
     }
     this.set('hash', this.getHash());
+  },
+
+  /**
+   * Update initialValues only while loading recommendations first time
+   *
+   * @param serviceName
+   * @returns {boolean}
+   * @override
+   */
+  updateInitialOnRecommendations: function(serviceName) {
+    return this._super(serviceName) && !this.get('isRecommendedLoaded');
   },
 
   /**
@@ -767,11 +600,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method checkHostOverrideInstaller
    */
   checkHostOverrideInstaller: function () {
-    if (this.get('wizardController.name') !== 'kerberosWizardController') {
-      this.loadConfigGroups(this.get('content.configGroups'));
-    }
-    if (this.get('installedServiceNames').length > 0 && !this.get('wizardController.areInstalledConfigGroupsLoaded')) {
-      this.loadInstalledServicesConfigGroups(this.get('installedServiceNames'));
+    if (this.get('wizardController.name') !== 'kerberosWizardController' && this.get('content.configGroups.length')) {
+      this.restoreConfigGroups(this.get('content.configGroups'));
+    } else {
+      if (this.get('installedServiceNames').length > 0 && !this.get('wizardController.areInstalledConfigGroupsLoaded')) {
+        this.loadConfigGroups(this.get('allSelectedServiceNames')).done(this.loadOverrides.bind(this));
+      } else {
+        App.store.commit();
+        App.configGroupsMapper.map(null, false, this.get('allSelectedServiceNames'));
+        this.onLoadOverrides();
+      }
     }
   },
 
@@ -788,18 +626,98 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (['MISC'].concat(this.get('allSelectedServiceNames')).contains(serviceName)) {
         var serviceConfig = App.config.createServiceConfig(serviceName);
         serviceConfig.set('showConfig', App.StackService.find(serviceName).get('isInstallable'));
-        if (this.get('wizardController.name') == 'addServiceController') {
+        if (this.get('wizardController.name') === 'addServiceController') {
           serviceConfig.set('selected', !this.get('installedServiceNames').concat('MISC').contains(serviceName));
           if (serviceName === 'MISC') {
             serviceConfig.set('configCategories', serviceConfig.get('configCategories').rejectProperty('name', 'Notifications'));
           }
-        } else if (this.get('wizardController.name') == 'kerberosWizardController') {
+        } else if (this.get('wizardController.name') === 'kerberosWizardController') {
           serviceConfig.set('showConfig', true);
         }
         stepConfigs.pushObject(serviceConfig);
       }
     }, this);
     return stepConfigs;
+  },
+
+
+  /**
+   * For Namenode HA, HAWQ service requires additional config parameters in hdfs-client.xml
+   * This method ensures that these additional parameters are added to hdfs-client.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in hdfs-client.xml
+   */
+  addHawqConfigsOnNnHa: function(configs) {
+    var nameService = configs.findProperty('id', App.config.configId('dfs.nameservices', 'hdfs-site')).value;
+    var propertyNames = [
+      'dfs.nameservices',
+      'dfs.ha.namenodes.' + nameService,
+      'dfs.namenode.rpc-address.'+ nameService +'.nn1',
+      'dfs.namenode.rpc-address.'+ nameService +'.nn2',
+      'dfs.namenode.http-address.'+ nameService +'.nn1',
+      'dfs.namenode.http-address.'+ nameService +'.nn2'
+    ];
+
+    propertyNames.forEach(function(propertyName, propertyIndex) {
+      var propertyFromHdfs = configs.findProperty('id', App.config.configId(propertyName, 'hdfs-site'));
+      var newProperty = App.config.createDefaultConfig(propertyName, 'hdfs-client.xml', true);
+      Em.setProperties(newProperty, {
+        serviceName: 'HAWQ',
+        description: propertyFromHdfs.description,
+        displayName: propertyFromHdfs.displayName,
+        displayType: 'string',
+        index: propertyIndex,
+        isOverridable: false,
+        isReconfigurable: false,
+        value: propertyFromHdfs.value,
+        recommendedValue: propertyFromHdfs.recommendedValue
+      });
+
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
+    return configs;
+  },
+
+  /**
+   * For ResourceManager HA, HAWQ service requires additional config parameters in yarn-client.xml
+   * This method ensures that these additional parameters are added to yarn-client.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
+   */
+  addHawqConfigsOnRMHa: function(configs) {
+    var rmHost1 = configs.findProperty('id', App.config.configId('yarn.resourcemanager.hostname.rm1', 'yarn-site')).value ;
+    var rmHost2 = configs.findProperty('id', App.config.configId('yarn.resourcemanager.hostname.rm2', 'yarn-site')).value ;
+    var yarnConfigToBeAdded = [
+      {
+        name: 'yarn.resourcemanager.ha',
+        displayName: 'yarn.resourcemanager.ha',
+        description: 'Comma separated yarn resourcemanager host addresses with port',
+        port: '8032'
+      },
+      {
+        name: 'yarn.resourcemanager.scheduler.ha',
+        displayName: 'yarn.resourcemanager.scheduler.ha',
+        description: 'Comma separated yarn resourcemanager scheduler addresses with port',
+        port: '8030'
+      }
+    ];
+
+    yarnConfigToBeAdded.forEach(function(propertyDetails) {
+      var newProperty = App.config.createDefaultConfig(propertyDetails.name, 'yarn-client.xml', true);
+      var value = rmHost1 + ':' + propertyDetails.port + ',' + rmHost2 + ':' + propertyDetails.port;
+      Em.setProperties(newProperty, {
+        serviceName: 'HAWQ',
+        description: propertyDetails.description,
+        displayName: propertyDetails.displayName,
+        isOverridable: false,
+        isReconfigurable: false,
+        value: value,
+        recommendedValue: value
+      });
+
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
+    return configs;
   },
 
   /**
@@ -817,27 +735,28 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     };
     var configsByService = {}, dependencies = this.get('configDependencies');
 
-    stepConfigs.forEach(function (service) {
-      if (!configsByService[service.get('serviceName')])  {
-        configsByService[service.get('serviceName')] = service.get('configs');
+    configs.forEach(function (_config) {
+      if (!configsByService[_config.serviceName]) {
+        configsByService[_config.serviceName] = [];
       }
-      if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
-        this.addHostNamesToConfigs(service, localDB.masterComponentHosts, localDB.slaveComponentHosts);
+      var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
+      this.updateHostOverrides(serviceConfigProperty, _config);
+      if (this.get('wizardController.name') === 'addServiceController') {
+        this._updateIsEditableFlagForConfig(serviceConfigProperty, true);
       }
+      if (!this.get('content.serviceConfigProperties.length') && !serviceConfigProperty.get('hasInitialValue')) {
+        App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
+      }
+      configsByService[_config.serviceName].pushObject(serviceConfigProperty);
     }, this);
 
-    configs.forEach(function (_config) {
-      if (configsByService[_config.serviceName]) {
-        var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
-        this.updateHostOverrides(serviceConfigProperty, _config);
-        if (this.get('wizardController.name') === 'addServiceController') {
-          this._updateIsEditableFlagForConfig(serviceConfigProperty, true);
-        }
-        if (!this.get('content.serviceConfigProperties.length') && !serviceConfigProperty.get('hasInitialValue')) {
-          App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
-        }
-        serviceConfigProperty.validate();
-        configsByService[_config.serviceName].pushObject(serviceConfigProperty);
+    stepConfigs.forEach(function (service) {
+      if (service.get('serviceName') === 'YARN') {
+        configsByService[service.get('serviceName')] = App.config.addYarnCapacityScheduler(configsByService[service.get('serviceName')]);
+      }
+      service.set('configs', configsByService[service.get('serviceName')]);
+      if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
+        this.addHostNamesToConfigs(service, localDB.masterComponentHosts, localDB.slaveComponentHosts);
       }
     }, this);
     return stepConfigs;
@@ -853,17 +772,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   addHostNamesToConfigs: function(serviceConfig, masterComponents, slaveComponents) {
     serviceConfig.get('configCategories').forEach(function(c) {
       if (c.showHost) {
-        var value = [];
         var componentName = c.name;
-        var masters = masterComponents && masterComponents.filterProperty('component', componentName);
-        if (masters.length) {
-          value = masters.mapProperty('hostName');
-        } else {
-          var slaves = slaveComponents && slaveComponents.findProperty('componentName', componentName);
-          if (slaves) {
-            value = slaves.hosts.mapProperty('hostName');
-          }
-        }
+        var value = this.getComponentHostValue(componentName, masterComponents, slaveComponents);
         var stackComponent = App.StackServiceComponent.find(componentName);
         var hProperty = App.config.createHostNameProperty(serviceConfig.get('serviceName'), componentName, value, stackComponent);
         var newConfigName = Em.get(hProperty, 'name');
@@ -875,13 +785,35 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
+   * Method to get host for master or slave component
+   *
+   * @param componentName
+   * @param masterComponents
+   * @param slaveComponents
+   * @returns {Array}
+   */
+  getComponentHostValue: function(componentName, masterComponents, slaveComponents) {
+    var value = [];
+    var masters = masterComponents && masterComponents.filterProperty('component', componentName);
+    if (masters.length) {
+      value = masters.mapProperty('hostName');
+    } else {
+      var slaves = slaveComponents && slaveComponents.findProperty('componentName', componentName);
+      if (slaves) {
+        value = slaves.hosts.mapProperty('hostName');
+      }
+    }
+    return value || [];
+  },
+
+  /**
    * create new child configs from overrides, attach them to parent config
    * override - value of config, related to particular host(s)
    * @param configProperty
    * @param storedConfigProperty
    */
   updateHostOverrides: function (configProperty, storedConfigProperty) {
-    if (storedConfigProperty.overrides != null && storedConfigProperty.overrides.length > 0) {
+    if (!Em.isEmpty(storedConfigProperty.overrides)) {
       var overrides = [];
       storedConfigProperty.overrides.forEach(function (overrideEntry) {
         // create new override with new value
@@ -915,12 +847,23 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       {
         serviceName: 'ACCUMULO',
         configToUpdate: 'instance.volumes'
+      },
+      {
+        serviceName: 'HAWQ',
+        configToUpdate: 'hawq_dfs_url',
+        regexPattern: /(^.*:[0-9]+)(?=\/)/,
+        replacementValue: nameServiceId.get('value')
       }
     ]).forEach(function (c) {
       if (selectedServiceNames.contains(c.serviceName) && nameServiceId) {
-        var cfg = serviceConfigs.findProperty('serviceName', c.serviceName).configs.findProperty('name', c.configToUpdate),
-          newValue = cfg.get('value').replace(/\/\/.*:[0-9]+/i, '//' + nameServiceId.get('value'));
-
+        var cfg = serviceConfigs.findProperty('serviceName', c.serviceName).configs.findProperty('name', c.configToUpdate);
+        var regexPattern = /\/\/.*:[0-9]+/i;
+        var replacementValue = '//' + nameServiceId.get('value');
+        if (!Em.isNone(c.regexPattern) && !Em.isNone(c.replacementValue)) {
+          regexPattern = c.regexPattern;
+          replacementValue = c.replacementValue;
+        }
+        var newValue = cfg.get('value').replace(regexPattern, replacementValue);
         cfg.setProperties({
           value: newValue,
           recommendedValue: newValue
@@ -974,7 +917,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var serviceConfigTags = [];
     for (var site in data.Clusters.desired_configs) {
       if (data.Clusters.desired_configs.hasOwnProperty(site)) {
-        if (installedServiceSites.contains(site) || site == 'cluster-env') {
+        if (installedServiceSites.contains(site) || site === 'cluster-env') {
           serviceConfigTags.push({
             siteName: site,
             tagName: data.Clusters.desired_configs[site].tag,
@@ -1003,12 +946,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var allConfigs = configs.filter(function (_config) {
       // filter out alert_notification configs on add service //TODO find better place for this!
       if (_config.filename === 'alert_notification') return false;
-      if ((['MISC'].concat(installedServiceNames).contains(_config.serviceName))) {
+      if (['MISC'].concat(installedServiceNames).contains(_config.serviceName)) {
         var type = _config.filename ? App.config.getConfigTagFromFileName(_config.filename) : null;
         var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
         if (Em.isNone(mappedConfigValue)) {
           //for now ranger plugin properties are not sending by recommendations if they are missed - it should be added
-          return _config.serviceName == 'MISC' || /^ranger-/.test(_config.filename);
+          return _config.serviceName === 'MISC' || /^ranger-/.test(_config.filename);
         } else {
           if (_config.savedValue != mappedConfigValue) {
             _config.savedValue = App.config.formatPropertyValue(_config, mappedConfigValue);
@@ -1026,10 +969,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     //add user properties
     Em.keys(configsMap).forEach(function (filename) {
       Em.keys(configsMap[filename]).forEach(function (propertyName) {
-        allConfigs.push(App.config.createDefaultConfig(propertyName,
-          App.config.getServiceByConfigType(filename) ? App.config.getServiceByConfigType(filename).get('serviceName') : 'MISC',
-          App.config.getOriginalFileName(filename),
-          false, {
+        allConfigs.push(App.config.createDefaultConfig(propertyName, App.config.getOriginalFileName(filename), false, {
             value: configsMap[filename][propertyName],
             savedValue: configsMap[filename][propertyName],
             hasInitialValue: true
@@ -1048,7 +988,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (config.name === 'hive.metastore.uris' && config.filename === 'hive-site.xml') {
       this.get('configDependencies')['hive.metastore.uris'] = config.savedValue;
     } else if (config.name === 'clientPort' && config.filename === 'hive-site.xml') {
-      this.get('configDependencies')['clientPort'] = config.savedValue;
+      this.get('configDependencies').clientPort = config.savedValue;
     }
   },
 
@@ -1061,10 +1001,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   setGroupsToDelete: function (groups) {
     var groupsToDelete = this.get('groupsToDelete');
     groups.forEach(function (group) {
-      if (group.get('id'))
+      if (!group.get('isTemporary')) {
         groupsToDelete.push({
           id: group.get('id')
         });
+      }
     });
     this.get('wizardController').setDBProperty('groupsToDelete', groupsToDelete);
   },
@@ -1076,7 +1017,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method selectedServiceObserver
    */
   selectedServiceObserver: function () {
-    if (this.get('selectedService') && (this.get('selectedService.serviceName') !== 'MISC')) {
+    if (this.get('selectedService') && this.get('selectedService.serviceName') !== 'MISC') {
       var serviceGroups = this.get('selectedService.configGroups');
       serviceGroups.forEach(function (item, index, array) {
         if (item.isDefault) {
@@ -1092,42 +1033,40 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   /**
    * load default groups for each service in case of initial load
    * @param serviceConfigGroups
-   * @method loadConfigGroups
+   * @method restoreConfigGroups
    */
-  loadConfigGroups: function (serviceConfigGroups) {
+  restoreConfigGroups: function (serviceConfigGroups) {
     var services = this.get('stepConfigs');
-    var hosts = this.get('wizardController.allHosts').mapProperty('hostName');
 
     services.forEach(function (service) {
       if (service.get('serviceName') === 'MISC') return;
       var serviceRawGroups = serviceConfigGroups.filterProperty('service_name', service.serviceName);
-      var id = App.ServiceConfigGroup.getParentConfigGroupId(service.get('serviceName'));
-      if (!serviceRawGroups.length) {
-        App.store.load(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(service.get('serviceName'), hosts));
+      if (serviceRawGroups.length) {
         App.store.commit();
-        service.set('configGroups', [App.ServiceConfigGroup.find(id)]);
-      }
-      else {
         App.store.loadMany(App.ServiceConfigGroup, serviceRawGroups);
         App.store.commit();
         serviceRawGroups.forEach(function(item){
           var modelGroup = App.ServiceConfigGroup.find(item.id);
-          var wrappedProperties = [];
-
+          modelGroup.set('properties', []);
           item.properties.forEach(function (propertyData) {
-            var parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
-            var overriddenSCP = App.ServiceConfigProperty.create(parentSCP);
-            overriddenSCP.set('isOriginalSCP', false);
-            overriddenSCP.set('parentSCP', parentSCP);
-            overriddenSCP.set('group', modelGroup);
-            overriddenSCP.setProperties(propertyData);
-            wrappedProperties.pushObject(App.ServiceConfigProperty.create(overriddenSCP));
-          });
-          modelGroup.set('properties', wrappedProperties);
+            var overriddenSCP, parentSCP = service.configs.filterProperty('filename', propertyData.filename).findProperty('name', propertyData.name);
+            if (parentSCP) {
+              App.config.createOverride(parentSCP, propertyData, modelGroup)
+            } else {
+              overriddenSCP = App.config.createCustomGroupConfig({
+                propertyName: propertyData.name,
+                filename: propertyData.filename,
+                value: propertyData.value,
+                savedValue: propertyData.value,
+                isEditable: false
+              }, modelGroup);
+              this.get('stepConfigs').findProperty('serviceName', service.serviceName).get('configs').pushObject(overriddenSCP);
+            }
+          }, this);
         }, this);
         service.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')));
       }
-    });
+    }, this);
   },
 
   /**
@@ -1148,7 +1087,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   switchConfigGroupConfigs: function () {
     var serviceConfigs = this.get('selectedService.configs'),
       selectedGroup = this.get('selectedConfigGroup'),
-      overrideToAdd = this.get('overrideToAdd'),
       overrides = [];
     if (!selectedGroup) return;
 
@@ -1171,7 +1109,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   _getDisplayedConfigGroups: function () {
     var selectedGroup = this.get('selectedConfigGroup');
     if (!selectedGroup) return [];
-    return (selectedGroup.get('isDefault')) ?
+    return selectedGroup.get('isDefault') ?
       this.get('selectedService.configGroups').filterProperty('isDefault', false) :
       [this.get('selectedConfigGroup')];
   },
@@ -1188,13 +1126,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var isEditable = config.get('isEditable'),
       isServiceInstalled = this.get('installedServiceNames').contains(this.get('selectedService.serviceName'));
     if (isServiceInstalled) {
-      isEditable = (!isEditable && !config.get('isReconfigurable')) ? false : selectedGroup.get('isDefault');
-    }
-    else {
+      isEditable = config.get('isReconfigurable') && selectedGroup.get('isDefault');
+    } else {
       isEditable = selectedGroup.get('isDefault');
     }
     if (config.get('group')) {
-      isEditable = config.get('group.name') == this.get('selectedConfigGroup.name');
+      isEditable = config.get('group.name') === this.get('selectedConfigGroup.name');
     }
     config.set('isEditable', isEditable);
     return config;
@@ -1208,16 +1145,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method _setOverrides
    */
   _setOverrides: function (config, overrides) {
+    if (config.get('group')) return config;
     var selectedGroup = this.get('selectedConfigGroup'),
       overrideToAdd = this.get('overrideToAdd'),
       configOverrides = overrides.filterProperty('name', config.get('name'));
     if (!selectedGroup) return config;
     if (overrideToAdd && overrideToAdd.get('name') === config.get('name')) {
-      var valueForOverride = (config.get('widget') || config.get('displayType') == 'checkbox') ? config.get('value') : '';
+      var valueForOverride = (config.get('widget') || config.get('displayType') === 'checkbox') ? config.get('value') : '';
       var group = this.get('selectedService.configGroups').findProperty('name', selectedGroup.get('name'));
       var newSCP = App.config.createOverride(config, {value: valueForOverride, recommendedValue: valueForOverride}, group);
       configOverrides.push(newSCP);
-      group.get('properties').pushObject(newSCP);
       this.set('overrideToAdd', null);
     }
     configOverrides.setEach('isEditable', !selectedGroup.get('isDefault'));
@@ -1226,6 +1163,71 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return config;
   },
 
+  /**
+   * @param serviceName
+   * @returns {boolean}
+   * @override
+   */
+  useInitialValue: function(serviceName) {
+    return !App.Service.find(serviceName).get('serviceName', serviceName);
+  },
+
+  /**
+   *
+   * @param parentProperties
+   * @param name
+   * @param fileName
+   * @returns {*}
+   * @override
+   */
+  allowUpdateProperty: function(parentProperties, name, fileName) {
+    if (name.contains('proxyuser')) return true;
+    if (['installerController'].contains(this.get('wizardController.name')) || !!(parentProperties && parentProperties.length)) {
+      return true;
+    } else if (['addServiceController'].contains(this.get('wizardController.name'))) {
+      var stackProperty = App.configsCollection.getConfigByName(name, fileName);
+      if (!stackProperty || !this.get('installedServices')[stackProperty.serviceName]) {
+        return true;
+      } else if (stackProperty.propertyDependsOn.length) {
+        return !!stackProperty.propertyDependsOn.filter(function (p) {
+          var service = App.config.get('serviceByConfigTypeMap')[p.type];
+          return service && !this.get('installedServices')[service.get('serviceName')];
+        }, this).length;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
+   * remove config based on recommendations
+   * @param config
+   * @param configsCollection
+   * @param parentProperties
+   * @protected
+   * @override
+   */
+  _removeConfigByRecommendation: function (config, configsCollection, parentProperties) {
+    this._super(config, configsCollection, parentProperties);
+    /**
+     * need to update wizard info when removing configs for installed services;
+     */
+    var installedServices = this.get('installedServices'), wizardController = this.get('wizardController'),
+      fileNamesToUpdate = wizardController ? wizardController.getDBProperty('fileNamesToUpdate') || [] : [],
+      fileName = Em.get(config, 'filename'), serviceName = Em.get(config, 'serviceName');
+    var modifiedFileNames = this.get('modifiedFileNames');
+    if (modifiedFileNames && !modifiedFileNames.contains(fileName)) {
+      modifiedFileNames.push(fileName);
+    } else if (wizardController && installedServices[serviceName]) {
+      if (!fileNamesToUpdate.contains(fileName)) {
+        fileNamesToUpdate.push(fileName);
+      }
+    }
+    if (wizardController) {
+      wizardController.setDBProperty('fileNamesToUpdate', fileNamesToUpdate.uniq());
+    }
+  },
   /**
    * @method manageConfigurationGroup
    */
@@ -1243,7 +1245,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return App.ajax.send({
       name: 'ambari.service',
       data: {
-        fields : "?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database_name,hostComponents/RootServiceHostComponents/properties/server.jdbc.url"
+        fields : "?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database_name,hostComponents/RootServiceHostComponents/properties/server.jdbc.url,hostComponents/RootServiceHostComponents/properties/server.jdbc.database"
       },
       sender: this,
       success: 'getAmbariDatabaseSuccess'
@@ -1257,11 +1259,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method getAmbariDatabaseSuccess
    */
   getAmbariDatabaseSuccess: function (data) {
-    var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_hostname').value;
-    var ambariServiceHostComponents = data.hostComponents;
-    if (ambariServiceHostComponents.length) {
-      var ambariDBInfo = JSON.stringify(ambariServiceHostComponents[0].RootServiceHostComponents.properties);
-      this.set('mySQLServerConflict', ambariDBInfo.contains('mysql') && ambariDBInfo.indexOf(hiveDBHostname) > 0);
+    var ambariServerDBType = Em.getWithDefault(data.hostComponents, '0.RootServiceHostComponents.properties', {})['server.jdbc.database'],
+        ambariServerHostName = Em.getWithDefault(data.hostComponents, '0.RootServiceHostComponents.host_name', false),
+        hiveConnectionURL = Em.getWithDefault(App.config.findConfigProperty(this.get('stepConfigs'), 'javax.jdo.option.ConnectionURL', 'hive-site.xml') || {}, 'value', '');
+    if (ambariServerHostName) {
+      this.set('mySQLServerConflict', ambariServerDBType.contains('mysql') && hiveConnectionURL.contains(ambariServerHostName));
     } else {
       this.set('mySQLServerConflict', false);
     }
@@ -1281,7 +1283,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       return;
     }
     var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
-    if (hiveDBType == 'New MySQL Database') {
+    if (hiveDBType === 'New MySQL Database') {
       var self = this;
       return this.checkMySQLHost().done(function () {
         self.mySQLWarningHandler();
@@ -1397,7 +1399,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       onPrimary: function () {
         if (goToNextStep) {
           goToNextStep();
-          this.hide(); 
+          this.hide();
         }
       },
       onSecondary: function () {
@@ -1428,8 +1430,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   showOozieDerbyWarningPopup: function(callback) {
     var self = this;
     if (this.get('selectedServiceNames').contains('OOZIE')) {
-      var databaseType = Em.getWithDefault(this.findConfigProperty('oozie_database', 'oozie-env.xml') || {}, 'value', '');
-      if (databaseType == Em.I18n.t('installer.step7.oozie.database.new')) {
+      var databaseType = Em.getWithDefault(App.config.findConfigProperty(this.get('stepConfigs'), 'oozie_database', 'oozie-env.xml') || {}, 'value', '');
+      if (databaseType === Em.I18n.t('installer.step7.oozie.database.new')) {
         return App.ModalPopup.show({
           header: Em.I18n.t('common.warning'),
           body: Em.I18n.t('installer.step7.popup.oozie.derby.warning'),
@@ -1442,6 +1444,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
             }
           },
           onSecondary: function() {
+            App.set('router.nextBtnClickInProgress', false);
             self.set('submitButtonClicked', false);
             this.hide();
           },
@@ -1461,6 +1464,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * Proceed to the next step
    **/
   moveNext: function () {
+    App.set('router.nextBtnClickInProgress', true);
     App.router.send('next');
     this.set('submitButtonClicked', false);
   },
@@ -1471,11 +1475,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method submit
    */
   submit: function () {
-    if (this.get('isSubmitDisabled')) {
+    if (this.get('isSubmitDisabled') || App.router.nextBtnClickInProgress) {
       return false;
     }
-    var preInstallChecksController = App.router.get('preInstallChecksController');
+    App.set('router.nextBtnClickInProgress', true);
     if (this.get('supportsPreInstallChecks')) {
+      var preInstallChecksController = App.router.get('preInstallChecksController');
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
         return this.postSubmit();
       }
@@ -1491,8 +1496,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       self.serverSideValidationCallback();
     })
       .fail(function (value) {
-        if ("invalid_configs" == value) {
+        if ("invalid_configs" === value) {
           self.set('submitButtonClicked', false);
+          App.set('router.nextBtnClickInProgress', false);
         } else {
           // Failed due to validation mechanism failure.
           // Should proceed with other checks
@@ -1524,7 +1530,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       {
         var service = errorServices[0];
         this.set('selectedService', service);
-        this.propertyDidChange('selectedServiceNameTrigger');
         $('a[href="#' + service.serviceName + '"]').tab('show');
       }
     }

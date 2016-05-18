@@ -55,7 +55,7 @@
     </div>
 
     <div class="status span4">
-      {{{controller.content.status}}}
+      {{view App.AlertDefinitionSummary contentBinding="view.controller.content"}}
     </div>
   </div>
 
@@ -63,7 +63,7 @@
 
     {{! Left column }}
     {{! Alert Definition Configs }}
-    <div class="box span9">
+    <div class="box span8">
       <div class="box-header">
         <div class="pull-left">
           <h4>{{t common.configuration}}</h4>
@@ -94,11 +94,11 @@
     {{! Left column end }}
 
     {{! Right column }}
-    <div class="span3 right-column">
+    <div class="span4 right-column">
       <div class="properties-list background-text">
         <div class="row-fluid">
-          <div class="span4 property-name">{{t alerts.table.state}}:</div>
-          <div class="span8">
+          <div class="span6 property-name">{{t alerts.table.state}}:</div>
+          <div class="span6">
             {{#if controller.content.enabled}}
               {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
@@ -107,6 +107,8 @@
                     {{view.enabledDisplay}}
                   </span>
                 </a>
+              {{else}}
+                {{view.enabledDisplay}}
               {{/isAuthorized}}
             {{else}}
               {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
@@ -116,32 +118,34 @@
                     {{view.disabledDisplay}}
                   </span>
                 </a>
+              {{else}}
+                {{view.disabledDisplay}}
               {{/isAuthorized}}
             {{/if}}
           </div>
         </div>
         {{#if controller.content.serviceDisplayName}}
           <div class="row-fluid">
-            <div class="span4 property-name">{{t common.service}}:</div>
-            <div class="span8"><span>{{controller.content.serviceDisplayName}}</span></div>
+            <div class="span6 property-name">{{t common.service}}:</div>
+            <div class="span6"><span>{{controller.content.serviceDisplayName}}</span></div>
           </div>
         {{/if}}
         {{#if controller.content.componentNameFormatted}}
           <div class="row-fluid">
-            <div class="span4 property-name">{{t common.component}}:</div>
-            <div class="span8">{{controller.content.componentNameFormatted}}</div>
+            <div class="span6 property-name">{{t common.component}}:</div>
+            <div class="span6">{{controller.content.componentNameFormatted}}</div>
           </div>
         {{/if}}
         <div class="row-fluid">
-          <div class="span4 property-name">{{t common.type}}:</div>
-          <div class="span8">
+          <div class="span6 property-name">{{t common.type}}:</div>
+          <div class="span6">
             <span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}
           </div>
         </div>
         {{#if controller.groupsList.length}}
           <div class="row-fluid">
-            <div class="span4 property-name">{{t alerts.definition.details.groups}}:</div>
-            <div class="span8">
+            <div class="span6 property-name">{{t alerts.definition.details.groups}}:</div>
+            <div class="span6">
               <ul>
                 {{#each groupName in controller.groupsList}}
                   <li>{{groupName}}</li>
@@ -151,9 +155,37 @@
           </div>
         {{/if}}
         <div class="row-fluid">
-          <div class="span4 property-name">{{t alerts.table.header.lastTrigger}}:</div>
-          <div class="span8">{{controller.content.lastTriggeredFormatted}}</div>
+          <div class="span6 property-name">{{t alerts.table.header.lastTrigger}}:</div>
+          <div class="span6">{{controller.content.lastTriggeredFormatted}}</div>
         </div>
+        {{#unless controller.content.isTypeAggregate}}
+          <div class="row-fluid">
+            <div class="span6 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
+            <div class="span6">
+              {{#if controller.content.repeat_tolerance_enabled}}
+                <span>
+                  {{controller.content.repeat_tolerance}}
+                </span>
+              {{else}}
+                <span>
+                  {{controller.globalAlertsRepeatTolerance}}
+                  {{t alerts.table.header.default}}
+                </span>
+              {{/if}}
+              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+                <a {{action editRepeatTolerance target="controller"}} class="edit-description-button">
+                  <i class="icon-pencil"></i>
+                </a>
+              {{/isAuthorized}}
+            </div>
+          </div>
+        {{/unless}}
+        {{#if controller.content.hasHelpUrl}}
+          <div class="row-fluid">
+            <div class="span6 property-name">{{t alerts.table.header.helpUrl}}:</div>
+            <div class="span6"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank">{{t common.link}}</a></label></div>
+          </div>
+        {{/if}}
       </div>
     </div>
   </div>
@@ -171,11 +203,19 @@
 
         <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-instances-table">
           <thead>
-          <tr>
-            <th class="first">{{t alerts.definition.details.serviceHost}}</th>
-            <th>{{t common.status}}</th>
+          {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+            {{view view.parentView.serviceSort class="first service-sorting"}}
+            {{view view.parentView.hostNameSort class="host-sorting"}}
+            {{view view.parentView.stateSort class="state-sorting"}}
             <th>{{t alerts.definition.details.24-hour}}</th>
             <th>{{t alerts.table.header.check.response}}</th>
+          {{/view}}
+          <tr class="filter-row">
+            <th class="first">{{view view.serviceFilterView}}</th>
+            <th>{{view view.hostNameFilterView}}</th>
+            <th>{{view view.stateFilterView }}</th>
+            <th>{{!}}</th>
+            <th>{{!}}</th>
           </tr>
           </thead>
           <tbody>
@@ -183,17 +223,30 @@
             {{#each instance in view.pageContent}}
               {{#view view.instanceTableRow}}
                 <td class="first">
-                  {{view App.AlertInstanceServiceHostView instanceBinding="instance"}}
+                  {{#if instance.serviceDisplayName}}
+                    {{#if instance.service.isLoaded}}
+                      <a {{action goToService instance.service target="view"}}
+                        href="#">{{instance.serviceDisplayName}}</a>
+                    {{else}}
+                      {{instance.serviceDisplayName}}
+                    {{/if}}
+                  {{/if}}
                 </td>
-                <td>{{{instance.status}}}
-                  <time class="timeago"
-                        rel="tooltip" {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>
-                    {{instance.lastTriggeredForFormatted}}
-                  </time>
+                <td>
+                  {{#if instance.hostName}}
+                    <a {{action goToHostAlerts instance.host target="view"}} href="#">
+                      {{instance.hostName}}
+                    </a>
+                  {{/if}}
+                </td>
+                <td>
+                  {{view App.AlertInstanceStateView instanceBinding="instance"}}
                 </td>
                 <td>{{view view.parentView.lastDayCount hostNameBinding="instance.hostName"}}</td>
                 <td>
-                  <span class="alert-text" {{bindAttr data-original-title="instance.text"}}>{{instance.text}}</span>
+                  <a href="#" class="alert-text" {{action openFullResponse instance target="view"}} {{bindAttr data-original-title="instance.text"}}>
+                    {{instance.text}}
+                  </a>
                 </td>
               {{/view}}
             {{/each}}
@@ -208,6 +261,12 @@
         </table>
 
         <div class="page-bar">
+          <div class="filtered-info span4">
+            {{#if view.showFilteredContent}}
+              <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+                href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+            {{/if}}
+          </div>
           <div class="items-on-page">
             <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
           </div>
@@ -221,7 +280,7 @@
         </div>
 
       {{else}}
-        <div class="spinner"></div>
+        {{view App.SpinnerView}}
       {{/if}}
 
     </div>
@@ -230,5 +289,5 @@
 
   </div>
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}

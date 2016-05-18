@@ -392,6 +392,7 @@ module.exports = {
             "component_name" : "DATANODE",
             "display_name" : "DataNode",
             "custom_commands" : [ ],
+            "decommission_allowed" : true,
             "is_client" : false,
             "is_master" : false,
             "service_name" : "HDFS",
@@ -556,6 +557,7 @@ module.exports = {
             "custom_commands" : [ ],
             "is_client" : false,
             "is_master" : true,
+            "reassign_allowed" : true,
             "service_name" : "HIVE",
             "stack_name" : "HDP",
             "stack_version" : "2.1"
@@ -576,6 +578,7 @@ module.exports = {
             "custom_commands" : [ ],
             "is_client" : false,
             "is_master" : true,
+            "reassign_allowed" : true,
             "service_name" : "HIVE",
             "stack_name" : "HDP",
             "stack_version" : "2.1"
@@ -1283,6 +1286,7 @@ module.exports = {
             "custom_commands" : [ ],
             "is_client" : false,
             "is_master" : true,
+            "reassign_allowed" : true,
             "service_name" : "YARN",
             "stack_name" : "HDP",
             "stack_version" : "2.1"
@@ -1297,6 +1301,7 @@ module.exports = {
             "component_name" : "NODEMANAGER",
             "display_name" : "NodeManager",
             "custom_commands" : [ ],
+            "decommission_allowed" : false,
             "is_client" : false,
             "is_master" : false,
             "service_name" : "YARN",

@@ -32,14 +32,21 @@ import java.util.Set;
 public class TimelineAppMetricCacheKey {
   private final Set<String> metricNames;
   private final String appId;
+  private final String hostNames;
   private String spec;
   private TemporalInfo temporalInfo;
 
   public TimelineAppMetricCacheKey(Set<String> metricNames, String appId,
-                                   TemporalInfo temporalInfo) {
+                                   String hostNames, TemporalInfo temporalInfo) {
     this.metricNames = metricNames;
     this.appId = appId;
+    this.hostNames = hostNames;
     this.temporalInfo = temporalInfo;
+  }
+
+  public TimelineAppMetricCacheKey(Set<String> metricNames, String appId,
+                                   TemporalInfo temporalInfo) {
+    this(metricNames, appId, null, temporalInfo);
   }
 
   public Set<String> getMetricNames() {
@@ -67,6 +74,10 @@ public class TimelineAppMetricCacheKey {
     return appId;
   }
 
+  public String getHostNames() {
+    return hostNames;
+  }
+
   /**
    * Actual http request Uri, this does not contribute to the key behavior,
    * it is used solely for interoperability between @AMSPropertyProvider.MetricsRequest
@@ -92,28 +103,27 @@ public class TimelineAppMetricCacheKey {
 
     TimelineAppMetricCacheKey that = (TimelineAppMetricCacheKey) o;
 
-    if (appId != null ? !appId.equals(that.appId) : that.appId != null)
-      return false;
-    if (metricNames != null ? !metricNames.equals(that.metricNames) : that.metricNames != null)
-      return false;
+    if (!metricNames.equals(that.metricNames)) return false;
+    if (!appId.equals(that.appId)) return false;
+    return !(hostNames != null ? !hostNames.equals(that.hostNames) : that.hostNames != null);
 
-    return true;
   }
 
   @Override
   public int hashCode() {
-    int result = metricNames != null ? metricNames.hashCode() : 0;
-    result = 31 * result + (appId != null ? appId.hashCode() : 0);
+    int result = metricNames.hashCode();
+    result = 31 * result + appId.hashCode();
+    result = 31 * result + (hostNames != null ? hostNames.hashCode() : 0);
     return result;
   }
 
   @Override
   public String toString() {
-    return "TimelineAppMetricCacheKey {" +
-      "metricNames = " + metricNames +
-      ", appId = '" + appId + '\'' +
-      ", temporalInfo = " + temporalInfo +
-      ", uriInfo = " + spec +
+    return "TimelineAppMetricCacheKey{" +
+      "metricNames=" + metricNames +
+      ", appId='" + appId + '\'' +
+      ", hostNames=" + hostNames +
+      ", spec='" + spec + '\'' +
       '}';
   }
 }

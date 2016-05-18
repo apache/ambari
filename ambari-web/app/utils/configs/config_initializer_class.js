@@ -19,6 +19,12 @@
 var App = require('app');
 
 /**
+ * @typedef {object} initializer
+ * @property {string} type initializer type name
+ * @property {boolean} [isChecker] determines control flow callback
+ */
+
+/**
  * @typedef {object} initializerType
  * @property {string} name key
  * @property {string} method function's name (prefer to start method-name with '_init' or '_initAs'). Each method here is called with arguments equal to <code>initialValue</code>-call args. Initializer-settings are added as last argument
@@ -32,6 +38,7 @@ var App = require('app');
  * @property {string} name config's name
  * @property {number|string} value current value
  * @property {string} filename file name where this config is
+ * @property {number|string} [recommendedValue] value which is recommended
  */
 
 /**
@@ -73,13 +80,19 @@ var App = require('app');
  */
 App.ConfigInitializerClass = Em.Object.extend({
 
+  _initializerFlowCode: {
+    next: 0,
+    skipNext: 1,
+    skipAll: 2
+  },
+
   concatenatedProperties: ['initializerTypes'],
 
   /**
    * Map with configurations for config initializers
    * It's used only for initializers which are common for some configs (if not - use <code>uniqueInitializers</code>-map)
    * Key {string} configProperty-name
-   * Value {object|object[]} settings for initializer
+   * Value {initializer|initializer[]} settings for initializer
    *
    * @type {object}
    */
@@ -121,15 +134,31 @@ App.ConfigInitializerClass = Em.Object.extend({
     var initializer = initializers[Em.get(configProperty, 'name')];
     if (initializer) {
       initializer = Em.makeArray(initializer);
-      initializer.forEach(function (init) {
+      var i = 0;
+      while(i < initializer.length) {
+        var init = initializer[i];
         var _args = [].slice.call(args);
         var type = initializerTypes.findProperty('name', init.type);
         // add initializer-settings
         _args.push(init);
         var methodName = type.method;
         Em.assert('method-initializer is not a function ' + methodName, 'function' === Em.typeOf(self[methodName]));
-        configProperty = self[methodName].apply(self, _args);
-      });
+        if (init.isChecker) {
+          var result = self[methodName].apply(self, _args);
+          if (result === this.flowSkipNext()) {
+            i++; // skip next
+          }
+          else {
+            if (result === this.flowSkipAll()) {
+              break;
+            }
+          }
+        }
+        else {
+          configProperty = self[methodName].apply(self, _args);
+        }
+        i++;
+      }
     }
     return configProperty;
   },
@@ -148,7 +177,6 @@ App.ConfigInitializerClass = Em.Object.extend({
   initialValue: function (configProperty, localDB, dependencies) {
     var configName = Em.get(configProperty, 'name');
     var initializers = this.get('initializers');
-
     var initializer = initializers[configName];
     if (initializer) {
       return this._defaultInitializer(configProperty, localDB, dependencies);
@@ -160,7 +188,7 @@ App.ConfigInitializerClass = Em.Object.extend({
       var args = [].slice.call(arguments);
       return this[uniqueInitializer].apply(this, args);
     }
-
+    Em.set(configProperty, 'initialValue', Em.get(configProperty, 'value'));
     return configProperty;
   },
 
@@ -239,13 +267,13 @@ App.ConfigInitializerClass = Em.Object.extend({
     var copyInitializers = Em.copy(originalInitializers, true);
     this.set('__copyInitializers', copyInitializers);
     var initializers = this._updateNames('initializers', settings);
-    this.set('initializers', initializers);
+    this._setForComputed('initializers', initializers);
 
     var originalUniqueInitializers = this.get('uniqueInitializers');
     var copyUniqueInitializers = Em.copy(originalUniqueInitializers, true);
     this.set('__copyUniqueInitializers', copyUniqueInitializers);
     var uniqueInitializers = this._updateNames('uniqueInitializers', settings);
-    this.set('uniqueInitializers', uniqueInitializers);
+    this._setForComputed('uniqueInitializers', uniqueInitializers);
   },
 
   /**
@@ -257,10 +285,10 @@ App.ConfigInitializerClass = Em.Object.extend({
     var copyInitializers = this.get('__copyInitializers');
     var copyUniqueInitializers = this.get('__copyUniqueInitializers');
     if ('object' === Em.typeOf(copyInitializers)) {
-      this.set('initializers', Em.copy(copyInitializers, true));
+      this._setForComputed('initializers', Em.copy(copyInitializers, true));
     }
     if ('object' === Em.typeOf(copyUniqueInitializers)) {
-      this.set('uniqueInitializers', Em.copy(copyUniqueInitializers, true));
+      this._setForComputed('uniqueInitializers', Em.copy(copyUniqueInitializers, true));
     }
   },
 
@@ -293,6 +321,55 @@ App.ConfigInitializerClass = Em.Object.extend({
       source[configName] = initializer;
     });
     return source;
-  }
+  },
 
+  flowNext: function() {
+    return this.get('_initializerFlowCode.next');
+  },
+
+  flowSkipNext: function() {
+    return this.get('_initializerFlowCode.skipNext');
+  },
+
+  flowSkipAll: function() {
+    return this.get('_initializerFlowCode.skipAll');
+  },
+
+  /**
+   * Set value for computed property using `reopen`. Currently used to update 'initializers'
+   * and 'uniqueInitializers'.
+   * Used to set value for props like:
+   * <code>cp: function() { }.property()</code>
+   * <code>
+   * var obj = App.ConfigInitializerClass.create({
+   *   cp: function() {
+   *   		return {
+   *     		key: "value"
+   *   		}
+   *   }.property(),
+   *   setProp: function() {
+   *   		this.set('cp', {newKey: "new_value"}); // will not change `cp` value
+   *   },
+   *   updateProp: function() {
+   *   		this._setForComputed('cp', { newKey: "new_value"}); // will update
+   *   }
+   * });
+   *
+   * obj.get('cp'); // {key: "value"}
+   * obj.setProp();
+   * obj.get('cp'); // {key: "value"}
+   * obj.updateProp();
+   * obj.get('cp'); // {newKey: "new_value"}
+   * </code>
+   * @private
+   * @param  {string} key
+   * @param  {*} value
+   */
+  _setForComputed: function(key, value) {
+    var obj = {};
+    obj[key] = function() {
+      return value;
+    }.property();
+    this.reopen(obj);
+  }
 });

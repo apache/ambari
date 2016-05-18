@@ -13,36 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+# Warning: don't add changes to this script directly, please add changes to install-helper.sh.
 
 case "$1" in
   1) # Action install
     if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
         /var/lib/ambari-agent/install-helper.sh install
     fi
-  chkconfig --add ambari-agent
   ;;
   2) # Action upgrade
-    if [ -d "/etc/ambari-agent/conf.save" ]; then
-        cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
-        mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
-    fi
-
     if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
         /var/lib/ambari-agent/install-helper.sh upgrade
     fi
   ;;
 esac
-
-
-BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
-ORIG=/etc/ambari-agent/conf/ambari-agent.ini
-
-if [ -f $BAK ]; then
-  if [ -f "/var/lib/ambari-agent/upgrade_agent_configs.py" ]; then
-    /var/lib/ambari-agent/upgrade_agent_configs.py
-  fi
-  mv $BAK ${BAK}_$(date '+%d_%m_%y_%H_%M').save
-fi
-
 
 exit 0

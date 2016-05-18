@@ -23,6 +23,7 @@
   <property>
     <name>hbase.rootdir</name>
     <value>hdfs://localhost:8020/apps/hbase/data</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The directory shared by region servers and into
     which HBase persists.  The URL should be 'fully-qualified'
     to include the filesystem scheme.  For example, to specify the

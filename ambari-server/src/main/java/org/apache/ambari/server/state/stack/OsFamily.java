@@ -48,11 +48,14 @@ public class OsFamily {
     private final String os_pattern = "([\\D]+|(?:[\\D]+[\\d]+[\\D]+))([\\d]*)";
     private final String OS_DISTRO = "distro";
     private final String OS_VERSION = "versions";
+    private final String OS_MAPPING = "mapping";
+    private final String OS_ALIASES = "aliases";
     private final String LOAD_CONFIG_MSG = "Could not load OS family definition from %s file";
     private final String FILE_NAME = "os_family.json";
     private final Logger LOG = LoggerFactory.getLogger(OsFamily.class);
 
     private Map<String, JsonOsFamilyEntry> osMap = null;
+    private JsonOsFamilyRoot jsonOsFamily = null;
 
   /**
    * Initialize object
@@ -77,9 +80,10 @@ public class OsFamily {
         if (!f.exists()) throw new Exception();
         inputStream = new FileInputStream(f);
 
-        Type type = new TypeToken<Map<String, JsonOsFamilyEntry>>() {}.getType();
+        Type type = new TypeToken<JsonOsFamilyRoot>() {}.getType();
         Gson gson = new Gson();
-        osMap = gson.fromJson(new InputStreamReader(inputStream), type);
+        jsonOsFamily = gson.fromJson(new InputStreamReader(inputStream), type);
+        osMap = jsonOsFamily.getMapping();
       } catch (Exception e) {
         LOG.error(String.format(LOAD_CONFIG_MSG, new File(SharedResourcesPath, FILE_NAME).toString()));
         throw new RuntimeException(e);

@@ -37,6 +37,7 @@
     <description>Metadata User Name.</description>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>
@@ -59,6 +60,16 @@
     <value>./server/webapp</value>
     <description>Atlas expanded WAR directory.</description>
   </property>
+  <property>
+    <name>metadata_conf_file</name>
+    <value>application.properties</value>
+    <description>Atlas configuration file</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+  </property>
 
   <!-- metadata-env.sh -->
   <property>
@@ -69,9 +80,13 @@
 export JAVA_HOME={{java64_home}}
 
 # any additional java opts you want to set. This will apply to both client and server operations
+{% if security_enabled %}
+export METADATA_OPTS="{{metadata_opts}} -Djava.security.auth.login.config={{atlas_jaas_file}}"
+{% else %}
 export METADATA_OPTS="{{metadata_opts}}"
+{% endif %}
 
-# metadata configuration directory 
+# metadata configuration directory
 export METADATA_CONF={{conf_dir}}
 
 # Where log files are stored. Defatult is logs directory under the base install location
@@ -87,7 +102,7 @@ export METADATA_DATA_DIR={{data_dir}}
 export METADATA_PID_DIR={{pid_dir}}
 
 # hbase conf dir
-export HBASE_CONF_DIR=/etc/hbase/conf
+export HBASE_CONF_DIR={{atlas_hbase_conf_dir}}
 
 # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
 export METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}

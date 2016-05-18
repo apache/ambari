@@ -82,7 +82,7 @@ public class ConfigCondition {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public class ConfigConditionResult {
+  public static class ConfigConditionResult {
     @JsonProperty("property_value_attributes")
     private ValueAttributesInfo propertyValueAttributes;
 

@@ -3,6 +3,9 @@
     "clusterName": "c1", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
@@ -16,7 +19,7 @@
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "java_version": "8",
         "host_sys_prepped": "false",
-        "package_list": "[{\"name\":\"hbase_2_3_*\",\"skipUpgrade\":false},{\"name\":\"phoenix_2_3_*\",\"skipUpgrade\":false}]",
+        "package_list": "[{\"name\":\"hbase_2_3_*\",\"condition\":\"\",\"skipUpgrade\":false},{\"name\":\"phoenix_*\",\"condition\":\"should_install_phoenix\",\"skipUpgrade\":false}]",
         "db_name": "ambari",
         "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
         "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
@@ -229,6 +232,7 @@
             "xml_configurations_supported" : "false"
         },
       "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "hdfs_user_principal" : "",
             "hdfs_user_keytab" : "",

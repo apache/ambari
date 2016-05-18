@@ -22,6 +22,8 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
 
   templateName: require('templates/main/dashboard/widgets/cluster_metrics'),
 
+  isClusterMetricsWidget: true,
+
   exportTargetView: Em.computed.alias('childViews.lastObject'),
 
   didInsertElement: function () {
@@ -32,6 +34,10 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
     App.tooltip(this.$('.corner-icon > .icon-save'), {
       title: Em.I18n.t('common.export')
     });
+  },
+
+  willDestroyElement: function () {
+    this.$('.corner-icon > .icon-save').tooltip('destroy');
   }
 
 });

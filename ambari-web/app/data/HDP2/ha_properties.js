@@ -25,9 +25,10 @@ module.exports =
       App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
       App.ServiceConfigCategory.create({ name: 'HBASE', displayName: 'HBase'}),
       App.ServiceConfigCategory.create({ name: 'ACCUMULO', displayName: 'Accumulo'}),
-      App.ServiceConfigCategory.create({ name: 'AMBARI_METRICS', displayName: 'Ambari Metrics'})
+      App.ServiceConfigCategory.create({ name: 'AMBARI_METRICS', displayName: 'Ambari Metrics'}),
+      App.ServiceConfigCategory.create({ name: 'HAWQ', displayName: 'HAWQ'})
     ],
-    sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site', 'ams-hbase-site'],
+    sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site', 'ams-hbase-site', 'hawq-site', 'hdfs-client'],
     configs: [
     /**********************************************HDFS***************************************/
       {
@@ -67,6 +68,17 @@ module.exports =
       {
         "name": "dfs.nameservices",
         "displayName": "dfs.nameservices",
+        "description": "Comma-separated list of nameservices.",
+        "isReconfigurable": false,
+        "recommendedValue": "haCluster",
+        "value": "haCluster",
+        "category": "HDFS",
+        "filename": "hdfs-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.internal.nameservices",
+        "displayName": "dfs.internal.nameservices",
         "description": "Comma-separated list of nameservices.",
         "isReconfigurable": false,
         "recommendedValue": "haCluster",
@@ -180,6 +192,7 @@ module.exports =
         "description": "A list of scripts or Java classes which will be used to fence the Active NameNode during a failover.",
         "isReconfigurable": false,
         "recommendedValue": "shell(/bin/true)",
+        "displayType": "multiLine",
         "value": "shell(/bin/true)",
         "category": "HDFS",
         "filename": "hdfs-site",
@@ -249,6 +262,84 @@ module.exports =
         "category": "AMBARI_METRICS",
         "isVisible": false,
         "filename": "ams-hbase-site",
+        "serviceName": 'MISC'
+      },
+    /**********************************************HAWQ***************************************/
+      {
+        "name": "hawq_dfs_url",
+        "displayName": "hawq_dfs_url",
+        "description": "URL for Accessing HDFS",
+        "isReconfigurable": false,
+        "recommendedValue": "haCluster/hawq_default",
+        "value": "haCluster/hawq_default",
+        "category": "HAWQ",
+        "filename": "hawq-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.nameservices",
+        "displayName": "dfs.nameservices",
+        "description": "Comma-separated list of nameservices.",
+        "isReconfigurable": false,
+        "recommendedValue": "haCluster",
+        "value": "haCluster",
+        "category": "HAWQ",
+        "filename": "hdfs-client",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.ha.namenodes.${dfs.nameservices}",
+        "displayName": "dfs.ha.namenodes.${dfs.nameservices}",
+        "description": "The prefix for a given nameservice, contains a comma-separated list of namenodes for a given nameservice.",
+        "isReconfigurable": false,
+        "recommendedValue": "nn1,nn2",
+        "value": "nn1,nn2",
+        "category": "HAWQ",
+        "filename": "hdfs-client",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.rpc-address.${dfs.nameservices}.nn1",
+        "displayName": "dfs.namenode.rpc-address.${dfs.nameservices}.nn1",
+        "description": "RPC address that handles all clients requests for nn1.",
+        "isReconfigurable": false,
+        "recommendedValue": "0.0.0.0:8020",
+        "value": "0.0.0.0:8020",
+        "category": "HAWQ",
+        "filename": "hdfs-client",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.rpc-address.${dfs.nameservices}.nn2",
+        "displayName": "dfs.namenode.rpc-address.${dfs.nameservices}.nn2",
+        "description": "RPC address that handles all clients requests for nn2.",
+        "isReconfigurable": false,
+        "recommendedValue": "0.0.0.0:8020",
+        "value": "0.0.0.0:8020",
+        "category": "HAWQ",
+        "filename": "hdfs-client",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.http-address.${dfs.nameservices}.nn1",
+        "displayName": "dfs.namenode.http-address.${dfs.nameservices}.nn1",
+        "description": "The fully-qualified HTTP address for nn1 NameNode.",
+        "isReconfigurable": false,
+        "recommendedValue": "0.0.0.0:50070",
+        "value": "0.0.0.0:50070",
+        "category": "HAWQ",
+        "filename": "hdfs-client",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "dfs.namenode.http-address.${dfs.nameservices}.nn2",
+        "displayName": "dfs.namenode.http-address.${dfs.nameservices}.nn2",
+        "description": "The fully-qualified HTTP address for nn2 NameNode.",
+        "isReconfigurable": false,
+        "recommendedValue": "0.0.0.0:50070",
+        "value": "0.0.0.0:50070",
+        "category": "HAWQ",
+        "filename": "hdfs-client",
         "serviceName": 'MISC'
       }
     ]

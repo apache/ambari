@@ -60,6 +60,8 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
 
   @Override
   public Collection<? extends GrantedAuthority> getGrantedAuthorities(DirContextOperations userData, String username) {
+    username = AuthorizationHelper.resolveLoginAliasToUserName(username);
+
     log.info("Get authorities for user " + username + " from local DB");
 
     UserEntity user;

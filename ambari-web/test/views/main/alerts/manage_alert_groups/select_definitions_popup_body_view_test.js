@@ -82,19 +82,23 @@ describe('App.SelectDefinitionsPopupBodyView', function () {
     beforeEach(function () {
       sinon.stub(view, 'filterDefs', Em.K);
       sinon.stub(view, 'filteredContentObsOnce', Em.K);
-    });
-    afterEach(function () {
-      view.filterDefs.restore();
-      view.filteredContentObsOnce.restore();
-    });
-    it("", function () {
       view.set('initialDefs', [
         Em.Object.create({filtered: true}),
         Em.Object.create({filtered: false})
       ]);
       view.didInsertElement();
+    });
+    afterEach(function () {
+      view.filterDefs.restore();
+      view.filteredContentObsOnce.restore();
+    });
+    it("each availableDefs filtered is updated", function () {
       expect(view.get('parentView.availableDefs').mapProperty('filtered')).to.eql([true, true]);
+    });
+    it("parentView.isLoaded is true", function () {
       expect(view.get('parentView.isLoaded')).to.be.true;
+    });
+    it("filteredContentObsOnce is called once", function () {
       expect(view.filteredContentObsOnce.calledOnce).to.be.true;
     });
   });
@@ -224,15 +228,25 @@ describe('App.SelectDefinitionsPopupBodyView', function () {
       }
     ];
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        view.set('parentView.availableDefs', test.data.defs);
-        view.set('showOnlySelectedDefs', test.data.showOnlySelectedDefs);
-        view.set('filterComponent', test.data.filterComponent);
-        view.set('filterService', test.data.filterService);
+      describe(test.title, function () {
 
-        view.filterDefs();
-        expect(view.get('parentView.availableDefs').mapProperty('filtered')).to.eql(test.result);
-        expect(view.get('startIndex')).to.equal(1);
+        beforeEach(function () {
+          view.set('parentView.availableDefs', test.data.defs);
+          view.set('showOnlySelectedDefs', test.data.showOnlySelectedDefs);
+          view.set('filterComponent', test.data.filterComponent);
+          view.set('filterService', test.data.filterService);
+
+          view.filterDefs();
+        });
+
+        it('availableDefs.@each.filtered is ' + test.result, function () {
+          expect(view.get('parentView.availableDefs').mapProperty('filtered')).to.eql(test.result);
+        });
+
+        it('startIndex is 1', function () {
+          expect(view.get('startIndex')).to.equal(1);
+        });
+
       });
     });
   });
@@ -244,7 +258,7 @@ describe('App.SelectDefinitionsPopupBodyView', function () {
     afterEach(function () {
       view.filterDefs.restore();
     });
-    it("", function () {
+    it("is formatted with parentView.availableDefs", function () {
       view.set('parentView.availableDefs', [
         {selected: true},
         {selected: false}
@@ -370,26 +384,38 @@ describe('App.SelectDefinitionsPopupBodyView', function () {
   });
 
   describe("#toggleShowSelectedDefs()", function() {
+    var filterComponent;
+    var filterService;
     beforeEach(function () {
       sinon.stub(view, 'filterDefs', Em.K);
+      view.set('showOnlySelectedDefs', true);
+      filterComponent = Em.Object.create();
+      filterService = Em.Object.create();
+      view.set('filterComponent', filterComponent);
+      view.set('filterService', filterService);
+      view.toggleShowSelectedDefs();
     });
     afterEach(function () {
       view.filterDefs.restore();
     });
 
-    it("", function() {
-      view.set('showOnlySelectedDefs', true);
-      var filterComponent = Em.Object.create();
-      var filterService = Em.Object.create();
-      view.set('filterComponent', filterComponent);
-      view.set('filterService', filterService);
-
-      view.toggleShowSelectedDefs();
-
+    it("filterComponent.selected is false", function() {
       expect(filterComponent.get('selected')).to.be.false;
+    });
+
+    it("filterService.selected is false", function() {
       expect(filterService.get('selected')).to.be.false;
+    });
+
+    it("filterComponent is null", function() {
       expect(view.get('filterComponent')).to.be.null;
+    });
+
+    it("filterService is null", function() {
       expect(view.get('filterService')).to.be.null;
+    });
+
+    it("showOnlySelectedDefs is false", function() {
       expect(view.get('showOnlySelectedDefs')).to.be.false;
     });
   });

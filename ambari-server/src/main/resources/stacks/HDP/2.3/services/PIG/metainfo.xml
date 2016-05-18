@@ -23,13 +23,13 @@
       <version>0.15.0.2.3</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>pig_2_3_*</name>
+              <name>pig_${stack_version}</name>
             </package>
             <package>
-              <name>datafu_2_3_*</name>
+              <name>datafu_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -37,10 +37,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>pig-2-3-.*</name>
+              <name>pig-${stack_version}</name>
             </package>
             <package>
-              <name>datafu-2-3-.*</name>
+              <name>datafu-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

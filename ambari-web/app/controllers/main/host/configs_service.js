@@ -24,6 +24,8 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
   typeTagToHostMap: null,
   configKeyToConfigMap: null,
 
+  canEdit: false,
+
   /**
    * On load function
    */

@@ -186,7 +186,7 @@ var wrapperView = Ember.View.extend({
         $optionEl.text(triggeredValue.displayAs);
         // the second one option should be hidden
         // as the result, on init stage we show only one option that could be selected
-        if (index == 1) {
+        if (index === 1) {
           $optionEl.css('display', 'none');
         }
       }, this);
@@ -207,7 +207,7 @@ var wrapperView = Ember.View.extend({
       var currentValueIndex = values.indexOf(this.get('value'));
       if (currentValueIndex < 0) return;
       // value assigned to hidden option
-      hiddenValue = values[Number(currentValueIndex == 0)];
+      hiddenValue = values[Number(currentValueIndex === 0)];
     }, this);
     if (hiddenValue) {
       // our select
@@ -282,7 +282,7 @@ var componentFieldView = Ember.View.extend({
       var dropDown = this.$('.filter-components');
       var firstClick = true;
       $(document).bind('click', function (e) {
-        if (!firstClick && $(e.target).closest(dropDown).length == 0) {
+        if (!firstClick && !$(e.target).closest(dropDown).length) {
           self.set('isFilterOpen', false);
           $(document).unbind('click');
         }
@@ -382,194 +382,149 @@ module.exports = {
         return function (rowValue, rangeExp) {
           var compareChar = isNaN(rangeExp.charAt(0)) ? rangeExp.charAt(0) : false;
           var compareScale = rangeExp.charAt(rangeExp.length - 1);
-          var compareValue = compareChar ? parseFloat(rangeExp.substr(1, rangeExp.length)) : parseFloat(rangeExp.substr(0, rangeExp.length));
-          var match = false;
-          if (rangeExp.length == 1 && compareChar !== false) {
+          var compareValue = parseFloat(rangeExp.substr(compareChar ? 1 : 0));
+          if (rangeExp.length === 1 && compareChar !== false) {
             // User types only '=' or '>' or '<', so don't filter column values
-            match = true;
-            return match;
+            return true;
           }
-          switch (compareScale) {
-            case 'g':
-              compareValue *= 1073741824;
-              break;
-            case 'm':
-              compareValue *= 1048576;
-              break;
-            case 'k':
-              compareValue *= 1024;
-              break;
-            default:
-              //default value in GB
-              compareValue *= 1073741824;
-          }
-          rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+          var oneSymbolScales = {
+            k: 1024,
+            m: 1048576,
+            g: 1073741824
+          };
+          var twoSymbolsScales = {
+            KB: 1024,
+            MB: 1048576,
+            GB: 1073741824
+          };
+
+          compareValue *= oneSymbolScales[compareScale] ? oneSymbolScales[compareScale] : oneSymbolScales.g; // default value in GB
+          rowValue = jQuery(rowValue).text() ? jQuery(rowValue).text() : rowValue;
 
           var convertedRowValue;
           if (rowValue === '<1KB') {
             convertedRowValue = 1;
           } else {
             var rowValueScale = rowValue.substr(rowValue.length - 2, 2);
-            switch (rowValueScale) {
-              case 'KB':
-                convertedRowValue = parseFloat(rowValue) * 1024;
-                break;
-              case 'MB':
-                convertedRowValue = parseFloat(rowValue) * 1048576;
-                break;
-              case 'GB':
-                convertedRowValue = parseFloat(rowValue) * 1073741824;
-                break;
+            if (twoSymbolsScales[rowValueScale]) {
+              convertedRowValue = parseFloat(rowValue) * twoSymbolsScales[rowValueScale];
             }
           }
 
           switch (compareChar) {
             case '<':
-              if (compareValue > convertedRowValue) match = true;
-              break;
+              return compareValue > convertedRowValue;
             case '>':
-              if (compareValue < convertedRowValue) match = true;
-              break;
+              return compareValue < convertedRowValue;
             case false:
             case '=':
-              if (compareValue == convertedRowValue) match = true;
-              break;
+              return compareValue === convertedRowValue;
+            default:
+              return false;
           }
-          return match;
         };
-        break;
       case 'duration':
         return function (rowValue, rangeExp) {
           var compareChar = isNaN(rangeExp.charAt(0)) ? rangeExp.charAt(0) : false;
           var compareScale = rangeExp.charAt(rangeExp.length - 1);
-          var compareValue = compareChar ? parseFloat(rangeExp.substr(1, rangeExp.length)) : parseFloat(rangeExp.substr(0, rangeExp.length));
-          var match = false;
-          if (rangeExp.length == 1 && compareChar !== false) {
+          var compareValue = parseFloat(rangeExp.substr(compareChar ? 1 : 0));
+          if (rangeExp.length === 1 && compareChar !== false) {
             // User types only '=' or '>' or '<', so don't filter column values
-            match = true;
-            return match;
+            return true;
           }
-          switch (compareScale) {
-            case 's':
-              compareValue *= 1000;
-              break;
-            case 'm':
-              compareValue *= 60000;
-              break;
-            case 'h':
-              compareValue *= 3600000;
-              break;
-            default:
-              compareValue *= 1000;
-          }
-          rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
+          var oneSymbolsScales = {
+            s: 1000,
+            m: 60000,
+            h: 3600000
+          };
+          compareValue *= oneSymbolsScales[compareScale] ? oneSymbolsScales[compareScale] : oneSymbolsScales.s;
+          rowValue = jQuery(rowValue).text() ? jQuery(rowValue).text() : rowValue;
 
           switch (compareChar) {
             case '<':
-              if (compareValue > rowValue) match = true;
-              break;
+              return compareValue > rowValue;
             case '>':
-              if (compareValue < rowValue) match = true;
-              break;
+              return compareValue < rowValue;
             case false:
             case '=':
-              if (compareValue == rowValue) match = true;
-              break;
+              return compareValue == rowValue;
+            default:
+              return false;
           }
-          return match;
         };
-        break;
       case 'date':
         return function (rowValue, rangeExp) {
-          var match = false;
           var timePassed = App.dateTime() - rowValue;
           switch (rangeExp) {
             case 'Past 1 hour':
-              match = timePassed <= 3600000;
-              break;
+              return timePassed <= 3600000;
             case 'Past 1 Day':
-              match = timePassed <= 86400000;
-              break;
+              return timePassed <= 86400000;
             case 'Past 2 Days':
-              match = timePassed <= 172800000;
-              break;
+              return timePassed <= 172800000;
             case 'Past 7 Days':
-              match = timePassed <= 604800000;
-              break;
+              return timePassed <= 604800000;
             case 'Past 14 Days':
-              match = timePassed <= 1209600000;
-              break;
+              return timePassed <= 1209600000;
             case 'Past 30 Days':
-              match = timePassed <= 2592000000;
-              break;
+              return timePassed <= 2592000000;
             case 'Any':
-              match = true;
-              break;
+              return true;
+            default:
+              return false;
           }
-          return match;
         };
-        break;
       case 'number':
         return function (rowValue, rangeExp) {
           var compareChar = rangeExp.charAt(0);
           var compareValue;
-          var match = false;
-          if (rangeExp.length == 1) {
-            if (isNaN(parseInt(compareChar))) {
+          if (rangeExp.length === 1) {
+            if (isNaN(parseInt(compareChar, 10))) {
               // User types only '=' or '>' or '<', so don't filter column values
-              match = true;
-              return match;
+              return true;
             }
-            else {
-              compareValue = parseFloat(parseFloat(rangeExp).toFixed(2));
-            }
+            compareValue = parseFloat(parseFloat(rangeExp).toFixed(2));
           }
           else {
-            if (isNaN(parseInt(compareChar))) {
+            if (isNaN(parseInt(compareChar, 10))) {
               compareValue = parseFloat(parseFloat(rangeExp.substr(1, rangeExp.length)).toFixed(2));
             }
             else {
               compareValue = parseFloat(parseFloat(rangeExp.substr(0, rangeExp.length)).toFixed(2));
             }
           }
-          rowValue = parseFloat((jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue);
-          match = false;
+          rowValue = parseFloat(jQuery(rowValue).text() ? jQuery(rowValue).text() : rowValue);
           switch (compareChar) {
             case '<':
-              if (compareValue > rowValue) match = true;
-              break;
+              return compareValue > rowValue;
             case '>':
-              if (compareValue < rowValue) match = true;
-              break;
+              return compareValue < rowValue;
             case '=':
-              if (compareValue == rowValue) match = true;
-              break;
             default:
-              if (rangeExp == rowValue) match = true;
+              return compareValue === rowValue;
           }
-          return match;
         };
-        break;
       case 'sub-resource':
         return function (origin, compareValue) {
-          if (!Array.isArray(compareValue) || compareValue.length === 0) return true;
+          if (!Array.isArray(compareValue) || !compareValue.length) {
+            return true;
+          }
 
           return origin.some(function (item) {
             for (var i = 0, l = compareValue.length; i < l; i++) {
-              if(item.get(compareValue[i].property) !== compareValue[i].value) return false
+              if (Array.isArray(compareValue[i].value)) {
+                if (!compareValue[i].value.contains(item.get(compareValue[i].property))) return false;
+              } else {
+                if (item.get(compareValue[i].property) !== compareValue[i].value) return false;
+              }
             }
             return true;
           });
         };
-        break;
       case 'multiple':
         return function (origin, compareValue) {
           var options = compareValue.split(',');
-          if (typeof (origin) === "string") {
-            var rowValue = origin;
-          } else {
-            var rowValue = origin.mapProperty('componentName').join(" ");
-          }
+          var rowValue = typeof origin === "string" ? origin : origin.mapProperty('componentName').join(" ");
           var str = new RegExp(compareValue, "i");
           for (var i = 0; i < options.length; i++) {
             if (!isGlobal) {
@@ -581,34 +536,28 @@ module.exports = {
           }
           return false;
         };
-        break;
       case 'boolean':
+      case 'select':
         return function (origin, compareValue) {
           return origin === compareValue;
         };
-        break;
-      case 'select':
-        return function (origin, compareValue) {
-          return origin == compareValue;
-        };
-        break;
       case 'os':
         return function (origin, compareValue) {
           return origin.getEach('osType').contains(compareValue)
         };
-        break;
       case 'range':
         return function (origin, compareValue) {
           if (compareValue[1] && compareValue[0]) {
             return origin >= compareValue[0] && origin <= compareValue[1];
-          } else if (compareValue[0]) {
+          }
+          if (compareValue[0]) {
             return origin >= compareValue[0];
-          } else if (compareValue[1]) {
+          }
+          if (compareValue[1]) {
             return origin <= compareValue[1]
           }
           return true;
         };
-        break;
       case 'alert_status':
         /**
          * origin - alertDefinition.summary
@@ -627,27 +576,47 @@ module.exports = {
           }
           return !!origin[compareValue] && (origin[compareValue].count > 0 || origin[compareValue].maintenanceCount > 0);
         };
-        break;
       case 'alert_group':
         return function (origin, compareValue) {
           return origin.mapProperty('id').contains(compareValue);
         };
-        break;
       case 'enable_disable':
         return function (origin, compareValue) {
-          return origin == (compareValue == 'enabled');
+          return origin === (compareValue === 'enabled');
         };
-        break;
+      case 'file_extension':
+        return function(origin, compareValue) {
+          return origin.endsWith(compareValue);
+        };
       case 'string':
       default:
         return function (origin, compareValue) {
           if (validator.isValidMatchesRegexp(compareValue)) {
             var regex = new RegExp(compareValue, "i");
             return regex.test(origin);
-          } else {
-            return false;
           }
+          return false;
         }
     }
+  },
+
+  getComputedServicesList: function () {
+    return Em.computed('App.router.clusterController.isLoaded', function () {
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(App.Service.find().map(function (service) {
+        return {
+          value: service.get('serviceName'),
+          label: service.get('displayName')
+        }
+      })).concat({
+        value: 'AMBARI',
+        label: Em.I18n.t('app.name')
+      });
+    });
   }
+
 };

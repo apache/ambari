@@ -37,6 +37,10 @@ def check_service_status(name):
     pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
     check_process_status(pid_file)
 
+  elif name == 'grafana':
+    pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")
+    check_process_status(pid_file)
+
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def check_service_status(name):
   import service_mapping

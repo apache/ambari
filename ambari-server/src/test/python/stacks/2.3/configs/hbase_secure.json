@@ -44,6 +44,9 @@
     "clusterName": "c1", 
     "hostname": "c6405.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://c6405.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.8.0_40", 
@@ -135,7 +138,7 @@
             "security.client.protocol.acl": "*"
         }, 
         "kerberos-env": {
-            "kdc_host": "c6405.ambari.apache.org", 
+            "kdc_hosts": "c6405.ambari.apache.org",
             "ad_create_attributes_template": "\n{\n  \"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"],\n  \"cn\": \"$principal_name\",\n  #if( $is_service )\n  \"servicePrincipalName\": \"$principal_name\",\n  #end\n  \"userPrincipalName\": \"$normalized_principal\",\n  \"unicodePwd\": \"$password\",\n  \"accountExpires\": \"0\",\n  \"userAccountControl\": \"66048\"\n}\n    ",
             "realm": "EXAMPLE.COM", 
             "container_dn": "", 
@@ -432,7 +435,7 @@
         "krb5-conf": {
             "domains": "EXAMPLE.COM", 
             "manage_krb5_conf": "true", 
-            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}\n    ", 
+            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}\n    ",
             "conf_dir": "/etc"
         }, 
         "ldap-log4j": {
@@ -576,6 +579,7 @@
             "content": "\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\nversion: 1\n\n# Please replace with site specific values\ndn: dc=hadoop,dc=apache,dc=org\nobjectclass: organization\nobjectclass: dcObject\no: Hadoop\ndc: hadoop\n\n# Entry for a sample people container\n# Please replace with site specific values\ndn: ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:organizationalUnit\nou: people\n\n# Entry for a sample end user\n# Please replace with site specific values\ndn: uid=guest,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: Guest\nsn: User\nuid: guest\nuserPassword:guest-password\n\n# entry for sample user admin\ndn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: Admin\nsn: Admin\nuid: admin\nuserPassword:admin-password\n\n# entry for sample user sam\ndn: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: sam\nsn: sam\nuid: sam\nuserPassword:sam-password\n\n# entry for sample user tom\ndn: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: tom\nsn: tom\nuid: tom\nuserPassword:tom-password\n\n# create FIRST Level groups branch\ndn: ou=groups,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:organizationalUnit\nou: groups\ndescription: generic groups branch\n\n# create the analyst group under groups\ndn: cn=analyst,ou=groups,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass: groupofnames\ncn: analyst\ndescription:analyst  group\nmember: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\nmember: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\n\n\n# create the scientist group under groups\ndn: cn=scientist,ou=groups,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass: groupofnames\ncn: scientist\ndescription: scientist group\nmember: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

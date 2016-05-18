@@ -23,83 +23,71 @@ module.exports = App.WizardRoute.extend({
 
   leaveWizard: function (router, context) {
     var addHostController = router.get('addHostController');
-    App.router.get('updateController').set('isWorking', true);
-    addHostController.finish();
-    App.router.get('wizardWatcherController').resetUser();
-    App.clusterStatus.setClusterStatus({
-      clusterName: App.router.get('content.cluster.name'),
-      clusterState: 'DEFAULT',
-      localdb: App.db.data
-    }, {
-      alwaysCallback: function () {
-        context.hide();
-        App.router.transitionTo('hosts.index');
-        Em.run.next(function() {
-          location.reload();
-        });
-      }
-    });
+    addHostController.resetOnClose(addHostController, 'hosts.index');
   },
 
   enter: function (router) {
     var self = this;
+    router.get('mainController').dataLoading().done(function () {
+      Ember.run.next(function () {
+        var addHostController = router.get('addHostController');
+        App.router.get('updateController').set('isWorking', false);
+        var popup = App.ModalPopup.show({
+          classNames: ['full-width-modal'],
+          header: Em.I18n.t('hosts.add.header'),
+          bodyClass: App.AddHostView.extend({
+            controllerBinding: 'App.router.addHostController'
+          }),
+          primary: Em.I18n.t('form.cancel'),
+          secondary: null,
+          showFooter: false,
 
-    Ember.run.next(function () {
-      var addHostController = router.get('addHostController');
-      App.router.get('updateController').set('isWorking', false);
-      App.ModalPopup.show({
-        classNames: ['full-width-modal'],
-        header: Em.I18n.t('hosts.add.header'),
-        bodyClass: App.AddHostView.extend({
-          controllerBinding: 'App.router.addHostController'
-        }),
-        primary: Em.I18n.t('form.cancel'),
-        secondary: null,
-        showFooter: false,
-
-        onPrimary: function () {
-          this.hide();
-          App.router.get('updateController').set('isWorking', true);
-          router.transitionTo('hosts.index');
-        },
-        onClose: function () {
-          var popupContext = this;
-          if (addHostController.get('currentStep') == '6') {
-            App.ModalPopup.show({
-              header: Em.I18n.t('hosts.add.exit.header'),
-              body: Em.I18n.t('hosts.add.exit.body'),
-              onPrimary: function () {
-                self.leaveWizard(router, popupContext);
-              }
-            });
-          } else {
-            self.leaveWizard(router, this);
+          onPrimary: function () {
+            this.hide();
+            App.router.get('updateController').set('isWorking', true);
+            router.transitionTo('hosts.index');
+          },
+          onClose: function () {
+            var popupContext = this;
+            if (addHostController.get('currentStep') == '6') {
+              App.ModalPopup.show({
+                header: Em.I18n.t('hosts.add.exit.header'),
+                body: Em.I18n.t('hosts.add.exit.body'),
+                onPrimary: function () {
+                  self.leaveWizard(router, popupContext);
+                }
+              });
+            } else {
+              self.leaveWizard(router, this);
+            }
+          },
+          didInsertElement: function () {
+            this._super();
+            this.fitHeight();
           }
-        },
-        didInsertElement: function () {
-          this.fitHeight();
+        });
+        var currentClusterStatus = App.clusterStatus.get('value');
+        if (currentClusterStatus) {
+          switch (currentClusterStatus.clusterState) {
+            case 'ADD_HOSTS_DEPLOY_PREP_2' :
+              addHostController.setCurrentStep('4');
+              break;
+            case 'ADD_HOSTS_INSTALLING_3' :
+            case 'SERVICE_STARTING_3' :
+              addHostController.setCurrentStep('5');
+              break;
+            case 'ADD_HOSTS_INSTALLED_4' :
+              addHostController.setCurrentStep('6');
+              break;
+            default:
+              break;
+          }
         }
-      });
-      var currentClusterStatus = App.clusterStatus.get('value');
-      if (currentClusterStatus) {
-        switch (currentClusterStatus.clusterState) {
-          case 'ADD_HOSTS_DEPLOY_PREP_2' :
-            addHostController.setCurrentStep('4');
-            break;
-          case 'ADD_HOSTS_INSTALLING_3' :
-          case 'SERVICE_STARTING_3' :
-            addHostController.setCurrentStep('5');
-            break;
-          case 'ADD_HOSTS_INSTALLED_4' :
-            addHostController.setCurrentStep('6');
-            break;
-          default:
-            break;
-        }
-      }
 
-      App.router.get('wizardWatcherController').setUser(addHostController.get('name'));
-      router.transitionTo('step' + addHostController.get('currentStep'));
+        addHostController.set('popup', popup);
+        App.router.get('wizardWatcherController').setUser(addHostController.get('name'));
+        router.transitionTo('step' + addHostController.get('currentStep'));
+      });
     });
 
   },
@@ -196,6 +184,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
+      App.set('router.nextBtnClickInProgress', true);
       var addHostController = router.get('addHostController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
@@ -203,10 +192,12 @@ module.exports = App.WizardRoute.extend({
         wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           addHostController.saveSlaveComponentHosts(wizardStep6Controller);
           if (wizardStep6Controller.isAllCheckboxesEmpty()) {
+            App.set('router.nextBtnClickInProgress', false);
             router.transitionTo('step5');
             addHostController.set('content.configGroups', []);
             addHostController.saveServiceConfigGroups();
           } else {
+            App.set('router.nextBtnClickInProgress', false);
             router.transitionTo('step4');
           }
         });
@@ -266,15 +257,17 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
-      var addHostController = router.get('addHostController');
-      var wizardStep8Controller = router.get('wizardStep8Controller');
-      addHostController.applyConfigGroup();
-      addHostController.installServices(false, function () {
-        addHostController.setInfoForStep9();
-        // We need to do recovery based on whether we are in Add Host or Installer wizard
-        addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
-        wizardStep8Controller.set('servicesInstalled', true);
-        router.transitionTo('step6');
+      router.get('mainAdminKerberosController').getKDCSessionState(function() {
+        var addHostController = router.get('addHostController');
+        var wizardStep8Controller = router.get('wizardStep8Controller');
+        addHostController.applyConfigGroup();
+        addHostController.installServices(false, function () {
+          addHostController.setInfoForStep9();
+          // We need to do recovery based on whether we are in Add Host or Installer wizard
+          addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
+          wizardStep8Controller.set('servicesInstalled', true);
+          router.transitionTo('step6');
+        });
       });
     }
   }),

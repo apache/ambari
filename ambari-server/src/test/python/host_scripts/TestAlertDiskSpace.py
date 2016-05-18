@@ -73,7 +73,7 @@ class TestAlertDiskSpace(RMFTestCase):
     self.assertEqual(res, ('WARNING', [
       'Capacity Used: [30.00%, 1.6 GB], Capacity Total: [5.4 GB], path=/. Total free space is less than 5.0 GB']))
 
-    # trigger isdir(/usr/hdp) to True
+    # trigger isdir(<stack-root>) to True
     isdir_mock.return_value = True
 
     # / OK
@@ -85,7 +85,7 @@ class TestAlertDiskSpace(RMFTestCase):
     self.assertEqual(res,
       ('OK', ['Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB], path=/usr/hdp']))
 
-    # /usr/hdp < 5GB
+    # <stack-root> < 5GB
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
       total = 5418482688L, used = 1625544806L,
       free = 3792937882L, path="/usr/hdp")

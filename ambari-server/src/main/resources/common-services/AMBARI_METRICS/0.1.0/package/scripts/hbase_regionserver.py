@@ -19,7 +19,6 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 
 from hbase import hbase
 from hbase_service import hbase_service

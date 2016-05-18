@@ -104,7 +104,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    */
   getUserPrefErrorCallback: function (request) {
     // this user is first time login
-    if (404 == request.status) {
+    if (404 === request.status) {
       this.updateUserPrefWithDefaultValues();
     }
   },
@@ -145,12 +145,12 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    * @method updateUserPrefWithDefaultValues
    */
   updateUserPrefWithDefaultValues: function (response, getAllRequest) {
-    response = response || {};
+    var r = response || {};
     var keys = this.get('userSettingsKeys');
     var self = this;
     if (getAllRequest) {
       Object.keys(keys).forEach(function (key) {
-        if (Em.isNone(response[keys[key].name])) {
+        if (Em.isNone(r[keys[key].name])) {
           self.postUserPref(key, keys[key].defaultValue);
         }
       });
@@ -207,6 +207,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   },
 
   loadPrivilegesSuccessCallback: function(data) {
+    var key;
     var privileges = {
       clusters: {},
       views: {}
@@ -227,7 +228,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     // restructure data for view
     var clusters = [];
     var views = [];
-    for (key in privileges.clusters){
+    for (key in privileges.clusters) {
       clusters.push({
         name: key,
         privileges: privileges.clusters[key]
@@ -244,6 +245,9 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     privileges.clusters = clusters;
     privileges.views = views;
     this.set('privileges', data.items.length ? privileges : null);
+    this.set('noClusterPriv', $.isEmptyObject(privileges.clusters));
+    this.set('noViewPriv', $.isEmptyObject(privileges.views));
+    this.set('hidePrivileges', this.get('noClusterPriv') && this.get('noViewPriv'));
   },
 
   /**
@@ -256,64 +260,78 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    * @private
    */
   _showSettingsPopup: function (response) {
-    var curValue = null;
-    var self = this;
     var keys = this.get('userSettingsKeys');
-    var timezonesFormatted = timezoneUtils.get('timezones');
-    var initValue = JSON.parse(response[keys.show_bg.name]);
-    var initTimezone = timezonesFormatted.findProperty('value', JSON.parse(response[keys.timezone.name]));
-    return App.ModalPopup.show({
+    var curValue, self, timezonesFormatted, initValue, initTimezone;
+    if (response[keys.show_bg.name]) {
+      curValue = null;
+      self = this;
+      timezonesFormatted = timezoneUtils.get('timezones');
+      initValue = JSON.parse(response[keys.show_bg.name]);
+      initTimezone = timezonesFormatted.findProperty('value', JSON.parse(response[keys.timezone.name]));
+      return App.ModalPopup.show({
 
-      header: Em.I18n.t('common.userSettings'),
+        header: Em.I18n.t('common.userSettings'),
 
-      bodyClass: Em.View.extend({
+        bodyClass: Em.View.extend({
 
-        templateName: require('templates/common/settings'),
+          templateName: require('templates/common/settings'),
 
-        isNotShowBgChecked: !initValue,
+          isNotShowBgChecked: !initValue,
 
-        updateValue: function () {
-          curValue = !this.get('isNotShowBgChecked');
-        }.observes('isNotShowBgChecked'),
+          updateValue: function () {
+            curValue = !this.get('isNotShowBgChecked');
+          }.observes('isNotShowBgChecked'),
 
-        timezonesList: timezonesFormatted,
+          timezonesList: timezonesFormatted,
 
-        privileges: self.get('privileges'),
+          privileges: self.get('privileges'),
 
-        isAdmin: App.get('isAmbariAdmin')
-      }),
+          isAdmin: App.get('isAdmin'),
 
-      /**
-       * @type {string}
-       */
-      selectedTimezone: initTimezone,
+          noClusterPriv: self.get('noClusterPriv'),
 
-      primary: Em.I18n.t('common.save'),
+          noViewPriv: self.get('noViewPriv'),
 
-      onPrimary: function() {
-        if (Em.isNone(curValue)) {
-          curValue = initValue;
+          hidePrivileges: self.get('hidePrivileges') || App.get('isAdmin')
+        }),
+
+        /**
+         * @type {string}
+         */
+        selectedTimezone: initTimezone,
+
+        primary: Em.I18n.t('common.save'),
+
+        onPrimary: function () {
+          if (Em.isNone(curValue)) {
+            curValue = initValue;
+          }
+          var tz = this.get('selectedTimezone.value');
+          var popup = this;
+          if (!App.get('testMode')) {
+            self.postUserPref('show_bg', curValue).always(function () {
+              self.postUserPref('timezone', tz).always(function () {
+                if (popup.needsPageRefresh()) {
+                  location.reload();
+                }
+              });
+            });
+          }
+          this._super();
+        },
+
+        /**
+         * Determines if page should be refreshed after user click "Save"
+         *
+         * @returns {boolean}
+         */
+        needsPageRefresh: function () {
+          return initTimezone !== this.get('selectedTimezone');
         }
-        if (!App.get('testMode')) {
-          self.postUserPref('show_bg', curValue);
-          self.postUserPref('timezone', this.get('selectedTimezone.value'));
-        }
-        if (this.needsPageRefresh()) {
-          location.reload();
-        }
-        this._super();
-      },
-
-      /**
-       * Determines if page should be refreshed after user click "Save"
-       *
-       * @returns {boolean}
-       */
-      needsPageRefresh: function () {
-        return initTimezone !== this.get('selectedTimezone');
-      }
-
-    })
+      });
+    } else {
+      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('app.settings.noData'));
+    }
   }
 
 });

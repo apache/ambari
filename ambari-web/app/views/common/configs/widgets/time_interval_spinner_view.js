@@ -162,7 +162,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * Handle config value changes in raw mode.
    * Check specific validation errors regarding widget format value.
    */
-  configValueObserver: function() {
+  configValueObserverForAttributes: function() {
     if (this.get('config.showAsTextBox')) {
       this.checkErrors();
     }

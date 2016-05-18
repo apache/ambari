@@ -28,7 +28,7 @@ def snamenode(action=None, format=False):
     import params
     for fs_checkpoint_dir in params.fs_checkpoint_dirs:
       Directory(fs_checkpoint_dir,
-                recursive=True,
+                create_parents = True,
                 cd_access="a",
                 mode=0755,
                 owner=params.hdfs_user,

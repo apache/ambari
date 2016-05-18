@@ -16,14 +16,4 @@
  * limitations under the License.
  */
 
-var App = require('app');
-var view;
-
-describe('App.WidgetPopoverSupport', function () {
-
-  beforeEach(function () {
-    view = Em.View.create(App.WidgetPopoverSupport, {});
-  });
-
-
-});
+describe('App.WidgetPopoverSupport', function () {});

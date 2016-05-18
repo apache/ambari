@@ -17,7 +17,7 @@
 }}
 
 <div>
-  <div class="span2 badge-container"><span {{bindAttr class="view.property.badgeCssClass :alert-threshold-badge :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
+  <div class="span3 badge-container"><span {{bindAttr class="view.property.badgeCssClass :alert-threshold-badge :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
   {{#if view.property.showInputForValue}}
     <div {{bindAttr class=":span3 view.property.valueMetric:input-append"}}>
         {{view Em.TextField valueBinding="view.property.displayValue" disabledBinding="view.property.isDisabled" class ="span7"}}
@@ -26,7 +26,7 @@
         {{/if}}
     </div>
   {{/if}}
-  <div {{bindAttr class=":alert-text-input view.property.showInputForValue:span7:span10"}}>
+  <div {{bindAttr class=":alert-text-input view.property.showInputForValue:span6:span9"}}>
     {{#if view.property.showInputForText}}
       {{view Em.TextField valueBinding="view.property.text" disabledBinding="view.property.isDisabled"}}
     {{/if}}

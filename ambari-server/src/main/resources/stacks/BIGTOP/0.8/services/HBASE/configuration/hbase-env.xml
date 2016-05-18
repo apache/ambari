@@ -69,6 +69,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <description>HBase User Name.</description>
     <value-attributes>
        <type>user</type>
+       <overridable>false</overridable>
     </value-attributes>
   </property>
 

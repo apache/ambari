@@ -100,7 +100,22 @@ public abstract class AmbariEvent {
     /**
      * Received a final command report for some action
      */
-    ACTION_EXECUTION_FINISHED
+    ACTION_EXECUTION_FINISHED,
+
+    /**
+     * The cluster was renamed.
+     */
+    CLUSTER_RENAME,
+
+    /**
+     * The service component recovery enabled field changed.
+     */
+    SERVICE_COMPONENT_RECOVERY_CHANGED,
+
+    /**
+     * Cluster configuration changed.
+     */
+    CLUSTER_CONFIG_CHANGED;
   }
 
   /**
@@ -125,5 +140,16 @@ public abstract class AmbariEvent {
    */
   public AmbariEventType getType() {
     return m_eventType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder(getClass().getSimpleName());
+    buffer.append("{eventType=").append(m_eventType);
+    buffer.append("}");
+    return buffer.toString();
   }
 }

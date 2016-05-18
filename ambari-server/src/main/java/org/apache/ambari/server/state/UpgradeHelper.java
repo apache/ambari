@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
+import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -270,6 +271,11 @@ public class UpgradeHelper {
 
     for (Grouping group : upgradePack.getGroups(context.getDirection())) {
 
+      // !!! grouping is not scoped to context
+      if (!context.isScoped(group.scope)) {
+        continue;
+      }
+
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
       groupHolder.title = group.title;
@@ -316,6 +322,10 @@ public class UpgradeHelper {
 
       // !!! cluster and service checks are empty here
       for (UpgradePack.OrderService service : services) {
+
+        if (!context.isServiceSupported(service.serviceName)) {
+          continue;
+        }
 
         if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.containsKey(service.serviceName)) {
           continue;
@@ -499,9 +509,12 @@ public class UpgradeHelper {
 
           if (task.getType() == Type.MANUAL) {
             ManualTask mt = (ManualTask) task;
-            if (null != mt.message) {
-              mt.message = tokenReplace(ctx, mt.message,
-                  taskWrapper.getService(), taskWrapper.getComponent());
+            if(null != mt.messages && !mt.messages.isEmpty()){
+              for(int i = 0; i < mt.messages.size(); i++){
+                String message =  mt.messages.get(i);
+                message = tokenReplace(ctx, message, taskWrapper.getService(), taskWrapper.getComponent());
+                mt.messages.set(i, message);
+              }
             }
           }
         }
@@ -694,6 +707,32 @@ public class UpgradeHelper {
   }
 
   /**
+   * Get a single resource for the task with the given parameters.
+   * @param clusterName Cluster Name
+   * @param requestId Request Id
+   * @param stageId Stage Id
+   * @param taskId Task Id
+   * @return Single task resource that matches the predicates, otherwise, null.
+   */
+  public Resource getTaskResource(String clusterName, Long requestId, Long stageId, Long taskId)
+      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
+    ClusterController clusterController = ClusterControllerHelper.getClusterController();
+
+    Request request = PropertyHelper.getReadRequest();
+
+    Predicate p1 = new PredicateBuilder().property(TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).toPredicate();
+    Predicate p2 = new PredicateBuilder().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(requestId.toString()).toPredicate();
+    Predicate p3 = new PredicateBuilder().property(TaskResourceProvider.TASK_STAGE_ID_PROPERTY_ID).equals(stageId.toString()).toPredicate();
+    Predicate p4 = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals(taskId.toString()).toPredicate();
+
+    QueryResponse response = clusterController.getResources(Resource.Type.Task,
+        request, new AndPredicate(p1, p2, p3, p4));
+
+    Set<Resource> task = response.getResources();
+    return task.size() == 1 ? task.iterator().next() : null;
+  }
+
+  /**
    * Helper to set service and component display names on the context
    * @param context   the context to update
    * @param service   the service name
@@ -711,6 +750,28 @@ public class UpgradeHelper {
 
     } catch (AmbariException e) {
       LOG.debug("Could not get service detail", e);
+    }
+  }
+
+  /**
+   * Transitions all affected components to upgrading state. Transition is performed
+   * only for components that advertise their version. Service component desired
+   * version is set to one passed as an argument
+   * @param version desired version (like 2.2.1.0-1234) for upgrade
+   * @param targetServices targets for upgrade
+   */
+  public void putComponentsToUpgradingState(String version,
+                                            Map<Service, Set<ServiceComponent>> targetServices) throws AmbariException {
+    // TODO: generalize method?
+    for (Map.Entry<Service, Set<ServiceComponent>> entry: targetServices.entrySet()) {
+      for (ServiceComponent serviceComponent: entry.getValue()) {
+        if (serviceComponent.isVersionAdvertised()) {
+          for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
+            serviceComponentHost.setUpgradeState(UpgradeState.IN_PROGRESS);
+          }
+          serviceComponent.setDesiredVersion(version);
+        }
+      }
     }
   }
 }

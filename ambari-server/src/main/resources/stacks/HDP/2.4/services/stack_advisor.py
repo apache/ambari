@@ -17,5 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 class HDP24StackAdvisor(HDP23StackAdvisor):
-  pass
+ pass

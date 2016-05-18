@@ -37,28 +37,6 @@ var form,
       result: 0
     }
   ],
-  displayTypeCases = [
-    {
-      type: 'checkbox',
-      classString: 'Checkbox'
-    },
-    {
-      type: 'select',
-      classString: 'Select'
-    },
-    {
-      type: 'textarea',
-      classString: 'TextArea'
-    },
-    {
-      type: 'password',
-      classString: 'TextField'
-    },
-    {
-      type: 'hidden',
-      classString: 'TextField'
-    }
-  ],
   hiddenCases = [
     {
       displayType: 'password',
@@ -70,11 +48,8 @@ var form,
       type: 'hidden',
       value: true
     }
-  ],
-  expectError = function (message) {
-    formField.validate();
-    expect(formField.get('errorMessage')).to.equal(message);
-  };
+  ];
+
 
 describe('App.Form', function () {
 
@@ -184,27 +159,7 @@ describe('App.FormField', function () {
     });
   });
 
-  describe('#viewClass', function () {
-    displayTypeCases.forEach(function (item) {
-      it('should be ' + item.classString, function () {
-        formField.set('displayType', item.type);
-        expect(formField.get('viewClass').toString()).to.contain(item.classString);
-      });
-    });
-  });
-
-  describe('#validate', function () {
-    it('should return error message', function () {
-      formField.set('isRequired', true);
-      expectError('This is required');
-    });
-    it('should return empty error message', function () {
-      formField.set('isRequired', false);
-      expectError('');
-      formField.set('value', 'value');
-      expectError('');
-    });
-  });
+  /*eslint-enable mocha-cleanup/asserts-limit */
 
   describe('#isHiddenField', function () {
     hiddenCases.forEach(function (item) {

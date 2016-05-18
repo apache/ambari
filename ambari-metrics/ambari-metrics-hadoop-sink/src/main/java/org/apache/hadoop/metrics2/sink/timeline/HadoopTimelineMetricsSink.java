@@ -17,6 +17,24 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
+import org.apache.commons.configuration.SubsetConfiguration;
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.metrics2.AbstractMetric;
+import org.apache.hadoop.metrics2.MetricType;
+import org.apache.hadoop.metrics2.MetricsRecord;
+import org.apache.hadoop.metrics2.MetricsSink;
+import org.apache.hadoop.metrics2.MetricsTag;
+import org.apache.hadoop.metrics2.impl.MsInfo;
+import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
+import org.apache.hadoop.metrics2.util.Servers;
+import org.apache.hadoop.net.DNS;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -27,37 +45,33 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.configuration.SubsetConfiguration;
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.metrics2.AbstractMetric;
-import org.apache.hadoop.metrics2.MetricsRecord;
-import org.apache.hadoop.metrics2.MetricsSink;
-import org.apache.hadoop.metrics2.MetricsTag;
-import org.apache.hadoop.metrics2.MetricType;
-import org.apache.hadoop.metrics2.impl.MsInfo;
-import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
-import org.apache.hadoop.metrics2.util.Servers;
-import org.apache.hadoop.net.DNS;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink implements MetricsSink {
+public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink implements MetricsSink, Closeable {
   private Map<String, Set<String>> useTagsMap = new HashMap<String, Set<String>>();
   private TimelineMetricsCache metricsCache;
   private String hostName = "UNKNOWN.example.com";
   private String serviceName = "";
   private List<? extends SocketAddress> metricsServers;
   private String collectorUri;
+  private String containerMetricsUri;
+  public static final String WS_V1_CONTAINER_METRICS = "/ws/v1/timeline/containermetrics";
+
   private static final String SERVICE_NAME_PREFIX = "serviceName-prefix";
   private static final String SERVICE_NAME = "serviceName";
   private int timeoutSeconds = 10;
+  private SubsetConfiguration conf;
+  // Cache the rpc port used and the suffix to use if the port tag is found
+  private Map<String, String> rpcPortSuffixes = new HashMap<>(10);
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
 
   @Override
   public void init(SubsetConfiguration conf) {
+    this.conf = conf;
     LOG.info("Initializing Timeline metrics sink.");
 
     // Take the hostname from the DNS class.
@@ -79,13 +93,19 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);
 
     // Load collector configs
-    metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 6188);
+    metricsServers = Servers.parse(conf.getString(COLLECTOR_PROPERTY), 6188);
 
     if (metricsServers == null || metricsServers.isEmpty()) {
       LOG.error("No Metric collector configured.");
     } else {
-      collectorUri = "http://" + conf.getString(COLLECTOR_HOST_PROPERTY).trim()
-          + "/ws/v1/timeline/metrics";
+      collectorUri = conf.getString(COLLECTOR_PROPERTY).trim() + WS_V1_TIMELINE_METRICS;
+      containerMetricsUri = conf.getString(COLLECTOR_PROPERTY).trim() + WS_V1_CONTAINER_METRICS;
+      if (collectorUri.toLowerCase().startsWith("https://")) {
+        String trustStorePath = conf.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
+        String trustStoreType = conf.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
+        String trustStorePwd = conf.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
+        loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
+      }
     }
 
     LOG.info("Collector Uri: " + collectorUri);
@@ -96,32 +116,47 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT);
     int metricsSendInterval = conf.getInt(METRICS_SEND_INTERVAL,
       TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS); // ~ 1 min
-    metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
+    // Skip aggregation of counter values by calculating derivative
+    metricsCache = new TimelineMetricsCache(maxRowCacheSize,
+      metricsSendInterval, conf.getBoolean(SKIP_COUNTER_TRANSFROMATION, true));
 
     conf.setListDelimiter(',');
     Iterator<String> it = (Iterator<String>) conf.getKeys();
     while (it.hasNext()) {
       String propertyName = it.next();
-      if (propertyName != null && propertyName.startsWith(TAGS_FOR_PREFIX_PROPERTY_PREFIX)) {
-        String contextName = propertyName.substring(TAGS_FOR_PREFIX_PROPERTY_PREFIX.length());
-        String[] tags = conf.getStringArray(propertyName);
-        boolean useAllTags = false;
-        Set<String> set = null;
-        if (tags.length > 0) {
-          set = new HashSet<String>();
-          for (String tag : tags) {
-            tag = tag.trim();
-            useAllTags |= tag.equals("*");
-            if (tag.length() > 0) {
-              set.add(tag);
+      if (propertyName != null) {
+        if (propertyName.startsWith(TAGS_FOR_PREFIX_PROPERTY_PREFIX)) {
+          String contextName = propertyName.substring(TAGS_FOR_PREFIX_PROPERTY_PREFIX.length());
+          String[] tags = conf.getStringArray(propertyName);
+          boolean useAllTags = false;
+          Set<String> set = null;
+          if (tags.length > 0) {
+            set = new HashSet<String>();
+            for (String tag : tags) {
+              tag = tag.trim();
+              useAllTags |= tag.equals("*");
+              if (tag.length() > 0) {
+                set.add(tag);
+              }
+            }
+            if (useAllTags) {
+              set = null;
             }
           }
-          if (useAllTags) {
-            set = null;
-          }
+          useTagsMap.put(contextName, set);
         }
-        useTagsMap.put(contextName, set);
+        // Customized RPC ports
+        if (propertyName.startsWith(RPC_METRIC_PREFIX)) {
+          // metric.rpc.client.port
+          int beginIdx = RPC_METRIC_PREFIX.length() + 1;
+          String suffixStr = propertyName.substring(beginIdx); // client.port
+          String configPrefix = suffixStr.substring(0, suffixStr.indexOf(".")); // client
+          rpcPortSuffixes.put(conf.getString(propertyName).trim(), configPrefix.trim());
+        }
       }
+    }
+    if (!rpcPortSuffixes.isEmpty()) {
+      LOG.info("RPC port properties configured: " + rpcPortSuffixes);
     }
   }
 
@@ -165,14 +200,46 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       StringBuilder sb = new StringBuilder();
       sb.append(contextName);
       sb.append('.');
-      sb.append(recordName);
+      // Similar to GangliaContext adding processName to distinguish jvm
+      // metrics for co-hosted daemons. We only do this for HBase since the
+      // appId is shared for Master and RS.
+      if (contextName.equals("jvm")) {
+        if (record.tags() != null) {
+          for (MetricsTag tag : record.tags()) {
+            if (tag.info().name().equalsIgnoreCase("processName") &&
+               (tag.value().equals("RegionServer") || tag.value().equals("Master"))) {
+              sb.append(tag.value());
+              sb.append('.');
+            }
+          }
+        }
+      }
 
+      sb.append(recordName);
       appendPrefix(record, sb);
-      sb.append(".");
+      sb.append('.');
+
+      // Add port tag for rpc metrics to distinguish rpc calls based on port
+      if (!rpcPortSuffixes.isEmpty() && contextName.contains("rpc")) {
+        if (record.tags() != null) {
+          for (MetricsTag tag : record.tags()) {
+            if (tag.info().name().equalsIgnoreCase("port") &&
+                rpcPortSuffixes.keySet().contains(tag.value())) {
+              sb.append(rpcPortSuffixes.get(tag.value()));
+              sb.append('.');
+            }
+          }
+        }
+      }
+
+      if (record.context().equals("container")) {
+        emitContainerMetrics(record);
+        return;
+      }
+
       int sbBaseLen = sb.length();
 
-      Collection<AbstractMetric> metrics =
-        (Collection<AbstractMetric>) record.metrics();
+      Collection<AbstractMetric> metrics = (Collection<AbstractMetric>) record.metrics();
 
       List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
       long startTime = record.timestamp();
@@ -186,7 +253,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         timelineMetric.setHostName(hostName);
         timelineMetric.setAppId(serviceName);
         timelineMetric.setStartTime(startTime);
-        timelineMetric.setType(ClassUtils.getShortCanonicalName(value, "Number"));
+        timelineMetric.setType(metric.type() != null ? metric.type().name() : null);
         timelineMetric.getMetricValues().put(startTime, value.doubleValue());
         // Put intermediate values into the cache until it is time to send
         boolean isCounter = MetricType.COUNTER == metric.type();
@@ -210,6 +277,89 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       }
     } catch (UnableToConnectException uce) {
       LOG.warn("Unable to send metrics to collector by address:" + uce.getConnectUrl());
+    }
+  }
+
+  private void parseContainerMetrics(MetricsRecord record,
+      ContainerMetric containerMetric) {
+    for (AbstractMetric metric : record.metrics() ) {
+      switch (metric.name()) {
+      case "PMemUsageMBsAvgMBs":
+        containerMetric.setPmemUsedAvg(metric.value().intValue());
+        break;
+      case "PMemUsageMBsMinMBs":
+        containerMetric.setPmemUsedMin(metric.value().intValue());
+        break;
+      case "PMemUsageMBsMaxMBs":
+        containerMetric.setPmemUsedMax(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram50thPercentileMBs":
+        containerMetric.setPmem50Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram75thPercentileMBs":
+        containerMetric.setPmem75Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram90thPercentileMBs":
+        containerMetric.setPmem90Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram95thPercentileMBs":
+        containerMetric.setPmem95Pct(metric.value().intValue());
+        break;
+      case "PMemUsageMBHistogram99thPercentileMBs":
+        containerMetric.setPmem99Pct(metric.value().intValue());
+        break;
+      case "pMemLimitMBs":
+        containerMetric.setPmemLimit(metric.value().intValue());
+        break;
+      case "vMemLimitMBs":
+        containerMetric.setVmemLimit(metric.value().intValue());
+        break;
+      case "launchDurationMs":
+        containerMetric.setLaunchDuration(metric.value().longValue());
+        break;
+      case "localizationDurationMs":
+        containerMetric.setLocalizationDuration(metric.value().longValue());
+        break;
+      case "StartTime":
+        containerMetric.setStartTime(metric.value().longValue());
+        break;
+      case "FinishTime":
+        containerMetric.setFinishTime(metric.value().longValue());
+        break;
+      case "ExitCode":
+        containerMetric.setExitCode((metric.value().intValue()));
+        break;
+      default:
+        break;
+      }
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(containerMetric);
+    }
+  }
+
+  private void emitContainerMetrics(MetricsRecord record) {
+
+    ContainerMetric containerMetric = new ContainerMetric();
+    containerMetric.setHostName(hostName);
+
+    for (MetricsTag tag : record.tags()) {
+      if (tag.name().equals("ContainerResource")) {
+        containerMetric.setContainerId(tag.value());
+      }
+    }
+
+    parseContainerMetrics(record, containerMetric);
+    List<ContainerMetric> list = new ArrayList<>();
+    list.add(containerMetric);
+    String jsonData = null;
+    try {
+      jsonData = mapper.writeValueAsString(list);
+    } catch (IOException e) {
+      LOG.error("Unable to parse container metrics ", e);
+    }
+    if (jsonData != null) {
+      emitMetricsJson(containerMetricsUri, jsonData);
     }
   }
 
@@ -239,5 +389,20 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   @Override
   public void flush() {
     // TODO: Buffering implementation
+  }
+
+  @Override
+  public void close() throws IOException {
+
+    executorService.submit(new Runnable() {
+      @Override
+      public void run() {
+        LOG.info("Closing HadoopTimelineMetricSink. Flushing metrics to collector...");
+        TimelineMetrics metrics = metricsCache.getAllMetrics();
+        if (metrics != null) {
+          emitMetrics(metrics);
+        }
+      }
+    });
   }
 }

@@ -26,8 +26,6 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
@@ -129,9 +127,12 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
   @Override
   public Set<Resource> populateResources(Set<Resource> resources,
                 Request request, Predicate predicate) throws SystemException {
-
     Set<String> ids = getRequestPropertyIds(request, predicate);
     if (ids.isEmpty()) {
+      return resources;
+    }
+
+    if (!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
       return resources;
     }
 

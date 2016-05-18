@@ -20,15 +20,21 @@ var App = require('app');
 require('views/wizard/step9/hostLogPopupBody_view');
 var view;
 
+function getView() {
+  return App.WizardStep9HostLogPopupBodyView.create({
+    parentView: Em.Object.create({
+      host: Em.Object.create()
+    })
+  });
+}
+
 describe('App.WizardStep9HostLogPopupBodyView', function() {
 
   beforeEach(function() {
-    view = App.WizardStep9HostLogPopupBodyView.create({
-      parentView: Em.Object.create({
-        host: Em.Object.create()
-      })
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'isNoTasksScheduled', 'parentView.host.isNoTasksForInstall', 'boolean');
 
   describe('#isHeartbeatLost', function() {
     it('should depends on parentView.host.status', function() {
@@ -36,15 +42,6 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
       expect(view.get('isHeartbeatLost')).to.equal(false);
       view.set('parentView.host.status', 'heartbeat_lost');
       expect(view.get('isHeartbeatLost')).to.equal(true);
-    });
-  });
-
-  describe('#isNoTasksScheduled', function() {
-    it('should be same to parentView.host.isNoTasksForInstall', function() {
-      view.set('parentView.host.isNoTasksForInstall', true);
-      expect(view.get('isNoTasksScheduled')).to.equal(true);
-      view.set('parentView.host.isNoTasksForInstall', false);
-      expect(view.get('isNoTasksScheduled')).to.equal(false);
     });
   });
 
@@ -104,11 +101,18 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
   });
 
   describe('#backToTaskList', function() {
-    it('should call destroyClipBoard', function() {
+
+    beforeEach(function () {
       sinon.stub(view, 'destroyClipBoard', Em.K);
+    });
+
+    afterEach(function () {
+      view.destroyClipBoard.restore();
+    });
+
+    it('should call destroyClipBoard', function() {
       view.backToTaskList();
       expect(view.destroyClipBoard.calledOnce).to.equal(true);
-      view.destroyClipBoard.restore();
     });
     it('should set isLogWrapHidden to true', function() {
       view.set('isLogWrapHidden', false);
@@ -157,104 +161,159 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
       }
     };
 
-    it('should map tasks', function() {
+    beforeEach(function () {
       view.set('parentView.host.logTasks', [testTask]);
-      var t = view.get('tasks');
-      expect(t.length).to.equal(1);
-      var first = t[0];
-      expect(first.get('id')).to.equal(1);
-      expect(first.get('requestId')).to.equal(2);
-      expect(first.get('command')).to.equal('cmd');
-      expect(first.get('commandDetail')).to.equal(' Test Component Description');
-      expect(first.get('role')).to.equal('Pig');
-      expect(first.get('stderr')).to.equal('stderr');
-      expect(first.get('stdout')).to.equal('stdout');
-      expect(first.get('isVisible')).to.equal(true);
-      expect(first.get('hostName')).to.equal('host1');
+      this.t = view.get('tasks');
+      this.first = this.t[0];
     });
 
-    it('should set cog icon', function() {
-      var t = Em.copy(testTask);
-      t.Tasks.status = 'pending';
-      view.set('parentView.host.logTasks', [t]);
-      var first = view.get('tasks')[0];
-      expect(first.get('icon')).to.equal('icon-cog');
+    it('should map tasks', function() {
+      expect(this.t.length).to.equal(1);
     });
 
-    it('should set cog icon (2)', function() {
-      var t = Em.copy(testTask);
-      t.Tasks.status = 'queued';
-      view.set('parentView.host.logTasks', [t]);
-      var first = view.get('tasks')[0];
-      expect(first.get('icon')).to.equal('icon-cog');
+    it('should map id', function() {
+      expect(this.first.get('id')).to.equal(1);
     });
 
-    it('should set cogs icon', function() {
-      var t = Em.copy(testTask);
-      t.Tasks.status = 'in_progress';
-      view.set('parentView.host.logTasks', [t]);
-      var first = view.get('tasks')[0];
-      expect(first.get('icon')).to.equal('icon-cogs');
+    it('should map requestId', function() {
+      expect(this.first.get('requestId')).to.equal(2);
     });
 
-    it('should set ok icon', function() {
-      var t = Em.copy(testTask);
-      t.Tasks.status = 'completed';
-      view.set('parentView.host.logTasks', [t]);
-      var first = view.get('tasks')[0];
-      expect(first.get('icon')).to.equal('icon-ok');
+    it('should map command', function() {
+      expect(this.first.get('command')).to.equal('cmd');
     });
 
-    it('should set icon-exclamation-sign icon', function() {
-      var t = Em.copy(testTask);
-      t.Tasks.status = 'failed';
-      view.set('parentView.host.logTasks', [t]);
-      var first = view.get('tasks')[0];
-      expect(first.get('icon')).to.equal('icon-exclamation-sign');
+    it('should map commandDetail', function() {
+      expect(this.first.get('commandDetail')).to.equal(' Test Component Description');
     });
 
-    it('should set minus icon', function() {
-      var t = Em.copy(testTask);
-      t.Tasks.status = 'aborted';
-      view.set('parentView.host.logTasks', [t]);
-      var first = view.get('tasks')[0];
-      expect(first.get('icon')).to.equal('icon-minus');
+    it('should map role', function() {
+      expect(this.first.get('role')).to.equal('Pig');
     });
 
-    it('should set time icon', function() {
-      var t = Em.copy(testTask);
-      t.Tasks.status = 'timedout';
-      view.set('parentView.host.logTasks', [t]);
-      var first = view.get('tasks')[0];
-      expect(first.get('icon')).to.equal('icon-time');
+    it('should map stderr', function() {
+      expect(this.first.get('stderr')).to.equal('stderr');
+    });
+
+    it('should map stdout', function() {
+      expect(this.first.get('stdout')).to.equal('stdout');
+    });
+
+    it('should map isVisible', function() {
+      expect(this.first.get('isVisible')).to.equal(true);
+    });
+
+    it('should map hostName', function() {
+      expect(this.first.get('hostName')).to.equal('host1');
+    });
+
+    describe('icons', function () {
+
+      Em.A([
+        {
+          status: 'pending',
+          icon:'icon-cog'
+        },
+        {
+          status: 'queued',
+          icon:'icon-cog'
+        },
+        {
+          status: 'in_progress',
+          icon:'icon-cogs'
+        },
+        {
+          status: 'completed',
+          icon:'icon-ok'
+        },
+        {
+          status: 'failed',
+          icon:'icon-exclamation-sign'
+        },
+        {
+          status: 'aborted',
+          icon:'icon-minus'
+        },
+        {
+          status: 'timedout',
+          icon:'icon-time'
+        }
+      ]).forEach(function (test) {
+        it(test.status + ' -> ' + test.icon, function () {
+          var t = Em.copy(testTask);
+          t.Tasks.status = test.status;
+          view.set('parentView.host.logTasks', [t]);
+          view.propertyDidChange('tasks');
+          expect(view.get('tasks')[0].icon).to.equal(test.icon);
+        });
+      });
+
     });
 
   });
 
   describe('#toggleTaskLog', function() {
-    it('isLogWrapHidden is true', function() {
+
+    beforeEach(function () {
+      view.set('parentView.c', Em.Object.create({loadCurrentTaskLog: Em.K}));
+      sinon.spy(view.get('parentView.c'), 'loadCurrentTaskLog');
+    });
+
+    afterEach(function () {
+      view.get('parentView.c').loadCurrentTaskLog.restore();
+    });
+
+    describe('isLogWrapHidden is true', function () {
+
       var taskInfo = {
         id: 1,
         requestId: 2
       };
-      view.set('isLogWrapHidden', true);
-      view.set('parentView.c', Em.Object.create({loadCurrentTaskLog: Em.K}));
-      sinon.spy(view.get('parentView.c'), 'loadCurrentTaskLog');
-      view.toggleTaskLog({context: taskInfo});
-      expect(view.get('isLogWrapHidden')).to.equal(false);
-      expect(view.get('parentView.c.currentOpenTaskId')).to.equal(taskInfo.id);
-      expect(view.get('parentView.c.currentOpenTaskRequestId')).to.equal(taskInfo.requestId);
-      expect(view.get('parentView.c').loadCurrentTaskLog.calledOnce).to.equal(true);
-      view.get('parentView.c').loadCurrentTaskLog.restore();
+
+      beforeEach(function () {
+        view.set('isLogWrapHidden', true);
+        view.toggleTaskLog({context: taskInfo});
+      });
+
+      it('isLogWrapHidden is set false', function() {
+        expect(view.get('isLogWrapHidden')).to.equal(false);
+      });
+
+      it('currentOpenTaskId is equal to id', function() {
+        expect(view.get('parentView.c.currentOpenTaskId')).to.equal(taskInfo.id);
+      });
+
+      it('currentOpenTaskRequestId is equal to requestId', function() {
+        expect(view.get('parentView.c.currentOpenTaskRequestId')).to.equal(taskInfo.requestId);
+      });
+
+      it('loadCurrentTaskLog called once', function() {
+        expect(view.get('parentView.c').loadCurrentTaskLog.calledOnce).to.equal(true);
+      });
+
     });
-    it('isLogWrapHidden is false', function() {
+
+    describe('isLogWrapHidden is false', function () {
+
       var taskInfo = {};
-      view.set('isLogWrapHidden', false);
-      view.set('parentView.c', Em.Object.create({loadCurrentTaskLog: Em.K}));
-      view.toggleTaskLog({context: taskInfo});
-      expect(view.get('isLogWrapHidden')).to.equal(true);
-      expect(view.get('parentView.c.currentOpenTaskId')).to.equal(0);
-      expect(view.get('parentView.c.currentOpenTaskRequestId')).to.equal(0);
+
+      beforeEach(function () {
+        view.set('isLogWrapHidden', false);
+        view.toggleTaskLog({context: taskInfo});
+      });
+
+      it('isLogWrapHidden is set true', function() {
+        expect(view.get('isLogWrapHidden')).to.equal(true);
+      });
+
+      it('currentOpenTaskId is 0', function() {
+        expect(view.get('parentView.c.currentOpenTaskId')).to.equal(0);
+      });
+
+      it('currentOpenTaskRequestId is 0', function() {
+        expect(view.get('parentView.c.currentOpenTaskRequestId')).to.equal(0);
+      });
+
     });
   });
 

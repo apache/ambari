@@ -23,8 +23,8 @@
 import Ember from "ember";
 
 var columnTypeFormatter = function(column) {
-  let type = column.type;
-  let ext = type;
+  var type = column.type;
+  var ext = type;
   if( type === "VARCHAR" || type === "CHAR" || type == "DECIMAL"  ) {
       ext += '(' + column.precision;
     if (type == "DECIMAL") {

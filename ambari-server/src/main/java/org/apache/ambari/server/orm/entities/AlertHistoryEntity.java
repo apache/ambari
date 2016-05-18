@@ -45,13 +45,17 @@ import org.apache.ambari.server.state.AlertState;
 @Table(name = "alert_history")
 @TableGenerator(name = "alert_history_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_history_id_seq", initialValue = 0)
 @NamedQueries({
-    @NamedQuery(name = "AlertHistoryEntity.findAll", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory"),
-    @NamedQuery(name = "AlertHistoryEntity.findAllInCluster", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterWithState", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertState IN :alertStates"),
-    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBetweenDates", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp BETWEEN :startDate AND :endDate"),
-    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBeforeDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp <= :beforeDate"),
-    @NamedQuery(name = "AlertHistoryEntity.findAllInClusterAfterDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp >= :afterDate"),
-    @NamedQuery(name = "AlertHistoryEntity.removeByDefinitionId", query = "DELETE FROM AlertHistoryEntity alertHistory WHERE alertHistory.alertDefinition.definitionId = :definitionId") })
+  @NamedQuery(name = "AlertHistoryEntity.findAll", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory"),
+  @NamedQuery(name = "AlertHistoryEntity.findAllInCluster", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId"),
+  @NamedQuery(name = "AlertHistoryEntity.findAllInClusterWithState", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertState IN :alertStates"),
+  @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBetweenDates", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp BETWEEN :startDate AND :endDate"),
+  @NamedQuery(name = "AlertHistoryEntity.findAllInClusterBeforeDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp <= :beforeDate"),
+  @NamedQuery(name = "AlertHistoryEntity.findAllIdsInClusterBeforeDate", query = "SELECT alertHistory.alertId FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp <= :beforeDate"),
+  @NamedQuery(name = "AlertHistoryEntity.findAllInClusterAfterDate", query = "SELECT alertHistory FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp >= :afterDate"),
+  @NamedQuery(name = "AlertHistoryEntity.removeByDefinitionId", query = "DELETE FROM AlertHistoryEntity alertHistory WHERE alertHistory.alertDefinitionId = :definitionId"),
+  @NamedQuery(name = "AlertHistoryEntity.removeInClusterBeforeDate", query = "DELETE FROM AlertHistoryEntity alertHistory WHERE alertHistory.clusterId = :clusterId AND alertHistory.alertTimestamp <= :beforeDate"),
+  @NamedQuery(name = "AlertHistoryEntity.findHistoryIdsByDefinitionId", query = "SELECT alertHistory.alertId FROM AlertHistoryEntity alertHistory WHERE alertHistory.alertDefinitionId = :definitionId ORDER BY alertHistory.alertId")
+})
 public class AlertHistoryEntity {
 
   @Id
@@ -94,6 +98,9 @@ public class AlertHistoryEntity {
   @ManyToOne
   @JoinColumn(name = "alert_definition_id", nullable = false)
   private AlertDefinitionEntity alertDefinition;
+
+  @Column(name = "alert_definition_id", nullable = false, insertable = false, updatable = false, length = 10)
+  private Long alertDefinitionId;
 
   /**
    * Constructor.
@@ -324,6 +331,23 @@ public class AlertHistoryEntity {
    */
   public void setAlertDefinition(AlertDefinitionEntity alertDefinition) {
     this.alertDefinition = alertDefinition;
+    this.alertDefinitionId = alertDefinition.getDefinitionId();
+  }
+
+  /**
+   * Get parent alert definition id
+   * @return definition id
+   */
+  public Long getAlertDefinitionId() {
+    return alertDefinitionId;
+  }
+
+  /**
+   * Set parent alert definition id
+   * @param alertDefinitionId definition id
+   */
+  public void setAlertDefinitionId(Long alertDefinitionId) {
+    this.alertDefinitionId = alertDefinitionId;
   }
 
   /**

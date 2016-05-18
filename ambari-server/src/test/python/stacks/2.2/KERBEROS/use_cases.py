@@ -23,18 +23,17 @@ krb5_conf_template = \
   '[libdefaults]\n' \
   '  renew_lifetime = 7d\n' \
   '  forwardable = true\n' \
-  '  realm = {{realm|upper()}}\n' \
+  '  realm = {{realm}}\n' \
   '  ticket_lifetime = 24h\n' \
   '  dns_lookup_realm = false\n' \
   '  dns_lookup_kdc = false\n' \
   '\n' \
   '{% if domains %}\n' \
   '[domain_realm]\n' \
-  '{% for domain in domains %}\n' \
-  '  {{domain}} = {{realm|upper()}}\n' \
-  '{% endfor %}\n' \
+  '{%- for domain in domains.split(\',\') %}\n' \
+  '  {{domain|trim()}} = {{realm}}\n' \
+  '{%- endfor %}\n' \
   '{% endif %}\n' \
-  '\n' \
   '[logging]\n' \
   '  default = FILE:/var/log/krb5kdc.log\n' \
   '  admin_server = FILE:/var/log/kadmind.log\n' \
@@ -42,9 +41,18 @@ krb5_conf_template = \
   '\n' \
   '[realms]\n' \
   '  {{realm}} = {\n' \
-  '    admin_server = {{admin_server_host|default(kdc_host, True)}}\n' \
-  '    kdc = {{kdc_host}}\n' \
-  '}\n' \
+  '{%- if kdc_hosts > 0 -%}\n' \
+  '{%- set kdc_host_list = kdc_hosts.split(\',\')  -%}\n' \
+  '{%- if kdc_host_list and kdc_host_list|length > 0 %}\n' \
+  '    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n' \
+  '{%- if kdc_host_list -%}\n' \
+  '{% for kdc_host in kdc_host_list %}\n' \
+  '    kdc = {{kdc_host|trim()}}\n' \
+  '{%- endfor -%}\n' \
+  '{% endif %}\n' \
+  '{%- endif %}\n' \
+  '{%- endif %}\n' \
+  '  }\n' \
   '\n' \
   '{# Append additional realm declarations should be placed below #}\n'
 
@@ -74,14 +82,14 @@ def get_manged_kdc_use_case():
   json_data['clusterHostInfo']['kdc_server_hosts'] = ['c6401.ambari.apache.org']
   json_data['configurations']['kerberos-env'] = {
     'kdc_type': 'mit-kdc',
-    'kdc_host': 'c6401.ambari.apache.org'
+    'kdc_hosts': 'c6401.ambari.apache.org, c6402.ambari.apache.org',
+    'encryption_types' : 'aes256-cts-hmac-sha1-96'
   }
   json_data['configurations']['krb5-conf'] = {
     'realm': 'MANAGED_REALM.COM',
     'admin_principal': "admin/admin",
     'admin_password': "hadoop"
   }
-  json_data['configurations']['kerberos-env'] = { 'encryption_types' : 'aes256-cts-hmac-sha1-96'}
 
   return json_data
 
@@ -92,8 +100,9 @@ def get_unmanged_kdc_use_case():
     json_data = json.load(f)
 
   json_data['configurations']['kerberos-env'] = {
-    'kdc_host': 'ad.oscorp_industries.com',
-    'kdc_type': 'mit-kdc'
+    'kdc_hosts': 'c6401.ambari.apache.org, c6402.ambari.apache.org',
+    'kdc_type': 'mit-kdc',
+    'encryption_types' : 'aes256-cts-hmac-sha1-96'
   }
   json_data['configurations']['krb5-conf'] = {
     'conf_dir': '/tmp',
@@ -109,8 +118,6 @@ def get_unmanged_kdc_use_case():
   json_data['configurations']['kadm5-acl'] = {
     'content': kadm5_acl_template
   }
-  json_data['configurations']['kerberos-env'] = { 'encryption_types' : 'aes256-cts-hmac-sha1-96'}
-
 
   return json_data
 
@@ -128,7 +135,7 @@ def get_unmanged_krb5conf_use_case():
     'manage_krb5_conf': "false"
   }
   json_data['configurations']['kerberos-env'] = {
-    'kdc_host': 'c6401.ambari.apache.org',
+    'kdc_hosts': 'c6401.ambari.apache.org, c6402.ambari.apache.org',
     'encryption_types' : 'aes256-cts-hmac-sha1-96'
   }
 
@@ -140,8 +147,9 @@ def get_unmanged_ad_use_case():
     json_data = json.load(f)
 
   json_data['configurations']['kerberos-env'] = {
-    'kdc_host': 'ad.oscorp_industries.com',
+    'kdc_hosts': 'c6401.ambari.apache.org, c6402.ambari.apache.org',
     'kdc_type': 'active-directory',
+    'encryption_types' : 'aes256-cts-hmac-sha1-96'
   }
   json_data['configurations']['krb5-conf'] = {
     'conf_dir': '/tmp',
@@ -157,7 +165,6 @@ def get_unmanged_ad_use_case():
   json_data['configurations']['kadm5-acl'] = {
     'content': kadm5_acl_template
   }
-  json_data['configurations']['kerberos-env'] = { 'encryption_types' : 'aes256-cts-hmac-sha1-96'}
   return json_data
 
 def get_cross_realm_use_case():
@@ -173,8 +180,9 @@ def get_cross_realm_use_case():
 
   json_data['clusterHostInfo']['kdc_server_hosts'] = ['c6401.ambari.apache.org']
   json_data['configurations']['kerberos-env'] = {
-    'kdc_host': 'c6401.ambari.apache.org',
-    'kdc_type': 'mit-kdc'
+    'kdc_hosts': 'c6401.ambari.apache.org, c6402.ambari.apache.org',
+    'kdc_type': 'mit-kdc',
+    'encryption_types' : 'aes256-cts-hmac-sha1-96'
   }
   json_data['configurations']['krb5-conf'] = {
     'content': _krb5_conf_template,
@@ -188,7 +196,6 @@ def get_cross_realm_use_case():
   json_data['configurations']['kadm5-acl'] = {
     'content': kadm5_acl_template
   }
-  json_data['configurations']['kerberos-env'] = { 'encryption_types' : 'aes256-cts-hmac-sha1-96'}
   return json_data
 
 def get_value(dictionary, path, nullValue=None):

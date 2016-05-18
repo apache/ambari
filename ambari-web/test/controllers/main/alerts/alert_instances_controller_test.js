@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 var controller;
 
@@ -26,38 +27,36 @@ describe('App.MainAlertInstancesController', function () {
     controller = App.MainAlertInstancesController.create({});
   });
 
+  afterEach(function () {
+    clearTimeout(controller.get('updateTimer'));
+  });
+
   describe('#fetchAlertInstances', function () {
 
     describe('loading instances from correct endpoint', function () {
 
-      beforeEach(function () {
-        sinon.stub(App.ajax, 'send', Em.K);
-      });
-
-      afterEach(function () {
-        App.ajax.send.restore();
-      });
-
       it('should load by Host name', function () {
 
         controller.loadAlertInstancesByHost('host');
-        expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances.by_host');
-        expect(App.ajax.send.args[0][0].data.hostName).to.equal('host');
+        var callArgs = testHelpers.findAjaxRequest('name', 'alerts.instances.by_host')[0];
+        expect(callArgs.name).to.equal('alerts.instances.by_host');
+        expect(callArgs.data.hostName).to.equal('host');
 
       });
 
       it('should load by AlertDefinition id', function () {
 
         controller.loadAlertInstancesByAlertDefinition('1');
-        expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances.by_definition');
-        expect(App.ajax.send.args[0][0].data.definitionId).to.equal('1');
+        var callArgs = testHelpers.findAjaxRequest('name', 'alerts.instances.by_definition')[0];
+        expect(callArgs.name).to.equal('alerts.instances.by_definition');
+        expect(callArgs.data.definitionId).to.equal('1');
 
       });
 
       it('should load all', function () {
-
         controller.loadAlertInstances();
-        expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances');
+        var callArgs = testHelpers.findAjaxRequest('name', 'alerts.instances')[0];
+        expect(callArgs).to.exists;
 
       });
 

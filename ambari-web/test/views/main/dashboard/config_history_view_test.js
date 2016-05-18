@@ -46,7 +46,7 @@ describe('App.MainConfigHistoryView', function() {
   view.removeObserver('controller.resetStartIndex', view, 'resetStartIndex');
 
   describe("#filteredContentInfo", function () {
-    it("", function () {
+    it("is formatted with filteredCount and totalCount", function () {
       view.set('filteredCount', 1);
       view.set('totalCount', 2);
       view.propertyDidChange('filteredContentInfo');
@@ -60,13 +60,13 @@ describe('App.MainConfigHistoryView', function() {
     });
 
     before(function () {
-      sinon.stub(App.Service, 'find').returns([Em.Object.create({
+      sinon.stub(App.StackService, 'find').returns([Em.Object.create({
         serviceName: 'S1',
         displayName: 's1'
       })])
     });
     after(function () {
-      App.Service.find.restore();
+      App.StackService.find.restore();
     });
     it("content", function () {
       expect(subView.get('content')).to.eql([
@@ -226,18 +226,32 @@ describe('App.MainConfigHistoryView', function() {
   });
 
   describe('#didInsertElement()', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(view, 'addObserver', Em.K);
       sinon.spy(view.get('controller'), 'doPolling');
-
       view.didInsertElement();
-      expect(view.addObserver.calledTwice).to.be.true;
-      expect(view.get('isInitialRendering')).to.be.true;
-      expect(view.get('controller.isPolling')).to.be.true;
-      expect(view.get('controller').doPolling.calledOnce).to.be.true;
+    });
 
+    afterEach(function () {
       view.addObserver.restore();
       view.get('controller').doPolling.restore();
+    });
+
+    it('addObserver is called twice', function() {
+      expect(view.addObserver.calledTwice).to.be.true;
+    });
+
+    it('isInitialRendering is true', function() {
+      expect(view.get('isInitialRendering')).to.be.true;
+    });
+
+    it('controller.isPolling is true', function() {
+      expect(view.get('controller.isPolling')).to.be.true;
+    });
+
+    it('controller.doPolling is true', function() {
+      expect(view.get('controller').doPolling.calledOnce).to.be.true;
     });
   });
 
@@ -271,43 +285,50 @@ describe('App.MainConfigHistoryView', function() {
   });
 
   describe('#willDestroyElement()', function() {
-    it('', function() {
+    it('controller.isPolling is false', function() {
       view.willDestroyElement();
       expect(view.get('controller.isPolling')).to.be.false;
     });
   });
 
   describe('#refresh()', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.spy(view.get('controller'), 'load');
       view.refresh();
-      expect(view.get('filteringComplete')).to.be.false;
-      expect(view.get('controller').load.calledOnce).to.be.true;
+    });
+
+    afterEach(function () {
       view.get('controller').load.restore();
+    });
+
+    it('filteringComplete is false', function() {
+      expect(view.get('filteringComplete')).to.be.false;
+    });
+
+    it('controller.load is called once', function() {
+      expect(view.get('controller').load.calledOnce).to.be.true;
     });
   });
 
   describe("#refreshDone()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'propertyDidChange', Em.K);
-    });
-    after(function () {
-      view.propertyDidChange.restore();
-    });
-    it("", function () {
       view.set('filteringComplete', false);
       view.set('controller.resetStartIndex', true);
       view.refreshDone();
+    });
+    afterEach(function () {
+      view.propertyDidChange.restore();
+    });
+    it("filteringComplete is true", function () {
       expect(view.get('filteringComplete')).to.be.true;
+    });
+    it("controller.resetStartIndex is false", function () {
       expect(view.get('controller.resetStartIndex')).to.be.false;
     });
   });
 
-  describe("#colPropAssoc", function () {
-    it("", function () {
-      view.set('controller.colPropAssoc', [1]);
-      view.propertyDidChange('colPropAssoc');
-      expect(view.get('colPropAssoc')).to.eql([1]);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(view, 'colPropAssoc', 'controller.colPropAssoc', 'array');
+
 });

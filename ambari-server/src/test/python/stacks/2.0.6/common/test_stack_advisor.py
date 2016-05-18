@@ -79,7 +79,8 @@ class TestHDP206StackAdvisor(TestCase):
     }
     self.assertHostLayout(expectedComponentsHostsMap, result)
 
-  def test_recommendationAssignmentNotChanged(self):
+  def test_recommendOnAllHosts(self):
+    """ Recommend on all hosts for cardinality ALL even if the component has been installed in the cluster before """
     servicesInfo = [
       {
         "name": "GANGLIA",
@@ -510,7 +511,7 @@ class TestHDP206StackAdvisor(TestCase):
 
   def test_recommendYARNConfigurations(self):
     configurations = {}
-    services = {"configurations": configurations}
+    services = {"configurations": configurations, "services": []}
     clusterData = {
       "containers" : 5,
       "ramPerContainer": 256
@@ -665,23 +666,22 @@ class TestHDP206StackAdvisor(TestCase):
     servicesList = ["HBASE"]
     configurations = {}
     components = []
+    host_item = {
+      "Hosts" : {
+        "cpu_count" : 6,
+        "total_mem" : 50331648,
+        "disk_info" : [
+          {"mountpoint" : "/"},
+          {"mountpoint" : "/dev/shm"},
+          {"mountpoint" : "/vagrant"},
+          {"mountpoint" : "/"},
+          {"mountpoint" : "/dev/shm"},
+          {"mountpoint" : "/vagrant"}
+        ]
+      }
+    }
     hosts = {
-      "items" : [
-        {
-          "Hosts" : {
-            "cpu_count" : 6,
-            "total_mem" : 50331648,
-            "disk_info" : [
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"},
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"}
-            ]
-          }
-        }
-      ]
+      "items" : [host_item for i in range(1, 300)]
     }
     services = {
       "services" : [
@@ -707,7 +707,7 @@ class TestHDP206StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "8192",
+          "hbase_master_heapsize": "4096",
           "hbase_regionserver_heapsize": "8192",
           }
       }
@@ -716,7 +716,7 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
-    self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, None)
+    self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
 
@@ -773,8 +773,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected = {
       "admin-properties": {
         "properties": {
-          "SQL_CONNECTOR_JAR": "/usr/share/java/mysql-connector-java.jar",
-          "policymgr_external_url": "http://host1:7777",
+          "policymgr_external_url": "http://host1:7777"
         }
       }
     }
@@ -801,8 +800,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected = {
       "admin-properties": {
         "properties": {
-          "SQL_CONNECTOR_JAR": "/usr/share/java/postgresql.jar",
-          "policymgr_external_url": "https://host1:7777",
+          "policymgr_external_url": "https://host1:7777"
           }
       }
     }
@@ -828,8 +826,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected = {
       "admin-properties": {
         "properties": {
-          "SQL_CONNECTOR_JAR": "/usr/share/java/ojdbc6.jar",
-          "policymgr_external_url": "https://host1:8888",
+          "policymgr_external_url": "https://host1:8888"
           }
       },
       "ranger-env": {"properties": {}}
@@ -961,9 +958,31 @@ class TestHDP206StackAdvisor(TestCase):
             "ph_cpu_count": 1,
             "public_host_name": "c6401.ambari.apache.org",
             "rack_info": "/default-rack",
-            "total_mem": 2097152
+            "total_mem": 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
-        }]}
+        },
+        {
+          "href": "/api/v1/hosts/host2",
+          "Hosts": {
+            "cpu_count": 1,
+            "host_name": "c6402.ambari.apache.org",
+            "os_arch": "x86_64",
+            "os_type": "centos6",
+            "ph_cpu_count": 1,
+            "public_host_name": "c6402.ambari.apache.org",
+            "rack_info": "/default-rack",
+            "total_mem": 1048576,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
+          }
+        },
+      ]}
 
     services = {
       "services": [
@@ -994,8 +1013,24 @@ class TestHDP206StackAdvisor(TestCase):
             "service_name": "HIVE",
             "stack_name": "HDP",
             "stack_version": "2.0.6",
-            "hostnames": ["c6401.ambari.apache.org"]
-          }, }]
+            "hostnames": ["c6401.ambari.apache.org","c6402.ambari.apache.org"]
+          }},
+          {
+          "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/WEBHCAT_SERVER",
+          "StackServiceComponents": {
+            "advertise_version": "true",
+            "cardinality": "1",
+            "component_category": "MASTER",
+            "component_name": "WEBHCAT_SERVER",
+            "custom_commands": [],
+            "display_name": "WebHCat Server",
+            "is_client": "false",
+            "is_master": "true",
+            "service_name": "HIVE",
+            "stack_name": "HDP",
+            "stack_version": "2.0.6",
+            "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+          }}]
         },
         {
           "StackServices": {
@@ -1014,10 +1049,11 @@ class TestHDP206StackAdvisor(TestCase):
             "service_name": "HIVE",
             "stack_name": "HDP",
             "stack_version": "2.0.6",
-            "hostnames": ["c6401.ambari.apache.org"]
+            "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
           }, }]
         }],
-      "configurations": configurations
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
 
     clusterData = {
@@ -1028,25 +1064,29 @@ class TestHDP206StackAdvisor(TestCase):
                      {'oozie_user': 'oozie'}},
                 'core-site':
                   {'properties':
-                     {'hadoop.proxyuser.oozie.groups': '*',
+                     {'hadoop.proxyuser.ambari_user.groups': '*',
+                      'hadoop.proxyuser.ambari_user.hosts': '*',
+                      'hadoop.proxyuser.oozie.groups': '*',
                       'hadoop.proxyuser.hive.groups': '*',
-                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org',
+                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                       'hadoop.proxyuser.falcon.hosts': '*',
                       'hadoop.proxyuser.webhcat.groups': '*',
                       'hadoop.proxyuser.hdfs.groups': '*',
                       'hadoop.proxyuser.hdfs.hosts': '*',
-                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org',
-                      'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org',
+                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                      'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                       'hadoop.proxyuser.falcon.groups': '*'}},
                 'falcon-env':
                   {'properties':
                      {'falcon_user': 'falcon'}},
+                'hdfs-site':
+                  {'properties': 
+                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.du.reserved': '1024'}},
                 'hive-env':
                   {'properties':
                      {'hive_user': 'hive',
                       'webhcat_user': 'webhcat'}},
-                'hdfs-site':
-                  {'properties': {}},
                 'hadoop-env':
                   {'properties':
                      {'hdfs_user': 'hdfs',
@@ -1071,17 +1111,19 @@ class TestHDP206StackAdvisor(TestCase):
                   {'properties':
                      {'oozie_user': 'oozie'}},
                 'core-site': {'properties':
-                                {'hadoop.proxyuser.oozie.groups': '*',
+                                {'hadoop.proxyuser.ambari_user.groups': '*',
+                                 'hadoop.proxyuser.ambari_user.hosts': '*',
+                                 'hadoop.proxyuser.oozie.groups': '*',
                                  'hadoop.proxyuser.hive.groups': '*',
                                  'hadoop.proxyuser.hdfs1.groups': '*',
                                  'hadoop.proxyuser.hdfs1.hosts': '*',
-                                 'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org',
+                                 'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                                  'hadoop.proxyuser.falcon.hosts': '*',
                                  'hadoop.proxyuser.webhcat.groups': '*',
                                  'hadoop.proxyuser.hdfs.groups': '*',
                                  'hadoop.proxyuser.hdfs.hosts': '*',
-                                 'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org',
-                                 'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org',
+                                 'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                                 'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                                  'hadoop.proxyuser.falcon.groups': '*'},
                               'property_attributes':
                                 {'hadoop.proxyuser.hdfs.groups': {'delete': 'true'},
@@ -1094,7 +1136,9 @@ class TestHDP206StackAdvisor(TestCase):
                      {'hive_user': 'hive',
                       'webhcat_user': 'webhcat'}},
                 'hdfs-site':
-                  {'properties': {}},
+                  {'properties': 
+                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.du.reserved': '1024'}},
                 'hadoop-env':
                   {'properties':
                      {'hdfs_user': 'hdfs1',
@@ -1107,12 +1151,15 @@ class TestHDP206StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
     # Verify dfs.namenode.rpc-address is recommended to be deleted when NN HA
-    configurations["hdfs-site"]["properties"]['dfs.nameservices'] = "mycluster"
+    configurations["hdfs-site"]["properties"]['dfs.internal.nameservices'] = "mycluster"
     configurations["hdfs-site"]["properties"]['dfs.ha.namenodes.mycluster'] = "nn1,nn2"
     services['configurations'] = configurations
+
     expected["hdfs-site"] = {
       'properties': {
-        'dfs.nameservices': 'mycluster',
+        'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+        'dfs.datanode.du.reserved': '1024',
+        'dfs.internal.nameservices': 'mycluster',
         'dfs.ha.namenodes.mycluster': 'nn1,nn2'
       },
       'property_attributes': {
@@ -1188,6 +1235,29 @@ class TestHDP206StackAdvisor(TestCase):
     expected = "zk.host1:2183,zk.host2:2183,zk.host3:2183"
     self.assertEquals(result, expected)
 
+  def test_validateHDFSConfigurations(self):
+    configurations = {}
+    services = ''
+    hosts = ''
+    #Default configuration
+    recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
+    properties = {'dfs.datanode.du.reserved': '1024'}
+    res = self.stackAdvisor.validateHDFSConfigurations(properties, 
+                    recommendedDefaults, configurations, services, hosts)
+    self.assertFalse(res)
+    #Value is less then expected
+    recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
+    properties = {'dfs.datanode.du.reserved': '512'}
+    res = self.stackAdvisor.validateHDFSConfigurations(properties, 
+                    recommendedDefaults, configurations, services, hosts)
+    self.assertTrue(res)
+    #Value is begger then expected
+    recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
+    properties = {'dfs.datanode.du.reserved': '2048'}
+    res = self.stackAdvisor.validateHDFSConfigurations(properties, 
+                    recommendedDefaults, configurations, services, hosts)
+    self.assertFalse(res)
+
   def test_validateHDFSConfigurationsEnv(self):
     configurations = {}
 
@@ -1225,6 +1295,11 @@ class TestHDP206StackAdvisor(TestCase):
       "hdfs-site": {
         "properties": {
           'dfs.datanode.data.dir': "/hadoop/data"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
         }
       },
       "ams-site": {
@@ -1410,6 +1485,13 @@ class TestHDP206StackAdvisor(TestCase):
         'config-type': 'ams-hbase-site',
         'level': 'WARN',
         'message': 'In distributed mode hbase.rootdir should point to HDFS.',
+        'type': 'configuration'
+      },
+      {
+        'config-name': 'hbase.cluster.distributed',
+        'config-type': 'ams-hbase-site',
+        'level': 'ERROR',
+        'message': 'hbase.cluster.distributed property should be set to true for distributed mode',
         'type': 'configuration'
       }
     ]
@@ -1740,7 +1822,7 @@ class TestHDP206StackAdvisor(TestCase):
     )
     recommendedDefaults = {"property1": "file:///grid/0/var/dir"}
     warn = self.stackAdvisor.validatorNotRootFs(properties, recommendedDefaults, 'property1', hostInfo)
-    self.assertFalse(warn == None)
+    self.assertTrue(warn != None)
     self.assertEquals({'message': 'It is not recommended to use root partition for property1', 'level': 'WARN'}, warn)
 
     # Set by user /var mountpoint, which is non-root , but not preferable - no warning
@@ -1861,3 +1943,62 @@ class TestHDP206StackAdvisor(TestCase):
     siteProperties = stack_advisor.getServicesSiteProperties(services, "ranger-admin-site")
     self.assertEquals(siteProperties, expected)
 
+  def test_createComponentLayoutRecommendations_addService_1freeHost(self):
+    """
+    Test that already installed slaves are not added to any free hosts (not having any component installed)
+    as part of recommendation received during Add service operation.
+    For already installed services, recommendation for installed components should match the existing layout
+    """
+
+    services = {
+                  "services" : [
+                 {
+                    "StackServices" : {
+                      "service_name" : "HDFS"
+                    },
+                    "components" : [ {
+                      "StackServiceComponents" : {
+                        "cardinality" : "1+",
+                        "component_category" : "SLAVE",
+                        "component_name" : "DATANODE",
+                        "hostnames" : [ "c6401.ambari.apache.org" ]
+                      }
+                    } ]
+                 } ]
+              }
+
+    hosts = self.prepareHosts(["c6401.ambari.apache.org", "c6402.ambari.apache.org"])
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    """
+    Recommendation received should be as below:
+                               {
+                                  'blueprint': {
+                                          'host_groups': [{
+                                                  'name': 'host-group-1',
+                                                  'components': []
+                                          }, {
+                                                  'name': 'host-group-2',
+                                                  'components': [{
+                                                          'name': 'DATANODE'
+                                                  }]
+                                          }]
+                                  },
+                                  'blueprint_cluster_binding': {
+                                          'host_groups': [{
+                                                  'hosts': [{
+                                                          'fqdn': 'c6402.ambari.apache.org'
+                                                  }],
+                                                  'name': 'host-group-1'
+                                          }, {
+                                                  'hosts': [{
+                                                          'fqdn': 'c6401.ambari.apache.org'
+                                                  }],
+                                                  'name': 'host-group-2'
+                                          }]
+                                  }
+                           }
+    """
+    # Assert that the list is empty for host-group-1
+    self.assertFalse(recommendations['blueprint']['host_groups'][0]['components'])
+    # Assert that DATANODE is placed on host-group-2
+    self.assertEquals(recommendations['blueprint']['host_groups'][1]['components'][0]['name'], 'DATANODE')

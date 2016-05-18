@@ -24,19 +24,44 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyStore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractTimelineMetricsSink {
   public static final String TAGS_FOR_PREFIX_PROPERTY_PREFIX = "tagsForPrefix.";
   public static final String MAX_METRIC_ROW_CACHE_SIZE = "maxRowCacheSize";
   public static final String METRICS_SEND_INTERVAL = "sendInterval";
   public static final String METRICS_POST_TIMEOUT_SECONDS = "timeout";
-  public static final String COLLECTOR_HOST_PROPERTY = "collector";
-  public static final String COLLECTOR_PORT_PROPERTY = "port";
+  public static final String COLLECTOR_PROPERTY = "collector";
   public static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
+  public static final String SKIP_COUNTER_TRANSFROMATION = "skipCounterDerivative";
+  public static final String RPC_METRIC_PREFIX = "metric.rpc";
+  public static final String RPC_METRIC_NAME_SUFFIX = "suffix";
+  public static final String RPC_METRIC_PORT_SUFFIX = "port";
+
+  public static final String WS_V1_TIMELINE_METRICS = "/ws/v1/timeline/metrics";
+
+  public static final String SSL_KEYSTORE_PATH_PROPERTY = "truststore.path";
+  public static final String SSL_KEYSTORE_TYPE_PROPERTY = "truststore.type";
+  public static final String SSL_KEYSTORE_PASSWORD_PROPERTY = "truststore.password";
+
+  protected static final AtomicInteger failedCollectorConnectionsCounter = new AtomicInteger(0);
+  public static int NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS = 100;
+
+  private SSLSocketFactory sslSocketFactory;
 
   protected final Log LOG;
 
@@ -47,24 +72,26 @@ public abstract class AbstractTimelineMetricsSink {
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
     mapper.getSerializationConfig()
-        .setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+      .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
   }
 
   public AbstractTimelineMetricsSink() {
     LOG = LogFactory.getLog(this.getClass());
   }
 
-  protected void emitMetrics(TimelineMetrics metrics) {
-    String connectUrl = getCollectorUri();
+  protected boolean emitMetricsJson(String connectUrl, String jsonData) {
     int timeout = getTimeoutSeconds() * 1000;
+    HttpURLConnection connection = null;
     try {
-      String jsonData = mapper.writeValueAsString(metrics);
-
-      HttpURLConnection connection =
-        (HttpURLConnection) new URL(connectUrl).openConnection();
+      if (connectUrl == null) {
+        throw new IOException("Unknown URL. Unable to connect to metrics collector.");
+      }
+      connection = connectUrl.startsWith("https") ?
+          getSSLConnection(connectUrl) : getConnection(connectUrl);
 
       connection.setRequestMethod("POST");
       connection.setRequestProperty("Content-Type", "application/json");
+      connection.setRequestProperty("Connection", "Keep-Alive");
       connection.setConnectTimeout(timeout);
       connection.setReadTimeout(timeout);
       connection.setDoOutput(true);
@@ -79,12 +106,139 @@ public abstract class AbstractTimelineMetricsSink {
 
       if (statusCode != 200) {
         LOG.info("Unable to POST metrics to collector, " + connectUrl + ", " +
-          "statusCode = " + statusCode);
+            "statusCode = " + statusCode);
       } else {
-        LOG.debug("Metrics posted to Collector " + connectUrl);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Metrics posted to Collector " + connectUrl);
+        }
       }
+      cleanupInputStream(connection.getInputStream());
+      //reset failedCollectorConnectionsCounter to "0"
+      failedCollectorConnectionsCounter.set(0);
+      return true;
+    } catch (IOException ioe) {
+      StringBuilder errorMessage =
+          new StringBuilder("Unable to connect to collector, " + connectUrl + "\n"
+                  + "This exceptions will be ignored for next " + NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS + " times\n");
+      try {
+        if ((connection != null)) {
+          errorMessage.append(cleanupInputStream(connection.getErrorStream()));
+        }
+      } catch (IOException e) {
+        //NOP
+      }
+
+      if (failedCollectorConnectionsCounter.getAndIncrement() == 0) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(errorMessage, ioe);
+        } else {
+          LOG.info(errorMessage);
+        }
+        throw new UnableToConnectException(ioe).setConnectUrl(connectUrl);
+      } else {
+        failedCollectorConnectionsCounter.compareAndSet(NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS, 0);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("Ignoring %s AMS connection exceptions", NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS));
+        }
+        return false;
+      }
+    }
+  }
+
+  protected boolean emitMetrics(TimelineMetrics metrics) {
+    String connectUrl = getCollectorUri();
+    String jsonData = null;
+    try {
+      jsonData = mapper.writeValueAsString(metrics);
     } catch (IOException e) {
-      throw new UnableToConnectException(e).setConnectUrl(connectUrl);
+      LOG.error("Unable to parse metrics", e);
+    }
+    if (jsonData != null) {
+      return emitMetricsJson(connectUrl, jsonData);
+    }
+    return false;
+  }
+
+  /**
+   * Cleans up and closes an input stream
+   * see http://docs.oracle.com/javase/6/docs/technotes/guides/net/http-keepalive.html
+   * @param is the InputStream to clean up
+   * @return string read from the InputStream
+   * @throws IOException
+   */
+  protected String cleanupInputStream(InputStream is) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    if (is != null) {
+      try (
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr)
+      ) {
+        // read the response body
+        String line;
+        while ((line = br.readLine()) != null) {
+          if (LOG.isDebugEnabled()) {
+            sb.append(line);
+          }
+        }
+      } finally {
+        is.close();
+      }
+    }
+    return sb.toString();
+  }
+
+  // Get a connection
+  protected HttpURLConnection getConnection(String spec) throws IOException {
+    return (HttpURLConnection) new URL(spec).openConnection();
+  }
+
+  // Get an ssl connection
+  protected HttpsURLConnection getSSLConnection(String spec)
+    throws IOException, IllegalStateException {
+
+    HttpsURLConnection connection = (HttpsURLConnection) (new URL(spec)
+      .openConnection());
+
+    connection.setSSLSocketFactory(sslSocketFactory);
+
+    return connection;
+  }
+
+  protected void loadTruststore(String trustStorePath, String trustStoreType,
+                                String trustStorePassword) {
+    if (sslSocketFactory == null) {
+      if (trustStorePath == null || trustStorePassword == null) {
+
+        String msg =
+          String.format("Can't load TrustStore. " +
+            "Truststore path or password is not set.");
+
+        LOG.error(msg);
+        throw new IllegalStateException(msg);
+      }
+      FileInputStream in = null;
+      try {
+        in = new FileInputStream(new File(trustStorePath));
+        KeyStore store = KeyStore.getInstance(trustStoreType == null ?
+          KeyStore.getDefaultType() : trustStoreType);
+        store.load(in, trustStorePassword.toCharArray());
+        TrustManagerFactory tmf = TrustManagerFactory
+          .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(store);
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init(null, tmf.getTrustManagers(), null);
+        sslSocketFactory = context.getSocketFactory();
+      } catch (Exception e) {
+        LOG.error("Unable to load TrustStore", e);
+      } finally {
+        if (in != null) {
+          try {
+            in.close();
+          } catch (IOException e) {
+            LOG.error("Unable to load TrustStore", e);
+          }
+        }
+      }
     }
   }
 

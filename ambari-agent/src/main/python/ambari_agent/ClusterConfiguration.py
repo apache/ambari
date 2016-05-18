@@ -76,7 +76,7 @@ class ClusterConfiguration():
     Updates the in-memory and disk-based cluster configurations based on
     the heartbeat. This will only update configurations on the following
     types of commands in the heartbeat: execution, and alert definition.
-    :param new_configurations:
+    :param heartbeat: the heartbeat response
     :return:
     """
     heartbeat_keys = heartbeat.keys()
@@ -88,7 +88,7 @@ class ClusterConfiguration():
 
     # if this heartbeat doesn't contain a command with configurations, then
     # don't process it
-    if not heartbeat_contains_configurations:
+    if heartbeat_contains_configurations is False:
       return
 
     if self.EXECUTION_COMMANDS in heartbeat_keys:
@@ -99,8 +99,6 @@ class ClusterConfiguration():
           configurations = command['configurations']
           self._update_configurations(cluster_name, configurations)
 
-      return
-
     if self.ALERT_DEFINITION_COMMANDS in heartbeat_keys:
       alert_definition_commands = heartbeat[self.ALERT_DEFINITION_COMMANDS]
       for command in alert_definition_commands:
@@ -108,8 +106,6 @@ class ClusterConfiguration():
           cluster_name = command['clusterName']
           configurations = command['configurations']
           self._update_configurations(cluster_name, configurations)
-
-      return
 
 
   def _update_configurations(self, cluster_name, configuration):
@@ -133,7 +129,7 @@ class ClusterConfiguration():
 
     self.__file_lock.acquire()
     try:
-      with open(self.__config_json_file, 'w') as f:
+      with os.fdopen(os.open(self.__config_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
         json.dump(self.__configurations, f, indent=2)
     except Exception, exception :
       logger.exception("Unable to update configurations for cluster {0}".format(cluster_name))

@@ -56,7 +56,7 @@ App.ConfigurationController = Em.Controller.extend({
     var i = 0;
     while (i < tags.length && !isDifferent) {
       var storedTag = storedTags.findProperty('siteName', tags[i].siteName);
-      isDifferent = (!storedTag || storedTag.tagName !== tags[i].tagName);
+      isDifferent = (!storedTag || !tags[i].tagName || storedTag.tagName !== tags[i].tagName);
       i++;
     }
     return isDifferent;

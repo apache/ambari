@@ -23,20 +23,21 @@
       <displayName>Flume</displayName>
       <version>1.5.2.2.2</version>
 
+
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>flume_2_2_*</name>
+              <name>flume_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>flume-2-2-.*</name>
+              <name>flume-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

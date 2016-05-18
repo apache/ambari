@@ -65,15 +65,47 @@ App.ModalPopup = Ember.View.extend({
   showCloseButton: true,
 
   didInsertElement: function () {
-    if (this.autoHeight) {
-      var block = this.$().find('#modal > .modal-body').first();
-      if(block.offset()) {
-        block.css('max-height', $(window).height() - block.offset().top  - this.marginBottom + $(window).scrollTop()); // fix popup height
-      }
-    }
+    this.$().find('#modal')
+      .on('enter-key-pressed', this.enterKeyPressed.bind(this))
+      .on('escape-key-pressed', this.escapeKeyPressed.bind(this));
     this.fitZIndex();
-    var firstInputElement = this.$('#modal').find(':input').not(':disabled').first();
+    var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
     this.focusElement(firstInputElement);
+    this.subscribeResize();
+  },
+
+  subscribeResize: function() {
+    if (this.get('autoHeight') && !$.mocho) {
+      this.fitHeight();
+      $(window).on('resize', this.fitHeight.bind(this));
+    }
+  },
+
+  willDestroyElement: function() {
+    this.$().find('#modal').off('enter-key-pressed').off('escape-key-pressed');
+    if (this.get('autoHeight') && !$.mocho) {
+      $(window).off('resize', this.fitHeight);
+    }
+  },
+
+  escapeKeyPressed: function (event) {
+    var closeButton = this.$().find('.modal-header > .close').last();
+    if (closeButton.length > 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeButton.click();
+      return false;
+    }
+  },
+
+  enterKeyPressed: function (event) {
+    var primaryButton = this.$().find('.modal-footer > .btn-success').last();
+    if ((!$("*:focus").is("textarea")) && primaryButton.length > 0 && primaryButton.attr('disabled') !== 'disabled') {
+      event.preventDefault();
+      event.stopPropagation();
+      primaryButton.click();
+      return false;
+    }
   },
 
   /**
@@ -82,7 +114,7 @@ App.ModalPopup = Ember.View.extend({
    */
   fitZIndex: function () {
     var existedPopups = $('.modal-backdrop');
-    if (existedPopups) {
+    if (existedPopups && !$.mocho) {
       var maxZindex = 1;
       existedPopups.each(function(index, popup) {
         if ($(popup).css('z-index') > maxZindex) {
@@ -99,11 +131,12 @@ App.ModalPopup = Ember.View.extend({
   },
 
   fitHeight: function () {
+    if (this.get('state') === 'destroyed') return;
     var popup = this.$().find('#modal');
     var block = this.$().find('#modal > .modal-body');
     var wh = $(window).height();
 
-    var top = wh * .05;
+    var top = wh * 0.05;
     popup.css({
       'top': top + 'px',
       'marginTop': 0

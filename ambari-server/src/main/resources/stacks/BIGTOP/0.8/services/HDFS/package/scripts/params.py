@@ -149,7 +149,10 @@ dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
 
 # HDFS High Availability properties
 dfs_ha_enabled = False
-dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
+dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+if dfs_ha_nameservices is None:
+  dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.nameservices', None)
+
 dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
 
 namenode_id = None

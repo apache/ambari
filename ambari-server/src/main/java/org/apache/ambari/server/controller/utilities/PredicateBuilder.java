@@ -50,6 +50,14 @@ public class PredicateBuilder {
     this.outer = outer;
   }
 
+  /**
+   * Allow for chaining of already constructed predicates
+   */
+  public PredicateBuilder(Predicate predicate) {
+    this.outer = null;
+    this.addPredicate(predicate);
+  }
+
   private enum Operator {
     And,
     Or

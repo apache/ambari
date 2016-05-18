@@ -339,7 +339,7 @@ public class StackDirectory extends StackDefinitionDirectory {
           repoFile.setValid(false);
           String msg = "Unable to parse repo file at location: " +
                        repositoryFile.getAbsolutePath();
-          repoFile.setErrors(msg);
+          repoFile.addError(msg);
           LOG.warn(msg);
         }
       }
@@ -375,7 +375,7 @@ public class StackDirectory extends StackDefinitionDirectory {
         metaInfoXml.setValid(false);
         String msg = "Unable to parse stack metainfo.xml file at location: " +
                      stackMetaInfoFile.getAbsolutePath();
-        metaInfoXml.setErrors(msg);
+        metaInfoXml.addError(msg);
         LOG.warn(msg);
       }
     }
@@ -487,10 +487,8 @@ public class StackDirectory extends StackDefinitionDirectory {
         result = mapper.readValue(file, rcoElementTypeReference);
         LOG.info("Role command order info was loaded from file: {}", file.getAbsolutePath());
       } else {
-        InputStream rcoInputStream = ClassLoader.getSystemResourceAsStream(ROLE_COMMAND_ORDER_FILE);
-        result = mapper.readValue(rcoInputStream, rcoElementTypeReference);
-        LOG.info("Role command order info was loaded from classpath: " +
-            ClassLoader.getSystemResource(ROLE_COMMAND_ORDER_FILE));
+        LOG.info("Stack '{}' doesn't contain role command order file", getPath());
+        result = new HashMap<String, Object>();
       }
       roleCommandOrder = new StackRoleCommandOrder(result);
       parseRoleCommandOrdersForServices();

@@ -55,8 +55,6 @@
         </component>
 
       </components>
-
-
       
       <osSpecifics>
         <osSpecific>
@@ -65,25 +63,26 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysl_connector</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,redhat7,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>hive_2_2_*</name>
+              <name>hive_${stack_version}</name>
             </package>
             <package>
-              <name>hive_2_2_*-hcatalog</name>
+              <name>hive_${stack_version}-hcatalog</name>
             </package>
             <package>
-              <name>hive_2_2_*-webhcat</name>
+              <name>hive_${stack_version}-webhcat</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql</name>
@@ -97,10 +96,12 @@
             <package>
               <name>mysql-community-release</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
             <package>
               <name>mysql-community-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>
@@ -108,31 +109,33 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hive-2-2-.*</name>
+              <name>hive-${stack_version}</name>
             </package>
             <package>
-              <name>hive-2-2-.*-hcatalog</name>
+              <name>hive-${stack_version}-hcatalog</name>
             </package>
             <package>
-              <name>hive-2-2-.*-webhcat</name>
+              <name>hive-${stack_version}-webhcat</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,ubuntu12</osFamily>
+          <osFamily>amazon2015,redhat6,ubuntu12</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>suse11</osFamily>
+          <osFamily>suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql-client</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>

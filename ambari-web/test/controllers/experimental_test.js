@@ -21,9 +21,7 @@ var App = require('app');
 require('controllers/experimental');
 
 var controller,
-  transition,
   supports = {},
-  transitionStubbed = false,
   controllerSupports = [
     Em.Object.create({
       name: 'sup0',
@@ -65,10 +63,10 @@ describe('App.ExperimentalController', function () {
   describe.skip('#doSave', function () {
     before(function () {
       sinon.stub(Ember, 'set', function (p, v) {
-        if (p.indexOf('App.supports.' != -1)) {
-          p = p.replace('App.supports.', '');
-          saveObject[p] = v;
-          return;
+        if (p.startsWith('App.supports.')) {
+          var key = p.replace('App.supports.', '');
+          saveObject[key] = v;
+          return v;
         }
         return Ember.set(p, v);
       });

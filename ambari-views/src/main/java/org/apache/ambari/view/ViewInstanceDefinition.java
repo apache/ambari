@@ -62,6 +62,14 @@ public interface ViewInstanceDefinition {
   public String getClusterHandle();
 
   /**
+   *  Get the type of cluster the view instance is attached to
+   *
+   * @return clusterType the type of cluster for cluster handle
+   */
+  public ClusterType getClusterType();
+
+
+  /**
    * Indicates whether or not the view instance should be visible.
    *
    * @return true if the view instance should be visible; false otherwise
@@ -88,4 +96,5 @@ public interface ViewInstanceDefinition {
    * @return the view definition
    */
   public ViewDefinition getViewDefinition();
+
 }

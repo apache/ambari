@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
+import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,11 +47,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -209,7 +213,7 @@ public class ArtifactResourceProviderTest {
 
   @Test
   public void testCreateResource() throws Exception {
-    Capture<ArtifactEntity> createEntityCapture = new Capture<ArtifactEntity>();
+    Capture<ArtifactEntity> createEntityCapture = newCapture();
     Map<String, Object> outerMap = new TreeMap<String, Object>();
     Map<String, Object> childMap = new TreeMap<String, Object>();
     outerMap.put("child", childMap);
@@ -301,8 +305,8 @@ public class ArtifactResourceProviderTest {
     Map<String, String> requestInfoProps = new HashMap<String, String>();
     requestInfoProps.put(Request.REQUEST_INFO_BODY_PROPERTY, bodyJson);
 
-    Capture<ArtifactEntity> updateEntityCapture = new Capture<ArtifactEntity>();
-    Capture<ArtifactEntity> updateEntityCapture2 = new Capture<ArtifactEntity>();
+    Capture<ArtifactEntity> updateEntityCapture = newCapture();
+    Capture<ArtifactEntity> updateEntityCapture2 = newCapture();
     Set<String> propertyIds = new HashSet<String>();
     TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
     foreignKeys.put("cluster", "500");
@@ -328,8 +332,7 @@ public class ArtifactResourceProviderTest {
 
     Set<Map<String, Object>> requestProperties = Collections.singleton(properties);
 
-    Collection<Object> collectionProperties = new HashSet<Object>();
-    properties.put("artifact_data/collection", collectionProperties);
+    properties.put("artifact_data/collection", Collections.emptySet());
 
     // expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
@@ -390,8 +393,8 @@ public class ArtifactResourceProviderTest {
   @Test
   public void testDeleteResources() throws Exception {
 
-    Capture<ArtifactEntity> deleteEntityCapture = new Capture<ArtifactEntity>();
-    Capture<ArtifactEntity> deleteEntityCapture2 = new Capture<ArtifactEntity>();
+    Capture<ArtifactEntity> deleteEntityCapture = newCapture();
+    Capture<ArtifactEntity> deleteEntityCapture2 = newCapture();
     TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
     foreignKeys.put("cluster", "500");
 
@@ -420,10 +423,25 @@ public class ArtifactResourceProviderTest {
     expect(entity2.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
     expect(entity2.getArtifactData()).andReturn(artifact_data2).anyTimes();
 
+    IAnswer<ArtifactEntity> findByNameAndForeignKeys = new IAnswer<ArtifactEntity>() {
+      @Override
+      public ArtifactEntity answer() throws Throwable {
+        String artifactName = (String) getCurrentArguments()[0];
+
+        if ("test-artifact".equals(artifactName)) {
+          return entity;
+        } else if ("test-artifact2".equals(artifactName)) {
+          return entity2;
+        } else {
+          return null;
+        }
+      }
+    };
+
     expect(dao.findByForeignKeys(eq(foreignKeys))).andReturn(entities).once();
-    expect(dao.findByNameAndForeignKeys(eq("test-artifact"), eq(foreignKeys))).andReturn(entity).once();
+    expect(dao.findByNameAndForeignKeys(anyString(), eq(foreignKeys))).andAnswer(findByNameAndForeignKeys).once();
     dao.remove(capture(deleteEntityCapture));
-    expect(dao.findByNameAndForeignKeys(eq("test-artifact2"), eq(foreignKeys))).andReturn(entity2).once();
+    expect(dao.findByNameAndForeignKeys(anyString(), eq(foreignKeys))).andAnswer(findByNameAndForeignKeys).once();
     dao.remove(capture(deleteEntityCapture2));
 
     // end of expectation setting
@@ -432,7 +450,7 @@ public class ArtifactResourceProviderTest {
     PredicateBuilder pb = new PredicateBuilder();
     Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals("test-cluster").end().toPredicate();
 
-    RequestStatus response = resourceProvider.deleteResources(predicate);
+    RequestStatus response = resourceProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
     ArtifactEntity deleteEntity = deleteEntityCapture.getValue();
     ArtifactEntity deleteEntity2 = deleteEntityCapture2.getValue();
 

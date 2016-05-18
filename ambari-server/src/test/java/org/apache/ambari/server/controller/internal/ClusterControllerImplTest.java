@@ -767,7 +767,7 @@ public class ClusterControllerImplTest {
 
     Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
 
-    controller.deleteResources(Resource.Type.Host, predicate);
+    controller.deleteResources(Resource.Type.Host, new RequestImpl(null, null, null, null), predicate);
 
     Assert.assertEquals(TestHostResourceProvider.Action.Delete, resourceProvider.getLastAction());
     Assert.assertNull(resourceProvider.getLastRequest());
@@ -782,7 +782,7 @@ public class ClusterControllerImplTest {
     Predicate predicate = new PredicateBuilder().property(UNSUPPORTED_PROPERTY).equals(1).toPredicate();
 
     try {
-      controller.deleteResources(Resource.Type.Host, predicate);
+      controller.deleteResources(Resource.Type.Host, new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
     } catch (UnsupportedPropertyException e) {
       // Expected
@@ -797,7 +797,7 @@ public class ClusterControllerImplTest {
 
     Predicate predicate = new PredicateBuilder().property("c3/p6").equals(1).toPredicate();
 
-    controller.deleteResources(Resource.Type.Host, predicate);
+    controller.deleteResources(Resource.Type.Host, new RequestImpl(null, null, null, null), predicate);
 
     Assert.assertEquals(TestHostResourceProvider.Action.Delete, resourceProvider.getLastAction());
     Assert.assertNull(resourceProvider.getLastRequest());
@@ -989,7 +989,7 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       throw new UnsupportedOperationException(); // not needed for testing
     }
 
@@ -1099,7 +1099,7 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
       lastAction = Action.Delete;
       lastRequest = null;
       lastPredicate = predicate;

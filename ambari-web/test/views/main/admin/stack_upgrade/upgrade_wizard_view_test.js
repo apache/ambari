@@ -19,12 +19,13 @@
 
 var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_wizard_view');
+var testHelpers = require('test/helpers');
 
-describe('App.upgradeWizardView', function () {
-  var view = App.upgradeWizardView.create({
+function getView() {
+  var v = App.upgradeWizardView.create({
     failedStatuses: ['FAILED']
   });
-  view.reopen({
+  v.reopen({
     controller: Em.Object.create({
       finalizeContext: 'Confirm Finalize',
       upgradeData: Em.Object.create(),
@@ -35,7 +36,29 @@ describe('App.upgradeWizardView', function () {
       }
     })
   });
-  view.removeObserver('App.clusterName', view, 'startPolling');
+  v.removeObserver('App.clusterName', v, 'startPolling');
+  return v;
+}
+
+describe('App.upgradeWizardView', function () {
+  var view;
+
+  beforeEach(function () {
+    App.ajax.send.restore();
+    sinon.stub(App.ajax, 'send').returns({
+      complete: Em.clb
+    });
+    view = getView();
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('upgradeItemTimer'));
+    view.destroy();
+  });
+
+  App.TestAliases.testAsComputedOr(getView(), 'isManualProceedDisabled', ['!isManualDone', 'controller.requestInProgress']);
+
+  App.TestAliases.testAsComputedEqualProperties(getView(), 'isFinalizeItem', 'manualItem.context', 'controller.finalizeContext');
 
   describe("#upgradeGroups", function () {
     it("upgradeGroups is null", function () {
@@ -51,12 +74,7 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#activeGroup", function () {
-    after(function () {
-      view.reopen({
-        activeGroup: Em.Object.create()
-      });
-    });
-    it("", function () {
+    it("status is updated", function () {
       view.reopen({
         activeStatuses: ['IN_PROGRESS'],
         upgradeGroups: [Em.Object.create({
@@ -93,9 +111,7 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadUpgradeData', function () {
         return {
-          done: function (callback) {
-            callback();
-          }
+          done: Em.clb
         }
       });
       sinon.stub(view, 'doPolling', Em.K);
@@ -121,10 +137,10 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#willInsertElement()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'startPolling', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       view.startPolling.restore();
     });
     it("call startPolling()", function () {
@@ -145,70 +161,83 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadUpgradeData', function () {
         return {
-          done: function (callback) {
-            callback();
-          }
+          done: Em.clb
         }
       });
       sinon.spy(view, 'doPolling');
       this.clock = sinon.useFakeTimers();
+      view.doPolling();
+      this.clock.tick(App.bgOperationsUpdateInterval);
     });
     afterEach(function () {
       view.get('controller').loadUpgradeData.restore();
       view.doPolling.restore();
       this.clock.restore();
     });
-    it("", function () {
-      view.doPolling();
-      this.clock.tick(App.bgOperationsUpdateInterval);
+    it("loadUpgradeData is called once", function () {
       expect(view.get('controller').loadUpgradeData.calledOnce).to.be.true;
+    });
+    it("doPolling is called twice", function () {
       expect(view.doPolling.calledTwice).to.be.true;
     });
   });
 
   describe("#continue()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
+      view.continue({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
     });
-    after(function () {
+    afterEach(function () {
       view.get('controller').setUpgradeItemStatus.restore();
     });
-    it("", function () {
-      view.continue({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
+    it("setUpgradeItemStatus is called with correct data", function () {
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
+    });
+    it("isDetailsOpened is false", function () {
       expect(view.get('isDetailsOpened')).to.be.false;
     });
   });
 
   describe("#complete()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
+      view.complete({context: Em.Object.create({'status': 'FAILED'})});
     });
-    after(function () {
+    afterEach(function () {
       view.get('controller').setUpgradeItemStatus.restore();
     });
-    it("", function () {
-      view.complete({context: Em.Object.create({'status': 'FAILED'})});
+    it("setUpgradeItemStatus is called with correct data", function () {
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'COMPLETED')).to.be.true;
+    });
+    it("isManualDone is false", function () {
       expect(view.get('isManualDone')).to.be.false;
     });
   });
 
   describe("#retry()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
+      view.retry({context: Em.Object.create({'status': 'FAILED'})});
     });
-    after(function () {
+    afterEach(function () {
       view.get('controller').setUpgradeItemStatus.restore();
     });
-    it("", function () {
-      view.retry({context: Em.Object.create({'status': 'FAILED'})});
+    it("setUpgradeItemStatus is called with correct data", function () {
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'PENDING')).to.be.true;
+    });
+    it("isDetailsOpened is false", function () {
       expect(view.get('isDetailsOpened')).to.be.false;
     });
   });
 
   describe("#manualItem", function () {
+
+    beforeEach(function () {
+      view.reopen({
+        activeGroup: Em.Object.create()
+      });
+    });
+
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
       view.propertyDidChange('manualItem');
@@ -222,29 +251,21 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#resetManualDone()", function() {
-    it("", function() {
+    it("isManualDone is set to false", function() {
       view.set('isManualDone', true);
       view.propertyDidChange('manualItem');
       expect(view.get('isManualDone')).to.be.false;
     });
   });
 
-  describe("#isManualProceedDisabled", function () {
-    it("requestInProgress is false", function () {
-      view.set('isManualDone', true);
-      view.set('controller.requestInProgress', false);
-      view.propertyDidChange('isManualProceedDisabled');
-      expect(view.get('isManualProceedDisabled')).to.be.false;
-    });
-    it("requestInProgress is true", function () {
-      view.set('controller.requestInProgress', true);
-      view.propertyDidChange('isManualProceedDisabled');
-      expect(view.get('isManualProceedDisabled')).to.be.true;
-    });
-
-  });
-
   describe("#failedItem", function () {
+
+    beforeEach(function () {
+      view.reopen({
+        activeGroup: Em.Object.create()
+      });
+    });
+
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
       view.propertyDidChange('failedItem');
@@ -258,6 +279,13 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#runningItem", function () {
+
+    beforeEach(function () {
+      view.reopen({
+        activeGroup: Em.Object.create()
+      });
+    });
+
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
       view.propertyDidChange('runningItem');
@@ -279,7 +307,7 @@ describe('App.upgradeWizardView', function () {
     afterEach(function () {
       this.mock.restore();
     });
-    var testCases = [
+    [
       {
         data: {
           failedItem: null,
@@ -388,20 +416,7 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe("#isDowngradeAvailable", function () {
-    it("downgrade available", function () {
-      view.set('controller.isDowngrade', false);
-      view.set('controller.downgradeAllowed', true);
-      view.propertyDidChange('isDowngradeAvailable');
-      expect(view.get('isDowngradeAvailable')).to.be.true;
-    });
-    it("downgrade unavailable", function () {
-      view.set('controller.isDowngrade', true);
-      view.set('controller.downgradeAllowed', true);
-      view.propertyDidChange('isDowngradeAvailable');
-      expect(view.get('isDowngradeAvailable')).to.be.false;
-    });
-  });
+  App.TestAliases.testAsComputedAnd(getView(), 'isDowngradeAvailable', ['!controller.isDowngrade', 'controller.downgradeAllowed']);
 
   describe("#taskDetails", function () {
     it("runningItem present", function () {
@@ -434,33 +449,26 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe("#isFinalizeItem", function () {
-    it("depends of manualItem.context", function () {
-      view.reopen({
-        manualItem: {
-          context: 'Confirm Finalize'
-        }
-      });
-      view.propertyDidChange('isFinalizeItem');
-      expect(view.get('isFinalizeItem')).to.be.true;
-    });
-  });
-
   describe("#toggleDetails()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'toggleProperty', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       view.toggleProperty.restore();
     });
-    it("", function () {
+    it("isDetailsOpened is toggled", function () {
       view.toggleDetails();
       expect(view.toggleProperty.calledWith('isDetailsOpened')).to.be.true;
     });
   });
 
   describe("#upgradeStatusLabel", function () {
-    var testCases = [
+
+    beforeEach(function () {
+      Em.setFullPath(view, 'controller.upgradeData.Upgrade', {});
+    });
+
+    [
       {
         data: {
           status: 'QUEUED',
@@ -494,7 +502,7 @@ describe('App.upgradeWizardView', function () {
           status: 'ABORTED',
           isDowngrade: false
         },
-        result: Em.I18n.t('admin.stackUpgrade.state.aborted')
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
       },
       {
         data: {
@@ -571,15 +579,7 @@ describe('App.upgradeWizardView', function () {
           status: 'ABORTED',
           isDowngrade: true
         },
-        result: Em.I18n.t('admin.stackUpgrade.state.aborted.downgrade')
-      },
-      {
-        data: {
-          status: 'ABORTED',
-          isDowngrade: false,
-          isSuspended: true
-        },
-        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
       },
       {
         data: {
@@ -619,7 +619,6 @@ describe('App.upgradeWizardView', function () {
     ].forEach(function (test) {
         it('status = ' + test.data.status + ", isDowngrade = " + test.data.isDowngrade, function () {
           view.set('controller.isDowngrade', test.data.isDowngrade);
-          view.set('controller.isSuspended', test.data.isSuspended);
           view.set('controller.upgradeData.Upgrade.request_status', test.data.status);
           view.propertyDidChange('upgradeStatusLabel');
           expect(view.get('upgradeStatusLabel')).to.equal(test.result);
@@ -631,19 +630,19 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
         return {
-          complete: function (callback) {
-            callback();
-          }
+          complete: Em.clb
         }
       });
       sinon.spy(view, 'doUpgradeItemPolling');
       this.clock = sinon.useFakeTimers();
     });
+
     afterEach(function () {
       view.get('controller').getUpgradeItem.restore();
       view.doUpgradeItemPolling.restore();
       this.clock.restore();
     });
+
     it("running item details", function () {
       view.reopen({
         runningItem: {},
@@ -655,24 +654,24 @@ describe('App.upgradeWizardView', function () {
       this.clock.tick(App.bgOperationsUpdateInterval);
       expect(view.doUpgradeItemPolling.calledTwice).to.be.true;
     });
+
     it("failed item details", function () {
       view.reopen({
         failedItem: {},
         runningItem: null
       });
       view.set('isDetailsOpened', true);
-      view.doUpgradeItemPolling();
       expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
       this.clock.tick(App.bgOperationsUpdateInterval);
       expect(view.doUpgradeItemPolling.calledTwice).to.be.true;
     });
+
     it("details not opened", function () {
       view.set('isDetailsOpened', false);
       //doUpgradeItemPolling triggered by observer
-      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.false;
-      this.clock.tick(App.bgOperationsUpdateInterval);
-      expect(view.doUpgradeItemPolling.calledOnce).to.be.true;
+      expect(view.get('controller').getUpgradeItem.called).to.be.false;
     });
+
   });
 
   describe('#getSkippedServiceChecks()', function () {
@@ -703,28 +702,39 @@ describe('App.upgradeWizardView', function () {
 
     beforeEach(function () {
       view.set('controller.upgradeId', 1);
-      sinon.stub(App.ajax, 'send').returns({
-        complete: function (callback) {
-          callback();
-        }
-      });
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        view.set('controller.areSkippedServiceChecksLoaded', item.areSkippedServiceChecksLoaded);
-        view.reopen({
-          isFinalizeItem: item.isFinalizeItem
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          view.set('controller.areSkippedServiceChecksLoaded', item.areSkippedServiceChecksLoaded);
+          view.reopen({
+            isFinalizeItem: item.isFinalizeItem
+          });
+          view.propertyDidChange('isFinalizeItem');
         });
-        view.propertyDidChange('isFinalizeItem');
-        expect(App.ajax.send.callCount).to.equal(item.ajaxSendCallCount);
-        expect(view.get('controller.areSkippedServiceChecksLoaded')).to.equal(item.areSkippedServiceChecksLoadedResult);
+
+        it('areSkippedServiceChecksLoaded is ' + item.areSkippedServiceChecksLoaded, function () {
+          expect(view.get('controller.areSkippedServiceChecksLoaded')).to.equal(item.areSkippedServiceChecksLoadedResult);
+        });
+
         if (item.ajaxSendCallCount) {
-          expect(App.ajax.send.firstCall.args[0].data.upgradeId).to.equal(1);
+          it('request is sent ' + item.ajaxSendCallCount + ' times', function (){
+            var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.service_checks');
+            expect(args).to.have.property('length').equal(item.ajaxSendCallCount);
+          });
+
+          it('upgradeId is 1', function () {
+            var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.service_checks');
+            expect(args[0].data.upgradeId).to.equal(1);
+          });
+        }
+        else {
+          it('request is not sent times', function () {
+            var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.service_checks');
+            expect(args).not.exists;
+          });
         }
       });
     });
@@ -820,7 +830,7 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#failedHostsMessage", function() {
-    it("", function() {
+    it("is formatted with slaveComponentStructuredInfo", function() {
       view.set('controller.slaveComponentStructuredInfo', {
         hosts: ['host1']
       });
@@ -833,9 +843,7 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
         return {
-          complete: function (callback) {
-            callback();
-          }
+          complete: Em.clb
         }
       });
       view.set('controller.areSlaveComponentFailuresHostsLoaded', false);
@@ -865,9 +873,7 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
         return {
-          complete: function (callback) {
-            callback();
-          }
+          complete: Em.clb
         }
       });
       view.set('controller.areServiceCheckFailuresServicenamesLoaded', false);

@@ -58,6 +58,10 @@ class Pxf(Script):
     self.__execute_service_command("stop")
 
 
+  def restart(self, env):
+    self.start(env)
+
+
   def status(self, env):
     try:
       self.__execute_service_command("status")
@@ -66,9 +70,9 @@ class Pxf(Script):
 
 
   def __execute_service_command(self, command):
-    import params
-    Execute("service {0} {1}".format(params.pxf_service_name, command),
-              timeout=params.default_exec_timeout,
+    import pxf_constants
+    Execute("service {0} {1}".format(pxf_constants.pxf_service_name, command),
+              timeout=pxf_constants.default_exec_timeout,
               logoutput=True)
 
 
@@ -100,16 +104,16 @@ class Pxf(Script):
       shutil.copy2("{0}/pxf-privatehdp.classpath".format(params.pxf_conf_dir),
                    "{0}/pxf-private.classpath".format(params.pxf_conf_dir))
 
-    if params.security_enabled:
-      pxf_site_dict = dict(params.config['configurations']['pxf-site'])
-      pxf_site_dict['pxf.service.kerberos.principal'] = "{0}/_HOST@{1}".format(params.pxf_user, params.realm_name)
-      pxf_site = ConfigDictionary(pxf_site_dict)
-    else:
-      pxf_site = params.config['configurations']['pxf-site']
+    File('{0}/pxf-public.classpath'.format(params.pxf_conf_dir),
+         content = params.config['configurations']['pxf-public-classpath']['content'].lstrip())
 
+    File('{0}/pxf-profiles.xml'.format(params.pxf_conf_dir),
+         content = params.config['configurations']['pxf-profiles']['content'].lstrip())
+         
+    # Default_value of principal => pxf/_HOST@{realm}
     XmlConfig("pxf-site.xml",
               conf_dir=params.pxf_conf_dir,
-              configurations=pxf_site,
+              configurations=params.config['configurations']['pxf-site'],
               configuration_attributes=params.config['configuration_attributes']['pxf-site'])
 
 
@@ -121,7 +125,7 @@ class Pxf(Script):
     Directory(params.pxf_instance_dir,
               owner=params.pxf_user,
               group=params.pxf_group,
-              recursive=True)
+              create_parents = True)
 
 
 if __name__ == "__main__":

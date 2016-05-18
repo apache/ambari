@@ -40,6 +40,7 @@ public class AlertDefinitionEntity_ {
   public static volatile SingularAttribute<AlertDefinitionEntity, String> componentName;
   public static volatile SingularAttribute<AlertDefinitionEntity, String> definitionName;
   public static volatile SingularAttribute<AlertDefinitionEntity, String> label;
+  public static volatile SingularAttribute<AlertDefinitionEntity, String> helpURL;
   public static volatile SingularAttribute<AlertDefinitionEntity, Scope> scope;
   public static volatile SingularAttribute<AlertDefinitionEntity, Integer> enabled;
   public static volatile SingularAttribute<AlertDefinitionEntity, String> hash;

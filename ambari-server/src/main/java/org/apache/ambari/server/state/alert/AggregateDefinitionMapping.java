@@ -96,7 +96,7 @@ public class AggregateDefinitionMapping {
    *
    * @param clusterId
    *          the ID of the cluster that the definition is bound to.
-   * @param name
+   * @param aggregatedDefinitonName
    *          the unique name of the definition for which aggregates should be
    *          unassociated (not {@code null}).
    */

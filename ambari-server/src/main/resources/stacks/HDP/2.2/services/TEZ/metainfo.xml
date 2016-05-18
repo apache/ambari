@@ -25,18 +25,18 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>tez_2_2_*</name>
+              <name>tez_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>tez-2-2-.*</name>
+              <name>tez-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

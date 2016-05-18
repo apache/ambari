@@ -127,7 +127,7 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -442,7 +442,7 @@
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Upgrade Oozie Database">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+        <task xsi:type="execute" hosts="any" summary="Upgrading the Oozie database and creating a new sharelib">
           <script>scripts/oozie_server_upgrade.py</script>
           <function>upgrade_oozie_database_and_sharelib</function>
         </task>
@@ -454,7 +454,7 @@
       <direction>DOWNGRADE</direction>
       <skippable>true</skippable>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Downgrade Oozie ShareLib">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+        <task xsi:type="execute" hosts="any" summary="Upgrading the Oozie database and creating a new sharelib">
           <script>scripts/oozie_server_upgrade.py</script>
           <function>create_sharelib</function>
         </task>
@@ -809,7 +809,7 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+          <task xsi:type="execute" hosts="any" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>

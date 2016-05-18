@@ -26,6 +26,7 @@ import java.util.TreeSet;
 
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.stack.Metric;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -302,6 +303,68 @@ public class PropertyHelperTest {
     }
   }
 
+  @Test
+  public void testInsertTagIntoMetricName() {
+    Assert.assertEquals("rpc.rpc.client.CallQueueLength",
+      PropertyHelper.insertTagInToMetricName("client", "rpc.rpc.CallQueueLength", "metrics/rpc/"));
+
+    Assert.assertEquals("rpc.rpc.client.CallQueueLength",
+      PropertyHelper.insertTagInToMetricName("client", "rpc.rpc.CallQueueLength", "metrics/rpc/"));
+
+    Assert.assertEquals("metrics/rpc/client/CallQueueLen",
+      PropertyHelper.insertTagInToMetricName("client", "metrics/rpc/CallQueueLen", "metrics/rpc/"));
+
+    Assert.assertEquals("metrics/rpc/client/CallQueueLen",
+      PropertyHelper.insertTagInToMetricName("client", "metrics/rpc/CallQueueLen", "metrics/rpc/"));
+
+    Assert.assertEquals("rpcdetailed.rpcdetailed.client.FsyncAvgTime",
+      PropertyHelper.insertTagInToMetricName("client", "rpcdetailed.rpcdetailed.FsyncAvgTime", "metrics/rpc/"));
+    Assert.assertEquals("metrics/rpcdetailed/client/fsync_avg_time",
+      PropertyHelper.insertTagInToMetricName("client", "metrics/rpcdetailed/fsync_avg_time", "metrics/rpc/"));
+  }
+
+  @Test
+  public void testProcessRpcMetricDefinition() {
+    //ganglia metric
+    org.apache.ambari.server.state.stack.Metric metric =
+      new org.apache.ambari.server.state.stack.Metric("rpcdetailed.rpcdetailed.FsyncAvgTime", false, true, false, "unitless");
+    Map<String, Metric> replacementMap = PropertyHelper.processRpcMetricDefinition("ganglia", "NAMENODE", "metrics/rpcdetailed/fsync_avg_time", metric);
+    Assert.assertNotNull(replacementMap);
+    Assert.assertEquals(3, replacementMap.size());
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpcdetailed/client/fsync_avg_time"));
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpcdetailed/datanode/fsync_avg_time"));
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpcdetailed/healthcheck/fsync_avg_time"));
+    Assert.assertEquals("rpcdetailed.rpcdetailed.client.FsyncAvgTime", replacementMap.get("metrics/rpcdetailed/client/fsync_avg_time").getName());
+    Assert.assertEquals("rpcdetailed.rpcdetailed.datanode.FsyncAvgTime", replacementMap.get("metrics/rpcdetailed/datanode/fsync_avg_time").getName());
+    Assert.assertEquals("rpcdetailed.rpcdetailed.healthcheck.FsyncAvgTime", replacementMap.get("metrics/rpcdetailed/healthcheck/fsync_avg_time").getName());
+
+    //jmx metric
+    metric =
+      new org.apache.ambari.server.state.stack.Metric("Hadoop:service=NameNode,name=RpcDetailedActivity.FsyncAvgTime", true, false, false, "unitless");
+    replacementMap = PropertyHelper.processRpcMetricDefinition("jmx", "NAMENODE", "metrics/rpcdetailed/fsync_avg_time", metric);
+    Assert.assertNotNull(replacementMap);
+    Assert.assertEquals(3, replacementMap.size());
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpcdetailed/client/fsync_avg_time"));
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpcdetailed/datanode/fsync_avg_time"));
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpcdetailed/healthcheck/fsync_avg_time"));
+    Assert.assertEquals("Hadoop:service=NameNode,name=RpcDetailedActivity,tag=client.FsyncAvgTime", replacementMap.get("metrics/rpcdetailed/client/fsync_avg_time").getName());
+    Assert.assertEquals("Hadoop:service=NameNode,name=RpcDetailedActivity,tag=datanode.FsyncAvgTime", replacementMap.get("metrics/rpcdetailed/datanode/fsync_avg_time").getName());
+    Assert.assertEquals("Hadoop:service=NameNode,name=RpcDetailedActivity,tag=healthcheck.FsyncAvgTime", replacementMap.get("metrics/rpcdetailed/healthcheck/fsync_avg_time").getName());
+
+    //jmx metric 2
+    metric =
+      new org.apache.ambari.server.state.stack.Metric("Hadoop:service=NameNode,name=RpcActivity.RpcQueueTime_avg_time", true, false, false, "unitless");
+    replacementMap = PropertyHelper.processRpcMetricDefinition("jmx", "NAMENODE", "metrics/rpc/RpcQueueTime_avg_time", metric);
+    Assert.assertNotNull(replacementMap);
+    Assert.assertEquals(3, replacementMap.size());
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpc/client/RpcQueueTime_avg_time"));
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpc/datanode/RpcQueueTime_avg_time"));
+    Assert.assertTrue(replacementMap.containsKey("metrics/rpc/healthcheck/RpcQueueTime_avg_time"));
+    Assert.assertEquals("Hadoop:service=NameNode,name=RpcActivity,tag=client.RpcQueueTime_avg_time", replacementMap.get("metrics/rpc/client/RpcQueueTime_avg_time").getName());
+    Assert.assertEquals("Hadoop:service=NameNode,name=RpcActivity,tag=datanode.RpcQueueTime_avg_time", replacementMap.get("metrics/rpc/datanode/RpcQueueTime_avg_time").getName());
+    Assert.assertEquals("Hadoop:service=NameNode,name=RpcActivity,tag=healthcheck.RpcQueueTime_avg_time", replacementMap.get("metrics/rpc/healthcheck/RpcQueueTime_avg_time").getName());
+
+  }
 
   // remove any replacement tokens (e.g. $1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)) in the metric names
   private static Map<String, Map<String, PropertyInfo>> normalizeMetricNames(Map<String, Map<String, PropertyInfo>> gids) {

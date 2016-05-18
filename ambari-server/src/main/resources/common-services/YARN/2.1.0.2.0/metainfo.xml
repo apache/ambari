@@ -32,11 +32,24 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/resourcemanager.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>yarn_resourcemanager</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>yarn_historyserver</logId>
+            </log>
+            <log>
+              <logId>yarn_jobsummary</logId>
+            </log>
+          </logs>
           <customCommands>
             <customCommand>
               <name>DECOMMISSION</name>
@@ -67,11 +80,32 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
           <commandScript>
             <script>scripts/nodemanager.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+           <bulkCommands>
+             <displayName>NodeManagers</displayName>
+             <!-- Used by decommission and recommission -->
+             <masterComponent>RESOURCEMANAGER</masterComponent>
+           </bulkCommands>
+          <customCommands>
+            <customCommand>
+              <name>CREATE_YARN_DIRECTORIES</name>
+              <commandScript>
+                <script>scripts/nodemanager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+          <logs>
+            <log>
+              <logId>yarn_nodemanager</logId>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -147,9 +181,11 @@
         <config-type>yarn-site</config-type>
         <config-type>yarn-env</config-type>
         <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
         <config-type>core-site</config-type>
         <config-type>mapred-site</config-type>
         <config-type>yarn-log4j</config-type>
+        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <widgetsFileName>YARN_widgets.json</widgetsFileName>
       <metricsFileName>YARN_metrics.json</metricsFileName>
@@ -167,6 +203,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <auto-deploy>
             <enabled>true</enabled>
             <co-locate>YARN/RESOURCEMANAGER</co-locate>
@@ -192,6 +229,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>mapred_historyserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -250,6 +293,7 @@
 
       <configuration-dependencies>
         <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
         <config-type>core-site</config-type>
         <config-type>mapred-site</config-type>
         <config-type>mapred-env</config-type>
@@ -259,6 +303,7 @@
         <config-type>ranger-yarn-audit</config-type>
         <config-type>ranger-yarn-policymgr-ssl</config-type>
         <config-type>ranger-yarn-security</config-type>
+        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
       <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>

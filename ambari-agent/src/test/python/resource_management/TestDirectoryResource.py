@@ -63,7 +63,7 @@ class TestDirectoryResource(TestCase):
            mode=0777,
            owner="hdfs",
            group="hadoop",
-           recursive=True
+           create_parents = True
       )
       
     os_makedirs_mock.assert_called_with('/a/b/c/d', 0777)

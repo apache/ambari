@@ -23,6 +23,7 @@ public class RepositoryRequest extends OperatingSystemRequest {
   private String repoId;
   private String baseUrl;
   private boolean verify = true;
+  private Long clusterVersionId = null;
 
   public RepositoryRequest(String stackName, String stackVersion, String osType, String repoId) {
     super(stackName, stackVersion, osType);
@@ -67,6 +68,20 @@ public class RepositoryRequest extends OperatingSystemRequest {
    */
   public void setVerifyBaseUrl(boolean verifyUrl) {
     verify = verifyUrl;
+  }
+
+  /**
+   * @param id the cluster version id for the request
+   */
+  public void setClusterVersionId(Long id) {
+    clusterVersionId = id;
+  }
+
+  /**
+   * @return the cluster version id for the request
+   */
+  public Long getClusterVersionId() {
+    return clusterVersionId;
   }
 
   @Override

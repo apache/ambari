@@ -33,14 +33,14 @@ describe('App.ServerValidatorMixin', function() {
     };
     var genResponse = function(items) {
       return {
-        items: (items.map(function(item) { return genRespItem.apply(undefined, item); }))
+        items: items.map(function(item) { return genRespItem.apply(undefined, item); })
       };
     };
     var genConfigs = function(configs) {
       return Em.Object.create({
-        configs: (configs.map(function(item) {
+        configs: configs.map(function(item) {
             return Em.Object.create({ name: item[0], filename: item[1] });
-          }))
+          })
       });
     };
     var tests = [
@@ -121,56 +121,17 @@ describe('App.ServerValidatorMixin', function() {
     });
     
     tests.forEach(function(test) {
-      it(test.message, function() {
-        instanceObject.set('stepConfigs', test.stepConfigs);
-        instanceObject.validationSuccess({resources: test.resources});
-        test.expected.forEach(function(e) {
-          expect(instanceObject).to.have.deep.property(e.prop, e.value);
+      describe(test.message, function() {
+
+        beforeEach(function () {
+          instanceObject.set('stepConfigs', test.stepConfigs);
+          instanceObject.validationSuccess({resources: test.resources});
         });
-      });
-    });
-  });
 
-  describe('#loadServerSideConfigsRecommendations', function() {
-    describe('Request on recommendations for only specified controllers', function() {
-      beforeEach(function() {
-        sinon.stub(App.ajax, 'send', function(args) { return args; });
-      });
-
-      afterEach(function() {
-        App.ajax.send.restore();
-      });
-
-      [
-        {
-          controllerName: '',
-          injectEnhancedConfigsMixin: false,
-          e: false
-        },
-        {
-          controllerName: 'wizardStep7Controller',
-          injectEnhancedConfigsMixin: true,
-          e: true
-        },
-        {
-          controllerName: 'kerberosWizardStep2Controller',
-          injectEnhancedConfigsMixin: true,
-          e: false
-        }
-      ].forEach(function(test) {
-        it('controller "name": {0} using "EnhancedConfigsMixin": {1} recommendations called: {2}'.format(test.controllerName, test.injectEnhancedConfigsMixin, test.e), function() {
-          var mixed;
-          if (test.injectEnhancedConfigsMixin) {
-            mixed = Em.Object.extend(App.EnhancedConfigsMixin, App.ServerValidatorMixin);
-          } else {
-            mixed = Em.Object.extend(App.ServerValidatorMixin);
-          }
-          // mock controller name in mixed object directly
-          mixed.create({name: test.controllerName}).loadServerSideConfigsRecommendations();
-          expect(App.ajax.send.calledOnce).to.be.eql(test.e);
-          if (test.e) {
-            expect(App.ajax.send.args[0][0].name).to.be.eql('config.recommendations');
-          }
+        test.expected.forEach(function(e) {
+          it(e.prop + ': ' + e.value, function () {
+            expect(instanceObject).to.have.deep.property(e.prop, e.value);
+          });
         });
       });
     });

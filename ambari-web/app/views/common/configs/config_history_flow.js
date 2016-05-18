@@ -79,18 +79,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
   /**
    * formatted notes ready to display
    */
-  shortNotes: function () {
-    //100 is number of symbols that fit into label
-    if (this.get('showMoreLink')) {
-      return this.get('displayedServiceVersion.notes').slice(0, 100) + '...';
-    }
-    return this.get('displayedServiceVersion.notes');
-  }.property('displayedServiceVersion'),
+  shortNotes: Em.computed.truncate('displayedServiceVersion.notes', 100, 100),
 
   serviceVersions: function () {
     var groupName = this.get('controller.selectedConfigGroup.isDefault') ? 'default'
         : this.get('controller.selectedConfigGroup.name');
-    var groupId = this.get('controller.selectedConfigGroup.configGroupId');
+    var groupId = this.get('controller.selectedConfigGroup.id');
+    var self = this;
 
     this.get('allServiceVersions').forEach(function (version) {
       version.set('isDisabled', !(version.get('groupName') === groupName));
@@ -99,6 +94,13 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var serviceVersions = this.get('allServiceVersions').filter(function(s) {
       return (s.get('groupId') === groupId) || s.get('groupName') == 'default';
     });
+
+    if (!serviceVersions.findProperty('isDisplayed')) {
+      //recompute serviceVersions if displayed version absent
+      Em.run.next(function() {
+        self.propertyDidChange('controller.selectedConfigGroup.name');
+      });
+    }
 
     return serviceVersions.sort(function (a, b) {
       return Em.get(b, 'createTime') - Em.get(a, 'createTime');
@@ -176,15 +178,16 @@ App.ConfigHistoryFlowView = Em.View.extend({
   },
 
   willDestroyElement: function() {
-    Em.keys(this.get('serviceVersionsReferences')).forEach(function(key) {
-      Em.get(this.get('serviceVersionsReferences'), key).destroy();
-    }, this);
     this.$('.version-info-bar-wrapper').trigger('sticky_kit:detach').off();
-    this.$('[data-toggle=tooltip], [data-toggle=arrow-tooltip]').remove();
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
+    this.$('[data-toggle=arrow-tooltip]').tooltip('destroy');
   },
 
-
   willInsertElement: function () {
+    this.setDisplayVersion();
+  },
+
+  setDisplayVersion: function () {
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
     var currentIndex = 0;
@@ -205,7 +208,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     this.set('startIndex', startIndex);
     this.adjustFlowView();
-  },
+  }.observes('allVersionsLoaded'),
 
   onChangeConfigGroup: function () {
     var serviceVersions = this.get('serviceVersions');
@@ -347,8 +350,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.get('controller').loadSelectedVersion(displayedVersion);
   },
   clearCompareVersionBar: function () {
-    this.set('compareServiceVersion', null);
-  }.observes('controller.selectedConfigGroup'),
+    if (this.get('controller.isCompareMode') === false) {
+      this.set('compareServiceVersion', null);
+    }
+  }.observes('controller.isCompareMode'),
   /**
    * revert config values to chosen version and apply reverted configs to server
    */
@@ -514,6 +519,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
 
 App.ConfigsServiceVersionBoxView = Em.View.extend({
 
+  /**
+   * bound from template
+   */
+  serviceVersion: null,
+
   actionTypesBinding: 'parentView.actionTypes',
 
   disabledActionAttr: Em.computed.alias('serviceVersion.disabledActionAttr'),
@@ -541,6 +551,7 @@ App.ConfigsServiceVersionBoxView = Em.View.extend({
 
   willDestroyElement: function() {
     this.$('.version-box').off();
-    this.$('[data-toggle=tooltip], [data-toggle=arrow-tooltip]').remove();
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
+    this.$('[data-toggle=arrow-tooltip]').tooltip('destroy');
   }
 });

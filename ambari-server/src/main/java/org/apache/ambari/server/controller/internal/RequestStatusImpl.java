@@ -18,11 +18,11 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.RequestStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -32,16 +32,20 @@ public class RequestStatusImpl implements RequestStatus{
 
   private final Resource requestResource;
   private final Set<Resource> associatedResources;
-
+  private final RequestStatusMetaData requestStatusMetaData;
   public RequestStatusImpl(Resource requestResource) {
-    this.requestResource     = requestResource;
-    this.associatedResources = Collections.emptySet();
+    this(requestResource, null, null);
   }
 
   public RequestStatusImpl(Resource requestResource, Set<Resource> associatedResources) {
+    this(requestResource, associatedResources, null);
+  }
+
+  public RequestStatusImpl(Resource requestResource, Set<Resource> associatedResources, RequestStatusMetaData requestStatusMetaData) {
     this.requestResource     = requestResource;
     this.associatedResources = associatedResources == null ?
         Collections.<Resource>emptySet() : associatedResources;
+    this.requestStatusMetaData = requestStatusMetaData;
   }
 
   @Override
@@ -59,5 +63,10 @@ public class RequestStatusImpl implements RequestStatus{
 
     return requestResource == null ? Status.Complete :
         Status.valueOf((String) requestResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "status")));
+  }
+
+  @Override
+  public RequestStatusMetaData getStatusMetadata() {
+    return requestStatusMetaData;
   }
 }

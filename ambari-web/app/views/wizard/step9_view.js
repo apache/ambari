@@ -222,7 +222,6 @@ App.WizardStep9View = App.TableView.extend({
   didInsertElement: function () {
     this.onStatus();
     this.get('controller').navigateStep();
-    App.get('router').set('transitionInProgress', false);
   },
 
   /**

@@ -28,7 +28,7 @@ describe('App.HBaseMasterUptimeView', function () {
   var tests = [
     {
       model: Em.Object.create({
-        masterStartTime: ((new Date()).getTime() - 192.1 * 24 * 3600 * 1000)
+        masterStartTime: new Date().getTime() - 192.1 * 24 * 3600 * 1000
       }),
       e: {
         isGreen: true,

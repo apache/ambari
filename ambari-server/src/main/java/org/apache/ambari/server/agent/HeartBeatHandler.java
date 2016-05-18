@@ -47,7 +47,7 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
-import org.apache.ambari.server.events.HostComponentVersionEvent;
+import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
@@ -126,6 +126,7 @@ public class HeartBeatHandler {
   private final ActionQueue actionQueue;
   private final ActionManager actionManager;
   private HeartbeatMonitor heartbeatMonitor;
+  private HeartbeatProcessor heartbeatProcessor;
 
   @Inject
   private Injector injector;
@@ -137,38 +138,13 @@ public class HeartBeatHandler {
   private AmbariMetaInfo ambariMetaInfo;
 
   @Inject
-  private ActionMetadata actionMetadata;
-
-  @Inject
-  private Gson gson;
-
-  @Inject
   private ConfigHelper configHelper;
-
-  @Inject
-  private HostDAO hostDAO;
 
   @Inject
   private AlertDefinitionHash alertDefinitionHash;
 
-  /**
-   * Publishes {@link AlertEvent} instances.
-   */
   @Inject
-  private AlertEventPublisher alertEventPublisher;
-
-  @Inject
-  private AmbariEventPublisher ambariEventPublisher;
-
-  @Inject
-  private VersionEventPublisher versionEventPublisher;
-
-
-  /**
-   * KerberosPrincipalHostDAO used to set and get Kerberos principal details
-   */
-  @Inject
-  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
+  private RecoveryConfigHelper recoveryConfigHelper;
 
   /**
    * KerberosIdentityDataFileReaderFactory used to create KerberosIdentityDataFileReader instances
@@ -187,15 +163,25 @@ public class HeartBeatHandler {
     actionQueue = aq;
     actionManager = am;
     heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000, injector);
+    heartbeatProcessor = new HeartbeatProcessor(fsm, am, heartbeatMonitor, injector); //TODO modify to match pattern
     injector.injectMembers(this);
   }
 
   public void start() {
+    heartbeatProcessor.startAsync();
     heartbeatMonitor.start();
   }
 
   void setHeartbeatMonitor(HeartbeatMonitor heartbeatMonitor) {
     this.heartbeatMonitor = heartbeatMonitor;
+  }
+
+  public void setHeartbeatProcessor(HeartbeatProcessor heartbeatProcessor) {
+    this.heartbeatProcessor = heartbeatProcessor;
+  }
+
+  public HeartbeatProcessor getHeartbeatProcessor() {
+    return heartbeatProcessor;
   }
 
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat)
@@ -283,18 +269,29 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    // Examine heartbeat for command reports
-    processCommandReports(heartbeat, hostname, clusterFsm, now);
+    /**
+     * A host can belong to only one cluster. Though getClustersForHost(hostname)
+     * returns a set of clusters, it will have only one entry.
+     *
+     *
+     * TODO: Handle the case when a host is a part of multiple clusters.
+     */
+    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
 
-    // Examine heartbeat for component live status reports
-    processStatusReports(heartbeat, hostname, clusterFsm);
+    if (clusters.size() > 0) {
+      String clusterName = clusters.iterator().next().getClusterName();
 
-    // Calculate host status
-    // NOTE: This step must be after processing command/status reports
-    processHostStatus(heartbeat, hostname);
+      if (recoveryConfigHelper.isConfigStale(clusterName, hostname, heartbeat.getRecoveryTimestamp())) {
+        RecoveryConfig rc = recoveryConfigHelper.getRecoveryConfig(clusterName, hostname);
+        response.setRecoveryConfig(rc);
 
-    // Example heartbeat for alerts from the host or its components
-    processAlerts(heartbeat, hostname);
+        if (response.getRecoveryConfig() != null) {
+          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig().toString());
+        }
+      }
+    }
+
+    heartbeatProcessor.addHeartbeat(heartbeat);
 
     // Send commands if node is active
     if (hostObject.getState().equals(HostState.HEALTHY)) {
@@ -305,513 +302,12 @@ public class HeartBeatHandler {
     return response;
   }
 
-  /**
-   * Extracts all of the {@link Alert}s from the heartbeat and fires
-   * {@link AlertEvent}s for each one. If there is a problem looking up the
-   * cluster, then alerts will not be processed.
-   *
-   * @param heartbeat
-   *          the heartbeat to process.
-   * @param hostname
-   *          the host that the heartbeat is for.
-   */
-  protected void processAlerts(HeartBeat heartbeat, String hostname) {
 
-    if (null == hostname || null == heartbeat) {
-      return;
-    }
-
-    if (null != heartbeat.getAlerts()) {
-      AlertEvent event = new AlertReceivedEvent(heartbeat.getAlerts());
-      for (Alert alert : event.getAlerts()) {
-        if (alert.getHostName() == null) {
-          alert.setHostName(hostname);
-        }
-      }
-      alertEventPublisher.publish(event);
-
-    }
-  }
 
   protected void processRecoveryReport(RecoveryReport recoveryReport, String hostname) throws AmbariException {
     LOG.debug("Received recovery report: " + recoveryReport.toString());
     Host host = clusterFsm.getHost(hostname);
     host.setRecoveryReport(recoveryReport);
-  }
-
-  protected void processHostStatus(HeartBeat heartbeat, String hostname) throws AmbariException {
-
-    Host host = clusterFsm.getHost(hostname);
-    HealthStatus healthStatus = host.getHealthStatus().getHealthStatus();
-
-    if (!healthStatus.equals(HostHealthStatus.HealthStatus.UNKNOWN)) {
-
-      List<ComponentStatus> componentStatuses = heartbeat.getComponentStatus();
-      //Host status info could be calculated only if agent returned statuses in heartbeat
-      //Or, if a command is executed that can change component status
-      boolean calculateHostStatus = false;
-      String clusterName = null;
-      if (componentStatuses.size() > 0) {
-        calculateHostStatus = true;
-        for (ComponentStatus componentStatus : componentStatuses) {
-          clusterName = componentStatus.getClusterName();
-          break;
-        }
-      }
-
-      if (!calculateHostStatus) {
-        List<CommandReport> reports = heartbeat.getReports();
-        for (CommandReport report : reports) {
-          if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand())) {
-            continue;
-          }
-
-          String service = report.getServiceName();
-          if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
-            continue;
-          }
-          if (report.getStatus().equals("COMPLETED")) {
-            calculateHostStatus = true;
-            clusterName = report.getClusterName();
-            break;
-          }
-        }
-      }
-
-      if (calculateHostStatus) {
-        //Use actual component status to compute the host status
-        int masterCount = 0;
-        int mastersRunning = 0;
-        int slaveCount = 0;
-        int slavesRunning = 0;
-
-        StackId stackId;
-        Cluster cluster = clusterFsm.getCluster(clusterName);
-        stackId = cluster.getDesiredStackVersion();
-
-        MaintenanceStateHelper psh = injector.getInstance(MaintenanceStateHelper.class);
-
-        List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(heartbeat.getHostname());
-        for (ServiceComponentHost scHost : scHosts) {
-          ComponentInfo componentInfo =
-              ambariMetaInfo.getComponent(stackId.getStackName(),
-                  stackId.getStackVersion(), scHost.getServiceName(),
-                  scHost.getServiceComponentName());
-
-          String status = scHost.getState().name();
-
-          String category = componentInfo.getCategory();
-
-          if (MaintenanceState.OFF == psh.getEffectiveState(scHost, host)) {
-            if (category.equals("MASTER")) {
-              ++masterCount;
-              if (status.equals("STARTED")) {
-                ++mastersRunning;
-              }
-            } else if (category.equals("SLAVE")) {
-              ++slaveCount;
-              if (status.equals("STARTED")) {
-                ++slavesRunning;
-              }
-            }
-          }
-        }
-
-        if (masterCount == mastersRunning && slaveCount == slavesRunning) {
-          healthStatus = HealthStatus.HEALTHY;
-        } else if (masterCount > 0 && mastersRunning < masterCount) {
-          healthStatus = HealthStatus.UNHEALTHY;
-        } else {
-          healthStatus = HealthStatus.ALERT;
-        }
-
-        host.setStatus(healthStatus.name());
-        host.persist();
-      }
-
-      //If host doesn't belong to any cluster
-      if ((clusterFsm.getClustersForHost(host.getHostName())).size() == 0) {
-        healthStatus = HealthStatus.HEALTHY;
-        host.setStatus(healthStatus.name());
-        host.persist();
-      }
-    }
-  }
-
-  protected void processCommandReports(
-      HeartBeat heartbeat, String hostname, Clusters clusterFsm, long now)
-      throws AmbariException {
-    List<CommandReport> reports = heartbeat.getReports();
-
-    // Cache HostRoleCommand entities because we will need them few times
-    List<Long> taskIds = new ArrayList<Long>();
-    for (CommandReport report : reports) {
-      taskIds.add(report.getTaskId());
-    }
-    Collection<HostRoleCommand> commands = actionManager.getTasks(taskIds);
-
-    Iterator<HostRoleCommand> hostRoleCommandIterator = commands.iterator();
-    for (CommandReport report : reports) {
-
-      Long clusterId = null;
-      if (report.getClusterName() != null) {
-        try {
-          Cluster cluster = clusterFsm.getCluster(report.getClusterName());
-          clusterId = Long.valueOf(cluster.getClusterId());
-        } catch (AmbariException e) {
-        }
-      }
-
-      LOG.debug("Received command report: " + report);
-      // Fetch HostRoleCommand that corresponds to a given task ID
-      HostRoleCommand hostRoleCommand = hostRoleCommandIterator.next();
-      HostEntity hostEntity = hostDAO.findByName(hostname);
-      if (hostEntity == null) {
-        LOG.error("Received a command report and was unable to retrieve HostEntity for hostname = " + hostname);
-        continue;
-      }
-
-      // Send event for final command reports for actions
-      if (RoleCommand.valueOf(report.getRoleCommand()) == RoleCommand.ACTIONEXECUTE &&
-          HostRoleStatus.valueOf(report.getStatus()).isCompletedState()) {
-        ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
-                clusterId, hostname, report, false);
-        ambariEventPublisher.publish(event);
-      }
-
-      // Skip sending events for command reports for ABORTed commands
-      if (hostRoleCommand.getStatus() == HostRoleStatus.ABORTED) {
-        continue;
-      }
-      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED &&
-              report.getStatus().equals("IN_PROGRESS")) {
-        hostRoleCommand.setStartTime(now);
-      }
-
-      // If the report indicates the keytab file was successfully transferred to a host or removed
-      // from a host, record this for future reference
-      if (Service.Type.KERBEROS.name().equalsIgnoreCase(report.getServiceName()) &&
-          Role.KERBEROS_CLIENT.name().equalsIgnoreCase(report.getRole()) &&
-          RoleCommand.CUSTOM_COMMAND.name().equalsIgnoreCase(report.getRoleCommand()) &&
-          RequestExecution.Status.COMPLETED.name().equalsIgnoreCase(report.getStatus())) {
-
-        String customCommand = report.getCustomCommand();
-
-        boolean adding = "SET_KEYTAB".equalsIgnoreCase(customCommand);
-        if (adding || "REMOVE_KEYTAB".equalsIgnoreCase(customCommand)) {
-          WriteKeytabsStructuredOut writeKeytabsStructuredOut;
-          try {
-            writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
-          } catch (JsonSyntaxException ex) {
-            //Json structure was incorrect do nothing, pass this data further for processing
-            writeKeytabsStructuredOut = null;
-          }
-
-          if (writeKeytabsStructuredOut != null) {
-            Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
-            if (keytabs != null) {
-              for (Map.Entry<String, String> entry : keytabs.entrySet()) {
-                String principal = entry.getKey();
-                if (!kerberosPrincipalHostDAO.exists(principal, hostEntity.getHostId())) {
-                  if (adding) {
-                    kerberosPrincipalHostDAO.create(principal, hostEntity.getHostId());
-                  } else if ("_REMOVED_".equalsIgnoreCase(entry.getValue())) {
-                    kerberosPrincipalHostDAO.remove(principal, hostEntity.getHostId());
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      //pass custom START, STOP and RESTART
-      if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand()) ||
-         (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
-         !("RESTART".equals(report.getCustomCommand()) ||
-         "START".equals(report.getCustomCommand()) ||
-         "STOP".equals(report.getCustomCommand())))) {
-        continue;
-      }
-
-      Cluster cl = clusterFsm.getCluster(report.getClusterName());
-      String service = report.getServiceName();
-      if (service == null || service.isEmpty()) {
-        throw new AmbariException("Invalid command report, service: " + service);
-      }
-      if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
-        LOG.debug(report.getRole() + " is an action - skip component lookup");
-      } else {
-        try {
-          Service svc = cl.getService(service);
-          ServiceComponent svcComp = svc.getServiceComponent(report.getRole());
-          ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
-          String schName = scHost.getServiceComponentName();
-
-          if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
-
-            // Reading component version if it is present
-            if (StringUtils.isNotBlank(report.getStructuredOut())) {
-              ComponentVersionStructuredOut structuredOutput = null;
-              try {
-                structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
-              } catch (JsonSyntaxException ex) {
-                //Json structure for component version was incorrect
-                //do nothing, pass this data further for processing
-              }
-
-              String newVersion = structuredOutput == null ? null : structuredOutput.version;
-
-              // Pass true to always publish a version event.  It is safer to recalculate the version even if we don't
-              // detect a difference in the value.  This is useful in case that a manual database edit is done while
-              // ambari-server is stopped.
-              handleComponentVersionReceived(cl, scHost, newVersion, true);
-            }
-
-            // Updating stack version, if needed (this is not actually for express/rolling upgrades!)
-            if (scHost.getState().equals(State.UPGRADING)) {
-              scHost.setStackVersion(scHost.getDesiredStackVersion());
-            } else if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
-                (report.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND.toString()) &&
-                    ("START".equals(report.getCustomCommand()) ||
-                    "RESTART".equals(report.getCustomCommand()))))
-                && null != report.getConfigurationTags()
-                && !report.getConfigurationTags().isEmpty()) {
-              LOG.info("Updating applied config on service " + scHost.getServiceName() +
-                ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
-              scHost.updateActualConfigs(report.getConfigurationTags());
-              scHost.setRestartRequired(false);
-            }
-            // Necessary for resetting clients stale configs after starting service
-            if ((RoleCommand.INSTALL.toString().equals(report.getRoleCommand()) ||
-                (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
-                "INSTALL".equals(report.getCustomCommand()))) && svcComp.isClientComponent()){
-              scHost.updateActualConfigs(report.getConfigurationTags());
-              scHost.setRestartRequired(false);
-            }
-            if (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
-                !("START".equals(report.getCustomCommand()) ||
-                 "STOP".equals(report.getCustomCommand()))) {
-              //do not affect states for custom commands except START and STOP
-              //lets status commands to be responsible for this
-              continue;
-            }
-
-            if (RoleCommand.START.toString().equals(report.getRoleCommand()) ||
-                (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
-                    "START".equals(report.getCustomCommand()))) {
-              scHost.handleEvent(new ServiceComponentHostStartedEvent(schName,
-                  hostname, now));
-              scHost.setRestartRequired(false);
-            } else if (RoleCommand.STOP.toString().equals(report.getRoleCommand()) ||
-                (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
-                    "STOP".equals(report.getCustomCommand()))) {
-              scHost.handleEvent(new ServiceComponentHostStoppedEvent(schName,
-                  hostname, now));
-            } else {
-              scHost.handleEvent(new ServiceComponentHostOpSucceededEvent(schName,
-                  hostname, now));
-            }
-          } else if (report.getStatus().equals("FAILED")) {
-
-            if (StringUtils.isNotBlank(report.getStructuredOut())) {
-              try {
-                ComponentVersionStructuredOut structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
-
-                if (null != structuredOutput.upgradeDirection && structuredOutput.upgradeDirection.isUpgrade()) {
-                  scHost.setUpgradeState(UpgradeState.FAILED);
-                }
-              } catch (JsonSyntaxException ex) {
-                LOG.warn("Structured output was found, but not parseable: {}", report.getStructuredOut());
-              }
-            }
-
-            LOG.warn("Operation failed - may be retried. Service component host: "
-                + schName + ", host: " + hostname + " Action id" + report.getActionId());
-            if (actionManager.isInProgressCommand(report)) {
-              scHost.handleEvent(new ServiceComponentHostOpFailedEvent
-                (schName, hostname, now));
-            } else {
-              LOG.info("Received report for a command that is no longer active. " + report);
-            }
-          } else if (report.getStatus().equals("IN_PROGRESS")) {
-            scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
-                hostname, now));
-          }
-        } catch (ServiceComponentNotFoundException scnex) {
-          LOG.warn("Service component not found ", scnex);
-        } catch (InvalidStateTransitionException ex) {
-          if (LOG.isDebugEnabled()) {
-            LOG.warn("State machine exception.", ex);
-          } else {
-            LOG.warn("State machine exception. " + ex.getMessage());
-          }
-        }
-      }
-    }
-
-    //Update state machines from reports
-    actionManager.processTaskResponse(hostname, reports, commands);
-  }
-
-  protected void processStatusReports(HeartBeat heartbeat,
-                                      String hostname,
-                                      Clusters clusterFsm)
-      throws AmbariException {
-    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
-    for (Cluster cl : clusters) {
-      for (ComponentStatus status : heartbeat.componentStatus) {
-        if (status.getClusterName().equals(cl.getClusterName())) {
-          try {
-            Service svc = cl.getService(status.getServiceName());
-
-            String componentName = status.getComponentName();
-            if (svc.getServiceComponents().containsKey(componentName)) {
-              ServiceComponent svcComp = svc.getServiceComponent(
-                  componentName);
-              ServiceComponentHost scHost = svcComp.getServiceComponentHost(
-                  hostname);
-              State prevState = scHost.getState();
-              State liveState = State.valueOf(State.class, status.getStatus());
-              if (prevState.equals(State.INSTALLED)
-                  || prevState.equals(State.STARTED)
-                  || prevState.equals(State.STARTING)
-                  || prevState.equals(State.STOPPING)
-                  || prevState.equals(State.UNKNOWN)) {
-                scHost.setState(liveState); //TODO direct status set breaks state machine sometimes !!!
-                if (!prevState.equals(liveState)) {
-                  LOG.info("State of service component " + componentName
-                      + " of service " + status.getServiceName()
-                      + " of cluster " + status.getClusterName()
-                      + " has changed from " + prevState + " to " + liveState
-                      + " at host " + hostname);
-                }
-              }
-
-              SecurityState prevSecurityState = scHost.getSecurityState();
-              SecurityState currentSecurityState = SecurityState.valueOf(status.getSecurityState());
-              if((prevSecurityState != currentSecurityState)) {
-                if(prevSecurityState.isEndpoint()) {
-                  scHost.setSecurityState(currentSecurityState);
-                  LOG.info(String.format("Security of service component %s of service %s of cluster %s " +
-                          "has changed from %s to %s on host %s",
-                      componentName, status.getServiceName(), status.getClusterName(), prevSecurityState,
-                      currentSecurityState, hostname));
-                }
-                else {
-                  LOG.debug(String.format("Security of service component %s of service %s of cluster %s " +
-                          "has changed from %s to %s on host %s but will be ignored since %s is a " +
-                          "transitional state",
-                      componentName, status.getServiceName(), status.getClusterName(),
-                      prevSecurityState, currentSecurityState, hostname, prevSecurityState));
-                }
-              }
-
-              if (null != status.getStackVersion() && !status.getStackVersion().isEmpty()) {
-                scHost.setStackVersion(gson.fromJson(status.getStackVersion(), StackId.class));
-              }
-
-              if (null != status.getConfigTags()) {
-                scHost.updateActualConfigs(status.getConfigTags());
-              }
-
-              Map<String, Object> extra = status.getExtra();
-              if (null != extra && !extra.isEmpty()) {
-                try {
-                  if (extra.containsKey("processes")) {
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, String>> list = (List<Map<String, String>>) extra.get("processes");
-                    scHost.setProcesses(list);
-                  }
-                  if (extra.containsKey("version")) {
-                    String version = extra.get("version").toString();
-
-                    handleComponentVersionReceived(cl, scHost, version, false);
-                  }
-
-                } catch (Exception e) {
-                  LOG.error("Could not access extra JSON for " +
-                      scHost.getServiceComponentName() + " from " +
-                      scHost.getHostName() + ": " + status.getExtra() +
-                      " (" + e.getMessage() + ")");
-                }
-              }
-
-              this.heartbeatMonitor.getAgentRequests()
-                  .setExecutionDetailsRequest(hostname, componentName, status.getSendExecCmdDet());
-            } else {
-              // TODO: What should be done otherwise?
-            }
-          } catch (ServiceNotFoundException e) {
-            LOG.warn("Received a live status update for a non-initialized"
-                + " service"
-                + ", clusterName=" + status.getClusterName()
-                + ", serviceName=" + status.getServiceName());
-            // FIXME ignore invalid live update and continue for now?
-            continue;
-          } catch (ServiceComponentNotFoundException e) {
-            LOG.warn("Received a live status update for a non-initialized"
-                + " servicecomponent"
-                + ", clusterName=" + status.getClusterName()
-                + ", serviceName=" + status.getServiceName()
-                + ", componentName=" + status.getComponentName());
-            // FIXME ignore invalid live update and continue for now?
-            continue;
-          } catch (ServiceComponentHostNotFoundException e) {
-            LOG.warn("Received a live status update for a non-initialized"
-                + " service"
-                + ", clusterName=" + status.getClusterName()
-                + ", serviceName=" + status.getServiceName()
-                + ", componentName=" + status.getComponentName()
-                + ", hostname=" + hostname);
-            // FIXME ignore invalid live update and continue for now?
-            continue;
-          } catch (RuntimeException e) {
-            LOG.warn("Received a live status with invalid payload"
-                + " service"
-                + ", clusterName=" + status.getClusterName()
-                + ", serviceName=" + status.getServiceName()
-                + ", componentName=" + status.getComponentName()
-                + ", hostname=" + hostname
-                + ", error=" + e.getMessage());
-            continue;
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Updates the version of the given service component, sets the upgrade state (if needed)
-   * and publishes a version event through the version event publisher.
-   *
-   * @param cluster        the cluster
-   * @param scHost         service component host
-   * @param newVersion     new version of service component
-   * @param alwaysPublish  if true, always publish a version event; if false,
-   *                       only publish if the component version was updated
-   */
-  private void handleComponentVersionReceived(Cluster cluster, ServiceComponentHost scHost,
-                                              String newVersion, boolean alwaysPublish) {
-
-    boolean updated = false;
-
-    if (StringUtils.isNotBlank(newVersion)) {
-      final String previousVersion = scHost.getVersion();
-      if (!StringUtils.equals(previousVersion, newVersion)) {
-        scHost.setVersion(newVersion);
-        scHost.setStackVersion(cluster.getDesiredStackVersion());
-        if (previousVersion != null && !previousVersion.equalsIgnoreCase(State.UNKNOWN.toString())) {
-          scHost.setUpgradeState(UpgradeState.COMPLETE);
-        }
-        updated = true;
-      }
-    }
-
-    if (updated || alwaysPublish) {
-      HostComponentVersionEvent event = new HostComponentVersionEvent(cluster, scHost);
-      versionEventPublisher.publish(event);
-    }
   }
 
   /**
@@ -833,6 +329,8 @@ public class HeartBeatHandler {
           case BACKGROUND_EXECUTION_COMMAND:
           case EXECUTION_COMMAND: {
             ExecutionCommand ec = (ExecutionCommand)ac;
+            LOG.info("HeartBeatHandler.sendCommands: sending ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, task ID {}",
+                     ec.getHostname(), ec.getRole(), ec.getRoleCommand(), ec.getCommandId(), ec.getTaskId());
             Map<String, String> hlp = ec.getHostLevelParams();
             if (hlp != null) {
               String customCommand = hlp.get("custom_command");
@@ -989,9 +487,24 @@ public class HeartBeatHandler {
     if(response.getAgentConfig() != null) {
       LOG.debug("Agent configuration map set to " + response.getAgentConfig());
     }
-    response.setRecoveryConfig(RecoveryConfig.getRecoveryConfig(config));
-    if(response.getRecoveryConfig() != null) {
-      LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
+
+    /**
+     * A host can belong to only one cluster. Though getClustersForHost(hostname)
+     * returns a set of clusters, it will have only one entry.
+     *
+     * TODO: Handle the case when a host is a part of multiple clusters.
+     */
+    Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
+
+    if (clusters.size() > 0) {
+      String clusterName = clusters.iterator().next().getClusterName();
+
+      RecoveryConfig rc = recoveryConfigHelper.getRecoveryConfig(clusterName, hostname);
+      response.setRecoveryConfig(rc);
+
+      if(response.getRecoveryConfig() != null) {
+        LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
+      }
     }
 
     Long requestId = 0L;
@@ -1189,37 +702,6 @@ public class HeartBeatHandler {
       }
 
       ec.setKerberosCommandParams(kcp);
-    }
-  }
-
-  /**
-   * This class is used for mapping json of structured output for component START action.
-   */
-  private static class ComponentVersionStructuredOut {
-    @SerializedName("version")
-    private String version;
-
-    @SerializedName("upgrade_type")
-    private UpgradeType upgradeType = null;
-
-    @SerializedName("direction")
-    private Direction upgradeDirection = null;
-
-  }
-
-  /**
-   * This class is used for mapping json of structured output for keytab distribution actions.
-   */
-  private static class WriteKeytabsStructuredOut {
-    @SerializedName("keytabs")
-    private Map<String,String> keytabs;
-
-    public Map<String, String> getKeytabs() {
-      return keytabs;
-    }
-
-    public void setKeytabs(Map<String, String> keytabs) {
-      this.keytabs = keytabs;
     }
   }
 

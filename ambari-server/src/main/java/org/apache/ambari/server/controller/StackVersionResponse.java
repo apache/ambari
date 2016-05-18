@@ -76,7 +76,7 @@ public class StackVersionResponse implements Validable{
                               Map<String, Map<String, Map<String, String>>> configTypes,
                               File stackKerberosDescriptorFile,
                               Collection<File> serviceKerberosDescriptorFiles,
-                              Set<String> upgradePacks, boolean valid, Collection errorSet, String minJdk, String maxJdk) {
+                              Set<String> upgradePacks, boolean valid, Collection<String> errorSet, String minJdk, String maxJdk) {
     setStackVersion(stackVersion);
     setMinUpgradeVersion(minUpgradeVersion);
     setActive(active);
@@ -86,7 +86,7 @@ public class StackVersionResponse implements Validable{
     setServiceKerberosDescriptorFiles(serviceKerberosDescriptorFiles);
     setUpgradePacks(upgradePacks);
     setValid(valid);
-    setErrors(errorSet);
+    addErrors(errorSet);
     setMinJdk(minJdk);
     setMaxJdk(maxJdk);
   }
@@ -104,18 +104,18 @@ public class StackVersionResponse implements Validable{
   private Set<String> errorSet = new HashSet<String>();
   
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errorSet.add(error);
   }
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
   }   
 
   @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
+  public void addErrors(Collection<String> errors) {
+    this.errorSet.addAll(errors);
   }  
   
   public String getStackName() {

@@ -255,7 +255,7 @@ public class HostImpl implements Host {
       hostEntity.setHostStateEntity(hostStateEntity);
       hostStateEntity.setHealthStatus(gson.toJson(new HostHealthStatus(HealthStatus.UNKNOWN, "")));
       if (persisted) {
-        persist();
+        hostStateDAO.create(hostStateEntity);
       }
     } else {
       stateMachine.setCurrentState(hostStateEntity.getCurrentState());
@@ -295,7 +295,10 @@ public class HostImpl implements Host {
         + e.hostInfo.toString()
         + ", registrationTime=" + e.registrationTime
         + ", agentVersion=" + agentVersion);
+
       host.persist();
+      host.clusters.updateHostMappings(host);
+
       //todo: proper host joined notification
       boolean associatedWithCluster = false;
       try {
@@ -401,6 +404,8 @@ public class HostImpl implements Host {
           + ", host=" + e.getHostName()
           + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
+
+      topologyManager.onHostHeartBeatLost(host);
     }
   }
 
@@ -869,8 +874,9 @@ public class HostImpl implements Host {
 
   @Override
   public String getOsFamily() {
-	  String majorVersion = getHostAttributes().get(OS_RELEASE_VERSION).split("\\.")[0];
-	  return getHostAttributes().get(OSFAMILY) + majorVersion;
+    Map<String, String> hostAttributes = getHostAttributes();
+    String majorVersion = hostAttributes.get(OS_RELEASE_VERSION).split("\\.")[0];
+	  return hostAttributes.get(OSFAMILY) + majorVersion;
   }
 
   @Override
@@ -1217,6 +1223,9 @@ public class HostImpl implements Host {
         }
         persisted = true;
       } else {
+        //refresh entities from active session
+        getHostEntity();
+        getHostStateEntity();
         saveIfPersisted();
       }
     } finally {
@@ -1329,12 +1338,25 @@ public class HostImpl implements Host {
    */
   @Override
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException {
+    return getDesiredHostConfigs(cluster, false);
+  }
+
+  /**
+   * Get a map of configType with all applicable config tags.
+   *
+   * @param cluster  the cluster
+   * @param bypassCache don't use cached values
+   *
+   * @return Map of configType -> HostConfig
+   */
+  @Override
+  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster, boolean bypassCache) throws AmbariException {
     Map<String, HostConfig> hostConfigMap = new HashMap<String, HostConfig>();
-    Map<String, DesiredConfig> clusterDesiredConfigs = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs();
+    Map<String, DesiredConfig> clusterDesiredConfigs = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs(bypassCache);
 
     if (clusterDesiredConfigs != null) {
       for (Map.Entry<String, DesiredConfig> desiredConfigEntry
-              : clusterDesiredConfigs.entrySet()) {
+          : clusterDesiredConfigs.entrySet()) {
         HostConfig hostConfig = new HostConfig();
         hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getTag());
         hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
@@ -1346,7 +1368,7 @@ public class HostImpl implements Host {
     if (configGroups != null && !configGroups.isEmpty()) {
       for (ConfigGroup configGroup : configGroups.values()) {
         for (Map.Entry<String, Config> configEntry : configGroup
-                .getConfigurations().entrySet()) {
+            .getConfigurations().entrySet()) {
 
           String configType = configEntry.getKey();
           // HostConfig config holds configType -> versionTag, per config group
@@ -1356,16 +1378,17 @@ public class HostImpl implements Host {
             hostConfigMap.put(configType, hostConfig);
             if (cluster != null) {
               Config conf = cluster.getDesiredConfigByType(configType);
-              if(conf == null)
+              if(conf == null) {
                 LOG.error("Config inconsistency exists:"+
                     " unknown configType="+configType);
-              else
+              } else {
                 hostConfig.setDefaultVersionTag(conf.getTag());
+              }
             }
           }
           Config config = configEntry.getValue();
           hostConfig.getConfigGroupOverrides().put(configGroup.getId(),
-                  config.getTag());
+              config.getTag());
         }
       }
     }

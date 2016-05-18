@@ -32,7 +32,7 @@ def hcat():
 
   Directory(params.hcat_pid_dir,
             owner=params.webhcat_user,
-            recursive=True
+            create_parents = True
   )
 
   hcat_TemplateConfig('hcat-env.sh')

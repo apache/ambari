@@ -31,8 +31,7 @@ require('serializers');
 require('store');
 
 //helpers
-require('helpers/timeAgo');
-require('helpers/escapeAcl');
+require('helpers');
 
 //components
 require('components');
@@ -48,6 +47,9 @@ require('models');
 
 //views
 require('views/queues');
+require('views/editqueue');
+require('views/editQueueCapacity');
+require('views/queuesconf');
 
 // routes
 require('router');

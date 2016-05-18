@@ -39,11 +39,221 @@ describe('App.ModalPopup', function() {
 
   describe('#didInsertElement', function () {
 
-    it('should focus on the first input element', function () {
-      var spy = sinon.spy(popup, "focusElement");
-      popup.didInsertElement();
-      expect(spy.called).to.be.true;
+    beforeEach(function () {
+      this.spy = sinon.spy(popup, "focusElement");
     });
+
+    afterEach(function () {
+      this.spy.restore();
+    });
+
+    it('should focus on the first input element', function () {
+      popup.didInsertElement();
+      expect(this.spy.called).to.be.true;
+    });
+  });
+
+  describe('#escapeKeyPressed', function () {
+
+    var returnedValue,
+      event = {
+        preventDefault: Em.K,
+        stopPropagation: Em.K
+      },
+      cases = [
+        {
+          buttons: [],
+          preventDefaultCallCount: 0,
+          stopPropagationCallCount: 0,
+          clickCallCount: 0,
+          returnedValue: undefined,
+          title: 'no close button'
+        },
+        {
+          buttons: [{}],
+          preventDefaultCallCount: 1,
+          stopPropagationCallCount: 1,
+          clickCallCount: 1,
+          returnedValue: false,
+          title: 'close button available'
+        }
+      ];
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          item.buttons.click = Em.K;
+          sinon.stub(popup, '$').returns({
+            find: function () {
+              return {
+                last: function () {
+                  return item.buttons;
+                }
+              }
+            }
+          });
+          sinon.spy(item.buttons, 'click');
+          sinon.spy(event, 'preventDefault');
+          sinon.spy(event, 'stopPropagation');
+          returnedValue = popup.escapeKeyPressed(event);
+        });
+
+        afterEach(function () {
+          popup.$.restore();
+          item.buttons.click.restore();
+          event.preventDefault.restore();
+          event.stopPropagation.restore();
+        });
+
+        it('prevent default behaviour', function () {
+          expect(event.preventDefault.callCount).to.equal(item.preventDefaultCallCount);
+        });
+
+        it('stop event propagation', function () {
+          expect(event.stopPropagation.callCount).to.equal(item.stopPropagationCallCount);
+        });
+
+        it('close button click', function () {
+          expect(item.buttons.click.callCount).to.equal(item.clickCallCount);
+        });
+
+        it('returned value', function () {
+          expect(returnedValue).to.equal(item.returnedValue);
+        });
+
+      });
+
+    });
+
+  });
+
+  describe('#enterKeyPressed', function () {
+
+    var returnedValue,
+      event = {
+        preventDefault: Em.K,
+        stopPropagation: Em.K
+      },
+      cases = [
+        {
+          buttons: [],
+          isTextArea: true,
+          preventDefaultCallCount: 0,
+          stopPropagationCallCount: 0,
+          clickCallCount: 0,
+          returnedValue: undefined,
+          title: 'focus on textarea, no primary button'
+        },
+        {
+          buttons: [],
+          isTextArea: false,
+          preventDefaultCallCount: 0,
+          stopPropagationCallCount: 0,
+          clickCallCount: 0,
+          returnedValue: undefined,
+          title: 'no focus on textarea, no primary button'
+        },
+        {
+          buttons: [{}],
+          isTextArea: true,
+          disabled: 'disabled',
+          preventDefaultCallCount: 0,
+          stopPropagationCallCount: 0,
+          clickCallCount: 0,
+          returnedValue: undefined,
+          title: 'focus on textarea, primary button disabled'
+        },
+        {
+          buttons: [{}],
+          isTextArea: false,
+          disabled: 'disabled',
+          preventDefaultCallCount: 0,
+          stopPropagationCallCount: 0,
+          clickCallCount: 0,
+          returnedValue: undefined,
+          title: 'no focus on textarea, primary button disabled'
+        },
+        {
+          buttons: [{}],
+          isTextArea: true,
+          disabled: '',
+          preventDefaultCallCount: 0,
+          stopPropagationCallCount: 0,
+          clickCallCount: 0,
+          returnedValue: undefined,
+          title: 'focus on textarea, primary button enabled'
+        },
+        {
+          buttons: [{}],
+          isTextArea: false,
+          disabled: '',
+          preventDefaultCallCount: 1,
+          stopPropagationCallCount: 1,
+          clickCallCount: 1,
+          returnedValue: false,
+          title: 'no focus on textarea, primary button enabled'
+        }
+      ];
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          item.buttons.click = Em.K;
+          item.buttons.attr = function () {
+            return item.disabled;
+          };
+          sinon.stub(popup, '$').returns({
+            find: function () {
+              return {
+                last: function () {
+                  return item.buttons;
+                }
+              }
+            }
+          });
+          sinon.stub(window, '$').withArgs('*:focus').returns({
+            is: function () {
+              return item.isTextArea
+            }
+          });
+          sinon.spy(item.buttons, 'click');
+          sinon.spy(event, 'preventDefault');
+          sinon.spy(event, 'stopPropagation');
+          returnedValue = popup.enterKeyPressed(event);
+        });
+
+        afterEach(function () {
+          popup.$.restore();
+          window.$.restore();
+          item.buttons.click.restore();
+          event.preventDefault.restore();
+          event.stopPropagation.restore();
+        });
+
+        it('prevent default behaviour', function () {
+          expect(event.preventDefault.callCount).to.equal(item.preventDefaultCallCount);
+        });
+
+        it('stop event propagation', function () {
+          expect(event.stopPropagation.callCount).to.equal(item.stopPropagationCallCount);
+        });
+
+        it('primary button click', function () {
+          expect(item.buttons.click.callCount).to.equal(item.clickCallCount);
+        });
+
+        it('returned value', function () {
+          expect(returnedValue).to.equal(item.returnedValue);
+        });
+
+      });
+
+    });
+
   });
 
 });

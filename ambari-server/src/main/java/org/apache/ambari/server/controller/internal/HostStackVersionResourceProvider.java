@@ -34,6 +34,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -63,8 +64,12 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -90,33 +95,24 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
 
 
-  @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      add(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
-      add(HOST_STACK_VERSION_ID_PROPERTY_ID);
-      add(HOST_STACK_VERSION_STACK_PROPERTY_ID);
-      add(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
-      add(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-    }
-  };
+  private static Set<String> pkPropertyIds = Sets.newHashSet(
+          HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
+          HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID,
+          HOST_STACK_VERSION_ID_PROPERTY_ID,
+          HOST_STACK_VERSION_STACK_PROPERTY_ID,
+          HOST_STACK_VERSION_VERSION_PROPERTY_ID,
+          HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
 
-  @SuppressWarnings("serial")
-  private static Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(HOST_STACK_VERSION_ID_PROPERTY_ID);
-      add(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      add(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
-      add(HOST_STACK_VERSION_STACK_PROPERTY_ID);
-      add(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
-      add(HOST_STACK_VERSION_STATE_PROPERTY_ID);
-      add(HOST_STACK_VERSION_REPOSITORIES_PROPERTY_ID);
-      add(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-    }
-  };
+  private static Set<String> propertyIds = Sets.newHashSet(
+          HOST_STACK_VERSION_ID_PROPERTY_ID,
+          HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
+          HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID,
+          HOST_STACK_VERSION_STACK_PROPERTY_ID,
+          HOST_STACK_VERSION_VERSION_PROPERTY_ID,
+          HOST_STACK_VERSION_STATE_PROPERTY_ID,
+          HOST_STACK_VERSION_REPOSITORIES_PROPERTY_ID,
+          HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
 
-  @SuppressWarnings("serial")
   private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Type.Cluster, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
@@ -160,7 +156,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
@@ -171,8 +167,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
         clusterName = propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).toString();
       }
       final Long id;
-      List<HostVersionEntity> requestedEntities = new ArrayList<HostVersionEntity>();
-      if (propertyMap.get(HOST_STACK_VERSION_ID_PROPERTY_ID) == null && propertyMaps.size() == 1) {
+      List<HostVersionEntity> requestedEntities;
+      if (propertyMap.get(HOST_STACK_VERSION_ID_PROPERTY_ID) == null) {
         if (clusterName == null) {
           requestedEntities = hostVersionDAO.findByHost(hostName);
         } else {
@@ -188,12 +184,12 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
         if (entity == null) {
           throw new NoSuchResourceException("There is no stack version with id " + id);
         } else {
-          requestedEntities.add(entity);
+          requestedEntities = Collections.singletonList(entity);
         }
       }
-
-      addRequestedEntities(resources, requestedEntities, requestedIds, clusterName);
-
+      if (requestedEntities != null) {
+        addRequestedEntities(resources, requestedEntities, requestedIds, clusterName);
+      }
     }
 
     return resources;
@@ -254,20 +250,17 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     Map<String, Object> propertyMap  = iterator.next();
 
-    Set<String> requiredProperties = new HashSet<String>(){{
-      add(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
-      add(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-      add(HOST_STACK_VERSION_STACK_PROPERTY_ID);
-      add(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
-    }};
+    Set<String> requiredProperties = Sets.newHashSet(
+            HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID,
+            HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID,
+            HOST_STACK_VERSION_STACK_PROPERTY_ID,
+            HOST_STACK_VERSION_VERSION_PROPERTY_ID);
 
     for (String requiredProperty : requiredProperties) {
-      if (! propertyMap.containsKey(requiredProperty)) {
-        throw new IllegalArgumentException(
-                String.format("The required property %s is not defined",
-                        requiredProperty));
-      }
+      Validate.isTrue(propertyMap.containsKey(requiredProperty),
+              String.format("The required property %s is not defined", requiredProperty));
     }
+
     String clName = (String) propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
     hostName = (String) propertyMap.get(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
     desiredRepoVersion = (String) propertyMap.get(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
@@ -348,21 +341,22 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     }
 
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
-    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
+    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
       perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
     }
 
     // Determine repositories for host
-    final List<RepositoryEntity> repoInfo = perOsRepos.get(host.getOsFamily());
+    String osFamily = host.getOsFamily();
+    final List<RepositoryEntity> repoInfo = perOsRepos.get(osFamily);
     if (repoInfo == null) {
       throw new SystemException(String.format("Repositories for os type %s are " +
                       "not defined. Repo version=%s, stackId=%s",
-              host.getOsFamily(), desiredRepoVersion, stackId));
+        osFamily, desiredRepoVersion, stackId));
     }
     // For every host at cluster, determine packages for all installed services
-    List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>();
-    Set<String> servicesOnHost = new HashSet<String>();
+    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
+    Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {
       servicesOnHost.add(component.getServiceName());
@@ -377,7 +371,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       }
       List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
               new HashMap<String, String>(), // Contents are ignored
-              host.getOsFamily());
+        osFamily);
       for (ServiceOsSpecific.Package aPackage : packagesForService) {
         if (! aPackage.getSkipUpgrade()) {
           boolean blacklisted = false;
@@ -400,8 +394,21 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       put("stack_id", stackId.getStackId());
       put("repository_version", desiredRepoVersion);
       put("base_urls", repoList);
-      put("package_list", packageList);
+      put(KeyNames.PACKAGE_LIST, packageList);
     }};
+
+    VersionDefinitionXml xml = null;
+    try {
+      xml = repoVersionEnt.getRepositoryXml();
+    } catch (Exception e) {
+      throw new SystemException(String.format("Could not load xml from repo version %s",
+          repoVersionEnt.getVersion()));
+    }
+
+    if (null != xml && StringUtils.isNotBlank(xml.release.packageVersion)) {
+      params.put(KeyNames.PACKAGE_VERSION, xml.release.packageVersion);
+    }
+
 
     // Create custom action
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
@@ -416,15 +423,24 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);
 
-    Map<String, String> hostLevelParams = new HashMap<String, String>();
+    Map<String, String> hostLevelParams = new HashMap<>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
+
+    // Generate cluster host info
+    String clusterHostInfoJson;
+    try {
+      clusterHostInfoJson = StageUtils.getGson().toJson(
+        StageUtils.getClusterHostInfo(cluster));
+    } catch (AmbariException e) {
+      throw new SystemException("Could not build cluster topology", e);
+    }
 
     Stage stage = stageFactory.createNew(req.getId(),
             "/tmp/ambari",
             cluster.getClusterName(),
             cluster.getClusterId(),
             caption,
-            "{}",
+            clusterHostInfoJson,
             "{}",
             StageUtils.getGson().toJson(hostLevelParams));
 
@@ -445,7 +461,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       hostVersEntity.setState(RepositoryVersionState.INSTALLING);
       hostVersionDAO.merge(hostVersEntity);
 
-      StackId desiredStackId = cluster.getDesiredStackVersion();
       cluster.recalculateClusterVersionState(repoVersionEnt);
       req.persist();
     } catch (AmbariException e) {
@@ -460,7 +475,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     RequestStageContainer requestStages = new RequestStageContainer(
             actionManager.getNextRequestId(), null, requestFactory, actionManager);
-    requestStages.setRequestContext(String.format(caption));
+    requestStages.setRequestContext(caption);
 
     return requestStages;
   }
@@ -473,7 +488,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException("Method not supported");

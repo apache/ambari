@@ -40,12 +40,11 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     color: '#0066B3',
     stroke: '#0066B3',
     palette: new Rickshaw.Color.Palette({
-      scheme: [ 'rgba(0,102,179,0)', 'rgba(0,102,179,1)'].reverse()
+      scheme: ['rgba(0,102,179,1)', 'rgba(0,102,179,0)']
     }),
     data: function () {
-      var total = this.get('service.capacityTotal') + 0;
-      var remaining = (this.get('service.capacityRemaining') + 0);
-      var used = total - remaining;
+      var remaining = Number(this.get('service.capacityRemaining'));
+      var used = Number(this.get('service.capacityTotal')) - remaining;
       return [ used, remaining ];
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
@@ -107,7 +106,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   blockErrorsMessage: Em.computed.i18nFormat('dashboard.services.hdfs.blockErrors', 'dfsCorruptBlocks', 'dfsMissingBlocks', 'dfsUnderReplicatedBlocks'),
 
   nodeUptime: function () {
-    var uptime = this.get('service').get('nameNodeStartTime');
+    var uptime = this.get('service.nameNodeStartTime');
     if (uptime && uptime > 0){
       var diff = App.dateTime() - uptime;
       if (diff < 0) {
@@ -120,7 +119,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property("service.nameNodeStartTime"),
 
   nodeWebUrl: function () {
-    return "http://" + (App.singleNodeInstall ? App.singleNodeAlias :  this.get('service').get('nameNode').get('publicHostName')) + ":50070";
+    return "http://" + (App.singleNodeInstall ? App.singleNodeAlias :  this.get('service.nameNode.publicHostName')) + ":50070";
   }.property('service.nameNode'),
 
   nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.hdfs.nodes.heapUsed', 'service.jvmMemoryHeapUsed', 'service,jvmMemoryHeapMax'),
@@ -131,7 +130,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     var total = this.get('service.capacityTotal');
     var remaining = this.get('service.capacityRemaining');
     var dfsUsed = this.get('service.capacityUsed');
-    return total !== null && remaining !== null && dfsUsed !== null ? total - remaining - dfsUsed : null;
+    return (Em.isNone(total) || Em.isNone(remaining) || Em.isNone(dfsUsed)) ? null : total - remaining - dfsUsed;
   }.property('service.capacityTotal', 'service.capacityRemaining', 'service.capacityUsed'),
 
   nonDfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'nonDfsUsed'),
@@ -156,16 +155,23 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   
   journalNodeComponent: Em.computed.alias('service.journalNodes.firstObject'),
 
+  /**
+   * @type {string}
+   */
   safeModeStatus: function () {
     var safeMode = this.get('service.safeModeStatus');
-    if (safeMode == null) {
+    if (Em.isNone(safeMode)) {
       return Em.I18n.t("services.service.summary.notAvailable");
-    } else if (safeMode.length == 0) {
+    } else if (safeMode.length === 0) {
       return Em.I18n.t("services.service.summary.safeModeStatus.notInSafeMode");
     } else {
       return Em.I18n.t("services.service.summary.safeModeStatus.inSafeMode");
     }
   }.property('service.safeModeStatus'),
+
+  /**
+   * @type {string}
+   */
   upgradeStatus: function () {
     var upgradeStatus = this.get('service.upgradeStatus');
     var healthStatus = this.get('service.healthStatus');
@@ -178,10 +184,12 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
       return Em.I18n.t("services.service.summary.notAvailable");
     }
   }.property('service.upgradeStatus', 'service.healthStatus'),
+
+  /**
+   * @type {boolean}
+   */
   isUpgradeStatusWarning: function () {
-    var upgradeStatus = this.get('service.upgradeStatus');
-    var healthStatus = this.get('service.healthStatus');
-    return upgradeStatus == 'false' && healthStatus == 'green';
+    return this.get('service.upgradeStatus') == 'false' && this.get('service.healthStatus') == 'green';
   }.property('service.upgradeStatus', 'service.healthStatus')
 
 });

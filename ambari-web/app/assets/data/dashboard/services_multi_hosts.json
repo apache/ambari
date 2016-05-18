@@ -342,18 +342,20 @@
                   "proc_run" : 2.86944444444
                 },
                 "rpc" : {
-                  "rpcAuthorizationSuccesses" : 0.0861111111111,
-                  "SentBytes" : 106.391481481,
-                  "rpcAuthorizationFailures" : 0.0,
-                  "ReceivedBytes" : 229.217407407,
-                  "NumOpenConnections" : 0.0,
-                  "callQueueLen" : 0.0,
-                  "rpcAuthenticationSuccesses" : 0.0,
-                  "RpcQueueTime_num_ops" : 0.748703703704,
-                  "RpcProcessingTime_num_ops" : 0.748703703704,
-                  "RpcProcessingTime_avg_time" : 0.110499338624,
-                  "rpcAuthenticationFailures" : 0.0,
-                  "RpcQueueTime_avg_time" : 0.323186728395
+                  "client": {
+                    "rpcAuthorizationSuccesses" : 0.0861111111111,
+                    "SentBytes" : 106.391481481,
+                    "rpcAuthorizationFailures" : 0.0,
+                    "ReceivedBytes" : 229.217407407,
+                    "NumOpenConnections" : 0.0,
+                    "callQueueLen" : 0.0,
+                    "rpcAuthenticationSuccesses" : 0.0,
+                    "RpcQueueTime_num_ops" : 0.748703703704,
+                    "RpcProcessingTime_num_ops" : 0.748703703704,
+                    "RpcProcessingTime_avg_time" : 0.110499338624,
+                    "rpcAuthenticationFailures" : 0.0,
+                    "RpcQueueTime_avg_time" : 0.323186728395
+                  }
                 },
                 "ugi" : {
                   "loginFailure_num_ops" : 0.0,

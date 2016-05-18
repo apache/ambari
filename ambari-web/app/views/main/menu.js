@@ -35,14 +35,16 @@ App.MainMenuView = Em.CollectionView.extend({
     if (App.router.get('loggedIn')) {
 
       if (App.router.get('clusterController.isLoaded') && App.get('router.clusterInstallCompleted')) {
-
-        result.push(
-          { label: Em.I18n.t('menu.item.dashboard'), routing: 'dashboard', active: 'active'},
-          { label: Em.I18n.t('menu.item.services'), routing: 'services'},
-          { label: Em.I18n.t('menu.item.hosts'), routing: 'hosts', hasAlertsLabel: true},
-          { label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
-        );
-        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+        if (!App.get('isOnlyViewUser')) {
+          result.push(
+              {label: Em.I18n.t('menu.item.dashboard'), routing: 'dashboard', active: 'active'},
+              {label: Em.I18n.t('menu.item.services'), routing: 'services'},
+              {label: Em.I18n.t('menu.item.hosts'), routing: 'hosts'},
+              {label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
+          );
+        }
+        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.MODIFY_CONFIGS, SERVICE.START_STOP, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
+          || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
           result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
         }
       }
@@ -75,12 +77,6 @@ App.MainMenuView = Em.CollectionView.extend({
       return "";
     }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
 
-    alertsCount: Em.computed.alias('App.router.mainHostController.hostsCountMap.health-status-WITH-ALERTS'),
-
-    hasCriticalAlerts: Em.computed.gt('App.router.mainHostController.hostsCountMap.health-status-CRITICAL', 0),
-
-    hasAlertsLabel: Em.computed.and('content.hasAlertsLabel', 'alertsCount'),
-
     templateName: require('templates/main/menu_item'),
 
     dropdownMenu: Em.computed.existsIn('content.routing', ['services', 'admin', 'views']),
@@ -109,22 +105,35 @@ App.MainMenuView = Em.CollectionView.extend({
       // create dropdown categories for each menu item
       if (itemName == 'admin') {
         categories = [];
-        categories.push({
-          name: 'stackAndUpgrade',
-          url: 'stack',
-          label: Em.I18n.t('admin.stackUpgrade.title')
-        });
-        categories.push({
-          name: 'adminServiceAccounts',
-          url: 'serviceAccounts',
-          label: Em.I18n.t('common.serviceAccounts')
-        });
-        if (!App.get('isHadoopWindowsStack')) {
+        if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+          categories.push({
+            name: 'stackAndUpgrade',
+            url: 'stack',
+            label: Em.I18n.t('admin.stackUpgrade.title')
+          });
+        }
+        if(App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS') ||  (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+          categories.push({
+            name: 'adminServiceAccounts',
+            url: 'serviceAccounts',
+            label: Em.I18n.t('common.serviceAccounts')
+          });
+        }
+        if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
           categories.push({
             name: 'kerberos',
             url: 'kerberos/',
             label: Em.I18n.t('common.kerberos')
           });
+        }
+        if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+          if (App.supports.serviceAutoStart) {
+            categories.push({
+              name: 'serviceAutoStart',
+              url: 'serviceAutoStart',
+              label: Em.I18n.t('admin.serviceAutoStart.title')
+            });
+          }
         }
       }
       return categories;

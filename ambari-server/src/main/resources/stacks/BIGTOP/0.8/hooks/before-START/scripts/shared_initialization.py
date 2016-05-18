@@ -36,19 +36,19 @@ def setup_hadoop():
   #directories
   if params.has_namenode:
     Directory(params.hdfs_log_dir_prefix,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               mode=0775
     )
     Directory(params.hadoop_pid_dir_prefix,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root'
     )
   #this doesn't needed with stack 1
     Directory(params.hadoop_tmp_dir,
-              recursive=True,
+              create_parents = True,
               owner=params.hdfs_user,
               )
   #files
@@ -85,6 +85,7 @@ def setup_hadoop():
 
     File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
          owner=params.hdfs_user,
+         group=params.user_group,
          content=Template("hadoop-metrics2.properties.j2")
     )
 

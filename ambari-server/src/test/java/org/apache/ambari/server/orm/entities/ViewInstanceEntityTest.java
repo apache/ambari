@@ -22,6 +22,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
+import org.apache.ambari.server.view.ViewDataMigrationContextImpl;
 import org.apache.ambari.server.view.ViewRegistryTest;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
@@ -31,6 +32,9 @@ import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
 import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.ResourceProvider;
+import org.apache.ambari.view.migration.ViewDataMigrationContext;
+import org.apache.ambari.view.migration.ViewDataMigrationException;
+import org.apache.ambari.view.migration.ViewDataMigrator;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
 import org.junit.Assert;
@@ -123,6 +127,28 @@ public class ViewInstanceEntityTest {
       "        <description>Parameter 2.</description>\n" +
       "        <required>false</required>\n" +
       "    </parameter>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "    </instance>\n" +
+      "</view>";
+
+  private static String xml_view_with_migrator_v2 = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>2.0.0</version>\n" +
+      "    <data-version>1</data-version>\n" +
+      "    <data-migrator-class>org.apache.ambari.server.orm.entities.ViewInstanceEntityTest$MyDataMigrator</data-migrator-class>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "    </instance>\n" +
+      "</view>";
+
+  private static String xml_view_with_migrator_v1 = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
       "        <label>My Instance 1!</label>\n" +
@@ -443,6 +469,27 @@ public class ViewInstanceEntityTest {
   }
 
   @Test
+  public void testDataMigrator() throws Exception {
+    Configuration ambariConfig = new Configuration();
+
+    ViewConfig config2 = ViewConfigTest.getConfig(xml_view_with_migrator_v2);
+    ViewEntity viewEntity2 = ViewRegistryTest.getViewEntity(config2, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity2 = ViewRegistryTest.getViewInstanceEntity(viewEntity2, config2.getInstances().get(0));
+
+    ViewConfig config1 = ViewConfigTest.getConfig(xml_view_with_migrator_v1);
+    ViewEntity viewEntity1 = ViewRegistryTest.getViewEntity(config1, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity1 = ViewRegistryTest.getViewInstanceEntity(viewEntity1, config1.getInstances().get(0));
+
+    ViewDataMigrationContext context = new ViewDataMigrationContextImpl(viewInstanceEntity1, viewInstanceEntity2);
+    ViewDataMigrator migrator2 = viewInstanceEntity2.getDataMigrator(context);
+    Assert.assertTrue(migrator2 instanceof MyDataMigrator);
+
+    //in the view xml version 1 migrator is not defined
+    ViewDataMigrator migrator1 = viewInstanceEntity1.getDataMigrator(context);
+    Assert.assertNull(migrator1);
+  }
+
+  @Test
   public void testValidateWithClusterConfig() throws Exception {
 
     Properties properties = new Properties();
@@ -553,6 +600,25 @@ public class ViewInstanceEntityTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity();
     viewInstanceEntity.setSecurityHelper(securityHelper);
     return viewInstanceEntity;
+  }
+
+  public static class MyDataMigrator implements ViewDataMigrator {
+    @Override
+    public boolean beforeMigration() throws ViewDataMigrationException {
+      return true;
+    }
+
+    @Override
+    public void afterMigration() throws ViewDataMigrationException {
+    }
+
+    @Override
+    public void migrateEntity(Class originEntityClass, Class currentEntityClass) throws ViewDataMigrationException {
+    }
+
+    @Override
+    public void migrateInstanceData() throws ViewDataMigrationException {
+    }
   }
 
   protected static class TestSecurityHelper implements SecurityHelper {

@@ -18,10 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import re
 import os
 import shutil
 import string
 from ambari_commons import OSCheck
+from string import Template
 
 if OSCheck.is_windows_family():
   pass
@@ -170,6 +172,36 @@ def get_file_owner(file_full_name):
     return ""
   else:
       return pwd.getpwuid(os.stat(file_full_name).st_uid).pw_name
+    
+def parse_log4j_file(filename):
+  def translate_praceholders(fmt):
+    # escape their markers
+    fmt = fmt.replace('%', '%%')
+    
+    fmt = re.sub(r'\${(.+?)}', r'%(\1)s', fmt)
+    
+    return fmt
+  
+  properties = {}
+  
+  Template.idpattern = r'[_a-z][_a-z0-9\.]*'
+  with open(filename, "rb") as fp:
+    lines = fp.readlines()
+    
+  for line in lines:
+    line = line.strip()
+    
+    if not line or line.startswith("#"):
+      continue
+    
+    # should we raise exception here?
+    if not "=" in line:
+      continue
+    
+    splited_values = line.split("=")
+    properties[splited_values[0].strip()] = translate_praceholders("=".join(splited_values[1:]).strip()) % properties
+    
+  return properties
 
 #
 # Chololatey package manager constants for Windows

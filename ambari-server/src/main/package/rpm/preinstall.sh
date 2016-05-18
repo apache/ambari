@@ -13,18 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-STACKS_FOLDER="/var/lib/ambari-server/resources/stacks"
-STACKS_FOLDER_OLD=/var/lib/ambari-server/resources/stacks_$(date '+%d_%m_%y_%H_%M').old
+ROOT="${RPM_INSTALL_PREFIX}"
 
-COMMON_SERVICES_FOLDER="/var/lib/ambari-server/resources/common-services"
-COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-server/resources/common-services_$(date '+%d_%m_%y_%H_%M').old
+STACKS_FOLDER="${ROOT}/var/lib/ambari-server/resources/stacks"
+STACKS_FOLDER_OLD="${ROOT}/var/lib/ambari-server/resources/stacks_$(date '+%d_%m_%y_%H_%M').old"
 
-AMBARI_VIEWS_FOLDER="/var/lib/ambari-server/resources/views"
+COMMON_SERVICES_FOLDER=${ROOT}"/var/lib/ambari-server/resources/common-services"
+COMMON_SERVICES_FOLDER_OLD="${ROOT}/var/lib/ambari-server/resources/common-services_$(date '+%d_%m_%y_%H_%M').old"
+
+AMBARI_VIEWS_FOLDER="${ROOT}/var/lib/ambari-server/resources/views"
 AMBARI_VIEWS_BACKUP_FOLDER="$AMBARI_VIEWS_FOLDER/backups"
 
-if [ -d "/etc/ambari-server/conf.save" ]
+AMBARI_SERVER_JAR_FILES="/usr/lib/ambari-server/ambari-server-*.jar"
+AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER="/usr/lib/ambari-server-backups"
+SERVER_CONF_SAVE="${ROOT}/etc/ambari-server/conf.save"
+SERVER_CONF_SAVE_BACKUP="${ROOT}/etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save"
+
+if [ -d "$SERVER_CONF_SAVE" ]
 then
-    mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+    mv "$SERVER_CONF_SAVE" "$SERVER_CONF_SAVE_BACKUP"
 fi
 
 if [ -d "$STACKS_FOLDER" ]
@@ -32,7 +39,7 @@ then
     mv -f "$STACKS_FOLDER" "$STACKS_FOLDER_OLD"
 fi
 
-if [ -d "$COMMON_SERVICES_FOLDER_OLD" ]
+if [ -d "$COMMON_SERVICES_FOLDER" ]
 then
     mv -f "$COMMON_SERVICES_FOLDER" "$COMMON_SERVICES_FOLDER_OLD"
 fi
@@ -46,5 +53,17 @@ if [ -d "$AMBARI_VIEWS_FOLDER" ] && [ -d "$AMBARI_VIEWS_BACKUP_FOLDER" ]
 then
     cp -u $AMBARI_VIEWS_FOLDER/*.jar $AMBARI_VIEWS_BACKUP_FOLDER/
 fi
+
+for f in $AMBARI_SERVER_JAR_FILES;
+do
+    if [ -f "$f" ]
+    then
+        if [ ! -d "$AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER" ]
+        then
+            mkdir -p "$AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER"
+        fi
+        mv -f $f $AMBARI_SERVER_JAR_FILES_BACKUP_FOLDER/
+    fi
+done
 
 exit 0

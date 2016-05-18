@@ -17,22 +17,23 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import org.apache.ambari.server.stack.HostsType;
-import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.utils.SetUtils;
-import org.apache.commons.lang.StringUtils;
-
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.utils.SetUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  *
@@ -67,6 +68,9 @@ public class Grouping {
   @XmlElement(name="parallel-scheduler")
   public ParallelScheduler parallelScheduler;
 
+  @XmlElement(name="scope")
+  public UpgradeScope scope = UpgradeScope.ANY;
+
   /**
    * Gets the default builder.
    */
@@ -88,79 +92,123 @@ public class Grouping {
     /**
      * Add stages where the restart stages are ordered
      * E.g., preupgrade, restart hosts(0), ..., restart hosts(n-1), postupgrade
+     * @param context the context
      * @param hostsType the order collection of hosts, which may have a master and secondary
      * @param service the service name
      * @param pc the ProcessingComponent derived from the upgrade pack.
      * @param params additional parameters
      */
     @Override
-    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+    public void add(UpgradeContext context, HostsType hostsType, String service,
        boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
 
-      boolean forUpgrade = ctx.getDirection().isUpgrade();
-
       // Construct the pre tasks during Upgrade/Downgrade direction.
-      List<TaskBucket> buckets = buckets(resolveTasks(forUpgrade, true, pc));
+      // Buckets are grouped by the type, e.g., bucket of all Execute tasks, or all Configure tasks.
+      List<TaskBucket> buckets = buckets(resolveTasks(context, true, pc));
       for (TaskBucket bucket : buckets) {
+        // The TaskWrappers take into account if a task is meant to run on all, any, or master.
+        // A TaskWrapper may contain multiple tasks, but typically only one, and they all run on the same set of hosts.
         List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks, params);
-        Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
-        if (!preTasksEffectiveHosts.isEmpty()) {
-          StageWrapper stage = new StageWrapper(
-              bucket.type,
-              getStageText("Preparing", ctx.getComponentDisplay(service, pc.name), preTasksEffectiveHosts),
-              params,
-              preTasks
-          );
-          m_stages.add(stage);
+        List<List<TaskWrapper>> organizedTasks = organizeTaskWrappersBySyncRules(preTasks);
+        for (List<TaskWrapper> tasks : organizedTasks) {
+          addTasksToStageInBatches(tasks, "Preparing", context, service, pc, params);
         }
       }
 
       // Add the processing component
-      if (null != pc.tasks && 1 == pc.tasks.size()) {
-        Task t = pc.tasks.get(0);
-        if(m_grouping.parallelScheduler != null) {
-          List<Set<String>> hostSets = SetUtils.split(hostsType.hosts, m_grouping.parallelScheduler.maxDegreeOfParallelism);
-          int batchNum = 1;
-          for(Set<String> hosts : hostSets) {
-            // Create single stage for all
-            StageWrapper stage = new StageWrapper(
-                t.getStageWrapperType(),
-                getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), hosts, batchNum++, hostSets.size()),
-                params,
-                new TaskWrapper(service, pc.name, hosts, params, t));
-            m_stages.add(stage);
-          }
-        } else {
-          for (String hostName : hostsType.hosts) {
-            StageWrapper stage = new StageWrapper(
-                t.getStageWrapperType(),
-                getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
-                params,
-                new TaskWrapper(service, pc.name, Collections.singleton(hostName), params, t));
-            m_stages.add(stage);
-          }
-        }
+      Task t = resolveTask(context, pc);
+      if (null != t) {
+        TaskWrapper tw = new TaskWrapper(service, pc.name, hostsType.hosts, params, Collections.singletonList(t));
+        addTasksToStageInBatches(Collections.singletonList(tw), t.getActionVerb(), context, service, pc, params);
       }
 
       // Construct the post tasks during Upgrade/Downgrade direction.
-      buckets = buckets(resolveTasks(forUpgrade, false, pc));
+      buckets = buckets(resolveTasks(context, false, pc));
       for (TaskBucket bucket : buckets) {
         List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks, params);
-        Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);
-        if (!postTasksEffectiveHosts.isEmpty()) {
-          StageWrapper stage = new StageWrapper(
-              bucket.type,
-              getStageText("Completing", ctx.getComponentDisplay(service, pc.name), postTasksEffectiveHosts),
-              params,
-              postTasks
-              );
-          m_stages.add(stage);
+        List<List<TaskWrapper>> organizedTasks = organizeTaskWrappersBySyncRules(postTasks);
+        for (List<TaskWrapper> tasks : organizedTasks) {
+          addTasksToStageInBatches(tasks, "Completing", context, service, pc, params);
         }
       }
 
       // Potentially add a service check
       if (m_serviceCheck && !clientOnly) {
         m_servicesToCheck.add(service);
+      }
+    }
+
+    /**
+     * Split a list of TaskWrappers into a list of lists where a TaskWrapper that has any task with isSequential == true
+     * must be a singleton in its own list.
+     * @param tasks List of TaskWrappers to analyze
+     * @return List of list of TaskWrappers, where each outer list is a separate stage.
+     */
+    private List<List<TaskWrapper>> organizeTaskWrappersBySyncRules(List<TaskWrapper> tasks) {
+      List<List<TaskWrapper>> groupedTasks = new ArrayList<List<TaskWrapper>>();
+
+      List<TaskWrapper> subTasks = new ArrayList<>();
+      for (TaskWrapper tw : tasks) {
+        // If an of this TaskWrapper's tasks must be on its own stage, write out the previous subtasks if possible into one complete stage.
+        if (tw.isAnyTaskSequential()) {
+          if (!subTasks.isEmpty()) {
+            groupedTasks.add(subTasks);
+            subTasks = new ArrayList<>();
+          }
+          groupedTasks.add(Collections.singletonList(tw));
+        } else {
+          subTasks.add(tw);
+        }
+      }
+
+      if (!subTasks.isEmpty()) {
+        groupedTasks.add(subTasks);
+      }
+
+      return groupedTasks;
+    }
+
+    /**
+     * Helper function to analyze a ProcessingComponent and add its task to stages, depending on the batch size.
+     * @param tasks Collection of tasks for this stage
+     * @param verb Verb string to use in the title of the task
+     * @param ctx Upgrade Context
+     * @param service Service
+     * @param pc Processing Component
+     * @param params Params to add to the stage.
+     */
+    private void addTasksToStageInBatches(List<TaskWrapper> tasks, String verb, UpgradeContext ctx, String service, ProcessingComponent pc, Map<String, String> params) {
+      if (tasks == null || tasks.isEmpty() || tasks.get(0).getTasks() == null || tasks.get(0).getTasks().isEmpty()) {
+        return;
+      }
+
+      // Our assumption is that all of the tasks in the StageWrapper are of the same type.
+      StageWrapper.Type type = tasks.get(0).getTasks().get(0).getStageWrapperType();
+
+      // Expand some of the TaskWrappers into multiple based on the batch size.
+      for (TaskWrapper tw : tasks) {
+        List<Set<String>> hostSets = null;
+        if (m_grouping.parallelScheduler != null && m_grouping.parallelScheduler.maxDegreeOfParallelism > 0) {
+          hostSets = SetUtils.split(tw.getHosts(), m_grouping.parallelScheduler.maxDegreeOfParallelism);
+        } else {
+          hostSets = SetUtils.split(tw.getHosts(), 1);
+        }
+
+        int numBatchesNeeded = hostSets.size();
+        int batchNum = 0;
+        for (Set<String> hostSubset : hostSets) {
+          batchNum++;
+          TaskWrapper expandedTW = new TaskWrapper(tw.getService(), tw.getComponent(), hostSubset, tw.getParams(), tw.getTasks());
+
+          String stageText = getStageText(verb, ctx.getComponentDisplay(service, pc.name), hostSubset, batchNum, numBatchesNeeded);
+
+          StageWrapper stage = new StageWrapper(
+              type,
+              stageText,
+              params,
+              new TaskWrapper(service, pc.name, hostSubset, params, tw.getTasks()));
+          m_stages.add(stage);
+        }
       }
     }
 

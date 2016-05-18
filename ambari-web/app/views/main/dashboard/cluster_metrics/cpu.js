@@ -43,21 +43,21 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
       idle = null,
       data = Em.get(jsonData, this.get('seriesTemplate.path'));
     if (data) {
-      for (var name in data) {
+      Object.keys(data).forEach(function (name) {
         var seriesData = data[name];
         if (seriesData) {
           var s = {
             name: name,
             data: seriesData
           };
-          if (name.indexOf('Idle') > -1) {
+          if (name.contains('Idle')) {
             //CPU idle metric should be the last in series array
             idle = s;
-            continue;
+            return;
           }
           dataArray.push(s);
         }
-      }
+      });
       if (idle) {
         dataArray.push(idle);
       }
@@ -66,7 +66,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   },
 
   colorForSeries: function (series) {
-    if (Em.I18n.t('dashboard.clusterMetrics.cpu.displayNames.idle') == series.name){
+    if (series.name && series.name.contains(Em.I18n.t('dashboard.clusterMetrics.cpu.displayNames.idle'))) {
       return '#CFECEC';
     }
     return null;

@@ -48,6 +48,7 @@ public class VariableReplacementHelper {
   private static final Map<String, Function> FUNCTIONS = new HashMap<String, Function>() {
     {
       put("each", new EachFunction());
+      put("toLower", new ToLowerFunction());
     }
   };
 
@@ -220,6 +221,20 @@ public class VariableReplacementHelper {
         }
 
         return builder.toString();
+      }
+
+      return "";
+    }
+  }
+
+  /**
+   * ToLowerFunction is a Function implementation that converts a String to lowercase
+   */
+  private static class ToLowerFunction implements Function {
+    @Override
+    public String perform(String[] args, String data) {
+      if (data != null) {
+        return data.toLowerCase();
       }
 
       return "";

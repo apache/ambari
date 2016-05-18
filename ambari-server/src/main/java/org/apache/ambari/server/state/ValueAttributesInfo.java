@@ -74,6 +74,14 @@ public class ValueAttributesInfo {
   @JsonProperty("selection_cardinality")
   private String selectionCardinality;
 
+  @XmlElement(name = "property-file-name")
+  @JsonProperty("property-file-name")
+  private String propertyFileName;
+
+  @XmlElement(name = "property-file-type")
+  @JsonProperty("property-file-type")
+  private String propertyFileType;
+
   public ValueAttributesInfo() {
 
   }
@@ -132,6 +140,22 @@ public class ValueAttributesInfo {
 
   public void setSelectionCardinality(String selectionCardinality) {
     this.selectionCardinality = selectionCardinality;
+  }
+
+  public String getPropertyFileName() {
+    return propertyFileName;
+  }
+
+  public void setPropertyFileName(String propertyFileName) {
+    this.propertyFileName = propertyFileName;
+  }
+
+  public String getPropertyFileType() {
+    return propertyFileType;
+  }
+
+  public void setPropertyFileType(String propertyFileType) {
+    this.propertyFileType = propertyFileType;
   }
 
   public String getIncrementStep() {
@@ -234,6 +258,10 @@ public class ValueAttributesInfo {
     if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) return false;
     if (selectionCardinality != null ? !selectionCardinality.equals(that.selectionCardinality) : that.selectionCardinality != null)
       return false;
+    if (propertyFileName != null ? !propertyFileName.equals(that.propertyFileName) : that.propertyFileName != null)
+      return false;
+    if (propertyFileType != null ? !propertyFileType.equals(that.propertyFileType) : that.propertyFileType != null)
+      return false;
     if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (unit != null ? !unit.equals(that.unit) : that.unit != null) return false;
     if (delete != null ? !delete.equals(that.delete) : that.delete != null) return false;
@@ -252,6 +280,8 @@ public class ValueAttributesInfo {
     result = 31 * result + (entries != null ? entries.hashCode() : 0);
     result = 31 * result + (entriesEditable != null ? entriesEditable.hashCode() : 0);
     result = 31 * result + (selectionCardinality != null ? selectionCardinality.hashCode() : 0);
+    result = 31 * result + (propertyFileName != null ? propertyFileName.hashCode() : 0);
+    result = 31 * result + (propertyFileType != null ? propertyFileType.hashCode() : 0);
     result = 31 * result + (incrementStep != null ? incrementStep.hashCode() : 0);
     result = 31 * result + (emptyValueValid != null ? emptyValueValid.hashCode() : 0);
     result = 31 * result + (visible != null ? visible.hashCode() : 0);
@@ -282,6 +312,8 @@ public class ValueAttributesInfo {
       ", incrementStep='" + incrementStep + '\'' +
       ", entriesEditable=" + entriesEditable +
       ", selectionCardinality='" + selectionCardinality + '\'' +
+      ", propertyFileName='" + propertyFileName + '\'' +
+      ", propertyFileType='" + propertyFileType + '\'' +
       '}';
   }
 }

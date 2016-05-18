@@ -41,7 +41,7 @@ function getProperties(self, propertyNames) {
     propertyName = shouldBeInverted ? propertyName.substr(1) : propertyName;
     var isApp = propertyName.startsWith('App.');
     var name = isApp ? propertyName.replace('App.', '') : propertyName;
-    var value = isApp ? App.get(name) : get(self, name);
+    var value = isApp ? App.get(name) : self.get(name);
     value = shouldBeInverted ? !value : value;
     ret[propertyName] = value;
   }
@@ -59,7 +59,7 @@ function getProperties(self, propertyNames) {
 function smartGet(self, propertyName) {
   var isApp = propertyName.startsWith('App.');
   var name = isApp ? propertyName.replace('App.', '') : propertyName;
-  return  isApp ? App.get(name) : get(self, name);
+  return isApp ? App.get(name) : self.get(name);
 }
 
 /**
@@ -67,7 +67,7 @@ function smartGet(self, propertyName) {
  * If <code>propertyName</code> starts with 'App.', <code>App</code> is used as context, <code>self</code> used otherwise
  *
  * @param {object} self current context
- * @param {string[]} propertyNames neded properties
+ * @param {string[]} propertyNames needed properties
  * @returns {array} list of needed values
  */
 function getValues(self, propertyNames) {
@@ -601,7 +601,7 @@ computed.ltProperties = function (dependentKey1, dependentKey2) {
  * <pre>
  * var o = Em.Object.create({
  *  p1: 'abc',
- *  p2: Em.computed.lteProperties('p1', /^a/)
+ *  p2: Em.computed.match('p1', /^a/)
  * });
  * console.log(o.get('p2')); // true
  * o.set('p1', 'bc');
@@ -643,7 +643,7 @@ computed.match = function (dependentKey, regexp) {
  */
 computed.someBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return false;
     }
@@ -671,7 +671,7 @@ computed.someBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.everyBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return false;
     }
@@ -698,7 +698,7 @@ computed.everyBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.mapBy = function (collectionKey, propertyName) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return [];
     }
@@ -726,7 +726,7 @@ computed.mapBy = function (collectionKey, propertyName) {
  */
 computed.filterBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return [];
     }
@@ -754,7 +754,7 @@ computed.filterBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.findBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return null;
     }
@@ -805,7 +805,7 @@ computed.alias = function (dependentKey) {
  */
 computed.existsIn = function (dependentKey, neededValues) {
   return computed(dependentKey, function () {
-    var value = get(this, dependentKey);
+    var value = smartGet(this, dependentKey);
     return makeArray(neededValues).contains(value);
   });
 };
@@ -829,7 +829,7 @@ computed.existsIn = function (dependentKey, neededValues) {
  */
 computed.notExistsIn = function (dependentKey, neededValues) {
   return computed(dependentKey, function () {
-    var value = get(this, dependentKey);
+    var value = smartGet(this, dependentKey);
     return !makeArray(neededValues).contains(value);
   });
 };
@@ -876,7 +876,7 @@ computed.percents = function (dependentKey1, dependentKey2, accuracy) {
  * <pre>
  * var o = Em.Object.create({
  *  p1: 'SECONDARY_NAMENODE',
- *  p3: Em.computed.formatRole('p1')
+ *  p3: Em.computed.formatRole('p1', false)
  * });
  * console.log(o.get('p2')); // 'SNameNode'
  * o.set('p1', 'FLUME_HANDLER);
@@ -885,12 +885,13 @@ computed.percents = function (dependentKey1, dependentKey2, accuracy) {
  *
  * @method formatRole
  * @param {string} dependentKey
+ * @param {boolean} isServiceRole
  * @returns {Ember.ComputedProperty}
  */
-computed.formatRole = function (dependentKey) {
+computed.formatRole = function (dependentKey, isServiceRole) {
   return computed(dependentKey, function () {
     var value = get(this, dependentKey);
-    return App.format.role(value);
+    return App.format.role(value, isServiceRole);
   });
 };
 
@@ -913,7 +914,7 @@ computed.formatRole = function (dependentKey) {
  */
 computed.sumBy = function (collectionKey, propertyName) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (Em.isEmpty(collection)) {
       return 0;
     }
@@ -1048,7 +1049,7 @@ computed.firstNotBlank = generateComputedWithValues(function (values) {
 computed.formatUnavailable = function(dependentKey) {
   return computed(dependentKey, function () {
     var value = smartGet(this, dependentKey);
-    return (value || value == 0) ? value : Em.I18n.t('services.service.summary.notAvailable');
+    return value || value == 0 ? value : Em.I18n.t('services.service.summary.notAvailable');
   });
 };
 
@@ -1089,3 +1090,81 @@ computed.countBasedMessage = function (dependentKey, zeroMsg, oneMsg, manyMsg) {
     return oneMsg;
   });
 };
+
+/**
+ * A computed property that returns property value according to the property key and object key
+ * App.*-keys are supported
+ * <pre>
+ *   var o = Em.Object.create({
+ *    p1: {a: 1, b: 2, c: 3},
+ *    p2: 'a',
+ *    p3: Em.computed.getByKey('p1', 'p2')
+ *   });
+ *   console.log(o.get('p3')); // 1
+ *   o.set('p2', 'b');
+ *   console.log(o.get('p3')); // 2
+ *   o.set('p2', 'c');
+ *   console.log(o.get('p3')); // 3
+ * </pre>
+ *
+ * With `defaultValue`
+ * <pre>
+ *   var o = Em.Object.create({
+ *    p1: {a: 1, b: 2, c: 3},
+ *    p2: 'd',
+ *    p3: Em.computed.getByKey('p1', 'p2', 100500)
+ *   });
+ *   console.log(o.get('p3')); // 100500 - default value is returned, because there is no key `d` in the `p1`
+ * </pre>
+ * <b>IMPORTANT!</b> This CP <b>SHOULD NOT</b> be used with for object with values equal to the views (like <code>{a: App.MyViewA, b: App.MyViewB}</code>)
+ * This restriction exists because views may be undefined on the moment when this CP is calculated (files are not `required` yet)
+ *
+ * @param {string} objectKey
+ * @param {string} propertyKey
+ * @param {*} [defaultValue]
+ * @returns {Ember.ComputedProperty}
+ */
+computed.getByKey = function (objectKey, propertyKey, defaultValue) {
+  return computed(objectKey, propertyKey, function () {
+    var object = smartGet(this, objectKey);
+    var property = smartGet(this, propertyKey);
+    if (!object) {
+      return null;
+    }
+    return object.hasOwnProperty(property) ? object[property] : defaultValue;
+  });
+}
+
+/**
+ * A computed property that returns dependent value truncated to the `reduceTo`-size if its length is greater than `maxLength`
+ * Truncated part may be replaced with `replacer` if it's provided ('...' by default)
+ * <pre>
+ *   var o = Em.Object.create({
+ *     p1: Em.computed.truncate('p2', 8, 5, '###'),
+ *     p2: 'some string',
+ *     p3: Em.computed.truncate('p2', 8, 5)
+ *   });
+ *   console.log(o.get('p1')); // 'some ###'
+ *   console.log(o.get('p3')); // 'some ...'
+ *   o.set('p2', '123456789');
+ *   console.log(o.get('p1')); // '12345###'
+ *   console.log(o.get('p3')); // '12345...'
+ * </pre>
+ *
+ * @param {string} dependentKey
+ * @param {number} maxLength
+ * @param {number} reduceTo
+ * @param {string} [replacer] default - '...'
+ * @returns {Ember.ComputedProperty}
+ */
+computed.truncate = function (dependentKey, maxLength, reduceTo, replacer) {
+  Em.assert('`reduceTo` should be <=`maxLength`', reduceTo <= maxLength);
+  var _replacer = arguments.length > 3 ? replacer : '...';
+  return computed(dependentKey, function () {
+    var value = smartGet(this, dependentKey) || '';
+    if (value.length > maxLength) {
+      return value.substr(0, reduceTo) + _replacer;
+    }
+    return value;
+  });
+}

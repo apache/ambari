@@ -32,6 +32,8 @@ public enum CheckDescription {
   CLIENT_RETRY(PrereqCheckType.SERVICE,
       "Client Retry Properties",
       new HashMap<String, String>() {{
+        put(ClientRetryPropertyCheck.HDFS_CLIENT_RETRY_DISABLED_KEY,
+            "The hdfs-site.xml property dfs.client.retry.policy.enabled should be set to \"false\" to failover quickly.");
         put(ClientRetryPropertyCheck.HIVE_CLIENT_RETRY_MISSING_KEY,
           "The hive-site.xml property hive.metastore.failure.retries should be set to a positive value.");
         put(ClientRetryPropertyCheck.OOZIE_CLIENT_RETRY_MISSING_KEY,
@@ -43,6 +45,20 @@ public enum CheckDescription {
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
             "There are hosts which are not communicating with Ambari.");
+      }}),
+
+  HEALTH(PrereqCheckType.CLUSTER,
+      "Cluster Health",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "The following issues have been detected on this cluster and should be addressed before upgrading: %s");
+      }}),
+
+  SERVICE_CHECK(PrereqCheckType.SERVICE,
+      "Last Service Check should be more recent than the last configuration change for the given service",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "The following service configurations have been updated and their Service Checks should be run again: %s");
       }}),
 
   HOSTS_MAINTENANCE_MODE(PrereqCheckType.HOST,
@@ -113,7 +129,7 @@ public enum CheckDescription {
       "NameNode High Availability must be enabled",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
-          "NameNode High Availability is not enabled. Verify that dfs.nameservices property is present in hdfs-site.xml.");
+          "NameNode High Availability is not enabled. Verify that dfs.internal.nameservices property is present in hdfs-site.xml.");
       }}),
 
   SERVICES_NAMENODE_TRUNCATE(PrereqCheckType.SERVICE,
@@ -150,6 +166,13 @@ public enum CheckDescription {
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
             "The following Services must be reinstalled: {{fails}}. Try to reinstall the service components in INSTALL_FAILED state.");
+      }}),
+
+  PREVIOUS_UPGRADE_COMPLETED(PrereqCheckType.CLUSTER,
+      "A previous upgrade did not complete.",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "The last upgrade attempt did not complete. {{fails}}");
       }}),
 
   INSTALL_PACKAGES_CHECK(PrereqCheckType.CLUSTER,
@@ -209,6 +232,21 @@ public enum CheckDescription {
           "The following config types will have values overwritten: %s");
       }}),
 
+  HARDCODED_STACK_VERSION_PROPERTIES_CHECK(PrereqCheckType.CLUSTER,
+    "Found hardcoded hdp stack version in property value.",
+    new HashMap<String, String>() {{
+      put(AbstractCheckDescriptor.DEFAULT,
+        "Some properties seem to contain hardcoded hdp version string \"%s\"." +
+          " That is a potential problem when doing stack update.");
+      }}),
+
+  VERSION_MISMATCH(PrereqCheckType.HOST,
+      "All components must be reporting the expected version",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "There are components which are not reporting the expected stack version: \n%s");
+      }}),
+
   SERVICES_RANGER_PASSWORD_VERIFY(PrereqCheckType.SERVICE,
       "Verify Ambari and Ranger Password Synchronization",
       new HashMap<String, String>() {{
@@ -226,7 +264,24 @@ public enum CheckDescription {
             "The response from Ranger was malformed. %s. Request: %s");
         put(RangerPasswordCheck.KEY_RANGER_CONFIG_MISSING,
             "Could not check credentials.  Missing property %s/%s");
-      }});
+      }}),
+
+  ATLAS_SERVICE_PRESENCE_CHECK(PrereqCheckType.SERVICE,
+    "Atlas Is Not Supported For Upgrades",
+    new HashMap<String, String>() {{
+      put(AbstractCheckDescriptor.DEFAULT,
+        "The Atlas service is currently installed on the cluster. " +
+        "This service does not support upgrades and must be removed before the upgrade can continue. " +
+        "After upgrading, Atlas can be reinstalled");
+    }}),
+
+  KAFKA_KERBEROS_CHECK(PrereqCheckType.SERVICE,
+    "Kafka upgrade on Kerberized cluster",
+    new HashMap<String, String>() {{
+      put(AbstractCheckDescriptor.DEFAULT,
+        "Kafka is currently not Kerberized, but your cluster is. After upgrading, Kafka will automatically be Kerberized for you.");
+    }}
+  );
 
 
   private PrereqCheckType m_type;

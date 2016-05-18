@@ -26,28 +26,54 @@
     <value>hdfs</value>
     <description>Blacklist for decrypt EncryptedKey CryptoExtension operations</description>
   </property>
-  
+
   <property>
   <name>ranger.db.encrypt.key.password</name>
     <value>_</value>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <description>Password used for encrypting Master Key</description>
   </property>
-  
+
   <property>
     <name>ranger.ks.jpa.jdbc.url</name>
-    <value>{{db_jdbc_url}}</value>
+    <display-name>JDBC connect string</display-name>
+    <value>jdbc:mysql://localhost</value>
     <description>URL for Database</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>kms-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+      <property>
+        <type>kms-properties</type>
+        <name>db_host</name>
+      </property>
+      <property>
+        <type>kms-properties</type>
+        <name>db_name</name>
+      </property>
+    </depends-on>
   </property>
-    
+
   <property>
     <name>ranger.ks.jpa.jdbc.user</name>
     <value>{{db_user}}</value>
     <description>Database username used for operation</description>
   </property>
-  
+
   <property>
     <name>ranger.ks.jpa.jdbc.password</name>
     <value>_</value>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <description>Database user's password</description>
   </property>
 
@@ -77,14 +103,24 @@
   
   <property>
     <name>ranger.ks.jpa.jdbc.driver</name>
-    <value>{{db_jdbc_driver}}</value>
-    <description>Driver used for database</description>    
+    <display-name>Driver class name for a JDBC Ranger KMS database</display-name>
+    <value>com.mysql.jdbc.Driver</value>
+    <description>Driver used for database</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>kms-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+    </depends-on>
   </property>
-  
+
   <property>
     <name>ranger.ks.jdbc.sqlconnectorjar</name>
-    <value>{{driver_curl_target}}</value>
-    <description>Driver used for database</description>    
+    <value>{{ews_lib_jar_path}}</value>
+    <description>Driver used for database</description>
   </property>  
-  
+
 </configuration>

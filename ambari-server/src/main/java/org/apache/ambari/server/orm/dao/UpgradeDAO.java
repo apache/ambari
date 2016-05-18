@@ -104,7 +104,13 @@ public class UpgradeDAO {
    */
   @Transactional
   public void create(UpgradeEntity entity) {
-    entityManagerProvider.get().persist(entity);
+    EntityManager entityManager = entityManagerProvider.get();
+    // This is required because since none of the entities
+    // for the request are actually persisted yet,
+    // JPA ordering could allow foreign key entities
+    // to be created after this statement.
+    entityManager.flush();
+    entityManager.persist(entity);
   }
 
   /**
@@ -175,10 +181,26 @@ public class UpgradeDAO {
   @RequiresSession
   public UpgradeEntity findLastUpgradeForCluster(long clusterId) {
     TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
-        "UpgradeEntity.findLatestForCluster", UpgradeEntity.class);
+        "UpgradeEntity.findLatestForClusterInDirection", UpgradeEntity.class);
     query.setMaxResults(1);
     query.setParameter("clusterId", clusterId);
     query.setParameter("direction", Direction.UPGRADE);
+
+    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * @param clusterId the cluster id
+   * @return the upgrade entity, or {@code null} if not found
+   */
+  @RequiresSession
+  public UpgradeEntity findLastUpgradeOrDowngradeForCluster(long clusterId) {
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findLatestForCluster", UpgradeEntity.class);
+    query.setMaxResults(1);
+    query.setParameter("clusterId", clusterId);
 
     query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 

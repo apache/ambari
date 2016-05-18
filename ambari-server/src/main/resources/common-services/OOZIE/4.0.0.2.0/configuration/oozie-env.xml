@@ -29,6 +29,7 @@
     <description>Oozie User.</description>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>
@@ -44,11 +45,6 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-  </property>
-  <property>
-    <name>oozie_derby_database</name>
-    <value>Derby</value>
-    <description>Oozie Derby Database</description>
   </property>
   <property>
     <name>oozie_data_dir</name>
@@ -68,7 +64,16 @@
     <description>Directory for oozie logs</description>
     <value-attributes>
       <type>directory</type>
-      <editable-only-at-install>true</editable-only-at-install>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+  <property>
+    <name>oozie_tmp_dir</name>
+    <value>/var/tmp/oozie</value>
+    <display-name>Oozie Tmp Dir</display-name>
+    <description>Directory for oozie temporary files</description>
+    <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -103,6 +108,16 @@
     <value>256</value>
     <description>Oozie permanent generation size.</description>
   </property>
+  <property>
+    <name>oozie_user_nofile_limit</name>
+    <value>32000</value>
+    <description>Max open files limit setting for OOZIE user.</description>
+  </property>
+  <property>
+    <name>oozie_user_nproc_limit</name>
+    <value>16000</value>
+    <description>Max number of processes limit setting for OOZIE user.</description>
+  </property>
 
   <!-- oozie-env.sh -->
   <property>
@@ -114,7 +129,7 @@
 if [ -d "/usr/lib/bigtop-tomcat" ]; then
   export OOZIE_CONFIG=${OOZIE_CONFIG:-/etc/oozie/conf}
   export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}
-  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
+  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-{{oozie_tmp_dir}}}
   export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
 fi
 
@@ -172,7 +187,6 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 #
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
 export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
-
    </value>
    <value-attributes>
      <type>content</type>

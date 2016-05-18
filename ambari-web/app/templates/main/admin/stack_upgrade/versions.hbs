@@ -16,40 +16,56 @@
 * limitations under the License.
 }}
 
-
-<div>
+<div id="versions-filter-section">
+  {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
+    <button class="btn btn-primary" {{action goToVersions target="view"}} id="manage-versions-link">
+        <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
+    </button>
+  {{/isAuthorized}}
   <div class="btn-group display-inline-block">
     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
       <span class="filters-label">{{t common.filter}}: </span>
-            <span>
-              {{view.selectedCategory.label}}
-              <span class="caret"></span>
-            </span>
+        <span>
+          {{view.selectedCategory.label}}
+          <span class="caret"></span>
+        </span>
     </a>
     <ul class="dropdown-menu">
       {{#each category in view.categories}}
-          <li>
-            <a {{action selectCategory category target="view"}} href="#">
-              {{category.label}}
-            </a>
-          </li>
+        <li>
+          <a {{action selectCategory category target="view"}} href="#">
+            {{category.label}}
+          </a>
+        </li>
       {{/each}}
     </ul>
   </div>
-  {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
-    <button class="btn btn-primary pull-right" {{action goToVersions target="view"}} id="manage-versions-link">
-      <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
-    </button>
-  {{/isAuthorized}}
 </div>
-<div class="row-fluid">
-  {{#if isLoaded}}
-    {{#each version in view.repoVersions}}
-      {{#if version.isVisible}}
-        {{view App.UpgradeVersionBoxView contentBinding="version"}}
-      {{/if}}
-    {{/each}}
-  {{else}}
-    <div class="spinner"></div>
-  {{/if}}
+<div id="versions-section" class="row-fluid">
+  <div class="span2 left-menu-table">
+    <table class="table">
+      <thead>
+      </thead>
+      <tbody>
+        {{#each service in view.services}}
+          <tr>
+            <td class="service-display-name">{{service.displayName}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <div class="span10 versions-slides">
+    {{#if isLoaded}}
+      <div class="versions-slides-bar">
+        {{#each version in view.repoVersions}}
+          {{#if version.isVisible}}
+            {{view App.UpgradeVersionColumnView contentBinding="version"}}
+          {{/if}}
+        {{/each}}
+      </div>
+    {{else}}
+      {{view App.SpinnerView}}
+    {{/if}}
+  </div>
 </div>

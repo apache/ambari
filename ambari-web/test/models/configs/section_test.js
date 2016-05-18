@@ -19,10 +19,14 @@
 var App = require('app');
 var model;
 
+function getModel() {
+  return App.Section.createRecord();
+}
+
 describe('App.Section', function () {
 
   beforeEach(function () {
-    model = App.Section.createRecord();
+    model = getModel();
   });
 
   describe('#errorsCount', function () {
@@ -46,54 +50,6 @@ describe('App.Section', function () {
 
   });
 
-  describe('#isHiddenByFilter', function () {
-
-    Em.A([
-        {
-          subSections: [],
-          m: 'no subsections',
-          e: true
-        },
-        {
-          subSections: [
-            App.SubSection.createRecord({configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: false, isVisible: true})]}),
-            App.SubSection.createRecord({configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: false, isVisible: true})]})
-          ],
-          m: 'no subsections are hidden',
-          e: false
-        },
-        {
-          subSections: [
-            App.SubSection.createRecord({configs: [Em.Object.create({isHiddenByFilter: true, isVisible: false, hiddenBySection: false}), Em.Object.create({isHiddenByFilter: true, isVisible: true, hiddenBySection: true})]})
-          ],
-          m: 'no subsections are hidden (hiddenBySection)',
-          e: false
-        },
-        {
-          subSections: [
-            App.SubSection.createRecord({configs: [Em.Object.create({isHiddenByFilter: true, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})]}),
-            App.SubSection.createRecord({configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: false, isVisible: true})]})
-          ],
-          m: 'one subsection is hidden',
-          e: false
-        },
-        {
-          subSections: [
-            App.SubSection.createRecord({configs: [Em.Object.create({isHiddenByFilter: true, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})]}),
-            App.SubSection.createRecord({configs: [Em.Object.create({isHiddenByFilter: true, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})]})
-          ],
-          m: 'all subsections are hidden',
-          e: true
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          model.reopen({
-            subSections: test.subSections
-          });
-          expect(model.get('isHiddenByFilter')).to.equal(test.e);
-        });
-      });
-
-  });
+  App.TestAliases.testAsComputedEveryBy(getModel(), 'isHiddenByFilter', 'subSections', 'isSectionVisible', false);
 
 });

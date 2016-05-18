@@ -343,7 +343,7 @@ public class WidgetLayoutResourceProviderTest {
     expectLastCall();
     replay(dao);
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(request, predicate);
 
     WidgetLayoutEntity entity1 = entityCapture.getValue();
     Assert.assertEquals(Long.valueOf(1), entity1.getId());

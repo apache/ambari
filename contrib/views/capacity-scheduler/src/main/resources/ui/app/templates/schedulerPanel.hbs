@@ -106,10 +106,16 @@
             {{tooltip-label
               label='Calculator'
               class="col-xs-5 control-label"
-              message='The method by which the scheduler calculates resource capacity across resource types.'
+              message='The method by which the scheduler calculates resource capacity across resource types. <br/> Default Resource Calculator allocates resources based on memory alone. <br/> Dominant Resource Calculator allocates resources based on memory, cpu etc.'
             }}
             <div class="col-xs-7 control-value">
-              {{expandable-input value=scheduler.resource_calculator class="input-sm form-control input-expand"}}
+              {{view Ember.Select
+                class="form-control input-sm input-resource-calc"
+                content=resourceCalculatorValues
+                optionLabelPath="content.label"
+                optionValuePath="content.value"
+                value=scheduler.resource_calculator
+              }}
               {{#if schedulerDirtyFilelds.resource_calculator}}
                 <div class="btn-group btn-group-xs" >
                     <a {{action 'rollbackProp' 'resource_calculator' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>

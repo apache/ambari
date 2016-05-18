@@ -1,0 +1,125 @@
+{
+  "HAWQ": {
+    "service": [
+      {
+        "name": "hawq_segment_process_percent",
+        "label": "Percent HAWQ Segments Available",
+        "description": "This alert is triggered if the number of down HAWQ Segments in the cluster is greater than the configured critical threshold.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "hawq_segment_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 10
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 25
+            },
+            "units" : "%",
+            "type": "PERCENT"
+          }
+        }
+      }
+    ],
+    "HAWQMASTER": [
+      {
+        "name": "hawqstandby_sync_status",
+        "label": "HAWQ Standby Master Sync Status",
+        "description": "This alert will trigger if HAWQ Standby Master is not synchronized with HAWQ Master. Use the service action 'Re-Sync HAWQ Standby Master' on HAWQ service page to synchronize HAWQ Standby Master with HAWQ Master.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_sync_status.py",
+          "parameters": []
+        }
+      },
+      {
+        "name": "hawqsegments_registration_status",
+        "label": "HAWQ Segment Registration Status",
+        "description": "This alert is triggered when a HAWQ Segment node fails to register with the HAWQ Master.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_segment_registration_status.py",
+          "parameters": []
+        }
+      },
+      {
+        "name": "hawq_master_process",
+        "label": "HAWQ Master Process",
+        "description": "This alert is triggered if the HAWQ Master process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_component_status.py",
+          "parameters": [
+            {
+              "name": "component_name",
+              "display_name": "Component Name",
+              "value": "master",
+              "type": "STRING",
+              "description": "This text string indicates if it is a HAWQ Master, HAWQ Standby Master or HAWQ Segment"
+            }
+          ]
+        }
+      }
+    ],
+    "HAWQSEGMENT": [
+      {
+        "name": "hawq_segment_process",
+        "label": "HAWQ Segment Process",
+        "description": "This host-level alert is triggered if the HAWQ Segment process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_component_status.py",
+          "parameters": [
+            {
+              "name": "component_name",
+              "display_name": "Component Name",
+              "value": "segment",
+              "type": "STRING",
+              "description": "This text string indicates if it is a HAWQ Master, HAWQ Standby Master or HAWQ Segment"
+            }
+          ]
+        }
+      }
+    ],
+    "HAWQSTANDBY": [
+      {
+        "name": "hawq_standby_process",
+        "label": "HAWQ Standby Master Process",
+        "description": "This alert is triggered if the HAWQ Standby Master process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "HAWQ/2.0.0/package/alerts/alert_component_status.py",
+          "parameters": [
+            {
+              "name": "component_name",
+              "display_name": "Component Name",
+              "value": "standby",
+              "type": "STRING",
+              "description": "This text string indicates if it is a HAWQ Master, HAWQ Standby Master or HAWQ Segment"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

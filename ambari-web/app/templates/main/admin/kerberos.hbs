@@ -24,10 +24,8 @@
           {{#unless isManualKerberos}}
             <button class="btn btn-success" id="regenerate-keytabs" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
               <i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
-            {{#if App.supports.storeKDCCredentials}}
-              {{#if App.isCredentialStorePersistent}}
-                <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
-              {{/if}}
+            {{#if App.isCredentialStorePersistent}}
+              <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
             {{/if}}
           {{/unless}}
           <br/>
@@ -63,5 +61,5 @@
     </div>
   {{/if}}
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}

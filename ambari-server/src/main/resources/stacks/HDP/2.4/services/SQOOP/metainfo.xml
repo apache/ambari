@@ -21,33 +21,6 @@
     <service>
       <name>SQOOP</name>
       <version>1.4.6.2.4</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>mysql-connector-java</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>sqoop_2_4_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>sqoop-2-4-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
     </service>
   </services>
 </metainfo>

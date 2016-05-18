@@ -23,10 +23,18 @@ public class StackServiceComponentRequest extends StackServiceRequest {
 
   private String componentName;
 
+  private String recoveryEnabled;
+
   public StackServiceComponentRequest(String stackName, String stackVersion,
       String serviceName, String componentName) {
+    this(stackName, stackVersion, serviceName, componentName, null);
+  }
+
+  public StackServiceComponentRequest(String stackName, String stackVersion,
+      String serviceName, String componentName, String recoveryEnabled) {
     super(stackName, stackVersion, serviceName);
     setComponentName(componentName);
+    setRecoveryEnabled(recoveryEnabled);
   }
 
   public String getComponentName() {
@@ -37,4 +45,22 @@ public class StackServiceComponentRequest extends StackServiceRequest {
     this.componentName = componentName;
   }
 
+  /**
+   * Get whether auto start is enabled. If value is null,
+   * auto start value was not specified.
+   *
+   * @return null, "true", "false"
+   */
+  public String getRecoveryEnabled() {
+    return recoveryEnabled;
+  }
+
+  /**
+   * Set whether auto start is enabled. Null indicates unspecified.
+   *
+   * @param recoveryEnabled null, "true", "false"
+   */
+  public void setRecoveryEnabled(String recoveryEnabled) {
+    this.recoveryEnabled = recoveryEnabled;
+  }
 }

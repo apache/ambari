@@ -41,6 +41,7 @@ App.hostStatusCountersUpdateInterval = 10000;
 App.alertDefinitionsUpdateInterval = 10000;
 App.alertInstancesUpdateInterval = 10000;
 App.alertGroupsUpdateInterval = 10000;
+App.clusterEnvUpdateInterval = 10000;
 App.pageReloadTime = 3600000;
 App.nnCheckpointAgeAlertThreshold = 12; // in hours
 App.singleNodeInstall = false;
@@ -65,7 +66,6 @@ App.enableExperimental = false;
 
 App.supports = {
   preUpgradeCheck: true,
-  stackUpgrade: true,
   displayOlderVersions: false,
   autoRollbackHA: false,
   alwaysEnableManagedMySQLForHive: false,
@@ -74,11 +74,17 @@ App.supports = {
   installGanglia: false,
   opsDuringRollingUpgrade: false,
   customizedWidgetLayout: false,
-  enhancedConfigs: true,
   showPageLoadTime: false,
   skipComponentStartAfterInstall: false,
-  storeKDCCredentials: true,
-  preInstallChecks: false
+  preInstallChecks: false,
+  hostComboSearchBox: true,
+  serviceAutoStart: false,
+  logSearch: true,
+  redhatSatellite: false,
+  enableIpa: false,
+  addingNewRepository: false,
+  kerberosStackAdvisor: true,
+  logCountVizualization: false
 };
 
 if (App.enableExperimental) {

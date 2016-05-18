@@ -27,7 +27,6 @@ import java.util.Map;
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
-import org.apache.ambari.view.utils.ambari.URLStreamProviderBasicAuth;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.io.IOUtils;
 
@@ -77,7 +76,7 @@ public class BaseHttpClient {
 	}
 
 	public URLStreamProviderBasicAuth getUrlStreamProviderBasicAuth() {
-		return ambariApi.getUrlStreamProviderBasicAuth();
+		return new URLStreamProviderBasicAuth(getUrlStreamProvider(),getUserId(),getPassword());
 	}
 
 	public String getUrl() {
@@ -125,7 +124,7 @@ public class BaseHttpClient {
 				inputStream = getUrlStreamProviderBasicAuth().readFrom(
 						url + path, "GET", (String) null, headers);
 			} else {
-				inputStream = getUrlStreamProviderBasicAuth().readAsCurrent(
+				inputStream = getUrlStreamProvider().readAsCurrent(
 						url + path, "GET", (String) null, headers);
 			}
 		} catch (IOException e) {
@@ -148,7 +147,7 @@ public class BaseHttpClient {
 						getUrl() + path, "GET", (String) null,
 						new HashMap<String, String>());
 			} else {
-				inputStream = getUrlStreamProviderBasicAuth().readAsCurrent(
+				inputStream = getUrlStreamProvider().readAsCurrent(
 						getUrl() + path, "GET", (String) null,
 						new HashMap<String, String>());
 			}

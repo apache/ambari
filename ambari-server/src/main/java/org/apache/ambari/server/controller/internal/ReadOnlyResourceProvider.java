@@ -65,9 +65,21 @@ public abstract class ReadOnlyResourceProvider extends AbstractControllerResourc
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException(READ_ONLY_MSG, null);
+  }
+
+  /**
+   * Get an amended predicate used when use {@link #getResources(Request, Predicate)}.  This
+   * is needed in cases where the resource might incorrectly be filtered during predicate processing.
+   * Changing the predicate allows them to be included.
+   * @param predicate the predicate passed in the request
+   * @return the new predicate, or {@code null} to leave the predicate unchanged.
+   */
+  public Predicate amendPredicate(Predicate predicate) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

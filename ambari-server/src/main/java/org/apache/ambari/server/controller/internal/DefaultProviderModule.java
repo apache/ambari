@@ -68,6 +68,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new ViewVersionResourceProvider();
       case ViewInstance:
         return new ViewInstanceResourceProvider();
+      case ViewURL:
+        return new ViewURLResourceProvider();
       case StackServiceComponentDependency:
         return new StackDependencyResourceProvider(propertyIds, keyPropertyIds);
       case Permission:
@@ -84,6 +86,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new LdapSyncEventResourceProvider(managementController);
       case UserPrivilege:
         return new UserPrivilegeResourceProvider();
+      case GroupPrivilege:
+        return new GroupPrivilegeResourceProvider();
       case Alert:
         return new AlertResourceProvider(managementController);
       case AlertDefinition:
@@ -95,13 +99,13 @@ public class DefaultProviderModule extends AbstractProviderModule {
       case AlertGroup:
         return new AlertGroupResourceProvider(managementController);
       case AlertNotice:
-        return new AlertNoticeResourceProvider();
-      case Upgrade:
-        return new UpgradeResourceProvider(managementController);
+        return new AlertNoticeResourceProvider(managementController);
       case UpgradeGroup:
         return new UpgradeGroupResourceProvider(managementController);
       case UpgradeItem:
         return new UpgradeItemResourceProvider(managementController);
+      case UpgradeSummary:
+        return new UpgradeSummaryResourceProvider(managementController);
       case ClusterStackVersion:
         return new ClusterStackVersionResourceProvider(managementController);
       case PreUpgradeCheck:
@@ -114,8 +118,12 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new OperatingSystemResourceProvider(managementController);
       case Repository:
         return new RepositoryResourceProvider(managementController);
+      case Setting:
+        return new SettingResourceProvider();
       case Artifact:
         return new ArtifactResourceProvider(managementController);
+      case RemoteCluster:
+        return new RemoteClusterResourceProvider();
 
       default:
         return AbstractControllerResourceProvider.getResourceProvider(type, propertyIds,

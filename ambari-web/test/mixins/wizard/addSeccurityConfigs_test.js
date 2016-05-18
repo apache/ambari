@@ -18,7 +18,7 @@
 
 var App = require('app');
 var stackDescriptorData = require('test/mock_data_setup/stack_descriptors');
-var stackDescriptor = stackDescriptorData.artifact_data;
+var stackDescriptor = stackDescriptorData.KerberosDescriptor.kerberos_descriptor;
 
 require('mixins/wizard/addSecurityConfigs');
 
@@ -222,7 +222,12 @@ describe('App.AddSecurityConfigs', function () {
           name: 'SERVICE',
           identities: [
             { name: '/spnego' },
-            { name: '/hdfs' }
+            { name: '/hdfs' },
+            {
+              name: 'service_identity',
+              keytab: { configuration: 'service-site/service.keytab' },
+              principal: { configuration: 'service-site/service.principal' }
+            }
           ]
         },
         {
@@ -247,6 +252,7 @@ describe('App.AddSecurityConfigs', function () {
         }
       ]
     };
+
     var configs = Em.A([
       generateProperty('spnego_inherited_keytab', 'spnego:keytab'),
       generateProperty('spnego_inherited_principal', 'spnego:principal'),
@@ -255,8 +261,12 @@ describe('App.AddSecurityConfigs', function () {
       generateProperty('component_prop1_inherited_principal', 'component_prop1:principal'),
       generateProperty('component_prop1_inherited_keytab', 'component_prop1:keytab'),
       generateProperty('component_prop2_inherited_keytab', 'component_prop2:keytab'),
-      generateProperty('component_prop2_inherited_principal', 'component_prop2:principal')
+      generateProperty('component_prop2_inherited_principal', 'component_prop2:principal'),
+      generateProperty('component_prop2_inherited_principal', 'component_prop2:principal'),
+      generateProperty('component_prop3_inherited_principal', 'SERVICE2/COMPONENT/component_prop2:principal'),
+      generateProperty('service_prop1_inherited_principal', 'SERVICE/service_identity:principal')
     ]);
+
     var tests = [
       { name: 'spnego_inherited_keytab', e: 'spnego_keytab' },
       { name: 'spnego_inherited_principal', e: 'spnego_principal' },
@@ -265,7 +275,9 @@ describe('App.AddSecurityConfigs', function () {
       { name: 'component_prop1_inherited_keytab', e: 'component.keytab' },
       { name: 'component_prop1_inherited_principal', e: 'component_prop1_principal' },
       { name: 'component_prop2_inherited_keytab', e: 'component2.keytab' },
-      { name: 'component_prop2_inherited_principal', e: 'component2.principal' }
+      { name: 'component_prop2_inherited_principal', e: 'component2.principal' },
+      { name: 'component_prop3_inherited_principal', e: 'component2.principal' },
+      { name: 'service_prop1_inherited_principal', e: 'service.principal' }
     ];
     before(function() {
       controller.processConfigReferences(descriptor, configs);
@@ -280,6 +292,20 @@ describe('App.AddSecurityConfigs', function () {
 
   describe('#_getDisplayNameForConfig', function () {
 
+    var configIdentitiesMap = {
+      'otherCoolName__some-site': {
+        displayName: 'otherCoolDisplayName'
+      }
+    };
+
+    beforeEach(function() {
+      sinon.stub(App.config, 'get').withArgs('kerberosIdentitiesMap').returns(configIdentitiesMap)
+    });
+
+    afterEach(function() {
+      App.config.get.restore();
+    });
+
     it('config from `cluster-env`', function () {
       var config = {
         fileName: 'cluster-env',
@@ -287,6 +313,15 @@ describe('App.AddSecurityConfigs', function () {
       };
       var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
       expect(displayName).to.equal(App.format.normalizeName(config.name));
+    });
+
+    it('config from UI', function () {
+      var config = {
+        fileName: 'some-site',
+        name: 'otherCoolName'
+      };
+      var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
+      expect(displayName).to.equal('otherCoolDisplayName');
     });
   });
 

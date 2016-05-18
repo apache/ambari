@@ -26,6 +26,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -41,7 +42,7 @@ import com.google.inject.Singleton;
  * Checks if Install Packages needs to be re-run
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 2.0f, required = true)
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 3.0f, required = true)
 public class InstallPackagesCheck extends AbstractCheckDescriptor {
 
   /**
@@ -56,7 +57,20 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final StackId targetStackId = request.getTargetStackId();
+    final String stackName = targetStackId.getStackName();
     final String repoVersion = request.getRepositoryVersion();
+
+    final RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, request.getRepositoryVersion());
+    if (StringUtils.isBlank(rve.getVersion()) || !rve.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
+      String message = MessageFormat.format("The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. " +
+              "Make sure that another registered repository does not have the same repo URL or " +
+              "shares the same build number. Next, try reinstalling the Repository Version.", rve.getVersion(), rve.getStackVersion());
+      prerequisiteCheck.getFailedOn().add("Repository Version " + rve.getVersion());
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason(message);
+      return;
+    }
+
     final ClusterVersionEntity clusterVersion = clusterVersionDAOProvider.get().findByClusterAndStackAndVersion(
         clusterName, targetStackId, repoVersion);
     final Set<String> failedHosts = new HashSet<String>();

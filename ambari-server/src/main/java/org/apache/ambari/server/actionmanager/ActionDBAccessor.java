@@ -26,8 +26,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 
-import com.google.inject.persist.Transactional;
-
 public interface ActionDBAccessor {
 
   /**
@@ -67,6 +65,12 @@ public interface ActionDBAccessor {
   public void timeoutHostRole(String host, long requestId, long stageId, String role);
 
   /**
+   * Mark the task as to have timed out
+   */
+  void timeoutHostRole(String host, long requestId, long stageId,
+                       String role, boolean skipSupported);
+
+  /**
    * Returns all the pending stages, including queued and not-queued. A stage is
    * considered in progress if it is in progress for any host.
    * <p/>
@@ -88,21 +92,19 @@ public interface ActionDBAccessor {
 
   /**
    * Persists all tasks for a given request
-   * @param request request object
+   * 
+   * @param request
+   *          request object
    */
-  @Transactional
   void persistActions(Request request) throws AmbariException;
 
-  @Transactional
   void startRequest(long requestId);
 
-  @Transactional
   void endRequest(long requestId);
 
   /**
    * Updates request with link to source schedule
    */
-  @Transactional
   void setSourceScheduleForRequest(long requestId, long scheduleId);
 
   /**

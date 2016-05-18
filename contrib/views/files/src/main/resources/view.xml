@@ -87,6 +87,21 @@
         <required>false</required>
         <cluster-config>fake</cluster-config>
     </parameter>
+    <parameter>
+        <name>hdfs.umask-mode</name>
+        <description>The umask used when creating files and directories. Defaults to 022</description>
+        <label>Umask</label>
+        <default-value>022</default-value>
+        <required>false</required>
+        <cluster-config>hdfs-site/fs.permissions.umask-mode</cluster-config>
+    </parameter>
+    <parameter>
+        <name>hdfs.auth_to_local</name>
+        <description>Auth to Local Configuration</description>
+        <label>Auth To Local</label>
+        <required>false</required>
+        <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
+    </parameter>
 
     <parameter>
         <name>webhdfs.username</name>
@@ -102,9 +117,27 @@
         <label>WebHDFS Authorization</label>
         <required>false</required>
     </parameter>
+    <parameter>
+        <name>tmp.dir</name>
+        <description>HDFS directory path to store temporary files required for the view operations.</description>
+        <label>Temporary HDFS Directory</label>
+        <placeholder>/user/${username}/files-view/tmp</placeholder>
+        <default-value>/user/${username}/files-view/tmp</default-value>
+        <required>true</required>
+    </parameter>
 
     <resource>
         <name>files</name>
         <service-class>org.apache.ambari.view.filebrowser.FileBrowserService</service-class>
     </resource>
+
+    <auto-instance>
+        <name>AUTO_FILES_INSTANCE</name>
+        <label>Files View</label>
+        <description>This view instance is auto created when the HDFS service is added to a cluster.</description>
+        <stack-id>HDP-2.*</stack-id>
+        <services>
+          <service>HDFS</service>
+        </services>
+    </auto-instance>
 </view>

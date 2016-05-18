@@ -113,7 +113,7 @@
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
-        "type" : "gpcheck-env.xml"
+        "type" : "hawq-check-env.xml"
       },
       "dependencies" : [ ]
     }, {

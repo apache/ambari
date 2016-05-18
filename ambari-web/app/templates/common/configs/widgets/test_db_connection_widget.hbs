@@ -27,7 +27,9 @@
         <div class="pull-left connection-result mll">
           <a {{bindAttr class="view.isConnectionSuccess:mute:action"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
         </div>
-        <div {{bindAttr class=":spinner :mll :pull-left view.isConnecting::hide"}}></div>
+        {{#if view.isConnecting}}
+          {{view App.SpinnerView classNames="mll pull-left"}}
+        {{/if}}
         <i {{bindAttr class=":pull-right view.isConnectionSuccess:icon-ok-sign:icon-warning-sign view.isRequestResolved::hide"}}></i>
       </div>
     </div>

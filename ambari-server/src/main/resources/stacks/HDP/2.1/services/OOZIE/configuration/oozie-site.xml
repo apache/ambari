@@ -26,6 +26,7 @@
   <property>
     <name>oozie.base.url</name>
     <value>http://localhost:11000/oozie</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Base Oozie URL.</description>
   </property>
 

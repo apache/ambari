@@ -42,14 +42,20 @@ App.StackService = DS.Model.extend({
   stack: DS.belongsTo('App.Stack'),
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
-  requiredServices: DS.attr('array'),
+  requiredServices: DS.attr('array', {defaultValue: []}),
 
   /**
    * @type {String[]}
    */
   configTypeList: function() {
-    return Object.keys(this.get('configTypes') || {});
+    var configTypes = Object.keys(this.get('configTypes') || {});
+    //Falcon has dependency on oozie-site but oozie-site advanced/custom section should not be shown on Falcon page
+    if (this.get('serviceName') === 'FALCON') {
+      configTypes = configTypes.without('oozie-site');
+    }
+    return configTypes;
   }.property('configTypes'),
+
   /**
    * contains array of serviceNames that have configs that
    * depends on configs from current service
@@ -59,12 +65,8 @@ App.StackService = DS.Model.extend({
 
   // Is the service a distributed filesystem
   isDFS: function () {
-    var dfsServices = ['HDFS', 'GLUSTERFS'];
-    if( this.get('serviceType') == 'HCFS' || dfsServices.contains(this.get('serviceName')) )
-    	return true;
-    else
-    	return false;
-  }.property('serviceName'),
+    return this.get('serviceType') === 'HCFS' || ['HDFS', 'GLUSTERFS'].contains(this.get('serviceName'));
+  }.property('serviceName', 'serviceType'),
 
   // Primary DFS. used if there is more than one DFS in a stack.
   // Only one service in the stack should be tagged as primary DFS.
@@ -83,7 +85,7 @@ App.StackService = DS.Model.extend({
     var displayName = this.get('displayName');
     var services = this.get('coSelectedServices').slice();
     var serviceDisplayNames = services.map(function (item) {
-      return App.format.role(item);
+      return App.format.role(item, true);
     }, this);
     if (!!serviceDisplayNames.length) {
       serviceDisplayNames.unshift(displayName);
@@ -159,7 +161,7 @@ App.StackService = DS.Model.extend({
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {
-      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "HIVE_SERVER2", "KDC", "Kadmin","^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "Settings$", "AdvancedGpcheck"];
+      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "HIVE_SERVER2", "KDC", "Kadmin","^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "Settings$", "AdvancedHawqCheck"];
       configCategories = App.StackService.configCategories.call(this).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');
         var isServiceComponent = serviceComponents.someProperty('componentName', serviceComponentName);
@@ -187,9 +189,9 @@ App.StackService.displayOrder = [
   'GANGLIA',
   'HIVE',
   'HAWQ',
+  'PXF',
   'HBASE',
   'PIG',
-  'PXF',
   'SQOOP',
   'OOZIE',
   'ZOOKEEPER',
@@ -197,6 +199,10 @@ App.StackService.displayOrder = [
   'STORM',
   'FLUME'
 ];
+
+App.StackService.componentsOrderForService = {
+  'HAWQ': ['HAWQMASTER', 'HAWQSTANDBY']
+};
 
 //@TODO: Write unit test for no two keys in the object should have any intersecting elements in their values
 App.StackService.coSelected = {
@@ -352,7 +358,7 @@ App.StackService.configCategories = function () {
     case 'HAWQ':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
-        App.ServiceConfigCategory.create({ name: 'AdvancedGpcheck', displayName: 'Advanced gpcheck'})
+        App.ServiceConfigCategory.create({ name: 'AdvancedHawqCheck', displayName: 'Advanced HAWQ Check'})
       ]);
       break;
     default:
@@ -362,12 +368,7 @@ App.StackService.configCategories = function () {
   }
   serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}));
 
-  var configTypes = Object.keys(this.get('configTypes'));
-
-  //Falcon has dependency on oozie-site but oozie-site advanced/custom section should not be shown on Falcon page
-  if (this.get('serviceName') !== 'OOZIE') {
-    configTypes = configTypes.without('oozie-site');
-  }
+  var configTypes = this.get('configTypeList');
 
   // Add Advanced section for every configType to all the services
   configTypes.forEach(function (type) {

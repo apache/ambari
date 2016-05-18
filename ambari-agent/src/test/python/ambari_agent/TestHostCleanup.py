@@ -289,6 +289,9 @@ class TestHostCleanup(TestCase):
     HostCleanup.SKIP_LIST = oldSkipList
     sys.stdout = sys.__stdout__
 
+  @patch("os.stat")
+  @patch("os.path.join")
+  @patch("os.listdir")
   @patch.object(HostCleanup.HostCleanup, 'do_clear_cache')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
   @patch.object(OSCheck, "get_os_type")
@@ -301,7 +304,8 @@ class TestHostCleanup(TestCase):
                       do_delete_users_method,
                       do_erase_dir_silent_method,
                       do_erase_files_silent_method, do_kill_processes_method,
-                      get_os_type_method, find_repo_files_for_repos_method, clear_cache_mock):
+                      get_os_type_method, find_repo_files_for_repos_method,
+                      clear_cache_mock, listdir_mock, join_mock, stat_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -400,21 +404,6 @@ class TestHostCleanup(TestCase):
     run_os_command_method.assert_called_with("zypper -n -q remove {0}"
     .format(' '.join(['abcd', 'wxyz'])))
     self.assertEquals(0, retval)
-
-    sys.stdout = sys.__stdout__
-
-
-  @patch('os.path.isfile')
-  @patch('os.unlink')
-  def test_do_remove_hdp_select_marker(self, unlink_mock, isfile_mock):
-    out = StringIO.StringIO()
-    sys.stdout = out
-
-    isfile_mock.return_value = True
-
-    self.hostcleanup.do_remove_hdp_select_marker()
-
-    self.assertTrue(unlink_mock.called)
 
     sys.stdout = sys.__stdout__
 

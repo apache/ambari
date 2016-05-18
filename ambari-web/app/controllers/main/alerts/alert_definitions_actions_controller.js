@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var validator = require('utils/validator');
+
 App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
 
   name: 'mainAlertDefinitionActionsController',
@@ -41,6 +43,12 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
       title: Em.I18n.t('alerts.actions.manageNotifications'),
       icon: 'icon-envelope-alt',
       action: 'manageNotifications',
+      showDivider: false
+    },
+    {
+      title: Em.I18n.t('alerts.actions.manageSettings'),
+      icon: 'icon-cogs',
+      action: 'manageSettings',
       showDivider: false
     }
   ],
@@ -168,14 +176,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         return App.router.get('manageAlertGroupsController');
       }.property('App.router.manageAlertGroupsController'),
 
-      updateButtons: function () {
-        var modified = this.get('subViewController.isDefsModified');
-        this.set('disablePrimary', !modified);
-      }.observes('subViewController.isDefsModified'),
-
-      didInsertElement: function () {
-        this.fitZIndex();
-      }
+      disablePrimary: Em.computed.not('subViewController.isDefsModified')
 
     });
   },
@@ -204,6 +205,64 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
       autoHeight: false
 
     });
+  },
+
+  /**
+   * "Manage Alert Settings" handler
+   * @method manageSettings
+   * @return {App.ModalPopup}
+   */
+  manageSettings: function () {
+    var controller = this;
+    var configProperties = App.router.get('clusterController.clusterEnv.properties');
+
+    return App.ModalPopup.show({
+      classNames: ['fourty-percent-width-modal'],
+      header: Em.I18n.t('alerts.actions.manageSettings'),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.cancel'),
+      inputValue: configProperties.alerts_repeat_tolerance || '1',
+      errorMessage: Em.I18n.t('alerts.actions.editRepeatTolerance.error'),
+      isInvalid: function () {
+        var intValue = Number(this.get('inputValue'));
+      return this.get('inputValue') !== 'DEBUG' && (!validator.isValidInt(intValue) || intValue < 1 || intValue > 99);
+      }.property('inputValue'),
+      disablePrimary: Em.computed.alias('isInvalid'),
+      onPrimary: function () {
+        if (this.get('isInvalid')) {
+          return;
+        }
+        configProperties.alerts_repeat_tolerance = this.get('inputValue');
+        App.ajax.send({
+          name: 'admin.save_configs',
+          sender: controller,
+          data: {
+            siteName: 'cluster-env',
+            properties: configProperties
+          },
+          error: 'manageSettingsErrorCallback'
+        });
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/modal_popups/prompt_popup'),
+        title: Em.I18n.t('alerts.actions.editRepeatTolerance.title'),
+        description: Em.I18n.t('alerts.actions.editRepeatTolerance.description'),
+        label: Em.I18n.t('alerts.actions.editRepeatTolerance.label')
+      })
+    });
+  },
+
+  manageSettingsErrorCallback: function(data) {
+    var error = Em.I18n.t('alerts.actions.manageSettings.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {
+      }
+    }
+    App.showAlertPopup(Em.I18n.t('alerts.actions.manageSettings.error'), error);
   }
 
 });

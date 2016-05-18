@@ -21,26 +21,6 @@
     <service>
       <name>FLUME</name>
       <version>1.5.2.2.4</version>
-
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>flume_2_4_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>flume-2-4-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
     </service>
   </services>
 </metainfo>

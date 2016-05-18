@@ -19,7 +19,6 @@
 var App = require('app');
 
 var validator = require('utils/validator');
-var numberUtils = require('utils/number_utils');
 
 App.ManageAlertGroupsController = Em.Controller.extend({
 
@@ -111,13 +110,9 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * Determines if some group was edited/created/deleted
    * @type {boolean}
    */
-  isDefsModified: function () {
-    var modifiedGroups = this.get('defsModifiedAlertGroups');
-    if (!this.get('isLoaded')) {
-      return false;
-    }
-    return !!(modifiedGroups.toSet.length || modifiedGroups.toCreate.length || modifiedGroups.toDelete.length);
-  }.property('defsModifiedAlertGroups'),
+  isDefsModified: Em.computed.and('isLoaded', 'isDefsModifiedAlertGroups'),
+
+  isDefsModifiedAlertGroups: Em.computed.or('defsModifiedAlertGroups.toSet.length', 'defsModifiedAlertGroups.toCreate.length', 'defsModifiedAlertGroups.toDelete.length'),
 
   /**
    * Check when some config group was changed and updates <code>defsModifiedAlertGroups</code> once
@@ -254,16 +249,10 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         name: group.get('name'),
         default: group.get('default'),
         displayName: function () {
-          var name = this.get('name');
-          if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
-            var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
-            name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
-          }
-          return this.get('default') ? (name + ' Default') : name;
+          var name = App.config.truncateGroupName(this.get('name'));
+          return this.get('default') ? name + ' Default' : name;
         }.property('name', 'default'),
-        label: function () {
-          return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
-        }.property('displayName', 'definitions.length'),
+        label: Em.computed.format('{0} ({1})', 'displayName', 'definitions.length'),
         definitions: definitions,
         isAddDefinitionsDisabled: group.get('isAddDefinitionsDisabled'),
         notifications: targets
@@ -377,14 +366,14 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     var validComponents = App.StackServiceComponent.find().map(function (component) {
       return Em.Object.create({
         componentName: component.get('componentName'),
-        displayName: App.format.role(component.get('componentName')),
+        displayName: App.format.role(component.get('componentName'), false),
         selected: false
       });
     });
     var validServices = App.Service.find().map(function (service) {
       return Em.Object.create({
         serviceName: service.get('serviceName'),
-        displayName: App.format.role(service.get('serviceName')),
+        displayName: App.format.role(service.get('serviceName'), true),
         selected: false
       });
     });
@@ -619,8 +608,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       return;
     }
     var self = this;
-    var popup;
-    popup = App.ModalPopup.show({
+    var popup = App.ModalPopup.show({
 
       header: Em.I18n.t('alerts.actions.manage_alert_groups_popup.renameButton'),
 
@@ -633,16 +621,14 @@ App.ManageAlertGroupsController = Em.Controller.extend({
        */
       alertGroupName: self.get('selectedAlertGroup.name'),
 
+      alertGroupNameIsEmpty: function () {
+        return !this.get('alertGroupName').trim().length;
+      }.property('alertGroupName'),
+
       /**
        * @type {string|null}
        */
-      warningMessage: null,
-
-      /**
-       * New group name should be unique and valid
-       * @method validate
-       */
-      validate: function () {
+      warningMessage: function () {
         var warningMessage = '';
         var originalGroup = self.get('selectedAlertGroup');
         var groupName = this.get('alertGroupName').trim();
@@ -660,20 +646,18 @@ App.ManageAlertGroupsController = Em.Controller.extend({
             }
           }
         }
-        this.set('warningMessage', warningMessage);
-      }.observes('alertGroupName'),
+        return warningMessage;
+      }.property('alertGroupName'),
 
       /**
        * Primary button is disabled while user doesn't input valid group name
        * @type {boolean}
        */
-      disablePrimary: function () {
-        return !(this.get('alertGroupName').trim().length > 0 && (this.get('warningMessage') !== null && !this.get('warningMessage')));
-      }.property('warningMessage', 'alertGroupName'),
+      disablePrimary: Em.computed.or('alertGroupNameIsEmpty', 'warningMessage'),
 
       onPrimary: function () {
         self.set('selectedAlertGroup.name', this.get('alertGroupName'));
-        this.hide();
+        this._super();
       }
 
     });
@@ -702,21 +686,14 @@ App.ManageAlertGroupsController = Em.Controller.extend({
        */
       alertGroupName: duplicated ? self.get('selectedAlertGroup.name') + ' Copy' : "",
 
+      alertGroupNameIsEmpty: function () {
+        return !this.get('alertGroupName').trim().length;
+      }.property('alertGroupName'),
+
       /**
        * @type {string}
        */
-      warningMessage: '',
-
-      didInsertElement: function () {
-        this._super();
-        this.validate();
-      },
-
-      /**
-       * alert group name should be unique and valid
-       * @method validate
-       */
-      validate: function () {
+      warningMessage: function () {
         var warningMessage = '';
         var groupName = this.get('alertGroupName').trim();
         if (self.get('alertGroups').mapProperty('displayName').contains(groupName)) {
@@ -727,32 +704,24 @@ App.ManageAlertGroupsController = Em.Controller.extend({
             warningMessage = Em.I18n.t("form.validator.alertGroupName");
           }
         }
-        this.set('warningMessage', warningMessage);
-      }.observes('alertGroupName'),
+        return warningMessage;
+      }.property('alertGroupName'),
 
       /**
        * Primary button is disabled while user doesn't input valid group name
        * @type {boolean}
        */
-      disablePrimary: function () {
-        return !(this.get('alertGroupName').trim().length > 0 && !this.get('warningMessage'));
-      }.property('warningMessage', 'alertGroupName'),
+      disablePrimary: Em.computed.or('alertGroupNameIsEmpty', 'warningMessage'),
 
       onPrimary: function () {
         var newAlertGroup = Em.Object.create({
           name: this.get('alertGroupName').trim(),
           default: false,
           displayName: function () {
-            var name = this.get('name');
-            if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
-              var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
-              name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
-            }
-            return this.get('default') ? (name + ' Default') : name;
+            var name = App.config.truncateGroupName(this.get('name'));
+            return this.get('default') ? name + ' Default' : name;
           }.property('name', 'default'),
-          label: function () {
-            return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
-          }.property('displayName', 'definitions.length'),
+          label: Em.computed.format('{0} ({1})', 'displayName', 'definitions.length'),
           definitions: duplicated ? self.get('selectedAlertGroup.definitions').slice(0) : [],
           notifications: self.get('alertGlobalNotifications'),
           isAddDefinitionsDisabled: false

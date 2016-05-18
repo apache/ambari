@@ -12,15 +12,15 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "jvm.JvmMetrics.GcCount",
-              "metric_path": "metrics/jvm/gcCount",
+              "name": "jvm.JvmMetrics.GcCount._rate",
+              "metric_path": "metrics/jvm/gcCount._rate",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             },
             {
-              "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep",
-              "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep",
+              "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate",
+              "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep._rate",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -29,11 +29,11 @@
           "values": [
             {
               "name": "GC total count",
-              "value": "${jvm.JvmMetrics.GcCount}"
+              "value": "${jvm.JvmMetrics.GcCount._rate}"
             },
             {
               "name": "GC count of type major collection",
-              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep}"
+              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep._rate}"
             }
           ],
           "properties": {
@@ -48,8 +48,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
-              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep",
+              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate",
+              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep._rate",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -58,7 +58,7 @@
           "values": [
             {
               "name": "GC time in major collection",
-              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep}"
+              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep._rate}"
             }
           ],
           "properties": {
@@ -74,8 +74,16 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "rpc.rpc.NumOpenConnections",
-              "metric_path": "metrics/rpc/NumOpenConnections",
+              "name": "rpc.rpc.client.NumOpenConnections",
+              "metric_path": "metrics/rpc/client/NumOpenConnections",
+              "category": "",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.NumOpenConnections",
+              "metric_path": "metrics/rpc/datanode/NumOpenConnections",
               "category": "",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
@@ -84,8 +92,12 @@
           ],
           "values": [
             {
-              "name": "Open Connections",
-              "value": "${rpc.rpc.NumOpenConnections}"
+              "name": "Open Client Connections",
+              "value": "${rpc.rpc.client.NumOpenConnections}"
+            },
+            {
+              "name": "Open Datanode Connections",
+              "value": "${rpc.rpc.datanode.NumOpenConnections}"
             }
           ],
           "properties": {
@@ -184,13 +196,6 @@
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
-            },
-            {
-              "name": "mem_cached",
-              "metric_path": "metrics/memory/mem_cached",
-              "service_name": "HDFS",
-              "component_name": "NAMENODE",
-              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             }
           ],
           "values": [
@@ -200,7 +205,7 @@
             },
             {
               "name": "Memory utilization",
-              "value": "${((mem_total - mem_free - mem_cached)/mem_total) * 100}"
+              "value": "${((mem_total - mem_free)/mem_total) * 100}"
             }
           ],
           "properties": {
@@ -216,15 +221,29 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "rpc.rpc.RpcQueueTimeAvgTime",
-              "metric_path": "metrics/rpc/RpcQueueTime_avg_time",
+              "name": "rpc.rpc.client.RpcQueueTimeAvgTime",
+              "metric_path": "metrics/rpc/client/RpcQueueTime_avg_time",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             },
             {
-              "name": "rpc.rpc.RpcProcessingTimeAvgTime",
-              "metric_path": "metrics/rpc/RpcProcessingTime_avg_time",
+              "name": "rpc.rpc.client.RpcProcessingTimeAvgTime",
+              "metric_path": "metrics/rpc/client/RpcProcessingTime_avg_time",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
+              "metric_path": "metrics/rpc/datanode/RpcQueueTime_avg_time",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
+              "metric_path": "metrics/rpc/datanode/RpcProcessingTime_avg_time",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -232,12 +251,20 @@
           ],
           "values": [
             {
-              "name": "RPC Queue Wait time",
-              "value": "${rpc.rpc.RpcQueueTimeAvgTime}"
+              "name": "Client RPC Queue Wait time",
+              "value": "${rpc.rpc.client.RpcQueueTimeAvgTime}"
             },
             {
-              "name": "RPC Processing time",
-              "value": "${rpc.rpc.RpcProcessingTimeAvgTime}"
+              "name": "Client RPC Processing time",
+              "value": "${rpc.rpc.client.RpcProcessingTimeAvgTime}"
+            },
+            {
+              "name": "Datanode RPC Queue Wait time",
+              "value": "${rpc.rpc.datanode.RpcQueueTimeAvgTime}"
+            },
+            {
+              "name": "Datanode RPC Processing time",
+              "value": "${rpc.rpc.datanode.RpcProcessingTimeAvgTime}"
             }
           ],
           "properties": {
@@ -248,13 +275,13 @@
         },
         {
           "widget_name": "NameNode Operations",
-          "description": "Total number of file operation over time.",
+          "description": "Rate per second of number of file operation over time.",
           "widget_type": "GRAPH",
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.namenode.TotalFileOps",
-              "metric_path": "metrics/dfs/namenode/TotalFileOps",
+              "name": "dfs.namenode.TotalFileOps._rate",
+              "metric_path": "metrics/dfs/namenode/TotalFileOps._rate",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -263,7 +290,7 @@
           "values": [
             {
               "name": "NameNode File Operations",
-              "value": "${dfs.namenode.TotalFileOps}"
+              "value": "${dfs.namenode.TotalFileOps._rate}"
             }
           ],
           "properties": {
@@ -295,8 +322,8 @@
           }
         },
         {
-          "widget_name": "Corrupted Blocks",
-          "description": "Number represents data blocks that have become corrupted or missing. Its indicative of HDFS bad health.",
+          "widget_name": "Blocks With Corrupted Replicas",
+          "description": "Number represents data blocks with at least one corrupted replica (but not all of them). Its indicative of HDFS bad health.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -304,12 +331,13 @@
               "name": "Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks",
               "metric_path": "metrics/dfs/FSNamesystem/CorruptBlocks",
               "service_name": "HDFS",
-              "component_name": "NAMENODE"
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             }
           ],
           "values": [
             {
-              "name": "Corrupted Blocks",
+              "name": "Blocks With Corrupted Replicas",
               "value": "${Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks}"
             }
           ],
@@ -328,7 +356,8 @@
               "name": "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
               "metric_path": "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
               "service_name": "HDFS",
-              "component_name": "NAMENODE"
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             }
           ],
           "values": [
@@ -387,8 +416,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "dfs.datanode.BytesRead",
-              "metric_path": "metrics/dfs/datanode/bytes_read",
+              "name": "dfs.datanode.BytesRead._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_read._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }
@@ -396,7 +425,7 @@
           "values": [
             {
               "name": "HDFS Bytes Read",
-              "value": "${dfs.datanode.BytesRead}"
+              "value": "${dfs.datanode.BytesRead._rate}"
             }
           ],
           "properties": {
@@ -411,8 +440,8 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.datanode.BytesWritten",
-              "metric_path": "metrics/dfs/datanode/bytes_written",
+              "name": "dfs.datanode.BytesWritten._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_written._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }
@@ -420,7 +449,7 @@
           "values": [
             {
               "name": "HDFS Bytes Written",
-              "value": "${dfs.datanode.BytesWritten}"
+              "value": "${dfs.datanode.BytesWritten._rate}"
             }
           ],
           "properties": {
@@ -508,26 +537,26 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.datanode.BytesRead",
-              "metric_path": "metrics/dfs/datanode/bytes_read",
+              "name": "dfs.datanode.BytesRead._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_read._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
             {
-              "name": "dfs.datanode.BytesWritten",
-              "metric_path": "metrics/dfs/datanode/bytes_written",
+              "name": "dfs.datanode.BytesWritten._rate",
+              "metric_path": "metrics/dfs/datanode/bytes_written._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
             {
-              "name": "dfs.datanode.TotalReadTime",
-              "metric_path": "metrics/dfs/datanode/TotalReadTime",
+              "name": "dfs.datanode.TotalReadTime._rate",
+              "metric_path": "metrics/dfs/datanode/TotalReadTime._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
             {
-              "name": "dfs.datanode.TotalWriteTime",
-              "metric_path": "metrics/dfs/datanode/TotalWriteTime",
+              "name": "dfs.datanode.TotalWriteTime._rate",
+              "metric_path": "metrics/dfs/datanode/TotalWriteTime._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }
@@ -535,7 +564,7 @@
           "values": [
             {
               "name": "DataNode Process Disk I/O Utilization",
-              "value": "${((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
+              "value": "${((dfs.datanode.BytesRead._rate/dfs.datanode.TotalReadTime._rate)+(dfs.datanode.BytesWritten._rate/dfs.datanode.TotalWriteTime._rate))*50}"
             }
           ],
           "properties": {
@@ -550,26 +579,26 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "dfs.datanode.RemoteBytesRead",
-              "metric_path": "metrics/dfs/datanode/RemoteBytesRead",
+              "name": "dfs.datanode.RemoteBytesRead._rate",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesRead._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
             {
-              "name": "dfs.datanode.ReadsFromRemoteClient",
-              "metric_path": "metrics/dfs/datanode/reads_from_remote_client",
+              "name": "dfs.datanode.ReadsFromRemoteClient._rate",
+              "metric_path": "metrics/dfs/datanode/reads_from_remote_client._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
             {
-              "name": "dfs.datanode.RemoteBytesWritten",
-              "metric_path": "metrics/dfs/datanode/RemoteBytesWritten",
+              "name": "dfs.datanode.RemoteBytesWritten._rate",
+              "metric_path": "metrics/dfs/datanode/RemoteBytesWritten._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
             {
-              "name": "dfs.datanode.WritesFromRemoteClient",
-              "metric_path": "metrics/dfs/datanode/writes_from_remote_client",
+              "name": "dfs.datanode.WritesFromRemoteClient._rate",
+              "metric_path": "metrics/dfs/datanode/writes_from_remote_client._rate",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }
@@ -577,7 +606,7 @@
           "values": [
             {
               "name": "DataNode Process Network I/O Utilization",
-              "value": "${((dfs.datanode.RemoteBytesRead/dfs.datanode.ReadsFromRemoteClient)+(dfs.datanode.RemoteBytesWritten/dfs.datanode.WritesFromRemoteClient))*50}"
+              "value": "${((dfs.datanode.RemoteBytesRead._rate/dfs.datanode.ReadsFromRemoteClient._rate)+(dfs.datanode.RemoteBytesWritten._rate/dfs.datanode.WritesFromRemoteClient._rate))*50}"
             }
           ],
           "properties": {

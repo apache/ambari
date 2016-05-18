@@ -24,41 +24,12 @@
         {{view App.HostTableMenuView}}
       {{/isAuthorized}}
     </div>
-    <div class="health-status-bar pull-left">
-      {{#view view.statusFilter categoriesBinding="view.categories"}}
-        <div class="btn-group display-inline-block">
-          <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-            <span class="filters-label">{{t common.filter}}: </span>
-            <span>
-              <span {{bindAttr class="view.class"}}></span>
-              {{view.comboBoxLabel}}
-              <span class="caret"></span>
-            </span>
-          </a>
-          <ul class="dropdown-menu">
-            <li {{bindAttr class=":category-item view.filtersUsed::active"}}>
-              <a {{action clearFilter target="view"}} href="#">{{t common.all}} ({{view.parentView.totalCount}})</a>
-            </li>
-            {{#each category in view.categories}}
-              {{#if category.isVisible}}
-                <li {{bindAttr class=":category-item category.itemClass"}}>
-                  <a {{action selectCategory category target="view"}} href="#">
-                      <span {{bindAttr class="category.isHealthStatus:health-status category.healthClass category.class"}}></span>
-                    {{category.label}}
-                  </a>
-               </li>
-             {{/if}}
-           {{/each}}
-         </ul>
-       </div>
-      {{/view}}
-    </div>
   </div>
-
+  {{outlet}}
   <table class="table advanced-header-table table-bordered table-striped" id="hosts-table">
     <thead>
-      {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        <th class="first"> </th>
+    {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+        <th class="first"><div class="ember-view view-wrapper">{{view Ember.Checkbox class="host-select-all" checkedBinding="view.parentView.selectAllHosts"}}</div></th>
         <th> </th>
         {{view view.parentView.nameSort}}
         <th> </th>
@@ -69,28 +40,11 @@
         {{view view.parentView.memorySort}}
         {{view view.parentView.diskUsageSort}}
         {{view view.parentView.loadAvgSort}}
-        <th {{bindAttr class="App.supports.stackUpgrade::hidden App.stackVersionsAvailable::hidden :sort-view-11"}}>
+        <th {{bindAttr class="App.stackVersionsAvailable::hidden :sort-view-11"}}>
           {{t hosts.host.menu.stackVersions}}
         </th>
         <th class="sort-view-6">{{t common.components}}</th>
       {{/view}}
-      <tr class="filter-row">
-        <th class="first"><div class="ember-view view-wrapper">{{view Ember.Checkbox checkedBinding="view.selectAllHosts"}}</div></th>
-        <th> </th>
-        <th>{{view view.nameFilterView}}</th>
-        <th> </th>
-        <th> </th>
-        <th>{{view view.ipFilterView}}</th>
-        <th>{{view view.rackFilterView}}</th>
-        <th>{{view view.cpuFilterView}}</th>
-        <th>{{view view.ramFilterView}}</th>
-        <th> </th>
-        <th>{{view view.loadAvgFilterView}}</th>
-        <th {{bindAttr class="App.supports.stackUpgrade::hidden App.stackVersionsAvailable::hidden"}}>
-          {{view view.versionsFilterView}}
-        </th>
-        <th>{{view view.componentsFilterView}}</th>
-      </tr>
     </thead>
     <tbody>
     {{#if view.pageContent}}
@@ -137,7 +91,7 @@
           </td>
 
           <td class="load-avg">{{host.loadAvg}}</td>
-          <td {{bindAttr class="App.supports.stackUpgrade::hidden App.stackVersionsAvailable::hidden view.hasSingleVersion:not-active-link :host-table-versions"}}>
+          <td {{bindAttr class="App.stackVersionsAvailable::hidden view.hasSingleVersion:not-active-link :host-table-versions"}}>
             <a href="#" class="black" {{action displayVersions target="view"}}>
               {{view.currentVersion}}
             </a>
@@ -152,7 +106,7 @@
     {{else}}
       <tr>
         <td class="first"></td>
-        <td {{bindAttr colspan="view.colspan"}}>
+        <td colspan="12">
           {{t hosts.table.noHosts}}
         </td>
       </tr>
@@ -161,15 +115,10 @@
   </table>
 
   <div {{bindAttr class="view.filteringComplete:hidden :table-overlay"}}>
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   </div>
 
   <div class="page-bar">
-    <div class="filtered-info span4">
-      {{#if view.showFilteredContent}}
-        <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}} id="hosts-page-clear-filters" href="#">{{t tableView.filters.clearAllFilters}}</a></label>
-      {{/if}}
-    </div>
     <div class="selected-hosts-info span4">
       {{#if view.showSelectedFilter}}
         <div>

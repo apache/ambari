@@ -43,7 +43,6 @@ gulp.task('html', ['styles'], function () {
     .pipe($.plumber())
     .pipe($.useref.assets({searchPath: '{.tmp,app}'}))
     .pipe(jsFilter)
-    .pipe($.uglify())
     .pipe(jsFilter.restore())
     .pipe(cssFilter)
     .pipe(cssFilter.restore())

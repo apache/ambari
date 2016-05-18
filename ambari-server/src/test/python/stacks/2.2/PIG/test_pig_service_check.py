@@ -24,6 +24,7 @@ from stacks.utils.RMFTestCase import *
 class TestPigServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "PIG/0.12.0.2.0/package"
   STACK_VERSION = "2.2"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_service_check_secure(self, copy_to_hdfs_mock):
@@ -33,11 +34,12 @@ class TestPigServiceCheck(RMFTestCase):
                        classname="PigServiceCheck",
                        command="service_check",
                        config_file="pig-service-check-secure.json",
-                       hdp_stack_version=self.STACK_VERSION,
+                       stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/pigsmoke.out',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -50,9 +52,10 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['delete_on_execute'],
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -66,9 +69,10 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -78,7 +82,7 @@ class TestPigServiceCheck(RMFTestCase):
         principal_name = 'hdfs@EXAMPLE.COM',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;',
@@ -101,6 +105,7 @@ class TestPigServiceCheck(RMFTestCase):
         conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/pigsmoke.out',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -113,9 +118,10 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['delete_on_execute'],
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -129,11 +135,12 @@ class TestPigServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
 
     copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs", host_sys_prepped=False)
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -143,7 +150,7 @@ class TestPigServiceCheck(RMFTestCase):
         principal_name = 'hdfs@EXAMPLE.COM',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
 

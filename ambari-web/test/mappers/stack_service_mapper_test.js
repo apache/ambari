@@ -15,6 +15,8 @@
  * the License.
  */
 
+/*eslint-disable */
+
 var App = require('app');
 
 require('mappers/stack_service_mapper');
@@ -116,7 +118,28 @@ describe('App.stackServiceMapper', function () {
             "StackServices" : {
               "service_name" : "HDFS"
             },
-            "components" : [ ],
+            "components" : [
+              {
+                "StackServiceComponents" : {
+                  "cardinality" : "1+",
+                  "component_category" : "SLAVE",
+                  "component_name" : "DATANODE",
+                  "custom_commands" : [ ],
+                  "decommission_allowed" : true,
+                  "bulk_commands_display_name" : "DataNodes",
+                  "bulk_commands_master_component_name" : "NAMENODE",
+                  "has_bulk_commands_definition" : true,
+                  "reassign_allowed" : true,
+                  "cardinality" : "1+",
+                  "display_name" : "DataNode",
+                  "is_client" : false,
+                  "is_master" : true,
+                  "service_name" : "HDFS",
+                  "stack_name" : "HDP"
+                },
+                "dependencies" : []
+              }
+            ],
             "artifacts" : [ ]
           },
           {
@@ -225,6 +248,12 @@ describe('App.stackServiceMapper', function () {
       expect(services.findProperty('serviceName', 'KERBEROS').get('isInstallable')).to.be.false;
       expect(services.findProperty('serviceName', 'KERBEROS').get('isSelected')).to.be.false;
       expect(components.findProperty('componentName', 'MYSQL_SERVER').get('customCommands')).to.be.empty;
+
+      expect(components.findProperty('componentName', 'DATANODE').get('hasBulkCommandsDefinition')).to.be.true;
+      expect(components.findProperty('componentName', 'DATANODE').get('bulkCommandsDisplayName')).to.eql("DataNodes");
+      expect(components.findProperty('componentName', 'DATANODE').get('bulkCommandsMasterComponentName')).to.eql("NAMENODE");
+      expect(components.findProperty('componentName', 'DATANODE').get('decommissionAllowed')).to.be.true;
+      expect(components.findProperty('componentName', 'DATANODE').get('reassignAllowed')).to.be.true;
     });
 
   });

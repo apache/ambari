@@ -72,6 +72,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     setChildren.add(new SubResourceDefinition(Resource.Type.AlertDefinition));
     setChildren.add(new SubResourceDefinition(Resource.Type.Alert));
     setChildren.add(new SubResourceDefinition(Resource.Type.ClusterStackVersion));
+    setChildren.add(new SubResourceDefinition(Resource.Type.ClusterKerberosDescriptor));
     //todo: dynamic sub-resource definition
     setChildren.add(new SubResourceDefinition(Resource.Type.Artifact));
 
@@ -81,8 +82,9 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
   @Override
   public Collection<String> getUpdateDirectives() {
     Collection<String> directives = super.getUpdateDirectives();
-    directives.add("regenerate_keytabs");
+    directives.add(KerberosHelper.DIRECTIVE_REGENERATE_KEYTABS);
     directives.add(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES);
+    directives.add(KerberosHelper.DIRECTIVE_FORCE_TOGGLE_KERBEROS);
     return directives;
   }
 

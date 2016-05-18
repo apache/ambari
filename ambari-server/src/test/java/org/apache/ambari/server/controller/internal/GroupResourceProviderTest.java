@@ -65,7 +65,7 @@ public class GroupResourceProviderTest {
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResources_ClusterAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   private void testCreateResources(Authentication authentication) throws Exception {
@@ -113,7 +113,7 @@ public class GroupResourceProviderTest {
 
   @Test(expected = AuthorizationException.class)
   public void testGetResources_ClusterAdministrator() throws Exception {
-    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   public void testGetResources(Authentication authentication) throws Exception {
@@ -165,7 +165,7 @@ public class GroupResourceProviderTest {
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_ClusterAdminstrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   private void testUpdateResources(Authentication authentication) throws Exception {
@@ -208,7 +208,7 @@ public class GroupResourceProviderTest {
 
   @Test(expected = AuthorizationException.class)
   public void testDeleteResources_ClusterAdministrator() throws Exception {
-    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   private void testDeleteResources(Authentication authentication) throws Exception {
@@ -233,7 +233,7 @@ public class GroupResourceProviderTest {
 
     Predicate predicate = new PredicateBuilder().property(GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID).
         equals("engineering").toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(managementController, response);

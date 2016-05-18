@@ -20,6 +20,7 @@ var App = require('app');
 
 require('controllers/main/alert_definitions_controller');
 require('models/alerts/alert_definition');
+var testHelpers = require('test/helpers');
 
 var controller;
 describe('App.MainAlertDefinitionsController', function() {
@@ -33,7 +34,6 @@ describe('App.MainAlertDefinitionsController', function() {
   describe('#toggleDefinitionState', function() {
 
     beforeEach(function() {
-      sinon.stub(App.ajax, 'send', Em.K);
       controller.reopen({
         content: [
           App.AlertDefinition.createRecord({id: 1, enabled: true})
@@ -41,14 +41,11 @@ describe('App.MainAlertDefinitionsController', function() {
       });
     });
 
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
-
     it('should do ajax-request', function() {
       var alertDefinition = controller.get('content')[0];
       controller.toggleDefinitionState(alertDefinition);
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'alerts.update_alert_definition');
+      expect(args).to.exists;
     });
 
   });
@@ -71,6 +68,25 @@ describe('App.MainAlertDefinitionsController', function() {
       expect(controller.get('isCriticalAlerts')).to.be.true;
     });
 
+  });
+
+  describe("#toggleState()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'showConfirmationFeedBackPopup', Em.clb);
+      sinon.stub(controller, 'toggleDefinitionState');
+    });
+    afterEach(function() {
+      App.showConfirmationFeedBackPopup.restore();
+      controller.toggleDefinitionState.restore();
+    });
+
+    it("toggleDefinitionState should be called", function() {
+      var def = Em.Object.create();
+      controller.toggleState({context: def});
+      expect(App.showConfirmationFeedBackPopup.calledOnce).to.be.true;
+      expect(controller.toggleDefinitionState.calledWith(def)).to.be.true;
+    });
   });
 
 });

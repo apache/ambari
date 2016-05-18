@@ -22,6 +22,7 @@ package org.apache.ambari.server.controller;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -68,5 +69,8 @@ public interface ResourceProviderFactory {
   ResourceProvider getKerberosDescriptorResourceProvider(AmbariManagementController managementController,
                                                          Set<String> propertyIds,
                                                          Map<Resource.Type, String> keyPropertyIds);
+
+  @Named("upgrade")
+  UpgradeResourceProvider getUpgradeResourceProvider(AmbariManagementController managementController);
 
 }

@@ -28,11 +28,18 @@ describe('App.WizardStep10View', function() {
     });
   });
   describe('#didInsertElement()', function() {
-    it('should call loadStep', function() {
+
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadStep', Em.K);
+    });
+
+    afterEach(function () {
+      view.get('controller').loadStep.restore();
+    });
+
+    it('should call loadStep', function() {
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.equal(true);
-      view.get('controller').loadStep.restore();
     });
   });
 
@@ -43,7 +50,7 @@ describe('App.WizardStep10View', function() {
     });
     it("text is complete", function() {
       view.set('controller.isAddServiceWizard', true);
-      expect(view.get('serviceRestartText')).to.equal(Em.I18n.t('common.important') + Em.I18n.t('installer.step10.staleServicesRestartRequired'));
+      expect(view.get('serviceRestartText')).to.equal(Em.I18n.t('common.important.strong') + Em.I18n.t('installer.step10.staleServicesRestartRequired'));
     });
   });
 });

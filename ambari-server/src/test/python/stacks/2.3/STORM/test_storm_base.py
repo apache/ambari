@@ -22,7 +22,7 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestStormBase(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1.2.1/package"
+  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1/package"
   STACK_VERSION = "2.3"
 
   def assert_configure_default(self, confDir="/etc/storm/conf"):
@@ -31,23 +31,23 @@ class TestStormBase(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       mode = 0777,
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a'
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a'
     )
     self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a'
     )
     self.assertResourceCalled('File', confDir + '/config.yaml',
@@ -72,23 +72,23 @@ class TestStormBase(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       mode = 0777,
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a'
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a'
     )
     self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a'
     )
     self.assertResourceCalled('File', confDir + '/config.yaml',

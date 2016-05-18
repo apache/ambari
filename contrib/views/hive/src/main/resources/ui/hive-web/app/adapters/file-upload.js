@@ -25,7 +25,6 @@ export default EmberUploader.Uploader.extend({
   // Override
   _ajax: function(settings) {
     settings = Ember.merge(settings, this.getProperties('headers'));
-    console.log("_ajax : settings: " + JSON.stringify(settings));
     return this._super(settings);
   }
 });

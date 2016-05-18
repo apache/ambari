@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 
 require('mappers/server_data_mapper');
@@ -38,4 +37,15 @@ describe('App.usersMapper', function () {
     });
   });
 
+  describe('#isClusterUser', function() {
+    var tests = [
+      {i:["AMBARI.ADMINISTRATOR", "CLUSTER.USER"],e:false,m:'is cluster user'},
+      {i:["CLUSTER.USER"],e:true,m:'has admin role'}
+    ];
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(App.usersMapper.isClusterUser(test.i)).to.equal(test.e);
+      });
+    });
+  });
 });

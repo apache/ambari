@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 var sort = require('views/common/sort_view');
 require('utils/misc');
 require('utils/string_utils');
@@ -97,6 +96,18 @@ describe('#wrapperView', function () {
             b: Em.Object.create({serviceName: 's2'}),
             order: false,
             e: -1
+          },
+          {
+            a: Em.Object.create({serviceName: 's1'}),
+            b: Em.Object.create({serviceName: 'S2'}),
+            order: true,
+            e: 1
+          },
+          {
+            a: Em.Object.create({serviceName: 's1'}),
+            b: Em.Object.create({serviceName: 'S2'}),
+            order: false,
+            e: -1
           }
         ]).forEach(function (test, i) {
           it('test #' + (i + 1), function () {
@@ -116,5 +127,61 @@ describe('#wrapperView', function () {
     });
 
   });
+
+  describe('#fieldView', function () {
+
+    var fieldView, wrapperView;
+
+    describe('#click', function () {
+
+      beforeEach(function () {
+        fieldView = sort.fieldView.create({
+          controller: Em.Object.create({
+            sortingColumn: null
+          })
+        });
+        wrapperView = sort.wrapperView.create({
+          childViews: [fieldView]
+        });
+        fieldView.reopen({'parentView': wrapperView});
+
+        sinon.stub(wrapperView, 'sort', Em.K);
+        sinon.stub(wrapperView, 'removeSortingObserver', Em.K);
+        sinon.stub(wrapperView, 'addSortingObserver', Em.K);
+      });
+
+      afterEach(function () {
+        wrapperView.sort.restore();
+        wrapperView.removeSortingObserver.restore();
+        wrapperView.addSortingObserver.restore();
+      });
+
+      it('should call sort function of wrapperView', function () {
+        fieldView.click();
+        expect(wrapperView.sort.calledOnce).to.be.true;
+      });
+
+      it('should call removeSortingObserver function of wrapperView if sortingColumn is absent in controller', function () {
+        fieldView.reopen({
+          controller: Em.Object.create({
+            sortingColumn: {name: 'test'}
+          })
+        });
+        fieldView.click();
+        expect(wrapperView.removeSortingObserver.calledOnce).to.be.true;
+      });
+
+      it('should not call removeSortingObserver function of wrapperView if sortingColumn exists in controller', function () {
+        fieldView.click();
+        expect(wrapperView.removeSortingObserver.calledOnce).to.be.false;
+      });
+
+      it('should call addSortingObserver function of wrapperView', function () {
+        fieldView.click();
+        expect(wrapperView.addSortingObserver.calledOnce).to.be.true;
+      });
+
+    })
+  })
 
 });

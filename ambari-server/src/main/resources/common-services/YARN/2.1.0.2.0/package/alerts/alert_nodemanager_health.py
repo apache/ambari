@@ -26,6 +26,8 @@ import traceback
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.core.environment import Environment
 
 RESULT_CODE_OK = 'OK'
@@ -79,6 +81,9 @@ def execute(configurations={}, parameters={}, host_name=None):
   if configurations is None:
     return (result_code, ['There were no configurations supplied to the script.'])
 
+  if host_name is None:
+    host_name = socket.getfqdn()
+
   scheme = 'http'
   http_uri = None
   https_uri = None
@@ -121,32 +126,31 @@ def execute(configurations={}, parameters={}, host_name=None):
 
 
   # determine the right URI and whether to use SSL
-  uri = http_uri
+  host_port = http_uri
   if http_policy == 'HTTPS_ONLY':
     scheme = 'https'
 
     if https_uri is not None:
-      uri = https_uri
+      host_port = https_uri
 
   label = ''
   url_response = None
   node_healthy = 'false'
   total_time = 0
 
+  # replace hostname on host fqdn to make it work on all environments
+  if host_port is not None:
+    if ":" in host_port:
+      uri_host, uri_port = host_port.split(':')
+      host_port = '{0}:{1}'.format(host_name, uri_port)
+    else:
+      host_port = host_name
+
   # some yarn-site structures don't have the web ui address
-  if uri is None:
-    if host_name is None:
-      host_name = socket.getfqdn()
+  if host_port is None:
+    host_port = '{0}:{1}'.format(host_name, NODEMANAGER_DEFAULT_PORT)
 
-    uri = '{0}:{1}'.format(host_name, NODEMANAGER_DEFAULT_PORT)
-    
-  if OSCheck.is_windows_family():
-    uri_host, uri_port = uri.split(':')
-    # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
-    uri_host = resolve_address(uri_host)
-    uri = '{0}:{1}'.format(uri_host, uri_port)
-
-  query = "{0}://{1}/ws/v1/node/info".format(scheme,uri)
+  query = "{0}://{1}/ws/v1/node/info".format(scheme, host_port)
 
   try:
     if kerberos_principal is not None and kerberos_keytab is not None and security_enabled:
@@ -155,9 +159,11 @@ def execute(configurations={}, parameters={}, host_name=None):
       # curl requires an integer timeout
       curl_connection_timeout = int(connection_timeout)
 
+      kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
+
       url_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
         query, "nm_health_alert", executable_paths, False, "NodeManager Health", smokeuser,
-        connection_timeout=curl_connection_timeout)
+        connection_timeout=curl_connection_timeout, kinit_timer_ms = kinit_timer_ms)
 
       json_response = json.loads(url_response)
     else:

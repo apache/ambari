@@ -53,6 +53,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
       json.items.forEach(function (item, index) {
         var parsedItem = this.parseIt(item, this.get('config'));
         parsedItem.id = this.makeId(parsedItem.service_name, parsedItem.version);
+        parsedItem.group_id = parsedItem.group_id === -1 ? parsedItem.service_name + '_default' : parsedItem.group_id;
         parsedItem.is_requested = true;
         parsedItem.create_time = App.dateTimeWithTimeZone(parsedItem.create_time);
         itemIds[parsedItem.id] = true;
@@ -86,7 +87,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
           defaultHostNames = defaultHostNames.without(serviceToHostMap[sName][i]);
         }
         var defVer = result.find(function(v) {
-          return v.is_current && v.group_id == -1 && v.service_name == sName;
+          return v.is_current && v.group_name === 'default' && v.service_name == sName;
         });
         if (defVer) {
           defVer.hosts = defaultHostNames;

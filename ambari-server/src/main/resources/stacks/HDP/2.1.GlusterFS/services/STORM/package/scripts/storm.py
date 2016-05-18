@@ -29,7 +29,7 @@ def storm():
   Directory([params.log_dir, params.pid_dir, params.local_dir, params.conf_dir],
             owner=params.storm_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True
   )
 
   File(format("{conf_dir}/config.yaml"),

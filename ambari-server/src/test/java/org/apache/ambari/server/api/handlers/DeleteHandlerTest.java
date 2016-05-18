@@ -28,6 +28,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -58,66 +59,6 @@ public class DeleteHandlerTest {
   }
 
   @Test
-  public void testHandleRequest__Synchronous_NoPropsInBody() throws Exception {
-    Request request = createMock(Request.class);
-    RequestBody body = createNiceMock(RequestBody.class);
-    ResourceInstance resource = createMock(ResourceInstance.class);
-    PersistenceManager pm = createStrictMock(PersistenceManager.class);
-    RequestStatus status = createMock(RequestStatus.class);
-    Resource resource1 = createMock(Resource.class);
-    Resource resource2 = createMock(Resource.class);
-    Predicate userPredicate = createNiceMock(Predicate.class);
-    Query query = createNiceMock(Query.class);
-    Renderer renderer = new DefaultRenderer();
-
-    Set<Resource> setResources = new HashSet<Resource>();
-    setResources.add(resource1);
-    setResources.add(resource2);
-
-    // expectations
-    expect(request.getResource()).andReturn(resource).atLeastOnce();
-    expect(request.getBody()).andReturn(body).atLeastOnce();
-
-    expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
-    expect(resource.getQuery()).andReturn(query).atLeastOnce();
-    expect(request.getRenderer()).andReturn(renderer);
-
-    query.setRenderer(renderer);
-    query.setUserPredicate(userPredicate);
-
-    expect(pm.delete(resource, body)).andReturn(status);
-    expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
-    expect(status.getAssociatedResources()).andReturn(setResources);
-    expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
-    expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
-
-    replay(request, body, resource, pm, status, resource1, resource2, userPredicate, query);
-
-    Result result = new TestDeleteHandler(pm).handleRequest(request);
-
-    assertNotNull(result);
-    TreeNode<Resource> tree = result.getResultTree();
-    assertEquals(1, tree.getChildren().size());
-    TreeNode<Resource> resourcesNode = tree.getChild("resources");
-    assertEquals(2, resourcesNode.getChildren().size());
-    boolean foundResource1 = false;
-    boolean foundResource2 = false;
-    for(TreeNode<Resource> child : resourcesNode.getChildren()) {
-      Resource r = child.getObject();
-      if (r == resource1 && ! foundResource1) {
-        foundResource1 = true;
-      } else if (r == resource2 && ! foundResource2) {
-        foundResource2 = true;
-      } else {
-        fail();
-      }
-    }
-
-    assertEquals(ResultStatus.STATUS.OK, result.getStatus().getStatus());
-    verify(request, body, resource, pm, status, resource1, resource2, userPredicate, query);
-  }
-
-  @Test
   public void testHandleRequest__Synchronous() throws Exception {
     Request request = createMock(Request.class);
     RequestBody body = createNiceMock(RequestBody.class);
@@ -130,7 +71,7 @@ public class DeleteHandlerTest {
     Query query = createNiceMock(Query.class);
     Renderer renderer = new DefaultRenderer();
 
-    Set<Resource> setResources = new HashSet<Resource>();
+    Set<Resource> setResources = new HashSet<>();
     setResources.add(resource1);
     setResources.add(resource2);
 
@@ -148,6 +89,7 @@ public class DeleteHandlerTest {
     expect(pm.delete(resource, body)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Complete);
     expect(status.getAssociatedResources()).andReturn(setResources);
+    expect(status.getStatusMetadata()).andReturn(new DeleteStatusMetaData());
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
 
@@ -207,6 +149,7 @@ public class DeleteHandlerTest {
     expect(pm.delete(resource, body)).andReturn(status);
     expect(status.getStatus()).andReturn(RequestStatus.Status.Accepted);
     expect(status.getAssociatedResources()).andReturn(setResources);
+    expect(status.getStatusMetadata()).andReturn(null);
     expect(resource1.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(resource2.getType()).andReturn(Resource.Type.Cluster).anyTimes();
     expect(status.getRequestResource()).andReturn(requestResource).anyTimes();
@@ -297,7 +240,7 @@ public class DeleteHandlerTest {
     assertNotNull(result);
     assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
   }  
-  
+
   private class TestDeleteHandler extends DeleteHandler {
     private PersistenceManager m_testPm;
 

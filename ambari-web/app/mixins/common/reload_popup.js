@@ -32,7 +32,7 @@ App.ReloadPopupMixin = Em.Mixin.create({
     if (jqXHR.status) {
       this.closeReloadPopup();
       if (params.shouldUseDefaultHandler) {
-        App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+        App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
       }
     } else {
       var times = Em.isNone(params.times) ? App.get('maxRetries') : params.times,
@@ -50,19 +50,25 @@ App.ReloadPopupMixin = Em.Mixin.create({
     }
   },
 
+  popupText: function(text) {
+    return text || Em.I18n.t('app.reloadPopup.text');
+  },
+
   showReloadPopup: function (text) {
     var self = this,
-      bodyText = text || this.t('app.reloadPopup.text');
+      bodyText = this.popupText(text);
     if (!this.get('reloadPopup')) {
       this.set('reloadPopup', App.ModalPopup.show({
         primary: null,
         secondary: null,
         showFooter: false,
         header: this.t('app.reloadPopup.header'),
-        body: "<div id='reload_popup' class='alert alert-info'><div class='spinner'><span>" +
-          bodyText + "</span></div></div><div><a href='javascript:void(null)' onclick='location.reload();'>" +
-          this.t('app.reloadPopup.link') + "</a></div>",
-        encodeBody: false,
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile("<div id='reload_popup' class='alert alert-info'>" +
+            "{{view App.SpinnerView}}" +
+            "<div><span>" + bodyText + "</span><a href='javascript:void(null)' onclick='location.reload();'>"
+            + this.t('app.reloadPopup.link') + "</a></div>")
+        }),
         onClose: function () {
           self.setProperties({
             reloadPopup: null,

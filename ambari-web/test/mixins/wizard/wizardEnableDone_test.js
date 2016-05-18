@@ -20,9 +20,7 @@ var App = require('app');
 
 describe('App.WizardEnableDone', function () {
   var baseObject = Em.Object.extend({
-        statusChangeCallback: function (data) {
-          isSubmitDisabled: true
-        }
+        statusChangeCallback: function () {}
       }),
       mixedObject = baseObject.extend(App.WizardEnableDone),
       mixedObjectInstance;

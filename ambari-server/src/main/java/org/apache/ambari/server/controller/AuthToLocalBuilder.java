@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -40,25 +43,34 @@ import java.util.regex.Pattern;
  * <p/>
  * Unqualified Principal (only user is specified):
  * RULE:[1:$1@$0](PRIMARY@REALM)s/.*\/LOCAL_USERNAME/
- * <p>
+ * <p/>
  * Additionally, for each realm included in the rule set, generate a default realm rule
  * in the format: RULE:[1:$1@$0](.*@REALM)s/@.{@literal *}//
- * <p>
+ * <p/>
  * Ordering guarantees for the generated rule string are as follows:
  * <ul>
- *   <li>Rules with the same expected component count are ordered according to match component count</li>
- *   <li>Rules with different expected component count are ordered according to the default string ordering</li>
- *   <li>Rules in the form of .*@REALM are ordered after all other rules with the same expected component count</li>
+ * <li>Rules with the same expected component count are ordered according to match component count</li>
+ * <li>Rules with different expected component count are ordered according to the default string ordering</li>
+ * <li>Rules in the form of .*@REALM are ordered after all other rules with the same expected component count</li>
  * </ul>
- *
  */
-public class AuthToLocalBuilder {
+public class AuthToLocalBuilder implements Cloneable {
   public static final ConcatenationType DEFAULT_CONCATENATION_TYPE = ConcatenationType.NEW_LINES;
 
   /**
    * Ordered set of rules which have been added to the builder.
    */
   private Set<Rule> setRules = new TreeSet<Rule>();
+
+  /**
+   * The default realm.
+   */
+  private final String defaultRealm;
+
+  /**
+   * A set of additional realm names to reference when generating rules.
+   */
+  private final Set<String> additionalRealms;
 
 
   /**
@@ -67,36 +79,45 @@ public class AuthToLocalBuilder {
   private boolean caseInsensitiveUser;
 
   /**
-   * A set of additional realm names to reference when generating rules.
+   * Constructs a new AuthToLocalBuilder.
+   *
+   * @param defaultRealm               a String declaring the default realm
+   * @param additionalRealms           a String containing a comma-delimited list of realm names
+   *                                   to incorporate into the generated rule set
+   * @param caseInsensitiveUserSupport true indicating that case-insensitivity should be enabled;
+   *                                   false otherwise
    */
-  private Set<String> additionalRealms = new HashSet<String>();
-
-  /**
-   * Default constructor. Case insensitive support false by default
-   */
-  public AuthToLocalBuilder() {
-    this(false, null);
+  public AuthToLocalBuilder(String defaultRealm, String additionalRealms, boolean caseInsensitiveUserSupport) {
+    this(defaultRealm, splitDelimitedString(additionalRealms), caseInsensitiveUserSupport);
   }
 
   /**
    * Constructs a new AuthToLocalBuilder.
    *
+   * @param defaultRealm               a String declaring the default realm
+   * @param additionalRealms           a collection of Strings declaring the set of realm names to
+   *                                   incorporate into the generated rule set
    * @param caseInsensitiveUserSupport true indicating that case-insensitivity should be enabled;
    *                                   false otherwise
-   * @param additionalRealms           a String containing a comma-delimited list of realm names to generate
-   *                                   default auth-to-local rules for
    */
-  public AuthToLocalBuilder(boolean caseInsensitiveUserSupport, String additionalRealms) {
-    this.caseInsensitiveUser = caseInsensitiveUserSupport;
+  public AuthToLocalBuilder(String defaultRealm, Collection<String> additionalRealms, boolean caseInsensitiveUserSupport) {
+    this.defaultRealm = defaultRealm;
 
-    if ((additionalRealms != null) && !additionalRealms.isEmpty()) {
-      for (String realm : additionalRealms.split("\\s*(?:\\r?\\n|,)\\s*")) {
-        realm = realm.trim();
-        if (!realm.isEmpty()) {
-          this.additionalRealms.add(realm);
-        }
-      }
-    }
+    this.additionalRealms = (additionalRealms == null)
+        ? Collections.<String>emptySet()
+        : Collections.unmodifiableSet(new HashSet<String>(additionalRealms));
+
+    this.caseInsensitiveUser = caseInsensitiveUserSupport;
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    AuthToLocalBuilder copy = (AuthToLocalBuilder) super.clone();
+
+    /* **** Copy mutable members **** */
+    copy.setRules = new TreeSet<Rule>(setRules);
+
+    return copy;
   }
 
   /**
@@ -106,15 +127,13 @@ public class AuthToLocalBuilder {
    * @param authToLocalRules config property value containing the existing rules
    */
   public void addRules(String authToLocalRules) {
-    if (authToLocalRules != null && ! authToLocalRules.isEmpty()) {
+    if (!StringUtils.isEmpty(authToLocalRules)) {
       String[] rules = authToLocalRules.split("RULE:|DEFAULT");
       for (String r : rules) {
         r = r.trim();
-        if (! r.isEmpty()) {
+        if (!r.isEmpty()) {
           Rule rule = createRule(r);
           setRules.add(rule);
-          // ensure that a default rule is added for each realm
-          addDefaultRealmRule(rule.getPrincipal());
         }
       }
     }
@@ -139,9 +158,7 @@ public class AuthToLocalBuilder {
    * @throws IllegalArgumentException if the provided principal doesn't contain a realm element
    */
   public void addRule(String principal, String localUsername) {
-    if ((principal != null) && (localUsername != null) &&
-        !principal.isEmpty() && !localUsername.isEmpty()) {
-
+    if (!StringUtils.isEmpty(principal) && !StringUtils.isEmpty(localUsername)) {
       Principal p = new Principal(principal);
       if (p.getRealm() == null) {
         throw new IllegalArgumentException(
@@ -150,7 +167,6 @@ public class AuthToLocalBuilder {
 
       Rule rule = createHostAgnosticRule(p, localUsername);
       setRules.add(rule);
-      addDefaultRealmRule(rule.getPrincipal());
     }
   }
 
@@ -158,13 +174,12 @@ public class AuthToLocalBuilder {
    * Generates the auth_to_local rules used by configuration settings such as core-site/auth_to_local.
    * <p/>
    * Each rule is concatenated using the default ConcatenationType, like calling
-   * {@link #generate(String, ConcatenationType)} with {@link #DEFAULT_CONCATENATION_TYPE}
+   * {@link #generate(ConcatenationType)} with {@link #DEFAULT_CONCATENATION_TYPE}
    *
-   * @param realm a string declaring the realm to use in rule set
    * @return a string containing the generated auth-to-local rule set
    */
-  public String generate(String realm) {
-    return generate(realm, null);
+  public String generate() {
+    return generate(null);
   }
 
   /**
@@ -175,18 +190,25 @@ public class AuthToLocalBuilder {
    * If the concatenation type is <code>null</code>, the default concatenation type is assumed -
    * see {@link #DEFAULT_CONCATENATION_TYPE}.
    *
-   * @param realm             a string declaring the realm to use in rule set
    * @param concatenationType the concatenation type to use to generate the rule set string
    * @return a string containing the generated auth-to-local rule set
    */
-  public String generate(String realm, ConcatenationType concatenationType) {
+  public String generate(ConcatenationType concatenationType) {
     StringBuilder builder = new StringBuilder();
     // ensure that a default rule is added for this realm
-    setRules.add(createDefaultRealmRule(realm));
+    if (!StringUtils.isEmpty(defaultRealm)) {
+      // Remove existing default rule.... this is in the event we are switching case sensitivity...
+      setRules.remove(createDefaultRealmRule(defaultRealm, !caseInsensitiveUser));
+      // Add (new) default rule....
+      setRules.add(createDefaultRealmRule(defaultRealm, caseInsensitiveUser));
+    }
 
     // ensure that a default realm rule is added for the specified additional realms
     for (String additionalRealm : additionalRealms) {
-      setRules.add(createDefaultRealmRule(additionalRealm));
+      // Remove existing default rule.... this is in the event we are switching case sensitivity...
+      setRules.remove(createDefaultRealmRule(additionalRealm, !caseInsensitiveUser));
+      // Add (new) default rule....
+      setRules.add(createDefaultRealmRule(additionalRealm, caseInsensitiveUser));
     }
 
     if (concatenationType == null) {
@@ -230,24 +252,10 @@ public class AuthToLocalBuilder {
   }
 
   /**
-   * Add a default realm rule for the realm associated with a principal.
-   * If the realm is null or is a wildcard ".*" then no rule id added.
-   *
-   * @param principal  principal which contains the realm
-   */
-  private void addDefaultRealmRule(Principal principal) {
-    String realm = principal.getRealm();
-    if (realm != null && ! realm.equals(".*")) {
-      setRules.add(createDefaultRealmRule(realm));
-    }
-  }
-
-  /**
    * Create a rule that expects 2 components in the principal and ignores hostname in the comparison.
    *
-   * @param principal  principal
-   * @param localUser  local user
-   *
+   * @param principal principal
+   * @param localUser local user
    * @return a new rule that ignores hostname in the comparison
    */
   private Rule createHostAgnosticRule(Principal principal, String localUser) {
@@ -262,44 +270,48 @@ public class AuthToLocalBuilder {
   /**
    * Create a default rule for a realm which matches all principals with 1 component and the same realm.
    *
-   * @param realm  realm that the rule is being created for
-   *
-   * @return  a new default realm rule
+   * @param realm realm that the rule is being created for
+   * @param caseInsensitive true if the rule should be case-insensitive; otherwise false
+   * @return a new default realm rule
    */
-  private Rule createDefaultRealmRule(String realm) {
-    String caseSensitivityRule = caseInsensitiveUser ? "/L" : "";
+  private Rule createDefaultRealmRule(String realm, boolean caseInsensitive) {
+    String caseSensitivityRule = caseInsensitive ? "/L" : "";
 
     return new Rule(new Principal(String.format(".*@%s", realm)),
-      1, 1, String.format("RULE:[1:$1@$0](.*@%s)s/@.*//" + caseSensitivityRule, realm));
+        1, 1, String.format("RULE:[1:$1@$0](.*@%s)s/@.*//" + caseSensitivityRule, realm));
   }
 
   /**
    * Create a rule from an existing string representation.
-   * @param rule  string representation of a rule
    *
-   * @return  a new rule which matches the provided string representation
+   * @param rule string representation of a rule
+   * @return a new rule which matches the provided string representation
    */
   private Rule createRule(String rule) {
     return new Rule(rule.startsWith("RULE:") ? rule : String.format("RULE:%s", rule));
   }
 
   /**
-   * Creates and returns a deep copy of this AuthToLocalBuilder.
+   * Given a comma or line delimited list of strings, returns a collection of non-empty strings.
    *
-   * @return a deep copy of this AuthToLocalBuilder
+   * @param string a string to split
+   * @return an array of non-empty strings or null if the source string is empty or null
    */
-  public AuthToLocalBuilder copy() {
-    AuthToLocalBuilder copy = new AuthToLocalBuilder();
+  private static Collection<String> splitDelimitedString(String string) {
+    Collection<String> collection = null;
 
-    // TODO: This needs to be done in a loop rather than use Set.addAll because there may be an issue
-    // TODO: with the Rule.compareTo method?
-    for(Rule rule:setRules) {
-      copy.setRules.add(rule);
+    if (!StringUtils.isEmpty(string)) {
+      collection = new HashSet<String>();
+
+      for (String realm : string.split("\\s*(?:\\r?\\n|,)\\s*")) {
+        realm = realm.trim();
+        if (!realm.isEmpty()) {
+          collection.add(realm);
+        }
+      }
     }
-    copy.caseInsensitiveUser = this.caseInsensitiveUser;
-    copy.additionalRealms.addAll(this.additionalRealms);
 
-    return copy;
+    return collection;
   }
 
 
@@ -311,7 +323,7 @@ public class AuthToLocalBuilder {
      * pattern used to parse existing rules
      */
     private static final Pattern PATTERN_RULE_PARSE =
-      Pattern.compile("RULE:\\s*\\[\\s*(\\d)\\s*:\\s*(.+?)(?:@(.+?))??\\s*\\]\\s*\\((.+?)\\)\\s*([^\\\\\\n]*)(.|\\n)*");
+        Pattern.compile("RULE:\\s*\\[\\s*(\\d)\\s*:\\s*(.+?)(?:@(.+?))??\\s*\\]\\s*\\((.+?)\\)\\s*s/(.*?)/(.*?)/([a-zA-Z]*)(?:.|\n)*");
 
     /**
      * associated principal
@@ -336,10 +348,10 @@ public class AuthToLocalBuilder {
     /**
      * Constructor.
      *
-     * @param principal               principal
-     * @param expectedComponentCount  number of components needed by a principal to match
-     * @param matchComponentCount     number of components which are included in the rule evaluation
-     * @param rule                    string representation of the rule
+     * @param principal              principal
+     * @param expectedComponentCount number of components needed by a principal to match
+     * @param matchComponentCount    number of components which are included in the rule evaluation
+     * @param rule                   string representation of the rule
      */
     public Rule(Principal principal, int expectedComponentCount, int matchComponentCount, String rule) {
       this.principal = principal;
@@ -351,12 +363,12 @@ public class AuthToLocalBuilder {
     /**
      * Constructor.
      *
-     * @param rule  string representation of the rule
+     * @param rule string representation of the rule
      */
     public Rule(String rule) {
       //this.rule = rule;
       Matcher m = PATTERN_RULE_PARSE.matcher(rule);
-      if (! m.matches()) {
+      if (!m.matches()) {
         throw new IllegalArgumentException("Invalid rule: " + rule);
       }
       expectedComponentCount = Integer.valueOf(m.group(1));
@@ -365,18 +377,20 @@ public class AuthToLocalBuilder {
       matchComponentCount = (matchPattern.startsWith("$") ?
           matchPattern.substring(1) :
           matchPattern).
-            split("\\$").length;
+          split("\\$").length;
       String patternRealm = m.group(3);
       principal = new Principal(m.group(4));
-      String replacementRule = m.group(5);
+      String replacementPattern = m.group(5);
+      String replacementReplacement = m.group(6);
+      String replacementModifier = m.group(7);
       if (patternRealm != null) {
-        this.rule = String.format("RULE:[%d:%s@%s](%s)%s",
+        this.rule = String.format("RULE:[%d:%s@%s](%s)s/%s/%s/%s",
             expectedComponentCount, matchPattern, patternRealm,
-            principal.toString(), replacementRule);
+            principal.toString(), replacementPattern, replacementReplacement, replacementModifier);
       } else {
-        this.rule = String.format("RULE:[%d:%s](%s)%s",
+        this.rule = String.format("RULE:[%d:%s](%s)s/%s/%s/%s",
             expectedComponentCount, matchPattern,
-            principal.toString(), replacementRule);
+            principal.toString(), replacementPattern, replacementReplacement, replacementModifier);
       }
     }
 
@@ -422,55 +436,52 @@ public class AuthToLocalBuilder {
 
     /**
      * Compares rules.
-     * <p>
+     * <p/>
      * For rules with different expected component counts, the default string comparison is used.
      * For rules with the same expected component count rules are ordered so that rules with a higher
      * match component count occur first.
-     * <p>
+     * <p/>
      * For rules with the same expected component count, default realm rules in the form of
      * .*@myRealm.com are ordered last.
      *
-     * @param other  the other rule to compare
-     *
+     * @param other the other rule to compare
      * @return a negative integer, zero, or a positive integer as this object is less than,
-     *         equal to, or greater than the specified object
+     * equal to, or greater than the specified object
      */
     @Override
     public int compareTo(Rule other) {
-      Principal thatPrincipal = other.getPrincipal();
-      //todo: better implementation that recursively evaluates realm and all components
-      if (expectedComponentCount != other.getExpectedComponentCount()) {
-        return rule.compareTo(other.rule);
-      } else {
-        if (matchComponentCount != other.getMatchComponentCount()) {
-          return other.getMatchComponentCount() - matchComponentCount;
-        } else {
-          if (principal.equals(thatPrincipal)) {
-            return rule.compareTo(other.rule);
+      int retVal = expectedComponentCount - other.getExpectedComponentCount();
+
+      if (retVal == 0) {
+        retVal = other.getMatchComponentCount() - matchComponentCount;
+
+        if (retVal == 0) {
+          Principal otherPrincipal = other.getPrincipal();
+          if (principal.equals(otherPrincipal)) {
+            retVal = rule.compareTo(other.rule);
           } else {
             // check for wildcard realms '.*'
             String realm = principal.getRealm();
-            String thatRealm = thatPrincipal.getRealm();
-            if (realm == null ? thatRealm != null : ! realm.equals(thatRealm)) {
-              if (realm != null && realm.equals(".*")) {
-                return 1;
-              } else if (thatRealm != null && thatRealm.equals(".*")) {
-                return -1;
+            String otherRealm = otherPrincipal.getRealm();
+            retVal = compareValueWithWildcards(realm, otherRealm);
+
+            if (retVal == 0) {
+              for (int i = 1; i <= matchComponentCount; i++) {
+                // check for wildcard component
+                String component1 = principal.getComponent(1);
+                String otherComponent1 = otherPrincipal.getComponent(1);
+                retVal = compareValueWithWildcards(component1, otherComponent1);
+
+                if (retVal != 0) {
+                  break;
+                }
               }
-            }
-            // check for wildcard component 1
-            String component1 = principal.getComponent(1);
-            String thatComponent1 = thatPrincipal.getComponent(1);
-            if (component1 != null && component1.equals(".*")) {
-              return 1;
-            } else if(thatComponent1 != null && thatComponent1.equals(".*")) {
-              return -1;
-            } else {
-              return rule.compareTo(other.rule);
             }
           }
         }
       }
+
+      return retVal;
     }
 
     @Override
@@ -481,6 +492,42 @@ public class AuthToLocalBuilder {
     @Override
     public int hashCode() {
       return rule.hashCode();
+    }
+
+    /**
+     * Compares 2 strings for use in compareTo methods but orders <code>null</code>s first and wildcards last.
+     * <p/>
+     * Rules:
+     * <ul>
+     * <li><code>null</code> is ordered before any other string except for <code>null</code>, which is considered be equal</li>
+     * <li><code>.*</code> is ordered after any other string except for <code>.*</code>, which is considered equal</li>
+     * <li>All other values are order based on the result of {@link String#compareTo(String)}</li>
+     * </ul>
+     *
+     * @param s1 the first string to be compared.
+     * @param s2 the second string to be compared.
+     * @return a negative integer, zero, or a positive integer as the first argument is less than,
+     * equal to, or greater than the second.
+     * @see Comparable#compareTo(Object)
+     */
+    private int compareValueWithWildcards(String s1, String s2) {
+      if (s1 == null) {
+        if (s2 == null) {
+          return 0;
+        } else {
+          return -1;
+        }
+      } else if (s2 == null) {
+        return 1;
+      } else if (s1.equals(s2)) {
+        return 0;
+      } else if (s1.equals(".*")) {
+        return 1;
+      } else if (s2.equals(".*")) {
+        return -1;
+      } else {
+        return s1.compareTo(s2);
+      }
     }
   }
 
@@ -512,7 +559,7 @@ public class AuthToLocalBuilder {
     /**
      * Constructor.
      *
-     * @param principal  string representation of the principal
+     * @param principal string representation of the principal
      */
     public Principal(String principal) {
       this.principal = principal;
@@ -547,7 +594,6 @@ public class AuthToLocalBuilder {
      * Uses the range 1-n to match the notation used in the rule.
      *
      * @param position position of the component in the range 1-n
-     *
      * @return the component at the specified location or null
      */
     public String getComponent(int position) {
@@ -574,16 +620,20 @@ public class AuthToLocalBuilder {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
 
       Principal principal1 = (Principal) o;
 
       return components.equals(principal1.components) &&
-             principal.equals(principal1.principal) &&
-             !(realm != null ?
-                 !realm.equals(principal1.realm) :
-                 principal1.realm != null);
+          principal.equals(principal1.principal) &&
+          !(realm != null ?
+              !realm.equals(principal1.realm) :
+              principal1.realm != null);
 
     }
 
@@ -622,10 +672,10 @@ public class AuthToLocalBuilder {
      * @return a ConcatenationType
      */
     public static ConcatenationType translate(String value) {
-      if(value != null) {
+      if (value != null) {
         value = value.trim();
 
-        if(!value.isEmpty()) {
+        if (!value.isEmpty()) {
           return valueOf(value.toUpperCase());
         }
       }

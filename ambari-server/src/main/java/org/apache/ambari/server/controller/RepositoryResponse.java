@@ -30,6 +30,8 @@ public class RepositoryResponse {
   private String defaultBaseUrl;
   private String latestBaseUrl;
   private Long repositoryVersionId;
+  private String versionDefinitionId;
+  private Long clusterVersionId;
 
   public RepositoryResponse(String baseUrl, String osType, String repoId,
       String repoName, String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
@@ -126,6 +128,34 @@ public class RepositoryResponse {
 
   public void setRepositoryVersionId(Long repositoryVersionId) {
     this.repositoryVersionId = repositoryVersionId;
+  }
+
+  /**
+   * @param id the version definition id
+   */
+  public void setVersionDefinitionId(String id) {
+    versionDefinitionId = id;
+  }
+
+  /**
+   * @return the version definition id
+   */
+  public String getVersionDefinitionId() {
+    return versionDefinitionId;
+  }
+
+  /**
+   * @param id the cluster version id for the response
+   */
+  public void setClusterVersionId(Long id) {
+    clusterVersionId = id;
+  }
+
+  /**
+   * @return the cluster version id for the response
+   */
+  public Long getClusterVersionId() {
+    return clusterVersionId;
   }
 
 }

@@ -61,7 +61,7 @@ public class HostRemovedEvent extends HostEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("HostRemovedEvent{ ");
+    StringBuilder buffer = new StringBuilder("HostRemovedEvent{");
     buffer.append("hostName=").append(m_hostName);
     buffer.append("}");
     return buffer.toString();

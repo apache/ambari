@@ -190,6 +190,7 @@ public class ClientConfigResourceProviderTest {
     String clusterName = "C1";
     String serviceName = "PIG";
     String componentName = "PIG";
+    String displayName = "Pig Client";
     String hostName = "Host100";
     String desiredState = "INSTALLED";
 
@@ -215,7 +216,7 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<String, ServiceOsSpecific>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, hostName, desiredState, "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, desiredState, "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -238,6 +239,8 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.getResourceDirPath()).andReturn(stackRoot);
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
+    expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
+    expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
@@ -388,6 +391,7 @@ public class ClientConfigResourceProviderTest {
     String clusterName = "C1";
     String serviceName = "PIG";
     String componentName = "PIG";
+    String displayName = "Pig Client";
     String hostName = "Host100";
     String desiredState = "INSTALLED";
 
@@ -414,7 +418,7 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<String, ServiceOsSpecific>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, hostName, desiredState, "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, desiredState, "", null, null, null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
@@ -437,6 +441,8 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.getResourceDirPath()).andReturn("/var/lib/ambari-server/src/main/resources");
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
+    expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
+    expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
 
     Map<String,String> props = new HashMap<String, String>();
@@ -547,7 +553,7 @@ public class ClientConfigResourceProviderTest {
     Predicate predicate = new PredicateBuilder().property(
             ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("HDFS_CLIENT").toPredicate();
     try {
-      provider.deleteResources(predicate);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected an UnsupportedOperationException");
     } catch (SystemException e) {
       // expected

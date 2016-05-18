@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +41,7 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
   private MetricsReportPropertyProvider gangliaMetricsReportProvider;
   private final MetricsServiceProvider metricsServiceProvider;
   private TimelineMetricCacheProvider cacheProvider;
+  private String clusterNamePropertyId;
 
   public MetricsReportPropertyProviderProxy(
     Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
@@ -56,6 +56,7 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
     super(componentPropertyInfoMap);
     this.metricsServiceProvider = serviceProvider;
     this.cacheProvider = cacheProvider;
+    this.clusterNamePropertyId = clusterNamePropertyId;
 
     createReportPropertyProviders(componentPropertyInfoMap,
       streamProvider,
@@ -105,6 +106,9 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
   public Set<Resource> populateResources(Set<Resource> resources, Request request,
                                          Predicate predicate) throws SystemException {
 
+    if(!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
+      return resources;
+    }
     MetricsService metricsService = metricsServiceProvider.getMetricsServiceType();
 
     if (metricsService != null) {

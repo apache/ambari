@@ -43,42 +43,77 @@ App.MainChartsHeatmapHostView = Em.View.extend({
    * @this App.MainChartsHeatmapHostView
    */
   mouseEnter: function (event) {
-    var host = this.get('content');
-    var view = App.MainChartsHeatmapHostDetailView.create();
-    var self = this;
-    var nonClientComponents = App.get('components.slaves').concat(App.get('components.masters'));
+    var host = this.get('content'),
+        view = App.MainChartsHeatmapHostDetailView.create();
 
-    $.each(view.get('details'), function (i) {
+    Object.keys(view.get('details')).forEach(function (i) {
       var val = host[i];
 
       switch (i) {
         case 'diskUsage':
-          val = self.getUsage(host, 'diskTotal', 'diskFree');
+          val = this.getUsage(host['diskTotal'], host['diskFree']);
           break;
         case 'cpuUsage':
-          val = 0;
-          if (Number.isFinite(host.cpuSystem) && Number.isFinite(host.cpuUser)) {
-            val = host.cpuSystem + host.cpuUser;
-          }
-          val = val.toFixed(1);
+          val = this.getCpuUsage(host['cpuSystem'], host['cpuUser']);
           break;
         case 'memoryUsage':
-          val = self.getUsage(host, 'memTotal', 'memFree');
+          val = this.getUsage(host['memTotal'], host['memFree']);
           break;
         case 'hostComponents':
-          val = [];
-          host[i].forEach(function (componentName) {
-            if (nonClientComponents.contains(componentName)) {
-              val.push(App.format.role(componentName));
-            }
-          }, this);
-          val = val.join(', ')
+          val = this.getHostComponents(host[i]);
       }
 
       view.set('details.' + i, val);
-    });
+    }, this);
     this.setMetric(view, host);
     this.openDetailsBlock(event);
+  },
+
+  /**
+   * get relative usage of metric in percents
+   * @param {number} total
+   * @param {number} free
+   * @return {string}
+   */
+  getUsage: function (total, free) {
+    var result = 0;
+
+    if (Number.isFinite(total) && Number.isFinite(free) && total > 0) {
+      result = ((total - free) / total) * 100;
+    }
+    return result.toFixed(1);
+  },
+
+  /**
+   * get CPU usage
+   * @param {number} cpuSystem
+   * @param {number} cpuUser
+   * @returns {string}
+   */
+  getCpuUsage: function (cpuSystem, cpuUser) {
+    var result = 0;
+
+    if (Number.isFinite(cpuSystem) && Number.isFinite(cpuUser)) {
+      result = cpuSystem + cpuUser;
+    }
+    return result.toFixed(1);
+  },
+
+  /**
+   * get non-client host-components of host
+   * @param {Array} components
+   * @returns {string}
+   */
+  getHostComponents: function (components) {
+    var nonClientComponents = App.get('components.slaves').concat(App.get('components.masters'));
+    var result = [];
+
+    components.forEach(function (componentName) {
+      if (nonClientComponents.contains(componentName)) {
+        result.push(App.format.role(componentName, false));
+      }
+    }, this);
+    return result.join(', ')
   },
 
   /**
@@ -108,7 +143,7 @@ App.MainChartsHeatmapHostView = Em.View.extend({
         if (Em.isNone(value)) {
           value = this.t('charts.heatmap.unknown');
         } else {
-          if (metricName == 'Garbage Collection Time') {
+          if (metricName === 'Garbage Collection Time') {
             value = date.timingFormat(parseInt(value));
           } else {
             if (isNaN(value)) {
@@ -122,22 +157,6 @@ App.MainChartsHeatmapHostView = Em.View.extend({
         view.set('details.metricValue', value);
       }
     }
-  },
-  /**
-   * get relative usage of metric in percents
-   * @param item
-   * @param totalProperty
-   * @param freeProperty
-   * @return {String}
-   */
-  getUsage: function (item, totalProperty, freeProperty) {
-    var result = 0;
-    var total = item[totalProperty];
-
-    if (Number.isFinite(total) && Number.isFinite(item[freeProperty]) && total > 0) {
-      result = ((total - item[freeProperty]) / total) * 100;
-    }
-    return result.toFixed(1);
   },
 
   /**

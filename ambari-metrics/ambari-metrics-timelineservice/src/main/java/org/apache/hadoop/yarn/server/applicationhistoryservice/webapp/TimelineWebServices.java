@@ -24,7 +24,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.metrics2.annotation.Metric;
+import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
+import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
@@ -65,6 +69,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -149,15 +154,15 @@ public class TimelineWebServices {
     TimelineEntities entities = null;
     try {
       entities = store.getEntities(
-          parseStr(entityType),
-          parseLongStr(limit),
-          parseLongStr(windowStart),
-          parseLongStr(windowEnd),
-          parseStr(fromId),
-          parseLongStr(fromTs),
-          parsePairStr(primaryFilter, ":"),
-          parsePairsStr(secondaryFilter, ",", ":"),
-          parseFieldsStr(fields, ","));
+        parseStr(entityType),
+        parseLongStr(limit),
+        parseLongStr(windowStart),
+        parseLongStr(windowEnd),
+        parseStr(fromId),
+        parseLongStr(fromTs),
+        parsePairStr(primaryFilter, ":"),
+        parsePairsStr(secondaryFilter, ",", ":"),
+        parseFieldsStr(fields, ","));
     } catch (NumberFormatException e) {
       throw new BadRequestException(
           "windowStart, windowEnd or limit is not a numeric value.");
@@ -280,49 +285,29 @@ public class TimelineWebServices {
     }
   }
 
-  /**
-   * Query for a particular metric satisfying the filter criteria.
-   * @return {@link TimelineMetric}
-   */
-  @GET
-  @Path("/metrics/{metricName}")
-  @Produces({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
-  public TimelineMetric getTimelineMetric(
-    @Context HttpServletRequest req,
-    @Context HttpServletResponse res,
-    @PathParam("metricName") String metricName,
-    @QueryParam("appId") String appId,
-    @QueryParam("instanceId") String instanceId,
-    @QueryParam("hostname") String hostname,
-    @QueryParam("startTime") String startTime,
-    @QueryParam("endTime") String endTime,
-    @QueryParam("precision") String precision,
-    @QueryParam("limit") String limit
-  ) {
+  @Path("/containermetrics")
+  @POST
+  @Consumes({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
+  public TimelinePutResponse postContainerMetrics(
+      @Context HttpServletRequest req,
+      @Context HttpServletResponse res,
+      List<ContainerMetric> metrics) {
     init(res);
+    if (metrics == null || metrics.isEmpty()) {
+      return new TimelinePutResponse();
+    }
+
     try {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Request for metrics => metricName: " + metricName + ", " +
-          "appId: " + appId + ", instanceId: " + instanceId + ", " +
-          "hostname: " + hostname + ", startTime: " + startTime + ", " +
-          "endTime: " + endTime);
+        LOG.debug("Storing container metrics: " + TimelineUtils
+            .dumpTimelineRecordtoJSON(metrics, true));
       }
 
-      return timelineMetricStore.getTimelineMetric(metricName,
-        parseListStr(hostname, ","), appId, instanceId, parseLongStr(startTime),
-        parseLongStr(endTime), Precision.getPrecision(precision),
-        parseIntStr(limit));
-    } catch (NumberFormatException ne) {
-      throw new BadRequestException("startTime, endTime and limit should be " +
-        "numeric values");
-    } catch (Precision.PrecisionFormatException pfe) {
-      throw new BadRequestException("precision should be seconds, minutes " +
-        "or hours");
-    } catch (IllegalArgumentException iae) {
-      throw new BadRequestException(iae.getMessage());
-    } catch (SQLException | IOException sql) {
-      throw new WebApplicationException(sql,
-        Response.Status.INTERNAL_SERVER_ERROR);
+      return timelineMetricStore.putContainerMetrics(metrics);
+
+    } catch (Exception e) {
+      LOG.error("Error saving metrics.", e);
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -339,11 +324,11 @@ public class TimelineWebServices {
    * @param precision Precision [ seconds, minutes, hours ]
    * @param limit limit on total number of {@link TimelineMetric} records
    *              retrieved.
-   * @return {@link TimelineMetrics}
+   * @return {@link @TimelineMetrics}
    */
   @GET
   @Path("/metrics")
-  @Produces({ MediaType.APPLICATION_JSON /* , MediaType.APPLICATION_XML */})
+  @Produces({ MediaType.APPLICATION_JSON })
   public TimelineMetrics getTimelineMetrics(
     @Context HttpServletRequest req,
     @Context HttpServletResponse res,
@@ -355,7 +340,10 @@ public class TimelineWebServices {
     @QueryParam("endTime") String endTime,
     @QueryParam("precision") String precision,
     @QueryParam("limit") String limit,
-    @QueryParam("grouped") String grouped
+    @QueryParam("grouped") String grouped,
+    @QueryParam("topN") String topN,
+    @QueryParam("topNFunction") String topNFunction,
+    @QueryParam("isBottomN") String isBottomN
   ) {
     init(res);
     try {
@@ -371,7 +359,7 @@ public class TimelineWebServices {
         parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, instanceId,
         parseLongStr(startTime), parseLongStr(endTime),
         Precision.getPrecision(precision), parseIntStr(limit),
-        parseBoolean(grouped));
+        parseBoolean(grouped), parseTopNConfig(topN, topNFunction, isBottomN));
 
     } catch (NumberFormatException ne) {
       throw new BadRequestException("startTime and limit should be numeric " +
@@ -383,15 +371,55 @@ public class TimelineWebServices {
       throw new PrecisionLimitExceededException(iae.getMessage());
     } catch (IllegalArgumentException iae) {
       throw new BadRequestException(iae.getMessage());
-    } catch (SQLException sql) {
-      throw new WebApplicationException(sql,
-        Response.Status.INTERNAL_SERVER_ERROR);
-    } catch (IOException io) {
-      throw new WebApplicationException(io,
+    } catch (SQLException | IOException e) {
+      throw new WebApplicationException(e,
         Response.Status.INTERNAL_SERVER_ERROR);
     }
   }
 
+  @GET
+  @Path("/metrics/metadata")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res
+  ) {
+    init(res);
+
+    try {
+      return timelineMetricStore.getTimelineMetricMetadata();
+    } catch (Exception e) {
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GET
+  @Path("/metrics/hosts")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public Map<String, Set<String>> getHostedAppsMetadata(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res
+  ) {
+    init(res);
+
+    try {
+      return timelineMetricStore.getHostAppsMetadata();
+    } catch (Exception e) {
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GET
+  @Path("/metrics/livenodes")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public List<String> getLiveCollectorNodes(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res
+  ) {
+    init(res);
+
+    return timelineMetricStore.getLiveInstances();
+  }
 
   /**
    * Store the given entities into the timeline store, and return the errors
@@ -515,6 +543,22 @@ public class TimelineWebServices {
 
   private static boolean parseBoolean(String booleanStr) {
     return booleanStr == null || Boolean.parseBoolean(booleanStr);
+  }
+
+  private static TopNConfig parseTopNConfig(String topN, String topNFunction,
+                                            String bottomN) {
+    if (topN == null || topN.isEmpty()) {
+      return null;
+    }
+    Integer topNValue = parseIntStr(topN);
+
+    if (topNValue == 0) {
+      LOG.info("Invalid Input for TopN query. Ignoring TopN Request.");
+      return null;
+    }
+
+    Boolean isBottomN = (bottomN != null && Boolean.parseBoolean(bottomN));
+    return new TopNConfig(topNValue, topNFunction, isBottomN);
   }
 
   /**

@@ -25,7 +25,7 @@
       <div {{bindAttr class=":span10 isNameInvalid:error"}}>
         {{view Ember.TextField valueBinding="widgetName"}}
         {{#if isNameInvalid}}
-          <div>{{t widget.create.wizard.step3.name.invalid.msg}}</div>
+          <div>{{widgetNameErrorMessage}}</div>
         {{/if}}
       </div>
     </div>
@@ -50,7 +50,7 @@
       <div {{bindAttr class=":span10 isDescriptionInvalid:error"}}>
         {{view Ember.TextArea valueBinding="widgetDescription" class="description-text-area"}}
         {{#if isDescriptionInvalid}}
-          <div>{{t widget.create.wizard.step3.description.invalid.msg}}</div>
+          <div>{{descriptionErrorMessage}}</div>
         {{/if}}
       </div>
     </div>

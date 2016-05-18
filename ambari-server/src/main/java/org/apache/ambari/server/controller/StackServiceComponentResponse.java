@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 
@@ -81,6 +82,11 @@ public class StackServiceComponentResponse {
   private boolean versionAdvertised;
 
   /**
+   * Whether the component can be decommissioned.
+   * */
+  private String decommissionAllowed;
+
+  /**
    * auto deploy information
    */
   private AutoDeployInfo autoDeploy;
@@ -90,6 +96,19 @@ public class StackServiceComponentResponse {
    */
   private List<String> customCommands;
 
+  /**
+   * Enabled for auto start or not.
+   */
+  private boolean recoveryEnabled;
+
+  private String bulkCommandsDisplayName;
+  private String bulkCommandMasterComponentName;
+  private boolean hasBulkCommands;
+
+  /**
+   * Whether the component can be reassigned to a different node.
+   * */
+  private String reassignAllowed;
 
   /**
    * Constructor.
@@ -105,7 +124,13 @@ public class StackServiceComponentResponse {
     isMaster = component.isMaster();
     cardinality = component.getCardinality();
     versionAdvertised = component.isVersionAdvertised();
+    decommissionAllowed = component.getDecommissionAllowed();
     autoDeploy = component.getAutoDeploy();
+    recoveryEnabled = component.isRecoveryEnabled();
+    hasBulkCommands = componentHasBulkCommands(component);
+    bulkCommandsDisplayName = getBulkCommandsDisplayName(component);
+    bulkCommandMasterComponentName = getBulkCommandsMasterComponentName(component);
+    reassignAllowed = component.getReassignAllowed();
 
     // the custom command names defined for this component
     List<CustomCommandDefinition> definitions = component.getCustomCommands();
@@ -116,6 +141,54 @@ public class StackServiceComponentResponse {
       for (CustomCommandDefinition command : definitions) {
         customCommands.add(command.getName());
       }
+    }
+  }
+
+  /**
+   * Get bulk command master component name
+   *
+   * @param component
+   *          the component to generate the response from (not {@code null}).
+   * @return master component name
+   */
+  private String getBulkCommandsMasterComponentName(ComponentInfo component) {
+    BulkCommandDefinition o = component.getBulkCommandDefinition();
+    if (o == null) {
+      return "";
+    } else {
+      return o.getMasterComponent();
+    }
+  }
+
+  /**
+   * Get the display name shown on the user interface which bulk commands are grouped under
+   *
+   * @param component
+   *          the component to generate the response from (not {@code null}).
+   * @return display name of the bulk command group
+   */
+  private String getBulkCommandsDisplayName(ComponentInfo component) {
+    BulkCommandDefinition o = component.getBulkCommandDefinition();
+    if (o == null) {
+      return "";
+    } else {
+      return o.getDisplayName();
+    }
+  }
+
+  /**
+   * Determine if the component has bulk commands
+   *
+   * @param component
+   *          the component to generate the response from (not {@code null}).
+   * @return boolean
+   */
+  private boolean componentHasBulkCommands(ComponentInfo component) {
+    BulkCommandDefinition o = component.getBulkCommandDefinition();
+    if (o == null) {
+      return false;
+    } else {
+      return o.getDisplayName() != null && !o.getDisplayName().trim().isEmpty();
     }
   }
 
@@ -301,6 +374,68 @@ public class StackServiceComponentResponse {
     this.versionAdvertised = versionAdvertised;
   }
 
+  /**
+   * Get whether the components can be decommissioned.
+   *
+   * @return Whether the components can be decommissioned
+   */
+  public boolean isDecommissionAlllowed() {
+    if (decommissionAllowed != null && decommissionAllowed.equals("true")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Set whether the component can be decommissioned.
+   *
+   * @param decommissionAllowed whether the component can be decommissioned
+   */
+  public void setDecommissionAllowed(String decommissionAllowed) {
+    this.decommissionAllowed = decommissionAllowed;
+  }
+
+  /**
+   * Get whether the components can be reassigned.
+   *
+   * @return Whether the components can be reassigned
+   */
+  public boolean isReassignAlllowed() {
+    if (reassignAllowed != null && reassignAllowed.equals("true")) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Set whether the component can be reassigned.
+   *
+   * @param reassignAllowed whether the component can be reassigned
+   */
+  public void setReassignAllowed(String reassignAllowed) {
+    this.reassignAllowed = reassignAllowed;
+  }
+
+  /**
+   * Get whether auto start is enabled.
+   *
+   * @return True or false.
+   */
+  public boolean isRecoveryEnabled() {
+    return recoveryEnabled;
+  }
+
+  /**
+   * Set whether auto start is enabled.
+   *
+   * @param recoveryEnabled True or false.
+   */
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    this.recoveryEnabled = recoveryEnabled;
+  }
+
 
   /**
    * Get auto deploy information.
@@ -327,5 +462,17 @@ public class StackServiceComponentResponse {
    */
   public List<String> getCustomCommands() {
     return customCommands;
+  }
+
+  public boolean hasBulkCommands(){
+    return hasBulkCommands;
+  }
+
+  public String getBulkCommandsDisplayName(){
+    return bulkCommandsDisplayName == null ? "":bulkCommandsDisplayName;
+  }
+
+  public String getBulkCommandsMasterComponentName(){
+    return bulkCommandMasterComponentName == null ? "":bulkCommandMasterComponentName;
   }
 }

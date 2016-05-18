@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -34,6 +35,13 @@ public abstract class Task {
   public String summary;
 
   /**
+   * Whether the task needs to run sequentially, i.e., on its own stage.
+   * If false, will be grouped with other tasks.
+   */
+  @XmlAttribute(name = "sequential")
+  public boolean isSequential = false;
+
+  /**
    * @return the type of the task
    */
   public abstract Type getType();
@@ -48,9 +56,25 @@ public abstract class Task {
    */
   public abstract String getActionVerb();
 
+  /**
+   * The scope for the task
+   */
+  @XmlElement(name = "scope")
+  public UpgradeScope scope = UpgradeScope.ANY;
+
+
   @Override
   public String toString() {
     return getType().toString();
+  }
+
+  /**
+   * Gets the summary of the task or {@code null}.
+   *
+   * @return the task summary or {@code null}.
+   */
+  public String getSummary() {
+    return summary;
   }
 
   /**

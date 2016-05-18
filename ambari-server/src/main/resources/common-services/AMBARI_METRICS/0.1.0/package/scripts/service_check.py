@@ -27,6 +27,7 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 import httplib
+import network
 import urllib
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
@@ -38,8 +39,8 @@ import socket
 class AMSServiceCheck(Script):
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
-  AMS_CONNECT_TRIES = 10
-  AMS_CONNECT_TIMEOUT = 10
+  AMS_CONNECT_TRIES = 30
+  AMS_CONNECT_TIMEOUT = 15
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def service_check(self, env):
@@ -67,20 +68,24 @@ class AMSServiceCheck(Script):
     env.set_params(params)
 
     random_value1 = random.random()
-    current_time = int(time.time()) * 1000
-    metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
-                           current_time=current_time).get_content()
-    Logger.info("Generated metrics:\n%s" % metric_json)
-
     headers = {"Content-type": "application/json"}
+    ca_certs = os.path.join(params.ams_collector_conf_dir,
+                            params.metric_truststore_ca_certs)
 
     for i in xrange(0, self.AMS_CONNECT_TRIES):
       try:
+        current_time = int(time.time()) * 1000
+        metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
+                           current_time=current_time).get_content()
+        Logger.info("Generated metrics:\n%s" % metric_json)
+
         Logger.info("Connecting (POST) to %s:%s%s" % (params.metric_collector_host,
                                                       params.metric_collector_port,
                                                       self.AMS_METRICS_POST_URL))
-        conn = httplib.HTTPConnection(params.metric_collector_host,
-                                        int(params.metric_collector_port))
+        conn = network.get_http_connection(params.metric_collector_host,
+                                           int(params.metric_collector_port),
+                                           params.metric_collector_https_enabled,
+                                           ca_certs)
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
 
         response = conn.getresponse()
@@ -127,8 +132,10 @@ class AMSServiceCheck(Script):
                                                  params.metric_collector_port,
                                               self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters))
 
-    conn = httplib.HTTPConnection(params.metric_collector_host,
-                                  int(params.metric_collector_port))
+    conn = network.get_http_connection(params.metric_collector_host,
+                                       int(params.metric_collector_port),
+                                       params.metric_collector_https_enabled,
+                                       ca_certs)
     conn.request("GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()
     Logger.info("Http response: %s %s" % (response.status, response.reason))

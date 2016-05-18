@@ -19,8 +19,18 @@
   <form>
     <div {{bindAttr class=":control-group view.parentView.isInvalid:error"}}>
       <label class="control-label">{{view.text}}</label>
+      <h4>{{view.title}}</h4>
+      <p>{{view.description}}</p>
       <div class="controls">
+        <strong>{{view.label}}&nbsp;&nbsp;</strong>
         {{view Em.TextField class="prompt-input" valueBinding="view.parentView.inputValue"}}
+        {{#if view.parentView.isChanged}}
+          <a href="#" data-toggle="tooltip" class="btn-small"
+            {{action "doRestoreDefaultValue" this target="view.parentView"}}
+            {{translateAttr data-original-title="common.reset.default"}}>
+            <i class="icon-undo"></i>
+          </a>
+        {{/if}}
       </div>
       {{#if view.parentView.isInvalid}}
         <span class="help-inline">{{view.parentView.errorMessage}}</span>

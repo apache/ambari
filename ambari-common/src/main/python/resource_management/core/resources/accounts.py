@@ -47,5 +47,11 @@ class User(Resource):
   shell = ResourceArgument()
   password = ResourceArgument()
   system = BooleanArgument(default=False)
+  """
+  On some envs, with ldap enabled, fetching information
+  for all the groups - grp.getgrall() - is pretty slow.
+  This parameter enables us fetching information about only local users (which is fast).
+  """
+  fetch_nonlocal_groups = BooleanArgument(default=True)
 
   actions = Resource.actions + ["create", "remove"]

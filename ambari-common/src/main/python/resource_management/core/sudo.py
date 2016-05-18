@@ -24,10 +24,14 @@ import os
 import tempfile
 import shutil
 import stat
+import errno
+import random
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from ambari_commons.os_check import OSCheck
+import subprocess
+
 
 if os.geteuid() == 0:
   def chown(path, owner, group):
@@ -35,6 +39,21 @@ if os.geteuid() == 0:
     gid = group.gr_gid if group else -1
     if uid != -1 or gid != -1:
       return os.chown(path, uid, gid)
+      
+  def chown_recursive(path, owner, group, follow_links=False):
+    uid = owner.pw_uid if owner else -1
+    gid = group.gr_gid if group else -1
+    
+    if uid == -1 and gid == -1:
+      return
+      
+    for root, dirs, files in os.walk(path, followlinks=follow_links):
+      for name in files + dirs:
+        if follow_links:
+          os.chown(os.path.join(root, name), uid, gid)
+        else:
+          os.lchown(os.path.join(root, name), uid, gid)
+            
   
   def chmod(path, mode):
     return os.chmod(path, mode)
@@ -51,7 +70,23 @@ if os.geteuid() == 0:
     shutil.copy(src, dst)
     
   def makedirs(path, mode):
-    os.makedirs(path, mode)
+    try:
+      os.makedirs(path, mode)
+    except OSError as ex:
+      if ex.errno == errno.ENOENT:
+        dirname = os.path.dirname(ex.filename)
+        if os.path.islink(dirname) and not os.path.exists(dirname):
+          raise Fail("Cannot create directory '{0}' as '{1}' is a broken symlink".format(path, dirname))
+      elif ex.errno == errno.ENOTDIR:
+        dirname = os.path.dirname(ex.filename)
+        if os.path.isfile(dirname):
+          raise Fail("Cannot create directory '{0}' as '{1}' is a file".format(path, dirname))
+      elif ex.errno == errno.ELOOP:
+        dirname = os.path.dirname(ex.filename)
+        if os.path.islink(dirname) and not os.path.exists(dirname):
+          raise Fail("Cannot create directory '{0}' as '{1}' is a looped symlink".format(path, dirname))
+        
+      raise
   
   def makedir(path, mode):
     os.mkdir(path)
@@ -111,13 +146,21 @@ if os.geteuid() == 0:
     
     
 else:
-
   # os.chown replacement
   def chown(path, owner, group):
     owner = owner.pw_name if owner else ""
     group = group.gr_name if group else ""
     if owner or group:
       shell.checked_call(["chown", owner+":"+group, path], sudo=True)
+      
+  def chown_recursive(path, owner, group, follow_links=False):
+    owner = owner.pw_name if owner else ""
+    group = group.gr_name if group else ""
+    if owner or group:
+      flags = ["-R"]
+      if follow_links:
+        flags.append("-L")
+      shell.checked_call(["chown"] + flags + [owner+":"+group, path], sudo=True)
       
   # os.chmod replacement
   def chmod(path, mode):
@@ -154,21 +197,7 @@ else:
     
   # fp.write replacement
   def create_file(filename, content, encoding=None):
-    """
-    if content is None, create empty file
-    """
-    content = content if content else ""
-    content = content.encode(encoding) if encoding else content
-    
-    tmpf_name = tempfile.gettempdir() + os.sep + tempfile.template + str(time.time())
-    
-    try:
-      with open(tmpf_name, "wb") as fp:
-        fp.write(content)
-        
-      shell.checked_call(["cp", "-f", tmpf_name, filename], sudo=True)
-    finally:
-      os.unlink(tmpf_name)
+    return _create_file(filename, content, True, encoding)
       
   # fp.read replacement
   def read_file(filename, encoding=None):
@@ -206,8 +235,12 @@ else:
   def stat(path):
     class Stat:
       def __init__(self, path):
-        out = shell.checked_call(["stat", "-c", "%u %g %a", path], sudo=True)[1]
-        uid_str, gid_str, mode_str = out.split(' ')
+        cmd = ["stat", "-c", "%u %g %a", path]
+        code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess.PIPE)
+        values = out.split(' ')
+        if len(values) != 3:
+          raise Fail("Execution of '{0}' returned unexpected output. {2}\n{3}".format(cmd, code, err, out))
+        uid_str, gid_str, mode_str = values
         self.st_uid, self.st_gid, self.st_mode = int(uid_str), int(gid_str), int(mode_str, 8)
   
     return Stat(path)
@@ -222,3 +255,27 @@ else:
   # shutil.copy replacement
   def copy(src, dst):
     shell.checked_call(["sudo", "cp", "-r", src, dst], sudo=True)
+    
+def chmod_recursive(path, recursive_mode_flags, recursion_follow_links):
+  find_flags = []
+  if recursion_follow_links:
+    find_flags.append('-L')
+    
+  for key, flags in recursive_mode_flags.iteritems():
+    shell.checked_call(["find"] + find_flags + [path, "-type", key, "-exec" , "chmod", flags ,"{}" ,";"])
+
+# fp.write replacement
+def _create_file(filename, content, withSudo, encoding=None):
+  """
+  if content is None, create empty file
+  """
+  content = content if content else ""
+  content = content.encode(encoding) if encoding else content
+
+  tmpf_name = tempfile.gettempdir() + os.sep + tempfile.template + str(time.time()) + "_" + str(random.randint(0, 1000))
+  try:
+      with open(tmpf_name, "wb") as fp:
+          fp.write(content)
+      shell.checked_call(["cp", "-f", tmpf_name, filename], sudo=withSudo)
+  finally:
+      os.unlink(tmpf_name)

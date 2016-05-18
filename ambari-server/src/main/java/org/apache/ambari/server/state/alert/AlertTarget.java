@@ -35,6 +35,7 @@ public class AlertTarget {
   private String m_notificationType;
   private Map<String, String> m_properties;
   private boolean m_isGlobal;
+  private boolean m_isEnabled;
 
   /**
    * @return the id
@@ -137,6 +138,26 @@ public class AlertTarget {
   }
 
   /**
+   * Gets whether the alert target is enabled.
+   *
+   * @return {@code true} if enabled.
+   */
+  @JsonProperty("enabled")
+  public boolean isEnabled() {
+    return m_isEnabled;
+  }
+
+  /**
+   * Sets whether the alert target is enabled.
+   *
+   * @param isEnabled
+   *          {@code true} if the alert target is enabled.
+   */
+  public void setEnabled(boolean isEnabled) {
+    m_isEnabled = isEnabled;
+  }
+
+  /**
    * @param entity
    * @return
    */
@@ -147,6 +168,7 @@ public class AlertTarget {
     target.setName(entity.getTargetName());
     target.setNotificationType(entity.getNotificationType());
     target.setGlobal(entity.isGlobal());
+    target.setEnabled(entity.isEnabled());
     return target;
   }
 }

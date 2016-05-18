@@ -17,10 +17,17 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 describe('App.MainAdminKerberosController', function() {
 
   var controller = App.MainAdminKerberosController.create({});
+
+  App.TestAliases.testAsComputedEqual(controller, 'isManualKerberos', 'kdc_type', 'none');
+
+  App.TestAliases.testAsComputedSomeBy(controller, 'isPropertiesChanged', 'stepConfigs', 'isPropertiesChanged', true);
+
+  App.TestAliases.testAsComputedOr(controller, 'isSaveButtonDisabled', ['isSubmitDisabled', '!isPropertiesChanged']);
 
   describe('#prepareConfigProperties', function() {
     beforeEach(function() {
@@ -33,7 +40,7 @@ describe('App.MainAdminKerberosController', function() {
         Em.Object.create({ name: 'prop2', isEditable: true, serviceName: 'KERBEROS'}),
         Em.Object.create({ name: 'prop3', isEditable: true, serviceName: 'HDFS'}),
         Em.Object.create({ name: 'prop4', isEditable: true, serviceName: 'Cluster'}),
-        Em.Object.create({ name: 'prop5', isEditable: true, serviceName: 'SERVICE1'}),
+        Em.Object.create({ name: 'prop5', isEditable: true, serviceName: 'SERVICE1'})
       ]);
     });
 
@@ -55,20 +62,30 @@ describe('App.MainAdminKerberosController', function() {
       });
     });
 
-    it('should take displayType from predefinedSiteProperties', function () {
-      sinon.stub(App.configsCollection, 'getAll').returns([
-        {
-          name: 'hadoop.security.auth_to_local',
-          displayType: 'multiLine'
-        }
-      ]);
-      expect(controller.prepareConfigProperties([
-        Em.Object.create({
-          name: 'hadoop.security.auth_to_local',
-          serviceName: 'HDFS'
-        })
-      ])[0].get('displayType')).to.equal('multiLine');
-      App.configsCollection.getAll.restore();
+    describe('should take displayType from predefinedSiteProperties', function () {
+
+      beforeEach(function () {
+        sinon.stub(App.configsCollection, 'getAll').returns([
+          {
+            name: 'hadoop.security.auth_to_local',
+            displayType: 'multiLine'
+          }
+        ]);
+      });
+
+      afterEach(function () {
+        App.configsCollection.getAll.restore();
+      });
+
+      it('displayType is valid', function () {
+        expect(controller.prepareConfigProperties([
+          Em.Object.create({
+            name: 'hadoop.security.auth_to_local',
+            serviceName: 'HDFS'
+          })
+        ])[0].get('displayType')).to.equal('multiLine');
+      });
+
     });
   });
 
@@ -82,7 +99,7 @@ describe('App.MainAdminKerberosController', function() {
       controller.startKerberosWizard.restore();
     });
     it("shows popup", function () {
-      var check =  { items: [{
+      var check = { items: [{
         UpgradeChecks: {
           "check": "Work-preserving RM/NM restart is enabled in YARN configs",
           "status": "FAIL",
@@ -115,13 +132,11 @@ describe('App.MainAdminKerberosController', function() {
 
     beforeEach(function () {
       sinon.spy(App.ModalPopup, "show");
-      sinon.stub(App.ajax, 'send', Em.K);
       sinon.spy(controller, 'restartServicesAfterRegenerate');
       sinon.spy(controller, 'restartAllServices');
     });
     afterEach(function () {
       App.ModalPopup.show.restore();
-      App.ajax.send.restore();
       controller.restartServicesAfterRegenerate.restore();
       controller.restartAllServices.restore();
     });
@@ -141,8 +156,8 @@ describe('App.MainAdminKerberosController', function() {
       var popup2 = popup.onPrimary();
       popup2.set('restartComponents', true)
       popup2.onPrimary();
-
-      expect(App.ajax.send.args[0][0].data.type).to.equal('missing');
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos_security.regenerate_keytabs');
+      expect(args[0].data.type).to.be.equal('missing');
     });
 
     it('user didn\'t check regeneration only for missing host/components', function () {
@@ -153,7 +168,8 @@ describe('App.MainAdminKerberosController', function() {
       popup2.set('restartComponents', true)
       popup2.onPrimary();
 
-      expect(App.ajax.send.args[0][0].data.type).to.equal('all');
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos_security.regenerate_keytabs');
+      expect(args[0].data.type).to.be.equal('all');
     });
 
     it('user checked restart services automatically', function () {
@@ -164,7 +180,8 @@ describe('App.MainAdminKerberosController', function() {
       popup2.set('restartComponents', true)
       popup2.onPrimary();
 
-      expect(App.ajax.send.args[0][0].data.withAutoRestart).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos_security.regenerate_keytabs');
+      expect(args[0].data.withAutoRestart).to.be.true;
     });
 
     it('user didn\'t check restart services automatically', function () {
@@ -175,7 +192,8 @@ describe('App.MainAdminKerberosController', function() {
       popup2.set('restartComponents', false)
       popup2.onPrimary();
 
-      expect(App.ajax.send.args[0][0].data.withAutoRestart).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos_security.regenerate_keytabs');
+      expect(args[0].data.withAutoRestart).to.be.false;
     });
   });
 
@@ -184,7 +202,6 @@ describe('App.MainAdminKerberosController', function() {
     var mock = {callback: Em.K};
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       sinon.spy(mock, 'callback');
       sinon.stub(controller, 'getSecurityType', function (c) {
         c();
@@ -192,9 +209,9 @@ describe('App.MainAdminKerberosController', function() {
     });
 
     afterEach(function () {
-      App.ajax.send.restore();
       mock.callback.restore();
       controller.getSecurityType.restore();
+      Em.tryInvoke(App.get, 'restore');
     });
 
     [
@@ -220,18 +237,32 @@ describe('App.MainAdminKerberosController', function() {
         result: true
       }
     ].forEach(function (test) {
-          it(test.m, function () {
-            sinon.stub(App, 'get').returns(test.isKerberosEnabled);
-            controller.set('securityEnabled', test.securityEnabled);
-            controller.set('kdc_type', test.kdc_type);
-            controller.getKDCSessionState(mock.callback);
-            App.get.restore();
+          describe(test.m, function () {
+
+            beforeEach(function () {
+              sinon.stub(App, 'get').returns(test.isKerberosEnabled);
+              controller.set('securityEnabled', test.securityEnabled);
+              controller.set('kdc_type', test.kdc_type);
+              controller.getKDCSessionState(mock.callback);
+              this.args = testHelpers.findAjaxRequest('name', 'kerberos.session.state');
+            });
+
+
             if (test.result) {
-              expect(mock.callback.calledOnce).to.be.false;
-              expect(App.ajax.send.calledOnce).to.be.true;
-            } else {
-              expect(mock.callback.calledOnce).to.be.true;
-              expect(App.ajax.send.calledOnce).to.be.false;
+              it('callback is not called', function () {
+                expect(mock.callback.calledOnce).to.be.false;
+              });
+              it('1 request is sent', function () {
+                expect(this.args).to.exists;
+              });
+            }
+            else {
+              it('callback is called once', function () {
+                expect(mock.callback.calledOnce).to.be.true;
+              });
+              it('no request is sent', function () {
+                expect(this.args).to.not.exists;
+              });
             }
           });
         });
@@ -242,13 +273,12 @@ describe('App.MainAdminKerberosController', function() {
     var mock = {callback: Em.K};
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       sinon.spy(mock, 'callback');
     });
 
     afterEach(function () {
-      App.ajax.send.restore();
       mock.callback.restore();
+      Em.tryInvoke(App.get, 'restore');
     });
 
     [
@@ -274,18 +304,30 @@ describe('App.MainAdminKerberosController', function() {
         result: true
       }
     ].forEach(function (test) {
-          it(test.m, function () {
-            sinon.stub(App, 'get').returns(test.isKerberosEnabled);
-            controller.set('securityEnabled', test.securityEnabled);
-            controller.set('kdc_type', test.kdc_type);
-            controller.getSecurityType(mock.callback);
-            App.get.restore();
+          describe(test.m, function () {
+
+            beforeEach(function () {
+              sinon.stub(App, 'get').returns(test.isKerberosEnabled);
+              controller.set('securityEnabled', test.securityEnabled);
+              controller.set('kdc_type', test.kdc_type);
+              controller.getSecurityType(mock.callback);
+              this.args = testHelpers.findAjaxRequest('name', 'admin.security.cluster_configs.kerberos');
+            });
+
             if (test.result) {
-              expect(mock.callback.calledOnce).to.be.false;
-              expect(App.ajax.send.calledOnce).to.be.true;
+              it('callback os not called', function () {
+                expect(mock.callback.calledOnce).to.be.false;
+              });
+              it('1 request is sent', function () {
+                expect(this.args).to.exists;
+              });
             } else {
-              expect(mock.callback.calledOnce).to.be.true;
-              expect(App.ajax.send.calledOnce).to.be.false;
+              it('callback is called once', function () {
+                expect(mock.callback.calledOnce).to.be.true;
+              });
+              it('no request is sent', function () {
+                expect(this.args).to.not.exists;
+              });
             }
           });
         });

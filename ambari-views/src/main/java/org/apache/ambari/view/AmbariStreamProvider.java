@@ -33,14 +33,13 @@ public interface AmbariStreamProvider {
    * @param requestMethod     the HTTP method (GET,POST,PUT,etc.).
    * @param body              the body of the request; may be null
    * @param headers           the headers of the request; may be null
-   * @param useAmbariSession  indicates that the current Ambari session cookie should be set for the request
    *
    * @return the input stream
    *
    * @throws java.io.IOException if an error occurred connecting to the server
    */
   public InputStream readFrom(String path, String requestMethod, String body,
-                              Map<String, String> headers, boolean useAmbariSession) throws IOException;
+                              Map<String, String> headers) throws IOException,AmbariHttpException;
 
   /**
    * Read from the input stream specified by the given path on the Ambari server.
@@ -49,12 +48,11 @@ public interface AmbariStreamProvider {
    * @param requestMethod     the HTTP method (GET,POST,PUT,etc.).
    * @param body              the body of the request; may be null
    * @param headers           the headers of the request; may be null
-   * @param useAmbariSession  indicates that the current Ambari session cookie should be set for the request
    *
    * @return the input stream
    *
    * @throws java.io.IOException if an error occurred connecting to the server
    */
   public InputStream readFrom(String path, String requestMethod, InputStream body,
-                              Map<String, String> headers, boolean useAmbariSession) throws IOException;
+                              Map<String, String> headers) throws IOException,AmbariHttpException;
 }

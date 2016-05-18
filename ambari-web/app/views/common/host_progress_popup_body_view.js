@@ -19,6 +19,13 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var date = require('utils/date/date');
+var fileUtils = require('utils/file_utils');
+
+/**
+ * @typedef {object} TaskRelationObject
+ * @property {string} type relation type 'service', 'component'
+ * @property {string} [value] optional value of relation e.g. name of component or service
+ */
 
 /**
  * Option for "filter by state" dropdown
@@ -79,6 +86,21 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @type {?string}
    */
   sourceRequestScheduleCommand: null,
+
+  /**
+   * @type {string}
+   */
+  clipBoardContent: null,
+
+  isClipBoardActive: false,
+
+  /**
+   * Determines that host information become loaded and mapped with <code>App.hostsMapper</code>.
+   * This property play in only when Log Search service installed.
+   *
+   * @type {boolean}
+   */
+  hostInfoLoaded: true,
 
   /**
    * Alias for <code>controller.hosts</code>
@@ -229,12 +251,96 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       Em.I18n.t("common.abort");
   }.property('sourceRequestScheduleCommand'),
 
+  didInsertElement: function () {
+    this.updateHostInfo();
+    this.subscribeResize();
+  },
 
   willDestroyElement: function () {
     if (this.get('controller.dataSourceController.name') == 'highAvailabilityProgressPopupController') {
       this.set('controller.dataSourceController.isTaskPolling', false);
     }
+    this.unsubscribeResize();
   },
+
+  /**
+   * Subscribe for window <code>resize</code> event.
+   *
+   * @method subscribeResize
+   */
+  subscribeResize: function() {
+    var self = this;
+    $(window).on('resize', this.resizeHandler.bind(this));
+    Em.run.next(this, function() {
+      self.resizeHandler();
+    });
+  },
+
+  /**
+   * Remove event listener for window <code>resize</code> event.
+   */
+  unsubscribeResize: function() {
+    $(window).off('resize', this.resizeHandler.bind(this));
+  },
+
+  /**
+   * This method handles window resize and fit modal body content according to visible items for each <code>level</code>.
+   *
+   * @method resizeHandler
+   */
+  resizeHandler: function() {
+    if (this.get('state') === 'destroyed' || !this.get('parentView.isOpen')) return;
+    var headerHeight = 48,
+        modalFooterHeight = 60,
+        taskTopWrapHeight = 40,
+        modalTopOffset = $('.modal').offset().top,
+        contentPaddingBottom = 40,
+        hostsPageBarHeight = 45,
+        tabbedContentNavHeight = 68,
+        logComponentFileNameHeight = 30,
+        levelName = this.get('currentLevelName'),
+        boLevelHeightMap = {
+          'REQUESTS_LIST': {
+            height: window.innerHeight - 2*modalTopOffset - headerHeight - taskTopWrapHeight - modalFooterHeight - contentPaddingBottom,
+            target: '#service-info'
+          },
+          'HOSTS_LIST': {
+            height: window.innerHeight - 2*modalTopOffset - headerHeight - taskTopWrapHeight - modalFooterHeight - contentPaddingBottom - hostsPageBarHeight,
+            target: '#host-info'
+          },
+          'TASKS_LIST': {
+            height: window.innerHeight - 2*modalTopOffset - headerHeight - taskTopWrapHeight - modalFooterHeight - contentPaddingBottom,
+            target: '#host-log'
+          },
+          'TASK_DETAILS': {
+            height: window.innerHeight - 2*modalTopOffset - headerHeight - taskTopWrapHeight - modalFooterHeight - contentPaddingBottom,
+            target: ['.task-detail-log-info', '.log-tail-content.pre-styled']
+          }
+        },
+        currentLevelHeight,
+        resizeTarget;
+
+    if (levelName && levelName in boLevelHeightMap) {
+      resizeTarget = boLevelHeightMap[levelName].target;
+      currentLevelHeight = boLevelHeightMap[levelName].height;
+      if (levelName === 'TASK_DETAILS' && $('.task-detail-info').hasClass('task-detail-info-tabbed')) {
+        currentLevelHeight -= tabbedContentNavHeight;
+      }
+      if (!Em.isArray(resizeTarget)) {
+        resizeTarget = [resizeTarget];
+      }
+      resizeTarget.forEach(function(target) {
+        if (target === '.log-tail-content.pre-styled') {
+          currentLevelHeight -= logComponentFileNameHeight;
+        }
+        $(target).css('maxHeight', currentLevelHeight + 'px');
+      });
+    }
+  },
+
+  currentLevelName: function() {
+    return this.get('controller.dataSourceController.levelInfo.name');
+  }.property('controller.dataSourceController.levelInfo.name'),
 
   /**
    * Preset values on init
@@ -268,6 +374,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       });
       this.get("controller").setBackgroundOperationHeader(false);
       this.setOnStart();
+      this.rerender();
     }
   }.observes('parentView.isOpen'),
 
@@ -412,6 +519,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   switchLevel: function (levelName) {
     var dataSourceController = this.get('controller.dataSourceController');
     var args = [].slice.call(arguments);
+    this.get('hostComponentLogs').clear();
     if (this.get("controller.isBackgroundOperations")) {
       var levelInfo = dataSourceController.get('levelInfo');
       levelInfo.set('taskId', this.get('openedTaskId'));
@@ -443,6 +551,24 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       Em.tryInvoke(this, customControllersSwitchLevelMap[dataSourceController.get('name')], args);
     }
   },
+
+  levelDidChange: function() {
+    var levelName = this.get('controller.dataSourceController.levelInfo.name'),
+        self = this;
+
+    if (levelName && this.get('isLevelLoaded')) {
+      Em.run.next(this, function() {
+        self.resizeHandler();
+      });
+    }
+  }.observes('controller.dataSourceController.levelInfo.name', 'isLevelLoaded'),
+
+
+  popupIsOpenDidChange: function() {
+    if (!this.get('isOpen')) {
+      this.get('hostComponentLogs').clear();
+    }
+  }.observes('parentView.isOpen'),
 
   /**
    * Switch-level custom method for <code>highAvailabilityProgressPopupController</code>
@@ -576,6 +702,73 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   },
 
   /**
+   * Navigate to host details logs tab with preset filter.
+   */
+  navigateToHostLogs: function() {
+    var relationType = this._determineRoleRelation(this.get('openedTask')),
+        hostModel = App.Host.find().findProperty('hostName', this.get('openedTask.hostName')),
+        queryParams = [],
+        model;
+
+    if (relationType.type === 'component') {
+      model = App.StackServiceComponent.find().findProperty('componentName', relationType.value);
+      queryParams.push('service_name=' + model.get('serviceName'));
+      queryParams.push('component_name=' + relationType.value);
+    }
+    if (relationType.type === 'service') {
+      queryParams.push('service_name=' + relationType.value);
+    }
+    App.router.transitionTo('main.hosts.hostDetails.logs', hostModel, { query: ''});
+    if (this.get('parentView') && typeof this.get('parentView').onClose === 'function') this.get('parentView').onClose();
+  },
+
+  /**
+  /**
+  * Determines if opened task related to service or component.
+  *
+  * @return {boolean} <code>true</code> when relates to service or component
+  */
+  isLogsLinkVisible: function() {
+    if (!this.get('openedTask') || !this.get('openedTask.id')) return false;
+    return !!this._determineRoleRelation(this.get('openedTask'));
+  }.property('openedTask'),
+
+  /**
+   * @param  {wrappedTask} taskInfo
+   * @return {boolean|TaskRelationObject}
+   */
+  _determineRoleRelation: function(taskInfo) {
+    var foundComponentName,
+        foundServiceName,
+        componentNames = App.StackServiceComponent.find().mapProperty('componentName'),
+        serviceNames = App.StackService.find().mapProperty('serviceName'),
+        taskLog = this.get('currentHost.logTasks').findProperty('Tasks.id', Em.get(taskInfo, 'id')) || {},
+        role = Em.getWithDefault(taskLog, 'Tasks.role', false),
+        eqlFn = function(compare) {
+          return function(item) {
+            return item === compare;
+          };
+        };
+
+    if (!role) {
+      return false;
+    }
+    // component service check
+    if (role.endsWith('_SERVICE_CHECK')) {
+      role = role.replace('_SERVICE_CHECK', '');
+    }
+    foundComponentName = componentNames.filter(eqlFn(role))[0];
+    foundServiceName = serviceNames.filter(eqlFn(role))[0];
+    if (foundComponentName || foundServiceName) {
+      return {
+        type: foundComponentName ? 'component' : 'service',
+        value: foundComponentName || foundServiceName
+      }
+    }
+    return false;
+  },
+
+  /**
    * @type {boolean}
    */
   isRequestSchedule: function () {
@@ -643,15 +836,46 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       tasksInfo.pushObject(this.get("controller").createTask(_task));
     }, this);
     if (tasksInfo.length) {
-      this.get("controller").set("popupHeaderName", event.context.get('publicNameDisplay'));
+      this.get("controller").set("popupHeaderName", event.context.publicName);
       this.get("controller").set("currentHostName", event.context.publicName);
     }
     this.switchLevel("TASKS_LIST");
     this.set('currentHost.tasks', tasksInfo);
     this.set("parentView.isHostListHidden", true);
     this.set("parentView.isTaskListHidden", false);
+    this.preloadHostModel(Em.getWithDefault(event.context || {}, 'name', false));
     $(".modal").scrollTop(0);
     $(".modal-body").scrollTop(0);
+  },
+
+  /**
+   * Will add <code>App.Host</code> model with relevant host info by specified host name only when it missed
+   * and Log Search service installed.
+   * This update needed to get actual status of logs for components located on this host and get appropriate model
+   * for navigation to hosts/:host_id/logs route.
+   *
+   * @method preloadHostModel
+   * @param {string} hostName host name to get info
+   */
+  preloadHostModel: function(hostName) {
+    var self = this,
+        fields;
+    if (!hostName) {
+      self.set('hostInfoLoaded', true);
+      return;
+    }
+    if (this.get('isLogSearchInstalled') && App.get('supports.logSearch') && !App.Host.find().someProperty('hostName', hostName)) {
+      this.set('hostInfoLoaded', false);
+      fields = ['stack_versions/repository_versions/RepositoryVersions/repository_version',
+                'host_components/HostRoles/host_name'];
+      App.router.get('updateController').updateLogging(hostName, fields, function(data) {
+        App.hostsMapper.map({ items: [data] });
+      }).always(function() {
+        self.set('hostInfoLoaded', true);
+      });
+    } else {
+      self.set('hostInfoLoaded', true);
+    }
   },
 
   /**
@@ -678,12 +902,19 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method openTaskLogInDialog
    */
   openTaskLogInDialog: function () {
+    var target = ".task-detail-log-info",
+        activeHostLog = this.get('hostComponentLogs').findProperty('isActive', true),
+        activeHostLogSelector = activeHostLog ? activeHostLog.get('tabClassNameSelector') + '.active' : false;
+
     if ($(".task-detail-log-clipboard").length) {
       this.destroyClipBoard();
     }
+    if (activeHostLog && $(activeHostLogSelector).length) {
+      target = activeHostLogSelector;
+    }
     var newWindow = window.open();
     var newDocument = newWindow.document;
-    newDocument.write($(".task-detail-log-info").html());
+    newDocument.write($(target).html());
     newDocument.close();
   },
 
@@ -722,17 +953,19 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method createClipBoard
    */
   createClipBoard: function () {
-    var logElement = $(".task-detail-log-maintext"),
-      logElementRect = logElement[0].getBoundingClientRect();
+    var isLogComponentActive = this.get('hostComponentLogs').someProperty('isActive', true),
+        logElement = isLogComponentActive ? $('.log-component-tab.active .log-tail-content'): $(".task-detail-log-maintext"),
+        logElementRect = logElement[0].getBoundingClientRect(),
+        clipBoardContent = this.get('clipBoardContent');
     $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
     $(".task-detail-log-clipboard")
-      .html("stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
+      .html(isLogComponentActive ? this.get('clipBoardContent') : "stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
       .css('display', 'block')
       .width(logElementRect.width)
-      .height(logElementRect.height)
+      .height(isLogComponentActive ? logElement[0].scrollHeight : logElementRect.height)
       .select();
 
-    logElement.css("display", "none");
+    this.set('isClipBoardActive', true);
   },
 
   /**
@@ -741,8 +974,127 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method destroyClipBoard
    */
   destroyClipBoard: function () {
-    $(".task-detail-log-clipboard").remove();
-    $(".task-detail-log-maintext").css("display", "block");
-  }
+    var logElement = this.get('hostComponentLogs').someProperty('isActive', true) ? $('.log-component-tab.active .log-tail-content'): $(".task-detail-log-maintext");
 
+    $(".task-detail-log-clipboard").remove();
+    logElement.css("display", "block");
+    this.set('isClipBoardActive', false);
+  },
+
+  isLogSearchInstalled: function() {
+    return App.Service.find().someProperty('serviceName', 'LOGSEARCH');
+  }.property(),
+
+  /**
+   * Host component logs associated with selected component on 'TASK_DETAILS' level.
+   *
+   * @property {object[]}
+   */
+  hostComponentLogs: function() {
+    var relationType,
+        componentName,
+        hostName,
+        logFile,
+        linkTailTpl = '?host_name={0}&file_name={1}&component_name={2}',
+        self = this;
+
+    if (this.get('openedTask.id')) {
+      relationType = this._determineRoleRelation(this.get('openedTask'));
+      if (relationType.type === 'component') {
+        hostName = this.get('currentHost.name');
+        componentName = relationType.value;
+        return App.HostComponentLog.find()
+          .filterProperty('hostComponent.host.hostName', hostName)
+          .filterProperty('hostComponent.componentName', componentName)
+          .reduce(function(acc, item, index) {
+            var serviceName = item.get('hostComponent.service.serviceName'),
+                logComponentName = item.get('name'),
+                componentHostName = item.get('hostComponent.host.hostName');
+            acc.pushObjects(item.get('logFileNames').map(function(logFileName, idx) {
+              var tabClassName = logComponentName + '_' + index + '_' + idx;
+              return Em.Object.create({
+                hostName: componentHostName,
+                logComponentName: logComponentName,
+                fileName: logFileName,
+                tabClassName: tabClassName,
+                tabClassNameSelector: '.' + tabClassName,
+                displayedFileName: fileUtils.fileNameFromPath(logFileName),
+                linkTail: linkTailTpl.format(hostName, logFileName, logComponentName),
+                isActive: false
+              });
+            }));
+            return acc;
+          }, []);
+      }
+    }
+    return [];
+  }.property('openedTaskId', 'isLevelLoaded'),
+
+  /**
+   * Determines if there are component logs for selected component within 'TASK_DETAILS' level.
+   *
+   * @property {boolean}
+   */
+  hostComponentLogsExists: function() {
+    return this.get('isLogSearchInstalled') && !!this.get('hostComponentLogs.length') && this.get('parentView.isOpen');
+  }.property('hostComponentLogs.length', 'isLogSearchInstalled', 'parentView.isOpen'),
+
+  /**
+   * Minimum required content to embed in App.LogTailView. This property observes current active host component log.
+   *
+   * @property {object}
+   */
+  logTailViewContent: function() {
+    if (!this.get('hostComponentLog')) {
+      return null;
+    }
+    return Em.Object.create({
+      hostName: this.get('currentHost.name'),
+      logComponentName: this.get('hostComponentLog.name')
+    });
+  }.property('hostComponentLogs.@each.isActive'),
+
+  logTailView: App.LogTailView.extend({
+
+    isActiveDidChange: function() {
+      var self = this;
+      if (this.get('content.isActive') === false) return;
+      setTimeout(function() {
+        self.scrollToBottom();
+        self.storeToClipBoard();
+      }, 500);
+    }.observes('content.isActive'),
+
+    logRowsLengthDidChange: function() {
+      if (!this.get('content.isActive') || this.get('state') === 'destroyed') return;
+      this.storeToClipBoard();
+    }.observes('logRows.length'),
+
+    /**
+     * Stores log content to use for clip board.
+     */
+    storeToClipBoard: function() {
+      this.get('parentView').set('clipBoardContent', this.get('logRows').map(function(i) {
+        return i.get('logtimeFormatted') + ' ' + i.get('level') + ' ' + i.get('logMessage');
+      }).join('\n'));
+    }
+  }),
+
+  setActiveLogTab: function(e) {
+    var content = e.context;
+    this.set('clipBoardContent', null);
+    this.get('hostComponentLogs').without(content).setEach('isActive', false);
+    if (this.get('isClipBoardActive')) {
+      this.destroyClipBoard();
+    }
+    content.set('isActive', true);
+  },
+
+  setActiveTaskLogTab: function() {
+    this.set('clipBoardContent', null);
+    this.get('hostComponentLogs').setEach('isActive', false);
+    if (this.get('isClipBoardActive')) {
+      this.destroyClipBoard();
+    }
+  }
 });

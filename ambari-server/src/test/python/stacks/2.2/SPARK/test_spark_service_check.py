@@ -23,9 +23,9 @@ from stacks.utils.RMFTestCase import *
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch("resource_management.libraries.functions.get_hdp_version", new=MagicMock(return_value="2.3.0.0-1597"))
+@patch("resource_management.libraries.functions.get_stack_version", new=MagicMock(return_value="2.3.0.0-1597"))
 class TestServiceCheck(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
+  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.1/package"
   STACK_VERSION = "2.2"
 
   def test_service_check_default(self):
@@ -33,7 +33,7 @@ class TestServiceCheck(RMFTestCase):
                         classname="SparkServiceCheck",
                         command="service_check",
                         config_file="default.json",
-                        hdp_stack_version = self.STACK_VERSION,
+                        stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "curl -s -o /dev/null -w'%{http_code}' --negotiate -u: -k http://localhost:18080 | grep 200",
@@ -49,7 +49,7 @@ class TestServiceCheck(RMFTestCase):
                         classname="SparkServiceCheck",
                         command="service_check",
                         config_file="secured.json",
-                        hdp_stack_version = self.STACK_VERSION,
+                        stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/spark.service.keytab spark/localhost@EXAMPLE.COM; ',

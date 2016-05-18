@@ -71,7 +71,6 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -449,7 +448,7 @@ public class UpgradeCatalog200Test {
     expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).atLeastOnce();
 
     easyMockSupport.replayAll();
-    mockInjector.getInstance(UpgradeCatalog213.class).updateFlumeEnvConfig();
+    mockInjector.getInstance(UpgradeCatalog200.class).updateFlumeEnvConfig();
     easyMockSupport.verifyAll();
   }
 
@@ -639,11 +638,9 @@ public class UpgradeCatalog200Test {
     upgradeCatalogHelper.addComponent(injector, clusterEntity,
         clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", stackEntity);
 
-    ServiceComponentDesiredStateEntityPK pkNagiosServer = new ServiceComponentDesiredStateEntityPK();
-    pkNagiosServer.setComponentName("NAGIOS_SERVER");
-    pkNagiosServer.setClusterId(clusterEntity.getClusterId());
-    pkNagiosServer.setServiceName("NAGIOS");
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pkNagiosServer);
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        clusterEntity.getClusterId(), "NAGIOS", "NAGIOS_SERVER");
+
     assertNotNull(serviceComponentDesiredStateEntity);
 
     HostComponentDesiredStateEntityPK hcDesiredStateEntityPk = new HostComponentDesiredStateEntityPK();

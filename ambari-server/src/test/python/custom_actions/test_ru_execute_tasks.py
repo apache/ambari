@@ -121,7 +121,7 @@ class TestRUExecuteTasks(RMFTestCase):
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, 2.2)
+    self.assertEqual(stack_version, '2.2')
     self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
 
     # Begin the test
@@ -129,7 +129,7 @@ class TestRUExecuteTasks(RMFTestCase):
     ru_execute.actionexecute(None)
 
     call_mock.assert_called_with(
-        "/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package" + os.sep +
+        "source /var/lib/ambari-agent/ambari-env.sh ; /usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package" + os.sep +
         "scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
     pass
 
@@ -169,13 +169,13 @@ class TestRUExecuteTasks(RMFTestCase):
     service_package_folder = default('/roleParams/service_package_folder', None)
 
     self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, 2.2)
+    self.assertEqual(stack_version, '2.2')
     self.assertEqual(service_package_folder, None)
 
     # Begin the test
     ru_execute = ExecuteUpgradeTasks()
     ru_execute.actionexecute(None)
 
-    call_mock.assert_called_with("/usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions" + os.sep +
+    call_mock.assert_called_with("source /var/lib/ambari-agent/ambari-env.sh ; /usr/bin/ambari-python-wrap /var/lib/ambari-agent/cache/custom_actions" + os.sep +
                                  "scripts/namenode.py prepare_rolling_upgrade /tmp", logoutput=True, quiet=True)
     pass

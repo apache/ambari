@@ -116,7 +116,7 @@ public class ProvisionClusterRequestTest {
     HostGroupInfo group1Info = hostGroupInfo.get("group1");
     assertEquals("group1", group1Info.getHostGroupName());
     assertEquals(1, group1Info.getHostNames().size());
-    assertTrue(group1Info.getHostNames().contains("host1.myDomain.com"));
+    assertTrue(group1Info.getHostNames().contains("host1.mydomain.com"));
     assertEquals(1, group1Info.getRequestedHostCount());
     assertNull(group1Info.getPredicate());
     // configuration
@@ -220,7 +220,7 @@ public class ProvisionClusterRequestTest {
     HostGroupInfo group1Info = hostGroupInfo.get("group1");
     assertEquals("group1", group1Info.getHostGroupName());
     assertEquals(1, group1Info.getHostNames().size());
-    assertTrue(group1Info.getHostNames().contains("host1.myDomain.com"));
+    assertTrue(group1Info.getHostNames().contains("host1.mydomain.com"));
     assertEquals(1, group1Info.getRequestedHostCount());
     assertNull(group1Info.getPredicate());
     // configuration

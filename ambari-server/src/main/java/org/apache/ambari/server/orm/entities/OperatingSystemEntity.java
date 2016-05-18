@@ -27,6 +27,7 @@ public class OperatingSystemEntity {
 
   private String osType;
   private List<RepositoryEntity> repositories = new ArrayList<RepositoryEntity>();
+  private boolean ambariManagedRepos = true;
 
   public String getOsType() {
     return osType;
@@ -56,10 +57,22 @@ public class OperatingSystemEntity {
     return true;
   }
 
+  public void setAmbariManagedRepos(boolean managed) {
+    ambariManagedRepos = managed;
+  }
+
+  /**
+   * @return
+   */
+  public boolean isAmbariManagedRepos() {
+    return ambariManagedRepos;
+  }
+
   @Override
   public int hashCode() {
     int result = osType != null ? osType.hashCode() : 0;
     return result;
   }
+
 
 }

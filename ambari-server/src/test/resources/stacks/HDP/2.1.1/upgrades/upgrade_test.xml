@@ -101,7 +101,17 @@
         <component>HIVE_SERVER</component>
         <component>WEBHCAT_SERVER</component>
       </service>
-    </group>    
+    </group>
+
+    <group name="OOZIE" title="Oozie">
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
+      <service name="OOZIE">
+        <component>OOZIE_SERVER</component>
+        <component>OOZIE_CLIENT</component>
+      </service>
+    </group>
     
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <execute-stage title="Confirm Finalize">
@@ -136,7 +146,7 @@
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="configure" id="2.2.0" />
+          <task xsi:type="configure" id="hdp_2_1_1_zookeeper_new_config_type" />
         </post-upgrade>
       </component>
     </service>
@@ -199,13 +209,40 @@
             <summary>HiveServer Port Availability</summary>
             <message>The HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
-
           <task xsi:type="configure" id="hdp_2_1_1_set_transport_mode"/>
-
           <task xsi:type="configure" id="hdp_2_1_1_hive_server_foo"/>
-
+          <task xsi:type="configure" id="hdp_2_1_1_hive_server_conditions"/>
+          <task xsi:type="configure" id="hdp_2_1_1_hive_server_conditions_skip"/>
         </pre-upgrade>
        </component>
-     </service>    
+     </service>
+
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <pre-upgrade>
+          <!-- This is important, do not remove it since UpgradeHelperTest.java :
+          testUpgradeWithMultipleTasksWithMultipleHostTypes() asserts
+          that these tasks each run on their own stage. -->
+          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
+            <script>scripts/oozie_server.py</script>
+            <function>stop</function>
+          </task>
+
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+            <script>scripts/oozie_server_upgrade.py</script>
+            <function>upgrade_oozie_database_and_sharelib</function>
+          </task>
+        </pre-upgrade>
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="OOZIE_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
   </processing>
 </upgrade>

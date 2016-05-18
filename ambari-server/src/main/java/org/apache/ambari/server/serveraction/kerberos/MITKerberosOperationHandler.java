@@ -165,10 +165,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    * @param password  a String containing the password to use when creating the principal
    * @param service   a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
-   * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
-   * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
-   * @throws KerberosRealmException               if the realm does not map to a KDC
-   * @throws KerberosOperationException           if an unexpected error occurred
+   * @throws KerberosKDCConnectionException          if a connection to the KDC cannot be made
+   * @throws KerberosAdminAuthenticationException    if the administrator credentials fail to authenticate
+   * @throws KerberosRealmException                  if the realm does not map to a KDC
+   * @throws KerberosPrincipalAlreadyExistsException if the principal already exists
+   * @throws KerberosOperationException              if an unexpected error occurred
    */
   @Override
   public Integer createPrincipal(String principal, String password, boolean service)
@@ -191,8 +192,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       // If there is data from STDOUT, see if the following string exists:
       //    Principal "<principal>" created
       String stdOut = result.getStdout();
+      String stdErr = result.getStderr();
       if ((stdOut != null) && stdOut.contains(String.format("Principal \"%s\" created", principal))) {
         return getKeyNumber(principal);
+      } else if ((stdErr != null) && stdErr.contains(String.format("Principal or policy already exists while creating \"%s\"", principal))) {
+        throw new KerberosPrincipalAlreadyExistsException(principal);
       } else {
         LOG.error("Failed to execute kadmin query: add_principal -pw \"********\" {} {}\nSTDOUT: {}\nSTDERR: {}",
             (createAttributes == null) ? "" : createAttributes, principal, stdOut, result.getStderr());
@@ -211,10 +215,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
    * @return an Integer declaring the new key number
-   * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
-   * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
-   * @throws KerberosRealmException               if the realm does not map to a KDC
-   * @throws KerberosOperationException           if an unexpected error occurred
+   * @throws KerberosKDCConnectionException         if a connection to the KDC cannot be made
+   * @throws KerberosAdminAuthenticationException   if the administrator credentials fail to authenticate
+   * @throws KerberosRealmException                 if the realm does not map to a KDC
+   * @throws KerberosPrincipalDoesNotExistException if the principal does not exist
+   * @throws KerberosOperationException             if an unexpected error occurred
    */
   @Override
   public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
@@ -228,9 +233,20 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Failed to set password - no password specified");
     } else {
       // Create the kdamin query:  change_password <-randkey|-pw <password>> <principal>
-      invokeKAdmin(String.format("change_password -pw \"%s\" %s", password, principal));
+      ShellCommandUtil.Result result = invokeKAdmin(String.format("change_password -pw \"%s\" %s", password, principal));
 
-      return getKeyNumber(principal);
+      String stdOut = result.getStdout();
+      String stdErr = result.getStderr();
+      if ((stdOut != null) && stdOut.contains(String.format("Password for \"%s\" changed", principal))) {
+        return getKeyNumber(principal);
+      } else if ((stdErr != null) && stdErr.contains("Principal does not exist")) {
+        throw new KerberosPrincipalDoesNotExistException(principal);
+      } else {
+        LOG.error("Failed to execute kadmin query: change_password -pw \"********\" {} \nSTDOUT: {}\nSTDERR: {}",
+            principal, stdOut, result.getStderr());
+        throw new KerberosOperationException(String.format("Failed to update password for %s\nSTDOUT: %s\nSTDERR: %s",
+            principal, stdOut, result.getStderr()));
+      }
     }
   }
 

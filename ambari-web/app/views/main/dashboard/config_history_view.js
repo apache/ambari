@@ -115,7 +115,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
           value: '',
           label: Em.I18n.t('common.all')
         }
-      ].concat(App.Service.find().map(function (service) {
+      ].concat(App.StackService.find().map(function (service) {
         return {
           value: service.get('serviceName'),
           label: service.get('displayName')
@@ -188,7 +188,12 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     },
     didInsertElement: function () {
       App.tooltip(this.$("[rel='Tooltip']"), {html: false});
-    }
+    },
+
+    // Define if show plain text label or link
+    isServiceLinkDisabled: function () {
+      return this.get('content.serviceName') === 'KERBEROS' && !App.Service.find().someProperty('serviceName', 'KERBEROS');
+    }.property('content.serviceName')
   }),
 
   /**
@@ -200,6 +205,18 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     this.get('controller').load().done(function () {
       self.refreshDone.apply(self);
     });
+  },
+
+  /**
+   * Clear all filter values, update filter conditions in the localStorage and update table data with API-request
+   *
+   * @method clearFilters
+   * @override
+   */
+  clearFilters: function () {
+    this._super();
+    this.saveAllFilterConditions();
+    this.refresh();
   },
 
   /**

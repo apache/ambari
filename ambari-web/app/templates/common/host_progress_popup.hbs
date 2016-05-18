@@ -137,7 +137,7 @@
         {{/if}}
       </div>
     {{else}}
-      <div class="spinner"></div>
+      {{view App.SpinnerView}}
     {{/if}}
   </div>
 
@@ -161,22 +161,26 @@
       </div>
     </div>
     <div id="host-log">
-      {{#if view.isTasksEmptyList}}
-        <div class="log-list-wrap">{{t hostPopup.noTasksToShow}}</div>
-      {{else}}
-        {{#each taskInfo in view.tasks}}
-          <div {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
-            <div class="task-list-line-cursor">
-              <div class="operation-name-icon-wrap">
-                {{view statusIcon servicesInfoBinding="taskInfo"}}
-                <a href="#">
-                  {{taskInfo.commandDetail}}
-                </a>
+      {{#if view.hostInfoLoaded}}
+        {{#if view.isTasksEmptyList}}
+          <div class="log-list-wrap">{{t hostPopup.noTasksToShow}}</div>
+        {{else}}
+          {{#each taskInfo in view.tasks}}
+            <div {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
+              <div class="task-list-line-cursor">
+                <div class="operation-name-icon-wrap">
+                  {{view statusIcon servicesInfoBinding="taskInfo"}}
+                  <a href="#">
+                    {{taskInfo.commandDetail}}
+                  </a>
+                </div>
+                <div class="show-details"><i class="icon-caret-right"></i></div>
               </div>
-              <div class="show-details"><i class="icon-caret-right"></i></div>
             </div>
-          </div>
-        {{/each}}
+          {{/each}}
+        {{/if}}
+      {{else}}
+        {{view App.SpinnerView}}
       {{/if}}
     </div>
   </div>
@@ -184,61 +188,98 @@
 
   <!-- TASK DETAILS --->
 
-  <div {{bindAttr class="view.parentView.isLogWrapHidden:hidden :task-detail-info"}}>
+  <div {{bindAttr class="view.parentView.isLogWrapHidden:hidden :task-detail-info view.hostComponentLogsExists:task-detail-info-tabbed"}}>
     <div class="task-top-wrap">
       <a class="task-detail-back" href="javascript:void(null)" {{action backToTaskList}} ><i
-              class="icon-arrow-left"></i>&nbsp;{{t common.tasks}}</a>
+                                                                                              class="icon-arrow-left"></i>&nbsp;{{t common.tasks}}</a>
 
-      <div>
+      <div {{bindAttr class="view.hostComponentLogsExists:task-detail-log-nav-actions"}}>
         <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}}></i>
 
         <div class="task-detail-ico-wrap">
-          <a title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i
-                  class="icon-copy"></i> {{t common.copy}}</a>
+          <a {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i
+                                                                                                                                                    class="icon-copy"></i> {{t common.copy}}</a>
           <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i
-                  class="icon-external-link"></i> {{t common.open}}</a>
+                                                                                                                               class="icon-external-link"></i> {{t common.open}}</a>
+          {{#if App.supports.logSearch}}
+            {{#if view.isLogSearchInstalled}}
+              <a {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}} href="#">
+                <i class="icon-file"></i> {{t common.host}} {{t common.logs}}
+              </a>
+            {{/if}}
+          {{/if}}
         </div>
         <span class="task-detail-log-rolename">{{view.openedTask.commandDetail}}</span>
       </div>
+      <ul {{bindAttr class="view.hostComponentLogsExists::hide :nav :nav-tabs :task-detail-nav"}}>
+        <li {{bindAttr class="view.isLevelLoaded:active"}}>
+          <a href="#" data-target="#task-log-tab" data-toggle="tab" {{action setActiveTaskLogTab target="view"}}>{{t app.name}} stdout/stderr</a>
+        </li>
+        {{#each hostLog in view.hostComponentLogs}}
+          <li>
+            <a href="#" {{action setActiveLogTab hostLog target="view"}} {{bindAttr data-target="hostLog.tabClassNameSelector"}} data-toggle="tab">{{hostLog.displayedFileName}}</a>
+          </li>
+        {{/each}}
+      </ul>
     </div>
     {{#if view.isLevelLoaded}}
       <div class="task-detail-log-info">
         <div class="content-area">
-          <div class="task-detail-log-clipboard-wrap"></div>
-          <div class="task-detail-log-maintext">
-            {{#if view.openedTask.isRebalanceHDFSTask }}
-              <h5>{{t services.hdfs.rebalance.title}}</h5>
+          <div class="tab-content">
+            <div class="task-detail-log-clipboard-wrap"></div>
+            <div id="task-log-tab" class="tab-pane active">
+              <div {{bindAttr class=":task-detail-log-maintext view.isClipBoardActive:hidden"}}>
+                {{#if view.openedTask.isRebalanceHDFSTask }}
+                  <h5>{{t services.hdfs.rebalance.title}}</h5>
 
-              <div class="progresspopup-rebalancehdfs">
-                <div {{bindAttr class=":progress view.openedTask.isInProgress:progress-striped view.openedTask.barColor :active"}}>
-                  <div class="bar" {{bindAttr style="view.openedTask.completionProgressStyle"}}></div>
-                </div>
-              </div>
-              <div class="clearfix">
-                <div class="pull-left">
-                  {{view.openedTask.dataMoved}} moved /
-                  {{view.openedTask.dataLeft}} left /
-                  {{view.openedTask.dataBeingMoved}} being processed
-                </div>
-                {{#if view.openedTask.isNotComplete}}
-                  <button class="btn btn-danger pull-right" {{action stopRebalanceHDFS}}>{{t common.cancel}}</button>
+                  <div class="progresspopup-rebalancehdfs">
+                    <div {{bindAttr class=":progress view.openedTask.isInProgress:progress-striped view.openedTask.barColor :active"}}>
+                      <div class="bar" {{bindAttr style="view.openedTask.completionProgressStyle"}}></div>
+                    </div>
+                  </div>
+                  <div class="clearfix">
+                    <div class="pull-left">
+                      {{view.openedTask.dataMoved}} moved /
+                      {{view.openedTask.dataLeft}} left /
+                      {{view.openedTask.dataBeingMoved}} being processed
+                    </div>
+                    {{#if view.openedTask.isNotComplete}}
+                      <button class="btn btn-danger pull-right" {{action stopRebalanceHDFS}}>{{t common.cancel}}</button>
+                    {{/if}}
+                  </div>
+                  <hr>
                 {{/if}}
+                <p class="text-bold">{{t common.stderr}}: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></p>
+                <pre class="stderr">{{view.openedTask.stderr}}</pre>
+                <p class="text-bold">{{t common.stdout}}: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span></p>
+                <pre class="stdout">{{view.openedTask.stdout}}</pre>
               </div>
-              <hr>
-            {{/if}}
-            <h5>{{t common.stderr}}: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
-            <pre class="stderr">{{view.openedTask.stderr}}</pre>
-            <h5>{{t common.stdout}}: &nbsp; <span class="muted"> {{view.openedTask.outputLog}} </span></h5>
-            <pre class="stdout">{{view.openedTask.stdout}}</pre>
+            </div>
+            {{#each hostLog in view.hostComponentLogs}}
+              <div {{bindAttr class=":tab-pane :log-component-tab hostLog.tabClassName"}}>
+                <p {{bindAttr class="view.isClipBoardActive:hidden"}}>
+                  <span class="text-bold">{{t common.file}}: &nbsp; </span>
+                  <span class="text-bold muted">{{hostLog.fileName}}</span>
+                  {{#view App.LogSearchUILinkView linkQueryParamsBinding="hostLog.linkTail" tagName="span"}}
+                    <a {{bindAttr href="view.formatedLink" class=":pull-right view.isLodaded::disabled"}} target="_blank">
+                      <i class="icon-external-link"></i>
+                      {{t popup.logTail.openInLogSearch}}</a>
+                  {{/view}}
+                </p>
+                <div {{bindAttr class="view.isClipBoardActive:hidden"}}>
+                  {{view view.logTailView contentBinding="hostLog"}}
+                </div>
+              </div>
+            {{/each}}
           </div>
         </div>
       </div>
     {{else}}
-      <div class="spinner"></div>
+      {{view App.SpinnerView}}
     {{/if}}
   </div>
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}
 </div>
 {{#if view.isPaginate}}

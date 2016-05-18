@@ -39,6 +39,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>ranger_kms</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
       </components>
@@ -57,7 +63,7 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>        
+        <timeout>300</timeout>
       </commandScript>
 
       <requiredServices>

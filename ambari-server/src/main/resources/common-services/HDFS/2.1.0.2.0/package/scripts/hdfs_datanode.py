@@ -30,7 +30,7 @@ def create_dirs(data_dir, params):
   :param params: parameters
   """
   Directory(data_dir,
-            recursive=True,
+            create_parents = True,
             cd_access="a",
             mode=0755,
             owner=params.hdfs_user,
@@ -43,14 +43,14 @@ def datanode(action=None):
   if action == "configure":
     import params
     Directory(params.dfs_domain_socket_dir,
-              recursive=True,
+              create_parents = True,
               mode=0751,
               owner=params.hdfs_user,
               group=params.user_group)
 
     if not os.path.isdir(os.path.dirname(params.data_dir_mount_file)):
       Directory(os.path.dirname(params.data_dir_mount_file),
-                recursive=True,
+                create_parents = True,
                 mode=0755,
                 owner=params.hdfs_user,
                 group=params.user_group)

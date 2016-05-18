@@ -31,25 +31,36 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.StageUtils;
-
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+
 public class ExecutionCommandWrapper {
-  @Inject
-  static Injector injector;
+
   private final static Logger LOG = LoggerFactory.getLogger(ExecutionCommandWrapper.class);
   private static String DELETED = "DELETED_";
   String jsonExecutionCommand = null;
   ExecutionCommand executionCommand = null;
 
-  public ExecutionCommandWrapper(String jsonExecutionCommand) {
+  @Inject
+  Clusters clusters;
+
+  @Inject
+  HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  ConfigHelper configHelper;
+
+  @AssistedInject
+  public ExecutionCommandWrapper(@Assisted String jsonExecutionCommand) {
     this.jsonExecutionCommand = jsonExecutionCommand;
   }
 
-  public ExecutionCommandWrapper(ExecutionCommand executionCommand) {
+  @AssistedInject
+  public ExecutionCommandWrapper(@Assisted ExecutionCommand executionCommand) {
     this.executionCommand = executionCommand;
   }
 
@@ -60,23 +71,19 @@ public class ExecutionCommandWrapper {
     } else if (jsonExecutionCommand != null) {
       executionCommand = StageUtils.getGson().fromJson(jsonExecutionCommand, ExecutionCommand.class);
 
-      if (injector == null) {
-        throw new RuntimeException("Injector not found, configuration cannot be restored");
-      } else if (executionCommand.getConfigurationTags() != null &&
+      if (executionCommand.getConfigurationTags() != null
+          &&
           !executionCommand.getConfigurationTags().isEmpty()) {
 
         // For a configuration type, both tag and an actual configuration can be stored
         // Configurations from the tag is always expanded and then over-written by the actual
         // global:version1:{a1:A1,b1:B1,d1:D1} + global:{a1:A2,c1:C1,DELETED_d1:x} ==>
         // global:{a1:A2,b1:B1,c1:C1}
-        Clusters clusters = injector.getInstance(Clusters.class);
-        HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
         Long clusterId = hostRoleCommandDAO.findByPK(
             executionCommand.getTaskId()).getStage().getClusterId();
 
         try {
           Cluster cluster = clusters.getClusterById(clusterId);
-          ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
           Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
 
           // Execution commands have config-tags already set during their creation. However, these

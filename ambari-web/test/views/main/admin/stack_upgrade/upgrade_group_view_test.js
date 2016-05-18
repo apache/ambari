@@ -21,20 +21,26 @@ var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_group_view');
 
 describe('App.upgradeGroupView', function () {
-  var view = App.upgradeGroupView.create({
-    content: Em.Object.create({}),
-    failedStatuses: ['FAILED']
+  var view;
+
+  beforeEach(function () {
+    view = App.upgradeGroupView.create({
+      content: Em.Object.create({}),
+      failedStatuses: ['FAILED']
+    });
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('timer'));
+    clearTimeout(view.get('upgradeItemTimer'));
+    view.destroy();
   });
 
   describe("#toggleExpanded()", function () {
-    before(function () {
+    var data;
+    beforeEach(function () {
       sinon.stub(view, 'collapseLowerLevels', Em.K);
-    });
-    after(function () {
-      view.collapseLowerLevels.restore();
-    });
-    it("", function () {
-      var data = {
+      data = {
         context: Em.Object.create({
           isExpanded: true
         }),
@@ -48,8 +54,17 @@ describe('App.upgradeGroupView', function () {
         ]
       };
       view.toggleExpanded(data);
+    });
+    afterEach(function () {
+      view.collapseLowerLevels.restore();
+    });
+    it("collapseLowerLevels called twice", function () {
       expect(view.collapseLowerLevels.calledTwice).to.be.true;
+    });
+    it("context.isExpanded is false", function () {
       expect(data.context.get('isExpanded')).to.be.false;
+    });
+    it("contexts[1][0].isExpanded is false", function () {
       expect(data.contexts[1][0].get('isExpanded')).to.be.false;
     });
   });

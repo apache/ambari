@@ -18,31 +18,38 @@ limitations under the License.
 
 """
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 import status_params
 
 # server configurations
 config = Script.get_config()
+stack_root = status_params.stack_root
 exec_tmp_dir = status_params.tmp_dir
 
 # security enabled
 security_enabled = status_params.security_enabled
 
-# hdp version
-stack_name = default("/hostLevelParams/stack_name", None)
+# stack name
+stack_name = status_params.stack_name
+
+# stack version
 version = default("/commandParams/version", None)
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 has_secure_user_auth = False
-if Script.is_hdp_stack_greater_or_equal("2.3"):
+if stack_version_formatted and \
+    check_stack_feature(StackFeature.ACCUMULO_KERBEROS_USER_AUTH, stack_version_formatted):
   has_secure_user_auth = True
 
 # configuration directories
@@ -50,9 +57,9 @@ conf_dir = status_params.conf_dir
 server_conf_dir = status_params.server_conf_dir
 
 # service locations
-hadoop_prefix = hdp_select.get_hadoop_dir("home")
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
-zookeeper_home = "/usr/hdp/current/zookeeper-client"
+hadoop_prefix = stack_select.get_hadoop_dir("home")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+zookeeper_home = format("{stack_root}/current/zookeeper-client")
 
 # the configuration direction for HDFS/YARN/MapR is the hadoop config
 # directory, which is symlinked by hadoop-client only
@@ -60,7 +67,7 @@ hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 # accumulo local directory structure
 log_dir = config['configurations']['accumulo-env']['accumulo_log_dir']
-client_script = "/usr/hdp/current/accumulo-client/bin/accumulo"
+client_script = format("{stack_root}/current/accumulo-client/bin/accumulo")
 daemon_script = format("ACCUMULO_CONF_DIR={server_conf_dir} {client_script}")
 
 # user and status
@@ -126,14 +133,21 @@ if has_metric_collector:
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
       metric_collector_port = '6188'
+  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    metric_collector_protocol = 'https'
+  else:
+    metric_collector_protocol = 'http'
+  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 
 # if accumulo is selected accumulo_tserver_hosts should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
@@ -179,6 +193,7 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
+  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -187,5 +202,6 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
+  immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
 )

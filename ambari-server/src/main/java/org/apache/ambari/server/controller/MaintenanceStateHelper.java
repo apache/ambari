@@ -24,9 +24,11 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -34,6 +36,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,6 +233,63 @@ public class MaintenanceStateHelper {
   }
 
   /**
+   * Gets the effective maintenance state for a given alert. This will determine
+   * whether the alert needs to report that it is in maintenance mode.
+   *
+   * @param clusterId
+   *          the ID of the cluster for the alert.
+   * @param alert
+   *          the alert (not {@code null}).
+   * @return {@link MaintenanceState#OFF} if the host/service/component all
+   *         report they are not in maintenance mode;
+   *         {@link MaintenanceState#ON} otherwise.
+   * @throws AmbariException
+   */
+  public MaintenanceState getEffectiveState(long clusterId, Alert alert) throws AmbariException {
+    String serviceName = alert.getService();
+    String componentName = alert.getComponent();
+    String hostName = alert.getHostName();
+
+    if (null == serviceName && null == hostName) {
+      LOG.warn("Unable to determine maintenance state for an alert without a service or host");
+      return MaintenanceState.OFF;
+    }
+
+    // always start with the host first; we always have a host unless this is an
+    // aggregate alert (service-level alert)
+    if (StringUtils.isNotBlank(hostName)) {
+      Host host = clusters.getHost(hostName);
+      if (host.getMaintenanceState(clusterId) != MaintenanceState.OFF) {
+        return MaintenanceState.ON;
+      }
+    }
+
+    // the AMBARI service is not a real service; it's never in MM
+    if( StringUtils.equals(Services.AMBARI.name(), serviceName)){
+      return MaintenanceState.OFF;
+    }
+
+    // the host is not in MM, move onto the service
+    Cluster cluster = clusters.getClusterById(clusterId);
+    Service service = cluster.getService(serviceName);
+    if( service.getMaintenanceState() != MaintenanceState.OFF ){
+      return MaintenanceState.ON;
+    }
+
+    if( StringUtils.isNotBlank(componentName)){
+      ServiceComponent serviceComponent = service.getServiceComponent(componentName);
+      ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(hostName);
+
+      if (serviceComponentHost.getMaintenanceState() != MaintenanceState.OFF) {
+        return MaintenanceState.ON;
+      }
+    }
+
+    // MM is off at the host, service, and component level; return OFF
+    return MaintenanceState.OFF;
+  }
+
+  /**
    * @param clusters
    *          the collection of clusters
    * @param cluster
@@ -347,10 +407,6 @@ public class MaintenanceStateHelper {
     return result;
   }
 
-  public static interface HostPredicate {
-    public boolean shouldHostBeRemoved(String hostname) throws AmbariException;
-  }
-
   /**
    * Removes from a set all hosts that match a given condition.
    *
@@ -373,4 +429,22 @@ public class MaintenanceStateHelper {
     return removedHosts;
   }
 
+  /**
+   * The {@link HostPredicate} interaface is used as a way to pass a custom
+   * implementation into one of the many
+   * {@link MaintenanceStateHelper#isOperationAllowed(org.apache.ambari.server.controller.spi.Resource.Type, Service)}
+   * methods.
+   */
+  public static interface HostPredicate {
+    /**
+     * Gets whether the specified host should not be included in a result set.
+     *
+     * @param hostname
+     *          the host (not {@code null}).
+     * @return {@code true} to indicate that the specified host is not a valid
+     *         choice, {@code false} otherwise.
+     * @throws AmbariException
+     */
+    public boolean shouldHostBeRemoved(String hostname) throws AmbariException;
+  }
 }

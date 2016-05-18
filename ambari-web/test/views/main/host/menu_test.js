@@ -27,45 +27,115 @@ describe('App.MainHostMenuView', function () {
 
   describe('#content', function () {
 
+    beforeEach(function () {
+      this.mock = sinon.stub(App, 'get');
+      this.serviceMock = sinon.stub(App.Service, 'find');
+      this.clusterUserMock = this.mock.withArgs('isClusterUser');
+    });
+
     afterEach(function () {
       App.get.restore();
+      App.Service.find.restore();
     });
 
     Em.A([
         {
           stackVersionsAvailable: true,
-          stackUpgrade: true,
           m: '`versions` is visible',
           e: false
         },
         {
-          stackVersionsAvailable: true,
-          stackUpgrade: false,
-          m: '`versions` is invisible (1)',
-          e: true
-        },
-        {
           stackVersionsAvailable: false,
-          stackUpgrade: true,
-          m: '`versions` is invisible (2)',
-          e: true
-        },
-        {
-          stackVersionsAvailable: false,
-          stackUpgrade: false,
-          m: '`versions` is invisible (3)',
+          m: '`versions` is invisible',
           e: true
         }
       ]).forEach(function (test) {
         it(test.m, function () {
-          var stub = sinon.stub(App, 'get');
-          stub.withArgs('stackVersionsAvailable').returns(test.stackVersionsAvailable);
-          stub.withArgs('supports.stackUpgrade').returns(test.stackUpgrade);
+          this.mock.withArgs('stackVersionsAvailable').returns(test.stackVersionsAvailable);
           view.propertyDidChange('content');
           expect(view.get('content').findProperty('name', 'versions').get('hidden')).to.equal(test.e);
         });
       });
 
+    Em.A([
+      {
+        logSearch: false,
+        services: [{serviceName: 'LOGSEARCH'}],
+        isClusterUser: false,
+        m: '`logs` tab is invisible',
+        e: true
+      },
+      {
+        logSearch: true,
+        services: [],
+        isClusterUser: false,
+        m: '`logs` tab is invisible because service not installed',
+        e: true
+      },
+      {
+        logSearch: true,
+        services: [{serviceName: 'LOGSEARCH'}],
+        isClusterUser: false,
+        m: '`logs` tab is visible',
+        e: false
+      },
+      {
+        logSearch: true,
+        services: [{serviceName: 'LOGSEARCH'}],
+        isClusterUser: true,
+        m: '`logs` tab is hidden because user has no access',
+        e: true
+      }
+    ]).forEach(function(test) {
+      it(test.m, function() {
+        this.mock.withArgs('supports.logSearch').returns(test.logSearch);
+        this.serviceMock.returns(test.services);
+        this.clusterUserMock.returns(test.isClusterUser);
+        view.propertyDidChange('content');
+        expect(view.get('content').findProperty('name', 'logs').get('hidden')).to.equal(test.e);
+      });
+    });
+  });
+
+  describe("#updateAlertCounter()", function() {
+
+    it("CRITICAL alerts", function() {
+      view.setProperties({
+        host: Em.Object.create({
+          criticalWarningAlertsCount: 1,
+          alertsSummary: Em.Object.create({
+            CRITICAL: 1,
+            WARNING: 0
+          })
+        })
+      });
+      view.updateAlertCounter();
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeText')).to.equal('1');
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeClasses')).to.equal('label alerts-crit-count');
+    });
+
+    it("WARNING alerts", function() {
+      view.setProperties({
+        host: Em.Object.create({
+          criticalWarningAlertsCount: 1,
+          alertsSummary: Em.Object.create({
+            CRITICAL: 0,
+            WARNING: 1
+          })
+        })
+      });
+      view.updateAlertCounter();
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeText')).to.equal('1');
+      expect(view.get('content').findProperty('name', 'alerts').get('badgeClasses')).to.equal('label alerts-warn-count');
+    });
+  });
+
+  describe("#deactivateChildViews()", function() {
+    it("active attr should be empty", function() {
+      view.set('_childViews', [Em.Object.create({active: 'active'})]);
+      view.deactivateChildViews();
+      expect(view.get('_childViews').mapProperty('active')).to.eql(['']);
+    });
   });
 
 });

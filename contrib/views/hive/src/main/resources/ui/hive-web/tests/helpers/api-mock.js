@@ -265,7 +265,8 @@ export default function() {
     var data = {
       versions: [
         {
-          href: baseUrl + '/api/v1/view/TEZ/instanceURL'
+          href: baseUrl + '/api/v1/view/TEZ/versions/1',
+          ViewVersionInfo: {version: '1', view_name: 'TEZ'}
         }
       ]
     };
@@ -273,7 +274,7 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(data)];
   });
 
-  this.get(baseUrl + '/api/v1/views/TEZ/instanceURL', function (req) {
+  this.get(baseUrl + '/api/v1/views/TEZ/versions/1', function (req) {
     var data = {
       instances: [
         {

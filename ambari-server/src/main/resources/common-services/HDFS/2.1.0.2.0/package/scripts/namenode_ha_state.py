@@ -41,9 +41,12 @@ class NamenodeHAState:
     """
     import params
 
-    self.name_service = default("/configurations/hdfs-site/dfs.nameservices", None)
+    self.name_service = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+    if self.name_service is None:
+      self.name_service = default('/configurations/hdfs-site/dfs.nameservices', None)
+
     if not self.name_service:
-      raise ValueError("Could not retrieve property dfs.nameservices")
+      raise ValueError("Could not retrieve property dfs.nameservices or dfs.internal.nameservices")
 
     nn_unique_ids_key = "dfs.ha.namenodes." + str(self.name_service)
     # List of the nn unique ids
@@ -86,7 +89,7 @@ class NamenodeHAState:
         # If JMX parsing failed
         if not state:
           run_user = default("/configurations/hadoop-env/hdfs_user", "hdfs")
-          check_service_cmd = "hdfs haadmin -getServiceState {0}".format(nn_unique_id)
+          check_service_cmd = "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {0}".format(nn_unique_id)
           code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
           if code == 0 and out:
             if NAMENODE_STATE.STANDBY in out:

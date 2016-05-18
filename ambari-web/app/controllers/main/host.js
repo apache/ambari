@@ -25,13 +25,21 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   clearFilters: null,
 
   filteredCount: 0,
+
   /**
    * total number of installed hosts
+   * @type {number}
    */
   totalCount: function () {
     return this.get('hostsCountMap')['TOTAL'] || 0;
   }.property('hostsCountMap'),
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   resetStartIndex: false,
+
   /**
    * flag responsible for updating status counters of hosts
    */
@@ -97,7 +105,17 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     {
       name: 'hostComponents',
       key: 'host_components/HostRoles/component_name',
-      type: 'MULTIPLE'
+      type: 'EQUAL'
+    },
+    {
+      name: 'services',
+      key: 'host_components/HostRoles/service_name',
+      type: 'MATCH'
+    },
+    {
+      name: 'state',
+      key: 'host_components/HostRoles/state',
+      type: 'MATCH'
     },
     {
       name: 'healthClass',
@@ -106,7 +124,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     },
     {
       name: 'criticalWarningAlertsCount',
-      key: 'alerts_summary/CRITICAL{0}|alerts_summary/WARNING{1}',
+      key: '(alerts_summary/CRITICAL{0}|alerts_summary/WARNING{1})',
       type: 'CUSTOM'
     },
     {
@@ -125,9 +143,29 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       type: 'MULTIPLE'
     },
     {
+      name: 'version',
+      key: 'stack_versions/repository_versions/RepositoryVersions/display_name',
+      type: 'EQUAL'
+    },
+    {
+      name: 'versionState',
+      key: 'stack_versions/HostStackVersions/state',
+      type: 'EQUAL'
+    },
+    {
       name: 'hostStackVersion',
       key: 'stack_versions',
       type: 'EQUAL'
+    },
+    {
+      name: 'componentState',
+      key: [
+        '(host_components/HostRoles/component_name={0})',
+        '(host_components/HostRoles/component_name={0}&host_components/HostRoles/state={1})',
+        '(host_components/HostRoles/component_name={0}&host_components/HostRoles/desired_admin_state={1})',
+        '(host_components/HostRoles/component_name={0}&host_components/HostRoles/maintenance_state={1})'
+      ],
+      type: 'COMBO'
     }
   ],
 
@@ -223,7 +261,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           isFilter: true
         };
         if (filter.type === 'string' && sortProperties.someProperty('name', colPropAssoc[filter.iColumn])) {
-          result.value = this.getRegExp(filter.value);
+          if (Em.isArray(filter.value)) {
+            for(var i = 0; i < filter.value.length; i++) {
+              filter.value[i] = this.getRegExp(filter.value[i]);
+            }
+          } else {
+            result.value = this.getRegExp(filter.value);
+          }
         }
         if (filter.type === 'number' || filter.type === 'ambari-bandwidth') {
           result.type = this.getComparisonType(filter.value);
@@ -314,8 +358,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       'UNHEALTHY': data.Clusters.health_report['Host/host_status/UNHEALTHY'],
       'ALERT': data.Clusters.health_report['Host/host_status/ALERT'],
       'UNKNOWN': data.Clusters.health_report['Host/host_status/UNKNOWN'],
-      'health-status-WITH-ALERTS': (data.alerts_summary_hosts) ? data.alerts_summary_hosts.CRITICAL + data.alerts_summary_hosts.WARNING : 0,
-      'health-status-CRITICAL': (data.alerts_summary_hosts) ? data.alerts_summary_hosts.CRITICAL : 0,
       'health-status-RESTART': data.Clusters.health_report['Host/stale_config'],
       'health-status-PASSIVE_STATE': data.Clusters.health_report['Host/maintenance_state'],
       'TOTAL': data.Clusters.total_hosts
@@ -327,9 +369,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   /**
    * success callback on <code>updateStatusCounters()</code>
    */
-  updateStatusCountersErrorCallback: function() {
-
-  },
+  updateStatusCountersErrorCallback: Em.K,
 
   /**
    * Return value without predicate
@@ -337,13 +377,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * @return {String}
    */
   getProperValue: function (value) {
-    return (value.charAt(0) === '>' || value.charAt(0) === '<' || value.charAt(0) === '=') ? value.substr(1, value.length) : value;
+    return (['>', '<', '='].contains(value.charAt(0))) ? value.substr(1, value.length) : value;
   },
 
   /**
    * Return value converted to kilobytes
    * @param {String} value
-   * @return {*}
+   * @return {number}
    */
   convertMemory: function (value) {
     var scale = value.charAt(value.length - 1);
@@ -382,7 +422,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     value = this.getProperValue(value);
     var parsedValue = parseFloat(value);
     if (isNaN(parsedValue)) {
-      return value;
+      return [0, 0];
     }
     var parsedValuePair = this.rangeConvertNumber(parsedValue, scale);
     var multiplyingFactor = 1;
@@ -415,7 +455,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   rangeConvertNumber: function (value, scale) {
     if (isNaN(value)) {
-      return value;
+      return [0, 0];
     }
     var valuePair = [];
     switch (scale) {
@@ -435,8 +475,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
   /**
    * Return comparison type depending on populated predicate
-   * @param value
-   * @return {String}
+   * @param {string} value
+   * @return {string}
    */
   getComparisonType: function (value) {
     var comparisonChar = value.charAt(0);
@@ -454,49 +494,61 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     return result;
   },
 
+  labelValueMap: {},
+
   /**
    * Filter hosts by componentName of <code>component</code>
    * @param {App.HostComponent} component
    */
   filterByComponent: function (component) {
-    if (!component)
-      return;
-    var id = component.get('componentName');
-    var column = 6;
+    if (!component) return;
+    var componentName = component.get('componentName');
+    var displayName = App.format.role(componentName, false);
+    var colPropAssoc = this.get('colPropAssoc');
+    var map = this.get('labelValueMap');
 
     var filterForComponent = {
-      iColumn: column,
-      value: [id],
-      type: 'multiple'
+      iColumn: 15,
+      value: componentName + ':ALL',
+      type: 'string'
     };
+    map[displayName] = componentName;
+    map['All'] = 'ALL';
+    var filterStr = '"' + displayName + '"' + ': "All"';
     App.db.setFilterConditions(this.get('name'), [filterForComponent]);
+    App.db.setComboSearchQuery(this.get('name'), filterStr);
   },
 
   /**
    * Filter hosts by stack version and state
    * @param {String} displayName
-   * @param {String} state
+   * @param {Array} states
    */
-  filterByStack: function (displayName, state) {
-    if (!displayName || !state)
-      return;
-    var column = 11;
+  filterByStack: function (displayName, states) {
+    if (Em.isNone(displayName) || Em.isNone(states) || !states.length) return;
+    var colPropAssoc = this.get('colPropAssoc');
+    var map = this.get('labelValueMap');
+    var stateFilterStrs = [];
 
-    var filterForStack = {
-      iColumn: column,
-      value: [
-        {
-          property: 'repository_versions/RepositoryVersions/display_name',
-          value: displayName
-        },
-        {
-          property: 'HostStackVersions/state',
-          value: state.toUpperCase()
-        }
-      ],
-      type: 'sub-resource'
+    var versionFilter = {
+      iColumn: 16,
+      value: displayName,
+      type: 'string'
     };
-    App.db.setFilterConditions(this.get('name'), [filterForStack]);
+    var stateFilter = {
+      iColumn: 17,
+      value: states,
+      type: 'string'
+    };
+    map["Stack Version"] = colPropAssoc[versionFilter.iColumn];
+    map["Version State"] = colPropAssoc[stateFilter.iColumn];
+    stateFilter.value.forEach(function(state) {
+      map[App.HostStackVersion.formatStatus(state)] = state;
+      stateFilterStrs.push('"Version State": "' + App.HostStackVersion.formatStatus(state) + '"');
+    });
+    var versionFilterStr = '"Stack Version": "' + versionFilter.value + '"';
+    App.db.setFilterConditions(this.get('name'), [versionFilter, stateFilter]);
+    App.db.setComboSearchQuery(this.get('name'), [versionFilterStr, stateFilterStrs.join(' ')].join(' '));
   },
 
   goToHostAlerts: function (event) {
@@ -511,7 +563,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    */
   removeHosts: function () {
     var hosts = this.get('content');
-    var selectedHosts = hosts.filterProperty('isChecked', true);
+    var selectedHosts = hosts.filterProperty('isChecked');
     this.get('fullContent').removeObjects(selectedHosts);
   },
 
@@ -544,6 +596,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     associations[10] = 'selected';
     associations[11] = 'hostStackVersion';
     associations[12] = 'rack';
+    associations[13] = 'services';
+    associations[14] = 'state';
+    associations[15] = 'componentState';
+    associations[16] = 'version';
+    associations[17] = 'versionState';
     return associations;
   }.property()
 

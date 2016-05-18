@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
 
 /**
  * PrepareEnableKerberosServerAction is a ServerAction implementation that prepares metadata needed
@@ -112,7 +113,32 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
+    Map<String, Map<String, String>> propertiesToInsert = new HashMap<>();
+    processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
+      kerberosConfigurations, propertiesToInsert, null, false, true);
+
+    // Add auth-to-local configurations to the set of changes
+    Set<String> authToLocalProperties = kerberosDescriptor.getAllAuthToLocalProperties();
+    if(authToLocalProperties != null) {
+      for (String authToLocalProperty : authToLocalProperties) {
+        Matcher m = KerberosDescriptor.AUTH_TO_LOCAL_PROPERTY_SPECIFICATION_PATTERN.matcher(authToLocalProperty);
+
+        if (m.matches()) {
+          String configType = m.group(1);
+          String propertyName = m.group(2);
+
+          if (configType == null) {
+            configType = "";
+          }
+
+          // Add existing auth_to_local configuration, if set
+          Map<String, String> configuration = kerberosConfigurations.get(configType);
+          if (configuration != null) {
+            configuration.put(propertyName, "DEFAULT");
+          }
+        }
+      }
+    }
 
     actionLog.writeStdOut("Determining configuration changes");
     // Ensure the cluster-env/security_enabled flag is set properly
@@ -146,6 +172,21 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
       // Remove cluster-env from the set of configurations to remove since it has no default set
       // or properties and the logic below will remove all from this set - which is not desirable.
       configurationsToRemove.remove("cluster-env");
+
+      // Update kerberosConfigurations with properties recommended by stack advisor
+      for (Map.Entry<String, Map<String, String>> typeEntry : propertiesToInsert.entrySet()) {
+        String configType = typeEntry.getKey();
+        Map<String, String> propertiesMap = typeEntry.getValue();
+
+        Map<String, String> kerberosPropertiesMap = kerberosConfigurations.get(configType);
+        if (kerberosPropertiesMap == null) {
+          kerberosConfigurations.put(configType, propertiesMap);
+        } else {
+          for (Map.Entry<String, String> propertyEntry : propertiesMap.entrySet()) {
+            kerberosPropertiesMap.put(propertyEntry.getKey(), propertyEntry.getValue());
+          }
+        }
+      }
 
       if (!schToProcess.isEmpty()) {
         Set<String> visitedServices = new HashSet<String>();

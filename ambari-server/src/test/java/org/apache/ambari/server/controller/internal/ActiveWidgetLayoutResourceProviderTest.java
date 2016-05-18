@@ -103,12 +103,12 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
   @Test
   public void testGetResources_NonAdministrator_Self() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResources_NonAdministrator_Other() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   @Test(expected = SystemException.class)
@@ -118,12 +118,12 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = SystemException.class)
   public void testCreateResources_NonAdministrator_Self() throws Exception {
-    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = SystemException.class)
   public void testCreateResources_NonAdministrator_Other() throws Exception {
-    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   @Test
@@ -133,12 +133,12 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
   @Test
   public void testUpdateResources_NonAdministrator_Self() throws Exception {
-    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_NonAdministrator_Other() throws Exception {
-    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   @Test(expected = SystemException.class)
@@ -148,12 +148,12 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = SystemException.class)
   public void testDeleteResources_NonAdministrator_Self() throws Exception {
-    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = SystemException.class)
   public void testDeleteResources_NonAdministrator_Other() throws Exception {
-    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   private void getResourcesTest(Authentication authentication, String requestedUsername) throws Exception {
@@ -170,6 +170,7 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
     Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
 
     Clusters clusters = injector.getInstance(Clusters.class);
     expect(clusters.getClusterById(2L)).andReturn(cluster).atLeastOnce();
@@ -315,7 +316,7 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = getResourceProvider(injector, managementController);
 
-    provider.deleteResources(createPredicate(requestedUsername));
+    provider.deleteResources(new RequestImpl(null, null, null, null), createPredicate(requestedUsername));
 
     verifyAll();
   }

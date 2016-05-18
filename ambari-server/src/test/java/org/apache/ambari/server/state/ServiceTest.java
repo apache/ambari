@@ -51,6 +51,7 @@ public class ServiceTest {
   private Injector injector;
   private ServiceFactory serviceFactory;
   private ServiceComponentFactory serviceComponentFactory;
+  private ServiceComponentHostFactory serviceComponentHostFactory;
   private AmbariMetaInfo metaInfo;
 
   @Before
@@ -61,6 +62,8 @@ public class ServiceTest {
     serviceFactory = injector.getInstance(ServiceFactory.class);
     serviceComponentFactory = injector.getInstance(
         ServiceComponentFactory.class);
+    serviceComponentHostFactory = injector.getInstance(
+        ServiceComponentHostFactory.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     clusterName = "foo";
     clusters.addCluster(clusterName, new StackId("HDP-0.1"));
@@ -279,8 +282,14 @@ public class ServiceTest {
       org.junit.Assert.assertTrue(service.canBeRemoved());
     }
 
-    // can't remove a STARTED component
-    component.setDesiredState(State.STARTED);
+    // can remove a STARTED component as whether a service can be removed
+    // is ultimately decided based on if the host components can be removed
+    component.setDesiredState(State.INSTALLED);
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
+    component.addServiceComponentHost(sch);
+    sch.setDesiredState(State.STARTED);
+    sch.setState(State.STARTED);
 
     for (State state : State.values()) {
       service.setDesiredState(state);
@@ -352,5 +361,22 @@ public class ServiceTest {
         // this is acceptable
       }
     }
+  }
+
+  private void addHostToCluster(String hostname,
+                                String clusterName) throws AmbariException {
+    clusters.addHost(hostname);
+    Host h = clusters.getHost(hostname);
+    h.setIPv4(hostname + "ipv4");
+    h.setIPv6(hostname + "ipv6");
+
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    h.setHostAttributes(hostAttributes);
+
+
+    h.persist();
+    clusters.mapHostToCluster(hostname, clusterName);
   }
 }

@@ -32,8 +32,12 @@ import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.utils.RequestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 import java.io.UnsupportedEncodingException;
@@ -68,6 +72,11 @@ public abstract class BaseRequest implements Request {
    * Http Body
    */
   private RequestBody m_body;
+
+  /**
+   * Remote address
+   */
+  private String m_remoteAddress;
 
   /**
    * Query Predicate
@@ -120,6 +129,7 @@ public abstract class BaseRequest implements Request {
     m_uriInfo     = uriInfo;
     m_resource    = resource;
     m_body        = body;
+    m_remoteAddress  = RequestUtils.getRemoteAddress();
   }
 
   @Override
@@ -319,6 +329,9 @@ public abstract class BaseRequest implements Request {
           case POST:
             ignoredProperties = m_resource.getResourceDefinition().getCreateDirectives();
             break;
+          case DELETE:
+            ignoredProperties = m_resource.getResourceDefinition().getDeleteDirectives();
+            break;
           default:
             break;
         }
@@ -374,4 +387,9 @@ public abstract class BaseRequest implements Request {
    * @return  the request handler
    */
   protected abstract RequestHandler getRequestHandler();
+
+  @Override
+  public String getRemoteAddress() {
+    return m_remoteAddress;
+  }
 }

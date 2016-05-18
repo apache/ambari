@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var date = require('utils/date/date');
 
 App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/storm'),
@@ -27,9 +26,7 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
    * this parameter is used to fiter hosts by component name
    * used in mainHostController.filterByComponent() method
    */
-  filterComponent: function() {
-    return Em.Object.create({componentName: 'SUPERVISOR'});
-  }.property(),
+  filterComponent: Em.Object.create({componentName: 'SUPERVISOR'}),
 
   freeSlotsPercentage: Em.computed.percents('service.freeSlots', 'service.totalSlots'),
 

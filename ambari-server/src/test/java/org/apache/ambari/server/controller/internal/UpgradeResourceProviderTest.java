@@ -27,6 +27,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -57,11 +59,13 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -96,6 +100,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -110,6 +117,7 @@ import com.google.inject.util.Modules;
 public class UpgradeResourceProviderTest {
 
   private UpgradeDAO upgradeDao = null;
+  private RequestDAO requestDao = null;
   private RepositoryVersionDAO repoVersionDao = null;
   private Injector injector;
   private Clusters clusters;
@@ -156,6 +164,7 @@ public class UpgradeResourceProviderTest {
 
     stackDAO = injector.getInstance(StackDAO.class);
     upgradeDao = injector.getInstance(UpgradeDAO.class);
+    requestDao = injector.getInstance(RequestDAO.class);
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
 
     AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
@@ -199,7 +208,7 @@ public class UpgradeResourceProviderTest {
     helper.getOrCreateRepositoryVersion(stack211, stack211.getStackVersion());
     helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
 
-    cluster.createClusterVersion(stack211, stack211.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    cluster.createClusterVersion(stack211, stack211.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     cluster.transitionClusterVersion(stack211, stack211.getStackVersion(), RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");
@@ -229,12 +238,26 @@ public class UpgradeResourceProviderTest {
     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     ActionManager.setTopologyManager(topologyManager);
+    EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
 
   @After
   public void after() {
     injector.getInstance(PersistService.class).stop();
+    EasyMock.reset(injector.getInstance(AuditLogger.class));
     injector = null;
+  }
+
+  /**
+   * Obtain request id from the {@code RequestStatus}
+   * @param requestStatus reqult of the {@code createResources}
+   * @return id of the request
+   */
+  private long getRequestId(RequestStatus requestStatus){
+    assertEquals(1, requestStatus.getAssociatedResources().size());
+    Resource r = requestStatus.getAssociatedResources().iterator().next();
+    String id = r.getPropertyValue("Upgrade/request_id").toString();
+    return Long.parseLong(id);
   }
 
   @Test
@@ -269,8 +292,8 @@ public class UpgradeResourceProviderTest {
 
     List<UpgradeItemEntity> preClusterUpgradeItems = preClusterGroup.getItems();
     assertEquals(2, preClusterUpgradeItems.size());
-    assertEquals("Foo", preClusterUpgradeItems.get(0).getText());
-    assertEquals("Foo", preClusterUpgradeItems.get(1).getText());
+    assertEquals("Foo", parseSingleMessage(preClusterUpgradeItems.get(0).getText()));
+    assertEquals("Foo", parseSingleMessage(preClusterUpgradeItems.get(1).getText()));
 
     UpgradeGroupEntity zookeeperGroup = upgradeGroups.get(1);
     assertEquals("ZOOKEEPER", zookeeperGroup.getName());
@@ -279,9 +302,10 @@ public class UpgradeResourceProviderTest {
     assertEquals(5, zookeeperUpgradeItems.size());
 
     assertEquals("This is a manual task with a placeholder of placeholder-rendered-properly",
-        zookeeperUpgradeItems.get(0).getText());
+        parseSingleMessage(zookeeperUpgradeItems.get(0).getText()));
     assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(1).getText());
-    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(2).getText());
+    assertEquals("Updating configuration zookeeper-newconfig",
+        zookeeperUpgradeItems.get(2).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(3).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(4).getText());
 
@@ -294,7 +318,7 @@ public class UpgradeResourceProviderTest {
 
     List<UpgradeItemEntity> postClusterUpgradeItems = postClusterGroup.getItems();
     assertEquals(2, postClusterUpgradeItems.size());
-    assertEquals("Please confirm you are ready to finalize", postClusterUpgradeItems.get(0).getText());
+    assertEquals("Please confirm you are ready to finalize", parseSingleMessage(postClusterUpgradeItems.get(0).getText()));
     assertEquals("Save Cluster State", postClusterUpgradeItems.get(1).getText());
   }
 
@@ -329,7 +353,8 @@ public class UpgradeResourceProviderTest {
     List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
     assertEquals(3, zookeeperUpgradeItems.size());
     assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
-    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Updating configuration zookeeper-newconfig",
+        zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
 
     UpgradeGroupEntity postClusterGroup = upgradeGroups.get(1);
@@ -374,7 +399,8 @@ public class UpgradeResourceProviderTest {
     assertEquals(4, zookeeperUpgradeItems.size());
 
     assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
-    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Updating configuration zookeeper-newconfig",
+        zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(3).getText());
 
@@ -480,7 +506,12 @@ public class UpgradeResourceProviderTest {
     res = resources.iterator().next();
 
     assertEquals("Confirm Finalize", res.getPropertyValue("UpgradeItem/context"));
-    assertTrue(res.getPropertyValue("UpgradeItem/text").toString().startsWith("Please confirm"));
+    String msgStr = res.getPropertyValue("UpgradeItem/text").toString();
+    JsonParser parser = new JsonParser();
+    JsonArray msgArray = (JsonArray) parser.parse(msgStr);
+    JsonObject msg = (JsonObject) msgArray.get(0);
+
+    assertTrue(msg.get("message").getAsString().startsWith("Please confirm"));
   }
 
   /**
@@ -555,6 +586,13 @@ public class UpgradeResourceProviderTest {
 
     // a downgrade MUST have an upgrade to come from, so populate an upgrade in
     // the DB
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setRequestId(2L);
+    requestEntity.setClusterId(cluster.getClusterId());
+    requestEntity.setStatus(HostRoleStatus.PENDING);
+    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestDao.create(requestEntity);
+
     UpgradeEntity upgradeEntity = new UpgradeEntity();
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setDirection(Direction.UPGRADE);
@@ -562,7 +600,7 @@ public class UpgradeResourceProviderTest {
     upgradeEntity.setToVersion("2.2.2.2");
     upgradeEntity.setUpgradePackage("upgrade_test");
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
-    upgradeEntity.setRequestId(1L);
+    upgradeEntity.setRequestId(2L);
 
     upgradeDao.create(upgradeEntity);
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -605,7 +643,7 @@ public class UpgradeResourceProviderTest {
   public void testDowngradeToBase() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
@@ -614,19 +652,19 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    RequestStatus status = upgradeResourceProvider.createResources(request);
+    upgradeResourceProvider.createResources(request);
 
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
 
-    requestProps = new HashMap<String, Object>();
+    requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     try {
-      status = upgradeResourceProvider.createResources(request);
+      upgradeResourceProvider.createResources(request);
       Assert.fail("Expected an exception going downgrade with no upgrade pack");
     } catch (Exception e) {
       // !!! expected
@@ -638,11 +676,11 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
 
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
-    status = upgradeResourceProvider.createResources(request);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
     assertEquals(1, status.getAssociatedResources().size());
     Resource r = status.getAssociatedResources().iterator().next();
     String id = r.getPropertyValue("Upgrade/request_id").toString();
@@ -666,6 +704,91 @@ public class UpgradeResourceProviderTest {
   }
 
 
+
+  /**
+   * Test Downgrade from the partially completed upgrade
+   */
+  @Test
+  public void testNotFullDowngrade() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    // add additional service for the test
+    Service service = cluster.addService("HIVE");
+    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    service.persist();
+
+    ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.1.1.0");
+
+    // create upgrade request
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, "NON_ROLLING");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    // check that upgrade was created and groups for the tested services are on place
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    List<UpgradeGroupEntity> groups = upgrades.get(0).getUpgradeGroups();
+    boolean isHiveGroupFound = false;
+    boolean isZKGroupFound = false;
+
+    // look only for testing groups
+    for (UpgradeGroupEntity group: groups) {
+      if (group.getName().equalsIgnoreCase("hive")) {
+        isHiveGroupFound = true;
+      } else if (group.getName().equalsIgnoreCase("zookeeper")){
+        isZKGroupFound = true;
+      }
+    }
+
+    assertTrue(isHiveGroupFound);
+    assertTrue(isZKGroupFound);
+
+    isHiveGroupFound = false;
+    isZKGroupFound = false;
+    sch.setVersion("2.2.0.0");
+
+    // create downgrade with one upgraded service
+    StackId stackId = new StackId("HDP", "2.2.0");
+    cluster.setDesiredStackVersion(stackId, true);
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.0.0");
+
+    Map<String, String> requestInfoProperties = new HashMap<>();
+    requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+    UpgradeEntity upgradeEntity = upgradeDao.findUpgradeByRequestId(getRequestId(status));
+
+    for (UpgradeGroupEntity group: upgradeEntity.getUpgradeGroups()) {
+      if (group.getName().equalsIgnoreCase("hive")) {
+        isHiveGroupFound = true;
+      } else if (group.getName().equalsIgnoreCase("zookeeper")){
+        isZKGroupFound = true;
+      }
+    }
+
+    // as services not updated, nothing to downgrade
+    assertTrue(isHiveGroupFound);
+    assertFalse(isZKGroupFound);
+  }
+
+
   @Test
   public void testAbort() throws Exception {
     RequestStatus status = testCreateResources();
@@ -680,6 +803,7 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "true");
 
     UpgradeResourceProvider urp = createProvider(amc);
 
@@ -703,6 +827,7 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "true");
 
     UpgradeResourceProvider urp = createProvider(amc);
 
@@ -734,12 +859,32 @@ public class UpgradeResourceProviderTest {
     requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "PENDING");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SUSPENDED, "false");
 
     // !!! make sure we can.  actual reset is tested elsewhere
     req = PropertyHelper.getUpdateRequest(requestProps, null);
     urp.updateResources(req, null);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testAbortWithoutSuspendFlag() throws Exception {
+    RequestStatus status = testCreateResources();
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+
+    UpgradeResourceProvider urp = createProvider(amc);
+    Request req = PropertyHelper.getUpdateRequest(requestProps, null);
+    urp.updateResources(req, null);
+  }
 
   @Test
   public void testDirectionUpgrade() throws Exception {
@@ -1094,7 +1239,7 @@ public class UpgradeResourceProviderTest {
         group.getItems().get(0).getText().contains("placeholder of placeholder-rendered-properly"));
 
     assertTrue(group.getItems().get(1).getText().contains("Restarting"));
-    assertTrue(group.getItems().get(2).getText().contains("Skipping"));
+    assertTrue(group.getItems().get(2).getText().contains("Updating"));
     assertTrue(group.getItems().get(3).getText().contains("Service Check"));
 
     ActionManager am = injector.getInstance(ActionManager.class);
@@ -1222,6 +1367,13 @@ public class UpgradeResourceProviderTest {
     }
   }
 
+  private String parseSingleMessage(String msgStr){
+    JsonParser parser = new JsonParser();
+    JsonArray msgArray = (JsonArray) parser.parse(msgStr);
+    JsonObject msg = (JsonObject) msgArray.get(0);
+
+    return msg.get("message").getAsString();
+  }
 
   /**
    *

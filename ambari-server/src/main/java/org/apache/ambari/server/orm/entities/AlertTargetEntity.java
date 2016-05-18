@@ -47,7 +47,6 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.AlertState;
-import org.eclipse.persistence.annotations.Noncacheable;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -85,13 +84,15 @@ public class AlertTargetEntity {
   private String targetName;
 
   @Column(name = "is_global", nullable = false, length = 1)
-  private Integer isGlobal = Integer.valueOf(0);
+  private Short isGlobal = Short.valueOf((short) 0);
+
+  @Column(name = "is_enabled", nullable = false, length = 1)
+  private Short isEnabled = Short.valueOf((short) 1);
 
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
   @ManyToMany(mappedBy = "alertTargets", cascade = {CascadeType.MERGE, CascadeType.REFRESH})
-  @Noncacheable
   private Set<AlertGroupEntity> alertGroups;
 
   /**
@@ -205,7 +206,28 @@ public class AlertTargetEntity {
    *          {@code} if the target is global.
    */
   public void setGlobal(boolean isGlobal) {
-    this.isGlobal = isGlobal ? 1 : 0;
+    this.isGlobal = isGlobal ? (short) 1 : (short) 0;
+  }
+
+  /**
+   * Gets whether the alert target is enabled. Targets which are not enabled
+   * will not receive notifications.
+   *
+   * @return the {@code true} if the target is enabled.
+   */
+  public boolean isEnabled() {
+    return isEnabled == 0 ? false : true;
+  }
+
+  /**
+   * Sets whether the alert target is enabled. Targets which are not enabled
+   * will not receive notifications.
+   *
+   * @param isEnabled
+   *          {@code} if the target is enabled.
+   */
+  public void setEnabled(boolean isEnabled) {
+    this.isEnabled = isEnabled ? (short) 1 : (short) 0;
   }
 
   /**

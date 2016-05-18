@@ -27,15 +27,6 @@ describe('App.HostComponent', function() {
   });
   var hc = App.HostComponent.find('COMP_host');
 
-
-  describe('#getStatusesList', function() {
-    it('allowed statuses', function() {
-      var statuses = ["STARTED","STARTING","INSTALLED","STOPPING","INSTALL_FAILED","INSTALLING","UPGRADE_FAILED","UNKNOWN","DISABLED","INIT"];
-      expect(App.HostComponentStatus.getStatusesList()).to.include.members(statuses);
-      expect(statuses).to.include.members(App.HostComponentStatus.getStatusesList());
-    });
-  });
-
   describe('#getStatusesList', function() {
     it('allowed statuses', function() {
       var statuses = ["STARTED","STARTING","INSTALLED","STOPPING","INSTALL_FAILED","INSTALLING","UPGRADE_FAILED","UNKNOWN","DISABLED","INIT"];
@@ -45,78 +36,76 @@ describe('App.HostComponent', function() {
   });
 
   describe('#isClient', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.clients'), 'contains', Em.K);
       hc.propertyDidChange('isClient');
       hc.get('isClient');
-      expect(App.get('components.clients').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.clients').contains.restore();
     });
-  });
 
-  describe('#displayName', function() {
-    it('', function() {
-      sinon.stub(App.format, 'role', Em.K);
-      hc.propertyDidChange('displayName');
-      hc.get('displayName');
-      expect(App.format.role.calledWith('COMP1')).to.be.true;
-      App.format.role.restore();
+    it('components.clients is called with correct data', function() {
+      expect(App.get('components.clients').contains.calledWith('COMP1')).to.be.true;
     });
   });
 
   describe('#isMaster', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.masters'), 'contains', Em.K);
       hc.propertyDidChange('isMaster');
       hc.get('isMaster');
-      expect(App.get('components.masters').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.masters').contains.restore();
+    });
+
+    it('components.masters is called with correct data', function() {
+      expect(App.get('components.masters').contains.calledWith('COMP1')).to.be.true;
     });
   });
 
   describe('#isSlave', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.slaves'), 'contains', Em.K);
       hc.propertyDidChange('isSlave');
       hc.get('isSlave');
-      expect(App.get('components.slaves').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.slaves').contains.restore();
+    });
+
+    it('components.slaves is called with correct data', function() {
+      expect(App.get('components.slaves').contains.calledWith('COMP1')).to.be.true;
     });
   });
 
   describe('#isDeletable', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.deletable'), 'contains', Em.K);
       hc.propertyDidChange('isDeletable');
       hc.get('isDeletable');
-      expect(App.get('components.deletable').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.deletable').contains.restore();
+    });
+
+    it('components.deletable is called with correct data', function() {
+      expect(App.get('components.deletable').contains.calledWith('COMP1')).to.be.true;
     });
   });
 
-  describe('#isRunning', function() {
-    var testCases = [
-      {
-        workStatus: 'INSTALLED',
-        result: false
-      },
-      {
-        workStatus: 'STARTING',
-        result: true
-      },
-      {
-        workStatus: 'STARTED',
-        result: true
-      }
-    ];
-    testCases.forEach(function(test){
-      it('workStatus - ' + test.workStatus, function() {
-        hc.set('workStatus', test.workStatus);
-        hc.propertyDidChange('isRunning');
-        expect(hc.get('isRunning')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedIfThenElse(hc, 'passiveTooltip', 'isActive', '', Em.I18n.t('hosts.component.passive.mode'));
+
+  App.TestAliases.testAsComputedExistsIn(hc, 'isRunning', 'workStatus', ['STARTED', 'STARTING']);
 
   describe('#isDecommissioning', function() {
     var mock = [];
@@ -157,6 +146,10 @@ describe('App.HostComponent', function() {
     });
   });
 
+  App.TestAliases.testAsComputedEqual(hc, 'isActive', 'passiveState', 'OFF');
+
+  App.TestAliases.testAsComputedIfThenElse(hc, 'passiveTooltip', 'isActive', '', Em.I18n.t('hosts.component.passive.mode'));
+
   describe('#isActive', function() {
     it('passiveState is ON', function() {
       hc.set('passiveState', "ON");
@@ -187,47 +180,13 @@ describe('App.HostComponent', function() {
     });
   });
 
-  describe('#statusIconClass', function () {
-    var testCases = [
-      {
-        statusClass: 'STARTED',
-        result: 'icon-ok-sign'
-      },
-      {
-        statusClass: 'STARTING',
-        result: 'icon-ok-sign'
-      },
-      {
-        statusClass: 'INSTALLED',
-        result: 'icon-warning-sign'
-      },
-      {
-        statusClass: 'STOPPING',
-        result: 'icon-warning-sign'
-      },
-      {
-        statusClass: 'UNKNOWN',
-        result: 'icon-question-sign'
-      },
-      {
-        statusClass: '',
-        result: ''
-      }
-    ];
-
-    it('reset statusClass to plain property', function () {
-      hc.reopen({
-        statusClass: ''
-      })
-    });
-    testCases.forEach(function (test) {
-      it('statusClass - ' + test.statusClass, function () {
-        hc.set('statusClass', test.statusClass);
-        hc.propertyDidChange('statusIconClass');
-        expect(hc.get('statusIconClass')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedGetByKey(hc, 'statusIconClass', 'statusIconClassMap', 'statusClass', {defaultValue: '', map: {
+    STARTED: App.healthIconClassGreen,
+    STARTING: App.healthIconClassGreen,
+    INSTALLED: App.healthIconClassRed,
+    STOPPING: App.healthIconClassRed,
+    UNKNOWN: App.healthIconClassYellow
+  }});
 
   describe('#componentTextStatus', function () {
     before(function () {
@@ -315,28 +274,91 @@ describe('App.HostComponent', function() {
     });
   });
 
-  describe('#isNotInstalled', function () {
+  App.TestAliases.testAsComputedExistsIn(hc, 'isNotInstalled', 'workStatus', ['INIT', 'INSTALL_FAILED']);
 
-    Em.A([
+  describe("#getDisplayName",function(){
+    var testCases = [
       {
-        p: {workStatus: 'INIT'},
-        e: true
+        testName: 'for displayName of length < 19',
+        displayName: 'abc',
+        result: 'abc'
       },
       {
-        p: {workStatus: 'INSTALL_FAILED'},
-        e: true
+        testName:'for displayName of length = 19',
+        displayName: '1234567890123456789',
+        result: '1234567890123456789'
       },
       {
-        p: {workStatus: 'STARTED'},
-        e: false
+        testName:'for displayName of length > 19',
+        displayName: '12345678901234567890',
+        result: '1234567890123456...'
       }
-    ]).forEach(function (test, index) {
-      it('#' + (index + 1), function() {
-        hc.setProperties(test.p);
-        expect(hc.get('isNotInstalled')).to.equal(test.e);
+    ];
+
+    testCases.forEach(function(test){
+      it(test.testName, function(){
+        hc.set('displayName',test.displayName);
+        expect(hc.get('getDisplayName')).to.equal(test.result);
       });
     });
-
   });
 
+  describe("#getDisplayNameAdvanced",function(){
+    var testCases = [
+      {
+        testName: 'for displayNameAdvanced of length < 19',
+        displayNameAdvanced: 'abc',
+        result: 'abc'
+      },
+      {
+        testName:'for displayNameAdvanced of length = 19',
+        displayNameAdvanced: '1234567890123456789',
+        result: '1234567890123456789'
+      },
+      {
+        testName:'for displayNameAdvanced of length > 19',
+        displayNameAdvanced: '12345678901234567890',
+        result: '1234567890123456...'
+      }
+    ];
+
+    testCases.forEach(function(test){
+      it(test.testName, function(){
+        hc.set('displayNameAdvanced',test.displayNameAdvanced);
+        expect(hc.get('getDisplayNameAdvanced')).to.equal(test.result);
+      });
+    });
+  });
+
+
+  App.TestAliases.testAsComputedTruncate(hc, 'serviceDisplayName', 'service.displayName', 14, 11);
+  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayName', 'displayName', 19, 16);
+  App.TestAliases.testAsComputedTruncate(hc, 'getDisplayNameAdvanced', 'displayNameAdvanced', 19, 16);
+
+  describe("#serviceDisplayName",function(){
+    var testCases = [
+      {
+        testName: 'for service.displayName of length < 14',
+        serviceDisplayName: 'abc',
+        result: 'abc'
+      },
+      {
+        testName:'for service.displayName of length = 14',
+        serviceDisplayName: '12345678901234',
+        result: '12345678901234'
+      },
+      {
+        testName:'for service.displayName of length > 14',
+        serviceDisplayName: '123456789012345',
+        result: '12345678901...'
+      }
+    ];
+
+    testCases.forEach(function(test){
+      it(test.testName, function(){
+        hc.set('service',Em.Object.create({displayName:test.serviceDisplayName}));
+        expect(hc.get('serviceDisplayName')).to.equal(test.result);
+      });
+    });
+  });
 });

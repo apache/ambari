@@ -46,11 +46,22 @@ limitations under the License.
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Database URL</display-name>
     <description>JDBC connect string for a JDBC metastore</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <name>hive_database</name>
+        <type>hive-env</type>
+      </property>
+      <property>
+        <name>ambari.hive.db.schema.name</name>
+        <type>hive-site</type>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -61,6 +72,12 @@ limitations under the License.
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <name>hive_database</name>
+        <type>hive-env</type>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -90,6 +107,7 @@ limitations under the License.
     <name>hive.metastore.warehouse.dir</name>
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
   </property>
 
   <property>
@@ -108,6 +126,7 @@ limitations under the License.
   <property>
     <name>hive.metastore.uris</name>
     <value>thrift://localhost:9083</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>URI for client to contact metastore server</description>
   </property>
 
@@ -192,6 +211,12 @@ limitations under the License.
     <name>hive.server2.enable.impersonation</name>
     <description>Enable user impersonation for HiveServer2</description>
     <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.server2.max.start.attempts</name>
+    <description>This number of times HiveServer2 will attempt to start before exiting, sleeping 60 seconds between retries.</description>
+    <value>5</value>
   </property>
 
   <property>
@@ -416,7 +441,8 @@ limitations under the License.
 
   <property>
     <name>atlas.cluster.name</name>
-    <value>primary</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
+    <value>{{cluster_name}}</value>
     <depends-on>
       <property>
         <type>application-properties</type>
@@ -428,6 +454,7 @@ limitations under the License.
   <property>
     <name>atlas.rest.address</name>
     <value>http://localhost:21000</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>application-properties</type>

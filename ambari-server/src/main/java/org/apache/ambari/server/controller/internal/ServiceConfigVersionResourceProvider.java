@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -44,6 +45,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 public class ServiceConfigVersionResourceProvider extends
     AbstractControllerResourceProvider {
@@ -113,6 +115,10 @@ public class ServiceConfigVersionResourceProvider extends
   ServiceConfigVersionResourceProvider(
       AmbariManagementController managementController) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+
+    setRequiredGetAuthorizations(EnumSet.of(RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS));
   }
 
 
@@ -127,7 +133,7 @@ public class ServiceConfigVersionResourceProvider extends
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<ServiceConfigVersionRequest> requests = new HashSet<ServiceConfigVersionRequest>();
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       requests.add(createRequest(properties));
@@ -172,7 +178,7 @@ public class ServiceConfigVersionResourceProvider extends
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Cannot delete service config version");
   }
 

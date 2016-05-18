@@ -20,8 +20,10 @@ package org.apache.ambari.server.state.kerberos;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * KerberosDescriptor is an implementation of an AbstractKerberosDescriptorContainer that
@@ -343,5 +345,44 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     } else {
       return false;
     }
+  }
+
+  /**
+   * Recursively gets the entire set of <code>auth_to_local</code> property names contain within this
+   * KerberosDescriptor.
+   *
+   * @return a Set of String values where each value is in the form of config-type/property_name
+   */
+  public Set<String> getAllAuthToLocalProperties() {
+    Set<String> authToLocalProperties = new HashSet<>();
+
+    Set<String> set;
+
+    set = getAuthToLocalProperties();
+    if (set != null) {
+      authToLocalProperties.addAll(set);
+    }
+
+    if (services != null) {
+      for (KerberosServiceDescriptor service : services.values()) {
+        Map<String, KerberosComponentDescriptor> components = service.getComponents();
+
+        if (components != null) {
+          for (KerberosComponentDescriptor component : components.values()) {
+            set = component.getAuthToLocalProperties();
+            if (set != null) {
+              authToLocalProperties.addAll(set);
+            }
+          }
+        }
+
+        set = service.getAuthToLocalProperties();
+        if (set != null) {
+          authToLocalProperties.addAll(set);
+        }
+      }
+    }
+
+    return authToLocalProperties;
   }
 }

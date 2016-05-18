@@ -110,8 +110,8 @@
 
 	<property>
 		<name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
-		<value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%
-		</value>
+		<value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
 		<description></description>
 		<depends-on>
 			<property>

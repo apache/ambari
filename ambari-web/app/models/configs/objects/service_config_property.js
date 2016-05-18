@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var validator = require('utils/validator');
 
 /**
  * @class ServiceConfigProperty
@@ -143,8 +142,11 @@ App.ServiceConfigProperty = Em.Object.extend({
   isComparison: false,
   hasCompareDiffs: false,
   showLabel: true,
-  error: false,
-  warn: false,
+
+  error: Em.computed.bool('errorMessage.length'),
+  warn: Em.computed.bool('warnMessage.length'),
+  isValid: Em.computed.equal('errorMessage', ''),
+
   previousValue: null, // cached value before changing config <code>value</code>
 
   /**
@@ -159,19 +161,10 @@ App.ServiceConfigProperty = Em.Object.extend({
    * true if property has warning or error
    * @type {boolean}
    */
-  hasIssues: function () {
-    var originalSCPIssued = (this.get('errorMessage') + this.get('warnMessage')) !== "";
-    var overridesIssue = false;
-    (this.get('overrides') || []).forEach(function(override) {
-      if (override.get('errorMessage') + override.get('warnMessage') !== "") {
-        overridesIssue = true;
-        return;
-      }
-    });
-    return originalSCPIssued || overridesIssue;
-  }.property('errorMessage', 'warnMessage', 'overrideErrorTrigger'),
+  hasIssues: Em.computed.or('error', 'warn', 'overridesWithIssues.length'),
 
-  overrideErrorTrigger: 0, //Trigger for overridable property error
+  overridesWithIssues: Em.computed.filterBy('overrides', 'hasIssues', true),
+
   index: null, //sequence number in category
   editDone: false, //Text field: on focusOut: true, on focusIn: false
   isNotSaved: false, // user property was added but not saved
@@ -202,11 +195,30 @@ App.ServiceConfigProperty = Em.Object.extend({
   additionalView: null,
 
   /**
-   * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have
+   * If config is saved we should compare config <code>value<code> with <code>savedValue<code> to
+   * find out if it was changed, but if config in not saved there is no <code>savedValue<code>, so
+   * we should use <code>initialValue<code> instead.
    */
-  observeErrors: function () {
-    this.set("overrideErrorTrigger", this.get("overrideErrorTrigger") + 1);
-  }.observes("overrides.@each.errorMessage"),
+  isNotInitialValue: function() {
+    if (Em.isNone(this.get('savedValue')) && !Em.isNone(this.get('initialValue'))) {
+      var value = this.get('value'), initialValue = this.get('initialValue');
+      if (this.get('stackConfigProperty.valueAttributes.type') == 'float') {
+        initialValue = !Em.isNone(initialValue) ? '' + parseFloat(initialValue) : null;
+        value = '' + parseFloat(value);
+      }
+      return initialValue !== value;
+    }
+    return false;
+  }.property('initialValue', 'savedValue', 'value', 'stackConfigProperty.valueAttributes.type'),
+
+  /**
+   * Is property has active override with error
+   */
+  isValidOverride: function () {
+    return this.get('overrides.length') ? !this.get('overrides').find(function(o) {
+     return Em.get(o, 'isEditable') && Em.get(o, 'errorMessage');
+    }) : true;
+  }.property("overrides.@each.errorMessage"),
   /**
    * No override capabilities for fields which are not edtiable
    * and fields which represent master hosts.
@@ -227,7 +239,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     if (Em.isNone(this.get('overrides')) && this.get('overrideValues.length') === 0) return false;
     return JSON.stringify(this.get('overrides').mapProperty('isFinal')) !== JSON.stringify(this.get('overrideIsFinalValues'))
       || JSON.stringify(this.get('overrides').mapProperty('value')) !== JSON.stringify(this.get('overrideValues'));
-  }.property('isOverridden', 'overrides.@each.isNotDefaultValue', 'overrideValues.length'),
+  }.property('overrides.@each.isNotDefaultValue', 'overrides.@each.overrideIsFinalValues', 'overrideValues.length'),
 
   isRemovable: function() {
     return this.get('isEditable') && this.get('isRequiredByAgent') && !(this.get('overrides.length') > 0)
@@ -235,31 +247,58 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('isUserProperty', 'isOriginalSCP', 'overrides.length', 'isRequiredByAgent'),
 
   init: function () {
-    if (this.get('value') == '') {
-      if (this.get('savedValue')) {
+    this.setInitialValues();
+    this.set('viewClass', App.config.getViewClass(this.get("displayType"), this.get('dependentConfigPattern'), this.get('unit')));
+    this.set('validator', App.config.getValidator(this.get("displayType")));
+    this.validate();
+  },
+
+  setInitialValues: function () {
+    if (Em.isNone(this.get('value'))) {
+      if (!Em.isNone(this.get('savedValue'))) {
         this.set('value', this.get('savedValue'));
-      } else if (this.get('recommendedValue')) {
+      } else if (!Em.isNone(this.get('recommendedValue'))) {
         this.set('value', this.get('recommendedValue'));
       }
     }
-    if(this.get("displayType") === "password") {
+    if (this.get("displayType") === "password") {
       this.set('retypedPassword', this.get('value'));
       this.set('recommendedValue', '');
     }
     this.set('initialValue', this.get('value'));
-    this.updateDescription();
   },
+
+  /**
+   * updates configs list that belongs to config group
+   */
+  updateGroupConfigs: function() {
+    if (this.get('group')) {
+      var o = this.get('group.properties').find(function(c) {
+        return Em.get(c, 'name') === this.get('name') && Em.get(c, 'filename') === this.get('filename');
+      }, this);
+
+      if (o) {
+        Em.set(o, 'value', this.get('value'));
+      }
+    }
+  }.observes('value'),
 
   /**
    * Indicates when value is not the default value.
    * Returns false when there is no default value.
+   *
+   * @type {boolean}
    */
   isNotDefaultValue: function () {
-    var value = this.get('value');
-    var savedValue = this.get('savedValue');
-    var supportsFinal = this.get('supportsFinal');
-    var isFinal = this.get('isFinal');
-    var savedIsFinal = this.get('savedIsFinal');
+    var value = this.get('value'),
+      savedValue = this.get('savedValue'),
+      supportsFinal = this.get('supportsFinal'),
+      isFinal = this.get('isFinal'),
+      savedIsFinal = this.get('savedIsFinal');
+
+    if (this.get('name') === 'kdc_type') {
+      return App.router.get('mainAdminKerberosController.kdcTypesValues')[savedValue] !== value;
+    }
     // ignore precision difference for configs with type of `float` which value may ends with 0
     // e.g. between 0.4 and 0.40
     if (this.get('stackConfigProperty') && this.get('stackConfigProperty.valueAttributes.type') == 'float') {
@@ -274,239 +313,32 @@ App.ServiceConfigProperty = Em.Object.extend({
    */
   cantBeUndone: Em.computed.existsIn('displayType', ["componentHost", "componentHosts", "radio button"]),
 
-  isValid: Em.computed.equal('errorMessage', ''),
-
-  viewClass: function () {
-    switch (this.get('displayType')) {
-      case 'checkbox':
-      case 'boolean':
-        if (this.get('dependentConfigPattern')) {
-          return App.ServiceConfigCheckboxWithDependencies;
-        } else {
-          return App.ServiceConfigCheckbox;
-        }
-      case 'password':
-        return App.ServiceConfigPasswordField;
-      case 'combobox':
-        return App.ServiceConfigComboBox;
-      case 'radio button':
-        return App.ServiceConfigRadioButtons;
-        break;
-      case 'directories':
-        return App.ServiceConfigTextArea;
-        break;
-      case 'content':
-        return App.ServiceConfigTextAreaContent;
-        break;
-      case 'multiLine':
-        return App.ServiceConfigTextArea;
-        break;
-      case 'custom':
-        return App.ServiceConfigBigTextArea;
-      case 'componentHost':
-        return App.ServiceConfigMasterHostView;
-      case 'label':
-        return App.ServiceConfigLabelView;
-      case 'componentHosts':
-        return App.ServiceConfigComponentHostsView;
-      case 'supportTextConnection':
-        return App.checkConnectionView;
-      default:
-        if (this.get('unit')) {
-          return App.ServiceConfigTextFieldWithUnit;
-        } else {
-          return App.ServiceConfigTextField;
-        }
-    }
-  }.property('displayType'),
-
   validate: function () {
-    var value = this.get('value');
-    var supportsFinal = this.get('supportsFinal');
-    var isFinal = this.get('isFinal');
-    var valueRange = this.get('valueRange');
-
-    var isError = false;
-    var isWarn = false;
-
-    if (typeof value === 'string' && value.length === 0) {
-      if (this.get('isRequired')) {
-        this.set('errorMessage', 'This is required');
-        isError = true;
-      } else {
-        return;
-      }
-    }
-
-    if (!isError) {
-      switch (this.get('displayType')) {
-        case 'int':
-          if (('' + value).trim().length === 0) {
-            this.set('errorMessage', '');
-            isError = false;
-            return;
-          }
-          if (validator.isConfigValueLink(value)) {
-            isError = false;
-          } else if (!validator.isValidInt(value)) {
-            this.set('errorMessage', 'Must contain digits only');
-            isError = true;
-          } else {
-            if(valueRange){
-              if(value < valueRange[0] || value > valueRange[1]){
-                this.set('errorMessage', 'Must match the range');
-                isError = true;
-              }
-            }
-          }
-          break;
-        case 'float':
-          if (validator.isConfigValueLink(value)) {
-            isError = false;
-          } else if (!validator.isValidFloat(value)) {
-            this.set('errorMessage', 'Must be a valid number');
-            isError = true;
-          }
-          break;
-        case 'checkbox':
-          break;
-        case 'directories':
-        case 'directory':
-          if (this.get('configSupportHeterogeneous')) {
-            if (!validator.isValidDataNodeDir(value)) {
-              this.set('errorMessage', 'dir format is wrong, can be "[{storage type}]/{dir name}"');
-              isError = true;
-            }
-          } else {
-            if (!validator.isValidDir(value)) {
-              this.set('errorMessage', 'Must be a slash or drive at the start, and must not contain white spaces');
-              isError = true;
-            }
-          }
-          if (!isError) {
-            if (!validator.isAllowedDir(value)) {
-              this.set('errorMessage', 'Can\'t start with "home(s)"');
-              isError = true;
-            } else {
-              // Invalidate values which end with spaces.
-              if (value !== ' ' && validator.isNotTrimmedRight(value)) {
-                this.set('errorMessage', Em.I18n.t('form.validator.error.trailingSpaces'));
-                isError = true;
-              }
-            }
-          }
-          break;
-        case 'custom':
-          break;
-        case 'email':
-          if (!validator.isValidEmail(value)) {
-            this.set('errorMessage', 'Must be a valid email address');
-            isError = true;
-          }
-          break;
-        case 'supportTextConnection':
-        case 'host':
-          var connectionProperties = ['kdc_host'];
-          var hiveOozieHostNames = ['hive_hostname','oozie_hostname'];
-          if(hiveOozieHostNames.contains(this.get('name'))) {
-            if (validator.hasSpaces(value)) {
-              this.set('errorMessage', Em.I18n.t('host.spacesValidation'));
-              isError = true;
-            }
-          } else {
-            if ((validator.isNotTrimmed(value) && connectionProperties.contains(this.get('name')) || validator.isNotTrimmed(value))) {
-              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
-              isError = true;
-            }
-          }
-          break;
-        case 'password':
-          // retypedPassword is set by the retypePasswordView child view of App.ServiceConfigPasswordField
-          if (value !== this.get('retypedPassword')) {
-            this.set('errorMessage', 'Passwords do not match');
-            isError = true;
-          }
-          break;
-        case 'user':
-        case 'database':
-        case 'db_user':
-          if (!validator.isValidDbName(value)){
-            this.set('errorMessage', 'Value is not valid');
-            isError = true;
-          }
-          break;
-        case 'multiLine':
-        case 'content':
-        default:
-          if(this.get('name')=='javax.jdo.option.ConnectionURL' || this.get('name')=='oozie.service.JPAService.jdbc.url') {
-            if (validator.isConfigValueLink(value)) {
-              isError = false;
-            } else if (validator.isNotTrimmed(value)) {
-              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
-              isError = true;
-            }
-          } else {
-            // Avoid single space values which is work around for validate empty properties.
-            // Invalidate values which end with spaces.
-            if (value !== ' ' && validator.isNotTrimmedRight(value)) {
-              this.set('errorMessage', Em.I18n.t('form.validator.error.trailingSpaces'));
-              isError = true;
-            }
-          }
-          break;
-      }
-    }
-
-    if (!isWarn || isError) { // Errors get priority
-      this.set('warnMessage', '');
-      this.set('warn', false);
+    if (!this.get('isEditable')) {
+      this.set('errorMessage', ''); // do not perform validation for not editable configs
+    } else if ((typeof this.get('value') != 'object') && ((this.get('value') + '').length === 0)) {
+      this.set('errorMessage', (this.get('isRequired') && this.get('widgetType') != 'test-db-connection') ? Em.I18n.t('errorMessage.config.required') : '');
     } else {
-      this.set('warn', true);
+      this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
     }
+  }.observes('value', 'retypedPassword', 'isEditable'),
 
-    if (!isError) {
-      this.set('errorMessage', '');
-      this.set('error', false);
-    } else {
-      this.set('error', true);
-    }
-  }.observes('value', 'isFinal', 'retypedPassword'),
+  viewClass: App.ServiceConfigTextField,
+
+  validator: function() { return '' },
 
   /**
-   * defines specific directory properties that
-   * allows setting drive type before dir name
-   * ex: [SSD]/usr/local/my_dir
-   * @param config
-   * @returns {*|Boolean|boolean}
-   */
-  configSupportHeterogeneous: function() {
-    if (App.get('isHadoop22Stack')) {
-      return ['directories', 'directory'].contains(this.get('displayType')) && ['dfs.datanode.data.dir'].contains(this.get('name'));
-    } else {
-      return false;
-    }
-  }.property('displayType', 'name', 'App.isHadoop22Stack'),
-
-  /**
-   * Update description for `password`-config
-   * Add extra-message about their comparison
+   * Get override for selected group
    *
-   * @method updateDescription
+   * @param {String} groupName
+   * @returns {App.ServiceConfigProperty|null}
    */
-  updateDescription: function () {
-    var description = this.get('description');
-    var displayType = this.get('displayType');
-    var additionalDescription = Em.I18n.t('services.service.config.password.additionalDescription');
-    if ('password' === displayType) {
-      if (description) {
-        if (!description.contains(additionalDescription)) {
-          description += '<br />' + additionalDescription;
-        }
-      } else {
-        description = additionalDescription;
-      }
+  getOverride: function(groupName) {
+    Em.assert('Group name should be defined string', (typeof groupName === 'string') && groupName);
+    if (this.get('overrides.length')) {
+      return this.get('overrides').findProperty('group.name', groupName);
     }
-    this.set('description', description);
+    return null;
   }
 
 });

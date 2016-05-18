@@ -18,19 +18,32 @@
 
 package org.apache.ambari.server.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.PropertyInfo;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+
+@StaticallyInject
 public class SecretReference {
   private static final String secretPrefix = "SECRET";
   private String configType;
   private Long version;
   private String value;
+
+  private final static String PASSWORD_TEXT = "password";
+  private final static String PASSWD_TEXT = "passwd";
+
+  @Inject
+  private static Gson gson;
 
   public SecretReference(String reference, Cluster cluster) throws AmbariException{
     String[] values = reference.split(":");
@@ -72,6 +85,25 @@ public class SecretReference {
 
   public static String generateStub(String configType, Long configVersion, String propertyName) {
     return secretPrefix + ":" + configType + ":" + configVersion.toString() + ":" + propertyName;
+  }
+
+  /**
+   * Helper function to mask a string of property bags that may contain a property with a password.
+   * @param propertyMap Property map to mask by replacing any passwords with the text "SECRET"
+   * @return New string with the passwords masked, or null if the property map is null.
+   */
+  public static String maskPasswordInPropertyMap(String propertyMap) {
+    if (null == propertyMap) return null;
+    Map<String, String> maskedMap = new HashMap<>();
+    Map<String, String> map = gson.fromJson(propertyMap, new TypeToken<Map<String, String>>() {}.getType());
+    for (Map.Entry<String, String> e : map.entrySet()) {
+      String value = e.getValue();
+      if (e.getKey().toLowerCase().contains(PASSWORD_TEXT) || e.getKey().toLowerCase().contains(PASSWD_TEXT)) {
+        value = secretPrefix;
+      }
+      maskedMap.put(e.getKey(), value);
+    }
+    return gson.toJson(maskedMap);
   }
 
   /**

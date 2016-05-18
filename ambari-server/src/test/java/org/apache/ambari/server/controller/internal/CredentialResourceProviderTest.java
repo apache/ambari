@@ -111,12 +111,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testCreateResourcesAsClusterAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResourcesAsServiceAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testCreateResources(Authentication authentication) throws Exception {
@@ -315,12 +315,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testGetResourcesAsClusterAdministrator() throws Exception {
-    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResourcesAsServiceAdministrator() throws Exception {
-    testGetResources(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testGetResources(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testGetResources(Authentication authentication) throws Exception {
@@ -392,12 +392,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testGetResourcesWithPredicateAsClusterAdministrator() throws Exception {
-    testGetResourcesWithPredicate(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResourcesWithPredicateAsServiceAdministrator() throws Exception {
-    testGetResourcesWithPredicate(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testGetResourcesWithPredicate(Authentication authentication) throws Exception {
@@ -469,12 +469,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testGetResourcesWithPredicateNoResultsAsClusterAdministrator() throws Exception {
-    testGetResourcesWithPredicateNoResults(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testGetResourcesWithPredicateNoResults(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResourcesWithPredicateNoResultsAsServiceAdministrator() throws Exception {
-    testGetResourcesWithPredicateNoResults(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testGetResourcesWithPredicateNoResults(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testGetResourcesWithPredicateNoResults(Authentication authentication) throws Exception {
@@ -538,12 +538,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testGetResourcesWithoutPredicateAsClusterAdministrator() throws Exception {
-    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResourcesWithoutPredicateAsServiceAdministrator() throws Exception {
-    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testGetResourcesWithoutPredicate(Authentication authentication) throws Exception {
@@ -587,12 +587,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testUpdateResourcesAsClusterAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResourcesAsServiceAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testUpdateResources(Authentication authentication) throws Exception {
@@ -681,12 +681,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testUpdateResourcesResourceNotFoundAsClusterAdministrator() throws Exception {
-    testUpdateResourcesResourceNotFound(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testUpdateResourcesResourceNotFound(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResourcesResourceNotFoundAsServiceAdministrator() throws Exception {
-    testUpdateResourcesResourceNotFound(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testUpdateResourcesResourceNotFound(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testUpdateResourcesResourceNotFound(Authentication authentication) throws Exception {
@@ -752,12 +752,12 @@ public class CredentialResourceProviderTest {
 
   @Test
   public void testDeleteResourcesAsClusterAdministrator() throws Exception {
-    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testDeleteResourcesAsServiceAdministrator() throws Exception {
-    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator("User10"));
+    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
   }
 
   private void testDeleteResources(Authentication authentication) throws Exception {
@@ -818,7 +818,7 @@ public class CredentialResourceProviderTest {
       }
     }
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     try {
       provider.getResources(request, predicate);

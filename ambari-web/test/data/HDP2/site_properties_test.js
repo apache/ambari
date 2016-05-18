@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 require('utils/helper');
 require('data/HDP2/gluster_fs_properties');
 var siteProperties = require('data/HDP2/site_properties').configProperties;
@@ -26,7 +25,7 @@ describe('hdp2SiteProperties', function () {
    * @stackProperties: All the properties that are derived from stack definition
    */
   var stackProperties = siteProperties.filter(function(item){
-    return  !(item.isRequiredByAgent === false || item.category === 'Ambari Principals')
+    return !(item.isRequiredByAgent === false || item.category === 'Ambari Principals')
   });
 
   stackProperties.forEach(function(siteProperty){
@@ -43,23 +42,19 @@ describe('hdp2SiteProperties', function () {
      * showLabel
      * unit
      */
-    it('Check attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Stack driven attributes should be undefined ', function () {
-      expect(siteProperty.isVisible).to.equal(undefined);
-      expect(siteProperty.value).to.equal(undefined);
-      expect(siteProperty.recommendedValue).to.equal(undefined);
-      expect(siteProperty.description).to.equal(undefined);
-      expect(siteProperty.isReconfigurable).to.equal(undefined);
-      expect(siteProperty.isRequired).to.equal(undefined);
-      expect(siteProperty.displayName).to.equal(undefined);
-      expect(siteProperty.showLabel).to.equal(undefined);
-      expect(siteProperty.unit).to.equal(undefined);
+    describe('Check attributes of "{0}/{1}". Stack driven attributes should be undefined '.format(siteProperty.filename, siteProperty.name), function () {
+      ['isVisible', 'value', 'recommendedValue', 'description', 'isReconfigurable', 'isRequired', 'displayName', 'showLabel', 'unit'].forEach(function (p) {
+        it(p, function () {
+          expect(siteProperty[p]).to.not.exist;
+        });
+      });
     });
 
     /**
      * displayTypes <code>supportTextConnection<code> and <code>radio button<code>
      * can be used as exception. Other displayTypes values should be used in stack definition
      */
-    it('Check attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Display type value ' + siteProperty.displayType + ' should be described in stack ', function () {
+    it('Check attributes of "{0}/{1}". Display type value {2} should be described in stack '.format(siteProperty.filename, siteProperty.name, siteProperty.displayType), function () {
       expect(siteProperty.displayType).to.match(/undefined|supportTextConnection|radio button/);
     });
 
@@ -68,9 +63,13 @@ describe('hdp2SiteProperties', function () {
      * name
      * filename
      */
-    it('Check primary attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Attributes that uniquely represent a property should be defined ', function () {
-      expect(siteProperty.name).to.not.equal(undefined);
-      expect(siteProperty.filename).to.not.equal(undefined);
+    describe('Check primary attributes of "{0}/{1}". Attributes that uniquely represent a property should be defined '.format(siteProperty.filename, siteProperty.name), function () {
+      it('name', function () {
+        expect(siteProperty.name).to.not.equal(undefined);
+      });
+      it('filename', function () {
+        expect(siteProperty.filename).to.not.equal(undefined);
+      });
     });
   });
 

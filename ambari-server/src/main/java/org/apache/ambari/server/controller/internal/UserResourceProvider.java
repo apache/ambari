@@ -35,19 +35,19 @@ import java.util.Set;
 /**
  * Resource provider for user resources.
  */
-class UserResourceProvider extends AbstractControllerResourceProvider {
+public class UserResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
   // Users
-  protected static final String USER_USERNAME_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "user_name");
-  protected static final String USER_PASSWORD_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "password");
-  protected static final String USER_OLD_PASSWORD_PROPERTY_ID = PropertyHelper.getPropertyId("Users", "old_password");
-  protected static final String USER_LDAP_USER_PROPERTY_ID    = PropertyHelper.getPropertyId("Users", "ldap_user");
-  protected static final String USER_TYPE_PROPERTY_ID         = PropertyHelper.getPropertyId("Users", "user_type");
-  protected static final String USER_ACTIVE_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "active");
-  protected static final String USER_GROUPS_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "groups");
-  protected static final String USER_ADMIN_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "admin");
+  public static final String USER_USERNAME_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "user_name");
+  public static final String USER_PASSWORD_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "password");
+  public static final String USER_OLD_PASSWORD_PROPERTY_ID = PropertyHelper.getPropertyId("Users", "old_password");
+  public static final String USER_LDAP_USER_PROPERTY_ID    = PropertyHelper.getPropertyId("Users", "ldap_user");
+  public static final String USER_TYPE_PROPERTY_ID         = PropertyHelper.getPropertyId("Users", "user_type");
+  public static final String USER_ACTIVE_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "active");
+  public static final String USER_GROUPS_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "groups");
+  public static final String USER_ADMIN_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "admin");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -167,7 +167,7 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<UserRequest> requests = new HashSet<UserRequest>();
 

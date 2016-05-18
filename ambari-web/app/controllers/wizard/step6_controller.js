@@ -17,8 +17,6 @@
  */
 
 var App = require('app');
-var db = require('utils/db');
-var stringUtils = require('utils/string_utils');
 var blueprintUtils = require('utils/blueprint');
 var validationUtils = require('utils/validator');
 
@@ -71,7 +69,19 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * Define state for submit button
    * @type {bool}
    */
-  submitDisabled: false,
+  submitDisabled: Em.computed.alias('validationInProgress'),
+
+  /**
+   * timer for validation request
+   */
+  timer: null,
+
+  /**
+   * true if request for validation is in progress
+   *
+   * @type {bool}
+   */
+  validationInProgress: false,
 
   /**
    * Check if <code>addHostWizard</code> used
@@ -302,7 +312,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         if (serviceComponent.get('isShownOnInstallerSlaveClientPage')) {
           headers.pushObject(Em.Object.create({
             name: serviceComponent.get('componentName'),
-            label: App.format.role(serviceComponent.get('componentName')),
+            label: App.format.role(serviceComponent.get('componentName'), false),
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
             noChecked: true,
@@ -316,7 +326,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     if (this.get('content.clients') && !!this.get('content.clients').length) {
       headers.pushObject(Em.Object.create({
         name: 'CLIENT',
-        label: App.format.role('CLIENT'),
+        label: App.format.role('CLIENT', false),
         allChecked: false,
         noChecked: true,
         isDisabled: false,
@@ -343,7 +353,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hostInfo = this.get('content.hosts');
     var hostNames = [];
     //flag identify whether get all hosts or only uninstalled(newly added) hosts
-    var getUninstalledHosts = (this.get('content.controllerName') !== 'addServiceController');
+    var getUninstalledHosts = this.get('content.controllerName') !== 'addServiceController';
 
     for (var index in hostInfo) {
       if (hostInfo.hasOwnProperty(index)) {
@@ -408,64 +418,96 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method renderSlaves
    */
   renderSlaves: function (hostsObj) {
-    var headers = this.get('headers');
-    var clientHeaders = headers.findProperty('name', 'CLIENT');
     var slaveComponents = this.get('content.slaveComponentHosts');
-    if (!slaveComponents) { // we are at this page for the first time
-      var recommendations = this.get('content.recommendations');
-      // Get all host-component pairs from recommendations
-      var componentHostPairs = recommendations.blueprint.host_groups.map(function (group) {
-        return group.components.map(function (component) {
-          return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function (host) {
-            return { component: component.name, host: host.fqdn};
-          });
-        });
-      });
 
-      // Flatten results twice because of two map() call before
-      componentHostPairs = [].concat.apply([], componentHostPairs);
-      componentHostPairs = [].concat.apply([], componentHostPairs);
-
-      var clientComponents = App.get('components.clients');
-
-      hostsObj.forEach(function (host) {
-        var checkboxes = host.checkboxes;
-        checkboxes.forEach(function (checkbox) {
-          var recommended = componentHostPairs.some(function (pair) {
-            var componentMatch = pair.component === checkbox.component;
-            if (checkbox.component === 'CLIENT' && !componentMatch) {
-              componentMatch = clientComponents.contains(pair.component);
-            }
-            return pair.host === host.hostName && componentMatch;
-          });
-          checkbox.checked = recommended;
-        });
-      });
+    if (Em.isNone(slaveComponents)) { // we are at this page for the first time
+      this.selectRecommendedComponents(hostsObj);
+      this.setInstalledComponents(hostsObj);
     } else {
-
-      var slaveComponentsMap = slaveComponents.toMapByProperty('componentName');
-      var hostsObjMap =  hostsObj.toMapByProperty('hostName');
-
-      this.get('headers').forEach(function (header) {
-        var nodes = slaveComponentsMap[header.get('name')];
-        if (nodes) {
-          nodes.hosts.forEach(function (_node) {
-            var node = hostsObjMap[_node.hostName];
-            if (node) {
-              Em.set(node.checkboxes.findProperty('title', header.get('label')), 'checked', true);
-              Em.set(node.checkboxes.findProperty('title', header.get('label')), 'isInstalled', _node.isInstalled);
-            }
-          });
-        }
-      });
+     this.restoreComponentsSelection(hostsObj, slaveComponents);
     }
     this.selectClientHost(hostsObj);
     return hostsObj;
   },
 
+  /**
+   * set installed flag of host-components
+   * @param {Array} hostsObj
+   * @returns {boolean}
+   */
+  setInstalledComponents: function(hostsObj) {
+    if (Em.isNone(this.get('content.installedHosts'))) return false;
+    var hosts = this.get('content.installedHosts');
+
+    hostsObj.forEach(function(host) {
+      var installedHost = hosts[host.hostName];
+      var installedComponents = installedHost ? installedHost.hostComponents.mapProperty('HostRoles.component_name') : [];
+
+      host.checkboxes.forEach(function(checkbox) {
+        checkbox.isInstalled = installedComponents.contains(checkbox.component);
+      });
+    });
+  },
 
   /**
-   *
+   * restore previous component selection
+   * @param {Array} hostsObj
+   * @param {Array} slaveComponents
+   */
+  restoreComponentsSelection: function(hostsObj, slaveComponents) {
+    var slaveComponentsMap = slaveComponents.toMapByProperty('componentName');
+    var hostsObjMap = hostsObj.toMapByProperty('hostName');
+
+    this.get('headers').forEach(function (header) {
+      var slaveComponent = slaveComponentsMap[header.get('name')];
+      if (slaveComponent) {
+        slaveComponent.hosts.forEach(function (_node) {
+          var node = hostsObjMap[_node.hostName];
+          if (node) {
+            Em.set(node.checkboxes.findProperty('title', header.get('label')), 'checked', true);
+            Em.set(node.checkboxes.findProperty('title', header.get('label')), 'isInstalled', _node.isInstalled);
+          }
+        });
+      }
+    });
+  },
+
+  /**
+   * select component which should be checked according to recommendations
+   * @param hostsObj
+   */
+  selectRecommendedComponents: function(hostsObj) {
+    var recommendations = this.get('content.recommendations'),
+        recommendedMap = {},
+        clientComponentsMap = App.get('components.clients').toWickMap();
+
+    recommendations.blueprint.host_groups.forEach(function(hostGroup) {
+      var group = recommendations.blueprint_cluster_binding.host_groups.findProperty('name', hostGroup.name);
+      var hosts = group.hosts || [];
+
+      hosts.forEach(function (host) {
+        recommendedMap[host.fqdn] = hostGroup.components.mapProperty('name');
+      });
+    });
+
+    hostsObj.forEach(function (host) {
+      var checkboxes = host.checkboxes;
+      var hostComponents = recommendedMap[host.hostName] || [];
+      checkboxes.forEach(function (checkbox) {
+        var checked = hostComponents.contains(checkbox.component);
+
+        if (checkbox.component === 'CLIENT' && !checked) {
+          checked = hostComponents.some(function(componentName) {
+            return clientComponentsMap[componentName];
+          });
+        }
+        checkbox.checked = checked;
+      });
+    });
+  },
+
+  /**
+   * For clients - select first non-master host, if all has masters then last host
    * @param hostsObj
    */
   selectClientHost: function (hostsObj) {
@@ -515,15 +557,24 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   },
 
   callValidation: function (successCallback) {
-    this.callServerSideValidation(successCallback);
+    var self = this;
+    clearTimeout(this.get('timer'));
+    if (this.get('validationInProgress')) {
+      this.set('timer', setTimeout(function () {
+        self.callValidation(successCallback);
+      }, 700));
+    } else {
+      this.callServerSideValidation(successCallback);
+    }
   },
 
   /**
    * Update submit button status
-   * @metohd callServerSideValidation
+   * @method callServerSideValidation
    */
   callServerSideValidation: function (successCallback) {
     var self = this;
+    this.set('validationInProgress', true);
 
     var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
     var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
@@ -532,38 +583,35 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hostNames = self.get('hosts').mapProperty('hostName');
     var slaveBlueprint = self.getCurrentBlueprint();
     var masterBlueprint = null;
+    //Existing Installed but invisible masters on `Assign Masters page` should be included in host component layout for recommnedation/validation call
+    var invisibleInstalledMasters = [];
+    if (this.get('isAddServiceWizard')) {
+      var invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false);
+      invisibleInstalledMasters = invisibleMasters.filter(function(item){
+        var masterComponent = App.MasterComponent.find().findProperty('componentName', item.get('componentName'));
+        return masterComponent && !!masterComponent.get('totalCount');
+      }).mapProperty("componentName");
+    }
     var invisibleSlavesAndClients = App.StackServiceComponent.find().filter(function (component) {
       return component.get("isSlave") && component.get("isShownOnInstallerSlaveClientPage") === false ||
         component.get("isClient") && component.get("isRequiredOnAllHosts");
     }).mapProperty("componentName");
     if (this.get('isInstallerWizard') || this.get('isAddServiceWizard')) {
       masterBlueprint = self.getCurrentMastersBlueprint();
-
-      var invisibleMasters = [];
-      if (this.get('isInstallerWizard')) {
-        invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnInstallerAssignMasterPage", false).mapProperty("componentName");
-      }
-      else
-        if (this.get('isAddServiceWizard')) {
-          invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false).mapProperty("componentName");
-        }
-
       var selectedClientComponents = self.get('content.clients').mapProperty('component_name');
       var alreadyInstalledClients = App.get('components.clients').reject(function (c) {
         return selectedClientComponents.contains(c);
       });
 
-      var invisibleComponents = invisibleMasters.concat(invisibleSlavesAndClients).concat(alreadyInstalledClients);
+      var invisibleComponents = invisibleInstalledMasters.concat(invisibleSlavesAndClients).concat(alreadyInstalledClients);
 
       var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
+    } else if (this.get('isAddHostWizard')) {
+      masterBlueprint = self.getCurrentMasterSlaveBlueprint();
+      hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
+      slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
     }
-    else
-      if (this.get('isAddHostWizard')) {
-        masterBlueprint = self.getCurrentMasterSlaveBlueprint();
-        hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
-        slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
-      }
 
     var bluePrintsForValidation = blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
     this.set('content.recommendationsHostGroups', bluePrintsForValidation);
@@ -582,6 +630,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       error: 'updateValidationsErrorCallback'
     }).
       then(function () {
+        self.set('validationInProgress', false);
         if (!self.get('submitDisabled') && successCallback) {
           successCallback();
         }
@@ -704,10 +753,10 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var mapping = self.get('hosts');
 
     mapping.forEach(function (item, i) {
-      var group_name = 'host-group-' + (i+1);
+      var groupName = 'host-group-' + (i+1);
 
-      var host_group = {
-        name: group_name,
+      var hostGroup = {
+        name: groupName,
         components: item.checkboxes.filterProperty('checked', true).map(function (checkbox) {
           if (checkbox.component === "CLIENT") {
             return clientComponents.map(function (client) {
@@ -719,16 +768,16 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         })
       };
 
-      host_group.components = [].concat.apply([], host_group.components);
+      hostGroup.components = [].concat.apply([], hostGroup.components);
 
       var binding = {
-        name: group_name,
+        name: groupName,
         hosts: [
           { fqdn: item.hostName }
         ]
       };
 
-      res.blueprint.host_groups.push(host_group);
+      res.blueprint.host_groups.push(hostGroup);
       res.blueprint_cluster_binding.host_groups.push(binding);
     });
 
@@ -750,7 +799,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hosts = this.get('content.hosts');
 
     Em.keys(hosts).forEach(function (host, i) {
-      var group_name = 'host-group-' + (i + 1);
+      var groupName = 'host-group-' + (i + 1);
       var components = [];
       masters.forEach(function (master) {
         if (master.hostName === host) {
@@ -760,11 +809,11 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         }
       });
       res.blueprint.host_groups.push({
-        name: group_name,
+        name: groupName,
         components: components
       });
       res.blueprint_cluster_binding.host_groups.push({
-        name: group_name,
+        name: groupName,
         hosts: [
           {
             fqdn: host
@@ -787,9 +836,14 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         primary: Em.I18n.t('common.continueAnyway'),
         header: Em.I18n.t('installer.step6.validationIssuesAttention.header'),
         body: Em.I18n.t('installer.step6.validationIssuesAttention'),
+        primaryClass: 'btn-danger',
         onPrimary: function () {
           this.hide();
           callback();
+        },
+        onSecondary: function () {
+          App.set('router.nextBtnClickInProgress', false);
+          this._super();
         }
       });
     } else {

@@ -30,23 +30,37 @@ describe('App.WizardStep8View', function() {
   });
 
   describe('#didInsertElement', function() {
-    it('should call loadStep', function() {
+
+    beforeEach(function () {
       view.set('controller', Em.Object.create({
         loadStep: Em.K
       }));
       sinon.spy(view.get('controller'), 'loadStep');
+    });
+
+    afterEach(function () {
+      view.get('controller').loadStep.restore();
+    });
+
+    it('should call loadStep', function() {
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.equal(true);
-      view.get('controller').loadStep.restore();
     });
   });
 
   describe('#printReview', function() {
-    it('should call jqprint', function() {
+
+    beforeEach(function() {
       sinon.stub($.fn, 'jqprint', Em.K);
+    });
+
+    afterEach(function () {
+      $.fn.jqprint.restore();
+    });
+
+    it('should call jqprint', function() {
       view.printReview();
       expect($.fn.jqprint.calledOnce).to.equal(true);
-      $.fn.jqprint.restore();
     });
   });
 

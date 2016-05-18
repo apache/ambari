@@ -41,7 +41,7 @@ describe('App.MainChartsHeatmapView', function () {
     afterEach(function () {
       view.get('controller').loadPageData.restore();
     });
-    it("", function () {
+    it("loadPageData is called once", function () {
       view.didInsertElement();
       expect(view.get('controller').loadPageData.calledOnce).to.be.true;
     });
@@ -54,7 +54,7 @@ describe('App.MainChartsHeatmapView', function () {
     afterEach(function () {
       view.get('controller').clearActiveWidgetLayout.restore();
     });
-    it("", function () {
+    it("clearActiveWidgetLayout is called once", function () {
       view.willDestroyElement();
       expect(view.get('controller').clearActiveWidgetLayout.calledOnce).to.be.true;
     });

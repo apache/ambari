@@ -28,16 +28,28 @@ describe('App.LoginController', function () {
 
   describe('#postLogin', function() {
     it ('Should set error connect', function() {
-      loginController.postLogin(false, false, false);
-      expect(loginController.get('errorMessage')).to.be.equal('Unable to connect to Ambari Server. Confirm Ambari Server is running and you can reach Ambari Server from this machine.');
+      loginController.postLogin(false, false, null);
+      expect(loginController.get('errorMessage')).to.be.equal(Em.I18n.t('login.error.bad.connection'));
     });
-    it ('Should set error login', function() {
+    it ('Should set error connect with specific message', function() {
+      loginController.postLogin(false, false, 'specific message');
+      expect(loginController.get('errorMessage')).to.be.equal('specific message');
+    });
+    it ('Should set error user is disabled', function() {
       loginController.postLogin(true, false, 'User is disabled');
-      expect(loginController.get('errorMessage')).to.be.equal('Unable to sign in. Invalid username/password combination.');
+      expect(loginController.get('errorMessage')).to.be.equal(Em.I18n.t('login.error.disabled'));
     });
-    it ('Should set error', function() {
-      loginController.postLogin(true, false, '');
-      expect(loginController.get('errorMessage')).to.be.equal('Unable to sign in. Invalid username/password combination.');
+    it ('Should set bad credentials error', function() {
+      loginController.postLogin(true, false, 'Authentication required');
+      expect(loginController.get('errorMessage')).to.be.equal(Em.I18n.t('login.error.bad.credentials'));
+    });
+    it ('Should set bad credentials error, empty response', function() {
+      loginController.postLogin(true, false, null);
+      expect(loginController.get('errorMessage')).to.be.equal(Em.I18n.t('login.error.bad.credentials'));
+    });
+    it ('Should set custom error', function() {
+      loginController.postLogin(true, false, 'Login Failed: Please append your domain to your username and try again.  Example: user_dup@domain');
+      expect(loginController.get('errorMessage')).to.be.equal('Login Failed: Please append your domain to your username and try again.  Example: user_dup@domain');
     });
   });
 

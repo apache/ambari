@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-var string_utils = require('utils/string_utils');
+var stringUtils = require('utils/string_utils');
 require('utils/helper');
 
-describe('string_utils', function () {
+describe('stringUtils', function () {
 
   describe('#underScoreToCamelCase', function () {
     var tests = [
@@ -30,7 +30,7 @@ describe('string_utils', function () {
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
-        expect(string_utils.underScoreToCamelCase(test.i)).to.equal(test.e);
+        expect(stringUtils.underScoreToCamelCase(test.i)).to.equal(test.e);
       });
     });
   });
@@ -50,7 +50,7 @@ describe('string_utils', function () {
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
-        expect(string_utils.pad(test.i, test.l, test.f, test.a)).to.equal(test.e);
+        expect(stringUtils.pad(test.i, test.l, test.f, test.a)).to.equal(test.e);
       });
     });
   });
@@ -70,7 +70,7 @@ describe('string_utils', function () {
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
-        expect(string_utils.compareVersions(test.v1, test.v2)).to.equal(test.e);
+        expect(stringUtils.compareVersions(test.v1, test.v2)).to.equal(test.e);
       });
     });
   });
@@ -84,7 +84,7 @@ describe('string_utils', function () {
     ];
     tests.forEach(function(test) {
       it(test.t + ' ' + test.m + ' ', function () {
-        expect(string_utils.isSingleLine(test.t)).to.equal(test.e);
+        expect(stringUtils.isSingleLine(test.t)).to.equal(test.e);
       });
     });
   });
@@ -92,7 +92,7 @@ describe('string_utils', function () {
   describe('#arrayToCSV', function() {
     var test = [{a: 1, b:2, c:3}, {a: 1, b:2, c:3}, {a: 1, b:2, c:3}];
     it('array of object to csv-string', function () {
-      expect(string_utils.arrayToCSV(test)).to.equal("1,2,3\n1,2,3\n1,2,3\n");
+      expect(stringUtils.arrayToCSV(test)).to.equal("1,2,3\n1,2,3\n1,2,3\n");
     });
   });
 
@@ -110,7 +110,7 @@ describe('string_utils', function () {
     ];
     tests.forEach(function(test) {
       it('Check ' + typeof test.t, function () {
-        expect(string_utils.getFileFromPath(test.t)).to.equal(test.e);
+        expect(stringUtils.getFileFromPath(test.t)).to.equal(test.e);
       });
     });
   });
@@ -131,7 +131,7 @@ describe('string_utils', function () {
       ];
       tests.forEach(function(test) {
           it('Check ' + typeof test.t, function () {
-            expect(string_utils.getPath(test.t)).to.equal(test.e);
+            expect(stringUtils.getPath(test.t)).to.equal(test.e);
           });
       });
   });
@@ -156,7 +156,7 @@ describe('string_utils', function () {
     ];
     tests.forEach(function(test) {
       it(test.i + ' to ' + test.e + ' ', function () {
-        expect(string_utils.getCamelCase(test.i)).to.equal(test.e);
+        expect(stringUtils.getCamelCase(test.i)).to.equal(test.e);
       });
     });
   });
@@ -251,7 +251,7 @@ describe('string_utils', function () {
     ];
     tests.forEach(function(test) {
       it('Check ' + typeof test.t, function () {
-        expect(string_utils.htmlEntities(test.t)).to.equal(test.e);
+        expect(stringUtils.htmlEntities(test.t)).to.equal(test.e);
       });
     });
   });

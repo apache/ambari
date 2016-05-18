@@ -53,22 +53,36 @@ def hbase(name=None):
   Directory( params.hbase_conf_dir,
       owner = params.hbase_user,
       group = params.user_group,
-      recursive = True
+      create_parents = True
   )
    
   Directory(params.java_io_tmpdir,
-      owner = params.hbase_user,
-      group = params.user_group,
-      recursive = True,
+      create_parents = True,
       mode=0777
   )
+
+  # If a file location is specified in ioengine parameter,
+  # ensure that directory exists. Otherwise create the
+  # directory with permissions assigned to hbase:hadoop.
+  ioengine_input = params.ioengine_param
+  if ioengine_input != None:
+    if ioengine_input.startswith("file:/"):
+      ioengine_fullpath = ioengine_input[5:]
+      ioengine_dir = os.path.dirname(ioengine_fullpath)
+      Directory(ioengine_dir,
+          owner = params.hbase_user,
+          group = params.user_group,
+          create_parents = True,
+          mode = 0755
+      )
+  
   parent_dir = os.path.dirname(params.tmp_dir)
   # In case if we have several placeholders in path
   while ("${" in parent_dir):
     parent_dir = os.path.dirname(parent_dir)
   if parent_dir != os.path.abspath(os.sep) :
     Directory (parent_dir,
-          recursive = True,
+          create_parents = True,
           cd_access="a",
     )
     Execute(("chmod", "1777", parent_dir), sudo=True)
@@ -129,7 +143,7 @@ def hbase(name=None):
   
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
-            recursive=True,
+            create_parents = True,
             owner='root',
             group='root'
             )
@@ -153,14 +167,14 @@ def hbase(name=None):
   if name != "client":
     Directory( params.pid_dir,
       owner = params.hbase_user,
-      recursive = True,
+      create_parents = True,
       cd_access = "a",
       mode = 0755,
     )
   
     Directory (params.log_dir,
       owner = params.hbase_user,
-      recursive = True,
+      create_parents = True,
       cd_access = "a",
       mode = 0755,
     )
@@ -193,7 +207,9 @@ def hbase(name=None):
     params.HdfsResource(None, action="execute")
 
   if params.phoenix_enabled:
-    Package(params.phoenix_package)
+    Package(params.phoenix_package,
+            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+            retry_count=params.agent_stack_retry_count)
 
 def hbase_TemplateConfig(name, tag=None):
   import params

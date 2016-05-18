@@ -1,4 +1,4 @@
-  /**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-
-var Ember = require('ember');
 var App = require('app');
 require('models/stack_service_component');
 require('models/hosts');
@@ -26,31 +24,38 @@ require('controllers/installer');
 require('controllers/wizard/step9_controller');
 require('utils/helper');
 require('utils/ajax/ajax');
+var testHelpers = require('test/helpers');
 
 var modelSetup = require('test/init_model_test');
 var c, obj;
+
+function getController() {
+  return App.WizardStep9Controller.create({
+    content: {controllerName: '', cluster: {status: ''}},
+    saveClusterStatus: Em.K,
+    saveInstalledHosts: Em.K,
+    togglePreviousSteps: Em.K,
+    setFinishState: Em.K,
+    changeParseHostInfo: Em.K,
+    parseHostInfoPolling: Em.K,
+    wizardController: Em.Object.create({
+      requestsId: [],
+      cluster: {oldRequestsId: []},
+      getDBProperty: function(name) {
+        return this.get(name);
+      }
+    })
+  });
+}
+
 describe('App.InstallerStep9Controller', function () {
 
   beforeEach(function () {
     App.set('supports.skipComponentStartAfterInstall', false);
     modelSetup.setupStackServiceComponent();
-    c = App.WizardStep9Controller.create({
-      content: {controllerName: ''},
-      saveClusterStatus: Em.K,
-      saveInstalledHosts: Em.K,
-      togglePreviousSteps: Em.K,
-      setFinishState: Em.K,
-      changeParseHostInfo: Em.K,
-      parseHostInfoPolling: Em.K,
-      wizardController: Em.Object.create({
-        requestsId: [],
-        cluster: {oldRequestsId: []},
-        getDBProperty: function(name) {
-          return this.get(name);
-        }
-      })
-    });
+    c = getController();
     obj = App.InstallerController.create();
+    App.ajax.send.restore();
     sinon.stub(App.ajax, 'send', function() {
       return {
         then: function() { 
@@ -69,8 +74,9 @@ describe('App.InstallerStep9Controller', function () {
 
   afterEach(function () {
     modelSetup.cleanStackServiceComponent();
-    App.ajax.send.restore();
   });
+
+  App.TestAliases.testAsComputedEqual(getController(), 'showRetry', 'content.cluster.status', 'INSTALL FAILED');
 
   describe('#isSubmitDisabled', function () {
     var tests = Em.A([
@@ -181,29 +187,25 @@ describe('App.InstallerStep9Controller', function () {
     });
   });
 
-  describe('#showRetry', function () {
-    it('cluster status is not INSTALL FAILED', function () {
-      c.reopen({content: {cluster: {status: 'INSTALLED'}}});
-      expect(c.get('showRetry')).to.equal(false);
-    });
-    it('cluster status is INSTALL FAILED', function () {
-      c.reopen({content: {cluster: {status: 'INSTALL FAILED'}}});
-      expect(c.get('showRetry')).to.equal(true);
-    });
-  });
-
   describe('#resetHostsForRetry', function () {
-    it('All should have status "pending" and message "Waiting"', function () {
-      var hosts = {'host1': Em.Object.create({status: 'failed', message: 'Failed'}), 'host2': Em.Object.create({status: 'success', message: 'Success'})};
+    var hosts = {'host1': Em.Object.create({status: 'failed', message: 'Failed'}), 'host2': Em.Object.create({status: 'success', message: 'Success'})};
+
+    beforeEach(function () {
       c.reopen({content: {hosts: hosts}});
       c.resetHostsForRetry();
-      for (var name in hosts) {
-        if (hosts.hasOwnProperty(name)) {
+    });
+
+    Object.keys(hosts).forEach(function (name) {
+      if (hosts.hasOwnProperty(name)) {
+        it(name + '.status', function () {
           expect(c.get('content.hosts')[name].get('status', 'pending')).to.equal('pending');
+        });
+        it(name + '.message', function () {
           expect(c.get('content.hosts')[name].get('message', 'Waiting')).to.equal('Waiting');
-        }
+        });
       }
     });
+
   });
 
   describe('#setParseHostInfo', function () {
@@ -348,7 +350,7 @@ describe('App.InstallerStep9Controller', function () {
     });
   });
 
-  var hosts_for_load_and_render = {
+  var hostsForLoadAndRender = {
     'host1': {
       message: 'message1',
       status: 'unknown',
@@ -393,25 +395,23 @@ describe('App.InstallerStep9Controller', function () {
   describe('#loadHosts', function () {
 
     beforeEach(function() {
-      c.reopen({content: {hosts: hosts_for_load_and_render}});
+      c.reopen({content: {hosts: hostsForLoadAndRender}});
       c.loadHosts();
     });
 
     it('Only REGISTERED hosts', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.length).to.equal(2);
+      var loadedHosts = c.get('hosts');
+      expect(loadedHosts.length).to.equal(2);
     });
+
     it('All hosts have progress 0', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.everyProperty('progress', 0)).to.equal(true);
+      var loadedHosts = c.get('hosts');
+      expect(loadedHosts.everyProperty('progress', 0)).to.equal(true);
     });
-    it('All hosts have progress 0', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.everyProperty('progress', 0)).to.equal(true);
-    });
+
     it('All host don\'t have logTasks', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.everyProperty('logTasks.length', 0)).to.equal(true);
+      var loadedHosts = c.get('hosts');
+      expect(loadedHosts.everyProperty('logTasks.length', 0)).to.equal(true);
     });
   });
 
@@ -464,67 +464,140 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#setIsServicesInstalled', function () {
-    it('Should return 100% completed', function () {
-      var polledData = Em.A([
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        }),
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        })
-      ]);
-      c.setProperties({
-        status: 'failed',
-        isPolling: true,
-        hosts: Em.A([
+
+    Em.A([
+      {
+        m: 'Should return 100% completed',
+        c: {
+          status: 'failed',
+          isPolling: true,
+          hosts: Em.A([
+            Em.Object.create({
+              progress: 0
+            })
+          ])
+        },
+        polledData: Em.A([
           Em.Object.create({
-            progress: 0
-          })
-        ])
-      });
-      c.setIsServicesInstalled(polledData);
-      expect(c.get('progress')).to.equal('100');
-      expect(c.get('isPolling')).to.be.false;
-    });
-    it('Should return 34% completed', function () {
-      var polledData = Em.A([
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        }),
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        })
-      ]);
-      c.setProperties({
-        status: '',
-        isPolling: true,
-        hosts: Em.A([
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
+          }),
           Em.Object.create({
-            progress: 0
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
           })
         ]),
-        content: Em.Object.create({
-          controllerName: 'installerController'
-        })
+        e: {
+          progress: '100',
+          isPolling: false
+        }
+      },
+      {
+        m: 'Should return 34% completed',
+        c: {
+          status: '',
+          isPolling: true,
+          hosts: Em.A([
+            Em.Object.create({
+              progress: 0
+            })
+          ]),
+          content: Em.Object.create({
+            controllerName: 'installerController'
+          })
+        },
+        polledData: Em.A([
+          Em.Object.create({
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
+          }),
+          Em.Object.create({
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
+          })
+        ]),
+        e: {
+          progress: '34',
+          isPolling: true
+        }
+      }
+    ]).forEach(function (test) {
+      it(test.m, function () {
+        c.setProperties(test.c);
+        c.setIsServicesInstalled(test.polledData);
+        expect(c.get('progress')).to.equal(test.e.progress);
+        expect(c.get('isPolling')).to.be.equal(test.e.isPolling);
       });
-      c.setIsServicesInstalled(polledData);
-      expect(c.get('progress')).to.equal('34');
-      expect(c.get('isPolling')).to.be.true;
     });
+
+    describe('`skipComponentStartAfterInstall` is true', function () {
+
+      var polledData = Em.A([
+        Em.Object.create({
+          Tasks: Em.Object.create({
+            status: 'NONE'
+          })
+        }),
+        Em.Object.create({
+          Tasks: Em.Object.create({
+            status: 'NONE'
+          })
+        })
+      ]);
+
+      var hosts = [
+        Em.Object.create({status: '', message: '', progress: 0}),
+        Em.Object.create({status: '', message: '', progress: 0}),
+        Em.Object.create({status: '', message: '', progress: 0}),
+        Em.Object.create({status: '', message: '', progress: 0})
+      ];
+
+      beforeEach(function () {
+        sinon.stub(App, 'get').withArgs('supports.skipComponentStartAfterInstall').returns(true);
+        sinon.stub(c, 'saveClusterStatus', Em.K);
+        sinon.stub(c, 'saveInstalledHosts', Em.K);
+        sinon.stub(c, 'changeParseHostInfo', Em.K);
+        c.set('hosts', hosts);
+        c.setIsServicesInstalled(polledData);
+      });
+
+      afterEach(function () {
+        App.get.restore();
+        c.saveClusterStatus.restore();
+        c.saveInstalledHosts.restore();
+        c.changeParseHostInfo.restore();
+      });
+
+      it('cluster status is valid', function () {
+        var clusterStatus = c.saveClusterStatus.args[0][0];
+        expect(clusterStatus.status).to.be.equal('START_SKIPPED');
+        expect(clusterStatus.isCompleted).to.be.true;
+      });
+
+      it('each host status is `success`', function () {
+        expect(c.get('hosts').everyProperty('status', 'success')).to.be.true;
+      });
+
+      it('each host progress is `100`', function () {
+        expect(c.get('hosts').everyProperty('progress', '100')).to.be.true;
+      });
+
+      it('each host message is valid', function () {
+        expect(c.get('hosts').everyProperty('message', Em.I18n.t('installer.step9.host.status.success'))).to.be.true;
+      });
+
+    });
+
   });
 
   describe('#launchStartServices', function () {
     beforeEach(function() {
       sinon.stub(App, 'get', function(k) {
-        if (k === 'components.slaves')
+        if (k === 'components.slaves') {
           return ["TASKTRACKER", "DATANODE", 
                   "JOURNALNODE", "ZKFC", 
                   "APP_TIMELINE_SERVER", 
@@ -533,6 +606,7 @@ describe('App.InstallerStep9Controller', function () {
                   "HBASE_REGIONSERVER", 
                   "SUPERVISOR", 
                   "FLUME_HANDLER"];
+        }
         return true;
       });
     });
@@ -653,11 +727,11 @@ describe('App.InstallerStep9Controller', function () {
         jsonError: true
       }
     ]);
-    tests.forEach(function (test) {
-      it('', function () {
-        c.reopen({hosts: test.hosts});
-        c.hostHasClientsOnly(test.jsonError);
-        test.hosts.forEach(function (host) {
+    tests.forEach(function (test, index1) {
+      test.hosts.forEach(function (host, index2) {
+        it('#test ' + index1 + ' #host ' + index2, function () {
+          c.reopen({hosts: test.hosts});
+          c.hostHasClientsOnly(test.jsonError);
           expect(c.get('hosts').findProperty('hostName', host.hostName).get('status')).to.equal(host.e.status);
           expect(c.get('hosts').findProperty('hostName', host.hostName).get('progress')).to.equal(host.e.progress);
         });
@@ -805,8 +879,9 @@ describe('App.InstallerStep9Controller', function () {
 
     beforeEach(function() {
       sinon.stub(App, 'get', function(k) {
-        if (k === 'components.slaves')
+        if (k === 'components.slaves') {
           return ["TASKTRACKER", "DATANODE", "JOURNALNODE", "ZKFC", "APP_TIMELINE_SERVER", "NODEMANAGER", "GANGLIA_MONITOR", "HBASE_REGIONSERVER", "SUPERVISOR", "FLUME_HANDLER"];
+        }
         return Em.get(App, k);
       });
     });
@@ -899,7 +974,12 @@ describe('App.InstallerStep9Controller', function () {
     tests.forEach(function (test) {
       it(test.m, function () {
         c.onInProgressPerHost(test.actions, test.host);
-        expect(test.host.message == test.e.message).to.equal(test.e.b);
+        if (test.e.b) {
+          expect(test.host.message).to.be.equal(test.e.message);
+        }
+        else {
+          expect(test.host.message).to.be.not.equal(test.e.message);
+        }
       });
     });
   });
@@ -1011,31 +1091,50 @@ describe('App.InstallerStep9Controller', function () {
       }
     ]);
     tests.forEach(function (test) {
-      it(test.m, function () {
-        var actions = [];
-        for (var prop in test.actions) {
-          if (test.actions.hasOwnProperty(prop) && test.actions[prop]) {
-            for (var i = 0; i < test.actions[prop]; i++) {
-              actions.push({Tasks: {status: prop}});
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          var actions = [];
+          for (var prop in test.actions) {
+            if (test.actions.hasOwnProperty(prop) && test.actions[prop]) {
+              for (var i = 0; i < test.actions[prop]; i++) {
+                actions.push({Tasks: {status: prop}});
+              }
             }
           }
-        }
-        c.reopen({content: {cluster: {status: test.cluster.status}}});
-        App.set('supports.skipComponentStartAfterInstall', test.s);
-        var progress = c.progressPerHost(actions, test.host);
-        expect(progress).to.equal(test.e.progress);
-        expect(test.host.progress).to.equal(test.e.progress.toString());
+          c.reopen({content: {cluster: {status: test.cluster.status}}});
+          App.set('supports.skipComponentStartAfterInstall', test.s);
+          this.progress = c.progressPerHost(actions, test.host);
+        });
+
+        it('progress is ' + test.e.progress, function () {
+          expect(this.progress).to.equal(test.e.progress);
+        });
+
+        it('host progress is ' + test.e.progress.toString(), function () {
+          expect(test.host.progress).to.equal(test.e.progress.toString());
+        });
       });
     });
   });
 
   describe('#clearStep', function () {
-    it('All to default values', function () {
+
+    beforeEach(function () {
       c.reopen({hosts: [{},{},{}]});
       c.clearStep();
+    });
+
+    it('hosts are empty', function () {
       expect(c.get('hosts.length')).to.equal(0);
+    });
+    it('status is `info`', function () {
       expect(c.get('status')).to.equal('info');
+    });
+    it('progress is 0', function () {
       expect(c.get('progress')).to.equal('0');
+    });
+    it('numPolls is 1', function () {
       expect(c.get('numPolls')).to.equal(1);
     });
   });
@@ -1079,8 +1178,9 @@ describe('App.InstallerStep9Controller', function () {
 
     beforeEach(function() {
       sinon.stub(App, 'get', function(k) {
-        if (k === 'components.slaves')
+        if (k === 'components.slaves') {
           return ["TASKTRACKER", "DATANODE", "JOURNALNODE", "ZKFC", "APP_TIMELINE_SERVER", "NODEMANAGER", "GANGLIA_MONITOR", "HBASE_REGIONSERVER", "SUPERVISOR", "FLUME_HANDLER"];
+        }
         return Em.get(App, k);
       });
     });
@@ -1239,8 +1339,9 @@ describe('App.InstallerStep9Controller', function () {
       it(test.m, function () {
         c.reopen({hosts: [Em.Object.create({logTasks: test.tasks})]});
         c.setLogTasksStatePerHost(test.tasksPerHost, c.get('hosts')[0]);
-        expect(c.get('hosts')[0].get('logTasks').everyProperty('Tasks.status', test.e.m)).to.equal(true);
-        expect(c.get('hosts')[0].get('logTasks.length')).to.equal(test.e.l);
+        var host = c.get('hosts')[0];
+        expect(host.get('logTasks').everyProperty('Tasks.status', test.e.m)).to.equal(true);
+        expect(host.get('logTasks.length')).to.equal(test.e.l);
       });
     });
   });
@@ -1251,17 +1352,6 @@ describe('App.InstallerStep9Controller', function () {
   // Retry button should be enabled, next button should be disabled
 
   describe('#launchStartServicesErrorCallback', function () {
-
-    beforeEach(function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-    });
-
-    afterEach(function() {
-      App.get.restore();
-    });
 
     it('Main progress bar on the screen should be finished (100%) with red color', function () {
       var hosts = Em.A([Em.Object.create({name: 'host1', progress: '33', status: 'info'}), Em.Object.create({name: 'host2', progress: '33', status: 'info'})]);
@@ -1275,10 +1365,8 @@ describe('App.InstallerStep9Controller', function () {
       var hosts = Em.A([Em.Object.create({name: 'host1', progress: '33', status: 'info'}), Em.Object.create({name: 'host2', progress: '33', status: 'info'})]);
       c.reopen({hosts: hosts, content: {controllerName: 'installerController', cluster: {status: 'PENDING', name: 'c1'}}});
       c.launchStartServicesErrorCallback({status: 500, statusTesxt: 'Server Error'}, {}, '', {});
-      c.get('hosts').forEach(function (host) {
-        expect(host.get('progress')).to.equal('100');
-        expect(host.get('status')).to.equal('info');
-      });
+      expect(c.get('hosts').everyProperty('progress', '100')).to.be.true;
+      expect(c.get('hosts').everyProperty('status', 'info')).to.be.true;
     });
 
     it('Next button should be disabled', function () {
@@ -1291,11 +1379,18 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#submit', function () {
-    it('should call App.router.send', function () {
+
+    beforeEach(function () {
       sinon.stub(App.router, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      App.router.send.restore();
+    });
+
+    it('should call App.router.send', function () {
       c.submit();
       expect(App.router.send.calledWith('next')).to.equal(true);
-      App.router.send.restore();
     });
   });
 
@@ -1340,9 +1435,11 @@ describe('App.InstallerStep9Controller', function () {
   describe('#startPolling', function () {
     beforeEach(function () {
       sinon.stub(c, 'reloadErrorCallback', Em.K);
+      sinon.stub(c, 'doPolling', Em.K);
     });
     afterEach(function () {
       c.reloadErrorCallback.restore();
+      c.doPolling.restore();
     });
     it('should set isSubmitDisabled to true', function () {
       c.set('isSubmitDisabled', false);
@@ -1350,10 +1447,8 @@ describe('App.InstallerStep9Controller', function () {
       expect(c.get('isSubmitDisabled')).to.equal(true);
     });
     it('should call doPolling', function () {
-      sinon.stub(c, 'doPolling', Em.K);
       c.startPolling();
       expect(c.doPolling.calledOnce).to.equal(true);
-      c.doPolling.restore();
     });
   });
 
@@ -1379,13 +1474,6 @@ describe('App.InstallerStep9Controller', function () {
       expect(c.getLogsByRequest.calledWith(true, 3)).to.equal(true);
     });
 
-    it('should set POLL_INTERVAL to 1 if testMode enabled', function () {
-      sinon.stub(App, 'get', function(k) { if ('testMode' === k) return true; return Em.get(App, k);});
-      c.loadLogData();
-      expect(c.get('POLL_INTERVAL')).to.equal(1);
-      App.get.restore();
-    });
-
   });
 
   describe('#loadCurrentTaskLog', function () {
@@ -1394,23 +1482,28 @@ describe('App.InstallerStep9Controller', function () {
       c.set('wizardController', Em.Object.create({
         getDBProperty: Em.K
       }));
+      sinon.stub(c, 'togglePreviousSteps', Em.K);
     });
     afterEach(function () {
       c.loadLogData.restore();
+      c.togglePreviousSteps.restore();
     });
+
     it('shouldn\'t call App.ajax.send if no currentOpenTaskId', function () {
       c.set('currentOpenTaskId', null);
       c.loadCurrentTaskLog();
-      expect(App.ajax.send.called).to.equal(false);
+      var args = testHelpers.findAjaxRequest('name', 'background_operations.get_by_task');
+      expect(args).not.exists;
     });
+
     it('should call App.ajax.send with provided data', function () {
-      sinon.stub(c, 'togglePreviousSteps', Em.K);
       c.set('currentOpenTaskId', 1);
       c.set('currentOpenTaskRequestId', 2);
       c.set('content', {cluster: {name: 3}});
       c.loadCurrentTaskLog();
-      expect(App.ajax.send.args[0][0].data).to.eql({taskId: 1, requestId: 2, clusterName: 3});
-      c.togglePreviousSteps.restore();
+      var args = testHelpers.findAjaxRequest('name', 'background_operations.get_by_task');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({taskId: 1, requestId: 2, clusterName: 3});
     });
   });
 
@@ -1507,14 +1600,6 @@ describe('App.InstallerStep9Controller', function () {
       c.togglePreviousSteps.restore();
     });
 
-    it('should increment numPolls if testMode', function () {
-      App.set('testMode', true);
-      c.set('numPolls', 0);
-      c.doPolling();
-      expect(c.get('numPolls')).to.equal(1);
-      App.set('testMode', false);
-    });
-
     it('should call getLogsByRequest', function () {
       c.set('content', {cluster: {requestId: 1}});
       c.doPolling();
@@ -1539,29 +1624,22 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#navigateStep', function () {
+
     beforeEach(function () {
       sinon.stub(c, 'togglePreviousSteps', Em.K);
       sinon.stub(c, 'loadStep', Em.K);
       sinon.stub(c, 'loadLogData', Em.K);
       sinon.stub(c, 'startPolling', Em.K);
     });
+
     afterEach(function () {
       c.togglePreviousSteps.restore();
       c.loadStep.restore();
       c.loadLogData.restore();
       c.startPolling.restore();
-      App.get.restore();
     });
-    it('should set custom data in testMode', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return true; return Em.get(App, k);});
-      c.reopen({content: {cluster: {status: 'st', isCompleted: true, requestId: 0}}});
-      c.navigateStep();
-      expect(c.get('content.cluster.status')).to.equal('PENDING');
-      expect(c.get('content.cluster.isCompleted')).to.equal(false);
-      expect(c.get('content.cluster.requestId')).to.equal(1);
-    });
+
     it('isCompleted = true, requestId = 1', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {isCompleted: true, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
@@ -1569,21 +1647,18 @@ describe('App.InstallerStep9Controller', function () {
       expect(c.get('progress')).to.equal('100');
     });
     it('isCompleted = false, requestId = 1, status = INSTALL FAILED', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {status: 'INSTALL FAILED', isCompleted: false, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
       expect(c.loadLogData.calledWith(false)).to.equal(true);
     });
     it('isCompleted = false, requestId = 1, status = START FAILED', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {status: 'START FAILED', isCompleted: false, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
       expect(c.loadLogData.calledWith(false)).to.equal(true);
     });
     it('isCompleted = false, requestId = 1, status = OTHER', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {status: 'STARTED', isCompleted: false, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
@@ -1637,18 +1712,145 @@ describe('App.InstallerStep9Controller', function () {
           }
         }
       ]).forEach(function (test) {
-        it(test.m, function () {
-          c.launchStartServicesSuccessCallback(test.jsonData);
-          expect(c.hostHasClientsOnly.calledWith(test.e.hostHasClientsOnly)).to.equal(true);
-          expect(c.saveClusterStatus.calledWith(test.e.clusterStatus)).to.equal(true);
+        describe(test.m, function () {
+
+          beforeEach(function () {
+            c.launchStartServicesSuccessCallback(test.jsonData);
+          });
+
+          it('hostHasClientsOnly is called with valid arguments', function () {
+            expect(c.hostHasClientsOnly.calledWith(test.e.hostHasClientsOnly)).to.equal(true);
+          });
+
+          it('saveClusterStatus is called with valid arguments', function () {
+            expect(c.saveClusterStatus.calledWith(test.e.clusterStatus)).to.equal(true);
+          });
+
+
           if (test.e.status) {
-            expect(c.get('status')).to.equal(test.e.status);
+            it('status is valid', function () {
+              expect(c.get('status')).to.equal(test.e.status);
+            });
           }
           if (test.e.progress) {
-            expect(c.get('progress')).to.equal(test.e.progress);
+            it('progress is valid', function () {
+              expect(c.get('progress')).to.equal(test.e.progress);
+            });
           }
         });
       });
+  });
+
+  describe('#isAllComponentsInstalledSuccessCallback', function () {
+
+    var hosts = [
+      Em.Object.create({name: 'h1', status: '', message: '', progress: ''}),
+      Em.Object.create({name: 'h2', status: '', message: '', progress: ''})
+    ];
+
+    var jsonData = {
+      items: [
+        {
+          Hosts: {
+            host_state: 'HEARTBEAT_LOST',
+            host_name: 'h1'
+          },
+          host_components: [
+            {
+              HostRoles: {
+                component_name: 'c1'
+              }
+            },
+            {
+              HostRoles: {
+                component_name: 'c2'
+              }
+            }
+          ]
+        },
+        {
+          Hosts: {
+            host_state: 'HEARTBEAT_LOST',
+            host_name: 'h2'
+          },
+          host_components: [
+            {
+              HostRoles: {
+                component_name: 'c3'
+              }
+            },
+            {
+              HostRoles: {
+                component_name: 'c4'
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    beforeEach(function () {
+      sinon.stub(c, 'changeParseHostInfo', Em.K);
+      sinon.stub(c, 'launchStartServices', Em.K);
+      sinon.stub(c, 'saveClusterStatus', Em.K);
+      c.set('hosts', hosts);
+      c.isAllComponentsInstalledSuccessCallback(jsonData);
+      this.clusterStatus = c.saveClusterStatus.args[0][0];
+    });
+
+    afterEach(function () {
+      c.changeParseHostInfo.restore();
+      c.launchStartServices.restore();
+      c.saveClusterStatus.restore();
+    });
+
+    it('cluster status / status', function () {
+      expect(this.clusterStatus.status).to.be.equal('INSTALL FAILED');
+    });
+
+    it('cluster status / isStartError', function () {
+      expect(this.clusterStatus.isStartError).to.be.true;
+    });
+
+    it('cluster status / isCompleted', function () {
+      expect(this.clusterStatus.isCompleted).to.be.false;
+    });
+
+    it('each host progress is 100', function () {
+      expect(c.get('hosts').everyProperty('progress', '100')).to.be.true;
+    });
+
+    it('each host status is `heartbeat_lost`', function () {
+      expect(c.get('hosts').everyProperty('status', 'heartbeat_lost')).to.be.true;
+    });
+
+    it('overall progress is 100', function () {
+      expect(c.get('progress')).to.be.equal('100');
+    });
+
+  });
+
+  describe('#loadDoServiceChecksFlagSuccessCallback', function () {
+
+    var data = {
+      RootServiceComponents: {
+        properties: {
+          'skip.service.checks': 'true'
+        }
+      }
+    };
+
+    it('skipServiceChecks should be true', function () {
+      c.loadDoServiceChecksFlagSuccessCallback(data);
+      expect(c.get('skipServiceChecks')).to.be.true;
+    });
+
+    it('skipServiceChecks should be false', function () {
+      data.RootServiceComponents.properties['skip.service.checks'] = 'false';
+      c.loadDoServiceChecksFlagSuccessCallback(data);
+      expect(c.get('skipServiceChecks')).to.be.false;
+    });
+
   });
 
 });

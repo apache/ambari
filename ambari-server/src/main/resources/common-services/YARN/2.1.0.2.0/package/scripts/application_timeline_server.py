@@ -21,8 +21,9 @@ Ambari Agent
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties,\
   FILE_TYPE_XML
@@ -62,17 +63,17 @@ class ApplicationTimelineServerWindows(ApplicationTimelineServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ApplicationTimelineServerDefault(ApplicationTimelineServer):
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-yarn-timelineserver"}
+  def get_component_name(self):
+    return "hadoop-yarn-timelineserver"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-yarn-timelineserver", params.version)
+      stack_select.select("hadoop-yarn-timelineserver", params.version)
 
   def status(self, env):
     import status_params
@@ -142,6 +143,13 @@ class ApplicationTimelineServerDefault(ApplicationTimelineServer):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+  def get_log_folder(self):
+    import params
+    return params.yarn_log_dir
+  
+  def get_user(self):
+    import params
+    return params.yarn_user
 
 if __name__ == "__main__":
   ApplicationTimelineServer().execute()

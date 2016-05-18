@@ -32,7 +32,7 @@ public interface Resource {
    *
    * @return the resource type
    */
-  public Type getType();
+  Type getType();
 
   /**
    * Obtain the properties contained by this group in a map structure.
@@ -42,7 +42,7 @@ public interface Resource {
    *
    * @return resource properties map
    */
-  public Map<String, Map<String, Object>> getPropertiesMap();
+  Map<String, Map<String, Object>> getPropertiesMap();
 
   /**
    * Set a property value for the given property id on this resource.
@@ -50,14 +50,14 @@ public interface Resource {
    * @param id    the property id
    * @param value the value
    */
-  public void setProperty(String id, Object value);
+  void setProperty(String id, Object value);
 
   /**
    * Add an empty category to this resource.
    *
    * @param id the category id
    */
-  public void addCategory(String id);
+  void addCategory(String id);
 
   /**
    * Get a property value for the given property id from this resource.
@@ -65,7 +65,7 @@ public interface Resource {
    * @param id the property id
    * @return the property value
    */
-  public Object getPropertyValue(String id);
+  Object getPropertyValue(String id);
 
 
   // ----- Enum : InternalType -----------------------------------------------
@@ -73,9 +73,10 @@ public interface Resource {
   /**
    * Enum of internal types.
    */
-  public enum InternalType {
+  enum InternalType {
     Cluster,
     Service,
+    Setting,
     Host,
     Component,
     HostComponent,
@@ -108,6 +109,7 @@ public interface Resource {
     RootServiceComponent,
     RootServiceHostComponent,
     View,
+    ViewURL,
     ViewVersion,
     ViewInstance,
     Blueprint,
@@ -129,6 +131,7 @@ public interface Resource {
     StackLevelConfiguration,
     LdapSyncEvent,
     UserPrivilege,
+    GroupPrivilege,
     RepositoryVersion,
     CompatibleRepositoryVersion,
     ClusterStackVersion,
@@ -136,6 +139,7 @@ public interface Resource {
     Upgrade,
     UpgradeGroup,
     UpgradeItem,
+    UpgradeSummary,
     PreUpgradeCheck,
     Stage,
     StackArtifact,
@@ -144,11 +148,16 @@ public interface Resource {
     WidgetLayout,
     ActiveWidgetLayout,
     Theme,
+    QuickLink,
     HostKerberosIdentity,
     Credential,
     KerberosDescriptor,
     RoleAuthorization,
-    UserAuthorization;
+    UserAuthorization,
+    VersionDefinition,
+    ClusterKerberosDescriptor,
+    LoggingQuery,
+    RemoteCluster;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -168,7 +177,7 @@ public interface Resource {
   /**
    * Resource types.  Allows for the addition of external types.
    */
-  public final class Type implements Comparable<Type>{
+  final class Type implements Comparable<Type>{
 
     /**
      * Map of all registered types.
@@ -185,6 +194,7 @@ public interface Resource {
      */
     public static final Type Cluster = InternalType.Cluster.getType();
     public static final Type Service = InternalType.Service.getType();
+    public static final Type Setting = InternalType.Setting.getType();
     public static final Type Host = InternalType.Host.getType();
     public static final Type Component = InternalType.Component.getType();
     public static final Type HostComponent = InternalType.HostComponent.getType();
@@ -217,6 +227,7 @@ public interface Resource {
     public static final Type RootServiceComponent = InternalType.RootServiceComponent.getType();
     public static final Type RootServiceHostComponent = InternalType.RootServiceHostComponent.getType();
     public static final Type View = InternalType.View.getType();
+    public static final Type ViewURL = InternalType.ViewURL.getType();
     public static final Type ViewVersion = InternalType.ViewVersion.getType();
     public static final Type ViewInstance = InternalType.ViewInstance.getType();
     public static final Type Blueprint = InternalType.Blueprint.getType();
@@ -238,6 +249,7 @@ public interface Resource {
     public static final Type StackLevelConfiguration = InternalType.StackLevelConfiguration.getType();
     public static final Type LdapSyncEvent = InternalType.LdapSyncEvent.getType();
     public static final Type UserPrivilege = InternalType.UserPrivilege.getType();
+    public static final Type GroupPrivilege = InternalType.GroupPrivilege.getType();
     public static final Type RepositoryVersion = InternalType.RepositoryVersion.getType();
     public static final Type CompatibleRepositoryVersion = InternalType.CompatibleRepositoryVersion.getType();
     public static final Type ClusterStackVersion = InternalType.ClusterStackVersion.getType();
@@ -245,11 +257,13 @@ public interface Resource {
     public static final Type Upgrade = InternalType.Upgrade.getType();
     public static final Type UpgradeGroup = InternalType.UpgradeGroup.getType();
     public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
+    public static final Type UpgradeSummary = InternalType.UpgradeSummary.getType();
     public static final Type PreUpgradeCheck = InternalType.PreUpgradeCheck.getType();
     public static final Type Stage = InternalType.Stage.getType();
     public static final Type StackArtifact = InternalType.StackArtifact.getType();
     public static final Type Artifact = InternalType.Artifact.getType();
     public static final Type Theme = InternalType.Theme.getType();
+    public static final Type QuickLink = InternalType.QuickLink.getType();
     public static final Type Widget = InternalType.Widget.getType();
     public static final Type WidgetLayout = InternalType.WidgetLayout.getType();
     public static final Type ActiveWidgetLayout = InternalType.ActiveWidgetLayout.getType();
@@ -258,6 +272,10 @@ public interface Resource {
     public static final Type KerberosDescriptor = InternalType.KerberosDescriptor.getType();
     public static final Type RoleAuthorization = InternalType.RoleAuthorization.getType();
     public static final Type UserAuthorization = InternalType.UserAuthorization.getType();
+    public static final Type VersionDefinition = InternalType.VersionDefinition.getType();
+    public static final Type ClusterKerberosDescriptor = InternalType.ClusterKerberosDescriptor.getType();
+    public static final Type LoggingQuery = InternalType.LoggingQuery.getType();
+    public static final Type RemoteCluster = InternalType.RemoteCluster.getType();
 
     /**
      * The type name.

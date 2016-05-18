@@ -28,20 +28,20 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.apache.ambari.server.state.stack.ConfigUpgradePack;
-import org.apache.commons.lang.StringUtils;
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-
-import com.google.gson.Gson;
+import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Condition;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Condition;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+
+import com.google.gson.Gson;
 
 /**
  * The {@link ConfigureTask} represents a configuration change. This task
@@ -134,6 +134,22 @@ public class ConfigureTask extends ServerSideActionTask {
   }
 
   /**
+   * Gets the summary of the task or {@code null}.
+   *
+   * @return the task summary or {@code null}.
+   */
+  public String getSummary(ConfigUpgradePack configUpgradePack) {
+    if(StringUtils.isNotBlank(id) && null != configUpgradePack){
+      ConfigUpgradeChangeDefinition definition = configUpgradePack.enumerateConfigChangesByID().get(id);
+      if (null != definition && StringUtils.isNotBlank(definition.summary)) {
+          return definition.summary;
+      }
+    }
+
+    return super.getSummary();
+  }
+
+  /**
    * Gets a map containing the following properties pertaining to the
    * configuration value to change:
    * <ul>
@@ -158,7 +174,7 @@ public class ConfigureTask extends ServerSideActionTask {
                                                      ConfigUpgradePack configUpgradePack) {
     Map<String, String> configParameters = new HashMap<>();
 
-    if (this.id == null || this.id.isEmpty()) {
+    if (id == null || id.isEmpty()) {
       LOG.warn("Config task id is not defined, skipping config change");
       return configParameters;
     }
@@ -169,10 +185,10 @@ public class ConfigureTask extends ServerSideActionTask {
     }
 
     // extract config change definition, referenced by current ConfigureTask
-    ConfigUpgradeChangeDefinition definition = configUpgradePack.enumerateConfigChangesByID().get(this.id);
+    ConfigUpgradeChangeDefinition definition = configUpgradePack.enumerateConfigChangesByID().get(id);
     if (definition == null) {
       LOG.warn(String.format("Can not resolve config change definition by id %s, " +
-              "skipping config change", this.id));
+              "skipping config change", id));
       return configParameters;
     }
 
@@ -217,67 +233,94 @@ public class ConfigureTask extends ServerSideActionTask {
 
     // for every <set key=foo value=bar/> add it to this list
     if (null != definition.getKeyValuePairs() && !definition.getKeyValuePairs().isEmpty()) {
+      List<ConfigurationKeyValue> allowedSets = getValidSets(cluster, definition.getConfigType(), definition.getKeyValuePairs());
       configParameters.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS,
-          m_gson.toJson(definition.getKeyValuePairs()));
+          m_gson.toJson(allowedSets));
     }
 
     // transfers
     List<Transfer> transfers = definition.getTransfers();
     if (null != transfers && !transfers.isEmpty()) {
-
-      List<Transfer> allowedTransfers = new ArrayList<>();
-      for (Transfer transfer : transfers) {
-        if (transfer.operation == TransferOperation.DELETE) {
-          boolean ifKeyIsNotBlank = StringUtils.isNotBlank(transfer.ifKey);
-          boolean ifTypeIsNotBlank = StringUtils.isNotBlank(transfer.ifType);
-
-          //  value doesn't required for Key Check
-          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifKeyState == PropertyKeyState.ABSENT) {
-            boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, transfer.ifType, transfer.ifKey);
-            if (keyPresent) {
-              LOG.info("Skipping property delete for {}/{} as the key {} for {} is present",
-                definition.getConfigType(), transfer.deleteKey, transfer.ifKey, transfer.ifType);
-              continue;
-            }
-          }
-
-          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifValue == null &&
-            transfer.ifKeyState == PropertyKeyState.PRESENT) {
-            boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, transfer.ifType, transfer.ifKey);
-            if (!keyPresent) {
-              LOG.info("Skipping property delete for {}/{} as the key {} for {} is not present",
-                definition.getConfigType(), transfer.deleteKey, transfer.ifKey, transfer.ifType);
-              continue;
-            }
-          }
-
-          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifValue != null) {
-
-            String ifConfigType = transfer.ifType;
-            String ifKey = transfer.ifKey;
-            String ifValue = transfer.ifValue;
-
-            String checkValue = getDesiredConfigurationValue(cluster, ifConfigType, ifKey);
-            if (!ifValue.toLowerCase().equals(StringUtils.lowerCase(checkValue))) {
-              // skip adding
-              LOG.info("Skipping property delete for {}/{} as the value {} for {}/{} is not equal to {}",
-                       definition.getConfigType(), transfer.deleteKey, checkValue, ifConfigType, ifKey, ifValue);
-              continue;
-            }
-          }
-        }
-        allowedTransfers.add(transfer);
-      }
+      List<Transfer> allowedTransfers = getValidTransfers(cluster, definition.getConfigType(), definition.getTransfers());
       configParameters.put(ConfigureTask.PARAMETER_TRANSFERS, m_gson.toJson(allowedTransfers));
     }
 
     // replacements
     List<Replace> replacements = definition.getReplacements();
     if( null != replacements && !replacements.isEmpty() ){
-      configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(replacements));
+      List<Replace> allowedReplacements = getValidReplacements(cluster, definition.getConfigType(), replacements);
+      configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(allowedReplacements));
     }
 
     return configParameters;
+  }
+
+  private List<Replace> getValidReplacements(Cluster cluster, String configType, List<Replace> replacements){
+    List<Replace> allowedReplacements= new ArrayList<>();
+
+    for(Replace replacement: replacements){
+      if(isValidConditionSettings(cluster, configType, replacement.key,
+          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState))
+        allowedReplacements.add(replacement);
+    }
+
+    return allowedReplacements;
+  }
+
+  private List<ConfigurationKeyValue> getValidSets(Cluster cluster, String configType, List<ConfigurationKeyValue> sets){
+    List<ConfigurationKeyValue> allowedSets = new ArrayList<>();
+
+    for(ConfigurationKeyValue configurationKeyValue: sets){
+      if(isValidConditionSettings(cluster, configType, configurationKeyValue.key,
+          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState))
+        allowedSets.add(configurationKeyValue);
+    }
+
+    return allowedSets;
+  }
+
+  private List<Transfer> getValidTransfers(Cluster cluster, String configType, List<Transfer> transfers){
+    List<Transfer> allowedTransfers = new ArrayList<>();
+    for (Transfer transfer : transfers) {
+      String key = "";
+      if(transfer.operation == TransferOperation.DELETE)
+        key = transfer.deleteKey;
+      else
+        key = transfer.fromKey;
+
+      if(isValidConditionSettings(cluster, configType, key,
+          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState))
+        allowedTransfers.add(transfer);
+    }
+
+    return allowedTransfers;
+  }
+
+  /**
+   * Sanity check for invalid attribute settings on if-key, if-value, if-key-state, if-site
+   * Regardless whether it's set, transfrer, or replace, the condition attributres are the same
+   * So the same logic can be used to determine if the operation is allowed or not.
+   * */
+  private boolean isValidConditionSettings(Cluster cluster, String configType, String targetPropertyKey,
+      String ifKey, String ifType, String ifValue, PropertyKeyState ifKeyState){
+
+    //Operation is always valid if there are no conditions specified
+    boolean isValid = false;
+
+    boolean ifKeyIsNotBlank = StringUtils.isNotBlank(ifKey);
+    boolean ifTypeIsNotBlank = StringUtils.isNotBlank(ifType);
+    boolean ifValueIsNotNull = (null != ifValue);
+    boolean ifKeyStateIsValid = (PropertyKeyState.PRESENT == ifKeyState || PropertyKeyState.ABSENT == ifKeyState);
+
+    if(ifKeyIsNotBlank && ifTypeIsNotBlank && (ifValueIsNotNull || ifKeyStateIsValid)) {
+      // allow if the condition has ifKey, ifType and either ifValue or ifKeyState
+      isValid = true;
+    } else if (!ifKeyIsNotBlank && !ifTypeIsNotBlank && !ifValueIsNotNull &&  !ifKeyStateIsValid) {
+      //no condition, allow
+      isValid = true;
+    }
+
+    return isValid;
   }
 
   /**
@@ -307,31 +350,4 @@ public class ConfigureTask extends ServerSideActionTask {
 
     return config.getProperties().get(propertyKey);
   }
-
-  /**
-   * Gets the property presence state
-   * @param cluster
-   *          the cluster (not {@code null}).
-   * @param configType
-   *          the configuration type (ie hdfs-site) (not {@code null}).
-   * @param propertyKey
-   *          the key to retrieve (not {@code null}).
-   * @return {@code true} if property key exists or {@code false} if not.
-   */
-  private boolean getDesiredConfigurationKeyPresence(Cluster cluster,
-      String configType, String propertyKey) {
-
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    if (null == desiredConfig) {
-      return false;
-    }
-
-    Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (null == config) {
-      return false;
-    }
-    return config.getProperties().containsKey(propertyKey);
-  }
-
 }

@@ -54,7 +54,7 @@ class JournalNode(Script):
     import params
 
     Directory(params.jn_edits_dir,
-              recursive=True,
+              create_parents = True,
               owner=params.hdfs_user,
               group=params.user_group
     )

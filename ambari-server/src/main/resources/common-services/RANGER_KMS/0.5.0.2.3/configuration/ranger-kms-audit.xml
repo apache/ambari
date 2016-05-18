@@ -51,6 +51,10 @@
   <property>
     <name>xasecure.audit.destination.db.password</name>
     <value>crypted</value>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <description>Audit DB JDBC Password</description>
   </property>
 

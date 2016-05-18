@@ -18,11 +18,13 @@ limitations under the License.
 
 """
 
+import errno
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
 from resource_management.libraries.functions import check_process_status, format
 
-# Note: Phoenix Query Server is only applicable to HDP-2.3 and above.
+# Note: Phoenix Query Server is only applicable to phoenix version stacks and above.
 def phoenix_service(action = 'start'): # 'start', 'stop', 'status'
     # Note: params/status_params should already be imported before calling phoenix_service()
     pid_file = format("{pid_dir}/phoenix-{hbase_user}-server.pid")
@@ -45,6 +47,11 @@ def phoenix_service(action = 'start'): # 'start', 'stop', 'status'
                 user=format("{hbase_user}"),
                 environment=env
         )
-        File(pid_file,
-             action = "delete"
-        )
+        try:
+          File(pid_file, action = "delete")
+        except OSError as exc:
+          # OSError: [Errno 2] No such file or directory
+          if exc.errno == errno.ENOENT:
+            Logger.info("Did not remove '{0}' as it did not exist".format(pid_file))
+          else:
+            raise

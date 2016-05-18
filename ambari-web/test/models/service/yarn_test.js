@@ -25,29 +25,6 @@ var yarnService,
   yarnServiceData = {
     id: 'yarn'
   },
-  hostComponentsData = [
-    {
-      id: 'ats',
-      componentName: 'APP_TIMELINE_SERVER',
-      host: {
-        id: 'host'
-      }
-    },
-    {
-      id: 'nodemanager',
-      componentName: 'NODEMANAGER',
-      host: {
-        id: 'host'
-      }
-    },
-    {
-      id: 'yarnclient',
-      componentName: 'YARN_CLIENT',
-      host: {
-        id: 'host'
-      }
-    }
-  ],
   configs = [
     {
       properties: {
@@ -56,38 +33,7 @@ var yarnService,
       tag: 'version2',
       type: 'yarn-site'
     }
-  ],
-  nodeCountCases = [
-    {
-      assets: {
-        nodeManagersStarted: 0,
-        nodeManagersInstalled: 1,
-        nodeManagersTotal: 1,
-        nodeManagersCountActive: 0,
-        nodeManagersCountRebooted: 0,
-        nodeManagersCountUnhealthy: 0,
-        nodeManagersCountDecommissioned: 0
-      },
-      nodeManagersCountLost: 1
-    },
-    {
-      assets: {
-        nodeManagersStarted: 1,
-        nodeManagersInstalled: 1,
-        nodeManagersTotal: 1,
-        nodeManagersCountActive: 1,
-        nodeManagersCountRebooted: 1,
-        nodeManagersCountUnhealthy: 0,
-        nodeManagersCountDecommissioned: 0
-      },
-      nodeManagersCountLost: 0
-    }
-  ],
-  setHostComponents = function () {
-    yarnService.reopen({
-      hostComponents: hostComponentsData
-    });
-  };
+  ];
 
 describe('App.YARNService', function () {
 

@@ -44,22 +44,35 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   popoverPlacement: 'right',
 
   didInsertElement: function () {
-    App.tooltip($('body'), {
-      selector: '[data-toggle=tooltip]',
-      placement: 'top'
-    });
+    App.tooltip(this.$('[data-toggle=tooltip]'), {placement: 'top'});
     // if description for this serviceConfig not exist, then no need to show popover
     if (this.get('isPopoverEnabled') !== 'false' && this.get('serviceConfig.description')) {
-      App.popover(this.$(), {
-        title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
-          this.get('serviceConfig.displayName'),
-          (this.get('serviceConfig.displayName') == this.get('serviceConfig.name')) ? '' : this.get('serviceConfig.name')
-        ),
-        content: this.get('serviceConfig.description'),
-        placement: this.get('popoverPlacement'),
-        trigger: 'hover'
-      });
+      this.addPopover();
     }
+  },
+
+  /**
+   * Element where popover is "appended"
+   */
+  elementForPopover: function () {
+    return this.$();
+  }.property(),
+
+  /**
+   * Add Popover for config-boxes
+   *
+   * @method addPopover
+   */
+  addPopover: function () {
+    App.popover(this.get('elementForPopover'), {
+      title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
+        this.get('serviceConfig.displayName'),
+        (this.get('serviceConfig.displayName') === this.get('serviceConfig.name')) ? '' : this.get('serviceConfig.name')
+      ),
+      content: this.get('serviceConfig.description'),
+      placement: this.get('popoverPlacement'),
+      trigger: 'hover'
+    });
   },
 
   willDestroyElement: function() {
@@ -76,28 +89,26 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * and in case there was changes shows popup with info about changed configs
    *
    * @param {App.ServiceConfigProperty} config
+   * @param [controller]
    * @returns {$.Deferred}
    */
-  sendRequestRorDependentConfigs: function(config) {
-    if (!config || !config.get('isValid')) return $.Deferred().resolve().promise();
-    if (['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
+  sendRequestRorDependentConfigs: function(config, controller) {
+    if (!config || (!config.get('isValid') && config.get('isNotDefaultValue'))) return $.Deferred().resolve().promise();
+    controller = controller || this.get('controller');
+    if (controller && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(controller.get('name'))) {
       var name = config.get('name');
       var saveRecommended = (config.get('value') === config.get('recommendedValue'));
-      var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
-       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || p.displayType === 'user') && config.get('oldValue') !== config.get('value')) {
+      controller.removeCurrentFromDependentList(config, saveRecommended);
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || config.get('displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
-         return controller.getRecommendationsForDependencies([{
+         return controller.loadConfigRecommendations([{
            "type": type,
            "name": name,
            "old_value": Em.isNone(old) ? config.get('initialValue') : old
-         }], false, function() {
-           controller.removeCurrentFromDependentList(config, saveRecommended);
-         });
-      } else {
-        controller.removeCurrentFromDependentList(config, saveRecommended);
+         }]);
       }
     }
 
@@ -113,16 +124,15 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    */
   restoreDependentConfigs: function(parentConfig) {
     var controller = this.get('controller');
-    var dependentConfigs = controller.get('_dependentConfigValues');
-    if (controller.updateDependentConfigs) {
-      controller.updateDependentConfigs();
-      controller.set('_dependentConfigValues', dependentConfigs.reject(function(item) {
+    var dependentConfigs = controller.get('recommendations');
+    try {
+      controller.set('recommendations', dependentConfigs.reject(function(item) {
         if (item.parentConfigs.contains(parentConfig.get('name'))) {
           if (item.parentConfigs.length > 1) {
             item.parentConfigs.removeObject(parentConfig.get('name'));
           } else {
             // reset property value
-            var property = controller.findConfigProperty(item.propertyName, App.config.getOriginalFileName(item.fileName));
+            var property = App.config.findConfigProperty(controller.get('stepConfigs'), item.propertyName, App.config.getOriginalFileName(item.fileName));
             if (property) {
               property.set('value', property.get('savedValue') || property.get('initialValue'));
             }
@@ -131,9 +141,38 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
         }
         return false;
       }));
+    } catch(e) {
+      console.warn('Dependent properties popup was not cleared');
     }
   }
 
+});
+
+/**
+ * mixin is used to send request for recommendations
+ * when config value is updated by user
+ */
+App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
+
+  selected: false,
+
+  focusOut: function () {
+    this.set('selected', false);
+  },
+
+  focusIn: function () {
+    this.set('selected', true);
+  },
+
+  onValueUpdate: function () {
+    if (this.get('selected')) {
+      var self = this, config = this.get('serviceConfig'),
+        controller = this.get('controller');
+      delay(function(){
+        self.sendRequestRorDependentConfigs(config, controller);
+      }, 500);
+    }
+  }.observes('serviceConfig.value')
 });
 
 /**
@@ -156,27 +195,20 @@ App.ServiceConfigCalculateId = Ember.Mixin.create({
  * Default input control
  * @type {*}
  */
-App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
+App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.ValueObserver, {
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
   placeholderBinding: 'serviceConfig.placeholder',
 
-  onValueUpdate: function () {
-    if ($(this.get('element')).is(':focus')) {
-      var self = this;
-      delay(function(){
-        self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
-      }, 500);
-    }
-  }.observes('serviceConfig.value'),
-
   //Set editDone true for last edited config text field parameter
   focusOut: function () {
+    this._super();
     this.get('serviceConfig').set("editDone", true);
   },
   //Set editDone false for all current category config text field parameter
   focusIn: function () {
+    this._super();
     if (!this.get('serviceConfig.isOverridden') && !this.get('serviceConfig.isComparison')) {
       if (this.get('parentView.categoryConfigsAll')) {
         this.get("parentView.categoryConfigsAll").setEach("editDone", false);
@@ -200,19 +232,10 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
  * Customized input control with Units type specified
  * @type {Em.View}
  */
-App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, App.SupportsDependentConfigs, {
+App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, App.ValueObserver, {
   valueBinding: 'serviceConfig.value',
   classNames: ['input-append', 'with-unit'],
   placeholderBinding: 'serviceConfig.savedValue',
-
-  onValueUpdate: function () {
-    if ($(this.get('element')).is(':focus')) {
-      var self = this;
-      delay(function(){
-        self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
-      }, 500);
-    }
-  }.observes('serviceConfig.value'),
 
   templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
 });
@@ -260,17 +283,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend(App.ServiceConfigPopover
  * Textarea control
  * @type {*}
  */
-App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
-
-
-  onValueUpdate: function () {
-    if ($(this.get('element')).is(':focus')) {
-      var self = this;
-      delay(function(){
-        self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
-      }, 500);
-    }
-  }.observes('serviceConfig.value'),
+App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.ValueObserver, {
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
@@ -279,11 +292,44 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
   widthClass: 'span9'
 });
 
+
+/**
+ * Special config type for Capacity Scheduler
+ */
+App.CapacitySceduler = App.ServiceConfigTextArea.extend({
+
+  rows: 16,
+
+  /**
+   * specific property handling for cs
+   *
+   * @param {App.ServiceConfigProperty} config
+   * @param [controller]
+   * @returns {$.Deferred}
+   * @override
+   */
+  sendRequestRorDependentConfigs: function(config, controller) {
+    if (!config.get('isValid') && config.get('isNotDefaultValue')) return $.Deferred().resolve().promise();
+    controller = controller || this.get('controller');
+    if (controller && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(controller.get('name'))) {
+      return controller.loadConfigRecommendations(config.get('value').split('\n').map(function (_property) {
+        return {
+          "type": 'capacity-scheduler',
+          "name": _property.split('=')[0]
+        }
+      }));
+    }
+
+    return $.Deferred().resolve().promise();
+  }
+
+});
+
 /**
  * Textarea control for content type
  * @type {*}
  */
-App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
+App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.ValueObserver, {
 
   valueBinding: 'serviceConfig.value',
   rows: 20,
@@ -316,13 +362,18 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
   checked: false,
 
+  elementForPopover: function () {
+    return this.$().parent('.control-group').find('.bootstrap-checkbox');
+  }.property(),
+
   /**
    * set appropriate config values pair
    * to define which value is positive (checked) property
-   * and what value is negative (unchecked) proeprty
+   * and what value is negative (unchecked) property
    */
   didInsertElement: function() {
     var self = this;
+    if (this.get('serviceConfig').isDestroyed) return;
     this._super();
     this.addObserver('serviceConfig.value', this, 'toggleChecker');
     Object.keys(this.get('allowedPairs')).forEach(function(key) {
@@ -334,13 +385,16 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
     this.set('checked', this.get('serviceConfig.value') === this.get('trueValue'));
     this.propertyDidChange('checked');
     Em.run.next(function () {
-      if (self.$())
+      if (self.$()) {
         self.$().checkbox({
           defaultState: self.get('serviceConfig.value'),
           buttonStyle: 'btn-link btn-large',
           checkedClass: 'icon-check',
           uncheckedClass: 'icon-check-empty'
         });
+        self.propertyDidChange('elementForPopover');
+        self.addPopover();
+      }
     });
   },
 
@@ -501,19 +555,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
   onOptionsChange: function () {
-    if (this.get('hostNameProperty') && !this.get('nonDBRadioButtons').contains(this.get('serviceConfig.name'))) {
+    if (!this.get('nonDBRadioButtons').contains(this.get('serviceConfig.name'))) {
       /** if new db is selected host name must be same as master of selected service (and can't be changed)**/
-      if (this.get('isNewDb')) {
-        var initProperty = this.get('hostNameProperty.recommendedValue') || this.get('hostNameProperty.savedValue');
-        this.get('hostNameProperty').set('value', initProperty.toString());
-        this.get('hostNameProperty').set('isEditable', false);
-      } else {
-        this.get('hostNameProperty').set('isEditable', true);
-      }
-      this.setRequiredProperties(['driver', 'db_type']);
-      if (this.getPropertyByType('connection_url')) {
-        this.setConnectionUrl(this.get('hostNameProperty.value'), this.get('databaseProperty.value'));
-      }
       this.handleSpecialUserPassProperties();
     }
   }.observes('databaseProperty.value', 'hostNameProperty.value', 'serviceConfig.value'),
@@ -596,43 +639,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       return this.get('controller.selectedService.configs').findProperty('name', dbInfo.dpPropertiesByServiceMap[this.get('serviceConfig.serviceName')][propertyType]);
     }
     return null;
-  },
-
-  /**
-   * This method update <code>connection_url<code> property, using template described in <code>dpPropertiesMap<code>
-   * and sets hostName as dbName in appropriate position of <code>connection_url<code> string
-   * @param {String} hostName
-   * @param {String} dbName
-   * @method setConnectionUrl
-   */
-  setConnectionUrl: function(hostName, dbName) {
-    var connectionUrlProperty = this.getPropertyByType('connection_url');
-    var connectionUrlTemplate = this.getDefaultPropertyValue('connection_url');
-    try {
-      var connectionUrlValue = connectionUrlTemplate.format(hostName, dbName);
-      connectionUrlProperty.set('value', connectionUrlValue);
-      connectionUrlProperty.set('recommendedValue', connectionUrlValue);
-    } catch(e) {
-      console.error('connection url property or connection url template is missing');
-    }
-    return connectionUrlProperty;
-  },
-
-  /**
-   * This method sets recommended values for properties <code>propertiesToUpdate<code> when radio button is changed
-   * @param {String[]} propertiesToUpdate - contains type of properties that should be updated;
-   * @method setRequiredProperties
-   * @returns App.ServiceConfigProperty[]
-   */
-  setRequiredProperties: function (propertiesToUpdate) {
-    propertiesToUpdate.forEach(function(pType) {
-      var property = this.getPropertyByType(pType);
-      var value = this.getDefaultPropertyValue(pType);
-      if (property && value) {
-        property.set('value', value);
-        property.set('recommendedValue', value);
-      }
-    }, this);
   },
 
   /**
@@ -759,9 +765,9 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend(App.SupportsDependentConfig
     // causes JS error due to re-rendering.  For example, this occurs when switching the Config Group
     // in Service Config page
     if (this.get('clicked')) {
-      this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
       Em.run.next(this, function() {
         this.set('parentView.serviceConfig.value', this.get('value'));
+        this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
         this.set('clicked', false);
         this.updateForeignKeys();
       });
@@ -839,6 +845,9 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
 App.checkConnectionView = App.ServiceConfigTextField.extend({
   didInsertElement: function() {
     this._super();
+    if (this.get('controller.isHostsConfigsPage')) {
+      return;
+    }
     var kdc = this.get('categoryConfigsAll').findProperty('name', 'kdc_type');
     var propertyAppendTo = this.get('categoryConfigsAll').findProperty('name', 'domains');
     if (propertyAppendTo) {
@@ -1002,7 +1011,7 @@ App.CheckDBConnectionView = Ember.View.extend({
     if (!/wizard/i.test(this.get('controller.name')) && this.get('parentView.service.serviceName') === 'HIVE') {
       return this.get('parentView.service.serviceName').toLowerCase() + '_hostname';
     } else if (this.get('parentView.service.serviceName') === 'KERBEROS') {
-      return 'kdc_host';
+      return 'kdc_hosts';
     } else if (this.get('parentView.service.serviceName') === 'RANGER') {
       return '{0}_{1}_host'.format(this.get('parentView.service.serviceName').toLowerCase(), this.get('databaseName').toLowerCase());
     }
@@ -1015,7 +1024,7 @@ App.CheckDBConnectionView = Ember.View.extend({
     var propertiesMap = {
       OOZIE: ['oozie.db.schema.name', 'oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password', 'oozie.service.JPAService.jdbc.driver', 'oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL'],
-      KERBEROS: ['kdc_host'],
+      KERBEROS: ['kdc_hosts'],
       RANGER: App.get('isHadoop23Stack') ? ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
           ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
     };
@@ -1024,7 +1033,7 @@ App.CheckDBConnectionView = Ember.View.extend({
   /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
   propertiesPattern: function() {
     var patterns = {
-      db_connection_url: /jdbc\.url|connection_url|connectionurl|kdc_host/ig
+      db_connection_url: /jdbc\.url|connection_url|connectionurl|kdc_hosts/ig
     };
     if (this.get('parentView.service.serviceName') != "KERBEROS") {
       patterns.user_name = /(username|dblogin|db_user)$/ig;
@@ -1038,7 +1047,7 @@ App.CheckDBConnectionView = Ember.View.extend({
       'OOZIE': 'oozie_server_hosts',
       'HDFS': 'hadoop_host',
       'HIVE': 'hive_metastore_hosts',
-      'KERBEROS': 'kdc_host',
+      'KERBEROS': 'kdc_hosts',
       'RANGER': 'ranger_server_hosts'
     };
     return this.get('parentView.categoryConfigsAll').findProperty('name', serviceMasterMap[this.get('parentView.service.serviceName')]).get('value');
@@ -1081,7 +1090,14 @@ App.CheckDBConnectionView = Ember.View.extend({
   didInsertElement: function() {
     var kdc = this.get('parentView.categoryConfigsAll').findProperty('name', 'kdc_type');
     if (kdc) {
-      var name = kdc.get('value') == 'Existing MIT KDC' ? 'KDC' : 'AD';
+      var name = kdc.get('value');
+      if (name == 'Existing MIT KDC') {
+        name = 'KDC';
+      } else if (name == 'Existing IPA') {
+        name = 'IPA';
+      } else {
+        name = 'AD';
+      }
       App.popover(this.$(), {
         title: Em.I18n.t('services.service.config.database.btn.idle'),
         content: Em.I18n.t('installer.controls.checkConnection.popover').format(name),
@@ -1392,6 +1408,38 @@ App.CheckDBConnectionView = Ember.View.extend({
     }
     this.set('logsPopup', popup);
     return popup;
+  }
+});
+
+/**
+ * View for switch group text
+ *
+ * @type {Em.View}
+ */
+App.SwitchToGroupView = Em.View.extend({
+
+  group: null,
+
+  tagName: 'a',
+
+  classNames: ['action'],
+
+  template: Ember.Handlebars.compile('{{ view.group.switchGroupTextShort }}'),
+
+  didInsertElement: function() {
+    var self = this;
+    App.tooltip($(self.get('element')), {
+      placement: 'top',
+      title: self.get('group.switchGroupTextFull')
+    });
+  },
+
+  willDestroyElement: function() {
+    $(this.get('element')).tooltip('destroy');
+  },
+
+  click: function() {
+    this.get('controller').selectConfigGroup({context: this.get('group')});
   }
 });
 

@@ -18,10 +18,15 @@
 
 package org.apache.ambari.server.security;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
+import java.io.File;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
@@ -31,13 +36,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.util.Map;
-import java.util.Properties;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 import static org.easymock.EasyMock.expectLastCall;
 
@@ -55,6 +58,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     this.propertyNameMap = propertyNameMap;
     this.defatulPropertyValueMap = defatulPropertyValueMap;
   }
+
+  protected abstract void expectHttpServletRequestMock(HttpServletRequest request);
 
   @Before
   public void setUp() throws Exception {
@@ -83,6 +88,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
 
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
+    expectHttpServletRequestMock(servletRequest);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
     servletResponse.setHeader(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER));
@@ -126,6 +132,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
 
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
+    expectHttpServletRequestMock(servletRequest);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
     servletResponse.setHeader(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER));
@@ -173,6 +180,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
 
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
+    expectHttpServletRequestMock(servletRequest);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
     servletResponse.setHeader(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, "custom2");
@@ -219,6 +227,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
 
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
+    expectHttpServletRequestMock(servletRequest);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
     servletResponse.setHeader(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, "custom1");
@@ -266,6 +275,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
 
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
+    expectHttpServletRequestMock(servletRequest);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
 
@@ -308,6 +318,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     FilterConfig filterConfig = createNiceMock(FilterConfig.class);
 
     HttpServletRequest servletRequest = createStrictMock(HttpServletRequest.class);
+    expectHttpServletRequestMock(servletRequest);
 
     HttpServletResponse servletResponse = createStrictMock(HttpServletResponse.class);
 

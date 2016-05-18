@@ -26,21 +26,21 @@ def hcat():
   import params
 
   Directory(params.hive_conf_dir,
-            recursive=True,
+            create_parents = True,
             owner=params.hcat_user,
             group=params.user_group,
   )
 
 
   Directory(params.hcat_conf_dir,
-            recursive=True,
+            create_parents = True,
             owner=params.hcat_user,
             group=params.user_group,
   )
 
   Directory(params.hcat_pid_dir,
             owner=params.webhcat_user,
-            recursive=True
+            create_parents = True
   )
 
   XmlConfig("hive-site.xml",

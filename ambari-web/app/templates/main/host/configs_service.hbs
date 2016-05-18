@@ -21,6 +21,6 @@
     <div class="clearfix"></div>
     {{view App.ServiceConfigView canEditBinding="view.isConfigsEditable" filterBinding="controller.filter" columnsBinding="controller.filterColumns"}}
   {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   {{/if}}
 </div>

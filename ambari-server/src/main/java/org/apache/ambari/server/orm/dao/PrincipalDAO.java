@@ -80,6 +80,14 @@ public class PrincipalDAO {
     return daoUtils.selectList(query);
   }
 
+
+  @RequiresSession
+  public List<PrincipalEntity> findByPrincipalType(String name) {
+    TypedQuery<PrincipalEntity> query = entityManagerProvider.get().createNamedQuery("principalByPrincipalType", PrincipalEntity.class);
+    query.setParameter("principal_type", name);
+    return  daoUtils.selectList(query);
+  }
+
   /**
    * Make an instance managed and persistent.
    *

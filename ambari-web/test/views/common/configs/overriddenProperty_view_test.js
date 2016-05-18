@@ -44,7 +44,7 @@ describe('App.ServiceConfigView.SCPOverriddenRowsView', function () {
 
   describe('#setSwitchText', function () {
 
-    var view = App.ServiceConfigView.SCPOverriddenRowsView.create({
+    view = App.ServiceConfigView.SCPOverriddenRowsView.create({
       serviceConfigProperty: {
         overrides: [
           Em.Object.create({

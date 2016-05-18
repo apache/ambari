@@ -28,6 +28,7 @@
           <name>HIVE_METASTORE</name>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <reassignAllowed>true</reassignAllowed>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <auto-deploy>
             <enabled>true</enabled>
@@ -48,6 +49,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <reassignAllowed>true</reassignAllowed>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>

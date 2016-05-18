@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.alert.AlertTarget;
 import org.apache.commons.lang.StringUtils;
@@ -60,13 +61,13 @@ import com.google.inject.Inject;
 public class AlertGroupResourceProvider extends
     AbstractControllerResourceProvider {
 
-  protected static final String ALERT_GROUP = "AlertGroup";
-  protected static final String ALERT_GROUP_ID = "AlertGroup/id";
-  protected static final String ALERT_GROUP_CLUSTER_NAME = "AlertGroup/cluster_name";
-  protected static final String ALERT_GROUP_NAME = "AlertGroup/name";
-  protected static final String ALERT_GROUP_DEFAULT = "AlertGroup/default";
-  protected static final String ALERT_GROUP_DEFINITIONS = "AlertGroup/definitions";
-  protected static final String ALERT_GROUP_TARGETS = "AlertGroup/targets";
+  public static final String ALERT_GROUP = "AlertGroup";
+  public static final String ALERT_GROUP_ID = "AlertGroup/id";
+  public static final String ALERT_GROUP_CLUSTER_NAME = "AlertGroup/cluster_name";
+  public static final String ALERT_GROUP_NAME = "AlertGroup/name";
+  public static final String ALERT_GROUP_DEFAULT = "AlertGroup/default";
+  public static final String ALERT_GROUP_DEFINITIONS = "AlertGroup/definitions";
+  public static final String ALERT_GROUP_TARGETS = "AlertGroup/targets";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(ALERT_GROUP_ID, ALERT_GROUP_CLUSTER_NAME));
@@ -124,7 +125,7 @@ public class AlertGroupResourceProvider extends
 
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         createAlertGroups(request.getProperties());
         return null;
       }
@@ -153,6 +154,11 @@ public class AlertGroupResourceProvider extends
       if (null != id) {
         AlertGroupEntity entity = s_dao.findGroupById(Long.parseLong(id));
         if (null != entity) {
+          try {
+            AlertResourceProviderUtils.verifyViewAuthorization(entity, getClusterResourceId(entity.getClusterId()));
+          } catch (AmbariException e) {
+            throw new SystemException(e.getMessage(), e);
+          }
           results.add(toResource(clusterName, entity, requestPropertyIds));
         }
       } else {
@@ -167,7 +173,13 @@ public class AlertGroupResourceProvider extends
         List<AlertGroupEntity> entities = s_dao.findAllGroups(cluster.getClusterId());
 
         for (AlertGroupEntity entity : entities) {
-          results.add(toResource(clusterName, entity, requestPropertyIds));
+          try {
+            if (AlertResourceProviderUtils.hasViewAuthorization(entity, getClusterResourceId(entity.getClusterId()))) {
+              results.add(toResource(clusterName, entity, requestPropertyIds));
+            }
+          } catch (AmbariException e) {
+            throw new SystemException(e.getMessage(), e);
+          }
         }
       }
     }
@@ -183,7 +195,7 @@ public class AlertGroupResourceProvider extends
 
     modifyResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         updateAlertGroups(request.getProperties());
         return null;
       }
@@ -194,24 +206,32 @@ public class AlertGroupResourceProvider extends
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Resource> resources = getResources(new RequestImpl(null, null, null,
         null), predicate);
 
-    Set<Long> groupIds = new HashSet<Long>();
+    Map<Long, AlertGroupEntity> entities = new HashMap<Long, AlertGroupEntity>();
 
     for (final Resource resource : resources) {
       Long id = (Long) resource.getPropertyValue(ALERT_GROUP_ID);
-      groupIds.add(id);
+      if (!entities.containsKey(id)) {
+        AlertGroupEntity entity = s_dao.findGroupById(id);
+
+        try {
+          AlertResourceProviderUtils.verifyManageAuthorization(entity, getClusterResourceId(entity.getClusterId()));
+          entities.put(id, entity);
+        } catch (AmbariException e) {
+          LOG.warn("The default alert group for {} cannot be removed", entity.getServiceName(), e);
+        }
+      }
     }
 
-    for (Long groupId : groupIds) {
-      LOG.info("Deleting alert target {}", groupId);
+    for (final AlertGroupEntity entity : entities.values()) {
+      LOG.info("Deleting alert group {}", entity.getGroupId());
 
-      final AlertGroupEntity entity = s_dao.findGroupById(groupId.longValue());
       if (entity.isDefault()) {
         // default groups cannot be removed
         LOG.warn("The default alert group for {} cannot be removed",
@@ -246,7 +266,7 @@ public class AlertGroupResourceProvider extends
    */
   @SuppressWarnings("unchecked")
   private void createAlertGroups(Set<Map<String, Object>> requestMaps)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     List<AlertGroupEntity> entities = new ArrayList<AlertGroupEntity>();
     for (Map<String, Object> requestMap : requestMaps) {
@@ -290,6 +310,8 @@ public class AlertGroupResourceProvider extends
         entity.setAlertDefinitions(definitions);
       }
 
+      AlertResourceProviderUtils.verifyManageAuthorization(entity, cluster.getResourceId());
+
       entities.add(entity);
     }
 
@@ -306,7 +328,7 @@ public class AlertGroupResourceProvider extends
    */
   @SuppressWarnings("unchecked")
   private void updateAlertGroups(Set<Map<String, Object>> requestMaps)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     for (Map<String, Object> requestMap : requestMaps) {
       String stringId = (String) requestMap.get(ALERT_GROUP_ID);
@@ -322,6 +344,8 @@ public class AlertGroupResourceProvider extends
         String message = MessageFormat.format("The alert group with ID {0} could not be found", id);
         throw new AmbariException(message);
       }
+
+      AlertResourceProviderUtils.verifyManageAuthorization(entity, getClusterResourceId(entity.getClusterId()));
 
       String name = (String) requestMap.get(ALERT_GROUP_NAME);
 

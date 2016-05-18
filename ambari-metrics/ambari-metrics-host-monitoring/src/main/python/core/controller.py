@@ -46,7 +46,6 @@ class Controller(threading.Thread):
                                                        hostinfo.get_ip_address())
     self.event_queue = Queue(config.get_max_queue_size())
     self.metric_collector = MetricsCollector(self.event_queue, self.application_metric_map, hostinfo)
-    self.server_url = config.get_server_address()
     self.sleep_interval = config.get_collector_sleep_interval()
     self._stop_handler = stop_handler
     self.initialize_events_cache()
@@ -58,14 +57,14 @@ class Controller(threading.Thread):
 
     self.start_emitter()
 
-  # Wake every 5 seconds to push events to the queue
+    # Wake every 5 seconds to push events to the queue
     while True:
       if (self.event_queue.full()):
         logger.warn('Event Queue full!! Suspending further collections.')
       else:
         self.enqueque_events()
       pass
-      #Wait for the service stop event instead of sleeping blindly
+      # Wait for the service stop event instead of sleeping blindly
       if 0 == self._stop_handler.wait(self.sleep_interval):
         logger.info('Shutting down Controller thread')
         break
@@ -74,7 +73,8 @@ class Controller(threading.Thread):
       self._t.cancel()
       self._t.join(5)
 
-    #The emitter thread should have stopped by now, just ensure it has shut down properly
+    # The emitter thread should have stopped by now, just ensure it has shut
+    # down properly
     self.emitter.join(5)
     pass
 
@@ -104,13 +104,13 @@ class Controller(threading.Thread):
       pass
     pass
 
-    if process_metrics_groups:
-      for name, properties in process_metrics_groups.iteritems():
-        event = ProcessMetricCollectEvent(properties, name)
-        logger.info('Adding event to cache, {0} : {1}'.format(name, properties))
-        #self.events_cache.append(event)
-      pass
-    pass
+    # if process_metrics_groups:
+    #   for name, properties in process_metrics_groups.iteritems():
+    #     event = ProcessMetricCollectEvent(properties, name)
+    #     logger.info('Adding event to cache, {0} : {1}'.format(name, properties))
+    #     #self.events_cache.append(event)
+    #   pass
+    # pass
 
   pass
 

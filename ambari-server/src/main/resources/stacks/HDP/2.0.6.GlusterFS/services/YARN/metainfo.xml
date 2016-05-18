@@ -30,6 +30,7 @@
           <displayName>App Timeline Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/application_timeline_server.py</script>
             <scriptType>PYTHON</scriptType>

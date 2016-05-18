@@ -30,6 +30,7 @@ class TestHookBeforeInstall(RMFTestCase):
 
   @patch("os.path.isfile")
   @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
+  @patch("tempfile.mkdtemp", new = MagicMock(return_value='/tmp/jdk_tmp_dir'))
   @patch("os.path.exists")
   def test_hook_default(self, os_path_exists_mock, os_path_isfile_mock):
 
@@ -56,62 +57,77 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'hive',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'oozie',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'nobody',
         gid = 'hadoop',
         groups = [u'nobody'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'ambari-qa',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'flume',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'hdfs',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'storm',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'mapred',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'hbase',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'tez',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'zookeeper',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'falcon',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'sqoop',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'yarn',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'hcat',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
         content = StaticFile('changeToSecureUid.sh'),
@@ -123,7 +139,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', self.TMP_PATH,
         owner = 'hbase',
         mode = 0775,
-        recursive = True,
+        create_parents = True,
         cd_access='a'
     )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
@@ -134,20 +150,18 @@ class TestHookBeforeInstall(RMFTestCase):
         not_if = '(test $(id -u hbase) -gt 1000) || (false)',
     )
     self.assertResourceCalled('User', 'test_user1',
-        ignore_failures = False
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'test_user2',
-        ignore_failures = False
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('Group', 'hdfs',
-        ignore_failures = False,
     )
     self.assertResourceCalled('Group', 'test_group',
-        ignore_failures = False,
     )
     self.assertResourceCalled('User', 'hdfs',
         groups = [u'hadoop', u'hdfs', u'test_group'],
-        ignore_failures = False
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('Directory', '/etc/hadoop',
         mode = 0755
@@ -155,7 +169,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
         owner = 'root',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/etc/hadoop/conf',
         not_if = 'ls /etc/hadoop/conf',
@@ -169,11 +183,11 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', '/tmp/hadoop_java_io_tmpdir',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              mode = 0777
+                              mode = 01777
     )
 
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/tmp/jdk-7u67-linux-x64.tar.gz',
                               content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//jdk-7u67-linux-x64.tar.gz'),
@@ -183,17 +197,18 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Execute', ('chmod', 'a+x', u'/usr/jdk64'),
                               sudo = True
                               )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/jdk && cd /tmp/jdk && tar -xf /tmp/jdk-7u67-linux-x64.tar.gz && ambari-sudo.sh cp -rp /tmp/jdk/* /usr/jdk64'
+    self.assertResourceCalled('Execute', 'cd /tmp/jdk_tmp_dir && tar -xf /tmp/jdk-7u67-linux-x64.tar.gz && ambari-sudo.sh cp -rp /tmp/jdk_tmp_dir/* /usr/jdk64'
                               )
+    self.assertResourceCalled('Directory', '/tmp/jdk_tmp_dir',
+                              action = ['delete']
+                              )
+
     self.assertResourceCalled('File', '/usr/jdk64/jdk1.7.0_45/bin/java',
                               mode = 0755,
                               cd_access = "a",
                               )
-    self.assertResourceCalled('Execute', ('chgrp', '-R', u'hadoop', u'/usr/jdk64/jdk1.7.0_45'),
-                              sudo = True,
-                              )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'some_user', u'/usr/jdk64/jdk1.7.0_45'),
-                              sudo = True,
-                              )
+    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/usr/jdk64/jdk1.7.0_45'),
+      sudo = True,
+    )
 
     self.assertNoMoreResources()

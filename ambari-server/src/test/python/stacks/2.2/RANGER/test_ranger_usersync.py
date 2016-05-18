@@ -34,7 +34,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "configure",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -45,7 +45,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "start",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -61,7 +61,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "stop",
                    config_file="ranger-admin-default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-stop',),
@@ -75,7 +75,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "configure",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -86,7 +86,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "start",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -102,7 +102,7 @@ class TestRangerUsersync(RMFTestCase):
                    classname = "RangerUsersync",
                    command = "stop",
                    config_file="ranger-admin-secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('/usr/bin/ranger-usersync-stop',),
@@ -117,9 +117,10 @@ class TestRangerUsersync(RMFTestCase):
                        classname = "RangerUsersync",
                        command = "restart",
                        config_file="ranger-usersync-upgrade.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES)
-
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(1, None)]
+    )
     self.assertTrue(setup_usersync_mock.called)
     self.assertResourceCalled("Execute", ("/usr/bin/ranger-usersync-stop",),
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_67'},
@@ -128,20 +129,22 @@ class TestRangerUsersync(RMFTestCase):
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'ranger-usersync', '2.2.2.0-2399'), sudo=True)
 
   @patch("setup_ranger.setup_usersync")
-  def test_upgrade_23(self, setup_usersync_mock):
+  @patch("os.path.exists")
+  def test_upgrade_23(self, os_path_exists_mock, setup_usersync_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/ranger-usersync-upgrade.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     json_content['commandParams']['version'] = '2.3.0.0-1234'
 
+    os_path_exists_mock.return_value = True
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ranger_usersync.py",
                        classname = "RangerUsersync",
                        command = "restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
+                       call_mocks = [(0, None, ''), (1, None), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertTrue(setup_usersync_mock.called)
@@ -150,7 +153,7 @@ class TestRangerUsersync(RMFTestCase):
                               sudo = True)
     self.assertResourceCalledIgnoreEarlier("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'ranger-usersync', '2.3.0.0-1234'), sudo=True)
 
-    self.assertEquals(2, mocks_dict['call'].call_count)
+    self.assertEquals(3, mocks_dict['call'].call_count)
     self.assertEquals(1, mocks_dict['checked_call'].call_count)
     self.assertEquals(
       ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'ranger-usersync', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),

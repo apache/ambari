@@ -29,65 +29,39 @@ App.HostInfo = Ember.Object.extend({
   bootLog:null,
   bootStatus: 'PENDING',
   
-  bootStatusForDisplay:function () {
-    switch (this.get('bootStatus')) {
-      case 'PENDING':
-        return 'Preparing';
-      case 'REGISTERED':
-        return 'Success';
-      case 'FAILED':
-        return 'Failed';
-      case 'RUNNING':
-        return 'Installing';
-      case 'DONE':
-      case 'REGISTERING':
-      default:
-        return 'Registering';
-    }
-  }.property('bootStatus'),
+  bootStatusForDisplay: Em.computed.getByKey('bootStatusForDisplayMap', 'bootStatus', 'Registering'),
 
-  bootBarColor:function () {
-    switch (this.get('bootStatus')) {
-      case 'REGISTERED':
-        return 'progress-success';
-      case 'FAILED':
-        return 'progress-danger';
-      case 'PENDING':
-      case 'RUNNING':
-      case 'DONE':
-      case 'REGISTERING':
-      default:
-        return 'progress-info';
-    }
-  }.property('bootStatus'),
+  bootStatusForDisplayMap: {
+    PENDING: 'Preparing',
+    REGISTERED: 'Success',
+    FAILED: 'Failed',
+    RUNNING: 'Installing',
+    DONE: 'Registering',
+    REGISTERING: 'Registering'
+  },
 
-  bootStatusColor:function () {
-    switch (this.get('bootStatus')) {
-      case 'REGISTERED':
-        return 'text-success';
-      case 'FAILED':
-        return 'text-error';
-      case 'PENDING':
-      case 'RUNNING':
-      case 'DONE':
-      case 'REGISTERING':
-      default:
-        return 'text-info';
-    }
-  }.property('bootStatus'),
+  bootBarColor: Em.computed.getByKey('bootBarColorMap', 'bootStatus', 'progress-info'),
 
-  isBootDone:function () {
-    switch (this.get('bootStatus')) {
-      case 'REGISTERED':
-      case 'FAILED':
-        return true;
-      case 'PENDING':
-      case 'RUNNING':
-      case 'DONE':
-      case 'REGISTERING':
-      default:
-        return false;
-    }
+  bootBarColorMap: {
+    REGISTERED: 'progress-success',
+    FAILED: 'progress-danger',
+    PENDING: 'progress-info',
+    RUNNING: 'progress-info',
+    DONE: 'progress-info',
+    REGISTERING: 'progress-info'
+  },
 
-  }.property('bootStatus')
+  bootStatusColor:Em.computed.getByKey('bootStatusColorMap', 'bootStatus', 'text-info'),
+
+  bootStatusColorMap: {
+    REGISTERED: 'text-success',
+    FAILED: 'text-error',
+    PENDING: 'text-info',
+    RUNNING: 'text-info',
+    DONE: 'text-info',
+    REGISTERING: 'text-info'
+  },
+
+  isBootDone: Em.computed.existsIn('bootStatus', ['REGISTERED', 'FAILED'])
+
 });

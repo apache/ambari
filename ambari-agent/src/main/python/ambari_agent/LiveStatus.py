@@ -18,21 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import ambari_simplejson as json
 import logging
-from StatusCheck import StatusCheck
-import AmbariConfig
-from StackVersionsFileHandler import StackVersionsFileHandler
 from ActualConfigHandler import ActualConfigHandler
 
 logger = logging.getLogger()
 
+
 class LiveStatus:
-
-  SERVICES = []
-  CLIENT_COMPONENTS = []
-  COMPONENTS = []
-
   LIVE_STATUS = "STARTED"
   DEAD_STATUS = "INSTALLED"
 
@@ -42,57 +34,29 @@ class LiveStatus:
     self.service = service
     self.component = component
     self.globalConfig = globalConfig
-    versionsFileDir = config.get('agent', 'prefix')
-    self.versionsHandler = StackVersionsFileHandler(versionsFileDir)
     self.configTags = configTags
     self.actualConfigHandler = ActualConfigHandler(config, configTags)
 
-  def belongsToService(self, component):
-    #TODO: Should also check belonging of server to cluster
-    return component['serviceName'] == self.service
-
-  def build(self, forced_component_status = None):
+  def build(self, component_status):
     """
-    If forced_component_status is explicitly defined, than StatusCheck methods are
-    not used. This feature has been added to support custom (ver 2.0) services.
+    :param component_status: component status to include into report
+    :return: populated livestatus dict
     """
-    global SERVICES, CLIENT_COMPONENTS, COMPONENTS, LIVE_STATUS, DEAD_STATUS
+    global LIVE_STATUS, DEAD_STATUS
 
-    component = {"serviceName" : self.service, "componentName" : self.component}
-    if forced_component_status: # If already determined
-      status = forced_component_status  # Nothing to do
-    elif component in self.CLIENT_COMPONENTS:
-      status = self.DEAD_STATUS # CLIENT components can't have status STARTED
-    elif component in self.COMPONENTS:
-      statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
-                                AmbariConfig.pidPathVars, self.globalConfig,
-                                AmbariConfig.servicesToLinuxUser)
-      serviceStatus = statusCheck.getStatus(self.component)
-      if serviceStatus is None:
-        logger.warn("There is no service to pid mapping for " + self.component)
-      status = self.LIVE_STATUS if serviceStatus else self.DEAD_STATUS
+    livestatus = {"componentName": self.component,
+                  "msg": "",
+                  "status": component_status,
+                  "clusterName": self.cluster,
+                  "serviceName": self.service,
+                  "stackVersion": ""  # TODO: populate ?
+                  }
 
-    livestatus = {"componentName" : self.component,
-                 "msg" : "",
-                 "status" : status,
-                 "clusterName" : self.cluster,
-                 "serviceName" : self.service,
-                 "stackVersion": self.versionsHandler.
-                 read_stack_version(self.component)
-    }
-    
-    active_config = self.actualConfigHandler.read_actual_component(self.component)
-    if not active_config is None:
+    active_config = self.actualConfigHandler.read_actual_component(
+      self.component)
+    if active_config is not None:
       livestatus['configurationTags'] = active_config
 
-    logger.debug("The live status for component " + str(self.component) +\
-                " of service " + str(self.service) + " is " + str(livestatus))
+    logger.debug("The live status for component " + str(self.component) +
+                 " of service " + str(self.service) + " is " + str(livestatus))
     return livestatus
-
-def main(argv=None):
-  for service in SERVICES:
-    livestatus = LiveStatus('', service)
-    print json.dumps(livestatus.build())
-
-if __name__ == '__main__':
-  main()

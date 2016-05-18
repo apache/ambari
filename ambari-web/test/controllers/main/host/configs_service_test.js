@@ -102,10 +102,16 @@ describe('App.MainHostServiceConfigsController', function () {
 
 	describe("#loadStep()", function () {
     beforeEach(function() {
+      sinon.stub(App.themesMapper, 'generateAdvancedTabs', Em.K);
       sinon.stub(controller, 'loadCurrentVersions', Em.K);
+      sinon.stub(controller, 'loadConfigTheme', function() {
+        return { always: Em.K };
+      });
     });
     afterEach(function() {
       controller.loadCurrentVersions.restore();
+      controller.loadConfigTheme.restore();
+      App.themesMapper.generateAdvancedTabs.restore();
     });
 		it("should set host", function () {
 			controller.set('content', {
@@ -118,17 +124,23 @@ describe('App.MainHostServiceConfigsController', function () {
 	});
 
 	describe("#renderServiceConfigs()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'filterServiceConfigs', function () {
+        this._super = Em.K;
+      });
+    });
+
+    afterEach(function () {
+      controller.filterServiceConfigs.restore();
+    });
+
 		it("should call filterServiceConfigs", function () {
 			var serviceConfigs = {
 				configCategories: 'val'
 			};
-			sinon.stub(controller, 'filterServiceConfigs', function () {
-				this._super = Em.K;
-			});
 			controller.renderServiceConfigs(serviceConfigs);
-
 			expect(controller.filterServiceConfigs.calledWith('val')).to.be.true;
-			controller.filterServiceConfigs.restore();
 		});
 	});
 

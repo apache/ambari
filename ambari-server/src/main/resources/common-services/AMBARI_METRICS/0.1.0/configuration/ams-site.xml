@@ -33,7 +33,7 @@
   </property>
   <property>
     <name>timeline.metrics.service.webapp.address</name>
-    <value>0.0.0.0:6188</value>
+    <value>localhost:6188</value>
     <description>
       The address of the metrics service web application.
     </description>
@@ -135,7 +135,7 @@
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier</name>
-    <value>1</value>
+    <value>2</value>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -209,7 +209,7 @@
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier</name>
-    <value>1</value>
+    <value>2</value>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -285,57 +285,63 @@
     <name>timeline.metrics.host.aggregator.daily.ttl</name>
     <value>31536000</value>
     <description>
-      Host based daily resolution data purge interval. Default is 1 year.
+      Host based daily resolution data purge interval in seconds. Default is 1 year.
     </description>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.ttl</name>
     <value>2592000</value>
     <description>
-      Host based hourly resolution data purge interval. Default is 30 days.
+      Host based hourly resolution data purge interval in seconds. Default is 30 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.ttl</name>
     <value>604800</value>
     <description>
-      Host based minute resolution data purge interval. Default is 7 days.
+      Host based minute resolution data purge interval in seconds. Default is 7 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.ttl</name>
-    <value>2592000</value>
+    <value>604800</value>
     <description>
-      Cluster wide second resolution data purge interval. Default is 7 days.
+      Cluster wide second resolution data purge interval in seconds. Default is 7 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
-    <value>7776000</value>
+    <value>2592000</value>
     <description>
-      Cluster wide minute resolution data purge interval. Default is 30 days.
+      Cluster wide minute resolution data purge interval in seconds. Default is 30 days.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.ttl</name>
     <value>31536000</value>
     <description>
-      Cluster wide hourly resolution data purge interval. Default is 1 year.
+      Cluster wide hourly resolution data purge interval in seconds. Default is 1 year.
     </description>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.ttl</name>
     <value>63072000</value>
     <description>
-      Cluster wide daily resolution data purge interval. Default is 2 years.
+      Cluster wide daily resolution data purge interval in seconds. Default is 2 years.
     </description>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.ttl</name>
     <value>86400</value>
     <description>
-      1 minute resolution data purge interval. Default is 1 day.
+      1 minute resolution data purge interval in seconds. Default is 1 day for embedded mode and 3 days for Distributed mode.
     </description>
+    <depends-on>
+      <property>
+        <type>ams-site</type>
+        <name>timeline.metrics.service.operation.mode</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>timeline.metrics.hbase.data.block.encoding</name>
@@ -478,7 +484,6 @@
       </property>
     </depends-on>
   </property>
-
   <property>
     <name>timeline.metrics.sink.report.interval</name>
     <value>60</value>
@@ -489,17 +494,30 @@
   </property>
   <property>
     <name>timeline.metrics.sink.collection.period</name>
-    <value>60</value>
+    <value>10</value>
     <description>
       The interval between two service metrics data exports.
     </description>
   </property>
   <property>
+    <name>timeline.metrics.service.watcher.disabled</name>
+    <value>false</value>
+    <description>
+      Disable Timeline Metric Store watcher thread. Disabled by default in AMS distributed mode.
+    </description>
+    <depends-on>
+      <property>
+        <type>ams-site</type>
+        <name>timeline.metrics.service.operation.mode</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
     <name>timeline.metrics.service.watcher.initial.delay</name>
-    <value>120</value>
+    <value>600</value>
     <description>
       The time to delay first watcher check execution
-      Default resolution is 2 minutes.
+      Default resolution is 10 minutes.
     </description>
   </property>
   <property>
@@ -524,6 +542,47 @@
     <value>true</value>
     <description>
       Enable Compaction policy for lower for Precision and Minute aggregate tables.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.aggregators.skip.blockcache.enabled</name>
+    <value>false</value>
+    <description>
+      Skip block cache on aggregator queries to allow, HBase block
+      utilization only for user queries.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.service.http.policy</name>
+    <value>HTTP_ONLY</value>
+    <description>
+      This configures the HTTP endpoint for Yarn Application History Server for
+      Ambari Metrics System.
+      The following values are supported:
+      - HTTP_ONLY : Service is provided only on http
+      - HTTPS_ONLY : Service is provided only on https
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.hbase.init.check.enabled</name>
+    <value>true</value>
+    <description>
+      Enable Initialization check for HBase tables during Metrics service startup.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.interpolation.enabled</name>
+    <value>true</value>
+    <description>
+      Enable Linear interpolation for missing slices of data, while aggregating.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.service.metadata.filters</name>
+    <value>ContainerResource</value>
+    <description>
+      Commas separated list of regular expressions that match metric names
+      which prevents certain metrics from ending up in metadata cache.
     </description>
   </property>
 

@@ -76,7 +76,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
           self.set('isSuccess', true);
           self.set('isError', false);
         } else {
-          var requestId = jsonData.Requests.id;
+          var requestId = Em.get(jsonData, 'Requests.id');
           self.set('requestId', requestId);
           self.doPolling();
         }
@@ -101,7 +101,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
   },
 
   doPolling: function () {
-    if (this.get('requestId')) {
+    if (!Em.isNone(this.get('requestId'))) {
       this.startPolling();
     }
   },
@@ -110,7 +110,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
    * server call to obtain task logs
    */
   pollTaskLog: function () {
-    if (this.get('currentTaskId')) {
+    if (!Em.isNone(this.get('currentTaskId'))) {
       App.ajax.send({
         name: 'background_operations.get_by_task',
         sender: this,
@@ -119,7 +119,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
           taskId: this.get('currentTaskId')
         },
         success: 'pollTaskLogSuccessCallback'
-      })
+      });
     }
   },
 
@@ -139,7 +139,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
    * @return {Boolean}
    */
   startPolling: function () {
-    if (!this.get('requestId')) return false;
+    if (Em.isNone(this.get('requestId'))) return false;
 
     this.pollTaskLog();
     App.ajax.send({
@@ -169,10 +169,8 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
 
   reloadErrorCallback: function (request, ajaxOptions, error, opt, params) {
     this._super(request, ajaxOptions, error, opt, params);
-    if (request.status) {
-      if (!this.get('isSuccess')) {
-        this.set('isError', true);
-      }
+    if (request.status && !this.get('isSuccess')) {
+      this.set('isError', true);
     }
   },
 
@@ -182,7 +180,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
 
   replacePolledData: function (polledData) {
     var currentTaskId = this.get('currentTaskId');
-    if (currentTaskId) {
+    if (!Em.isNone(currentTaskId)) {
       var task = this.get('polledData').findProperty('Tasks.id', currentTaskId);
       var currentTask = polledData.findProperty('Tasks.id', currentTaskId);
       if (task && currentTask) {
@@ -226,7 +224,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
   parseInfo: function (polledData) {
     var tasksData = polledData.tasks;
     var requestId = this.get('requestId');
-    if (polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
+    if (polledData.Requests && !Em.isNone(polledData.Requests.id) && polledData.Requests.id != requestId) {
       // We don't want to use non-current requestId's tasks data to
       // determine the current install status.
       // Also, we don't want to keep polling if it is not the

@@ -1,64 +1,71 @@
 {
-  "redhat": {
-    "distro": [
-      "redhat",
-      "fedora",
-      "centos",
-      "oraclelinux",
-      "ascendos",
-      "amazon",
-      "xenserver",
-      "oel",
-      "ovs",
-      "cloudlinux",
-      "slc",
-      "scientific",
-      "psbm",
-      "centos linux"
-    ],
-    "versions": [
-      6,
-      7
-    ]
-  },
-  "debian": {
-    "extends" : "ubuntu",
-    "distro": [
-      "debian"
-    ],
-    "versions": [
-      7
-    ]
-  },
-  "ubuntu": {
-    "distro": [
-      "ubuntu"
-    ],
-    "versions": [
-      12,
-      14
-    ]
-  },
-  "suse": {
-    "distro": [
-      "sles",
-      "sled",
-      "opensuse",
-      "suse"
-    ],
-    "versions": [
-      11
-    ]
-  },
-  "winsrv": {
-    "distro": [
-      "win2008server",
-      "win2008serverr2",
-      "win2012server",
-      "win2012serverr2"
-    ],
-    "versions": [
-      6
-    ]
-  }
+  "mapping": {
+      "redhat": {
+        "distro": [
+          "redhat",
+          "fedora",
+          "centos",
+          "oraclelinux",
+          "amazon",
+          "ascendos",
+          "xenserver",
+          "oel",
+          "ovs",
+          "cloudlinux",
+          "slc",
+          "scientific",
+          "psbm",
+          "centos linux"
+        ],
+        "versions": [
+          6,
+          7
+        ]
+      },
+      "debian": {
+        "extends" : "ubuntu",
+        "distro": [
+          "debian"
+        ],
+        "versions": [
+          7
+        ]
+      },
+      "ubuntu": {
+        "distro": [
+          "ubuntu"
+        ],
+        "versions": [
+          12,
+          14
+        ]
+      },
+      "suse": {
+        "distro": [
+          "sles",
+          "sled",
+          "opensuse",
+          "suse"
+        ],
+        "versions": [
+          11,
+          12
+        ]
+      },
+      "winsrv": {
+        "distro": [
+          "win2008server",
+          "win2008serverr2",
+          "win2012server",
+          "win2012serverr2"
+        ],
+        "versions": [
+          6
+        ]
+      }
+    },
+    "aliases": {
+      "amazon2015": "amazon6",
+      "amazon2016": "amazon6"
+    }
 }

@@ -42,6 +42,7 @@ limitations under the License.
 
   <property>
     <name>atlas.hook.hive.minThreads</name>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <value>1</value>
     <description>
       Minimum number of threads maintained by Atlas hook.
@@ -49,6 +50,7 @@ limitations under the License.
   </property>
 
   <property>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <name>atlas.hook.hive.maxThreads</name>
     <value>1</value>
     <description>

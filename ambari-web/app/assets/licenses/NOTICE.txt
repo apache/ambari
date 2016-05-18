@@ -57,3 +57,6 @@ Copyright (C) 2014 Roberto Montresor (info [at] robertomontresor [*dot*] it)
 
 This product includes sticky-kit v.1.1.2 (https://github.com/leafo/sticky-kit - MIT License)
 Copyright (C) 2015 Leaf Corcoran (leafot [at] gmail [*dot*] com)
+
+This product includes bootstrap-contextmenu v.0.3.3 (https://github.com/sydcanem/bootstrap-contextmenu - MIT License)
+Copyright (C) 2015 James Santos

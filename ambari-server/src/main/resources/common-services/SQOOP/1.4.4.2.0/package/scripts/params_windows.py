@@ -24,7 +24,7 @@ config = Script.get_config()
 
 sqoop_user = "sqoop"
 
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 sqoop_env_cmd_template = config['configurations']['sqoop-env']['content']
 sqoop_home_dir = os.environ["SQOOP_HOME"]
 sqoop_conf_dir = os.path.join(sqoop_home_dir, "conf")

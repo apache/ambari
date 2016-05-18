@@ -16,27 +16,13 @@
  * limitations under the License.
  */
 
-/**
- * THIS IS NOT USED FOR NOW
- * FOR CONFIG GROUPS WE ARE USING OLD MODELS AND LOGIC
- */
-
 var App = require('app');
 
 App.ServiceConfigGroup = DS.Model.extend({
   /**
-   * unique id generated as <code>serviceName<code><code>configGroupId<code>
-   * in case default configGroup <code>serviceName<code><code>0<code>
    * @property {string}
    */
   id: DS.attr('string'),
-
-  /**
-   * original id for config group that is get from server
-   * for default groups "-1"
-   * @property {number}
-   */
-  configGroupId: DS.attr('number'),
 
   name: DS.attr('string'),
   serviceName: DS.attr('string'),
@@ -46,6 +32,18 @@ App.ServiceConfigGroup = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   desiredConfigs: DS.attr('array', {defaultValue: []}),
 
+  /**
+   * define if group is persisted on server or is just UI representation
+   * temporary groups are deleted from store after persisting on server by <code>App.ServiceConfigGroup.deleteTemporaryRecords</code> method
+   * @property {boolean}
+   */
+  isTemporary: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * define if group is default
+   * @type {boolean}
+   */
+  isDefault: DS.attr('boolean', {defaultValue: false}),
   /**
    * this flag is used for installed services' config groups
    * if user make changes to them - mark this flag to true
@@ -63,14 +61,6 @@ App.ServiceConfigGroup = DS.Model.extend({
    * all hosts that belong to cluster
    */
   clusterHostsBinding: 'App.router.manageConfigGroupsController.clusterHosts',
-
-  /**
-   * defines if group is default
-   * @type {boolean}
-   */
-  isDefault: function() {
-    return this.get('configGroupId') == "-1";
-  }.property('configGroupId'),
 
   /**
    * list of group names that shows which config
@@ -96,17 +86,13 @@ App.ServiceConfigGroup = DS.Model.extend({
   childConfigGroups: DS.hasMany('App.ServiceConfigGroup'),
 
   hash: DS.attr('string'),
+
   /**
    * Provides a display friendly name. This includes trimming
    * names to a certain length.
    */
   displayName: function () {
-    var name = this.get('name');
-    if (name && name.length>App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
-      var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
-      name = name.substring(0, middle) + "..." + name.substring(name.length-middle);
-    }
-    return name;
+    return App.config.truncateGroupName(this.get('name'));
   }.property('name'),
 
   /**
@@ -117,6 +103,7 @@ App.ServiceConfigGroup = DS.Model.extend({
   /**
    * Provides hosts which are available for inclusion in
    * non-default configuration groups.
+   * @type {Array}
    */
   availableHosts: function () {
     if (this.get('isDefault')) return [];
@@ -136,6 +123,9 @@ App.ServiceConfigGroup = DS.Model.extend({
     return availableHosts;
   }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each', 'clusterHosts'),
 
+  /**
+   * @type {boolean}
+   */
   isAddHostsDisabled: Em.computed.or('isDefault', '!availableHosts.length'),
 
   /**
@@ -143,6 +133,9 @@ App.ServiceConfigGroup = DS.Model.extend({
    */
   properties: DS.attr('array', {defaultValue: []}),
 
+  /**
+   * @type {string}
+   */
   propertiesList: function () {
     var result = '';
 
@@ -158,5 +151,19 @@ App.ServiceConfigGroup = DS.Model.extend({
 App.ServiceConfigGroup.FIXTURES = [];
 
 App.ServiceConfigGroup.getParentConfigGroupId = function(serviceName) {
-  return serviceName + '0';
+  return App.ServiceConfigGroup.groupId(serviceName, 'default');
+};
+
+App.ServiceConfigGroup.groupId = function(serviceName, groupName) {
+  return serviceName + "_" + groupName;
+};
+
+/**
+ * Delete all records with isTemporary:true
+ * @method
+ */
+App.ServiceConfigGroup.deleteTemporaryRecords = function () {
+  App.ServiceConfigGroup.find().filterProperty('isTemporary').forEach(function(record){
+    App.configGroupsMapper.deleteRecord(record);
+  }, this);
 };

@@ -23,20 +23,7 @@ module.exports = App.WizardRoute.extend({
 
   leaveWizard: function (router, context) {
     var reassignMasterController = router.get('reassignMasterController');
-    App.router.get('updateController').set('isWorking', true);
-    reassignMasterController.finish();
-    App.router.get('wizardWatcherController').resetUser();
-    App.clusterStatus.setClusterStatus({
-      clusterName: App.router.get('content.cluster.name'),
-      clusterState: 'DEFAULT',
-      localdb: App.db.data
-    }, {alwaysCallback: function () {
-      context.hide();
-      router.transitionTo('main.index');
-      Em.run.next(function() {
-        location.reload();
-      });
-    }});
+    reassignMasterController.resetOnClose(reassignMasterController, 'main.index');
   },
 
   enter: function (router) {
@@ -88,6 +75,7 @@ module.exports = App.WizardRoute.extend({
               }
             },
             didInsertElement: function () {
+              this._super();
               this.fitHeight();
             }
           });
@@ -190,6 +178,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
+      var controller = router.get('reassignMasterController');
       App.db.setReassignTasksStatuses(undefined);
       App.db.setReassignTasksRequestIds(undefined);
       App.clusterStatus.setClusterStatus({
@@ -198,6 +187,7 @@ module.exports = App.WizardRoute.extend({
         wizardControllerName: 'reassignMasterController',
         localdb: App.db.data
       });
+      controller.saveReassignComponentsInMM(controller.getReassignComponentsInMM());
       router.transitionTo('step4');
     },
 
@@ -274,6 +264,8 @@ module.exports = App.WizardRoute.extend({
     },
     next: function (router) {
       App.showConfirmationPopup(function () {
+        var controller = router.get('reassignMasterController');
+        controller.saveReassignComponentsInMM(controller.getReassignComponentsInMM());
         router.transitionTo('step6');
       }, Em.I18n.t('services.reassign.step5.confirmPopup.body'));
     },
@@ -358,21 +350,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('reassignMasterController');
       var reassignMasterWizardStep7 = router.get('reassignMasterWizardStep7Controller');
       if (!reassignMasterWizardStep7.get('isSubmitDisabled')) {
-        controller.finish();
-        controller.get('popup').hide();
-        App.clusterStatus.setClusterStatus({
-          clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'DEFAULT',
-          localdb: App.db.data
-        }, {
-          alwaysCallback: function () {
-            controller.get('popup').hide();
-            router.transitionTo('main.index');
-            Em.run.next(function() {
-              location.reload();
-            });
-          }
-        });
+        controller.resetOnClose(controller, 'main.index');
       }
     },
 

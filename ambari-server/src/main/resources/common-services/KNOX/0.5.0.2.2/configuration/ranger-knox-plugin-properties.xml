@@ -73,7 +73,7 @@
 
   <property>
     <name>KNOX_HOME</name>
-    <value>/usr/hdp/current/knox-server</value>
+    <value>/usr/local/knox-server</value>
     <display-name>Knox Home</display-name>
     <description>Knox home folder</description>
   </property>
@@ -113,6 +113,7 @@
   <property>
     <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
     <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description></description>
     <depends-on>
       <property>

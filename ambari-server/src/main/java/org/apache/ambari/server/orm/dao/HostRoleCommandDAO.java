@@ -26,8 +26,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -35,6 +39,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.annotations.TransactionalLock;
+import org.apache.ambari.annotations.TransactionalLock.LockArea;
+import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
@@ -45,19 +52,28 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.TransactionalLocks;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 
 @Singleton
 public class HostRoleCommandDAO {
+
+  private static final Logger LOG = LoggerFactory.getLogger(HostRoleCommandDAO.class);
 
   private static final String SUMMARY_DTO = String.format(
     "SELECT NEW %s(" +
@@ -92,11 +108,159 @@ public class HostRoleCommandDAO {
    */
   private static final String COMPLETED_REQUESTS_SQL = "SELECT DISTINCT task.requestId FROM HostRoleCommandEntity task WHERE task.requestId NOT IN (SELECT task.requestId FROM HostRoleCommandEntity task WHERE task.status IN :notCompletedStatuses) ORDER BY task.requestId {0}";
 
+  /**
+   * A cache that holds {@link HostRoleCommandStatusSummaryDTO} grouped by stage
+   * id for requests by request id. The JPQL computing the host role command
+   * status summary for a request is rather expensive thus this cache helps
+   * reducing the load on the database.
+   * <p/>
+   * Methods which interact with this cache, including invalidation and
+   * population, should use the {@link TransactionalLock} annotation along with
+   * the {@link LockArea#HRC_STATUS_CACHE}. This will prevent stale data from
+   * being read during a transaction which has updated a
+   * {@link HostRoleCommandEntity}'s {@link HostRoleStatus} but has not
+   * committed yet.
+   * <p/>
+   * This cache cannot be a {@link LoadingCache} since there is an inherent
+   * problem with concurrency of reloads. Namely, if the entry has been read
+   * during a load, but not yet put into the cache and another invalidation is
+   * registered. The old value would eventually make it into the cache and the
+   * last invalidation would not invalidate anything since the cache was empty
+   * at the time.
+   */
+  private final Cache<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> hrcStatusSummaryCache;
+
+  /**
+   * Specifies whether caching for {@link HostRoleCommandStatusSummaryDTO} grouped by stage id for requests
+   * is enabled.
+   */
+  private final boolean hostRoleCommandStatusSummaryCacheEnabled;
+
+
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
   @Inject
   DaoUtils daoUtils;
+
+  /**
+   * Used to ensure that methods which rely on the completion of
+   * {@link Transactional} can detect when they are able to run.
+   *
+   * @see TransactionalLock
+   */
+  @Inject
+  private final TransactionalLocks transactionLocks = null;
+
+  public final static String HRC_STATUS_SUMMARY_CACHE_SIZE =  "hostRoleCommandStatusSummaryCacheSize";
+  public final static String HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES = "hostRoleCommandStatusCacheExpiryDurationMins";
+  public final static String HRC_STATUS_SUMMARY_CACHE_ENABLED =  "hostRoleCommandStatusSummaryCacheEnabled";
+
+  /**
+   * Invalidates the host role command status summary cache entry that corresponds to the given request.
+   * @param requestId the key of the cache entry to be invalidated.
+   */
+  protected void invalidateHostRoleCommandStatusSummaryCache(Long requestId) {
+    if (!hostRoleCommandStatusSummaryCacheEnabled ) {
+      return;
+    }
+
+    LOG.debug("Invalidating host role command status summary cache for request {} !", requestId);
+    hrcStatusSummaryCache.invalidate(requestId);
+  }
+
+  /**
+   * Invalidates the host role command status summary cache entry that
+   * corresponds to each request.
+   *
+   * @param requestIds
+   *          the requests to invalidate
+   */
+  protected void invalidateHostRoleCommandStatusSummaryCache(Set<Long> requestIds) {
+    for (Long requestId : requestIds) {
+      if (null != requestId) {
+        invalidateHostRoleCommandStatusSummaryCache(requestId);
+      }
+    }
+  }
+
+  /**
+   * Invalidates those entries in host role command status cache which are
+   * dependent on the passed
+   * {@link org.apache.ambari.server.orm.entities.HostRoleCommandEntity} entity.
+   *
+   * @param hostRoleCommandEntity
+   */
+  protected void invalidateHostRoleCommandStatusSummaryCache(
+      HostRoleCommandEntity hostRoleCommandEntity) {
+    if ( !hostRoleCommandStatusSummaryCacheEnabled ) {
+      return;
+    }
+
+    if (hostRoleCommandEntity != null) {
+      Long requestId = hostRoleCommandEntity.getRequestId();
+      if (requestId == null) {
+        StageEntity stageEntity = hostRoleCommandEntity.getStage();
+        if (stageEntity != null) {
+          requestId = stageEntity.getRequestId();
+        }
+      }
+
+      if (requestId != null) {
+        invalidateHostRoleCommandStatusSummaryCache(requestId.longValue());
+      }
+    }
+  }
+
+  /**
+   * Loads the counts of tasks for a request and groups them by stage id.
+   * This allows for very efficient loading when there are a huge number of stages
+   * and tasks to iterate (for example, during a Stack Upgrade).
+   * @param requestId the request id
+   * @return the map of stage-to-summary objects
+   */
+  @RequiresSession
+  private Map<Long, HostRoleCommandStatusSummaryDTO> loadAggregateCounts(Long requestId) {
+    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
+
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManager.createQuery(SUMMARY_DTO,
+        HostRoleCommandStatusSummaryDTO.class);
+
+    query.setParameter("requestId", requestId);
+    query.setParameter("aborted", HostRoleStatus.ABORTED);
+    query.setParameter("completed", HostRoleStatus.COMPLETED);
+    query.setParameter("failed", HostRoleStatus.FAILED);
+    query.setParameter("holding", HostRoleStatus.HOLDING);
+    query.setParameter("holding_failed", HostRoleStatus.HOLDING_FAILED);
+    query.setParameter("holding_timedout", HostRoleStatus.HOLDING_TIMEDOUT);
+    query.setParameter("in_progress", HostRoleStatus.IN_PROGRESS);
+    query.setParameter("pending", HostRoleStatus.PENDING);
+    query.setParameter("queued", HostRoleStatus.QUEUED);
+    query.setParameter("timedout", HostRoleStatus.TIMEDOUT);
+    query.setParameter("skipped_failed", HostRoleStatus.SKIPPED_FAILED);
+
+    for (HostRoleCommandStatusSummaryDTO dto : daoUtils.selectList(query)) {
+      map.put(dto.getStageId(), dto);
+    }
+
+    return map;
+  }
+
+  @Inject
+  public HostRoleCommandDAO(
+      @Named(HRC_STATUS_SUMMARY_CACHE_ENABLED) boolean hostRoleCommandStatusSummaryCacheEnabled,
+      @Named(HRC_STATUS_SUMMARY_CACHE_SIZE) long hostRoleCommandStatusSummaryCacheLimit,
+      @Named(HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES) long hostRoleCommandStatusSummaryCacheExpiryDurationMins) {
+    this.hostRoleCommandStatusSummaryCacheEnabled = hostRoleCommandStatusSummaryCacheEnabled;
+
+    LOG.info("Host role command status summary cache {} !", hostRoleCommandStatusSummaryCacheEnabled ? "enabled" : "disabled");
+
+    hrcStatusSummaryCache = CacheBuilder.newBuilder()
+      .maximumSize(hostRoleCommandStatusSummaryCacheLimit)
+      .expireAfterWrite(hostRoleCommandStatusSummaryCacheExpiryDurationMins, TimeUnit.MINUTES)
+      .build();
+  }
 
   @RequiresSession
   public HostRoleCommandEntity findByPK(long taskId) {
@@ -145,6 +309,16 @@ public class HostRoleCommandDAO {
             "WHERE task.requestId IN ?1 " +
             "ORDER BY task.taskId", HostRoleCommandEntity.class);
     return daoUtils.selectList(query, requestIds);
+  }
+
+  @RequiresSession
+  public List<HostRoleCommandEntity> findByRequestIdAndStatuses(Long requestId, Collection<HostRoleStatus> statuses) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findByRequestIdAndStatuses", HostRoleCommandEntity.class);
+    query.setParameter("requestId", requestId);
+    query.setParameter("statuses", statuses);
+    List<HostRoleCommandEntity> results = query.getResultList();
+    return results;
   }
 
   @RequiresSession
@@ -206,6 +380,15 @@ public class HostRoleCommandDAO {
             "ORDER BY task.taskId", Long.class);
 
     return daoUtils.selectList(query, role, status);
+  }
+
+  @RequiresSession
+  public List<HostRoleCommandEntity> findSortedCommandsByRequestIdAndCustomCommandName(Long requestId, String customCommandName) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +
+        "FROM HostRoleCommandEntity hostRoleCommand " +
+        "WHERE hostRoleCommand.requestId=?1 AND hostRoleCommand.customCommandName=?2 " +
+        "ORDER BY hostRoleCommand.taskId", HostRoleCommandEntity.class);
+    return daoUtils.selectList(query, requestId, customCommandName);
   }
 
 
@@ -414,13 +597,22 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
-  public void create(HostRoleCommandEntity stageEntity) {
-    entityManagerProvider.get().persist(stageEntity);
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  public void create(HostRoleCommandEntity entity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    entityManager.persist(entity);
+
+    invalidateHostRoleCommandStatusSummaryCache(entity);
   }
 
   @Transactional
-  public HostRoleCommandEntity merge(HostRoleCommandEntity stageEntity) {
-    HostRoleCommandEntity entity = entityManagerProvider.get().merge(stageEntity);
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  public HostRoleCommandEntity merge(HostRoleCommandEntity entity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    entity = entityManager.merge(entity);
+
+    invalidateHostRoleCommandStatusSummaryCache(entity);
+
     return entity;
   }
 
@@ -433,17 +625,37 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public List<HostRoleCommandEntity> mergeAll(Collection<HostRoleCommandEntity> entities) {
+    Set<Long> requestsToInvalidate = new LinkedHashSet<>();
     List<HostRoleCommandEntity> managedList = new ArrayList<HostRoleCommandEntity>(entities.size());
     for (HostRoleCommandEntity entity : entities) {
-      managedList.add(entityManagerProvider.get().merge(entity));
+      EntityManager entityManager = entityManagerProvider.get();
+      entity = entityManager.merge(entity);
+      managedList.add(entity);
+
+      Long requestId = entity.getRequestId();
+      if (requestId == null) {
+        StageEntity stageEntity = entity.getStage();
+        if (stageEntity != null) {
+          requestId = stageEntity.getRequestId();
+        }
+      }
+
+      requestsToInvalidate.add(requestId);
     }
+
+    invalidateHostRoleCommandStatusSummaryCache(requestsToInvalidate);
+
     return managedList;
   }
 
   @Transactional
-  public void remove(HostRoleCommandEntity stageEntity) {
-    entityManagerProvider.get().remove(merge(stageEntity));
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  public void remove(HostRoleCommandEntity entity) {
+    EntityManager entityManager = entityManagerProvider.get();
+    entityManager.remove(merge(entity));
+    invalidateHostRoleCommandStatusSummaryCache(entity);
   }
 
   @Transactional
@@ -453,38 +665,77 @@ public class HostRoleCommandDAO {
 
 
   /**
-   * Finds the counts of tasks for a request and groups them by stage id.
-   * This allows for very efficient loading when there are a huge number of stages
-   * and tasks to iterate (for example, during a Stack Upgrade).
-   * @param requestId the request id
+   * Finds the counts of tasks for a request and groups them by stage id. If
+   * caching is enabled, this will first consult the cache. Cache misses will
+   * then defer to loading the data from the database and then caching the
+   * result.
+   *
+   * @param requestId
+   *          the request id
    * @return the map of stage-to-summary objects
    */
   @RequiresSession
   public Map<Long, HostRoleCommandStatusSummaryDTO> findAggregateCounts(Long requestId) {
-
-    TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManagerProvider.get().createQuery(
-        SUMMARY_DTO, HostRoleCommandStatusSummaryDTO.class);
-
-    query.setParameter("requestId", requestId);
-    query.setParameter("aborted", HostRoleStatus.ABORTED);
-    query.setParameter("completed", HostRoleStatus.COMPLETED);
-    query.setParameter("failed", HostRoleStatus.FAILED);
-    query.setParameter("holding", HostRoleStatus.HOLDING);
-    query.setParameter("holding_failed", HostRoleStatus.HOLDING_FAILED);
-    query.setParameter("holding_timedout", HostRoleStatus.HOLDING_TIMEDOUT);
-    query.setParameter("in_progress", HostRoleStatus.IN_PROGRESS);
-    query.setParameter("pending", HostRoleStatus.PENDING);
-    query.setParameter("queued", HostRoleStatus.QUEUED);
-    query.setParameter("timedout", HostRoleStatus.TIMEDOUT);
-    query.setParameter("skipped_failed", HostRoleStatus.SKIPPED_FAILED);
-
-    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
-
-    for (HostRoleCommandStatusSummaryDTO dto : daoUtils.selectList(query)) {
-      map.put(dto.getStageId(), dto);
+    if (!hostRoleCommandStatusSummaryCacheEnabled) {
+      return loadAggregateCounts(requestId);
     }
 
-    return map;
+    Map<Long, HostRoleCommandStatusSummaryDTO> map = hrcStatusSummaryCache.getIfPresent(requestId);
+    if (null != map) {
+      return map;
+    }
+
+    // ensure that we wait for any running transactions working on this cache to
+    // complete
+    ReadWriteLock lock = transactionLocks.getLock(LockArea.HRC_STATUS_CACHE);
+    lock.readLock().lock();
+
+    try {
+      map = loadAggregateCounts(requestId);
+      hrcStatusSummaryCache.put(requestId, map);
+
+      return map;
+    } finally {
+      lock.readLock().unlock();
+    }
+  }
+
+  /**
+   * During Rolling and Express Upgrade, want to bubble up the error of the most recent failure, i.e., greatest
+   * task id, assuming that there are no other completed tasks after it.
+   * @param requestId upgrade request id
+   * @return Most recent task failure during stack upgrade, or null if one doesn't exist.
+   */
+  @RequiresSession
+  public HostRoleCommandEntity findMostRecentFailure(Long requestId) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findTasksByStatusesOrderByIdDesc", HostRoleCommandEntity.class);
+
+    query.setParameter("requestId", requestId);
+    query.setParameter("statuses", HostRoleStatus.STACK_UPGRADE_FAILED_STATUSES);
+    List<HostRoleCommandEntity> results = query.getResultList();
+
+    if (!results.isEmpty()) {
+      HostRoleCommandEntity candidate = results.get(0);
+
+      // Ensure that there are no other completed tasks in a future stage to avoid returning an old error.
+      // During Express Upgrade, we can run multiple commands in the same stage, so it's possible to have
+      // COMPLETED tasks in the failed task's stage.
+      // During Rolling Upgrade, we run exactly one command per stage.
+      TypedQuery<Number> numberAlreadyRanTasksInFutureStage = entityManagerProvider.get().createNamedQuery(
+          "HostRoleCommandEntity.findNumTasksAlreadyRanInStage", Number.class);
+
+      numberAlreadyRanTasksInFutureStage.setParameter("requestId", requestId);
+      numberAlreadyRanTasksInFutureStage.setParameter("taskId", candidate.getTaskId());
+      numberAlreadyRanTasksInFutureStage.setParameter("stageId", candidate.getStageId());
+      numberAlreadyRanTasksInFutureStage.setParameter("statuses", HostRoleStatus.SCHEDULED_STATES);
+
+      Number result = daoUtils.selectSingle(numberAlreadyRanTasksInFutureStage);
+      if (result.longValue() == 0L) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   /**

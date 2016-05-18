@@ -36,7 +36,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
     afterEach(function () {
       view.get('controller').loadStep.restore();
     });
-    it("", function () {
+    it("loadStep is called once", function () {
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
     });
@@ -57,7 +57,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
     it("currentStep is 2", function () {
       this.mock.returns(2);
       view.propertyDidChange('headerTitle');
-      expect(view.get('headerTitle')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step2.header.title'));
+      expect(view.get('headerTitle')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step2.header'));
     });
   });
 
@@ -76,7 +76,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
     it("currentStep is 2", function () {
       this.mock.returns(2);
       view.propertyDidChange('noticeInProgress');
-      expect(view.get('noticeInProgress')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step2.notice.inProgress'));
+      expect(view.get('noticeInProgress')).to.equal(Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'));
     });
   });
 
@@ -119,7 +119,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
       afterEach(function () {
         taskView.onStatus.restore();
       });
-      it("", function () {
+      it("onStatus is called once", function () {
         taskView.didInsertElement();
         expect(taskView.onStatus.calledOnce).to.be.true;
       });

@@ -16,21 +16,12 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
-
-var validator = require('utils/validator');
 var date = require('utils/date/date');
 
 describe('date', function () {
 
-  var correct_tests = Em.A([
-    {t: 1349752195000, e: 'Tue, Oct 09, 2012 03:09', e2: 'Tue Oct 09 2012'},
-    {t: 1367752195000, e: 'Sun, May 05, 2013 11:09', e2: 'Sun May 05 2013'},
-    {t: 1369952195000, e: 'Thu, May 30, 2013 22:16', e2: 'Thu May 30 2013'}
-  ]);
-
-  var incorrect_tests = Em.A([
+  var incorrectTests = Em.A([
     {t: null},
     {t: ''},
     {t: false},
@@ -104,7 +95,7 @@ describe('date', function () {
     });
 
     describe('Incorrect data', function(){
-      incorrect_tests.forEach(function(test) {
+      incorrectTests.forEach(function(test) {
         it(test.t, function() {
           expect(date.timingFormat(test.t)).to.equal(null);
         });

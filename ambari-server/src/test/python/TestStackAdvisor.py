@@ -340,6 +340,86 @@ class TestStackAdvisorInitialization(TestCase):
     }
     self.assertEquals(actualRecommendLayoutResponse, expectedRecommendLayoutResponse)
 
+    # Test with maintenance_state. One host is in maintenance mode.
+    hosts= {
+      "items": [
+        {"Hosts": {"host_name": "host1", "maintenance_state":"OFF"}},
+        {"Hosts": {"host_name": "host2", "maintenance_state":"ON"}}
+      ]
+    }
+
+    actualRecommendLayoutResponse = default_stack_advisor.recommendComponentLayout(services, hosts)
+    expectedRecommendLayoutResponse = {
+      "services": ["GANGLIA", "HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
+      "recommendations": {
+        "blueprint": {
+          "host_groups": [
+            {
+              "name": "host-group-1",
+              "components": [
+                {
+                  "name": "GANGLIA_SERVER"
+                },
+                {
+                  "name": "HBASE_MASTER"
+                },
+                {
+                  "name": "NAMENODE"
+                },
+                {
+                  "name": "SECONDARY_NAMENODE"
+                },
+                {
+                  "name": "ZOOKEEPER_SERVER"
+                },
+                {
+                  "name": "ZOOKEEPER_CLIENT"
+                }
+              ]
+            }
+          ]
+        },
+        "blueprint_cluster_binding":
+          {
+            "host_groups": [
+              {
+                "hosts": [{"fqdn": "host1"}],
+                "name": "host-group-1"
+              }
+            ]
+          }
+      },
+      "hosts": ["host1"],
+      "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"}
+    }
+    self.assertEquals(actualRecommendLayoutResponse, expectedRecommendLayoutResponse)
+
+    # Test with maintenance_state. Both hosts are in maintenance mode.
+    hosts= {
+      "items": [
+        {"Hosts": {"host_name": "host1", "maintenance_state":"ON"}},
+        {"Hosts": {"host_name": "host2", "maintenance_state":"ON"}}
+      ]
+    }
+
+    actualRecommendLayoutResponse = default_stack_advisor.recommendComponentLayout(services, hosts)
+
+    expectedRecommendLayoutResponse = {
+      "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
+      "hosts": [],
+      "services": ['GANGLIA', 'HBASE', 'HDFS', 'PIG', 'TEZ', 'ZOOKEEPER'],
+      "recommendations": {
+        "blueprint": {
+          "host_groups": []
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": []
+        }
+      }
+    }
+
+    self.assertEquals(actualRecommendLayoutResponse, expectedRecommendLayoutResponse)
+
     # Config groups support by default
     services["config-groups"] = [{
       "configurations": {

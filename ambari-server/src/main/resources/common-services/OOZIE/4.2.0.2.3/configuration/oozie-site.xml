@@ -35,6 +35,7 @@
   <property>
     <name>oozie.base.url</name>
     <value>http://localhost:11000/oozie</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Base Oozie URL.</description>
   </property>
 
@@ -48,7 +49,7 @@
 
   <property>
     <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
-    <value>*=/etc/hadoop/conf</value>
+    <value>*={{hadoop_conf_dir}}</value>
     <description>
       Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
       the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
@@ -140,6 +141,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>oozie-env</type>
+        <name>oozie_database</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -152,6 +159,16 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>oozie-env</type>
+        <name>oozie_database</name>
+      </property>
+      <property>
+        <type>oozie-site</type>
+        <name>oozie.db.schema.name</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var misc = require('utils/misc');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
   disabledServices: [],
@@ -70,7 +69,9 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
 
-    alertsCount: Em.computed.alias('content.alertsCount'),
+    alertsCount: function () {
+      return this.get('content.alertsCount') > 99 ? "99+" : this.get('content.alertsCount') ;
+    }.property('content.alertsCount'),
 
     hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
 

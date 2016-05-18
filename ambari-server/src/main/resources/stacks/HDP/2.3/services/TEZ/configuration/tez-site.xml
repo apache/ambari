@@ -103,4 +103,16 @@
     <value>org.apache.tez.dag.history.logging.ats.ATSV15HistoryLoggingService</value>
   </property>
 
+  <property>
+    <name>tez.counters.max</name>
+    <value>10000</value>
+    <description>The number of allowed counters for the executing DAG</description>
+  </property>
+
+  <property>
+    <name>tez.counters.max.groups</name>
+    <value>3000</value>
+    <description>The number of allowed counter groups for the executing DAG</description>
+  </property>
+
 </configuration>

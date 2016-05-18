@@ -51,7 +51,7 @@ public class Services {
   private static final String YARN_RESOURCEMANAGER_DEFAULT_HTTPS_PORT = "8090";
 
 
-  private static final String YARN_ATS_URL = "yarn.timeline-server.url";
+  private static final String YARN_ATS_URL = "yarn.ats.url";
   private final static String YARN_TIMELINE_WEBAPP_HTTP_ADDRESS_KEY = "yarn.timeline-service.webapp.address";
   private final static String YARN_TIMELINE_WEBAPP_HTTPS_ADDRESS_KEY = "yarn.timeline-service.webapp.https.address";
   public static final String RM_INFO_API_ENDPOINT = "/ws/v1/cluster/info";
@@ -75,7 +75,7 @@ public class Services {
   public String getRMUrl() {
     String url;
 
-    if (ambariApi.isClusterAssociated()) {
+    if (context.getCluster() != null) {
       url = getRMUrlFromClusterConfig();
     } else {
       url = getRmUrlFromCustomConfig();
@@ -216,8 +216,8 @@ public class Services {
   public String getWebHCatURL() {
     String host = null;
 
-    if (ambariApi.isClusterAssociated()) {
-      List<String> hiveServerHosts = ambariApi.getHostsWithComponent("WEBHCAT_SERVER");
+    if (context.getCluster() != null) {
+      List<String> hiveServerHosts = context.getCluster().getHostsForServiceComponent("HIVE","WEBHCAT_SERVER");
 
       if (!hiveServerHosts.isEmpty()) {
         host = hiveServerHosts.get(0);
@@ -249,7 +249,7 @@ public class Services {
    * yarn-site.xml else it is retrieved from the view configuration.
    */
   public String getTimelineServerUrl() {
-    String url = ambariApi.isClusterAssociated() ? getATSUrlFromCluster() : getATSUrlFromCustom();
+    String url = context.getCluster() != null ? getATSUrlFromCluster() : getATSUrlFromCustom();
     return removeTrailingSlash(url);
   }
 
@@ -265,6 +265,21 @@ public class Services {
       throw new AmbariApiException(
         "RA070 View is not cluster associated. 'YARN Timeline Server URL' should be provided");
     }
+  }
+
+  /**
+   * @return Returns the protocol used by YARN daemons, the value is always taken from the
+   * yarn-site.xml.
+   */
+  public String getYARNProtocol() {
+    String httpPolicy = getYarnConfig(YARN_HTTP_POLICY);
+
+    if (!(HTTP_ONLY.equals(httpPolicy) || HTTPS_ONLY.equals(httpPolicy))) {
+      LOG.error(String.format("RA030 Unknown value %s of yarn-site/yarn.http.policy. HTTP_ONLY assumed.", httpPolicy));
+      httpPolicy = HTTP_ONLY;
+    }
+
+    return getProtocol(httpPolicy);
   }
 
   private String getATSUrlFromCluster() {
@@ -322,7 +337,7 @@ public class Services {
   }
 
   private String getYarnConfig(String key) {
-    return ambariApi.getCluster().getConfigurationValue(YARN_SITE, key);
+    return context.getCluster().getConfigurationValue(YARN_SITE, key);
   }
 
   /**

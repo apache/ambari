@@ -19,12 +19,10 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -243,6 +241,25 @@ public class ClusterDAO {
   }
 
   /**
+   * Gets selected mappings for provided config types
+   * @param clusterId cluster id
+   * @param types config types for mappings
+   * @return
+   */
+  @RequiresSession
+  public List<ClusterConfigMappingEntity> getSelectedConfigMappingByTypes(long clusterId, List<String> types) {
+    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
+            "WHERE mapping.clusterId = :clusterId AND mapping.typeName IN :type " +
+            "AND mapping.selectedInd > 0", ClusterConfigMappingEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("type", types);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Create Cluster entity in Database
    * @param clusterEntity entity to create
    */
@@ -281,8 +298,8 @@ public class ClusterDAO {
    * Update config mapping in DB
    */
   @Transactional
-  public void mergeConfigMapping(ClusterConfigMappingEntity mappingEntity) {
-    entityManagerProvider.get().merge(mappingEntity);
+  public ClusterConfigMappingEntity mergeConfigMapping(ClusterConfigMappingEntity mappingEntity) {
+    return entityManagerProvider.get().merge(mappingEntity);
   }
 
   /**

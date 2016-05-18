@@ -89,6 +89,11 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
     });
   },
 
+  willDestroyElement: function () {
+    $("[rel='button-info']").tooltip('destroy');
+    $("[rel='button-info-dropdown']").tooltip('destroy');
+  },
+
   /**
    * Tooltip for "Add group"-button
    * @type {string}
@@ -121,13 +126,10 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
     if (this.get('controller.selectedAlertGroup.default')) {
       return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinitionToDefault');
     }
-    else
-      if (this.get('controller.selectedAlertGroup.isAddDefinitionsDisabled')) {
-        return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinitionDisabled');
-      }
-      else {
-        return  Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinition');
-      }
+    if (this.get('controller.selectedAlertGroup.isAddDefinitionsDisabled')) {
+      return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinitionDisabled');
+    }
+    return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinition');
   }.property('controller.selectedAlertGroup.default', 'controller.selectedAlertGroup.isAddDefinitionsDisabled'),
 
   /**
@@ -138,12 +140,10 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
     if (this.get('controller.selectedAlertGroup.default')) {
       return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinitionDisabled');
     }
-    else
-      if (this.get('controller.isDeleteDefinitionsDisabled')) {
-        return 'Nothing to delete';
-      } else {
-        return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition');
-      }
+    if (this.get('controller.isDeleteDefinitionsDisabled')) {
+      return Em.I18n.t('common.nothingToDelete');
+    }
+    return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition');
   }.property('controller.selectedAlertGroup.default', 'controller.isDeleteDefinitionsDisabled')
 
 });

@@ -50,6 +50,7 @@ module.exports = App.WizardRoute.extend({
           App.router.transitionTo('main.services');
         },
         didInsertElement: function () {
+          this._super();
           this.fitHeight();
         }
       });

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 require('utils/helper');
 var mappedHdp2Properties = require('data/HDP2/secure_mapping');
 
@@ -24,12 +23,12 @@ describe('hdp2SiteMapping', function () {
 
   // All mapped properties should have value of string type
   mappedHdp2Properties.forEach(function(mappedProperty){
-    it('Value of "' + mappedProperty.name  + '"' + ' should be string', function () {
+    it('Value of "{0}" should be string'.format(mappedProperty.name), function () {
       expect(mappedProperty.value).to.be.a('string');
     });
   });
   mappedHdp2Properties.forEach(function(mappedProperty){
-    it('Value of "' + mappedProperty.name  + '"' + ' should have serviceName and filename attribute', function () {
+    it('Value of "{0}" should have serviceName and filename attribute'.format(mappedProperty.name), function () {
       expect(mappedProperty).to.have.property('serviceName');
       expect(mappedProperty).to.have.property('filename');
     });

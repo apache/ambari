@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -44,16 +42,17 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -64,14 +63,16 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import junit.framework.Assert;
 
 /**
  * RepositoryVersionResourceProvider tests.
@@ -155,12 +156,18 @@ public class RepositoryVersionResourceProviderTest {
         map.put("pack2", pack2);
         return map;
       }
+
+      @Override
+      public ServiceInfo getService(String name) {
+        return new ServiceInfo();
+      }
+
     };
     stackInfo.setName("HDP");
     stackInfo.setVersion("1.1");
     stacks.add(stackInfo);
-    Mockito.when(ambariMetaInfo.getStack(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<StackInfo>() {
 
+    Mockito.when(ambariMetaInfo.getStack(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<StackInfo>() {
       @Override
       public StackInfo answer(InvocationOnMock invocation) throws Throwable {
         final String stack = invocation.getArguments()[0].toString();
@@ -173,6 +180,7 @@ public class RepositoryVersionResourceProviderTest {
       }
 
     });
+
     Mockito.when(ambariMetaInfo.getStacks()).thenReturn(stacks);
     Mockito.when(ambariMetaInfo.getUpgradePacks(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<Map<String, UpgradePack>>() {
 
@@ -233,12 +241,12 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testCreateResourcesAsAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResourcesAsClusterAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testCreateResources(Authentication authentication) throws Exception {
@@ -266,14 +274,17 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
   }
 
+
+
+
   @Test
   public void testGetResourcesAsAdministrator() throws Exception {
-    testGetResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testGetResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test
   public void testGetResourcesAsClusterAdministrator() throws Exception {
-    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testGetResources(Authentication authentication) throws Exception {
@@ -309,36 +320,37 @@ public class RepositoryVersionResourceProviderTest {
     StackEntity stackEntity = stackDAO.find("HDP", "1.1");
     Assert.assertNotNull(stackEntity);
 
-    final RepositoryVersionResourceProvider provider = (RepositoryVersionResourceProvider) injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
-
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
     entity.setStack(stackEntity);
     entity.setVersion("1.1");
     entity.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
 
+    final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    AmbariMetaInfo info = injector.getInstance(AmbariMetaInfo.class);
+
     // test valid usecases
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1-17");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1.1.1");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1.343432.2");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
     entity.setVersion("1.1.343432.2-234234324");
-    provider.validateRepositoryVersion(entity);
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
 
     // test invalid usecases
     entity.setOperatingSystems(jsonStringRedhat7);
     try {
-      provider.validateRepositoryVersion(entity);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
       Assert.fail("Should throw exception");
     } catch (Exception ex) {
     }
 
     entity.setOperatingSystems("");
     try {
-      provider.validateRepositoryVersion(entity);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
       Assert.fail("Should throw exception");
     } catch (Exception ex) {
     }
@@ -347,12 +359,12 @@ public class RepositoryVersionResourceProviderTest {
     stackEntity.setStackName("BIGTOP");
     entity.setStack(bigtop);
     try {
-      provider.validateRepositoryVersion(entity);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
       Assert.fail("Should throw exception");
     } catch (Exception ex) {
     }
 
-    final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+
     entity.setDisplayName("name");
     entity.setStack(stackEntity);
     entity.setVersion("1.1");
@@ -367,7 +379,7 @@ public class RepositoryVersionResourceProviderTest {
     entity2.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
 
     try {
-      provider.validateRepositoryVersion(entity2);
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity2);
       Assert.fail("Should throw exception: Base url http://example.com/repo1 is already defined for another repository version");
     } catch (Exception ex) {
     }
@@ -376,12 +388,12 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testDeleteResourcesAsAdministrator() throws Exception {
-    testDeleteResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testDeleteResourcesAsClusterAdministrator() throws Exception {
-    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testDeleteResources(Authentication authentication) throws Exception {
@@ -409,19 +421,19 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
 
     final Predicate predicate = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID).equals("1").toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     Assert.assertEquals(0, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
   }
 
   @Test
   public void testUpdateResourcesAsAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResourcesAsClusterAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testUpdateResources(Authentication authentication) throws Exception {
@@ -500,9 +512,79 @@ public class RepositoryVersionResourceProviderTest {
 
     try {
       provider.updateResources(updateRequest, new AndPredicate(predicateStackName, predicateStackVersion));
-      Assert.fail("Update of upgrade pack should not be allowed when repo version is installed on any cluster");
     } catch (Exception ex) {
+      Assert.fail("Update of repository should be allowed when repo version is installed on any cluster");
     }
+  }
+
+  @Test
+  public void testUpdateResourcesNoManageRepos() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
+
+    Mockito.when(clusterVersionDAO.findByStackAndVersion(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenAnswer(
+        new Answer<List<ClusterVersionEntity>>() {
+          @Override
+          public List<ClusterVersionEntity> answer(InvocationOnMock invocation) throws Throwable {
+            return getNoClusterVersions();
+          }
+        });
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
+    properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]", Object.class));
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, "1.1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, "1.1.1.1");
+    propertySet.add(properties);
+
+    final Predicate predicateStackName = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
+    final Predicate predicateStackVersion = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("1.1").toPredicate();
+    final Request getRequest = PropertyHelper.getReadRequest(
+      RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+      RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+    Assert.assertEquals(0, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
+    provider.createResources(createRequest);
+
+    Assert.assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+    Assert.assertEquals("name", provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
+
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID, "1");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name2");
+    properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/ambari_managed_repositories\":false, \"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]", Object.class));
+    final Request updateRequest = PropertyHelper.getUpdateRequest(properties, null);
+    provider.updateResources(updateRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+
+    Assert.assertEquals("name2", provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
+
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    String stackName = properties.get(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).toString();
+    String stackVersion = properties.get(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).toString();
+    Object operatingSystems = properties.get(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+    Gson gson = new Gson();
+    String operatingSystemsJson = gson.toJson(operatingSystems);
+    RepositoryVersionHelper repositoryVersionHelper = new RepositoryVersionHelper();
+    List<OperatingSystemEntity> operatingSystemEntities = repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+    for (OperatingSystemEntity operatingSystemEntity : operatingSystemEntities) {
+      Assert.assertFalse(operatingSystemEntity.isAmbariManagedRepos());
+      String osType = operatingSystemEntity.getOsType();
+      List<RepositoryEntity> repositories = operatingSystemEntity.getRepositories();
+      for (RepositoryEntity repository : repositories) {
+        RepositoryInfo repo = ambariMetaInfo.getRepository(stackName, stackVersion, osType, repository.getRepositoryId());
+        if (repo != null) {
+          String baseUrlActual = repo.getBaseUrl();
+          String baseUrlExpected = repository.getBaseUrl();
+          Assert.assertEquals(baseUrlExpected, baseUrlActual);
+        }
+      }
+    }
+
   }
 
   @Test
@@ -521,6 +603,7 @@ public class RepositoryVersionResourceProviderTest {
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid, "2.4.2.0-2300"));
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid2, "2.1"));
   }
+
 
   @After
   public void after() {

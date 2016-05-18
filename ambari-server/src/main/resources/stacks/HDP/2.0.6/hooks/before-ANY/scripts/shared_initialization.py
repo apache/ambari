@@ -20,6 +20,7 @@ limitations under the License.
 import os
 import re
 import getpass
+import tempfile
 from copy import copy
 from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
@@ -29,8 +30,9 @@ def setup_users():
   Creates users before cluster installation
   """
   import params
+  should_create_users_and_groups = not params.host_sys_prepped and not params.ignore_groupsusers_create
 
-  if not params.host_sys_prepped and not params.ignore_groupsusers_create:
+  if should_create_users_and_groups:
     for group in params.group_list:
       Group(group,
       )
@@ -39,6 +41,7 @@ def setup_users():
       User(user,
           gid = params.user_to_gid_dict[user],
           groups = params.user_to_groups_dict[user],
+          fetch_nonlocal_groups = params.fetch_nonlocal_groups
       )
 
     if params.override_uid == "true":
@@ -54,7 +57,7 @@ def setup_users():
     Directory (params.hbase_tmp_dir,
                owner = params.hbase_user,
                mode=0775,
-               recursive = True,
+               create_parents = True,
                cd_access="a",
     )
     if not params.host_sys_prepped and params.override_uid == "true":
@@ -65,8 +68,10 @@ def setup_users():
 
   if not params.host_sys_prepped:
     if params.has_namenode:
-      create_dfs_cluster_admins()
-    if params.has_tez and params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
+      if should_create_users_and_groups:
+        create_dfs_cluster_admins()
+    if params.has_tez and params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.3') >= 0:
+      if should_create_users_and_groups:
         create_tez_am_view_acls()
   else:
     Logger.info('Skipping setting dfs cluster admin and tez view acls as host is sys prepped')
@@ -81,7 +86,7 @@ def create_dfs_cluster_admins():
 
   User(params.hdfs_user,
     groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-    ignore_failures = params.ignore_groupsusers_create
+          fetch_nonlocal_groups = params.fetch_nonlocal_groups
   )
 
 def create_tez_am_view_acls():
@@ -107,12 +112,11 @@ def create_users_and_groups(user_and_groups):
 
   if users_list:
     User(users_list,
-         ignore_failures = params.ignore_groupsusers_create
+          fetch_nonlocal_groups = params.fetch_nonlocal_groups
     )
 
   if groups_list:
     Group(copy(groups_list),
-          ignore_failures = params.ignore_groupsusers_create
     )
   return groups_list
     
@@ -143,8 +147,8 @@ def setup_hadoop_env():
     Directory(params.hadoop_dir, mode=0755)
 
     # HDP < 2.2 used a conf -> conf.empty symlink for /etc/hadoop/
-    if Script.is_hdp_stack_less_than("2.2"):
-      Directory(params.hadoop_conf_empty_dir, recursive=True, owner="root",
+    if Script.is_stack_less_than("2.2"):
+      Directory(params.hadoop_conf_empty_dir, create_parents = True, owner="root",
         group=params.user_group )
 
       Link(params.hadoop_conf_dir, to=params.hadoop_conf_empty_dir,
@@ -161,7 +165,7 @@ def setup_hadoop_env():
     Directory(params.hadoop_java_io_tmpdir,
               owner=params.hdfs_user,
               group=params.user_group,
-              mode=0777
+              mode=01777
     )
 
 def setup_java():
@@ -173,16 +177,14 @@ def setup_java():
   java_exec = format("{java_home}/bin/java")
 
   if not os.path.isfile(java_exec):
+    if not params.jdk_name: # if custom jdk is used.
+      raise Fail(format("Unable to access {java_exec}. Confirm you have copied jdk to this host."))
 
     jdk_curl_target = format("{tmp_dir}/{jdk_name}")
     java_dir = os.path.dirname(params.java_home)
-    tmp_java_dir = format("{tmp_dir}/jdk")
-
-    if not params.jdk_name:
-      return
 
     Directory(params.artifact_dir,
-              recursive = True,
+              create_parents = True,
               )
 
     File(jdk_curl_target,
@@ -190,31 +192,33 @@ def setup_java():
          not_if = format("test -f {jdk_curl_target}")
     )
 
-    if params.jdk_name.endswith(".bin"):
-      chmod_cmd = ("chmod", "+x", jdk_curl_target)
-      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
-    elif params.jdk_name.endswith(".gz"):
-      chmod_cmd = ("chmod","a+x", java_dir)
-      install_cmd = format("mkdir -p {tmp_java_dir} && cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+    tmp_java_dir = tempfile.mkdtemp(prefix="jdk_tmp_", dir=params.tmp_dir)
 
-    Directory(java_dir
-    )
+    try:
+      if params.jdk_name.endswith(".bin"):
+        chmod_cmd = ("chmod", "+x", jdk_curl_target)
+        install_cmd = format("cd {tmp_java_dir} && echo A | {jdk_curl_target} -noregister && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
+      elif params.jdk_name.endswith(".gz"):
+        chmod_cmd = ("chmod","a+x", java_dir)
+        install_cmd = format("cd {tmp_java_dir} && tar -xf {jdk_curl_target} && {sudo} cp -rp {tmp_java_dir}/* {java_dir}")
 
-    Execute(chmod_cmd,
-            sudo = True,
-            )
+      Directory(java_dir
+      )
 
-    Execute(install_cmd,
-            )
+      Execute(chmod_cmd,
+              sudo = True,
+              )
+
+      Execute(install_cmd,
+              )
+
+    finally:
+      Directory(tmp_java_dir, action="delete")
 
     File(format("{java_home}/bin/java"),
          mode=0755,
          cd_access="a",
          )
-
-    Execute(("chgrp","-R", params.user_group, params.java_home),
-            sudo = True,
-            )
-    Execute(("chown","-R", getpass.getuser(), params.java_home),
-            sudo = True,
-            )
+    Execute(('chmod', '-R', '755', params.java_home),
+      sudo = True,
+    )

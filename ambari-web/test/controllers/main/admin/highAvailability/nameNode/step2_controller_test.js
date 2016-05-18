@@ -18,45 +18,21 @@
 
 var App = require('app');
 
+function O (fl) {
+  return Em.Object.create({
+    isInstalled: fl
+  })
+}
+
 describe('App.HighAvailabilityWizardStep2Controller', function () {
   var controller = App.HighAvailabilityWizardStep2Controller.create();
 
   describe('#sortMasterComponents', function () {
 
     it('should sort installed masters first', function() {
-      expect(controller.sortMasterComponents([
-        Em.Object.create({
-          isInstalled: true
-        }),
-        Em.Object.create({
-          isInstalled: false
-        }),
-        Em.Object.create({
-          isInstalled: true
-        }),
-        Em.Object.create({
-          isInstalled: false
-        }),
-        Em.Object.create({
-          isInstalled: true
-        })
-      ])).to.eql([
-            Em.Object.create({
-              isInstalled: true
-            }),
-            Em.Object.create({
-              isInstalled: true
-            }),
-            Em.Object.create({
-              isInstalled: true
-            }),
-            Em.Object.create({
-              isInstalled: false
-            }),
-            Em.Object.create({
-              isInstalled: false
-            })
-          ]);
+      var init = [O(true), O(false), O(true), O(false), O(true)];
+      var sorted = [O(true), O(true), O(true), O(false), O(false)];
+      expect(controller.sortMasterComponents(init)).to.eql(sorted);
     });
   });
 

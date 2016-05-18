@@ -21,7 +21,17 @@ require('views/common/widget/graph_widget_view');
 var fileUtils = require('utils/file_utils');
 
 describe('App.GraphWidgetView', function () {
-  var view = App.GraphWidgetView.create();
+
+  var view;
+
+  beforeEach(function () {
+    view = App.GraphWidgetView.create();
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('timeoutId'));
+    view.destroy();
+  });
 
   describe("#adjustData()", function() {
     var testCases = [
@@ -194,33 +204,48 @@ describe('App.GraphWidgetView', function () {
       }
     ];
 
-    beforeEach(function () {
-      sinon.stub(view, 'prepareCSV').returns('key,value');
-      sinon.stub(fileUtils, 'downloadTextFile', Em.K);
-      sinon.stub(App, 'showAlertPopup', Em.K);
-    });
-
-    afterEach(function () {
-      view.prepareCSV.restore();
-      fileUtils.downloadTextFile.restore();
-      App.showAlertPopup.restore();
-    });
-
     cases.forEach(function (item) {
-      it(item.title, function () {
-        view.set('data', item.data);
-        view.exportGraphData(item.event || {});
-        expect(view.get('isExportMenuHidden')).to.be.true;
-        expect(fileUtils.downloadTextFile.callCount).to.equal(item.downloadTextFileCallCount);
-        expect(App.showAlertPopup.callCount).to.equal(item.showAlertPopupCallCount);
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(view, 'prepareCSV').returns('key,value');
+          sinon.stub(fileUtils, 'downloadTextFile', Em.K);
+          sinon.stub(App, 'showAlertPopup', Em.K);
+          view.set('data', item.data);
+          view.exportGraphData(item.event || {});
+        });
+
+        afterEach(function () {
+          view.prepareCSV.restore();
+          fileUtils.downloadTextFile.restore();
+          App.showAlertPopup.restore();
+        });
+
+        it('isExportMenuHidden is true', function () {
+          expect(view.get('isExportMenuHidden')).to.be.true;
+        });
+
+        it('downloadTextFile calls count is calid', function () {
+          expect(fileUtils.downloadTextFile.callCount).to.equal(item.downloadTextFileCallCount);
+        });
+
+        it('showAlertPopup calls count is valid', function () {
+          expect(App.showAlertPopup.callCount).to.equal(item.showAlertPopupCallCount);
+        });
+
         if (item.downloadTextFileCallCount) {
-          var fileType = item.event && item.event.context ? 'csv' : 'json',
-            downloadArgs = fileUtils.downloadTextFile.firstCall.args;
-          expect(downloadArgs[0].replace(/\s/g, '')).to.equal(item.fileData);
-          expect(downloadArgs[1]).to.equal(fileType);
-          expect(downloadArgs[2]).to.equal('data.' + fileType);
+          it('download args are valid', function () {
+            var fileType = item.event && item.event.context ? 'csv' : 'json',
+              downloadArgs = fileUtils.downloadTextFile.firstCall.args;
+            expect(downloadArgs[0].replace(/\s/g, '')).to.equal(item.fileData);
+            expect(downloadArgs[1]).to.equal(fileType);
+            expect(downloadArgs[2]).to.equal('data.' + fileType);
+          });
         }
+
       });
+
     });
 
   });

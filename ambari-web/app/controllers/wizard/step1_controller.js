@@ -29,7 +29,109 @@ App.WizardStep1Controller = Em.Controller.extend({
 
   selectedStack: function() {
     return App.Stack.find().findProperty('isSelected');
-  }.property('content.stacks.@each.isSelected')
+  }.property('content.stacks.@each.isSelected'),
 
+  optionsToSelect: {
+    'usePublicRepo': {
+      index: 0,
+      isSelected: true
+    },
+    'useLocalRepo': {
+      index: 1,
+      isSelected: false,
+      'uploadFile': {
+        index: 0,
+        name: 'uploadFile',
+        file: '',
+        hasError: false,
+        isSelected: true
+      },
+      'enterUrl': {
+        index: 1,
+        name: 'enterUrl',
+        url: '',
+        placeholder: 'Enter URL to Version Definition File',
+        hasError: false,
+        isSelected: false
+      }
+    }
+  },
 
+  /**
+   * Used to set version definition file from FileUploader
+   * @method setVDFFile
+   * @param {string} vdf
+   */
+  setVDFFile: function (vdf) {
+    this.set("optionsToSelect.useLocalRepo.uploadFile.file", vdf);
+  },
+
+  /**
+   * Load selected file to current page content
+   */
+  readVersionInfo: function(){
+    var data = {};
+    var isXMLdata = false;
+    if (this.get("optionsToSelect.usePublicRepo.isSelected")) return;
+    if (this.get("optionsToSelect.useLocalRepo.isSelected") && this.get("optionsToSelect.useLocalRepo.enterUrl.isSelected")) {
+      var url = this.get("optionsToSelect.useLocalRepo.enterUrl.url");
+      data = {
+        "VersionDefinition": {
+          "version_url": url
+        }
+      };
+      App.db.setLocalRepoVDFData(url);
+    } else if (this.get("optionsToSelect.useLocalRepo.uploadFile.isSelected")) {
+      isXMLdata = true;
+      // load from file browser
+      data = this.get("optionsToSelect.useLocalRepo.uploadFile.file");
+      App.db.setLocalRepoVDFData(data);
+    }
+    var installerController = App.router.get('installerController');
+    var self = this;
+    installerController.postVersionDefinitionFile(isXMLdata, data).done(function (response) {
+      self.set('latestSelectedLocalRepoId', response.stackNameVersion + "-" + response.actualVersion);
+      // load successfully, so make this local stack repo as selectedStack
+      self.get('content.stacks').setEach('isSelected', false);
+      self.get('content.stacks').findProperty('id', response.stackNameVersion + "-" + response.actualVersion).set('isSelected', true);
+      Ember.run.next(function () {
+        $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
+        $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
+      });
+    });
+  },
+
+  /**
+   * On click handler for removing OS
+   */
+  removeOS: function(event) {
+    if (this.get('selectedStack.useRedhatSatellite')) {
+      return;
+    }
+    var osToRemove = event.context;
+    Em.set(osToRemove, 'isSelected', false);
+  },
+
+  /**
+   * On click handler for adding new OS
+   */
+  addOS: function(event) {
+    var osToAdd = event.context;
+    Em.set(osToAdd, 'isSelected', true);
+  },
+
+  changeUseRedhatSatellite: function () {
+    if (App.router.get('installerController.currentStep') !== "1") {
+      return;
+    }
+    if (this.get('selectedStack.useRedhatSatellite')) {
+      return App.ModalPopup.show({
+        header: Em.I18n.t('common.important'),
+        secondary: false,
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile(Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning'))
+        })
+      });
+    }
+  }.observes('selectedStack.useRedhatSatellite')
 });

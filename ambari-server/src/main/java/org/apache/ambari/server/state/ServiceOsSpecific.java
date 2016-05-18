@@ -165,6 +165,7 @@ public class ServiceOsSpecific {
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Package {
     private String name;
+    private String condition = "";
 
     /**
      * If true, package will not be attempted to be upgraded during RU.
@@ -179,6 +180,14 @@ public class ServiceOsSpecific {
 
     public void setName(String name) {
       this.name = name;
+    }
+    
+    public String getCondition() {
+      return condition;
+    }
+
+    public void setCondition(String condition) {
+      this.condition = condition;
     }
 
     public Boolean getSkipUpgrade() {
@@ -200,14 +209,18 @@ public class ServiceOsSpecific {
       Package aPackage = (Package) o;
 
       if (!name.equals(aPackage.name)) return false;
-      return skipUpgrade.equals(aPackage.skipUpgrade);
-
+      if (!skipUpgrade.equals(aPackage.skipUpgrade)) return false;
+      if (!condition.equals(aPackage.condition)) return false;
+      
+      return true;
     }
 
     @Override
     public int hashCode() {
       int result = name.hashCode();
       result = 31 * result + skipUpgrade.hashCode();
+      result = 31 * result + condition.hashCode();
+      
       return result;
     }
   }

@@ -38,81 +38,76 @@ describe('App.MainAdminHighAvailabilityController', function () {
       });
       sinon.spy(controller, "showErrorPopup");
     });
+
     afterEach(function () {
       App.router.transitionTo.restore();
       controller.showErrorPopup.restore();
       App.HostComponent.find.restore();
-    });
-
-    it('NAMENODE in INSTALLED state', function () {
-      hostComponents = [
-        Em.Object.create({
-          componentName: 'NAMENODE',
-          workStatus: 'INSTALLED'
-        }),
-        Em.Object.create({
-          componentName: 'ZOOKEEPER_SERVER',
-          workStatus: 'INSTALLED'
-        }),
-        Em.Object.create({
-          componentName: 'ZOOKEEPER_SERVER',
-          workStatus: 'INSTALLED'
-        }),
-        Em.Object.create({
-          componentName: 'ZOOKEEPER_SERVER',
-          workStatus: 'INSTALLED'
-        })
-      ];
-
-      sinon.stub(App.router, 'get', function(){
-        return 3;
-      });
-      expect(controller.enableHighAvailability()).to.be.false;
-      expect(controller.showErrorPopup.calledOnce).to.be.true;
       App.router.get.restore();
     });
-    it('Cluster has less than 3 ZOOKEPER_SERVER components', function () {
-      hostComponents = [
-        Em.Object.create({
-          componentName: 'NAMENODE',
-          workStatus: 'STARTED'
-        })
-      ];
 
-      sinon.stub(App.router, 'get', function(){
-        return 3;
+    describe('NAMENODE in INSTALLED state', function () {
+      beforeEach(function () {
+        hostComponents = [
+          Em.Object.create({
+            componentName: 'NAMENODE',
+            workStatus: 'INSTALLED'
+          }),
+          Em.Object.create({
+            componentName: 'ZOOKEEPER_SERVER',
+            workStatus: 'INSTALLED'
+          }),
+          Em.Object.create({
+            componentName: 'ZOOKEEPER_SERVER',
+            workStatus: 'INSTALLED'
+          }),
+          Em.Object.create({
+            componentName: 'ZOOKEEPER_SERVER',
+            workStatus: 'INSTALLED'
+          })
+        ];
+        sinon.stub(App.router, 'get', function() {
+          return 3;
+        });
+        this.result = controller.enableHighAvailability();
       });
-      expect(controller.enableHighAvailability()).to.be.false;
-      expect(controller.showErrorPopup.called).to.be.true;
-      App.router.get.restore();
+
+      it('enableHighAvailability result is false', function () {
+        expect(this.result).to.be.false;
+      });
+
+      it('showErrorPopup is called once', function () {
+        expect(controller.showErrorPopup.calledOnce).to.be.true;
+      });
+
     });
-    it('total hosts number less than 3', function () {
+
+    describe('Cluster has less than 3 ZOOKEPER_SERVER components', function () {
       hostComponents = [
         Em.Object.create({
           componentName: 'NAMENODE',
           workStatus: 'STARTED'
-        }),
-        Em.Object.create({
-          componentName: 'ZOOKEEPER_SERVER',
-          workStatus: 'INSTALLED'
-        }),
-        Em.Object.create({
-          componentName: 'ZOOKEEPER_SERVER',
-          workStatus: 'INSTALLED'
-        }),
-        Em.Object.create({
-          componentName: 'ZOOKEEPER_SERVER',
-          workStatus: 'INSTALLED'
         })
       ];
-      sinon.stub(App.router, 'get', function () {
-        return 1;
+
+      beforeEach(function () {
+        sinon.stub(App.router, 'get', function(){
+          return 3;
+        });
+        this.result = controller.enableHighAvailability();
       });
-      expect(controller.enableHighAvailability()).to.be.false;
-      expect(controller.showErrorPopup.calledOnce).to.be.true;
-      App.router.get.restore();
+
+      it('enableHighAvailability result is false', function () {
+        expect(this.result).to.be.false;
+      });
+
+      it('showErrorPopup is called', function () {
+        expect(controller.showErrorPopup.called).to.be.true;
+      });
+
     });
-    it('All checks passed', function () {
+
+    describe('total hosts number less than 3', function () {
       hostComponents = [
         Em.Object.create({
           componentName: 'NAMENODE',
@@ -131,13 +126,62 @@ describe('App.MainAdminHighAvailabilityController', function () {
           workStatus: 'INSTALLED'
         })
       ];
-      sinon.stub(App.router, 'get', function(){
-        return 3;
+
+      beforeEach(function () {
+        sinon.stub(App.router, 'get', function () {
+          return 1;
+        });
+        this.result = controller.enableHighAvailability();
       });
-      expect(controller.enableHighAvailability()).to.be.true;
-      expect(App.router.transitionTo.calledWith('main.services.enableHighAvailability')).to.be.true;
-      expect(controller.showErrorPopup.calledOnce).to.be.false;
-      App.router.get.restore();
+
+      it('enableHighAvailability result is false', function () {
+        expect(this.result).to.be.false;
+      });
+
+      it('showErrorPopup is called once', function () {
+        expect(controller.showErrorPopup.calledOnce).to.be.true;
+      });
+
+    });
+
+    describe('All checks passed', function () {
+      beforeEach(function () {
+        hostComponents = [
+          Em.Object.create({
+            componentName: 'NAMENODE',
+            workStatus: 'STARTED'
+          }),
+          Em.Object.create({
+            componentName: 'ZOOKEEPER_SERVER',
+            workStatus: 'INSTALLED'
+          }),
+          Em.Object.create({
+            componentName: 'ZOOKEEPER_SERVER',
+            workStatus: 'INSTALLED'
+          }),
+          Em.Object.create({
+            componentName: 'ZOOKEEPER_SERVER',
+            workStatus: 'INSTALLED'
+          })
+        ];
+        sinon.stub(App.router, 'get', function() {
+          return 3;
+        });
+        this.result = controller.enableHighAvailability();
+      });
+
+      it('enableHighAvailability result is true', function () {
+        expect(this.result).to.be.true;
+      });
+
+      it('user is moved to enable HA', function () {
+        expect(App.router.transitionTo.calledWith('main.services.enableHighAvailability')).to.be.true;
+      });
+
+      it('showErrorPopup is not called', function () {
+        expect(controller.showErrorPopup.calledOnce).to.be.false;
+      });
+
     });
   });
 

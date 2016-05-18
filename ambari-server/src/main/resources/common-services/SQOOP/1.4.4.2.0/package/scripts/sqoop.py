@@ -19,9 +19,12 @@ limitations under the License.
 
 from resource_management.core.source import InlineTemplate, DownloadSource
 from resource_management.libraries.functions import format
+from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.system import File, Link, Directory
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from setup_atlas_sqoop import setup_atlas_sqoop
+
 import os
 
 
@@ -44,8 +47,22 @@ def sqoop(type=None):
   Directory(params.sqoop_conf_dir,
             owner = params.sqoop_user,
             group = params.user_group,
-            recursive = True
+            create_parents = True
   )
+
+  configs = {}
+  configs.update(params.config['configurations']['sqoop-site'])
+
+  XmlConfig("sqoop-site.xml",
+            conf_dir = params.sqoop_conf_dir,
+            configurations = configs,
+            configuration_attributes=params.config['configuration_attributes']['sqoop-site'],
+            owner = params.sqoop_user,
+            group = params.user_group
+            )
+
+  setup_atlas_sqoop()
+
   File(format("{sqoop_conf_dir}/sqoop-env.sh"),
     owner=params.sqoop_user,
     group = params.user_group,
@@ -74,9 +91,8 @@ def jdbc_connector():
     if 'mysql-connector-java.jar' in jar_name:
       continue
     downloaded_custom_connector = format("{sqoop_lib}/{jar_name}")
-    jdbc_symlink_remote = params.sqoop_jdbc_drivers_dict[jar_name]
     jdbc_driver_label = params.sqoop_jdbc_drivers_name_dict[jar_name]
-    driver_curl_source = format("{jdk_location}/{jdbc_symlink_remote}")
+    driver_curl_source = format("{jdk_location}/{jar_name}")
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }

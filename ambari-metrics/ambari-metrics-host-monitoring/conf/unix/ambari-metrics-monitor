@@ -131,7 +131,7 @@ case "$1" in
     echo "Checking for previously running Metric Monitor..."
     if [ -f ${PIDFILE} ]; then
       PID=`cat ${PIDFILE}`
-      if [ -z "`ps ax -o pid | grep ${PID}`" ]; then
+      if [ -z "`ps ax | grep -w ${PID} | grep resource_monitoring`" ]; then
         echo "${PIDFILE} found with no process. Removing ${PID}..."
         rm -f ${PIDFILE}
       else
@@ -145,14 +145,14 @@ case "$1" in
 
     echo "Starting ${METRIC_MONITOR}"
 
-    nohup ${PYTHON} ${METRIC_MONITOR_PY_SCRIPT} "$@" > ${OUTFILE} 2>&1 &
+    nohup ${PYTHON} ${METRIC_MONITOR_PY_SCRIPT} "$@" >> ${OUTFILE} 2>&1 &
     PID=$!
     write_pidfile ${PIDFILE}
 
     sleep 2
 
     echo "Verifying ${METRIC_MONITOR} process status..."
-    if [ -z "`ps ax -o pid | grep ${PID}`" ]; then
+    if [ -z "`ps ax | grep -w ${PID} | grep resource_monitoring`" ]; then
       if [ -s ${OUTFILE} ]; then
         echo "ERROR: ${METRIC_MONITOR} start failed. For more details, see ${OUTFILE}:"
         echo "===================="
@@ -173,7 +173,7 @@ case "$1" in
     if [ -f ${PIDFILE} ]; then
       PID=`cat ${PIDFILE}`
       echo "Found ${METRIC_MONITOR} PID: $PID"
-      if [ -z "`ps ax -o pid | grep ${PID}`" ]; then
+      if [ -z "`ps ax | grep -w ${PID} | grep resource_monitoring`" ]; then
         echo "${METRIC_MONITOR} not running. Stale PID File at: $PIDFILE"
         retcode=2
       else

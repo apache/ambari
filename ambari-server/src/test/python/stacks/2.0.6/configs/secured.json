@@ -3,6 +3,9 @@
     "clusterName": "c1", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred",
         "current_version" : "2.2.4.2-1234",
@@ -19,7 +22,10 @@
         "ambari_db_rca_username": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "java_version": "8",
-        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
+        "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
+        "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
+        "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 
@@ -37,6 +43,10 @@
     "taskId": 186, 
     "public_hostname": "c6401.ambari.apache.org", 
     "configurations": {
+        "sqoop-site": {
+            "atlas.cluster.name": "c1",
+            "sqoop.job.data.publish.class": "org.apache.atlas.sqoop.hook.SqoopHook"
+        },
         "mapred-site": {
             "mapreduce.jobhistory.address": "c6402.ambari.apache.org:10020", 
             "mapreduce.jobhistory.webapp.spnego-keytab-file": "/etc/security/keytabs/spnego.service.keytab", 
@@ -294,6 +304,7 @@
             "dfs.client.read.shortcircuit": "true", 
             "dfs.journalnode.keytab.file": "/etc/security/keytabs/jn.service.keytab", 
             "dfs.datanode.http.address": "0.0.0.0:1022",
+            "nfs.file.dump.dir": "/tmp/.hdfs-nfs",
             "dfs.datanode.du.reserved": "1073741824", 
             "dfs.client.read.shortcircuit.streams.cache.size": "4096", 
             "dfs.secondary.namenode.keytab.file": "/etc/security/keytabs/nn.service.keytab", 
@@ -480,7 +491,51 @@
             "hive.server2.transport.mode": "binary",
             "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab",
             "hive.exec.scratchdir" : "/custompath/tmp/hive"
-        }, 
+        },
+        "hive-interactive-site": {
+            "hive.enforce.sorting": "true",
+            "javax.jdo.option.ConnectionPassword": "!`\"' 1",
+            "javax.jdo.option.ConnectionDriverName": "com.mysql.jdbc.Driver",
+            "hive.optimize.bucketmapjoin.sortedmerge": "true",
+            "hive.security.metastore.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
+            "fs.file.impl.disable.cache": "true",
+            "hive.auto.convert.join.noconditionaltask": "true",
+            "hive.server2.authentication.kerberos.principal": "hive/_HOST@EXAMPLE.COM",
+            "hive.optimize.bucketmapjoin": "true",
+            "hive.map.aggr": "true",
+            "hive.optimize.index.filter": "true",
+            "hive.security.authorization.enabled": "true",
+            "hive.optimize.reducededuplication": "true",
+            "hive.metastore.kerberos.keytab.file": "/etc/security/keytabs/hive.service.keytab",
+            "hive.metastore.uris": "thrift://c6402.ambari.apache.org:9084",
+            "hive.mapjoin.bucket.cache.size": "10000",
+            "hive.auto.convert.join.noconditionaltask.size": "1000000000",
+            "hive.vectorized.execution.enabled": "false",
+            "javax.jdo.option.ConnectionUserName": "hive",
+            "hive.metastore.cache.pinobjtypes": "Table,Database,Type,FieldSchema,Order",
+            "hive.server2.authentication": "KERBEROS",
+            "hive.metastore.sasl.enabled": "true",
+            "hive.metastore.warehouse.dir": "/apps/hive/warehouse",
+            "hive.metastore.client.socket.timeout": "60",
+            "hive.metastore.kerberos.principal": "hive/_HOST@EXAMPLE.COM",
+            "hive.optimize.reducededuplication.min.reducer": "1",
+            "hive.auto.convert.join": "true",
+            "hive.enforce.bucketing": "true",
+            "hive.mapred.reduce.tasks.speculative.execution": "false",
+            "hive.security.authenticator.manager": "org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator",
+            "javax.jdo.option.ConnectionURL": "jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true",
+            "hive.auto.convert.sortmerge.join": "true",
+            "fs.hdfs.impl.disable.cache": "true",
+            "hive.security.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider",
+            "ambari.hive.db.schema.name": "hive",
+            "hive.metastore.execute.setugi": "true",
+            "hive.auto.convert.sortmerge.join.noconditionaltask": "true",
+            "hive.server2.enable.doAs": "true",
+            "hive.optimize.mapjoin.mapreduce": "true",
+            "hive.server2.transport.mode": "binary",
+            "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab",
+            "hive.exec.scratchdir" : "/custompath/tmp/hive"
+        },
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 
             "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor", 
@@ -546,6 +601,7 @@
             "is_supported_yarn_ranger": "false"
         },
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "smokeuser": "ambari-qa",
@@ -556,6 +612,7 @@
             "kinit_path_local": "/usr/bin"
         },
         "hadoop-env": {
+            "hdfs_tmp_dir": "/tmp",
             "namenode_opt_maxnewsize": "200m",
             "hdfs_log_dir_prefix": "/var/log/hadoop",
             "namenode_heapsize": "1024m", 
@@ -647,7 +704,8 @@
             "oozie_database": "New Derby Database",
             "oozie_data_dir": "/hadoop/oozie/data", 
             "oozie_log_dir": "/var/log/oozie",
-            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab"
+            "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab",
+            "oozie_tmp_dir": "/var/tmp/oozie"
         },
         "ranger-env": {
             "xml_configurations_supported" : "false"
@@ -764,6 +822,7 @@
         }
     },
     "configuration_attributes": {
+      "sqoop-site": {},
       "yarn-site": {
         "final": {
           "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
@@ -827,6 +886,13 @@
           "javax.jdo.option.ConnectionDriverName": "true",
           "hive.optimize.bucketmapjoin.sortedmerge": "true"
         }
+      },
+      "hive-interactive-site": {
+        "final": {
+          "javax.jdo.option.ConnectionPassword": "true",
+          "javax.jdo.option.ConnectionDriverName": "true",
+          "hive.optimize.bucketmapjoin.sortedmerge": "true"
+        }
       }
     },
     "configurationTags": {
@@ -861,6 +927,9 @@
             "tag": "version1389972945449"
         }, 
         "hive-site": {
+            "tag": "version1389972945450"
+        },
+        "hive-interactive-site": {
             "tag": "version1389972945450"
         },
         "hdfs-log4j": {

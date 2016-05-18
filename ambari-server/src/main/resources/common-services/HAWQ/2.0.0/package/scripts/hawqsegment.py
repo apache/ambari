@@ -16,14 +16,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import os
-from resource_management import Script
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions.check_process_status import check_process_status
 
-import utils
+from resource_management import Script
+
 import common
-import constants
+import hawq_constants
 
 class HawqSegment(Script):
   """
@@ -39,61 +36,28 @@ class HawqSegment(Script):
     import params
 
     env.set_params(params)
-    env.set_params(constants)
+    env.set_params(hawq_constants)
     common.setup_user()
     common.setup_common_configurations()
-    common.update_bashrc(constants.hawq_greenplum_path_file, constants.hawq_user_bashrc_file)
-
-
-  def __start_segment(self):
-    import params
-    return utils.exec_hawq_operation(
-          constants.START, 
-          "{0} -a".format(constants.SEGMENT), 
-          not_if=utils.chk_hawq_process_status_cmd(params.hawq_segment_address_port))
+    common.create_master_dir(params.hawq_segment_dir)
+    common.create_temp_dirs(params.hawq_segment_temp_dirs)
 
   def start(self, env):
+    import params
     self.configure(env)
     common.validate_configuration()
+    common.start_component(hawq_constants.SEGMENT, params.hawq_segment_address_port, params.hawq_segment_dir)
 
-    if self.__is_segment_initialized():
-      self.__start_segment()
-      return
-
-    # Initialization also starts process.
-    self.__init_segment()
-
-
-  def stop(self, env):
+  def stop(self, env, mode=hawq_constants.FAST):
     import params
-
-    utils.exec_hawq_operation(constants.STOP, "{0} -a".format(constants.SEGMENT), only_if=utils.chk_hawq_process_status_cmd(
-                                params.hawq_segment_address_port))
-
+    common.stop_component(hawq_constants.SEGMENT, mode)
 
   def status(self, env):
-    from hawqstatus import get_pid_file
-    check_process_status(get_pid_file())
+    from hawqstatus import assert_component_running
+    assert_component_running(hawq_constants.SEGMENT)
 
-
-  @staticmethod
-  def __init_segment():
-    import params
-
-    # Create segment directories
-    utils.create_dir_as_hawq_user(params.hawq_segment_dir)
-    utils.create_dir_as_hawq_user(params.hawq_segment_temp_dir.split(','))
-
-    # Initialize hawq segment
-    utils.exec_hawq_operation(constants.INIT, "{0} -a -v".format(constants.SEGMENT))
-
-  def __is_segment_initialized(self):
-    """
-    Check whether the HAWQ Segment is initialized
-    """
-    import params
-    return os.path.exists(os.path.join(params.hawq_segment_dir, constants.postmaster_opts_filename))
-
+  def immediate_stop_hawq_segment(self, env):
+    self.stop(env, hawq_constants.IMMEDIATE)
 
 if __name__ == "__main__":
   HawqSegment().execute()

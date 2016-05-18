@@ -24,6 +24,8 @@ import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.agent.HeartBeatResponse;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
+import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
+import org.apache.ambari.server.events.ClusterEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
@@ -38,9 +40,15 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link AlertHashInvalidationListener} is used to respond to
- * {@link AlertHashInvalidationEvent} instances and ensure that the
- * {@link AlertDefinitionCommand}s are enqueued for the
+ * {@link AlertHashInvalidationEvent} and {@link ClusterEvent} instances and
+ * ensure that the {@link AlertDefinitionCommand}s are enqueued for the
  * {@link HeartBeatResponse}.
+ * <p/>
+ * <ul>
+ * <li>{@link ClusterEvent} - invalidates all alerts across the cluster</li>
+ * <li>{@link AlertHashInvalidationEvent} - invalidates a specific alert across
+ * affected hosts</li>
+ * </ul>
  */
 @Singleton
 @EagerSingleton
@@ -118,5 +126,33 @@ public class AlertHashInvalidationListener {
     m_alertDefinitionHash.get().invalidate(hostName);
     m_alertDefinitionHash.get().enqueueAgentCommands(clusterId,
         Collections.singletonList(hostName));
+  }
+
+  /**
+   * Handles {@link ClusterEvent} by performing the following tasks:
+   * <ul>
+   * <li>Invalidates all alerts across all hosts. This is because agents use the
+   * cluster name as an identifier and if the cluster is renamed, then they need
+   * to be rescheduled.</li>
+   * </ul>
+   *
+   * @param event
+   *          the event being handled.
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void onAmbariEvent(ClusterEvent event) {
+    LOG.debug("Received event {}", event);
+
+    if( event.getType() != AmbariEventType.CLUSTER_RENAME ) {
+      return;
+    }
+
+
+    AlertDefinitionHash hash = m_alertDefinitionHash.get();
+    hash.invalidateAll();
+
+    long clusterId = event.getClusterId();
+    hash.enqueueAgentCommands(clusterId);
   }
 }

@@ -47,5 +47,7 @@
         </div>
     {{/each}}
   </div>
-  <div {{bindAttr  class="view.rack.isLoaded:hidden :spinner"}}></div>
+  {{#unless view.rack.isLoaded}}
+    {{view App.SpinnerView}}
+  {{/unless}}
 </div>

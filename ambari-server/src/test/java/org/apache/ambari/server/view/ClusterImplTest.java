@@ -20,11 +20,14 @@ package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.easymock.EasyMock.createNiceMock;
@@ -72,5 +75,36 @@ public class ClusterImplTest {
     Assert.assertEquals("bar", clusterImpl.getConfigurationValue("core-site", "foo"));
 
     verify(cluster, config);
+  }
+
+  @Test
+  public void testGetHostsForServiceComponent() {
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    String service = "SERVICE";
+    String component = "COMPONENT";
+
+    List<ServiceComponentHost> components = new ArrayList<ServiceComponentHost>();
+
+    ServiceComponentHost component1 = createNiceMock(ServiceComponentHost.class);
+    expect(component1.getHostName()).andReturn("host1");
+    components.add(component1);
+
+    ServiceComponentHost component2 = createNiceMock(ServiceComponentHost.class);
+    expect(component2.getHostName()).andReturn("host2");
+    components.add(component2);
+
+    expect(cluster.getServiceComponentHosts(service,component)).andReturn(components);
+
+    replay(cluster, component1, component2);
+
+    ClusterImpl clusterImpl = new ClusterImpl(cluster);
+
+    List<String> hosts = clusterImpl.getHostsForServiceComponent(service,component);
+    Assert.assertEquals(2, hosts.size());
+    Assert.assertEquals("host1",hosts.get(0));
+    Assert.assertEquals("host2",hosts.get(1));
+
+    verify(cluster, component1, component2);
   }
 }

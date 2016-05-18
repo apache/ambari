@@ -75,8 +75,8 @@ public class BlueprintValidatorImplTest{
     expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
     expect(blueprint.getServices()).andReturn(services).anyTimes();
 
-    expect(group1.getComponents()).andReturn(group1Components).anyTimes();
-    expect(group2.getComponents()).andReturn(group2Components).anyTimes();
+    expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
+    expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
 
     expect(stack.getDependenciesForComponent("component1")).andReturn(dependencies1).anyTimes();
     expect(stack.getDependenciesForComponent("component2")).andReturn(dependencies1).anyTimes();
@@ -98,7 +98,7 @@ public class BlueprintValidatorImplTest{
   @Test
   public void testValidateTopology_basic() throws Exception {
     group1Components.add("component1");
-    group1Components.add("component2");
+    group1Components.add("component1");
 
     services.addAll(Arrays.asList("service1", "service2"));
 

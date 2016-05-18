@@ -28,6 +28,7 @@
     <description>Kms username</description>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
 
@@ -46,12 +47,39 @@
     <name>kms_log_dir</name>
     <value>/var/log/ranger/kms</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>
     <name>kms_port</name>
     <value>9292</value>
     <description></description>
+  </property>
+
+  <property>
+    <name>create_db_user</name>
+    <display-name>Setup Database and Database User</display-name>
+    <value>true</value>
+    <description>If set to Yes, Ambari will create and setup Ranger Database and Database User. This will require to specify Database Admin user and password</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
 </configuration>  

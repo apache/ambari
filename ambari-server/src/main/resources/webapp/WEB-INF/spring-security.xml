@@ -25,7 +25,7 @@
   <http use-expressions="true"
         disable-url-rewriting="true" entry-point-ref="ambariEntryPoint">
     <intercept-url pattern="/**" access="isAuthenticated()"/>
-    <custom-filter ref="basicFilter" position="BASIC_AUTH_FILTER"/>
+    <custom-filter ref="ambariAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
     <custom-filter ref="ambariJwtAuthenticationFilter" after="BASIC_AUTH_FILTER" />
     <custom-filter ref="ambariAuthorizationFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
   </http>
@@ -47,7 +47,10 @@
   <beans:bean id="ambariEntryPoint" class="org.apache.ambari.server.security.AmbariEntryPoint">
   </beans:bean>
 
-  <beans:bean id="basicFilter" class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
+  <beans:bean id="ambariAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter">
     <beans:constructor-arg ref="authenticationManager"/>
+    <beans:constructor-arg ref="auditLogger"/>
+    <beans:constructor-arg ref="permissionHelper"/>
+    <beans:constructor-arg ref="ambariEntryPoint"/>
   </beans:bean>
 </beans:beans>

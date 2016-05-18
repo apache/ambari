@@ -1,0 +1,357 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+  <property>
+    <name>log.dirs</name>
+    <value>/kafka-logs</value>
+    <description>
+      A comma-separated list of one or more directories in which Kafka data is stored.
+      Each new partition that is created will be placed in the directory which currently has the fewest partitions.
+    </description>
+    <value-attributes>
+      <type>directories</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>port</name>
+    <value>6667</value>
+    <description>
+      The port on which the server accepts client connections.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>zookeeper.connect</name>
+    <value>localhost:2181</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
+    <description>
+      Zookeeper also allows you to add a "chroot" path which will make all kafka data for this cluster appear under a particular path.
+      This is a way to setup multiple Kafka clusters or other applications on the same zookeeper cluster. To do this give a connection
+     string in the form hostname1:port1,hostname2:port2,hostname3:port3/chroot/path which would put all this cluster's data under the
+      path /chroot/path. Note that you must create this path yourself prior to starting the broker and consumers must use the
+      same connection string.
+    </description>
+  </property>
+  <property>
+    <name>message.max.bytes</name>
+    <value>1000000</value>
+    <description>
+      The maximum size of a message that the server can receive.
+      It is important that this property be in sync with the maximum fetch size your consumers use or
+      else an unruly producer will be able to publish messages too large for consumers to consume.
+    </description>
+  </property>
+  <property>
+    <name>num.network.threads</name>
+    <value>3</value>
+    <description>
+      The number of network threads that the server uses for handling network requests.
+      You probably don't need to change this.
+    </description>
+  </property>
+  <property>
+    <name>num.io.threads</name>
+    <value>8</value>
+    <description>
+      The number of I/O threads that the server uses for executing requests. You should have at least as many threads as you have disks.
+    </description>
+  </property>
+  <property>
+    <name>queued.max.requests</name>
+    <value>500</value>
+    <description>The number of requests that can be queued up for processing by the I/O threads before the network threads stop reading in new requests.</description>
+  </property>
+  <property>
+    <name>socket.send.buffer.bytes</name>
+    <value>102400</value>
+    <description>
+      The SO_SNDBUFF buffer the server prefers for socket connections.
+    </description>
+  </property>
+  <property>
+    <name>socket.receive.buffer.bytes</name>
+    <value>102400</value>
+    <description>
+      The SO_RCVBUFF buffer the server prefers for socket connections.
+    </description>
+  </property>
+  <property>
+    <name>socket.request.max.bytes</name>
+    <value>104857600</value>
+    <description>
+      The maximum request size the server will allow. This prevents the server from running out of memory and should be smaller than the Java heap size.
+    </description>
+  </property>
+  <property>
+    <name>num.partitions</name>
+    <value>1</value>
+    <description>
+        The default number of partitions per topic.
+    </description>
+  </property>
+  <property>
+    <name>log.segment.bytes</name>
+    <value>1073741824</value>
+    <description>
+      The maximum request size the server will allow.
+      This prevents the server from running out of memory and should be smaller than the Java heap size.
+    </description>
+  </property>
+  <property>
+    <name>log.roll.hours</name>
+    <value>168</value>
+    <description>
+      This setting will force Kafka to roll a new log segment even if the log.segment.bytes size has not been reached.
+    </description>
+  </property>
+  <property>
+    <name>log.retention.bytes</name>
+    <value>-1</value>
+    <description>
+      The amount of data to retain in the log for each topic-partitions. Note that this is the limit per-partition so multiply by the number of partitions to get the total data retained for the topic. Also note that if both log.retention.hours and log.retention.bytes are both set we delete a segment when either limit is exceeded.
+    </description>
+  </property>
+  <property>
+    <name>log.retention.hours</name>
+    <value>168</value>
+    <description>
+      The number of hours to keep a log segment before it is deleted, i.e. the default data retention window for all topics. Note that if both log.retention.hours and log.retention.bytes are both set we delete a segment when either limit is exceeded.
+    </description>
+  </property>
+  <property>
+    <name>log.cleanup.interval.mins</name>
+    <value>10</value>
+    <description>The frequency in minutes that the log cleaner checks whether any log segment is eligible for deletion to meet the retention policies.
+    </description>
+  </property>
+  <property>
+    <name>log.index.size.max.bytes</name>
+    <value>10485760</value>
+    <description>
+      The maximum size in bytes we allow for the offset index for each log segment. Note that we will always pre-allocate a
+      sparse file with this much space and shrink it down when the log rolls. If the index fills up we will roll a new log segment
+      even if we haven't reached the log.segment.bytes limit.
+    </description>
+  </property>
+  <property>
+    <name>log.index.interval.bytes</name>
+    <value>4096</value>
+    <description>
+      The byte interval at which we add an entry to the offset index. When executing a fetch request the server must do a linear scan for up to this many bytes to find the correct position in the log to begin and end the fetch. So setting this value to be larger will mean larger index files (and a bit more memory usage) but less scanning. However the server will never add more than one index entry per log append (even if more than log.index.interval worth of messages are appended). In general you probably don't need to mess with this value.
+    </description>
+  </property>
+  <property>
+    <name>auto.create.topics.enable</name>
+    <value>true</value>
+    <description>
+      Enable auto creation of topic on the server. If this is set to true then attempts to produce, consume, or fetch metadata for a non-existent topic will automatically create it with the default replication factor and number of partitions.
+    </description>
+  </property>
+  <property>
+    <name>controller.socket.timeout.ms</name>
+    <value>30000</value>
+    <property>The socket timeout for commands from the partition management controller to the replicas.</property>
+  </property>
+  <property>
+    <name>controller.message.queue.size</name>
+    <value>10</value>
+    <description>The buffer size for controller-to-broker-channels</description>
+  </property>
+  <property>
+    <name>default.replication.factor</name>
+    <value>1</value>
+    <description>The default replication factor for automatically created topics.</description>
+  </property>
+  <property>
+    <name>replica.lag.time.max.ms</name>
+    <value>10000</value>
+    <description>If a follower hasn't sent any fetch requests for this window of time, the leader will remove the follower from ISR (in-sync replicas) and treat it as dead.</description>
+  </property>
+  <property>
+    <name>replica.lag.max.messages</name>
+    <value>4000</value>
+    <description>
+      If a replica falls more than this many messages behind the leader, the leader will remove the follower from ISR and treat it as dead.
+    </description>
+  </property>
+  <property>
+    <name>replica.socket.timeout.ms</name>
+    <value>30000</value>
+    <description>The socket timeout for network requests to the leader for replicating data.</description>
+  </property>
+  <property>
+    <name>replica.socket.receive.buffer.bytes</name>
+    <value>65536</value>
+    <description>The socket receive buffer for network requests to the leader for replicating data.</description>
+  </property>
+  <property>
+    <name>replica.fetch.max.bytes</name>
+    <value>1048576</value>
+    <description>The number of byes of messages to attempt to fetch for each partition in the fetch requests the replicas send to the leader.</description>
+  </property>
+  <property>
+    <name>replica.fetch.wait.max.ms</name>
+    <value>500</value>
+    <description>The maximum amount of time to wait time for data to arrive on the leader in the fetch requests sent by the replicas to the leader.</description>
+  </property>
+  <property>
+    <name>replica.fetch.min.bytes</name>
+    <value>1</value>
+    <description>Minimum bytes expected for each fetch response for the fetch requests from the replica to the leader. If not enough bytes, wait up to replica.fetch.wait.max.ms for this many bytes to arrive.
+    </description>
+  </property>
+  <property>
+    <name>num.replica.fetchers</name>
+    <value>1</value>
+    <description>
+      Number of threads used to replicate messages from leaders. Increasing this value can increase the degree of I/O parallelism in the follower broker.
+    </description>
+  </property>
+  <property>
+    <name>replica.high.watermark.checkpoint.interval.ms</name>
+    <value>5000</value>
+    <description>The frequency with which each replica saves its high watermark to disk to handle recovery.</description>
+  </property>
+  <property>
+    <name>fetch.purgatory.purge.interval.requests</name>
+    <value>10000</value>
+    <description>The purge interval (in number of requests) of the fetch request purgatory.</description>
+  </property>
+  <property>
+    <name>producer.purgatory.purge.interval.requests</name>
+    <value>10000</value>
+    <description>The purge interval (in number of requests) of the producer request purgatory.</description>
+  </property>
+  <property>
+    <name>zookeeper.session.timeout.ms</name>
+    <value>30000</value>
+    <description>Zookeeper session timeout. If the server fails to heartbeat to zookeeper within this period of time it is considered dead. If you set this too low the server may be falsely considered dead; if you set it too high it may take too long to recognize a truly dead server.</description>
+  </property>
+  <property>
+    <name>zookeeper.connection.timeout.ms</name>
+    <value>25000</value>
+    <description>The maximum amount of time that the client waits to establish a connection to zookeeper.</description>
+  </property>
+  <property>
+    <name>zookeeper.sync.time.ms</name>
+    <value>2000</value>
+    <description>How far a ZK follower can be behind a ZK leader.</description>
+  </property>
+  <property>
+    <name>controlled.shutdown.enable</name>
+    <value>false</value>
+    <description>Enable controlled shutdown of the broker. If enabled, the broker will move all leaders on it to some other brokers before shutting itself down. This reduces the unavailability window during shutdown.</description>
+  </property>
+  <property>
+    <name>controlled.shutdown.max.retries</name>
+    <value>3</value>
+    <description>Number of retries to complete the controlled shutdown successfully before executing an unclean shutdown.</description>
+  </property>
+  <property>
+    <name>controlled.shutdown.retry.backoff.ms</name>
+    <value>5000</value>
+    <description>
+      Backoff time between shutdown retries.
+    </description>
+  </property>
+  <property>
+    <name>kafka.metrics.reporters</name>
+    <value></value>
+    <description>
+      kafka ganglia metrics reporter and kafka timeline metrics reporter
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>kafka.ganglia.metrics.reporter.enabled</name>
+    <value>true</value>
+    <description>
+      kafka ganglia metrics reporter enable
+    </description>
+  </property>
+  <property>
+    <name>kafka.ganglia.metrics.host</name>
+    <value>localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
+    <description> Ganglia host </description>
+  </property>
+  <property>
+    <name>kafka.ganglia.metrics.port</name>
+    <value>8671</value>
+    <description> Ganglia port </description>
+  </property>
+  <property>
+    <name>kafka.ganglia.metrics.group</name>
+    <value>kafka</value>
+    <description>Ganglia group name </description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.reporter.enabled</name>
+    <value>true</value>
+    <description>Kafka timeline metrics reporter enable</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.host</name>
+    <value>{{metric_collector_host}}</value>
+    <description>Timeline host</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.port</name>
+    <value>{{metric_collector_port}}</value>
+    <description>Timeline port</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.protocol</name>
+    <value>{{metric_collector_protocol}}</value>
+    <description>Timeline protocol(http or https)</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.truststore.path</name>
+    <value>{{metric_truststore_path}}</value>
+    <description>Location of the trust store file.</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.truststore.type</name>
+    <value>{{metric_truststore_type}}</value>
+    <description>Optional. Default value is "jks".</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.truststore.password</name>
+    <value>{{metric_truststore_password}}</value>
+    <description>Password to open the trust store file.</description>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.reporter.sendInterval</name>
+    <value>5900</value>
+    <description>Timeline metrics reporter send interval</description>
+  </property>
+    <property>
+    <name>kafka.timeline.metrics.maxRowCacheSize</name>
+    <value>10000</value>
+    <description>Timeline metrics reporter send interval</description>
+  </property>
+</configuration>

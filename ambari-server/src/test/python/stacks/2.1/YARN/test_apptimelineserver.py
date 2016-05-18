@@ -32,13 +32,14 @@ origin_exists = os.path.exists
 class TestAppTimelineServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
                        classname="ApplicationTimelineServer",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -49,7 +50,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -83,7 +84,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -96,48 +97,49 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
                               owner = 'mapred',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
                               owner = 'mapred',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
                               owner = 'mapred',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
                               owner = 'mapred',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
                               owner = 'yarn',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               ignore_failures = True,
                               cd_access = 'a',
                               )
@@ -184,10 +186,11 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/timeline',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     self.assertResourceCalled('HdfsResource', None,
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
                               hadoop_bin_dir = '/usr/bin',
                               keytab = UnknownConfigurationMock(),
@@ -197,7 +200,7 @@ class TestAppTimelineServer(RMFTestCase):
                               kinit_path_local = '/usr/bin/kinit',
                               principal_name = UnknownConfigurationMock(),
                               user = 'hdfs',
-                              action = ['execute'],
+                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
@@ -229,7 +232,7 @@ class TestAppTimelineServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access="a"
     )
@@ -275,7 +278,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -320,7 +323,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -343,7 +346,7 @@ class TestAppTimelineServer(RMFTestCase):
                          classname="ApplicationTimelineServer",
                          command="security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -360,7 +363,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -379,7 +382,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -389,12 +392,12 @@ class TestAppTimelineServer(RMFTestCase):
                        classname="ApplicationTimelineServer",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
-  @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
+  @patch.object(resource_management.libraries.functions, "get_stack_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -407,7 +410,7 @@ class TestAppTimelineServer(RMFTestCase):
                        classname = "ApplicationTimelineServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)

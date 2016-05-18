@@ -33,7 +33,7 @@ import com.google.inject.Singleton;
  * Checks that services are in the maintenance mode.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 2.0f, required = true)
+@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 6.0f, required = true)
 public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
 
   /**

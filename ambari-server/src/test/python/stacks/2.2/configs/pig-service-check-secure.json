@@ -36,7 +36,8 @@
     "clusterName": "c1", 
     "hostname": "c6403.ambari.apache.org", 
     "hostLevelParams": {
-        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_67",
         "java_version": "8",
@@ -145,7 +146,7 @@
             "ldap_url": "", 
             "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5", 
             "kdc_type": "mit-kdc",
-            "kdc_host": "c6401.ambari.apache.org",
+            "kdc_hosts": "c6401.ambari.apache.org",
             "admin_server_host": "c6401.ambari.apache.org"
         },
         "tez-site": {
@@ -284,7 +285,7 @@
         }, 
         "krb5-conf": {
             "conf_dir": "/etc",
-            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}\n    ",
+            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}\n    ",
             "domains": "",
             "manage_krb5_conf": "true"
         },
@@ -521,6 +522,7 @@
             "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\n\n# ***** Set root logger level to DEBUG and its only appender to A.\nlog4j.logger.org.apache.pig=info, A\n\n# ***** A is set to be a ConsoleAppender.\nlog4j.appender.A=org.apache.log4j.ConsoleAppender\n# ***** A uses PatternLayout.\nlog4j.appender.A.layout=org.apache.log4j.PatternLayout\nlog4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

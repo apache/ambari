@@ -21,18 +21,43 @@ var credentialUtils = require('utils/credentials');
 
 var view;
 
+function getView() {
+  return App.ManageCredentialsFormView.create({
+    parentView: Em.Object.create({})
+  });
+}
+
 describe('#App.ManageCredentialsFormView', function() {
   beforeEach(function() {
-    view = App.ManageCredentialsFormView.create({
-      parentView: Em.Object.create({})
-    });
+    view = getView();
   });
 
   afterEach(function() {
     view.destroy();
   });
 
+  App.TestAliases.testAsComputedAlias(getView(), 'storePersisted', 'App.isCredentialStorePersistent', 'boolean');
+
+  App.TestAliases.testAsComputedIfThenElse(getView(), 'formHeader', 'isRemovable', Em.I18n.t('admin.kerberos.credentials.form.header.stored'), Em.I18n.t('admin.kerberos.credentials.form.header.not.stored'));
+
+  App.TestAliases.testAsComputedIfThenElse(getView(), 'hintMessage', 'storePersisted', Em.I18n.t('admin.kerberos.credentials.store.hint.supported'), Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported'));
+
   describe('#prepareContent', function() {
+
+    var credentials;
+
+    beforeEach(function () {
+      this.stub = sinon.stub(App, 'get');
+      sinon.stub(credentialUtils, 'credentials', function(clusterName, callback) {
+        callback(credentials);
+      });
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      credentialUtils.credentials.restore();
+    });
+
     [
       {
         isStorePersistent: true,
@@ -66,17 +91,13 @@ describe('#App.ManageCredentialsFormView', function() {
       }
     ].forEach(function(test) {
       it(test.m, function(done) {
-        sinon.stub(credentialUtils, 'credentials', function(clusterName, callback) {
-          callback(test.credentials);
-        });
-        sinon.stub(App, 'get').withArgs('isCredentialStorePersistent').returns(test.e.storePersisted);
+        credentials = test.credentials;
+        this.stub.withArgs('isCredentialStorePersistent').returns(test.e.storePersisted);
         view.prepareContent();
         Em.run.next(function() {
           assert.equal(view.get('isRemovable'), test.e.isRemovable, '#isRemovable property validation');
           assert.equal(view.get('isRemoveDisabled'), test.e.isRemoveDisabled, '#isRemoveDisabled property validation');
           assert.equal(view.get('storePersisted'), test.e.storePersisted, '#storePersisted property validation');
-          credentialUtils.credentials.restore();
-          App.get.restore();
           done();
         });
       });
@@ -103,39 +124,55 @@ describe('#App.ManageCredentialsFormView', function() {
   });
 
   describe('fields validation', function() {
+    var t = Em.I18n.t;
+
     it('should flow validation', function() {
-      var t = Em.I18n.t;
       assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled on initial state');
+    });
+
+    it('principal is not empty', function() {
       view.set('principal', ' a');
-      assert.equal(view.get('principalError'), t('host.spacesValidation'), 'principal contains spaces, appropriate message shown');
+      expect(view.get('principalError')).to.equal(t('host.spacesValidation'));
       assert.isTrue(view.get('isPrincipalDirty'), 'principal name modified');
       assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled because principal not valid');
+    });
+
+    it('principal is empty', function() {
+      view.set('principal', ' a');
       view.set('principal', '');
-      assert.equal(view.get('principalError'), t('admin.users.editError.requiredField'), 'principal is empty, appropriate message shown');
+      expect(view.get('principalError')).to.equal(t('admin.users.editError.requiredField'));
+    });
+
+    it('principal is not empty (2)', function() {
       view.set('principal', 'some_name');
       assert.isFalse(view.get('principalError'), 'principal name valid no message shown');
       assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled because password field not modified');
+    });
+
+    it('password is updated', function() {
       view.set('password', '1');
       view.set('password', '');
-      assert.equal(view.get('passwordError'), t('admin.users.editError.requiredField'), 'password is empty, appropriate message shown');
+      expect(view.get('passwordError')).to.equal(t('admin.users.editError.requiredField'));
       assert.isTrue(view.get('isPasswordDirty'), 'password modified');
       assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled because password field is empty');
+    });
+
+    it('password is updated (2)', function() {
       view.set('password', 'some_pass');
+      view.set('principal', 'some_name');
       assert.isFalse(view.get('passwordError'), 'password valid no message shown');
       assert.isFalse(view.get('isSubmitDisabled'), 'submit enabled all fields are valid');
     });
+
   });
 
   describe('#removeKDCCredentials', function() {
-    it('should show confirmation popup', function() {
-      var popup = view.removeKDCCredentials().popup;
-      expect(popup).be.instanceof(App.ModalPopup);
-      popup.destroy();
-    });
-    it('should call credentialUtils#removeCredentials', function() {
+
+    var popup;
+
+    beforeEach(function () {
+      popup = view.removeKDCCredentials().popup;
       this.clock = sinon.useFakeTimers();
-      var popup = view.removeKDCCredentials().popup;
-      assert.isFalse(view.get('actionStatus'), '#actionStatus before remove');
       sinon.stub(credentialUtils, 'removeCredentials', function() {
         var dfd = $.Deferred();
         setTimeout(function() {
@@ -143,17 +180,35 @@ describe('#App.ManageCredentialsFormView', function() {
         }, 500);
         return dfd.promise();
       });
+    });
+
+    afterEach(function () {
+      popup.destroy();
+      credentialUtils.removeCredentials.restore();
+      this.clock.restore();
+    });
+
+    it('should show confirmation popup', function() {
+      expect(popup).be.instanceof(App.ModalPopup);
+    });
+
+    it('on popup open', function() {
+      assert.isFalse(view.get('actionStatus'), '#actionStatus before remove');
+    });
+
+    it('on Primary', function() {
       popup.onPrimary();
       assert.isTrue(view.get('isActionInProgress'), 'action in progress');
       assert.isTrue(view.get('isRemoveDisabled'), 'remove button disabled');
       assert.isTrue(view.get('isSubmitDisabled'), 'submit button disabled');
+    });
+
+    it('after 1s', function() {
+      popup.onPrimary();
       this.clock.tick(1000);
       assert.isFalse(view.get('isActionInProgress'), 'action finished');
       assert.equal(Em.I18n.t('common.success'), view.get('actionStatus'), '#actionStatus after remove');
       assert.isTrue(view.get('parentView.isCredentialsRemoved'), 'parentView#isCredentialsRemoved property should be triggered when remove complete');
-      credentialUtils.removeCredentials.restore();
-      this.clock.restore();
-      popup.destroy();
     });
   });
 

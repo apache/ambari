@@ -37,13 +37,13 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{hostname}}:{{application-properties/atlas.server.http.port}}",
-            "https": "{{hostname}}:{{application-properties/atlas.server.https.port}}",
+            "http": "{{application-properties/atlas.server.http.port}}",
+            "https": "{{application-properties/atlas.server.https.port}}",
             "https_property": "{{application-properties/atlas.enableTLS}}",
             "https_property_value": "true",
             "default_port": 21000,
-            "kerberos_keytab": "{{application-properties/atlas.http.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{application-properties/atlas.http.authentication.kerberos.principal}}",
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
             "connection_timeout": 5.0
           },
           "reporting": {

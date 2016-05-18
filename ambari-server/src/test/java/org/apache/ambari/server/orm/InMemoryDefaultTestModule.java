@@ -24,13 +24,17 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.easymock.EasyMock;
 import org.springframework.beans.factory.config.BeanDefinition;
 
 import com.google.inject.AbstractModule;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
+
+  Properties properties = new Properties();
 
   /**
    * Saves all {@link ControllerModule} logic, but changes bean discovery mechanism.
@@ -56,8 +60,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     }
   }
 
-  Properties properties = new Properties();
-
   @Override
   protected void configure() {
     String stacks = "src/test/resources/stacks";
@@ -69,19 +71,44 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
     }
 
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADATA_DIR_PATH, stacks);
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, version);
-    properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
+    if (!properties.containsKey(Configuration.SERVER_PERSISTENCE_TYPE_KEY)) {
+      properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+    }
+
+    if (!properties.containsKey(Configuration.METADATA_DIR_PATH)) {
+      properties.setProperty(Configuration.METADATA_DIR_PATH, stacks);
+    }
+
+    if (!properties.containsKey(Configuration.SERVER_VERSION_FILE)) {
+      properties.setProperty(Configuration.SERVER_VERSION_FILE, version);
+    }
+
+    if (!properties.containsKey(Configuration.OS_VERSION_KEY)) {
+      properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
+    }
+
+    if (!properties.containsKey(Configuration.SHARED_RESOURCES_DIR_KEY)) {
+      properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
+    }
 
     try {
       install(new BeanDefinitionsCachingTestControllerModule(properties));
+      AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
+      EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
+      bind(AuditLogger.class).toInstance(al);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
+  /**
+   * Gets the properties that will be used to initialize the system. If a
+   * property is placed here which {@link #configure()} also sets, then
+   * {@link #configure()} will not set it, and instead take the property that
+   * the test has set.
+   *
+   * @return
+   */
   public Properties getProperties() {
     return properties;
   }

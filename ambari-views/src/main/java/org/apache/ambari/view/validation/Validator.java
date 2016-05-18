@@ -42,7 +42,7 @@ public interface Validator {
    *
    * @param property    the property name
    * @param definition  the view instance definition
-   * @param mode        the validation mode
+   * @param mode        the validation modes
    *
    * @return the instance validation result; may be {@code null}
    */

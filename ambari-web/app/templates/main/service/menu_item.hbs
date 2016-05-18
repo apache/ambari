@@ -16,18 +16,18 @@
 * limitations under the License.
 }}
 
-<a {{bindAttr href="view.link"}}>
-  <div {{bindAttr class="view.alertsCount:with-alert :service-caption"}}>
-    {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
-    <span>{{unbound view.content.displayName}}</span>
-    <i rel="tooltip" {{action goToConfigs target="view"}}{{bindAttr class=":icon-refresh :restart-required-service view.content.isRestartRequired::hidden" data-original-title="view.restartRequiredMessage"}}></i>
-  </div>
+<a class="services-menu-blocks" {{bindAttr href="view.link"}}>
+  {{#if view.alertsCount}}
+    <span {{bindAttr class=":label :alerts-count view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
+      {{view.alertsCount}}
+    </span>
+  {{/if}}
 
-  <div class="icon-caption">
-    {{#if view.alertsCount}}
-      <span {{bindAttr class=":label :alerts-count view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-        {{view.alertsCount}}
-      </span>
-    {{/if}}
+  <div class="icon-health-block">
+    {{view App.MainDashboardServiceHealthView class="service-health" serviceBinding="view.content"}}&nbsp;
   </div>
+  <div class="service-name-block">
+    <span>{{unbound view.content.displayName}}</span>
+  </div>
+  <i rel="tooltip" {{action goToConfigs target="view"}}{{bindAttr class=":icon-refresh :restart-required-service view.content.isRestartRequired::hidden" data-original-title="view.restartRequiredMessage"}}></i>
 </a>

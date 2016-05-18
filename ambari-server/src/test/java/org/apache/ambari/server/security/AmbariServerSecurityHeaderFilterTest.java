@@ -18,11 +18,15 @@
 
 package org.apache.ambari.server.security;
 
-import org.apache.ambari.server.configuration.Configuration;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.ambari.server.configuration.Configuration;
+
+import static org.easymock.EasyMock.expect;
 
 public class AmbariServerSecurityHeaderFilterTest extends AbstractSecurityHeaderFilterTest {
 
@@ -47,5 +51,10 @@ public class AmbariServerSecurityHeaderFilterTest extends AbstractSecurityHeader
 
   public AmbariServerSecurityHeaderFilterTest() {
     super(AmbariServerSecurityHeaderFilter.class, PROPERTY_NAME_MAP, DEFAULT_PROPERTY_VALUE_MAP);
+  }
+
+  @Override
+  protected void expectHttpServletRequestMock(HttpServletRequest request) {
+    expect(request.getAttribute(AbstractSecurityHeaderFilter.DENY_HEADER_OVERRIDES_FLAG)).andReturn(null);
   }
 }

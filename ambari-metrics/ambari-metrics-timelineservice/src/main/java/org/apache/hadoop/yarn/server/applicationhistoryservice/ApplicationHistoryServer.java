@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.http.HttpConfig;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.metrics2.source.JvmMetrics;
 import org.apache.hadoop.service.CompositeService;
@@ -54,8 +55,8 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 public class ApplicationHistoryServer extends CompositeService {
 
   public static final int SHUTDOWN_HOOK_PRIORITY = 30;
-  private static final Log LOG = LogFactory
-    .getLog(ApplicationHistoryServer.class);
+  private static final Log LOG =
+    LogFactory.getLog(ApplicationHistoryServer.class);
 
   ApplicationHistoryClientService ahsClientService;
   ApplicationHistoryManager historyManager;
@@ -170,15 +171,17 @@ public class ApplicationHistoryServer extends CompositeService {
     String bindAddress = metricConfiguration.getWebappAddress();
     LOG.info("Instantiating AHSWebApp at " + bindAddress);
     try {
+      Configuration conf = metricConfiguration.getMetricsConf();
+      conf.set("hadoop.http.max.threads", String.valueOf(metricConfiguration
+        .getTimelineMetricsServiceHandlerThreadCount()));
+      HttpConfig.Policy policy = HttpConfig.Policy.valueOf(
+        conf.get(TimelineMetricConfiguration.TIMELINE_SERVICE_HTTP_POLICY,
+          HttpConfig.Policy.HTTP_ONLY.name()));
       webApp =
           WebApps
             .$for("applicationhistory", ApplicationHistoryClientService.class,
               ahsClientService, "ws")
-            .with(getConfig())
-            .withHttpSpnegoPrincipalKey(
-              YarnConfiguration.TIMELINE_SERVICE_PRINCIPAL)
-            .withHttpSpnegoKeytabKey(
-              YarnConfiguration.TIMELINE_SERVICE_KEYTAB)
+            .withHttpPolicy(conf, policy)
             .at(bindAddress)
             .start(new AHSWebApp(timelineStore, timelineMetricStore,
               ahsClientService));

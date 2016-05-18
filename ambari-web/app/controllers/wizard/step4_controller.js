@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.WizardStep4Controller = Em.ArrayController.extend({
 
@@ -29,8 +28,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   content: [],
 
-  isValidating: false,
-
   /**
    * Check / Uncheck 'Select All' checkbox with one argument; Check / Uncheck all other checkboxes with more arguments
    * @type {bool}
@@ -39,11 +36,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     if (arguments.length > 1) {
       this.filterProperty('isInstalled', false).setEach('isSelected', value);
       return value;
-    } else {
-      return this.filterProperty('isInstalled', false).
-        filterProperty('isHiddenOnSelectServicePage', false).
-        everyProperty('isSelected', true);
     }
+    return this.filterProperty('isInstalled', false).
+      filterProperty('isHiddenOnSelectServicePage', false).
+      everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
   /**
@@ -66,7 +62,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Drop errorStack content on selected state changes.
    **/
   clearErrors: function() {
-    if (!this.get('isValidating')) {
+    if (!this.get('errorStack').someProperty('isAccepted', false)) {
       this.set('errorStack', []);
     }
   }.observes('@each.isSelected'),
@@ -77,65 +73,78 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method multipleDFSs
    */
   multipleDFSs: function () {
-    var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true);
-	  return  dfsServices.length > 1;
-  },
-
-  /**
-   * Check whether user selected Ambari Metrics service to install and go to next step
-   * @method ambariMetricsValidation
-   */
-  ambariMetricsValidation: function () {
-    var ambariMetricsService = this.findProperty('serviceName', 'AMBARI_METRICS');
-    if (ambariMetricsService && !ambariMetricsService.get('isSelected')) {
-      this.addValidationError({
-        id: 'ambariMetricsCheck',
-        type: 'WARNING',
-        callback: this.ambariMetricsCheckPopup
-      });
-    }
+    return this.filterProperty('isDFS',true).filterProperty('isSelected',true).length > 1;
   },
 
   /**
    * Check whether Ranger is selected and show installation requirements if yes
+   * @param {function} callback
    * @method rangerValidation
    */
-  rangerValidation: function () {
+  rangerValidation: function (callback) {
     var rangerService = this.findProperty('serviceName', 'RANGER');
-    if (rangerService && rangerService.get('isSelected') && !rangerService.get('isInstalled')) {
-      this.addValidationError({
-        id: 'rangerRequirements',
-        type: 'WARNING',
-        callback: this.rangerRequirementsPopup
-      });
+    if (rangerService && !rangerService.get('isInstalled')) {
+      if(rangerService.get('isSelected')) {
+        this.addValidationError({
+          id: 'rangerRequirements',
+          type: 'WARNING',
+          callback: this.rangerRequirementsPopup,
+          callbackParams: [callback]
+        });
+      }
+      else {
+        //Ranger is selected, remove the Ranger error from errorObject array
+        var rangerError = this.get('errorStack').filterProperty('id',"rangerRequirements");
+        if(rangerError)
+        {
+           this.get('errorStack').removeObject(rangerError[0]);
+        }
+      }
     }
   },
 
   /**
    * Warn user if he tries to install Spark with HDP 2.2
+   * @param {function} callback
    * @method sparkValidation
    */
-  sparkValidation: function () {
+  sparkValidation: function (callback) {
     var sparkService = this.findProperty('serviceName', 'SPARK');
-    if (sparkService && sparkService.get('isSelected') && !sparkService.get('isInstalled') &&
-      App.get('currentStackName') == 'HDP' && App.get('currentStackVersionNumber') == '2.2') {
-      this.addValidationError({
-        id: 'sparkWarning',
-        type: 'WARNING',
-        callback: this.sparkWarningPopup
-      });
+    if (sparkService && !sparkService.get('isInstalled') &&
+      App.get('currentStackName') === 'HDP' && App.get('currentStackVersionNumber') === '2.2') {
+      if(sparkService.get('isSelected')) {
+        this.addValidationError({
+          id: 'sparkWarning',
+          type: 'WARNING',
+          callback: this.sparkWarningPopup,
+          callbackParams: [callback]
+        });
+      }
+      else {
+        //Spark is selected, remove the Spark error from errorObject array
+        var sparkError = this.get('errorStack').filterProperty('id',"sparkWarning");
+        if(sparkError)
+        {
+           this.get('errorStack').removeObject(sparkError[0]);
+        }
+      }
     }
   },
 
   /**
    * Onclick handler for <code>Next</code> button.
+   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @method submit
    */
   submit: function () {
+    if(App.router.nextBtnClickInProgress){
+      return;
+    }
     if (!this.get('isSubmitDisabled')) {
       this.unSelectServices();
       this.setGroupedServices();
       if (this.validate()) {
+        App.set('router.nextBtnClickInProgress', true);
         this.set('errorStack', []);
         App.router.send('next');
       }
@@ -158,24 +167,60 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    * @method validate
    **/
-  validate: function() {
+  validate: function () {
     var result;
-    this.set('isValidating', true);
-    this.serviceDependencyValidation();
-    this.fileSystemServiceValidation();
-    if (this.get('wizardController.name') == 'installerController') {
-      this.ambariMetricsValidation();
+    var self = this;
+    // callback function to reset `isAccepted` needs to be called everytime when a popup from errorStack is dismissed/proceed by user action
+    var callback = function (id) {
+      var check = self.get('errorStack').findProperty('id', id);
+      if (check) {
+        check.isAccepted = true;
+      }
+    };
+    this.serviceDependencyValidation(callback);
+    this.fileSystemServiceValidation(callback);
+    if (this.get('wizardController.name') === 'installerController') {
+      this.serviceValidation(callback, 'AMBARI_METRICS', 'ambariMetricsCheck');
+      this.serviceValidation(callback, 'SMARTSENSE', 'smartSenseCheck');
     }
-    this.rangerValidation();
-    this.sparkValidation();
+    this.rangerValidation(callback);
+    this.sparkValidation(callback);
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
-      this.showError(this.get('errorStack').findProperty('isShown', false));
+      var firstError = this.get('errorStack').findProperty('isShown', false);
+      this.showError(firstError);
       result = false;
     } else {
       result = true;
     }
-    this.set('isValidating', false);
     return result;
+  },
+
+  /**
+   * Check whether user selected service to install and go to next step
+   * @param callback {Function}
+   * @param serviceName {string}
+   * @param id {string}
+   * @method serviceValidation
+   */
+  serviceValidation: function(callback, serviceName, id) {
+    var service = this.findProperty('serviceName', serviceName);
+    if (service) {
+      if (!service.get('isSelected')) {
+        this.addValidationError({
+          id: id,
+          type: 'WARNING',
+          callback: this.serviceCheckPopup,
+          callbackParams: [callback]
+        });
+      }
+      else {
+        //metrics is selected, remove the metrics error from errorObject array
+        var metricsError = this.get('errorStack').filterProperty('id', id);
+        if (metricsError) {
+          this.get('errorStack').removeObject(metricsError[0]);
+        }
+      }
+    }
   },
 
   /**
@@ -185,13 +230,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    * @method addValidationError
    **/
-  addValidationError: function(errorObject) {
-    if (!this.get('errorStack').mapProperty('id').contains(errorObject.id)) {
+  addValidationError: function (errorObject) {
+    if (!this.get('errorStack').someProperty('id', errorObject.id)) {
       this.get('errorStack').push(this.createError(errorObject));
       return true;
-    } else {
-      return false;
     }
+    return false;
   },
 
   /**
@@ -200,8 +244,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @param {Object} errorObject
    * @method showError
    **/
-  showError: function(errorObject) {
-    return errorObject.callback.apply(errorObject.callbackContext, errorObject.callbackParams);
+  showError: function (errorObject) {
+    return errorObject.callback.apply(errorObject.callbackContext, errorObject.callbackParams.concat(errorObject.id));
   },
 
   /**
@@ -209,11 +253,17 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *  Change isShown state for last shown error.
    *  Call #submit() method.
    *
+   *  @param {function} callback
+   *  @param {string} id
    *  @method onPrimaryPopupCallback
    **/
-  onPrimaryPopupCallback: function() {
-    if (this.get('errorStack').someProperty('isShown', false)) {
-      this.get('errorStack').findProperty('isShown', false).isShown = true;
+  onPrimaryPopupCallback: function(callback, id) {
+    var firstError = this.get('errorStack').findProperty('isShown', false);
+    if (firstError) {
+      firstError.isShown = true;
+    }
+    if (callback) {
+      callback(id);
     }
     this.submit();
   },
@@ -240,6 +290,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       type: 'CRITICAL',
       // {Boolean} error was shown
       isShown: false,
+      // {Boolean} error was accepted by user
+      isAccepted: false,
       // {Function} callback to execute
       callback: null,
       // context which execute from
@@ -270,10 +322,10 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   /**
    * Checks if a filesystem is selected and only one filesystem is selected
-   *
+   * @param {function} callback
    * @method isFileSystemCheckFailed
    */
-  fileSystemServiceValidation: function() {
+  fileSystemServiceValidation: function(callback) {
     if(this.isDFSStack()){
       var primaryDFS = this.findProperty('isPrimaryDFS',true);
       if (primaryDFS) {
@@ -282,7 +334,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         if (this.multipleDFSs()) {
           var dfsServices = this.filterProperty('isDFS',true).filterProperty('isSelected',true).mapProperty('serviceName');
           var services = dfsServices.map(function (item){
-            return  {
+            return {
               serviceName: item,
               selected: item === primaryDfsServiceName
             };
@@ -290,8 +342,17 @@ App.WizardStep4Controller = Em.ArrayController.extend({
           this.addValidationError({
             id: 'multipleDFS',
             callback: this.needToAddServicePopup,
-            callbackParams: [services, 'multipleDFS', primaryDfsDisplayName]
+            callbackParams: [services, 'multipleDFS', primaryDfsDisplayName, callback]
           });
+        }
+        else
+        {
+          //if multiple DFS are not selected, remove the related error from the error array 
+          var fsError = this.get('errorStack').filterProperty('id',"multipleDFS");
+          if(fsError)
+          {
+             this.get('errorStack').removeObject(fsError[0]);
+          }
         }
       }
     }
@@ -299,36 +360,69 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   /**
    * Checks if a dependent service is selected without selecting the main service.
-   *
+   * @param {function} callback
    * @method serviceDependencyValidation
    */
-  serviceDependencyValidation: function() {
+  serviceDependencyValidation: function(callback) {
     var selectedServices = this.filterProperty('isSelected',true);
     var missingDependencies = [];
     var missingDependenciesDisplayName = [];
     selectedServices.forEach(function(service){
-      var requiredServices =  service.get('requiredServices');
+      var requiredServices = service.get('requiredServices');
       if (!!requiredServices && requiredServices.length) {
         requiredServices.forEach(function(_requiredService){
           var requiredService = this.findProperty('serviceName', _requiredService);
-          if (requiredService && requiredService.get('isSelected') === false) {
-            if(missingDependencies.indexOf(_requiredService) == -1 ) {
-              missingDependencies.push(_requiredService);
-              missingDependenciesDisplayName.push(requiredService.get('displayNameOnSelectServicePage'));
+          if (requiredService) {
+            if(requiredService.get('isSelected') === false)
+            {
+               if(missingDependencies.indexOf(_requiredService) == -1 ) {
+                 missingDependencies.push(_requiredService);
+                 missingDependenciesDisplayName.push(requiredService.get('displayNameOnSelectServicePage'));
+               }
             }
+            else
+            { 
+               //required service is selected, remove the service error from errorObject array 
+               var serviceName = requiredService.get('serviceName');
+               var serviceError = this.get('errorStack').filterProperty('id',"serviceCheck_"+serviceName);
+               if(serviceError)
+               {
+                  this.get('errorStack').removeObject(serviceError[0]);
+               }
+            } 
           }
         },this);
       }
     },this);
 
+    //create a copy of the errorStack, reset it
+    //and add the dependencies in the correct order
+    var errorStackCopy = this.get('errorStack');
+    this.set('errorStack', []);    
+      
     if (missingDependencies.length > 0) {
       for(var i = 0; i < missingDependencies.length; i++) {
         this.addValidationError({
           id: 'serviceCheck_' + missingDependencies[i],
           callback: this.needToAddServicePopup,
-          callbackParams: [{serviceName: missingDependencies[i], selected: true}, 'serviceCheck', missingDependenciesDisplayName[i]]
+          callbackParams: [{serviceName: missingDependencies[i], selected: true}, 'serviceCheck', missingDependenciesDisplayName[i], callback]
         });
+      }      
+    }
+    
+    //iterate through the errorStackCopy array and add to errorStack array, the error objects that have no matching entry in the errorStack 
+    //and that are not related to serviceChecks since serviceCheck errors have already been added when iterating through the missing dependencies list
+    //Only add Ranger, Ambari Metrics, Spark and file system service validation errors if they exist in the errorStackCopy array
+    var ctr = 0;
+    while(ctr < errorStackCopy.length) {
+      //no matching entry in errorStack array
+      if (!this.get('errorStack').someProperty('id', errorStackCopy[ctr].id)) {
+        //not serviceCheck error
+        if(!errorStackCopy[ctr].id.startsWith('serviceCheck_')) {
+          this.get('errorStack').push(this.createError(errorStackCopy[ctr]));
+        }        
       }
+      ctr++;
     }
   },
 
@@ -363,11 +457,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *  </code>
    * @param {string} i18nSuffix
    * @param {string} serviceName
+   * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
    * @method needToAddServicePopup
    */
 
-  needToAddServicePopup: function(services, i18nSuffix, serviceName) {
+  needToAddServicePopup: function (services, i18nSuffix, serviceName, callback, id) {
     if (!(services instanceof Array)) {
       services = [services];
     }
@@ -379,36 +475,65 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         services.forEach(function (service) {
           self.findProperty('serviceName', service.serviceName).set('isSelected', service.selected);
         });
-        self.onPrimaryPopupCallback();
+        self.onPrimaryPopupCallback(callback, id);
         this.hide();
+      },
+      onSecondary: function () {
+        if (callback) {
+          callback(id);
+        }
+        this._super();
+      },
+      onClose: function () {
+        if (callback) {
+          callback(id);
+        }
+        this._super();
       }
     });
   },
 
   /**
-   * Show popup with info about not selected Ambari Metrics service
+   * Show popup with info about not selected service
+   * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
-   * @method ambariMetricsCheckPopup
+   * @method serviceCheckPopup
    */
-  ambariMetricsCheckPopup: function () {
+  serviceCheckPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
-      header: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.header'),
-      body: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.body'),
+      header: Em.I18n.t('installer.step4.limitedFunctionality.popup.header'),
+      body: Em.I18n.t('installer.step4.' + id + '.popup.body'),
       primary: Em.I18n.t('common.proceedAnyway'),
+      primaryClass: 'btn-warning',
       onPrimary: function () {
-        self.onPrimaryPopupCallback();
+        self.onPrimaryPopupCallback(callback);
         this.hide();
+      },
+      onSecondary: function () {
+        if (callback) {
+          callback(id);
+        }
+        this._super();
+      },
+      onClose: function () {
+        if (callback) {
+          callback(id);
+        }
+        this._super();
       }
     });
   },
 
   /**
    * Show popup with installation requirements for Ranger service
+   * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
    * @method rangerRequirementsPopup
    */
-  rangerRequirementsPopup: function () {
+  rangerRequirementsPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.rangerRequirements.popup.header'),
@@ -421,26 +546,52 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         return !this.get('isChecked');
       }.property('isChecked'),
       onPrimary: function () {
-        self.onPrimaryPopupCallback();
+        self.onPrimaryPopupCallback(callback);
         this.hide();
+      },
+      onSecondary: function () {
+        if (callback) {
+          callback(id);
+        }
+        this._super();
+      },
+      onClose: function () {
+        if (callback) {
+          callback(id);
+        }
+        this._super();
       }
     });
   },
 
   /**
    * Show popup with Spark installation warning
+   * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
    * @method sparkWarningPopup
    */
-  sparkWarningPopup: function () {
+  sparkWarningPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
       body: Em.I18n.t('installer.step4.sparkWarning.popup.body'),
       primary: Em.I18n.t('common.proceed'),
       onPrimary: function () {
-        self.onPrimaryPopupCallback();
+        self.onPrimaryPopupCallback(callback);
         this.hide();
+      },
+      onSecondary: function () {
+        if (callback) {
+          callback(id);
+        }
+        this._super();
+      },
+      onClose: function () {
+        if (callback) {
+          callback(id);
+        }
+       this._super();
       }
     });
   }

@@ -22,13 +22,15 @@
       <i class="icon-remove-sign icon-large"></i>
     </a>
     <div class="caption title span11">{{view.content.widgetName}}</div>
-      <div class="widget-icons">
+    <div class="widget-icons">
+      {{#if controller.isAmbariMetricsInstalled}}
         <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
           <i class="icon-edit"></i>
         </a>
         <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
           <i class="icon-copy"></i>
         </a>
+      {{/if}}
       </div>
     <div {{bindAttr class="view.contentColor :content"}}>{{{view.displayValue}}}</div>
     {{#if view.content.description}}
@@ -37,6 +39,6 @@
       </div>
     {{/if}}
   {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   {{/if}}
 </div>

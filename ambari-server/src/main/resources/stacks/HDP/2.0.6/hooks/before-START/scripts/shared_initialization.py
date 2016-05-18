@@ -37,7 +37,7 @@ def setup_hadoop():
   #directories
   if params.has_namenode or params.dfs_type == 'HCFS':
     Directory(params.hdfs_log_dir_prefix,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               mode=0775,
@@ -45,13 +45,13 @@ def setup_hadoop():
     )
     if params.has_namenode:
       Directory(params.hadoop_pid_dir_prefix,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root',
               cd_access='a',
       )
     Directory(params.hadoop_tmp_dir,
-              recursive=True,
+              create_parents = True,
               owner=params.hdfs_user,
               cd_access='a',
               )
@@ -62,7 +62,9 @@ def setup_hadoop():
       tc_owner = params.hdfs_user
       
     # if WebHDFS is not enabled we need this jar to create hadoop folders.
-    if params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+    if params.host_sys_prepped:
+      print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
+    elif params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
       # for source-code of jar goto contrib/fast-hdfs-resource
       File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
            mode=0644,
@@ -98,10 +100,11 @@ def setup_hadoop():
 
       File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
            owner=params.hdfs_user,
+           group=params.user_group,
            content=Template("hadoop-metrics2.properties.j2")
       )
 
-    if params.dfs_type == 'HCFS' and params.has_core_site:
+    if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
        create_dirs()
 
 
@@ -146,7 +149,7 @@ def generate_include_file():
 def create_javahome_symlink():
   if os.path.exists("/usr/jdk/jdk1.6.0_31") and not os.path.exists("/usr/jdk64/jdk1.6.0_31"):
     Directory("/usr/jdk64/",
-         recursive=True,
+         create_parents = True,
     )
     Link("/usr/jdk/jdk1.6.0_31",
          to="/usr/jdk64/jdk1.6.0_31",
@@ -154,7 +157,7 @@ def create_javahome_symlink():
 
 def create_dirs():
    import params
-   params.HdfsResource("/tmp",
+   params.HdfsResource(params.hdfs_tmp_dir,
                        type="directory",
                        action="create_on_execute",
                        owner=params.hdfs_user,

@@ -255,6 +255,7 @@
   <property>
     <name>dfs.namenode.http-address</name>
     <value>localhost:50070</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The name of the default file system.  Either the
       literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
@@ -278,6 +279,12 @@
       <type>int</type>
       <unit>bytes</unit>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hdfs-site</type>
+        <name>dfs.datanode.data.dir</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -360,6 +367,7 @@
     <!-- cluster variant -->
     <name>dfs.namenode.secondary.http-address</name>
     <value>localhost:50090</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Address of secondary namenode web server</description>
   </property>
 
@@ -367,6 +375,7 @@
   <property>
     <name>dfs.namenode.https-address</name>
     <value>localhost:50470</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The https address where namenode binds</description>
 
   </property>
@@ -388,7 +397,7 @@
     <name>dfs.namenode.accesstime.precision</name>
     <value>0</value>
     <display-name>Access time precision</display-name>
-    <description>The access time for HDFS file is precise upto this value.
+    <description>The access time for HDFS file is precise up to this value.
       The default value is 1 hour. Setting a value of 0 disables
       access times for HDFS.
     </description>

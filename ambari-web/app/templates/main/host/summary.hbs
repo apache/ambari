@@ -76,7 +76,7 @@
                 </div>
               {{/if}}
             </div>
-            <div class="span5 row">
+            <div class="span5 row pull-right">
               {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
                 {{#if view.clients.length}}
                   <div class="btn-group pull-right">
@@ -91,7 +91,7 @@
                         </a>
                       </li>
                       <li>
-                        <a href="javascript:void(null)" {{bindAttr class="view.areClientsNotInstalled::disabled" }} data-toggle="modal" {{action installClients view.notInstalledClientComponents target="controller"}}>
+                        <a href="javascript:void(null)" {{bindAttr class="view.areClientsNotInstalled::disabled" }} data-toggle="modal" {{action installClients target="view"}}>
                           {{t host.host.details.installClients}}
                         </a>
                       </li>
@@ -159,28 +159,38 @@
                         <dt class="summary-agent-heart-label">{{t hosts.host.summary.agentHeartbeat}}:</dt>
                           <dd class="summary-agent-heart-value">&nbsp;{{view.timeSinceHeartBeat}}</dd>
 
-                        {{#if App.supports.stackUpgrade}}
-                          <dt class="summary-cur-ver-label">{{t hosts.host.summary.currentVersion}}:</dt>
-                            <dd class="summary-cur-ver-value">&nbsp;{{view.content.currentVersion}}</dd>
-                        {{/if}}
+                        <dt class="summary-cur-ver-label">{{t hosts.host.summary.currentVersion}}:</dt>
+                          <dd class="summary-cur-ver-value">&nbsp;{{view.content.currentVersion}}</dd>
                     </dl>
                 </div>
             </div>
         </div>
     </div>
-  {{!metrics}}
-  {{#unless view.isNoHostMetricsService}}
-      <div class="span6">
+    <div class="span6">
+      {{!metrics}}
+      {{#unless view.isNoHostMetricsService}}
         <div class="box">
           <div class="box-header">
             <h4>{{t hosts.host.summary.hostMetrics}}</h4>
             {{view view.timeRangeListView}}
           </div>
           <div>
-           {{view App.MainHostMetricsView contentBinding="view.content"}}
+            {{view App.MainHostMetricsView contentBinding="view.content"}}
           </div>
         </div>
-      </div>
+      {{/unless}}
+
+      {{!logs metrics}}
+      {{#if App.supports.logCountVizualization}}
+        <div class="box">
+          <div class="box-header">
+            <h4>{{t hosts.host.summary.hostLogMetrics}}</h4>
+          </div>
+          <div>
+            {{view App.MainHostLogMetrics contentBinding="view.content"}}
+          </div>
+        </div>
+      {{/if}}
     </div>
-  {{/unless}}
+  </div>
 </div>

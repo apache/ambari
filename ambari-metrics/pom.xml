@@ -15,7 +15,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+  <parent>
+    <groupId>org.apache.ambari</groupId>
+    <artifactId>ambari-project</artifactId>
+    <version>2.0.0.0-SNAPSHOT</version>
+    <relativePath>../ambari-project</relativePath>
+  </parent>
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics</artifactId>
@@ -29,6 +34,7 @@
     <module>ambari-metrics-storm-sink</module>
     <module>ambari-metrics-timelineservice</module>
     <module>ambari-metrics-host-monitoring</module>
+    <module>ambari-metrics-grafana</module>
     <module>ambari-metrics-assembly</module>
   </modules>
   <properties>
@@ -44,6 +50,8 @@
     <hbase.winpkg.folder>hbase-0.98.4.2.2.4.2-0002-hadoop2</hbase.winpkg.folder>
     <hadoop.winpkg.zip>https://msibuilds.blob.core.windows.net/hdp/2.x/2.2.4.2/2/hadoop-2.6.0.2.2.4.2-0002.winpkg.zip</hadoop.winpkg.zip>
     <hadoop.winpkg.folder>hadoop-2.6.0.2.2.4.2-0002</hadoop.winpkg.folder>
+    <grafana.folder>grafana-2.6.0</grafana.folder>
+    <grafana.tar>https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0.linux-x64.tar.gz</grafana.tar>
     <resmonitor.install.dir>
       /usr/lib/python2.6/site-packages/resource_monitoring
     </resmonitor.install.dir>
@@ -132,6 +140,7 @@
         </executions>
       </plugin>
       <plugin>
+        <inherited>false</inherited>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
@@ -266,6 +275,7 @@
             <exclude>pass.txt</exclude>
             <exclude>derby.log</exclude>
             <exclude>**/*.nuspec</exclude>
+            <exclude>**/*.json</exclude>
           </excludes>
         </configuration>
         <executions>

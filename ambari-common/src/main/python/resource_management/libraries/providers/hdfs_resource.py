@@ -21,6 +21,7 @@ Ambari Agent
 """
 import re
 import os
+import time
 from resource_management.core.environment import Environment
 from resource_management.core.base import Fail
 from resource_management.core.resources.system import Execute
@@ -37,7 +38,7 @@ from resource_management.libraries.functions import namenode_ha_utils
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import subprocess
 
-JSON_PATH = '/var/lib/ambari-agent/tmp/hdfs_resources.json'
+JSON_PATH = '/var/lib/ambari-agent/tmp/hdfs_resources_{timestamp}.json'
 JAR_PATH = '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
 
 RESOURCE_TO_JSON_FIELDS = {
@@ -51,6 +52,7 @@ RESOURCE_TO_JSON_FIELDS = {
   'recursive_chown': 'recursiveChown',
   'recursive_chmod': 'recursiveChmod',
   'change_permissions_for_parents': 'changePermissionforParents',
+  'manage_if_exists': 'manageIfExists',
   'dfs_type': 'dfs_type'
 }
 
@@ -76,6 +78,8 @@ class HdfsResourceJar:
         resource[json_field_name] = action_name
       elif field_name == 'mode' and main_resource.resource.mode:
         resource[json_field_name] = oct(main_resource.resource.mode)[1:]
+      elif field_name == 'manage_if_exists':
+        resource[json_field_name] = main_resource.manage_if_exists
       elif getattr(main_resource.resource, field_name):
         resource[json_field_name] = getattr(main_resource.resource, field_name)
 
@@ -101,13 +105,14 @@ class HdfsResourceJar:
     logoutput = main_resource.resource.logoutput
     principal_name = main_resource.resource.principal_name
     jar_path=JAR_PATH
-    json_path=JSON_PATH
+    timestamp = time.time()
+    json_path=format(JSON_PATH)
 
     if security_enabled:
       main_resource.kinit()
 
     # Write json file to disk
-    File(JSON_PATH,
+    File(json_path,
          owner = user,
          content = json.dumps(env.config['hdfs_files'])
     )
@@ -149,32 +154,13 @@ class WebHDFSUtil:
     # only hdfs seems to support webHDFS
     return (is_webhdfs_enabled and default_fs.startswith("hdfs"))
     
-  def parse_path(self, path):
-    """
-    hdfs://nn_url:1234/a/b/c -> /a/b/c
-    hdfs://nn_ha_name/a/b/c -> /a/b/c
-    hdfs:///a/b/c -> /a/b/c
-    /a/b/c -> /a/b/c
-    """
-    math_with_protocol_and_nn_url = re.match("[a-zA-Z]+://[^/]+(/.+)", path)
-    math_with_protocol = re.match("[a-zA-Z]+://(/.+)", path)
-    
-    if math_with_protocol_and_nn_url:
-      path = math_with_protocol_and_nn_url.group(1)
-    elif math_with_protocol:
-      path = math_with_protocol.group(1)
-    else:
-      path = path
-      
-    return re.sub("[/]+", "/", path)
-    
   valid_status_codes = ["200", "201"]
   def run_command(self, target, operation, method='POST', assertable_result=True, file_to_put=None, ignore_status_codes=[], **kwargs):
     """
     assertable_result - some POST requests return '{"boolean":false}' or '{"boolean":true}'
     depending on if query was successful or not, we can assert this for them
     """
-    target = self.parse_path(target)
+    target = HdfsResourceProvider.parse_path(target)
     
     url = format("{address}/webhdfs/v1{target}?op={operation}&user.name={run_user}", address=self.address, run_user=self.run_user)
     for k,v in kwargs.iteritems():
@@ -216,6 +202,19 @@ class HdfsResourceWebHDFS:
   Since it's not available on non-hdfs FS and also can be disabled in scope of HDFS. 
   We should still have the other implementations for such a cases.
   """
+  
+  """
+  If we have more than this count of files to recursively chmod/chown
+  webhdfs won't be used, but 'hadoop fs -chmod (or chown) -R ..' As it can really slow.
+  (in one second ~17 files can be chmoded)
+  """
+  MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS = 1000
+  """
+  This is used to avoid a lot of liststatus commands, which can take some time if directory
+  contains a lot of files. LISTSTATUS of directory with 1000 files takes ~0.5 seconds.
+  """
+  MAX_DIRECTORIES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS = 250
+  
   def action_execute(self, main_resource):
     pass
   
@@ -249,7 +248,12 @@ class HdfsResourceWebHDFS:
     self.mode_set = False
     self.main_resource = main_resource
     self._assert_valid()
-        
+    
+    if self.main_resource.manage_if_exists == False and self.target_status:
+      Logger.info("Skipping the operation for not managed DFS directory " + str(self.main_resource.resource.target) +
+                  " since immutable_paths contains it.")
+      return            
+
     if action_name == "create":
       self._create_resource()
       self._set_mode(self.target_status)
@@ -341,7 +345,13 @@ class HdfsResourceWebHDFS:
     results = []
     
     if self.main_resource.resource.recursive_chown:
-      self._fill_directories_list(self.main_resource.resource.target, results)
+      content_summary = self.util.run_command(self.main_resource.resource.target, 'GETCONTENTSUMMARY', method='GET', assertable_result=False)
+      
+      if content_summary['ContentSummary']['fileCount'] <= HdfsResourceWebHDFS.MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS and content_summary['ContentSummary']['directoryCount'] <= HdfsResourceWebHDFS.MAX_DIRECTORIES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS:
+        self._fill_directories_list(self.main_resource.resource.target, results)
+      else: # avoid chmowning a lot of files and listing a lot dirs via webhdfs which can take a lot of time.
+        shell.checked_call(["hadoop", "fs", "-chown", "-R", format("{owner}:{group}"), self.main_resource.resource.target], user=self.main_resource.resource.user)
+
     if self.main_resource.resource.change_permissions_for_parents:
       self._fill_in_parent_directories(self.main_resource.resource.target, results)
       
@@ -358,7 +368,13 @@ class HdfsResourceWebHDFS:
     results = []
     
     if self.main_resource.resource.recursive_chmod:
-      self._fill_directories_list(self.main_resource.resource.target, results)
+      content_summary = self.util.run_command(self.main_resource.resource.target, 'GETCONTENTSUMMARY', method='GET', assertable_result=False)
+      
+      if content_summary['ContentSummary']['fileCount'] <= HdfsResourceWebHDFS.MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS and content_summary['ContentSummary']['directoryCount'] <= HdfsResourceWebHDFS.MAX_DIRECTORIES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS:
+        self._fill_directories_list(self.main_resource.resource.target, results)
+      else: # avoid chmoding a lot of files and listing a lot dirs via webhdfs which can take a lot of time.
+        shell.checked_call(["hadoop", "fs", "-chmod", "-R", self.mode, self.main_resource.resource.target], user=self.main_resource.resource.user)
+      
     if self.main_resource.resource.change_permissions_for_parents:
       self._fill_in_parent_directories(self.main_resource.resource.target, results)
       
@@ -367,7 +383,7 @@ class HdfsResourceWebHDFS:
     
     
   def _fill_in_parent_directories(self, target, results):
-    path_parts = self.util.parse_path(target).split("/")[1:]# [1:] remove '' from parts
+    path_parts = HdfsResourceProvider.parse_path(target).split("/")[1:]# [1:] remove '' from parts
     path = "/"
 
     for path_part in path_parts:
@@ -389,13 +405,57 @@ class HdfsResourceProvider(Provider):
   def __init__(self, resource):
     super(HdfsResourceProvider,self).__init__(resource)
     self.fsType = getattr(resource, 'dfs_type')
+    self.ignored_resources_list = HdfsResourceProvider.get_ignored_resources_list(self.resource.hdfs_resource_ignore_file)
     if self.fsType != 'HCFS':
       self.assert_parameter_is_set('hdfs_site')
       self.webhdfs_enabled = self.resource.hdfs_site['dfs.webhdfs.enabled']
+      
+  @staticmethod
+  def parse_path(path):
+    """
+    hdfs://nn_url:1234/a/b/c -> /a/b/c
+    hdfs://nn_ha_name/a/b/c -> /a/b/c
+    hdfs:///a/b/c -> /a/b/c
+    /a/b/c -> /a/b/c
+    """
+    math_with_protocol_and_nn_url = re.match("[a-zA-Z]+://[^/]+(/.+)", path)
+    math_with_protocol = re.match("[a-zA-Z]+://(/.+)", path)
+    
+    if math_with_protocol_and_nn_url:
+      path = math_with_protocol_and_nn_url.group(1)
+    elif math_with_protocol:
+      path = math_with_protocol.group(1)
+    else:
+      path = path
+      
+    return re.sub("[/]+", "/", path)
+
+  @staticmethod
+  def get_ignored_resources_list(hdfs_resource_ignore_file):
+    if not hdfs_resource_ignore_file or not os.path.exists(hdfs_resource_ignore_file):
+      return []
+    
+    with open(hdfs_resource_ignore_file, "rb") as fp:
+      content = fp.read()
+      
+    hdfs_resources_to_ignore = []
+    for hdfs_resource_to_ignore in content.split("\n"):
+      hdfs_resources_to_ignore.append(HdfsResourceProvider.parse_path(hdfs_resource_to_ignore))
+            
+    return hdfs_resources_to_ignore
     
   def action_delayed(self, action_name):
     self.assert_parameter_is_set('type')
+    
+    parsed_path = HdfsResourceProvider.parse_path(self.resource.target)
 
+    parsed_not_managed_paths = [HdfsResourceProvider.parse_path(path) for path in self.resource.immutable_paths]
+    self.manage_if_exists = not parsed_path in parsed_not_managed_paths
+
+    if parsed_path in self.ignored_resources_list:
+      Logger.info("Skipping '{0}' because it is in ignore file {1}.".format(self.resource, self.resource.hdfs_resource_ignore_file))
+      return
+    
     self.get_hdfs_resource_executor().action_delayed(action_name, self)
 
   def action_create_on_execute(self):

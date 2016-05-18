@@ -33,7 +33,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assert_configure_default()
@@ -52,7 +52,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assert_configure_default()
@@ -86,7 +86,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "start",
                        config_file="flume_only.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assert_configure_default(check_mc=False)
@@ -118,7 +118,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(glob_mock.called)
@@ -140,7 +140,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     except:
       # expected since ComponentIsNotRunning gets raised
@@ -188,7 +188,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     except:
       # expected since ComponentIsNotRunning gets raised
@@ -213,7 +213,7 @@ class TestFlumeHandler(RMFTestCase):
        classname = "FlumeHandler",
        command = "status",
        config_file="default.json",
-       hdp_stack_version = self.STACK_VERSION,
+       stack_version = self.STACK_VERSION,
        target = RMFTestCase.TARGET_COMMON_SERVICES)
     except:
       # expected since ComponentIsNotRunning gets raised
@@ -227,15 +227,18 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self, check_mc=True):
-    self.assertResourceCalled('Directory', '/var/run/flume',)
+    self.assertResourceCalled('Directory', '/var/run/flume',
+                              owner = 'flume',
+                              group = 'hadoop')
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
                               owner = 'flume',
+                              group = 'hadoop',
                               cd_access = 'a', 
                               mode=0755
     )
@@ -275,13 +278,22 @@ class TestFlumeHandler(RMFTestCase):
       )
 
   def assert_configure_many(self):
-    self.assertResourceCalled('Directory', '/var/run/flume')
+    self.assertResourceCalled('Directory',
+                              '/var/run/flume',
+                              owner='flume',
+                              group = 'hadoop'
+                              )
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume', cd_access = 'a', mode=0755)
+    self.assertResourceCalled('Directory',
+                              '/var/log/flume',
+                              owner = 'flume',
+                              group = 'hadoop',
+                              cd_access = 'a',
+                              mode=0755)
 
     top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
 
@@ -344,7 +356,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "start",
                        config_file="flume_target.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assert_configure_many()
@@ -374,7 +386,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "start",
                        config_file="flume_target.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assert_configure_many()
@@ -403,7 +415,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "stop",
                        config_file="flume_target.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(glob_mock.called)
@@ -421,7 +433,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('File', '/etc/flume/conf/x1/ambari-meta.json',
         action = ['delete'],
@@ -435,19 +447,22 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/var/run/flume',)
+    self.assertResourceCalled('Directory', '/var/run/flume',
+                              group = 'hadoop',
+                              owner='flume',)
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
                               owner = 'flume',
                               cd_access = 'a',
+                              group = 'hadoop',
                               mode=0755)
 
     self.assertResourceCalled('Directory',
@@ -486,18 +501,21 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "configure",
                        config_file="flume_22.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/var/run/flume',)
+    self.assertResourceCalled('Directory', '/var/run/flume',
+                              group = 'hadoop',
+                              owner='flume')
     self.assertResourceCalled('Directory',
                               '/usr/hdp/current/flume-server/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
-                              owner = 'flume', 
+                              owner = 'flume',
+                              group = 'hadoop',
                               cd_access = 'a', 
                               mode=0755)
 
@@ -538,7 +556,7 @@ class TestFlumeHandler(RMFTestCase):
                        classname = "FlumeHandler",
                        command = "pre_upgrade_restart",
                        config_file="flume_22.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'flume-server', '2.2.1.0-2067'), sudo=True)

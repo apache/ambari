@@ -22,6 +22,64 @@ angular.module('ambariAdminConsole')
   return {
     repoStatusCache : {},
 
+    orderedRoles : [
+      'CLUSTER.ADMINISTRATOR',
+      'CLUSTER.OPERATOR',
+      'SERVICE.ADMINISTRATOR',
+      'SERVICE.OPERATOR',
+      'CLUSTER.USER'
+    ],
+
+    orderedAuthorizations : [
+      "SERVICE.VIEW_METRICS",
+      "SERVICE.VIEW_STATUS_INFO",
+      "SERVICE.VIEW_CONFIGS",
+      "SERVICE.COMPARE_CONFIGS",
+      "SERVICE.VIEW_ALERTS",
+      "SERVICE.START_STOP",
+      "SERVICE.DECOMMISSION_RECOMMISSION",
+      "SERVICE.RUN_SERVICE_CHECK",
+      "SERVICE.TOGGLE_MAINTENANCE",
+      "SERVICE.RUN_CUSTOM_COMMAND",
+      "SERVICE.MODIFY_CONFIGS",
+      "SERVICE.MANAGE_CONFIG_GROUPS",
+      "SERVICE.MOVE",
+      "SERVICE.ENABLE_HA",
+      "SERVICE.MANAGE_ALERTS",
+      "SERVICE.TOGGLE_ALERTS",
+      "SERVICE.ADD_DELETE_SERVICES",
+      "HOST.VIEW_CONFIGS",
+      "HOST.VIEW_METRICS",
+      "HOST.VIEW_STATUS_INFO",
+      "HOST.ADD_DELETE_COMPONENTS",
+      "HOST.ADD_DELETE_HOSTS",
+      "HOST.TOGGLE_MAINTENANCE",
+      "CLUSTER.VIEW_ALERTS",
+      "CLUSTER.VIEW_CONFIGS",
+      "CLUSTER.VIEW_METRICS",
+      "CLUSTER.VIEW_STACK_DETAILS",
+      "CLUSTER.VIEW_STATUS_INFO",
+      "CLUSTER.MANAGE_ALERTS",
+      "CLUSTER.MANAGE_CONFIG_GROUPS",
+      "CLUSTER.MANAGE_CREDENTIALS",
+      "CLUSTER.MODIFY_CONFIGS",
+      "CLUSTER.TOGGLE_ALERTS",
+      "CLUSTER.TOGGLE_KERBEROS",
+      "CLUSTER.UPGRADE_DOWNGRADE_STACK",
+      "AMBARI.ADD_DELETE_CLUSTERS",
+      "AMBARI.ASSIGN_ROLES",
+      "AMBARI.EDIT_STACK_REPOS",
+      "AMBARI.MANAGE_GROUPS",
+      "AMBARI.MANAGE_SETTINGS",
+      "AMBARI.MANAGE_STACK_VERSIONS",
+      "AMBARI.MANAGE_USERS",
+      "AMBARI.MANAGE_VIEWS",
+      "AMBARI.RENAME_CLUSTER",
+      "AMBARI.SET_SERVICE_USERS_GROUPS"
+    ],
+
+    ineditableRoles : ['VIEW.USER', 'AMBARI.ADMINISTRATOR'],
+
     getAllClusters: function() {
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + '/clusters', {mock: 'cluster/clusters.json'})
@@ -60,9 +118,22 @@ angular.module('ambariAdminConsole')
 
       return deferred.promise;
     },
+    getClusterOS: function() {
+      var deferred = $q.defer();
+
+      $http.get(Settings.baseUrl + '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/server.os_family&minimal_response=true', {mock: 'redhat6'})
+      .then(function(data) {
+        deferred.resolve(data.data.RootServiceComponents.properties['server.os_family']);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
     getAmbariTimeout: function() {
       var deferred = $q.defer();
-      var url = '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/user.inactivity.timeout.default'
+      var url = '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/user.inactivity.timeout.default';
       $http.get(Settings.baseUrl + url)
       .then(function(data) {
         var properties = data.data.RootServiceComponents.properties;
@@ -95,6 +166,26 @@ angular.module('ambariAdminConsole')
 
       return deferred.promise;
     },
+    getRolesWithAuthorizations: function() {
+      var self = this;
+      var deferred = $q.defer();
+      $http({
+        method: 'GET',
+        url: Settings.baseUrl + '/permissions?PermissionInfo/resource_name.in(CLUSTER,AMBARI)',
+        mock: 'permission/permissions.json',
+        params: {
+          fields: 'PermissionInfo/*,authorizations/AuthorizationInfo/*'
+        }
+      })
+        .success(function(data) {
+          deferred.resolve(data.items);
+        })
+        .catch(function(data) {
+          deferred.reject(data); });
+
+      return deferred.promise;
+    },
+
     getPrivileges: function(params) {
       var deferred = $q.defer();
 
@@ -116,17 +207,38 @@ angular.module('ambariAdminConsole')
     },
     getPrivilegesWithFilters: function(params) {
       var deferred = $q.defer();
-
+      var isUser = params.typeFilter.value == 'USER';
+      var endpoint = isUser? '/users' : '/groups';
+      var nameURL = isUser? '&Users/user_name.matches(.*' : '&Groups/group_name.matches(.*';
+      var nameFilter = params.nameFilter? nameURL + params.nameFilter + '.*)' : '';
+      var roleFilter = params.roleFilter.value? '&privileges/PrivilegeInfo/permission_name.matches(.*' + params.roleFilter.value + '.*)' : '';
       $http({
         method: 'GET',
-        url: Settings.baseUrl + '/clusters/'+ params.clusterId + '/privileges?'
-        + 'fields=PrivilegeInfo/*'
-        + '&PrivilegeInfo/principal_name.matches(.*' + params.nameFilter + '.*)'
-        + '&PrivilegeInfo/principal_type.matches(.*' + params.typeFilter.value + '.*)'
-        + '&PrivilegeInfo/permission_name.matches(.*' + params.roleFilter.value + '.*)'
+        url: Settings.baseUrl + endpoint + '?'
+        + 'fields=privileges/PrivilegeInfo/*'
+        + nameFilter
+        + roleFilter
         + '&from=' + (params.currentPage - 1) * params.usersPerPage
         + '&page_size=' + params.usersPerPage
-        + '&sortBy=PrivilegeInfo/principal_name'
+      })
+      .success(function(data) {
+        deferred.resolve(data);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
+    getPrivilegesForResource: function(params) {
+      var deferred = $q.defer();
+      var isUser = (params.typeFilter.value == 'USER');
+      var endpoint = isUser ? '/users' : '/groups';
+      var nameURL = isUser ? '&Users/user_name.matches(' : '&Groups/group_name.matches(';
+      var nameFilter = params.nameFilter ? (nameURL + params.nameFilter + ')') : '';
+      $http({
+        method : 'GET',
+        url : Settings.baseUrl + endpoint + '?' + 'fields=privileges/PrivilegeInfo/*' + nameFilter
       })
       .success(function(data) {
         deferred.resolve(data);
@@ -149,6 +261,12 @@ angular.module('ambariAdminConsole')
         method: 'DELETE',
         url: Settings.baseUrl + '/clusters/'+params.clusterId+'/privileges',
         data: data
+      });
+    },
+    deleteMultiplePrivileges: function(clusterId, privilege_ids) {
+      return $http({
+        method: 'DELETE',
+        url: Settings.baseUrl + '/clusters/'+clusterId+'/privileges?PrivilegeInfo/privilege_id.in\('+privilege_ids+'\)'
       });
     },
     updatePrivileges: function(params, privileges) {

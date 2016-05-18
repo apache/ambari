@@ -23,17 +23,29 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.annotations.TransactionalLock;
+import org.apache.ambari.annotations.TransactionalLock.LockArea;
+import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
+import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -51,6 +63,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.utils.LoopBody;
@@ -113,6 +126,17 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Inject
   Configuration configuration;
+
+  @Inject
+  AuditLogger auditLogger;
+
+  /**
+   * Cache for auditlog. It stores a {@link RequestDetails} object for every requests.
+   * {@link RequestDetails} contains the previous status of the request and a map for tasks.
+   * A task has a {@link RequestDetails.Component} key and the value of that is the previous status of the task.
+   * {@link RequestDetails.Component} contains the component name and the host name
+   */
+  private Cache<Long,RequestDetails> auditlogRequestCache = CacheBuilder.newBuilder().expireAfterAccess(60, TimeUnit.MINUTES).concurrencyLevel(4).build();
 
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
@@ -195,10 +219,15 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
             + " requestId " + command.getRequestId()
             + " taskId " + command.getTaskId()
             + " stageId " + command.getStageId());
+
+        auditLog(command, requestId);
       }
     }
 
-    hostRoleCommandDAO.mergeAll(commands);
+    // no need to merge if there's nothing to merge
+    if (!commands.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commands);
+    }
   }
 
   /* (non-Javadoc)
@@ -207,14 +236,32 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public void timeoutHostRole(String host, long requestId, long stageId,
                               String role) {
+    timeoutHostRole(host, requestId, stageId, role, false);
+  }
+
+  @Override
+  public void timeoutHostRole(String host, long requestId, long stageId,
+                              String role, boolean skipSupported) {
     long now = System.currentTimeMillis();
     List<HostRoleCommandEntity> commands =
-        hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
+            hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
-      command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
+      if (skipSupported) {
+        command.setStatus(HostRoleStatus.SKIPPED_FAILED);
+      } else {
+        command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
+      }
+
       command.setEndTime(now);
+
+      auditLog(command, requestId);
     }
-    hostRoleCommandDAO.mergeAll(commands);
+
+    // no need to merge if there's nothing to merge
+    if (!commands.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commands);
+    }
+
     endRequestIfCompleted(requestId);
   }
 
@@ -274,6 +321,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   @Transactional
+  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public void persistActions(Request request) throws AmbariException {
 
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
@@ -289,6 +337,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     //TODO wire request to cluster
     List<StageEntity> stageEntities = new ArrayList<StageEntity>(request.getStages().size());
+
+    addRequestToAuditlogCache(request);
 
     for (Stage stage : request.getStages()) {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
@@ -368,6 +418,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  @Transactional
   public void startRequest(long requestId) {
     RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getStartTime() == -1L) {
@@ -377,6 +428,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  @Transactional
   public void endRequest(long requestId) {
     RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getEndTime() == -1L) {
@@ -434,6 +486,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       CommandReport report = taskReports.get(commandEntity.getTaskId());
 
+      boolean statusChanged = false;
+
       switch (commandEntity.getStatus()) {
         case ABORTED:
           // We don't want to overwrite statuses for ABORTED tasks with
@@ -453,6 +507,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           }
 
           commandEntity.setStatus(status);
+          statusChanged = true;
           break;
       }
 
@@ -469,13 +524,20 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         long[] requestStageIds = StageUtils.getRequestStage(actionId);
         long requestId = requestStageIds[0];
         long stageId = requestStageIds[1];
+        if(statusChanged) {
+          auditLog(commandEntity, requestId);
+        }
         if (requestDAO.getLastStageId(requestId).equals(stageId)) {
           requestsToCheck.add(requestId);
         }
       }
     }
 
-    hostRoleCommandDAO.mergeAll(commandEntities);
+    // no need to merge if there's nothing to merge
+    if (!commandEntities.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commandEntities);
+    }
+
     // Invalidate cache because of updates to ABORTED commands
     hostRoleCommandCache.invalidateAll(abortedCommandUpdates);
 
@@ -524,9 +586,14 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         }
       }
       command.setExitcode(report.getExitCode());
+
+      auditLog(command, requestId);
     }
 
-    hostRoleCommandDAO.mergeAll(commands);
+    // no need to merge if there's nothing to merge
+    if (!commands.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(commands);
+    }
 
     if (checkRequest) {
       endRequestIfCompleted(requestId);
@@ -580,9 +647,15 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     HostRoleCommandEntity entity = hostRoleCommandDAO.findByPK(hostRoleCommand.getTaskId());
     if (entity != null) {
       entity.setStartTime(hostRoleCommand.getStartTime());
+      if (entity.getOriginalStartTime() == null || entity.getOriginalStartTime() == -1) {
+        entity.setOriginalStartTime(System.currentTimeMillis());
+      }
       entity.setLastAttemptTime(hostRoleCommand.getLastAttemptTime());
       entity.setStatus(hostRoleCommand.getStatus());
       entity.setAttemptCount(hostRoleCommand.getAttemptCount());
+
+      auditLog(entity, s.getRequestId());
+
       hostRoleCommandDAO.merge(entity);
     } else {
       throw new RuntimeException("HostRoleCommand is not persisted, cannot update:\n" + hostRoleCommand);
@@ -714,16 +787,23 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void resubmitTasks(List<Long> taskIds) {
-    hostRoleCommandCache.invalidateAll(taskIds);
-
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
     for (HostRoleCommandEntity task : tasks) {
       task.setStatus(HostRoleStatus.PENDING);
+      // TODO HACK, shouldn't reset start time.
+      // Because it expects -1, RetryActionMonitor.java also had to set it to -1.
       task.setStartTime(-1L);
       task.setEndTime(-1L);
+
+      auditLog(task, task.getRequestId());
     }
 
-    hostRoleCommandDAO.mergeAll(tasks);
+    // no need to merge if there's nothing to merge
+    if (!tasks.isEmpty()) {
+      hostRoleCommandDAO.mergeAll(tasks);
+    }
+
+    hostRoleCommandCache.invalidateAll(taskIds);
   }
 
   /**
@@ -732,8 +812,251 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Subscribe
   public void invalidateCommandCacheOnHostRemove(HostRemovedEvent event) {
-    LOG.info("Invalidating command cache on host delete event." );
-    LOG.debug("HostRemovedEvent => " + event);
+    LOG.info("Invalidating HRC cache after receiveing {}", event);
     hostRoleCommandCache.invalidateAll();
+  }
+
+  /**
+   * Updates auditlog cache and returns the status of the latest task for the given component on the given host.
+   * @param commandEntity new entity with the new status. It also holds the component and the hostname
+   * @param requestId
+   * @return
+   */
+  private HostRoleStatus updateAuditlogCache(HostRoleCommandEntity commandEntity, Long requestId) {
+
+    RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+    if(details == null) {
+      return null;
+    }
+
+    RequestDetails.Component component = new RequestDetails.Component(commandEntity.getRole(), commandEntity.getHostName());
+
+    HostRoleStatus lastTaskStatus = null;
+    if(details.getTasks().containsKey(component)) {
+      lastTaskStatus = details.getTasks().get(component);
+    }
+    details.getTasks().put(component, commandEntity.getStatus());
+    return lastTaskStatus;
+  }
+
+  /**
+   * Adds request to auditlog cache
+   * @param request
+   */
+  private void addRequestToAuditlogCache(Request request) {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
+    if(auditlogRequestCache.getIfPresent(request.getRequestId()) == null) {
+      int numberOfTasks = 0;
+      for (Stage stage : request.getStages()) {
+        numberOfTasks += stage.getOrderedHostRoleCommands().size();
+      }
+      RequestDetails requestDetails = new RequestDetails();
+      requestDetails.setNumberOfTasks(numberOfTasks);
+      requestDetails.setUserName(AuthorizationHelper.getAuthenticatedName());
+      auditlogRequestCache.put(request.getRequestId(), requestDetails);
+    }
+  }
+
+  /**
+   * AuditLog operation status change
+   * @param requestId
+   */
+  private void auditLog(HostRoleCommandEntity commandEntity, Long requestId) {
+    if(!auditLogger.isEnabled()) {
+      return;
+    }
+
+    if(requestId != null) {
+      HostRoleStatus lastTaskStatus = updateAuditlogCache(commandEntity, requestId);
+
+      // details must not be null
+      RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+      if (details != null) {
+        HostRoleStatus calculatedStatus = calculateStatus(requestId, details.getNumberOfTasks());
+
+        if (details.getLastStatus() != calculatedStatus) {
+          RequestEntity request = requestDAO.findByPK(requestId);
+          String context = request != null ? request.getRequestContext() : null;
+          AuditEvent auditEvent = OperationStatusAuditEvent.builder()
+            .withRequestId(String.valueOf(requestId))
+            .withStatus(String.valueOf(calculatedStatus))
+            .withRequestContext(context)
+            .withUserName(details.getUserName())
+            .withTimestamp(System.currentTimeMillis())
+            .build();
+          auditLogger.log(auditEvent);
+
+          details.setLastStatus(calculatedStatus);
+        }
+      }
+      logTask(commandEntity, requestId, lastTaskStatus);
+    }
+  }
+
+  /**
+   * Calculates summary status for the given request
+   * @param requestId
+   * @return
+   */
+  private HostRoleStatus calculateStatus(Long requestId, int numberOfTasks) {
+    RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+    if(details == null) {
+      return HostRoleStatus.QUEUED;
+    }
+    Collection<HostRoleStatus> taskStatuses = details.getTaskStatuses();
+    return CalculatedStatus.calculateSummaryStatusOfStage(CalculatedStatus.calculateStatusCounts(taskStatuses), numberOfTasks, false);
+  }
+
+  /**
+   * Logs task status change
+   * @param commandEntity
+   * @param requestId
+   * @param lastTaskStatus
+   */
+  private void logTask(HostRoleCommandEntity commandEntity, Long requestId, HostRoleStatus lastTaskStatus) {
+
+    RequestDetails.Component component = new RequestDetails.Component(commandEntity.getRole(), commandEntity.getHostName());
+    RequestDetails details = auditlogRequestCache.getIfPresent(requestId);
+    if(details == null) {
+      return;
+    }
+
+    HostRoleStatus cachedStatus = details.getTasks().get(component);
+
+    if(lastTaskStatus == null || cachedStatus != lastTaskStatus ) {
+      AuditEvent taskEvent = TaskStatusAuditEvent.builder()
+        .withTaskId(String.valueOf(commandEntity.getTaskId()))
+        .withHostName(commandEntity.getHostName())
+        .withUserName(details.getUserName())
+        .withOperation(commandEntity.getRoleCommand().toString() + " " + commandEntity.getRole().toString())
+        .withDetails(commandEntity.getCommandDetail())
+        .withStatus(commandEntity.getStatus().toString())
+        .withRequestId(String.valueOf(requestId))
+        .withTimestamp(System.currentTimeMillis())
+        .build();
+
+      auditLogger.log(taskEvent);
+    }
+  }
+
+  /**
+   * The purpose of this nested class is to store details about the request: lastStatus and the list of tasks
+   */
+  private static class RequestDetails {
+    /**
+     * Last summary status of the request
+     */
+    HostRoleStatus lastStatus = null;
+
+    /**
+     * The number of tasks that can be found in the request
+     */
+    int numberOfTasks = 0;
+
+    /**
+     * The user who issued the request
+     */
+    String userName;
+
+    /**
+     * Component and the status of the belonging task
+     * Size of this container might be less than {@link RequestDetails#numberOfTasks}
+     */
+    Map<Component, HostRoleStatus> tasks = new HashMap<>();
+
+    public HostRoleStatus getLastStatus() {
+      return lastStatus;
+    }
+
+    public void setLastStatus(HostRoleStatus lastStatus) {
+      this.lastStatus = lastStatus;
+    }
+
+    public int getNumberOfTasks() {
+      return numberOfTasks;
+    }
+
+    public void setNumberOfTasks(int numberOfTasks) {
+      this.numberOfTasks = numberOfTasks;
+    }
+
+    public String getUserName() {
+      return userName;
+    }
+
+    public void setUserName(String userName) {
+      this.userName = userName;
+    }
+
+    public Map<Component, HostRoleStatus> getTasks() {
+      return tasks;
+    }
+
+    /**
+     * Returns the list of statuses from {@link RequestDetails#tasks}
+     * @return
+     */
+    public Collection<HostRoleStatus> getTaskStatuses() {
+      return getTasks().values();
+    }
+
+    /**
+     * This nested class is the key for the {@link RequestDetails#tasks} map
+     */
+    static class Component {
+      /**
+       * Component name
+       */
+      private final Role role;
+      /**
+       * Host name
+       */
+      private final String hostName;
+      Component(Role role, String hostName) {
+        this.role = role;
+        this.hostName = hostName;
+      }
+
+      public Role getRole() {
+        return role;
+      }
+
+      public String getHostName() {
+        return hostName;
+      }
+
+      /**
+       * Hash code generation
+       * @return
+       */
+      @Override
+      public final int hashCode() {
+        int hash = 7;
+        String roleStr = role == null ? "null" : role.toString();
+        String hostNameStr = hostName == null ? "null" : hostName;
+        String str = roleStr.concat(hostNameStr);
+        for (int i = 0; i < str.length(); i++) {
+          hash = hash*31 + str.charAt(i);
+        }
+        return hash;
+      }
+
+      /**
+       * Two components are equal if their component name and host name are the same
+       * @param other
+       * @return
+       */
+      @Override
+      public final boolean equals(final Object other) {
+        if(other instanceof Component) {
+          Component comp = (Component) other;
+          return Objects.equals(comp.role, role) && Objects.equals(comp.hostName, hostName);
+        }
+
+        return false;
+      }
+    }
   }
 }

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step5_controller');
 var modelSetup = require('test/init_model_test');
@@ -26,11 +25,17 @@ describe('App.WizardStep5Controller', function () {
 
   beforeEach(function () {
     c = App.WizardStep5Controller.create();
+    sinon.stub(App.router, 'send', Em.K);
+    App.router.nextBtnClickInProgress = false;
+  });
+
+  afterEach(function () {
+    App.router.send.restore();
+    App.router.nextBtnClickInProgress = false;
   });
 
   var controller = App.WizardStep5Controller.create();
   controller.set('content', {});
-  var cpu = 2, memory = 4;
 
   controller.set('content', {});
 
@@ -293,21 +298,30 @@ describe('App.WizardStep5Controller', function () {
     ]);
 
     tests.forEach(function (test) {
-      it(test.m, function () {
-        sinon.stub(App.StackServiceComponent, 'find', function () {
-          return test.serviceComponents;
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          sinon.stub(App.StackServiceComponent, 'find', function () {
+            return test.serviceComponents;
+          });
+          c.reopen({
+            content: Em.Object.create({
+              controllerName: test.controllerName
+            }),
+            selectedServicesMasters: test.selectedServicesMasters,
+            hosts: test.hosts
+          });
+          c.updateComponent(test.componentName);
         });
-        c.reopen({
-          content: Em.Object.create({
-            controllerName: test.controllerName
-          }),
-          selectedServicesMasters: test.selectedServicesMasters,
-          hosts: test.hosts
+
+        afterEach(function () {
+          App.StackServiceComponent.find.restore();
         });
-        c.updateComponent(test.componentName);
-        App.StackServiceComponent.find.restore();
+
         Em.keys(test.e).forEach(function (k) {
-          expect(c.last(test.componentName).get(k)).to.equal(test.e[k]);
+          it(k, function () {
+            expect(c.last(test.componentName).get(k)).to.equal(test.e[k]);
+          });
         });
 
       });
@@ -372,32 +386,52 @@ describe('App.WizardStep5Controller', function () {
       }
     ]);
     tests.forEach(function (test) {
-      beforeEach(function () {
-        App.reopen({isHaEnabled: test.isHaEnabled});
-      });
-      it(test.m, function () {
-        modelSetup.setupStackServiceComponent();
-        sinon.stub(App.StackService, 'find', function () {
-          return test.services;
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          sinon.stub(App, 'get').withArgs('isHaEnabled').returns(test.isHaEnabled);
+          sinon.stub(App.StackService, 'find', function () {
+            return test.services;
+          });
+          modelSetup.setupStackServiceComponent();
+          c.reopen({
+            content: Em.Object.create({
+              services: test.services,
+              controllerName: test.controllerName,
+              reassign: {component_name: test.component_name}
+            })
+          });
+          c.renderComponents(test.masterComponents);
         });
-        App.set('isHaEnabled', test.isHaEnabled);
-        c.reopen({
-          content: Em.Object.create({
-            services: test.services,
-            controllerName: test.controllerName,
-            reassign: {component_name: test.component_name}
-          })
+
+        afterEach(function () {
+          App.get.restore();
+          App.StackService.find.restore();
+          modelSetup.cleanStackServiceComponent();
         });
-        c.renderComponents(test.masterComponents);
-        App.StackService.find.restore();
-        modelSetup.cleanStackServiceComponent();
-        expect(c.get('selectedServicesMasters').mapProperty('component_name')).to.eql(test.e.selectedServicesMasters);
-        expect(c.get('servicesMasters').mapProperty('component_name')).to.eql(test.e.servicesMasters);
-        expect(c.get('selectedServicesMasters').mapProperty('showRemoveControl')).to.eql(test.e.showRemoveControl);
-        expect(c.get('selectedServicesMasters').mapProperty('serviceComponentId')).to.eql(test.e.serviceComponentId);
-        if (c.get('isReasignController')) {
-          expect(c.get('servicesMasters').mapProperty('isInstalled')).to.eql(test.e.isInstalled);
-        }
+
+        it('all selectedServicesMasters.component_name are valid', function () {
+          expect(c.get('selectedServicesMasters').mapProperty('component_name')).to.eql(test.e.selectedServicesMasters);
+        });
+
+        it('all servicesMasters.component_name are valid', function () {
+          expect(c.get('servicesMasters').mapProperty('component_name')).to.eql(test.e.servicesMasters);
+        });
+
+        it('all showRemoveControl are valid', function () {
+          expect(c.get('selectedServicesMasters').mapProperty('showRemoveControl')).to.eql(test.e.showRemoveControl);
+        });
+
+        it('all serviceComponentId are valid', function () {
+          expect(c.get('selectedServicesMasters').mapProperty('serviceComponentId')).to.eql(test.e.serviceComponentId);
+        });
+
+        it('servicesMasters.@each.isInstalled is valid', function () {
+          if (c.get('isReasignController')) {
+            expect(c.get('servicesMasters').mapProperty('isInstalled')).to.eql(test.e.isInstalled);
+          }
+        });
+
       });
     });
   });
@@ -528,15 +562,34 @@ describe('App.WizardStep5Controller', function () {
       }
     ]);
     tests.forEach(function (test) {
-      it(test.m, function () {
-        c.set('selectedServicesMasters', test.selectedServicesMasters);
-        c.set('hosts', test.hosts);
-        expect(c.removeComponent(test.componentName, test.serviceComponentId)).to.equal(test.e);
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          c.set('selectedServicesMasters', JSON.parse(JSON.stringify(test.selectedServicesMasters)));
+          c.set('hosts', test.hosts);
+          this.result = c.removeComponent(test.componentName, test.serviceComponentId);
+        });
+
+        it('removeComponent returns ' + test.e, function () {
+          expect(this.result).to.equal(test.e);
+        });
+
         if (test.e) {
-          expect(c.get('selectedServicesMasters.lastObject.showRemoveControl')).to.equal(test.showRemoveControl);
-          expect(c.get('selectedServicesMasters.lastObject.showAddControl')).to.equal(test.showAddControl);
-          expect(c.get('componentToRebalance')).to.equal(test.componentName);
-          expect(c.get('lastChangedComponent')).to.equal(test.componentName);
+          it('showRemoveControl is correct', function () {
+            expect(c.get('selectedServicesMasters.lastObject.showRemoveControl')).to.equal(test.showRemoveControl);
+          });
+
+          it('showAddControl is correct', function () {
+            expect(c.get('selectedServicesMasters.lastObject.showAddControl')).to.equal(test.showAddControl);
+          });
+
+          it('componentToRebalance is correct', function () {
+            expect(c.get('componentToRebalance')).to.equal(test.componentName);
+          });
+
+          it('lastChangedComponent is correct', function () {
+            expect(c.get('lastChangedComponent')).to.equal(test.componentName);
+          });
         }
       })
     });
@@ -641,17 +694,23 @@ describe('App.WizardStep5Controller', function () {
           ]
         }
       ]).forEach(function (test) {
-        it(test.m, function () {
-          c.reopen({
-            selectedServicesMasters: test.selectedServicesMasters,
-            hosts: test.hosts
+        describe(test.m, function () {
+          var result;
+          beforeEach(function () {
+            c.reopen({
+              selectedServicesMasters: test.selectedServicesMasters,
+              hosts: test.hosts
+            });
+            result = c.get('masterHostMapping');
           });
-          var result = c.get('masterHostMapping');
-          expect(result.length).to.equal(test.e.length);
-          result.forEach(function (r, i) {
-            expect(r.get('host_name')).to.equal(test.e[i].host_name);
-            expect(r.get('masterServices.length')).to.equal(test.e[i].masterServices.length);
-            expect(r.get('hostInfo')).to.be.an.object;
+
+          it('all needed hosts are mapped', function () {
+            expect(result.length).to.equal(test.e.length);
+          });
+
+          it('all needed hosts have valid data', function () {
+            expect(result.mapProperty('host_name')).to.be.eql(test.e.mapProperty('host_name'));
+            expect(result.mapProperty('masterServices.length')).to.be.eql(test.e.mapProperty('masterServices.length'));
           });
         });
       });
@@ -856,9 +915,9 @@ describe('App.WizardStep5Controller', function () {
     beforeEach(function () {
       c.setProperties({
         hosts: [
-          {host_name: 'h1'},
-          {host_name: 'h2'},
-          {host_name: 'h3'}
+          {host_name: 'h1', isInstalled: false},
+          {host_name: 'h2', isInstalled: true, maintenance_state: 'ON'},
+          {host_name: 'h3', isInstalled: true, maintenance_state: 'OFF'}
         ],
         selectedServicesMasters: [
           {component_name: 'c1', selectedHost: 'h1'},
@@ -870,29 +929,47 @@ describe('App.WizardStep5Controller', function () {
     });
 
     Em.A([
-        {
-          componentName: 'c1',
-          selectedHost: '   ',
-          m: 'empty hostName is invalid',
-          e: false
-        },
-        {
-          componentName: 'c1',
-          selectedHost: 'h4',
-          m: 'hostName not exists',
-          e: false
-        },
-        {
-          componentName: 'c4',
-          selectedHost: 'h3',
-          m: 'component not exists on host',
-          e: true
-        }
-      ]).forEach(function (test) {
-        it(test.m, function () {
-          expect(c.isHostNameValid(test.componentName, test.selectedHost)).to.equal(test.e);
-        });
+      {
+        componentName: 'c1',
+        selectedHost: '   ',
+        m: 'empty hostName is invalid',
+        e: false
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h4',
+        m: 'hostName not exists',
+        e: false
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h1',
+        m: 'not installed host',
+        e: true
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h2',
+        m: 'installed host with maintenance ON',
+        e: false
+      },
+      {
+        componentName: 'c1',
+        selectedHost: 'h3',
+        m: 'installed host with maintenance OFF',
+        e: true
+      },
+      {
+        componentName: 'c4',
+        selectedHost: 'h3',
+        m: 'component not exists on host',
+        e: true
+      }
+    ]).forEach(function (test) {
+      it(test.m, function () {
+        expect(c.isHostNameValid(test.componentName, test.selectedHost)).to.equal(test.e);
       });
+    });
 
   });
 
@@ -959,13 +1036,20 @@ describe('App.WizardStep5Controller', function () {
           }
         }
       ]).forEach(function (test, i) {
-        it('test #' + i, function () {
-          sinon.stub(App.StackServiceComponent, 'find', function () {
-            return test.stackServiceComponents;
+        describe('test #' + i, function () {
+
+          beforeEach(function () {
+            sinon.stub(App.StackServiceComponent, 'find', function () {
+              return test.stackServiceComponents;
+            });
+            c.set('mastersToMove', test.mastersToMove);
+            c.set('content', {controllerName: test.controllerName});
           });
-          c.set('mastersToMove', test.mastersToMove);
-          c.set('content', {controllerName: test.controllerName});
-          expect(c.createComponentInstallationObject(test.fullComponent, test.hostName, test.savedComponent)).to.eql(test.e);
+
+          it('component-object is valid', function () {
+            expect(c.createComponentInstallationObject(test.fullComponent, test.hostName, test.savedComponent)).to.eql(test.e);
+          });
+
         });
       });
 
@@ -985,46 +1069,49 @@ describe('App.WizardStep5Controller', function () {
         ];
       });
 
+      var recommendations = {
+        "blueprint": {
+          "host_groups": [
+            {
+              "name": "host-group-1",
+              "components": [ {"name": "c1"}, {"name": "c2"} ]
+            },
+            {
+              "name": "host-group-2",
+              "components": [ {"name": "c1"}, {"name": "c2"} ]
+            },
+            {
+              "name": "host-group-3",
+              "components": [ {"name": "c1"} ]
+            }
+          ]
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": [
+            {
+              "name": "host-group-1",
+              "hosts": [ {"fqdn": "h1"} ]
+            },
+            {
+              "name": "host-group-2",
+              "hosts": [ {"fqdn": "h2"} ]
+            },
+            {
+              "name": "host-group-3",
+              "hosts": [ {"fqdn": "h3"} ]
+            }
+          ]
+        }
+      };
+
+      c.set('recommendations', recommendations);
       c.set('content', {
         masterComponentHosts: [],
         services: [
           {serviceName: 's1', isSelected: true, isInstalled: false},
           {serviceName: 's2', isSelected: true, isInstalled: false}
         ],
-        recommendations: {
-          "blueprint": {
-            "host_groups": [
-              {
-                "name": "host-group-1",
-                "components": [ {"name": "c1"}, {"name": "c2"} ]
-              },
-              {
-                "name": "host-group-2",
-                "components": [ {"name": "c1"}, {"name": "c2"} ]
-              },
-              {
-                "name": "host-group-3",
-                "components": [ {"name": "c1"} ]
-              }
-            ]
-          },
-          "blueprint_cluster_binding": {
-            "host_groups": [
-              {
-                "name": "host-group-1",
-                "hosts": [ {"fqdn": "h1"} ]
-              },
-              {
-                "name": "host-group-2",
-                "hosts": [ {"fqdn": "h2"} ]
-              },
-              {
-                "name": "host-group-3",
-                "hosts": [ {"fqdn": "h3"} ]
-              }
-            ]
-          }
-        }
+        recommendations: recommendations
       });
 
     });
@@ -1040,17 +1127,24 @@ describe('App.WizardStep5Controller', function () {
       expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3']);
     });
 
-    it('some saved components exist', function() {
-      c.set('content.controllerName', 'addServiceController');
-      c.get('multipleComponents').push('c4');
-      c.set('content.masterComponentHosts', [
-        {hostName: 'h3', component: 'c4'}
-      ]);
-      c.get('content.recommendations.blueprint.host_groups')[2].components.push({name: 'c4'});
-      var r = c.createComponentInstallationObjects();
-      expect(r.mapProperty('component_name')).to.eql(['c1', 'c2', 'c1', 'c2', 'c1', 'c4']);
-      expect(r.mapProperty('serviceId')).to.eql(['s1', 's2', 's1', 's2', 's1', 's2']);
-      expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3', 'h3']);
+    describe('some saved components exist', function() {
+
+      beforeEach(function () {
+        c.set('content.controllerName', 'addServiceController');
+        c.get('multipleComponents').push('c4');
+        c.set('content.masterComponentHosts', [
+          {hostName: 'h3', component: 'c4'}
+        ]);
+        c.get('content.recommendations.blueprint.host_groups')[2].components.push({name: 'c4'});
+      });
+
+      it('data contains save components', function () {
+        var r = c.createComponentInstallationObjects();
+        expect(r.mapProperty('component_name')).to.eql(['c1', 'c2', 'c1', 'c2', 'c1', 'c4']);
+        expect(r.mapProperty('serviceId')).to.eql(['s1', 's2', 's1', 's2', 's1', 's2']);
+        expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3', 'h3']);
+      });
+
     });
 
   });
@@ -1122,7 +1216,7 @@ describe('App.WizardStep5Controller', function () {
       App.HostComponent.find.restore();
     });
 
-    it('should map messages to generalErrorMessages, generalWarningMessages', function() {
+    describe('should map messages to generalErrorMessages, generalWarningMessages', function() {
 
       var data = [
           {
@@ -1159,43 +1253,46 @@ describe('App.WizardStep5Controller', function () {
           Em.Object.create({selectedHost: 'h2', component_name: 'c2'})
         ];
 
-      c.set('servicesMasters', servicesMasters);
-      c.updateValidationsSuccessCallback({resources: [{items: data}]});
+      beforeEach(function () {
+        c.set('servicesMasters', servicesMasters);
+        c.updateValidationsSuccessCallback({resources: [{items: data}]});
+      });
 
-      expect(c.get('submitDisabled')).to.equal(false);
-      expect(c.get('servicesMasters').findProperty('component_name', 'c1').get('errorMessage')).to.equal('m1');
-      expect(c.get('servicesMasters').findProperty('component_name', 'c2').get('warnMessage')).to.equal('m2');
-      expect(c.get('generalErrorMessages')).to.be.empty;
-      expect(c.get('generalWarningMessages')).to.be.empty;
+      it('submitDisabled is false', function () {
+        expect(c.get('submitDisabled')).to.equal(false);
+      });
+
+      it('errorMessage for c1 is `m1`', function () {
+        expect(c.get('servicesMasters').findProperty('component_name', 'c1').get('errorMessage')).to.equal('m1');
+      });
+
+      it('errorMessage for c2 is `m2`', function () {
+        expect(c.get('servicesMasters').findProperty('component_name', 'c2').get('warnMessage')).to.equal('m2');
+      });
+
+      it('no general errors', function () {
+        expect(c.get('generalErrorMessages')).to.be.empty;
+      });
+
+      it('no general warnings', function () {
+        expect(c.get('generalWarningMessages')).to.be.empty;
+      });
+
     });
 
   });
 
-  describe('#sortComponentsByServiceName', function () {
+  describe('#submit',function(){
+    it('if Next button is clicked multiple times before the next step renders, it must not be processed',function(){
+      c.reopen({isSubmitDisabled:false, submitDisabled:false, useServerValidation:false});
+      c.submit();
+      expect(App.router.send.calledWith('next')).to.equal(true);
 
-    var components = [{
-      "component_name": "METRICS_COLLECTOR",
-      "serviceId": "AMBARI_METRICS"
-    }, {"component_name": "ZOOKEEPER_SERVER", "serviceId": "ZOOKEEPER"}, {
-      "component_name": "NAMENODE",
-      "serviceId": "HDFS"
-    }, {"component_name": "DRPC_SERVER", "serviceId": "STORM"}, {
-      "component_name": "APP_TIMELINE_SERVER",
-      "serviceId": "YARN"
-    }, {"component_name": "RESOURCEMANAGER", "serviceId": "YARN"}, {
-      "component_name": "SECONDARY_NAMENODE",
-      "serviceId": "HDFS"
-    }, {"component_name": "ZOOKEEPER_SERVER", "serviceId": "ZOOKEEPER"}, {
-      "component_name": "HISTORYSERVER",
-      "serviceId": "MAPREDUCE2"
-    }, {"component_name": "NIMBUS", "serviceId": "STORM"}, {"component_name": "STORM_UI_SERVER", "serviceId": "STORM"}];
+      App.router.send.reset();
+      c.submit();
+      expect(App.router.send.calledWith('next')).to.equal(false);
 
-    it('ZKS should be one after anothert', function () {
-      var sorted = c.sortComponentsByServiceName(components);
-      expect(sorted.mapProperty('component_name').join('|').contains('ZOOKEEPER_SERVER|ZOOKEEPER_SERVER')).to.be.true;
     });
-
-
   });
 
 });

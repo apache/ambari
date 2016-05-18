@@ -108,6 +108,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
     this.set('additionalData', {
       user: App.db.getUser(),
       login: App.db.getLoginName(),
+      auth: App.db.getAuth(),
       overrideLocaldb: !overrideLocaldb
     });
     return this.getUserPref(this.get('key'));
@@ -146,6 +147,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
           App.db.setLocalStorage();
           App.db.setUser(params.data.user);
           App.db.setLoginName(params.data.login);
+          App.db.setAuth(params.data.auth);
           App.db.setAuthenticated(authenticated);
           App.db.data.app.tables = localdbTables;
         }

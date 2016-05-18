@@ -29,7 +29,6 @@
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
   </property>
   <property>
@@ -70,6 +69,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <description>HBase User Name.</description>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>

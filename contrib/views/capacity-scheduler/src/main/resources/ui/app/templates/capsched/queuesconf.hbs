@@ -1,0 +1,104 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="queue-config-container">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-sm-7">
+          <div class="list-group queue-hierarchy">
+            {{queue-hierarchy depth=0 queues=queues}}
+          </div>
+          {{#if isOperator}}
+            {{#if selectedQueue}}
+              <div class="queue-actions-wrapper">
+                <div class="pull-left">
+                  <button type="button" class="btn btn-primary btn-xs" name="addQueueBtn" {{action "addNewQueue"}}>Add Queue</button>
+                </div>
+                <div class="pull-right">
+                    {{#unless isRootQSelected}}
+                      <button type="button" class="btn btn-danger btn-xs" name="deleteQueueBtn">Delete</button>
+                    {{/unless}}
+                    {{#if isSelectedQRunning}}
+                      <button type="button" class="btn btn-warning btn-xs" name="queueStateBtn">Stop Queue</button>
+                    {{else}}
+                      <button type="button" class="btn btn-primary btn-xs" name="queueStateBtn">Start Queue</button>
+                    {{/if}}
+                </div>
+              </div>
+              {{#if showQueueNameInput}}
+              <div class="add-newqueuename-wrapper">
+                {{input type="text" name="addNewQueueName" class="form-control input-sm new-queue-name" value=newQueueName placeholder="Enter queue name..."}}
+                <div class="btn-group btn-group-sm pull-right">
+                  <button type="button" class="btn btn-primary" name="createNewQueueBtn" {{action "createNewQueue"}}>Create</button>
+                  <button type="button" class="btn btn-default" name="cancelNewQueueBtn" {{action "cancelCreateQueue"}}>Cancel</button>
+                </div>
+              </div>
+              {{/if}}
+            {{/if}}
+          {{/if}}
+        </div>
+        <div class="col-sm-5">
+          {{queue-summary queue=selectedQueue allQueues=queues}}
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-12">
+          {{outlet}}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="btn btn-group-sm col-sm-offset-3">
+    <button type="button" class="btn btn-success" name="saveQueuesconfBtn" {{action "showSaveConfigDialog" target="view"}}>Save And Refresh Queues</button>
+    <button type="button" class="btn btn-danger" name="cancelQueuesconfBtn">Cancel Changes</button>
+  </div>
+</div>
+
+{{!-- CONFIG NOTE MODAL --}}
+<div class="modal fade" id="configNoteModalDialog" tabindex="-1" role="dialog" aria-labelledby="noteConfigModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="noteConfigModalLabel">Notes</h4>
+      </div>
+      <div class="modal-body">
+        {{textarea class="form-control" rows="3" style="max-width: 100%;" placeholder="What did you change?" value=configNote}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button {{action 'saveQueuesConfig'}} type="button" class="btn btn-success" data-dismiss="modal">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{!-- ALERT --}}
+{{#if alertMessage}}
+  <div class="alert alert-danger">
+    <button {{action 'clearAlert'}} type="button" class="close" aria-hidden="true">&times;</button>
+    <strong> {{alertMessage.status}} </strong> {{alertMessage.simpleMessage}}
+    <div>
+      <small>{{alertMessage.message}}</small>
+    </div>
+    <br>
+    {{#link-to 'capsched.trace' class="alert-link"}}Trace{{/link-to}}
+  </div>
+{{/if}}

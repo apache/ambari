@@ -108,7 +108,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     return App.StackServiceComponent.find().filterProperty('serviceName', this.get('serviceName')).map(function (component) {
       return Em.Object.create({
         componentName: component.get('componentName'),
-        displayName: App.format.role(component.get('componentName')),
+        displayName: App.format.role(component.get('componentName'), false),
         selected: false
       });
     });
@@ -187,12 +187,12 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         } else {
           groupsToCreate.push({
             id: groupRecord.get('id'),
-            config_group_id: groupRecord.get('configGroupId'),
             name: groupRecord.get('name'),
             description: groupRecord.get('description'),
             hosts: groupRecord.get('hosts').slice(0),
             service_id: groupRecord.get('serviceName'),
-            desired_configs: groupRecord.get('desiredConfigs')
+            desired_configs: groupRecord.get('desiredConfigs'),
+            properties: groupRecord.get('properties')
           });
         }
       }
@@ -305,7 +305,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       host.host_components.forEach(function (hostComponent) {
         hostComponents.push(Em.Object.create({
           componentName: hostComponent.HostRoles.component_name,
-          displayName: App.format.role(hostComponent.HostRoles.component_name)
+          displayName: App.format.role(hostComponent.HostRoles.component_name, false)
         }));
       }, this);
       wrappedHosts.pushObject(Em.Object.create({
@@ -404,22 +404,31 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @returns {Array}
    */
   generateOriginalConfigGroups: function(configGroups) {
+    var self = this;
     return configGroups.map(function (item) {
-      return {
-        id: item.get('id'),
-        config_group_id: item.get('configGroupId'),
-        name: item.get('name'),
-        service_name: item.get('serviceName'),
-        description: item.get('description'),
-        hosts: item.get('hosts').slice(0),
-        service_id: item.get('serviceName'),
-        desired_configs: item.get('desiredConfigs'),
-        is_default: item.get('isDefault'),
-        child_config_groups: item.get('childConfigGroups') ? item.get('childConfigGroups').mapProperty('id') : [],
-        parent_config_group_id: item.get('parentConfigGroup.id'),
-        properties: item.get('properties')
-      };
+      return self.createOriginalRecord(item);
     });
+  },
+
+  /**
+   *  Return object to use for loading to model with correct names for object keys
+   * @param configGroup - config group object from model
+   * @returns {Object}
+   */
+  createOriginalRecord: function (configGroup) {
+    return {
+      id: configGroup.get('id'),
+      name: configGroup.get('name'),
+      service_name: configGroup.get('serviceName'),
+      description: configGroup.get('description'),
+      hosts: configGroup.get('hosts').slice(0),
+      service_id: configGroup.get('serviceName'),
+      desired_configs: configGroup.get('desiredConfigs'),
+      is_default: configGroup.get('isDefault'),
+      child_config_groups: configGroup.get('childConfigGroups') ? configGroup.get('childConfigGroups').mapProperty('id') : [],
+      parent_config_group_id: configGroup.get('parentConfigGroup.id'),
+      properties: configGroup.get('properties')
+    };
   },
 
   /**
@@ -461,17 +470,23 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @method _onLoadPropertiesSuccess
    */
   _onLoadPropertiesSuccess: function (data, opt, params) {
+    var groupToPropertiesMap = {};
     data.items.forEach(function (configs) {
-      var typeTagConfigs = [];
       var group = params.typeTagToGroupMap[configs.type + "///" + configs.tag];
+      if (!groupToPropertiesMap[group]) {
+        groupToPropertiesMap[group] = [];
+      }
       for (var config in configs.properties) {
-        typeTagConfigs.push({
+        groupToPropertiesMap[group].push({
           name: config,
-          value: configs.properties[config]
+          value: configs.properties[config],
+          type: configs.type
         });
       }
-      this.get('configGroups').findProperty('name', group).set('properties', typeTagConfigs);
     }, this);
+    for (var g in groupToPropertiesMap) {
+      this.get('configGroups').findProperty('name', g).set('properties', groupToPropertiesMap[g]);
+    }
   },
 
   /**
@@ -479,9 +494,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @method showProperties
    */
   showProperties: function () {
-    var properies = this.get('selectedConfigGroup.propertiesList').htmlSafe();
-    if (properies) {
-      App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properies);
+    var properties = this.get('selectedConfigGroup.propertiesList').htmlSafe();
+    if (properties) {
+      App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properties);
     }
   },
 
@@ -564,6 +579,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     this.set('selectedHosts', selectedConfigGroup.get('hosts'));
     this.deleteHosts();
     this.get('configGroups').removeObject(selectedConfigGroup);
+    App.configGroupsMapper.deleteRecord(selectedConfigGroup);
     this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
     this.propertyDidChange('groupDeleteTrigger');
   },
@@ -621,8 +637,11 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
 
       onPrimary: function () {
-        self.set('selectedConfigGroup.name', this.get('configGroupName'));
-        self.set('selectedConfigGroup.description', this.get('configGroupDesc'));
+        self.get('selectedConfigGroup').setProperties({
+          name: this.get('configGroupName'),
+          description: this.get('configGroupDesc')
+        });
+        App.store.commit();
         this.hide();
       }
     });
@@ -653,9 +672,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       warningMessage: '',
 
       didInsertElement: function(){
+        this._super();
         this.validate();
         this.$('input').focus();
-        this.fitZIndex();
       },
 
       validate: function () {
@@ -675,37 +694,37 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       }.property('warningMessage', 'configGroupName'),
 
       onPrimary: function () {
-        var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
-        var properties = [];
-        var serviceName = self.get('serviceName');
-        //temporarily id until real assigned by server
-        var newGroupId = serviceName + "_NEW_" + self.get('configGroups.length');
+        var defaultConfigGroup = self.get('configGroups').findProperty('isDefault'),
+          properties = [], serviceName = self.get('serviceName'),
+          groupName = this.get('configGroupName').trim(),
+          newGroupId = (new Date()).getTime();
+
+        if (duplicated) {
+          self.get('selectedConfigGroup.properties').forEach(function (item) {
+            var property = App.ServiceConfigProperty.create($.extend(false, {}, item));
+            property.set('group', App.ServiceConfigGroup.find(newGroupId));
+            properties.push(property);
+          });
+        }
 
         App.store.load(App.ServiceConfigGroup, {
           id: newGroupId,
-          name: this.get('configGroupName').trim(),
+          name: groupName,
           description: this.get('configGroupDesc'),
           isDefault: false,
           parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
           service_id: serviceName,
           service_name: serviceName,
           hosts: [],
-          desiredConfigs: [],
-          properties: []
+          desired_configs: duplicated ? self.get('selectedConfigGroup.desiredConfigs') : [],
+          properties: duplicated ? properties : [],
+          is_temporary: true
         });
         App.store.commit();
         var childConfigGroups = defaultConfigGroup.get('childConfigGroups').mapProperty('id');
         childConfigGroups.push(newGroupId);
         App.store.load(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(self.get('serviceName'), defaultConfigGroup.get('hosts'), childConfigGroups));
         App.store.commit();
-        if (duplicated) {
-          self.get('selectedConfigGroup.properties').forEach(function(item) {
-            var property = App.ServiceConfigProperty.create($.extend(false, {}, item));
-            property.set('group', App.ServiceConfigGroup.find(newGroupId));
-            properties.push(property);
-          });
-          App.ServiceConfigGroup.find(newGroupId).set('properties', properties);
-        }
         self.get('configGroups').pushObject(App.ServiceConfigGroup.find(newGroupId));
         this.hide();
       }
@@ -754,6 +773,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
 
       primary: Em.I18n.t('common.save'),
+
+      autoHeight: false,
 
       subViewController: configsController,
 
@@ -897,8 +918,16 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
               if (errors.length > 0) {
                 self.get('subViewController').set('errorMessage', errors.join(". "));
               } else {
-                self.updateConfigGroupOnServicePage();
-                self.hide();
+                if (!self.get('isAddService') && !self.get('isInstaller') && !modifiedConfigGroups.toCreate.everyProperty('properties.length', 0)) {
+                  //update service config versions only if it is service configs page and at least one newly created group had properties
+                  App.router.get('mainServiceInfoConfigsController').loadServiceConfigVersions().done(function () {
+                    self.updateConfigGroupOnServicePage();
+                    self.hide();
+                  });
+                } else {
+                  self.updateConfigGroupOnServicePage();
+                  self.hide();
+                }
               }
             });
           });
@@ -929,11 +958,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       updateButtons: function () {
         var modified = this.get('subViewController.isHostsModified');
         this.set('disablePrimary', !modified);
-      }.observes('subViewController.isHostsModified'),
-
-      didInsertElement: function () {
-        this.fitZIndex();
-      }
+      }.observes('subViewController.isHostsModified')
     });
   }
 

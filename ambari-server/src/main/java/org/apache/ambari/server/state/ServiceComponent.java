@@ -28,6 +28,20 @@ public interface ServiceComponent {
 
   String getName();
 
+  /**
+   * Get a true or false value specifying
+   * if auto start was enabled for this component.
+   * @return true or false
+   */
+  boolean isRecoveryEnabled();
+
+  /**
+   * Set a true or false value specifying if this
+   * component is to be enabled for auto start or not.
+   * @param recoveryEnabled - true or false
+   */
+  void setRecoveryEnabled(boolean recoveryEnabled);
+
   String getServiceName();
 
   long getClusterId();
@@ -41,6 +55,10 @@ public interface ServiceComponent {
   StackId getDesiredStackVersion();
 
   void setDesiredStackVersion(StackId stackVersion);
+
+  String getDesiredVersion();
+
+  void setDesiredVersion(String version);
 
   Map<String, ServiceComponentHost> getServiceComponentHosts();
 

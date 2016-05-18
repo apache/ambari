@@ -73,15 +73,17 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6</osFamily>
           <packages>
             <package>
               <name>krb5-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-libs</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-workstation</name>
@@ -96,10 +98,12 @@
             <package>
               <name>krb5-kdc</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-admin-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-user</name>
@@ -113,11 +117,12 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>suse11</osFamily>
+          <osFamily>suse11,suse12</osFamily>
           <packages>
             <package>
               <name>krb5</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
             <package>
               <name>krb5-client</name>
@@ -126,6 +131,7 @@
             <package>
               <name>krb5-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_kerberos_server</condition>
             </package>
           </packages>
         </osSpecific>

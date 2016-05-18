@@ -25,6 +25,12 @@
     <name>hbase_log_dir</name>
     <value>/var/log/ambari-metrics-collector</value>
     <description>Log Directories for HBase.</description>
+    <depends-on>
+      <property>
+        <type>ams-env</type>
+        <name>metrics_collector_log_dir</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -47,7 +53,7 @@
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
-    <value>512</value>
+    <value>768</value>
     <description>
         HBase RegionServer Heap Size. In embedded mode, total heap size is
         sum of master and regionserver heap sizes.
@@ -69,7 +75,7 @@
   </property>
   <property>
     <name>regionserver_xmn_size</name>
-    <value>256</value>
+    <value>128</value>
     <description>HBase RegionServer maximum value for young generation heap size.</description>
     <value-attributes>
       <type>int</type>
@@ -84,7 +90,7 @@
   </property>
   <property>
     <name>hbase_master_xmn_size</name>
-    <value>256</value>
+    <value>102</value>
     <description>
       HBase Master maximum value for young generation heap size.
     </description>
@@ -222,10 +228,10 @@ export HBASE_PID_DIR={{hbase_pid_dir}}
 export HBASE_MANAGES_ZK=false
 
 {% if security_enabled %}
-export HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}"
-export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}"
-export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}"
-export HBASE_ZOOKEEPER_OPTS="$HBASE_ZOOKEEPER_OPTS -Djava.security.auth.login.config={{ams_zookeeper_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}"
+export HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}}"
+export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}}"
+export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}}"
+export HBASE_ZOOKEEPER_OPTS="$HBASE_ZOOKEEPER_OPTS -Djava.security.auth.login.config={{ams_zookeeper_jaas_config_file}}"
 {% endif %}
 
 # use embedded native libs
@@ -234,6 +240,10 @@ export HBASE_OPTS="$HBASE_OPTS -Djava.library.path=${_HADOOP_NATIVE_LIB}"
 
 # Unset HADOOP_HOME to avoid importing HADOOP installed cluster related configs like: /usr/hdp/2.2.0.0-2041/hadoop/conf/
 export HADOOP_HOME={{ams_hbase_home_dir}}
+
+# Explicitly Setting HBASE_HOME for AMS HBase so that there is no conflict
+export HBASE_HOME={{ams_hbase_home_dir}}
+
     </value>
     <value-attributes>
       <type>content</type>

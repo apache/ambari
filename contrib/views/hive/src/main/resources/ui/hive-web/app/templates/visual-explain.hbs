@@ -19,12 +19,12 @@
 <div id="visual-explain" class="index-overlay">
   {{#panel-widget headingTranslation="titles.query.visualExplain"}}
 
-  {{#unless json}}
-    {{#if noquery}}
-      <div class="alert alert-danger" role="alert"><strong>{{tb-helper 'hive.errors.no.query'}}</strong></div>
-    {{else}}
-      <div class="spinner"></div>
-    {{/if}}
+  {{#if noquery}}
+    <div class="alert alert-danger" role="alert"><strong>{{tb-helper 'hive.errors.no.query'}}</strong></div>
+  {{/if}}
+
+  {{#unless showSpinner}}
+     <div class="spinner"></div>
   {{/unless}}
 
   <div id="no-visual-explain-graph"></div>

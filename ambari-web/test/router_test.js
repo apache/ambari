@@ -17,33 +17,12 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 require('router');
 
 describe('App.Router', function () {
   var router = App.Router.create();
-
-  describe.skip('#loginSuccessCallback()', function() {
-
-    beforeEach(function () {
-      sinon.stub(App.usersMapper, 'map');
-      sinon.stub(router, 'setUserLoggedIn');
-      sinon.stub(App.ajax, 'send');
-    });
-
-    afterEach(function() {
-      App.usersMapper.map.restore();
-      router.setUserLoggedIn.restore();
-      App.ajax.send.restore();
-    });
-
-    it('should log in user and load views', function () {
-      var userName = 'test';
-      router.loginSuccessCallback({},{},{loginName: userName});
-      expect(router.setUserLoggedIn.calledOnce).to.be.true;
-      expect(router.setUserLoggedIn.calledWith(userName)).to.be.true;
-    })
-  });
 
   describe('#initAdmin()', function () {
 
@@ -83,6 +62,7 @@ describe('App.Router', function () {
     ];
 
     beforeEach(function () {
+      this.getUser = sinon.stub(App.db, 'getUser');
       App.setProperties({
         isAdmin: false,
         isOperator: false,
@@ -91,12 +71,12 @@ describe('App.Router', function () {
     });
 
     afterEach(function () {
-      App.db.getUser.restore();
+      this.getUser.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        sinon.stub(App.db, 'getUser').returns(item.user);
+        this.getUser.returns(item.user);
         router.initAdmin();
         expect(App.get('isAdmin')).to.equal(item.isAdmin);
         expect(App.get('isOperator')).to.equal(item.isOperator);
@@ -114,56 +94,56 @@ describe('App.Router', function () {
       window.location.replace.restore();
     });
 
-    it('should redirect to the latest version of admin view', function() {
-      var tests = [{
-        mockData: {
-          components: [{
-            'RootServiceComponents': {
-              'component_version': '1.9.0'
-            }
-          }, {
-            'RootServiceComponents': {
-              'component_version': '2.0.0'
-            }
-          }]
-        },
-        expected: '/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'
-      }, {
-        mockData: {
-          components: [{
-            'RootServiceComponents': {
-              'component_version': '1.9.0'
-            }
-          }, {
-            'RootServiceComponents': {
-              'component_version': '2.1.0'
-            }
-          }, {
-            'RootServiceComponents': {
-              'component_version': '2.0.0'
-            }
-          }]
-        },
-        expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
-      }, {
-        mockData: {
-          versions: [{
-            'RootServiceComponents': {
-              version: '2.1.0'
-            }
-          }]
-        },
-        expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
-      }];
+    var tests = [{
+      mockData: {
+        components: [{
+          'RootServiceComponents': {
+            'component_version': '1.9.0'
+          }
+        }, {
+          'RootServiceComponents': {
+            'component_version': '2.0.0'
+          }
+        }]
+      },
+      expected: '/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'
+    }, {
+      mockData: {
+        components: [{
+          'RootServiceComponents': {
+            'component_version': '1.9.0'
+          }
+        }, {
+          'RootServiceComponents': {
+            'component_version': '2.1.0'
+          }
+        }, {
+          'RootServiceComponents': {
+            'component_version': '2.0.0'
+          }
+        }]
+      },
+      expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
+    }, {
+      mockData: {
+        components: [{
+          'RootServiceComponents': {
+            component_version: '2.1.0'
+          }
+        }]
+      },
+      expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
+    }];
 
-      tests.forEach(function(data) {
+    tests.forEach(function(data, index) {
+      it('should redirect to the latest version of admin view ("' + data.expected + '") #' + (index + 1), function () {
         router.adminViewInfoSuccessCallback(data.mockData);
         expect(window.location.replace.calledWith(data.expected)).to.be.true;
       });
     });
   });
 
-  describe("#savePreferedPath()", function() {
+  describe.skip("#savePreferedPath()", function() {
     beforeEach(function () {
       router.set('preferedPath', null);
     });
@@ -181,7 +161,7 @@ describe('App.Router', function () {
     });
   });
 
-  describe("#restorePreferedPath()", function() {
+  describe.skip("#restorePreferedPath()", function() {
     it("preferedPath is null", function() {
       router.set('preferedPath', null);
       expect(router.restorePreferedPath()).to.be.false;
@@ -209,7 +189,7 @@ describe('App.Router', function () {
     });
   });
 
-  describe("#loginGetClustersSuccessCallback()", function () {
+  describe.skip("#loginGetClustersSuccessCallback()", function () {
     var mock = {dataLoading: Em.K};
     beforeEach(function () {
       sinon.stub(router, 'setClusterInstalled', Em.K);
@@ -258,6 +238,7 @@ describe('App.Router', function () {
       expect(App.get('isPermissionDataLoaded')).to.be.true;
       expect(mock.dataLoading.calledOnce).to.be.true;
     });
+
     it("cluster exists, READ privileges", function () {
       var clusterData = {
         items: [{
@@ -371,20 +352,11 @@ describe('App.Router', function () {
   });
 
   describe("#transitionToAdminView()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send');
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-    it("", function () {
+
+    it("valid request is sent", function () {
       router.transitionToAdminView();
-      expect(App.ajax.send.calledWith({
-        name: 'ambari.service.load_server_version',
-        sender: router,
-        success: 'adminViewInfoSuccessCallback',
-        error: 'adminViewInfoErrorCallback'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
+      expect(args[0]).to.exists;
     });
   });
 
@@ -427,7 +399,7 @@ describe('App.Router', function () {
       router.transitionTo.restore();
       mock.loadAmbariViews.restore();
     });
-    it("", function () {
+    it("transitionTo called with corrent route", function () {
       router.transitionToViews();
       expect(mock.loadAmbariViews.calledOnce).to.be.true;
       expect(router.transitionTo.calledWith('main.views.index')).to.be.true;
@@ -441,13 +413,25 @@ describe('App.Router', function () {
     afterEach(function () {
       router.transitionToViews.restore();
     });
-    it("", function () {
+    it("transitionToViews called once", function () {
       router.adminViewInfoErrorCallback();
       expect(router.transitionToViews.calledOnce).to.be.true;
     });
   });
 
   describe("#getAuthenticated", function() {
+    beforeEach(function () {
+      router = App.Router.create();
+      this.mockGetCurrentLocationUrl = sinon.stub(router, 'getCurrentLocationUrl');
+      sinon.stub(router, 'redirectByURL', Em.K);
+    });
+
+    afterEach(function () {
+      router.getCurrentLocationUrl.restore();
+      router.redirectByURL.restore();
+      this.mockGetCurrentLocationUrl.restore();
+    });
+
     [
       {
         lastSetURL: '/login/local',
@@ -480,29 +464,114 @@ describe('App.Router', function () {
         m: 'jwtProviderUrl is present, current location is local login url, no redirect'
       }
     ].forEach(function(test) {
-      it(test.m, function() {
-        var router = App.Router.create();
-        var mockCurrentUrl = 'http://localhost:3333/#/some/hash';
-        router.set('location.lastSetURL', test.lastSetURL);
-        sinon.stub(App.ajax, 'send', function() {
-          if (!test.isResolved) {
-            router.onAuthenticationError(test.responseData);
-          }
-          return {
-            complete: function() {}
-          };
+      describe(test.m, function() {
+        var mockCurrentUrl;
+        beforeEach(function () {
+          mockCurrentUrl = 'http://localhost:3333/#/some/hash';
+          router.set('location.lastSetURL', test.lastSetURL);
+          App.ajax.send.restore(); // default ajax-mock can't be used here
+          sinon.stub(App.ajax, 'send', function() {
+            if (!test.isResolved) {
+              router.onAuthenticationError(test.responseData);
+            }
+            return {
+              complete: function() {}
+            };
+          });
+          this.mockGetCurrentLocationUrl.returns(mockCurrentUrl);
+          router.getAuthenticated();
         });
-        sinon.stub(router, 'getCurrentLocationUrl').returns(mockCurrentUrl);
-        sinon.stub(router, 'redirectByURL', Em.K);
-        router.getAuthenticated();
-        expect(router.redirectByURL.calledOnce).to.be.eql(test.redirectCalled);
+
+        it('redirectByURL is ' + (test.redirectCalled ? '' : 'not') + ' called', function () {
+          expect(router.redirectByURL.calledOnce).to.be.eql(test.redirectCalled);
+        });
+
+
         if (test.redirectCalled) {
-          expect(router.redirectByURL.args[0][0]).to.be.eql(JSON.parse(test.responseData.responseText).jwtProviderUrl + encodeURIComponent(mockCurrentUrl));
+          it('redirectByURL is correct', function () {
+            expect(router.redirectByURL.args[0][0]).to.be.eql(JSON.parse(test.responseData.responseText).jwtProviderUrl + encodeURIComponent(mockCurrentUrl));
+          });
         }
-        App.ajax.send.restore();
-        router.getCurrentLocationUrl.restore();
-        router.redirectByURL.restore();
       });
+    });
+
+  });
+
+  describe('#setClusterData', function () {
+
+    var data = {
+        loginName: 'user',
+        loginData: {
+          PrivilegeInfo: {}
+        }
+      },
+      clusterData = {
+        items: []
+      },
+      cases = [
+        {
+          clusterData: clusterData,
+          callbackCallCount: 1,
+          isAjaxCalled: false,
+          title: 'cluster data available'
+        },
+        {
+          clusterData: null,
+          callbackCallCount: 0,
+          isAjaxCalled: true,
+          title: 'no cluster data'
+        }
+      ];
+
+    beforeEach(function () {
+      sinon.stub(router, 'loginGetClustersSuccessCallback', Em.K);
+    });
+
+    afterEach(function () {
+      router.loginGetClustersSuccessCallback.restore();
+    });
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        var ajaxCallArgs;
+
+        beforeEach(function () {
+          router.set('clusterData', item.clusterData);
+          router.setClusterData({}, {}, data);
+          ajaxCallArgs = testHelpers.findAjaxRequest('name', 'router.login.clusters');
+        });
+
+        it('loginGetClustersSuccessCallback', function () {
+          expect(router.loginGetClustersSuccessCallback.callCount).to.equal(item.callbackCallCount);
+        });
+
+        if (item.isAjaxCalled) {
+          it('App.ajax.send is called', function () {
+            expect(ajaxCallArgs).to.have.length(1);
+          });
+          it('data for AJAX request', function () {
+            expect(ajaxCallArgs).to.eql([
+              {
+                name: 'router.login.clusters',
+                sender: router,
+                data: data,
+                success: 'loginGetClustersSuccessCallback'
+              }
+            ]);
+          });
+        } else {
+          it('App.ajax.send is not called', function () {
+            expect(ajaxCallArgs).to.be.undefined;
+          });
+          it('arguments for callback', function () {
+            expect(router.loginGetClustersSuccessCallback.firstCall.args).to.eql([clusterData, {}, data]);
+          });
+        }
+
+      });
+
     });
 
   });

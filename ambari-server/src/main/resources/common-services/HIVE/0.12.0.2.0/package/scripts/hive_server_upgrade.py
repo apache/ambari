@@ -24,9 +24,10 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import format_hdp_stack_version
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
 
 
 def post_upgrade_deregister():
@@ -53,7 +54,7 @@ def post_upgrade_deregister():
   if current_hiveserver_version is None:
     raise Fail('Unable to determine the current HiveServer2 version to deregister.')
 
-  # fallback when upgrading because /usr/hdp/current/hive-server2/conf/conf.server may not exist
+  # fallback when upgrading because <stack-root>/current/hive-server2/conf/conf.server may not exist
   hive_server_conf_dir = params.hive_server_conf_dir
   if not os.path.exists(hive_server_conf_dir):
     hive_server_conf_dir = "/etc/hive/conf.server"
@@ -62,7 +63,7 @@ def post_upgrade_deregister():
   hive_execute_path = params.execute_path
   # If upgrading, the upgrade-target hive binary should be used to call the --deregister command.
   # If downgrading, the downgrade-source hive binary should be used to call the --deregister command.
-  # By now hdp-select has been called to set 'current' to target-stack
+  # By now <stack-selector-tool> has been called to set 'current' to target-stack
   if "downgrade" == params.upgrade_direction:
     # hive_bin
     downgrade_version = params.current_version
@@ -74,24 +75,24 @@ def post_upgrade_deregister():
   Execute(command, user=params.hive_user, path=hive_execute_path, tries=1 )
 
 
-def _get_hive_execute_path(hdp_stack_version):
+def _get_hive_execute_path(stack_version_formatted):
   """
   Returns the exact execute path to use for the given stack-version.
   This method does not return the "current" path
-  :param hdp_stack_version: Exact stack-version to use in the new path
-  :return: Hive execute path for the exact hdp stack-version
+  :param stack_version_formatted: Exact stack-version to use in the new path
+  :return: Hive execute path for the exact stack-version
   """
   import params
 
   hive_execute_path = params.execute_path
-  formatted_stack_version = format_hdp_stack_version(hdp_stack_version)
-  if formatted_stack_version and compare_versions(formatted_stack_version, "2.2") >= 0:
+  formatted_stack_version = format_stack_version(stack_version_formatted)
+  if formatted_stack_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_stack_version):
     # hive_bin
-    new_hive_bin = format('/usr/hdp/{hdp_stack_version}/hive/bin')
+    new_hive_bin = format('{stack_root}/{stack_version_formatted}/hive/bin')
     if (os.pathsep + params.hive_bin) in hive_execute_path:
       hive_execute_path = hive_execute_path.replace(os.pathsep + params.hive_bin, os.pathsep + new_hive_bin)
     # hadoop_bin_dir
-    new_hadoop_bin = hdp_select.get_hadoop_dir_for_stack_version("bin", hdp_stack_version)
+    new_hadoop_bin = stack_select.get_hadoop_dir_for_stack_version("bin", stack_version_formatted)
     old_hadoop_bin = params.hadoop_bin_dir
     if new_hadoop_bin and len(new_hadoop_bin) > 0 and (os.pathsep + old_hadoop_bin) in hive_execute_path:
       hive_execute_path = hive_execute_path.replace(os.pathsep + old_hadoop_bin, os.pathsep + new_hadoop_bin)
@@ -117,11 +118,11 @@ def _get_current_hiveserver_version():
       source_version = params.current_version
     hive_execute_path = _get_hive_execute_path(source_version)
     version_hive_bin = params.hive_bin
-    formatted_source_version = format_hdp_stack_version(source_version)
-    if formatted_source_version and compare_versions(formatted_source_version, "2.2") >= 0:
-      version_hive_bin = format('/usr/hdp/{source_version}/hive/bin')
+    formatted_source_version = format_stack_version(source_version)
+    if formatted_source_version and check_stack_feature(StackFeature.ROLLING_UPGRADE, formatted_source_version):
+      version_hive_bin = format('{stack_root}/{source_version}/hive/bin')
     command = format('{version_hive_bin}/hive --version')
-    return_code, hdp_output = shell.call(command, user=params.hive_user, path=hive_execute_path)
+    return_code, output = shell.call(command, user=params.hive_user, path=hive_execute_path)
   except Exception, e:
     Logger.error(str(e))
     raise Fail('Unable to execute hive --version command to retrieve the hiveserver2 version.')
@@ -129,12 +130,12 @@ def _get_current_hiveserver_version():
   if return_code != 0:
     raise Fail('Unable to determine the current HiveServer2 version because of a non-zero return code of {0}'.format(str(return_code)))
 
-  match = re.search('^(Hive) ([0-9]+.[0-9]+.\S+)', hdp_output, re.MULTILINE)
+  match = re.search('^(Hive) ([0-9]+.[0-9]+.\S+)', output, re.MULTILINE)
 
   if match:
     current_hive_server_version = match.group(2)
     return current_hive_server_version
   else:
-    raise Fail('The extracted hiveserver2 version "{0}" does not matching any known pattern'.format(hdp_output))
+    raise Fail('The extracted hiveserver2 version "{0}" does not matching any known pattern'.format(output))
 
 

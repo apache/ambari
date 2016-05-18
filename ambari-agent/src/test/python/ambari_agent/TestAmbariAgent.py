@@ -92,6 +92,6 @@ class TestAmbariAgent(unittest.TestCase):
     #
     out_folder = '/myoutlocation/out'
     out_file = 'ambari-agent.out'
-    with patch.dict('os.environ', {'AMBARI_AGENT_OUT_DIR': out_folder}):
+    with patch.dict('os.environ', {'AMBARI_AGENT_LOG_DIR': out_folder}):
       self.assertEqual(os.path.join(out_folder, out_file), AmbariConfig.AmbariConfig.getOutFile())
     pass

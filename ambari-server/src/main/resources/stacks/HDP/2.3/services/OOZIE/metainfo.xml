@@ -21,6 +21,13 @@
     <service>
       <name>OOZIE</name>
       <extends>common-services/OOZIE/4.2.0.2.3</extends>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+      
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -31,6 +38,7 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysl_connector</condition>
             </package>
             <package>
               <name>extjs</name>
@@ -38,13 +46,13 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6,redhat7,suse11</osFamily>
+          <osFamily>redhat5,amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>oozie_2_3_*</name>
+              <name>oozie_${stack_version}</name>
             </package>
             <package>
-              <name>falcon_2_3_*</name>
+              <name>falcon_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -52,10 +60,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>oozie-2-3-.*</name>
+              <name>oozie-${stack_version}</name>
             </package>
             <package>
-              <name>falcon-2-3-.*</name>
+              <name>falcon-${stack_version}</name>
             </package>
             <package>
               <name>extjs</name>
@@ -65,8 +73,8 @@
             </package>
           </packages>
         </osSpecific>
-
       </osSpecifics>
+      
     </service>
   </services>
 </metainfo>

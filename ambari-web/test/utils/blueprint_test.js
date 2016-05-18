@@ -243,16 +243,6 @@ describe('utils/blueprint', function() {
   describe('#buildConfigsJSON', function () {
     var tests = [
       {
-        "services": [
-          Em.Object.create({
-            serviceName: "YARN",
-            configTypes: {
-              "yarn-site": {},
-              "yarn-env": {}
-            },
-            isInstalled: true
-          })
-        ],
         "stepConfigs": [
           Em.Object.create({
             serviceName: "YARN",
@@ -260,17 +250,31 @@ describe('utils/blueprint', function() {
               Em.Object.create({
                 name: "p1",
                 value: "v1",
-                filename: "yarn-site.xml"
+                filename: "yarn-site.xml",
+                isRequiredByAgent: true
               }),
               Em.Object.create({
                 name: "p2",
                 value: "v2",
-                filename: "yarn-site.xml"
+                filename: "yarn-site.xml",
+                isRequiredByAgent: true
               }),
               Em.Object.create({
                 name: "p3",
                 value: "v3",
-                filename: "yarn-env.xml"
+                filename: "yarn-env.xml",
+                isRequiredByAgent: true
+              })
+            ]
+          }),
+          Em.Object.create({
+            serviceName: "MISC",
+            configs: [
+              Em.Object.create({
+                name: "user",
+                value: "yarn",
+                filename: "yarn-env.xml",
+                isRequiredByAgent: true
               })
             ]
           })
@@ -284,7 +288,8 @@ describe('utils/blueprint', function() {
           },
           "yarn-env": {
             "properties": {
-              "p3": "v3"
+              "p3": "v3",
+              "user": "yarn"
             }
           }
         }
@@ -292,7 +297,7 @@ describe('utils/blueprint', function() {
     ];
     tests.forEach(function (test) {
       it("generate configs for request (use in validation)", function () {
-        expect(blueprintUtils.buildConfigsJSON(test.services, test.stepConfigs)).to.eql(test.configurations);
+        expect(blueprintUtils.buildConfigsJSON(test.stepConfigs)).to.eql(test.configurations);
       });
     });
   });
@@ -387,7 +392,7 @@ describe('utils/blueprint', function() {
   });
 
   describe("#getComponentForHosts()", function() {
-
+    var res;
     beforeEach(function() {
       sinon.stub(App.ClientComponent, 'find').returns([
         Em.Object.create({
@@ -407,6 +412,7 @@ describe('utils/blueprint', function() {
           hostNames: ["host3"]
         })
       ]);
+      res = blueprintUtils.getComponentForHosts();
     });
     afterEach(function() {
       App.ClientComponent.find.restore();
@@ -414,33 +420,152 @@ describe('utils/blueprint', function() {
       App.MasterComponent.find.restore();
     });
 
-    it("generate components to host map", function() {
-      var res = blueprintUtils.getComponentForHosts();
-      expect(res['host1'][0]).to.eql("C1");
-      expect(res['host2'][0]).to.eql("C1");
-      expect(res['host2'][1]).to.eql("C2");
-      expect(res['host3'][0]).to.eql("C2");
-      expect(res['host3'][1]).to.eql("C3");
+    it('map for 3 items is created', function () {
+      expect(Object.keys(res)).to.have.property('length').equal(3);
+    });
+
+    it("host1 map is valid", function() {
+      expect(res.host1.toArray()).to.eql(['C1']);
+    });
+    it("host2 map is valid", function() {
+      expect(res.host2.toArray()).to.eql(['C1', 'C2']);
+    });
+    it("host3 map is valid", function() {
+      expect(res.host3.toArray()).to.eql(['C2', 'C3']);
     });
   });
 
   describe('#_generateHostMap', function() {
     it('generate map', function() {
       var map = blueprintUtils._generateHostMap({}, ['h1','h2', 'h1'],'c1');
-      expect(map['h1'][0]).to.eql('c1');
-      expect(map['h2'][0]).to.eql('c1');
+      expect(map.h1[0]).to.be.equal('c1');
+      expect(map.h2[0]).to.be.equal('c1');
     });
 
     it('skip generations as hosts is empty', function() {
       expect(blueprintUtils._generateHostMap({}, [],'c1')).to.eql({});
     });
 
-    it('skip throws error when data is wrong', function() {
-      it('should assert error if no data returned from server', function () {
-        expect(function () {
-          blueprintUtils._generateHostMap();
-        }).to.throw(Error);
-      });
+    it('skip throws error when data is wrong (should assert error if no data returned from server)', function() {
+      expect(function () {
+        blueprintUtils._generateHostMap();
+      }).to.throw(Error);
+    });
+  });
+
+  describe('#getHostGroupByFqdn', function() {
+    it('should return `null` if blueprint undefined', function() {
+      expect(blueprintUtils.getHostGroupByFqdn(undefined, 'host1')).to.be.null;
+    });
+
+    it('should return `null` if blueprint not valid', function() {
+      expect(blueprintUtils.getHostGroupByFqdn({not_valid_object: {}}, 'host1')).to.be.null;
+    });
+
+    it('should find host1-group by host1.name', function() {
+      var bp = {
+        blueprint_cluster_binding: {
+          host_groups: [
+            {
+              hosts: [
+                {fqdn: 'host2.name'}
+              ],
+              name: 'host2-group'
+            },
+            {
+              hosts: [
+                {fqdn: 'host1.name'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.getHostGroupByFqdn(bp, 'host1.name')).to.be.equal('host1-group');
+    });
+  });
+
+  describe('#addComponentToHostGroup', function() {
+    it('should add new component to host1-group', function() {
+      var bp = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      var expected = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'},
+                { name: 'COMPONENT2'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.addComponentToHostGroup(bp, 'COMPONENT2', 'host1-group').toString()).to.eql(expected.toString());
+    });
+
+    it('should skip adding component since it already in host1-group', function() {
+      var bp = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      var expected = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.addComponentToHostGroup(bp, 'COMPONENT1', 'host1-group').toString()).to.eql(expected.toString());
+    });
+
+    it('should create components attribute and add component to host1-group', function() {
+      var bp = {
+        blueprint: {
+          host_groups: [
+            {
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      var expected = {
+        blueprint: {
+          host_groups: [
+            {
+              components: [
+                { name: 'COMPONENT1'}
+              ],
+              name: 'host1-group'
+            }
+          ]
+        }
+      };
+      expect(blueprintUtils.addComponentToHostGroup(bp, 'COMPONENT1', 'host1-group').toString()).to.eql(expected.toString());
     });
   });
 });

@@ -33,7 +33,7 @@ def hdfs(name=None):
   
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
-            recursive=True,
+            create_parents = True,
             owner='root',
             group='root'
   )
@@ -71,7 +71,7 @@ def hdfs(name=None):
     )
 
     Directory(params.hadoop_conf_secure_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               cd_access='a',
@@ -117,12 +117,14 @@ def hdfs(name=None):
   )
   
   if params.lzo_enabled and len(params.lzo_packages) > 0:
-      Package(params.lzo_packages)
+      Package(params.lzo_packages,
+              retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
+              retry_count=params.agent_stack_retry_count)
       
 def install_snappy():
   import params
   Directory([params.so_target_dir_x86, params.so_target_dir_x64],
-            recursive=True,
+            create_parents = True,
   )    
   Link(params.so_target_x86,
        to=params.so_src_x86,
@@ -139,7 +141,7 @@ def hdfs(component=None):
     Directory(directories,
               owner=params.hdfs_user,
               mode="(OI)(CI)F",
-              recursive=True
+              create_parents = True
     )
     File(params.exclude_file_path,
          content=Template("exclude_hosts_list.j2"),

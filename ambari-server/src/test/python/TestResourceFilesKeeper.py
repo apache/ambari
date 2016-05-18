@@ -16,6 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
+os.environ["ROOT"] = ""
+
 import time
 import subprocess
 import os
@@ -53,7 +56,7 @@ class TestResourceFilesKeeper(TestCase):
                                     ResourceFilesKeeper.PACKAGE_DIR)
 
   if get_platform() != PLATFORM_WINDOWS:
-    DUMMY_UNCHANGEABLE_PACKAGE_HASH="33a5f7d3bb6e7b4545431fc07ae87fa2d59a09c4"
+    DUMMY_UNCHANGEABLE_PACKAGE_HASH="11c9ed5f7987b41ce5d7adaedd6dd08c9cc9b418"
   else:
     DUMMY_UNCHANGEABLE_PACKAGE_HASH="2e438f4f9862420ed8930a56b8809b8aca359e87"
   DUMMY_HASH="dummy_hash"

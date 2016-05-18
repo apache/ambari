@@ -114,7 +114,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
                 name : dep.StackConfigurationDependency.dependency_name
               });
               var service = App.StackService.find(config.StackConfigurations.service_name);
-              var dependentService = App.config.getServiceByConfigType(dep.StackConfigurationDependency.dependency_type);
+              var dependentService = App.config.get('serviceByConfigTypeMap')[dep.StackConfigurationDependency.dependency_type];
               if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
                 service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
               }
@@ -123,7 +123,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           if (Em.get(config, 'StackConfigurations.property_depends_on.length') > 0) {
             config.StackConfigurations.property_depends_on.forEach(function(dep) {
               var service = App.StackService.find(config.StackConfigurations.service_name);
-              var dependentService = App.config.getServiceByConfigType(dep.type);
+              var dependentService = App.config.get('serviceByConfigTypeMap')[dep.type];
               if (dependentService && service && dependentService.get('serviceName') != service.get('serviceName') && !service.get('dependentServiceNames').contains(dependentService.get('serviceName'))) {
                 service.set('dependentServiceNames', service.get('dependentServiceNames').concat(dependentService.get('serviceName')));
               }
@@ -144,6 +144,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           var v = Em.isNone(staticConfigInfo.recommendedValue) ? staticConfigInfo.recommendedValue : staticConfigInfo.value;
           staticConfigInfo.value = staticConfigInfo.recommendedValue = App.config.formatPropertyValue(staticConfigInfo, v);
           staticConfigInfo.isSecureConfig = App.config.getIsSecure(staticConfigInfo.name);
+          staticConfigInfo.description = App.config.getDescription(staticConfigInfo.description, staticConfigInfo.displayType);
           staticConfigInfo.isUserProperty = false;
           App.configsCollection.add(staticConfigInfo);
 
@@ -169,7 +170,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     config.category = uiConfigProperty && uiConfigProperty.category ? uiConfigProperty.category : App.config.getDefaultCategory(true, c.type);
 
     if (uiConfigProperty) {
-      config.index = uiConfigProperty.index || Infinity;
+      config.index = (uiConfigProperty.index !== undefined) ? uiConfigProperty.index : Infinity;
       if (uiConfigProperty.displayType) {
         c.property_value_attributes.type = uiConfigProperty.displayType;
         config.radioName = uiConfigProperty.radioName;
@@ -206,6 +207,8 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    */
   addUIOnlyProperties: function(configs) {
     require('data/HDP2/ui_properties').concat(require('data/HDP2/alert_notification')).forEach(function(p) {
+      if(p.name == "dfs.ha.fencing.methods" && !App.get('isHaEnabled')) return;
+
       configs.push({
         id: App.config.configId(p.name, p.filename),
         name: p.name,

@@ -69,6 +69,7 @@
       <parallel-scheduler/>
       <service-check>false</service-check>
 
+      <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
       <service name="ATLAS">
         <component>ATLAS_SERVER</component>
       </service>
@@ -136,7 +137,7 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -146,7 +147,6 @@
         </task>
       </execute-stage>
 
-      <!--TODO(dlysnichenko): This step is missing in 2.3->2.3+ RU pack -->
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
           <message>Before continuing, please backup the Knox data. E.g., "cp -RL /usr/hdp/current/knox-server/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
@@ -169,13 +169,16 @@
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}. If audit database size is too large (greater than 3GB) then follow the below instructions:
+            1. Backup the audit table from audit database.
+            2. Truncate audit table.
+            3. Follow upgrade process and once completed then restore audit data to audit table.</message>
         </task>
       </execute-stage>
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Backup Ranger KMS Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup Ranger KMS database</message>
+          <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
     </group>
@@ -225,13 +228,13 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Restore Oozie Database">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Restore Hive Metastore">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Hive Metastore database located on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Hive Metastore database referenced by the Hive Metastore service(s) located on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -267,8 +270,29 @@
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
 
+      <!--YARN-->
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
+      <!--TEZ-->
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+
+      <!-- HBASE -->
+      <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBASE Master">
+        <task xsi:type="configure" id="hdp_2_3_4_0_hbase_remove_local_indexing"/>
+      </execute-stage>
+
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+      </execute-stage>
+
+      <!--OOZIE-->
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
+        <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
       </execute-stage>
     </group>
 
@@ -416,15 +440,27 @@
       </priority>
     </group>
 
-    <group xsi:type="restart" name="HIVE" title="Hive">
+    <group xsi:type="restart" name="HIVE_MASTERS" title="Hive Masters">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <!-- Must be ran sequentially because Hive Metastore upgrades the schema and Hive Server copies tarballs. -->
+      <parallel-scheduler>
+        <max-degree-of-parallelism>1</max-degree-of-parallelism>
+      </parallel-scheduler>
+      <service name="HIVE">
+        <component>HIVE_METASTORE</component>
+        <component>HIVE_SERVER</component>
+        <component>WEBHCAT_SERVER</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="HIVE_CLIENTS" title="Hive Clients">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="HIVE">
-        <component>HIVE_METASTORE</component>
-        <component>HIVE_SERVER</component>
-        <component>WEBHCAT_SERVER</component>
         <component>HIVE_CLIENT</component>
         <component>HCAT</component>
       </service>
@@ -437,6 +473,7 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 
@@ -449,6 +486,7 @@
       </service>
     </group>
 
+    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
     <group xsi:type="restart" name="ATLAS" title="Atlas">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -457,31 +495,6 @@
       <service name="ATLAS">
         <component>ATLAS_SERVER</component>
       </service>
-    </group>
-
-    <!-- Upgrade Oozie DB only on Upgrade direction, and always create a new ShareLib. -->
-    <group name="UPGRADE_OOZIE" title="Upgrade Oozie Database">
-      <direction>UPGRADE</direction>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Upgrade Oozie Database">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
-          <script>scripts/oozie_server_upgrade.py</script>
-          <function>upgrade_oozie_database_and_sharelib</function>
-        </task>
-      </execute-stage>
-    </group>
-
-    <!-- Only create the ShareLib folder during a Downgrade. -->
-    <group name="DOWNGRADE_OOZIE" title="Downgrade Oozie ShareLib">
-      <direction>DOWNGRADE</direction>
-      <skippable>true</skippable>
-      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Downgrade Oozie ShareLib">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
-          <script>scripts/oozie_server_upgrade.py</script>
-          <function>create_sharelib</function>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="restart" name="OOZIE" title="Oozie">
@@ -595,6 +608,7 @@
     that are installed on the hosts but not known by Ambari.
     -->
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
+      <scope>COMPLETE</scope>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
@@ -656,9 +670,37 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
+
+        <post-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-upgrade>
+
+        <post-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-downgrade>
       </component>
 
       <component name="RANGER_USERSYNC">
@@ -670,6 +712,20 @@
 
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -678,6 +734,12 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="SECONDARY_NAMENODE">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -844,6 +906,11 @@
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
+      <component name="SPARK_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
       <component name="SPARK_CLIENT">
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -854,14 +921,17 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+          <!-- It is extremely important that both of these tasks run on the exact same host. Hence, pick the first alphabetically. -->
+          <task xsi:type="configure_function" hosts="first" />
+
+          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="any" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>
@@ -988,6 +1058,7 @@
       </component>
     </service>
 
+    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
     <service name="ATLAS">
       <component name="ATLAS_SERVER">
         <upgrade>

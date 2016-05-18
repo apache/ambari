@@ -22,6 +22,8 @@ import os
 
 from resource_management.libraries.script.script import Script
 
+# default value of log4j version is 1 for hive
+log4j_version = '1'
 
 config = Script.get_config()
 

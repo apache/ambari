@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
@@ -26,13 +28,18 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.ViewDefinition;
 import org.easymock.Capture;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,15 +53,20 @@ import static org.junit.Assert.assertEquals;
 
 public class ViewInstanceResourceProviderTest {
 
-  private static final ViewRegistry singleton = createMock(ViewRegistry.class);
+  private static final ViewRegistry viewregistry = createMock(ViewRegistry.class);
 
   static {
-    ViewRegistry.initInstance(singleton);
+    ViewRegistry.initInstance(viewregistry);
   }
 
   @Before
   public void before() {
-    reset(singleton);
+    reset(viewregistry);
+  }
+
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
@@ -76,12 +88,12 @@ public class ViewInstanceResourceProviderTest {
 
     expect(viewInstanceEntity.getData()).andReturn(Collections.<ViewInstanceDataEntity>emptyList()).anyTimes();
 
-    expect(singleton.checkAdmin()).andReturn(true);
-    expect(singleton.checkAdmin()).andReturn(false);
+    expect(viewregistry.checkAdmin()).andReturn(true);
+    expect(viewregistry.checkAdmin()).andReturn(false);
 
     expect(viewInstanceEntity.getClusterHandle()).andReturn("c1");
 
-    replay(singleton, viewEntity, viewInstanceEntity);
+    replay(viewregistry, viewEntity, viewInstanceEntity);
 
     // as admin
     Resource resource = provider.toResource(viewInstanceEntity, propertyIds);
@@ -104,11 +116,20 @@ public class ViewInstanceResourceProviderTest {
     props = properties.get("ViewInstanceInfo/properties");
     assertNull(props);
 
-    verify(singleton, viewEntity, viewInstanceEntity);
+    verify(viewregistry, viewEntity, viewInstanceEntity);
   }
 
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
     Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
@@ -137,24 +158,26 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setViewEntity(viewEntity);
     viewInstanceEntity2.setViewEntity(viewEntity);
 
-    expect(singleton.instanceExists(viewInstanceEntity)).andReturn(false);
-    expect(singleton.instanceExists(viewInstanceEntity2)).andReturn(false);
-    expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
-    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity).anyTimes();
+    expect(viewregistry.instanceExists(viewInstanceEntity)).andReturn(false);
+    expect(viewregistry.instanceExists(viewInstanceEntity2)).andReturn(false);
+    expect(viewregistry.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
+    expect(viewregistry.getDefinition("V1", null)).andReturn(viewEntity).anyTimes();
 
     Capture<Map<String, String>> captureProperties = new Capture<Map<String, String>>();
 
-    singleton.setViewInstanceProperties(eq(viewInstanceEntity), capture(captureProperties),
+    viewregistry.setViewInstanceProperties(eq(viewInstanceEntity), capture(captureProperties),
         anyObject(ViewConfig.class), anyObject(ClassLoader.class));
 
     Capture<ViewInstanceEntity> instanceEntityCapture = new Capture<ViewInstanceEntity>();
-    singleton.installViewInstance(capture(instanceEntityCapture));
+    viewregistry.installViewInstance(capture(instanceEntityCapture));
     expectLastCall().anyTimes();
 
-    expect(singleton.checkAdmin()).andReturn(true);
-    expect(singleton.checkAdmin()).andReturn(false);
+    expect(viewregistry.checkAdmin()).andReturn(true);
+    expect(viewregistry.checkAdmin()).andReturn(false);
 
-    replay(singleton);
+    replay(viewregistry);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // as admin
     provider.createResources(PropertyHelper.getCreateRequest(properties, null));
@@ -169,7 +192,7 @@ public class ViewInstanceResourceProviderTest {
     props = viewInstanceEntity2.getPropertyMap();
     assertTrue(props.isEmpty());
 
-    verify(singleton);
+    verify(viewregistry);
   }
 
   @Test
@@ -196,13 +219,15 @@ public class ViewInstanceResourceProviderTest {
 
     viewInstanceEntity.setViewEntity(viewEntity);
 
-    expect(singleton.instanceExists(viewInstanceEntity)).andReturn(true);
-    expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
-    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
+    expect(viewregistry.instanceExists(viewInstanceEntity)).andReturn(true);
+    expect(viewregistry.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
+    expect(viewregistry.getDefinition("V1", null)).andReturn(viewEntity);
 
-    expect(singleton.checkAdmin()).andReturn(true);
+    expect(viewregistry.checkAdmin()).andReturn(true);
 
-    replay(singleton);
+    replay(viewregistry);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     try {
       provider.createResources(PropertyHelper.getCreateRequest(properties, null));
@@ -211,7 +236,7 @@ public class ViewInstanceResourceProviderTest {
       // expected
     }
 
-    verify(singleton);
+    verify(viewregistry);
   }
 
   @Test
@@ -236,12 +261,14 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setName("I1");
     viewInstanceEntity.setViewEntity(viewEntity);
 
-    expect(singleton.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
-    expect(singleton.getDefinition("V1", null)).andReturn(viewEntity);
+    expect(viewregistry.getDefinition("V1", "1.0.0")).andReturn(viewEntity).anyTimes();
+    expect(viewregistry.getDefinition("V1", null)).andReturn(viewEntity);
 
-    expect(singleton.checkAdmin()).andReturn(true);
+    expect(viewregistry.checkAdmin()).andReturn(true);
 
-    replay(singleton);
+    replay(viewregistry);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     try {
       provider.createResources(PropertyHelper.getCreateRequest(properties, null));
@@ -250,8 +277,10 @@ public class ViewInstanceResourceProviderTest {
       // expected
     }
 
-    verify(singleton);
+    verify(viewregistry);
   }
+
+
 
   @Test
   public void testUpdateResources_viewNotLoaded() throws Exception {
@@ -276,19 +305,30 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setName("I1");
     viewInstanceEntity.setViewEntity(viewEntity);
 
-    expect(singleton.getDefinitions()).andReturn(Collections.singleton(viewEntity));
+    expect(viewregistry.getDefinitions()).andReturn(Collections.singleton(viewEntity));
 
-    replay(singleton);
+    replay(viewregistry);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     provider.updateResources(PropertyHelper.getCreateRequest(properties, null), predicate);
 
     Assert.assertNull(viewInstanceEntity.getIcon());
 
-    verify(singleton);
+    verify(viewregistry);
   }
 
   @Test
-  public void testDeleteResources_viewNotLoaded() throws Exception {
+  public void testDeleteResourcesAsAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
     PredicateBuilder predicateBuilder = new PredicateBuilder();
@@ -303,12 +343,13 @@ public class ViewInstanceResourceProviderTest {
     viewInstanceEntity.setName("I1");
     viewInstanceEntity.setViewEntity(viewEntity);
 
-    expect(singleton.getDefinitions()).andReturn(Collections.singleton(viewEntity));
+    expect(viewregistry.getDefinitions()).andReturn(Collections.singleton(viewEntity));
 
-    replay(singleton);
+    replay(viewregistry);
 
-    provider.deleteResources(predicate);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
-    verify(singleton);
+    verify(viewregistry);
   }
 }

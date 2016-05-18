@@ -18,8 +18,12 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import os
+
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import InlineTemplate
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.script.script import Script
 
 class AccumuloServiceCheck(Script):
   def service_check(self, env):
@@ -42,15 +46,15 @@ class AccumuloServiceCheck(Script):
                                   'deletetable -f testtable\n\n')
       )
       if params.security_enabled and params.has_secure_user_auth:
-        Execute( format("{smokeuser_kinit_cmd} "
-                        "{client_script} shell -f {cmdfile}"),
-                 timeout=30,
-                 user=params.smoke_test_user)
+        cmd = format("{smokeuser_kinit_cmd} "
+                        "{client_script} shell -f {cmdfile}")
       else:
-        Execute( format("{client_script} shell -u {smoke_test_user} "
-                        "-p {smoke_test_password} -f {cmdfile}"),
-                 timeout=30,
-                 user=params.smoke_test_user)
+        cmd = format("{client_script} shell -u {smoke_test_user} "
+                        "-p {smoke_test_password} -f {cmdfile}")
+      Execute(cmd,
+              timeout=120,
+              user=params.smoke_test_user,
+              logoutput=True)
     finally:
       try_remove(cmdfile)
 

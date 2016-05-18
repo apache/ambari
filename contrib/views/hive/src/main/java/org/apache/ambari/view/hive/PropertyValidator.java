@@ -19,10 +19,9 @@
 package org.apache.ambari.view.hive;
 
 import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.utils.ambari.ValidatorUtils;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
-import org.apache.commons.validator.routines.RegexValidator;
-import org.apache.commons.validator.routines.UrlValidator;
 
 public class PropertyValidator implements Validator {
 
@@ -61,7 +60,7 @@ public class PropertyValidator implements Validator {
     // Cluster associated properties
     if (property.equals(WEBHDFS_URL)) {
       String webhdfsUrl = viewInstanceDefinition.getPropertyMap().get(WEBHDFS_URL);
-      if (!validateHdfsURL(webhdfsUrl)) {
+      if (!ValidatorUtils.validateHdfsURL(webhdfsUrl)) {
         return new InvalidPropertyValidationResult(false, "Must be valid URL");
       }
     }
@@ -82,33 +81,12 @@ public class PropertyValidator implements Validator {
 
     if (property.equals(YARN_ATS_URL)) {
       String atsUrl = viewInstanceDefinition.getPropertyMap().get(YARN_ATS_URL);
-      if (!validateHttpURL(atsUrl)) {
+      if (!ValidatorUtils.validateHttpURL(atsUrl)) {
         return new InvalidPropertyValidationResult(false, "Must be valid URL");
       }
     }
 
     return ValidationResult.SUCCESS;
-  }
-
-  /**
-   * Validates filesystem URL
-   * @param webhdfsUrl url
-   * @return is url valid
-   */
-  private boolean validateHdfsURL(String webhdfsUrl) {
-    String[] schemes = {"webhdfs", "hdfs", "s3", "file"};
-    return validateURL(webhdfsUrl, schemes);
-  }
-
-  private boolean validateHttpURL(String webhdfsUrl) {
-    String[] schemes = {"http", "https"};
-    return validateURL(webhdfsUrl, schemes);
-  }
-
-  private boolean validateURL(String webhdfsUrl, String[] schemes) {
-    RegexValidator authority = new RegexValidator(".*");
-    UrlValidator urlValidator = new UrlValidator(schemes, authority, UrlValidator.ALLOW_LOCAL_URLS);
-    return urlValidator.isValid(webhdfsUrl);
   }
 
   public static class InvalidPropertyValidationResult implements ValidationResult {

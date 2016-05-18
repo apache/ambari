@@ -49,6 +49,10 @@ from resource_management.core.logger import Logger
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
 
+# use the host's locale for numeric formatting
+import locale
+locale.setlocale(locale.LC_ALL, '')
+
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
 config = AmbariConfig.AmbariConfig()
@@ -68,6 +72,9 @@ def setup_logging(logger, filename, logging_level):
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
   logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+
+GRACEFUL_STOP_TRIES = 10
+GRACEFUL_STOP_TRIES_SLEEP = 3
 
 
 def add_syslog_handler(logger):
@@ -122,6 +129,27 @@ def resolve_ambari_config():
   except Exception, err:
     logger.warn(err)
 
+def check_sudo():
+  # don't need to check sudo for root.
+  if os.geteuid() == 0:
+    return
+  
+  runner = shellRunner()
+  test_command = [AMBARI_SUDO_BINARY, '/usr/bin/test', '/']
+  test_command_str = ' '.join(test_command)
+  
+  start_time = time.time()
+  res = runner.run(test_command)
+  end_time = time.time()
+  run_time = end_time - start_time
+  
+  if res['exitCode'] != 0:
+    raise Exception("Please check your sudo configurations.\n" + test_command_str + " failed with " + res['error'] + res['output']) # bad sudo configurations
+  
+  if run_time > 2:
+    logger.warn(("Sudo commands on this host are running slowly ('{0}' took {1} seconds).\n" +
+                "This will create a significant slow down for ambari-agent service tasks.").format(test_command_str, run_time))
+    
 
 def perform_prestart_checks(expected_hostname):
   # Check if current hostname is equal to expected one (got from the server
@@ -155,34 +183,34 @@ def perform_prestart_checks(expected_hostname):
     logger.error(msg)
     print(msg)
     sys.exit(1)
+    
+  check_sudo()
 
 
 def daemonize():
-  # Daemonize current instance of Ambari Agent
-  # Currently daemonization is done via /usr/sbin/ambari-agent script (nohup)
-  # and agent only dumps self pid to file
-  if not os.path.exists(ProcessHelper.piddir):
-    os.makedirs(ProcessHelper.piddir, 0755)
-
   pid = str(os.getpid())
   file(ProcessHelper.pidfile, 'w').write(pid)
-
 
 def stop_agent():
 # stop existing Ambari agent
   pid = -1
   runner = shellRunner()
   try:
-    f = open(ProcessHelper.pidfile, 'r')
-    pid = f.read()
+    with open(ProcessHelper.pidfile, 'r') as f:
+      pid = f.read()
     pid = int(pid)
-    f.close()
+    
     runner.run([AMBARI_SUDO_BINARY, 'kill', '-15', str(pid)])
-    time.sleep(5)
-    if os.path.exists(ProcessHelper.pidfile):
-      raise Exception("PID file still exists.")
-    sys.exit(0)
+    for i in range(GRACEFUL_STOP_TRIES):
+      result = runner.run([AMBARI_SUDO_BINARY, 'kill', '-0', str(pid)])
+      if result['exitCode'] != 0:
+        logger.info("Agent died gracefully, exiting.")
+        sys.exit(0)
+      time.sleep(GRACEFUL_STOP_TRIES_SLEEP)
+    logger.info("Agent not going to die gracefully, going to execute kill -9")
+    raise Exception("Agent is running")
   except Exception, err:
+    #raise
     if pid == -1:
       print ("Agent process is not running")
     else:
@@ -312,7 +340,8 @@ def main(heartbeat_stop_callback=None):
         # Launch Controller communication
         controller = Controller(config, server_hostname, heartbeat_stop_callback)
         controller.start()
-        controller.join()
+        while controller.is_alive():
+          time.sleep(0.1)
 
       #
       # If Ambari Agent connected to the server or
@@ -320,9 +349,7 @@ def main(heartbeat_stop_callback=None):
       # Clean up if not Windows OS
       #
       if connected or stopped:
-        if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-          ExitHelper.execute_cleanup()
-          stop_agent()
+        ExitHelper().exit(0)
         logger.info("finished")
         break
     pass # for server_hostname in server_hostnames
@@ -336,7 +363,9 @@ if __name__ == "__main__":
     heartbeat_stop_callback = bind_signal_handlers(agentPid)
   
     main(heartbeat_stop_callback)
-  except:
+  except SystemExit:
+    raise
+  except BaseException:
     if is_logger_setup:
-      logger.exception("Fatal exception occurred:")
+      logger.exception("Exiting with exception:")
     raise

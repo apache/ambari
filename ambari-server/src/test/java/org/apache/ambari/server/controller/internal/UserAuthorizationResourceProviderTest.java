@@ -103,12 +103,12 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
 
   @Test
   public void testGetResources_NonAdministrator_Self() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResources_NonAdministrator_Other() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   @Test(expected = SystemException.class)
@@ -117,7 +117,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
 
     replayAll();
     // Set the authenticated user to a non-administrator
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
     UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
     provider.createResources(createNiceMock(Request.class));
@@ -130,7 +130,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
 
     replayAll();
     // Set the authenticated user to a non-administrator
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
     UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
     provider.updateResources(createNiceMock(Request.class), null);
@@ -143,10 +143,10 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
 
     replayAll();
     // Set the authenticated user to a non-administrator
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
     UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
-    provider.deleteResources(null);
+    provider.deleteResources(createNiceMock(Request.class), null);
     verifyAll();
   }
 

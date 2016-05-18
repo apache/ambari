@@ -19,19 +19,28 @@
 var App = require('app');
 
 var view;
+
+function getView() {
+  return App.ConfigWidgetView.create({
+    initPopover: Em.K,
+    config: Em.Object.create({
+      isOriginalSCP: false,
+      isPropertyOverridable: false,
+      cantBeUndone: false,
+      isNotDefaultValue: false
+    })
+  });
+}
+
 describe('App.ConfigWidgetView', function () {
 
   beforeEach(function () {
-    view = App.ConfigWidgetView.create({
-      initPopover: Em.K,
-      config: Em.Object.create({
-        isOriginalSCP: false,
-        isPropertyOverridable: false,
-        cantBeUndone: false,
-        isNotDefaultValue: false
-      })
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAnd(getView(), 'showPencil', ['supportSwitchToTextBox', '!disabled']);
+
+  App.TestAliases.testAsComputedOr(getView(), 'doNotShowWidget', ['isPropertyUndefined', 'config.showAsTextBox']);
 
   describe('#undoAllowed', function () {
 
@@ -171,7 +180,7 @@ describe('App.ConfigWidgetView', function () {
       view = App.ConfigWidgetView.create({
         controller: Em.Object.extend(App.EnhancedConfigsMixin, {
         }).create({
-          updateDependentConfigs: function() {},
+          updateDependentConfigs: function() {}
         }),
         config: Em.Object.create({ name: 'config1'})
       });
@@ -200,43 +209,66 @@ describe('App.ConfigWidgetView', function () {
 
     tests.forEach(function(test) {
       it(test.m, function() {
-        view.set('controller._dependentConfigValues', test.dependentConfigs);
+        view.set('controller.recommendations', test.dependentConfigs);
         view.restoreDependentConfigs(view.get('config'));
-        expect(view.get('controller._dependentConfigValues').mapProperty('name')).to.be.eql(test.e);
+        expect(view.get('controller.recommendations').mapProperty('name')).to.be.eql(test.e);
       });
     });
 
-    it('when dependent configs has multiple parents appropriate parent config should be removed', function() {
-      view.set('controller._dependentConfigValues', [
-        {name: 'dependent1', parentConfigs: ['config1', 'config2']},
-        {name: 'dependent2', parentConfigs: ['config2', 'config1']},
-        {name: 'dependent3', parentConfigs: ['config1']}
-      ]);
-      view.restoreDependentConfigs(view.get('config'));
-      expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent1').parentConfigs.toArray()).to.be.eql(["config2"]);
-      expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent2').parentConfigs.toArray()).to.be.eql(["config2"]);
-      expect(view.get('controller._dependentConfigValues.length')).to.be.eql(2);
+    describe('when dependent configs has multiple parents appropriate parent config should be removed', function() {
+
+      beforeEach(function () {
+        view.set('controller.recommendations', [
+          {name: 'dependent1', parentConfigs: ['config1', 'config2']},
+          {name: 'dependent2', parentConfigs: ['config2', 'config1']},
+          {name: 'dependent3', parentConfigs: ['config1']}
+        ]);
+        view.restoreDependentConfigs(view.get('config'));
+      });
+
+      it('2 recommendations', function () {
+        expect(view.get('controller.recommendations.length')).to.be.equal(2);
+      });
+
+      it('dependent1 parent is ["config2"]', function () {
+        expect(view.get('controller.recommendations').findProperty('name', 'dependent1').parentConfigs.toArray()).to.be.eql(["config2"]);
+      });
+      it('dependent2 parent is ["config2"]', function () {
+        expect(view.get('controller.recommendations').findProperty('name', 'dependent2').parentConfigs.toArray()).to.be.eql(["config2"]);
+      });
+
     });
 
-    it('dependent config value should be set with inital or saved when it has one parent', function() {
-      var ctrl = view.get('controller');
-      ctrl.set('stepConfigs', [
-        Em.Object.create({
-          configs: Em.A([
-            Em.Object.create({ name: 'dependent3', savedValue: '1', value: 2, filename: 'some-file.xml' }),
-            Em.Object.create({ name: 'dependent2', savedValue: '4', value: '10', filename: 'some-file.xml' })
-          ])
-        })
-      ]);
-      view.set('controller._dependentConfigValues', [
-        {propertyName: 'dependent1', parentConfigs: ['config1', 'config2'], fileName: 'some-file' },
-        {propertyName: 'dependent2', parentConfigs: ['config2', 'config1'], fileName: 'some-file'},
-        {propertyName: 'dependent3', parentConfigs: ['config1'], fileName: 'some-file' }
-      ]);
-      view.restoreDependentConfigs(view.get('config'));
-      expect(view.get('controller').findConfigProperty('dependent3', 'some-file.xml').get('value')).to.be.eql('1');
-      // config with multi dependency should not be updated
-      expect(view.get('controller').findConfigProperty('dependent2', 'some-file.xml').get('value')).to.be.eql('10');
+    describe('dependent config value should be set with inital or saved when it has one parent', function() {
+      var ctrl;
+
+      beforeEach(function () {
+        ctrl = view.get('controller');
+        ctrl.set('stepConfigs', [
+          Em.Object.create({
+            configs: Em.A([
+              Em.Object.create({ name: 'dependent3', savedValue: '1', value: 2, filename: 'some-file.xml' }),
+              Em.Object.create({ name: 'dependent2', savedValue: '4', value: '10', filename: 'some-file.xml' })
+            ])
+          })
+        ]);
+        view.set('controller.recommendations', [
+          {propertyName: 'dependent1', parentConfigs: ['config1', 'config2'], fileName: 'some-file' },
+          {propertyName: 'dependent2', parentConfigs: ['config2', 'config1'], fileName: 'some-file'},
+          {propertyName: 'dependent3', parentConfigs: ['config1'], fileName: 'some-file' }
+        ]);
+        view.restoreDependentConfigs(view.get('config'));
+      });
+
+      it('dependent3 value is `1`', function () {
+        expect(App.config.findConfigProperty(ctrl.get('stepConfigs'), 'dependent3', 'some-file.xml').get('value')).to.be.equal('1');
+      });
+
+      it('dependent2 value is `10`', function () {
+        // config with multi dependency should not be updated
+        expect(App.config.findConfigProperty(ctrl.get('stepConfigs'), 'dependent2', 'some-file.xml').get('value')).to.be.equal('10');
+      });
+
     });
 
   });

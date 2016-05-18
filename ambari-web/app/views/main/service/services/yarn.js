@@ -36,8 +36,8 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   hasManyYarnClients: Em.computed.gt('service.installedClients', 1),
 
   nodeUptime: function () {
-    var uptime = this.get('service').get('resourceManagerStartTime');
-    if (uptime && uptime > 0){
+    var uptime = this.get('service.resourceManagerStartTime');
+    if (uptime && uptime > 0) {
       var diff = App.dateTime() - uptime;
       if (diff < 0) {
         diff = 0;

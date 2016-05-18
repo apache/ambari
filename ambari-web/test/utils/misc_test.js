@@ -36,7 +36,7 @@ describe('misc', function () {
         expect(misc.formatBandwidth(test.i)).to.equal(test.e);
       });
     });
-    it('NaN to NaN' + ' ', function () {
+    it('NaN to NaN', function () {
       expect(isNaN(misc.formatBandwidth(NaN))).to.equal(true);
     });
   });

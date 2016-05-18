@@ -37,12 +37,12 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -50,8 +50,12 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -74,17 +78,35 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
 /**
  * ServiceResourceProvider tests.
  */
 public class ServiceResourceProviderTest {
+  @Before
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
 
   @Test
-  public void testCreateResources() throws Exception{
+  public void testCreateResourcesAsAdministrator() throws Exception{
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesAsClusterAdministrator() throws Exception{
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsServiceAdministrator() throws Exception{
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception{
     AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -93,7 +115,7 @@ public class ServiceResourceProviderTest {
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
 
-    expect(managementController.getClusters()).andReturn(clusters);
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
     expect(managementController.getServiceFactory()).andReturn(serviceFactory);
 
@@ -103,11 +125,14 @@ public class ServiceResourceProviderTest {
 
     expect(cluster.getService("Service100")).andReturn(null);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
 
     // replay
     replay(managementController, clusters, cluster, service, ambariMetaInfo, stackId, serviceFactory);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = getServiceProvider(managementController);
 
@@ -134,7 +159,21 @@ public class ServiceResourceProviderTest {
   }
 
   @Test
-  public void testGetResources() throws Exception{
+  public void testGetResourcesAsAdministrator() throws Exception{
+    testGetResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesAsClusterAdministrator() throws Exception{
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesAsServiceAdministrator() throws Exception{
+    testGetResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testGetResources(Authentication authentication) throws Exception{
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -164,7 +203,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -206,6 +245,8 @@ public class ServiceResourceProviderTest {
         service0, service1, service2, service3, service4,
         serviceResponse0, serviceResponse1, serviceResponse2, serviceResponse3, serviceResponse4,
         ambariMetaInfo, stackId, serviceFactory);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = getServiceProvider(managementController);
 
@@ -281,7 +322,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -302,17 +343,14 @@ public class ServiceResourceProviderTest {
     replay(managementController, clusters, cluster, service0, serviceResponse0,
         ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     ResourceProvider provider = getServiceProvider(managementController);
     // set kerberos helper on provider
     Class<?> c = provider.getClass();
     Field f = c.getDeclaredField("kerberosHelper");
     f.setAccessible(true);
     f.set(provider, kerberosHeper);
-
-    Set<String> propertyIds = new HashSet<String>();
-
-    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
 
     // create the request
     Predicate predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and().
@@ -353,7 +391,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -375,17 +413,14 @@ public class ServiceResourceProviderTest {
     replay(managementController, clusters, cluster, service0, serviceResponse0,
         ambariMetaInfo, stackId, serviceFactory, kerberosHelper);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     ResourceProvider provider = getServiceProvider(managementController);
     // set kerberos helper on provider
     Class<?> c = provider.getClass();
     Field f = c.getDeclaredField("kerberosHelper");
     f.setAccessible(true);
     f.set(provider, kerberosHelper);
-
-    Set<String> propertyIds = new HashSet<String>();
-
-    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
 
     // create the request
     Predicate predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and().
@@ -424,7 +459,7 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+    expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -446,17 +481,14 @@ public class ServiceResourceProviderTest {
     replay(managementController, clusters, cluster, service0, serviceResponse0,
         ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     ResourceProvider provider = getServiceProvider(managementController);
     // set kerberos helper on provider
     Class<?> c = provider.getClass();
     Field f = c.getDeclaredField("kerberosHelper");
     f.setAccessible(true);
     f.set(provider, kerberosHeper);
-
-    Set<String> propertyIds = new HashSet<String>();
-
-    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
 
     // create the request
     Predicate predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and().
@@ -519,17 +551,14 @@ public class ServiceResourceProviderTest {
     replay(managementController, clusters, cluster, service0, serviceResponse0,
         ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     ResourceProvider provider = getServiceProvider(managementController);
     // set kerberos helper on provider
     Class<?> c = provider.getClass();
     Field f = c.getDeclaredField("kerberosHelper");
     f.setAccessible(true);
     f.set(provider, kerberosHeper);
-
-    Set<String> propertyIds = new HashSet<String>();
-
-    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
-    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
 
     // create the request
     Predicate predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and().
@@ -550,9 +579,22 @@ public class ServiceResourceProviderTest {
         ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
   }
 
+  @Test
+  public void testUpdateResourcesAsAdministrator() throws Exception{
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
+  }
 
   @Test
-  public void testUpdateResources() throws Exception{
+  public void testUpdateResourcesAsClusterAdministrator() throws Exception{
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testUpdateResourcesAsServiceAdministrator() throws Exception{
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testUpdateResources(Authentication authentication) throws Exception{
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -574,18 +616,19 @@ public class ServiceResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service102")).andReturn(service0);
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service0.getServiceComponents()).andReturn(Collections.<String, ServiceComponent>emptyMap()).anyTimes();
 
-    Capture<Map<String, String>> requestPropertiesCapture = new Capture<Map<String, String>>();
-    Capture<Map<State, List<Service>>> changedServicesCapture = new Capture<Map<State, List<Service>>>();
-    Capture<Map<State, List<ServiceComponent>>> changedCompsCapture = new Capture<Map<State, List<ServiceComponent>>>();
-    Capture<Map<String, Map<State, List<ServiceComponentHost>>>> changedScHostsCapture = new Capture<Map<String, Map<State, List<ServiceComponentHost>>>>();
-    Capture<Map<String, String>> requestParametersCapture = new Capture<Map<String, String>>();
-    Capture<Collection<ServiceComponentHost>> ignoredScHostsCapture = new Capture<Collection<ServiceComponentHost>>();
-    Capture<Cluster> clusterCapture = new Capture<Cluster>();
+    Capture<Map<String, String>> requestPropertiesCapture = newCapture();
+    Capture<Map<State, List<Service>>> changedServicesCapture = newCapture();
+    Capture<Map<State, List<ServiceComponent>>> changedCompsCapture = newCapture();
+    Capture<Map<String, Map<State, List<ServiceComponentHost>>>> changedScHostsCapture = newCapture();
+    Capture<Map<String, String>> requestParametersCapture = newCapture();
+    Capture<Collection<ServiceComponentHost>> ignoredScHostsCapture = newCapture();
+    Capture<Cluster> clusterCapture = newCapture();
 
     expect(managementController.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
@@ -604,6 +647,8 @@ public class ServiceResourceProviderTest {
     // replay
     replay(managementController, clusters, cluster, rco, maintenanceStateHelper,
         service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ServiceResourceProvider provider = getServiceProvider(managementController, maintenanceStateHelper);
 
@@ -626,7 +671,21 @@ public class ServiceResourceProviderTest {
   }
 
   @Test
-  public void testReconfigureClientsFlag() throws Exception {
+  public void testReconfigureClientsFlagAsAdministrator() throws Exception {
+    testReconfigureClientsFlag(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testReconfigureClientsFlagAsClusterAdministrator() throws Exception {
+    testReconfigureClientsFlag(TestAuthenticationFactory.createAdministrator("clusterAdmin"));
+  }
+
+  @Test
+  public void testReconfigureClientsFlagAsServiceAdministrator() throws Exception {
+    testReconfigureClientsFlag(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testReconfigureClientsFlag(Authentication authentication) throws Exception {
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController1 = createMock(AmbariManagementController.class);
     AmbariManagementController managementController2 = createMock
@@ -648,9 +707,9 @@ public class ServiceResourceProviderTest {
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
-    expect(managementController1.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+    expect(managementController1.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
-    expect(managementController2.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+    expect(managementController2.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
@@ -661,6 +720,7 @@ public class ServiceResourceProviderTest {
     expect(managementController2.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController2.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
@@ -670,13 +730,13 @@ public class ServiceResourceProviderTest {
     expect(serviceResponse0.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(serviceResponse0.getServiceName()).andReturn("Service102").anyTimes();
 
-    Capture<Map<String, String>> requestPropertiesCapture = new Capture<Map<String, String>>();
-    Capture<Map<State, List<Service>>> changedServicesCapture = new Capture<Map<State, List<Service>>>();
-    Capture<Map<State, List<ServiceComponent>>> changedCompsCapture = new Capture<Map<State, List<ServiceComponent>>>();
-    Capture<Map<String, Map<State, List<ServiceComponentHost>>>> changedScHostsCapture = new Capture<Map<String, Map<State, List<ServiceComponentHost>>>>();
-    Capture<Map<String, String>> requestParametersCapture = new Capture<Map<String, String>>();
-    Capture<Collection<ServiceComponentHost>> ignoredScHostsCapture = new Capture<Collection<ServiceComponentHost>>();
-    Capture<Cluster> clusterCapture = new Capture<Cluster>();
+    Capture<Map<String, String>> requestPropertiesCapture = newCapture();
+    Capture<Map<State, List<Service>>> changedServicesCapture = newCapture();
+    Capture<Map<State, List<ServiceComponent>>> changedCompsCapture = newCapture();
+    Capture<Map<String, Map<State, List<ServiceComponentHost>>>> changedScHostsCapture = newCapture();
+    Capture<Map<String, String>> requestParametersCapture = newCapture();
+    Capture<Collection<ServiceComponentHost>> ignoredScHostsCapture = newCapture();
+    Capture<Cluster> clusterCapture = newCapture();
 
     expect(managementController1.addStages((RequestStageContainer) isNull(), capture(clusterCapture), capture(requestPropertiesCapture),
         capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture),
@@ -707,6 +767,8 @@ public class ServiceResourceProviderTest {
     // replay
     replay(managementController1, response1, managementController2, requestStages1, requestStages2, response2,
         clusters, cluster, service0, serviceResponse0, ambariMetaInfo, rco, maintenanceStateHelper);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ServiceResourceProvider provider1 = getServiceProvider(managementController1, maintenanceStateHelper);
 
@@ -743,7 +805,21 @@ public class ServiceResourceProviderTest {
   }
 
   @Test
-  public void testDeleteResources() throws Exception{
+  public void testDeleteResourcesAsAdministrator() throws Exception{
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception{
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsServiceAdministrator() throws Exception{
+    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception{
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -754,6 +830,7 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
@@ -764,6 +841,8 @@ public class ServiceResourceProviderTest {
     // replay
     replay(managementController, clusters, cluster, service);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     ResourceProvider provider = getServiceProvider(managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -773,7 +852,7 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
@@ -799,6 +878,7 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService(serviceName)).andReturn(service).anyTimes();
     expect(service.getDesiredState()).andReturn(State.STARTED).anyTimes();
     expect(service.getName()).andReturn(serviceName).anyTimes();
@@ -809,6 +889,8 @@ public class ServiceResourceProviderTest {
     // replay
     replay(managementController, clusters, cluster, service);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     ResourceProvider provider = getServiceProvider(managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
@@ -818,7 +900,7 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
@@ -842,6 +924,10 @@ public class ServiceResourceProviderTest {
     Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
     scMap.put("Component100", sc);
     State componentState = State.STARTED;
+    ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
+    Map<String, ServiceComponentHost> schMap = new HashMap<>();
+    schMap.put("Host1", sch);
+    State schState = State.STARTED;
 
     String serviceName = "Service100";
 
@@ -855,9 +941,14 @@ public class ServiceResourceProviderTest {
     expect(sc.getDesiredState()).andReturn(componentState).anyTimes();
     expect(sc.getName()).andReturn("Component100").anyTimes();
     expect(sc.canBeRemoved()).andReturn(componentState.isRemovableState()).anyTimes();
+    expect(sc.getServiceComponentHosts()).andReturn(schMap).anyTimes();
+    expect(sch.getDesiredState()).andReturn(schState).anyTimes();
+    expect(sch.canBeRemoved()).andReturn(schState.isRemovableState()).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service, sc);
+    replay(managementController, clusters, cluster, service, sc, sch);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     ResourceProvider provider = getServiceProvider(managementController);
 
@@ -870,7 +961,7 @@ public class ServiceResourceProviderTest {
         .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
 
     try {
-      provider.deleteResources(predicate);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
       Assert.fail("Expected exception deleting a service in a non-removable state.");
     } catch (SystemException e) {
       // expected
@@ -878,10 +969,10 @@ public class ServiceResourceProviderTest {
   }
 
   /*
-  If the components of a service are in a removable state, the service should be removable even if it's state is non-removable
+  If the host components of a service are in a removable state, the service should be removable even if it's state is non-removable
  */
   @Test
-  public void testDeleteResourcesStoppedComponentState() throws Exception {
+  public void testDeleteResourcesStoppedHostComponentState() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -900,19 +991,31 @@ public class ServiceResourceProviderTest {
         Component = component;
         DesiredState = desiredState;
       }
-    };
+    }
 
     //
-    // Set up three components in INSTALLED state, so that the service can be deleted, no matter what state the service is in
+    // Set up three components in STARTED state.
     //
-    TestComponent component1 = new TestComponent("Component100", createNiceMock(ServiceComponent.class), State.INSTALLED);
-    TestComponent component2 = new TestComponent("Component101", createNiceMock(ServiceComponent.class), State.INSTALLED);
-    TestComponent component3 = new TestComponent("Component102", createNiceMock(ServiceComponent.class), State.INSTALLED);
+    TestComponent component1 = new TestComponent("Component100", createNiceMock(ServiceComponent.class), State.STARTED);
+    TestComponent component2 = new TestComponent("Component101", createNiceMock(ServiceComponent.class), State.STARTED);
+    TestComponent component3 = new TestComponent("Component102", createNiceMock(ServiceComponent.class), State.STARTED);
+
     Map<String, ServiceComponent> scMap = new HashMap<String, ServiceComponent>();
-
     scMap.put(component1.Name, component1.Component);
     scMap.put(component2.Name, component2.Component);
     scMap.put(component3.Name, component3.Component);
+
+    Map<String, ServiceComponentHost> schMap1 = new HashMap<>();
+    ServiceComponentHost sch1 = createNiceMock(ServiceComponentHost.class);
+    schMap1.put("Host1", sch1);
+
+    Map<String, ServiceComponentHost> schMap2 = new HashMap<>();
+    ServiceComponentHost sch2 = createNiceMock(ServiceComponentHost.class);
+    schMap2.put("Host2", sch2);
+
+    Map<String, ServiceComponentHost> schMap3 = new HashMap<>();
+    ServiceComponentHost sch3 = createNiceMock(ServiceComponentHost.class);
+    schMap3.put("Host3", sch3);
 
     String clusterName = "Cluster100";
     String serviceName = "Service100";
@@ -930,11 +1033,32 @@ public class ServiceResourceProviderTest {
     expect(component1.Component.canBeRemoved()).andReturn(component1.DesiredState.isRemovableState()).anyTimes();
     expect(component2.Component.canBeRemoved()).andReturn(component2.DesiredState.isRemovableState()).anyTimes();
     expect(component3.Component.canBeRemoved()).andReturn(component3.DesiredState.isRemovableState()).anyTimes();
+    expect(component1.Component.getServiceComponentHosts()).andReturn(schMap1).anyTimes();
+    expect(component2.Component.getServiceComponentHosts()).andReturn(schMap2).anyTimes();
+    expect(component3.Component.getServiceComponentHosts()).andReturn(schMap3).anyTimes();
+
+    // Put the SCH in INSTALLED state so that the service can be deleted,
+    // no matter what state the service component is in.
+    State sch1State = State.INSTALLED;
+    expect(sch1.getDesiredState()).andReturn(sch1State).anyTimes();
+    expect(sch1.canBeRemoved()).andReturn(sch1State.isRemovableState()).anyTimes();
+
+    State sch2State = State.INSTALLED;
+    expect(sch2.getDesiredState()).andReturn(sch2State).anyTimes();
+    expect(sch2.canBeRemoved()).andReturn(sch2State.isRemovableState()).anyTimes();
+
+    State sch3State = State.INSTALLED;
+    expect(sch3.getDesiredState()).andReturn(sch3State).anyTimes();
+    expect(sch3.canBeRemoved()).andReturn(sch3State.isRemovableState()).anyTimes();
+
     expect(service.getCluster()).andReturn(cluster);
     cluster.deleteService(serviceName);
 
     // replay
-    replay(managementController, clusters, cluster, service, component1.Component, component2.Component, component3.Component);
+    replay(managementController, clusters, cluster, service,
+            component1.Component, component2.Component, component3.Component, sch1, sch2, sch3);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     ResourceProvider provider = getServiceProvider(managementController);
 
@@ -945,7 +1069,7 @@ public class ServiceResourceProviderTest {
     // delete the service named Service100
     Predicate  predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
             .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
@@ -956,7 +1080,8 @@ public class ServiceResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
-    verify(managementController, clusters, cluster, service, component1.Component, component2.Component, component3.Component);
+    verify(managementController, clusters, cluster, service,
+            component1.Component, component2.Component, component3.Component, sch1, sch2, sch3);
   }
 
   @Test
@@ -1003,1157 +1128,6 @@ public class ServiceResourceProviderTest {
     Assert.assertTrue(unsupported.isEmpty());
   }
 
-  @Test
-  public void testDefaultServiceState_STARTED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100",
-        "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testDefaultServiceState_UNKNOWN() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "UNKNOWN", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
-    shr3.setMaintenanceState(MaintenanceState.OFF.toString());
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
-    Assert.assertEquals(State.UNKNOWN, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testDefaultServiceState_STARTING() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "STARTING", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
-    shr3.setMaintenanceState(MaintenanceState.OFF.toString());
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
-    Assert.assertEquals(State.STARTING, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testDefaultServiceState_STOPPED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "INSTALLED", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
-    shr3.setMaintenanceState(MaintenanceState.OFF.toString());
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
-    Assert.assertEquals(State.INSTALLED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testDefaultServiceState_DISABLED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", "DISABLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHDFSServiceState_STARTED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "SECONDARY_NAMENODE", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HDFSServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHDFSServiceState_STARTED2() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host100", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host101", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HDFSServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHiveServiceState_INSTALLED() throws Exception {
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-    responses.add(shr4);
-    responses.add(shr5);
-    responses.add(shr6);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HiveServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "HIVE");
-    Assert.assertEquals(State.INSTALLED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHiveServiceState_STARTED() throws Exception {
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "Host100",  "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-    responses.add(shr4);
-    responses.add(shr5);
-    responses.add(shr6);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HiveServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "HIVE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHiveServiceState_STARTED_HA() throws Exception {
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HIVE", "HCAT", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_METASTORE", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_CLIENT", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "HIVE", "HIVE_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "HIVE", "MYSQL_SERVER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr7 = new ServiceComponentHostResponse("C1", "HIVE", "WEBHCAT_SERVER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-    responses.add(shr4);
-    responses.add(shr5);
-    responses.add(shr6);
-    responses.add(shr7);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HiveServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "HIVE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testOozieServiceState_STARTED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_CLIENT", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.OozieServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "OOZIE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testOozieServiceState_INSTALLED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host100", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_SERVER", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "OOZIE", "OOZIE_CLIENT", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.OozieServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "OOZIE");
-    Assert.assertEquals(State.INSTALLED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHBaseServiceState_STARTED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host100",  "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host101", "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HBaseServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "HBASE");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHBaseServiceState_INSTALLED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_MASTER", "Host100",  "INSTALLED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HBaseServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "HBASE");
-    Assert.assertEquals(State.INSTALLED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testHBaseServiceState_INSTALLED_NO_MASTER() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HBASE", "HBASE_REGIONSERVER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HBaseServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "HBASE");
-    Assert.assertEquals(State.INSTALLED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testGangliaServiceState_ArbitraryComponentOrder_STARTED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_MONITOR", "Host199", "UNKNOWN", "", null, null, null);
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "GANGLIA", "GANGLIA_SERVER", "Host100", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(componentInfo.isMaster()).andReturn(false).once();
-    expect(componentInfo.isMaster()).andReturn(false).once();
-    expect(componentInfo.isMaster()).andReturn(true).once();
-    expect(componentInfo.isClient()).andReturn(false).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "GANGLIA");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testDefaultServiceState_ClientOnly_INSTALLED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "Host100", "INSTALLED", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isClient()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "PIG");
-    Assert.assertEquals(State.INSTALLED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  public void testDefaultServiceState_ClientOnly_INSTALL_FAILED() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "PIG", "PIG", "Host100", "INSTALL_FAILED", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.OFF.toString());
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isClient()).andReturn(true);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "PIG");
-    Assert.assertEquals(State.INSTALL_FAILED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-  
-  @Test
-  public void testFlumeServiceState_STARTED() throws Exception {
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host200", "STARTED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-
-    // set expectations
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    
-    replay(managementController, clusters, cluster);
-    
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.FlumeServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "FLUME");
-    
-    Assert.assertEquals(State.STARTED, state);
-    
-    verify(managementController, clusters, cluster);
-  }
-  
-  @Test
-  public void testFlumeServiceState_INSTALLED() throws Exception {
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host100", "STARTED", "", null, null, null);
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "FLUME", "FLUME_HANDLER", "Host200", "INSTALLED", "", null, null, null);
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-
-    // set expectations
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    
-    replay(managementController, clusters, cluster);
-    
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.FlumeServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "FLUME");
-    Assert.assertEquals(State.INSTALLED, state);
-    
-    verify(managementController, clusters, cluster);
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testDefaultServiceState_Master_In_MM() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createStrictMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "STARTED", "", null, null, null);
-    shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
-    shr3.setMaintenanceState(MaintenanceState.OFF.toString());
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isClient()).andReturn(false).anyTimes();
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    expect(componentInfo.isClient()).andReturn(false).anyTimes();
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    expect(componentInfo.isClient()).andReturn(false).anyTimes();
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    expect(componentInfo.isClient()).andReturn(false);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "YARN");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testDefaultServiceState_Slave_In_MM() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host101", "STARTED", "", null, null, null);
-    shr2.setMaintenanceState(MaintenanceState.OFF.toString());
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isMaster()).andReturn(false).anyTimes();
-
-    expect(componentInfo.isClient()).andReturn(false).anyTimes();
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "YARN");
-    Assert.assertEquals(State.STARTED, state);
-
-    // verify
-    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-  }
-
-
-  @Test
-  @SuppressWarnings("unchecked")
-  /**
-   * Tests the case when all service components are in MM (so we base on MM
-   * components state when calculating entire service state)
-   */
-  public void testDefaultServiceState_All_Components_In_MM() throws Exception{
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackId stackId = createNiceMock(StackId.class);
-    ComponentInfo componentInfo = createStrictMock(ComponentInfo.class);
-
-    /*
-     * Any component is started, all other are stopped - service is considered STARTED
-     */
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
-    shr2.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
-    shr3.setMaintenanceState(MaintenanceState.ON.toString());
-    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
-    shr4.setMaintenanceState(MaintenanceState.ON.toString());
-
-
-    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-    responses.add(shr4);
-
-    // set expectations
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
-    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
-
-    expect(stackId.getStackName()).andReturn("S1").anyTimes();
-    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
-
-
-    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
-            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
-    expect(componentInfo.isClient()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    expect(componentInfo.isClient()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    expect(componentInfo.isClient()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isClient()).andReturn(false);
-
-    expect(componentInfo.isClient()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    expect(componentInfo.isClient()).andReturn(true).times(2);
-
-    // replay
-    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
-
-    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
-
-    State state = serviceState.getState(managementController, "C1", "YARN");
-    Assert.assertEquals(State.STARTED, state);
-
-    /*
-     * All components are stopped, service is considered INSTALLED
-     */
-    reset(componentInfo);
-
-    responses.clear();
-    shr1 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
-    shr1.setMaintenanceState(MaintenanceState.ON.toString());
-    shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
-    shr2.setMaintenanceState(MaintenanceState.ON.toString());
-    shr3 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
-    shr3.setMaintenanceState(MaintenanceState.ON.toString());
-    shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
-    shr4.setMaintenanceState(MaintenanceState.ON.toString());
-    responses.add(shr1);
-    responses.add(shr2);
-    responses.add(shr3);
-    responses.add(shr4);
-
-    expect(componentInfo.isClient()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    expect(componentInfo.isClient()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(true);
-
-    expect(componentInfo.isClient()).andReturn(false);
-    expect(componentInfo.isMaster()).andReturn(false);
-    expect(componentInfo.isClient()).andReturn(false);
-
-    expect(componentInfo.isClient()).andReturn(true);
-    expect(componentInfo.isMaster()).andReturn(false);
-
-    expect(componentInfo.isClient()).andReturn(true).times(2);
-
-    replay(componentInfo);
-
-    state = serviceState.getState(managementController, "C1", "YARN");
-    Assert.assertEquals(State.INSTALLED, state);
-  }
-
-
   /**
    * This factory method creates default MaintenanceStateHelper mock.
    * It's useful in most cases (when we don't care about Maintenance State)
@@ -2177,7 +1151,8 @@ public class ServiceResourceProviderTest {
             managementController, maintenanceStateHelper);
   }
 
-  public static void createServices(AmbariManagementController controller, Set<ServiceRequest> requests) throws AmbariException {
+  public static void createServices(AmbariManagementController controller, Set<ServiceRequest> requests)
+      throws AmbariException, AuthorizationException {
     ServiceResourceProvider provider = getServiceProvider(controller);
     provider.createServices(requests);
   }
@@ -2191,8 +1166,8 @@ public class ServiceResourceProviderTest {
   public static RequestStatusResponse updateServices(AmbariManagementController controller,
                                                      Set<ServiceRequest> requests,
                                                      Map<String, String> requestProperties, boolean runSmokeTest,
-                                                     boolean reconfigureClients) throws AmbariException
-  {
+                                                     boolean reconfigureClients)
+      throws AmbariException, AuthorizationException {
     return updateServices(controller, requests, requestProperties, runSmokeTest, reconfigureClients, null);
   }
 
@@ -2204,8 +1179,8 @@ public class ServiceResourceProviderTest {
                                                      Set<ServiceRequest> requests,
                                                      Map<String, String> requestProperties, boolean runSmokeTest,
                                                      boolean reconfigureClients,
-                                                     MaintenanceStateHelper maintenanceStateHelper) throws AmbariException
-  {
+                                                     MaintenanceStateHelper maintenanceStateHelper)
+      throws AmbariException, AuthorizationException {
     ServiceResourceProvider provider;
     if (maintenanceStateHelper != null) {
       provider = getServiceProvider(controller, maintenanceStateHelper);
@@ -2218,10 +1193,8 @@ public class ServiceResourceProviderTest {
     return request.getRequestStatusResponse();
   }
 
-
-
   public static RequestStatusResponse deleteServices(AmbariManagementController controller, Set<ServiceRequest> requests)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
     ServiceResourceProvider provider = getServiceProvider(controller);
     return provider.deleteServices(requests);
   }

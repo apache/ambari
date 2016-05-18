@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 var dbUtils = require('utils/configs/database');
 
 describe('Database Utils', function() {
@@ -43,6 +42,10 @@ describe('Database Utils', function() {
         e: '127.0.0.1'
       },
       {
+        jdbcUrl: 'jdbc:sqlserver://127.0.0.1:3030;databaseName=some-db;integratedSecurity=true',
+        e: '127.0.0.1'
+      },
+      {
         jdbcUrl: 'jdbc:oracle:thin:@//localhost.com:1521/someDb',
         e: 'localhost.com'
       },
@@ -51,8 +54,16 @@ describe('Database Utils', function() {
         e: 'ec2-52-5-27-33.compute-1.amazonaws.com'
       },
       {
+        jdbcUrl: 'jdbc:oracle:thin:@ec2-52-5-27-33.compute-1.amazonaws.com:3301:ORCL',
+        e: 'ec2-52-5-27-33.compute-1.amazonaws.com'
+      },
+      {
         jdbcUrl: 'jdbc:oracle:thin:@//{0}:1521/{1}',
-        e: null
+        e: ""
+      },
+      {
+        jdbcUrl: 'jdbc:oracl:thin:@//some.com:1521/some-db',
+        e: ""
       }
     ].forEach(function(test) {
       it('when jdbc url is ' + test.jdbcUrl + ' host name is ' + test.e, function() {
@@ -67,77 +78,138 @@ describe('Database Utils', function() {
         jdbcUrl: 'jdbc:mysql://localhost/somedb',
         e: {
           dbType: 'mysql',
-          location: 'localhost',
-          databaseName: 'somedb'
+          location: 'localhost'
         }
       },
       {
         jdbcUrl: 'jdbc:postgresql://some.hostname.com:5432/somedb',
         e: {
           dbType: 'postgres',
-          location: 'some.hostname.com',
-          databaseName: 'somedb'
+          location: 'some.hostname.com'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:postgresql://some.hostname.com:1111/somedb',
+        e: {
+          dbType: 'postgres',
+          location: 'some.hostname.com'
         }
       },
       {
         jdbcUrl: 'jdbc:derby:/some/dir/another_dir/somedb',
         e: {
           dbType: 'derby',
-          location: '/some/dir/another_dir',
-          databaseName: 'somedb'
+          location: '/some/dir/another_dir'
         }
       },
       {
         jdbcUrl: 'jdbc:derby:${oozie-env/data-dir}/${oozie-env/database_name}-db',
         e: {
           dbType: 'derby',
-          location: '${oozie-env/data-dir}',
-          databaseName: '${oozie-env/database_name}-db'
+          location: '${oozie-env/data-dir}'
         }
       },
       {
         jdbcUrl: 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true',
         e: {
           dbType: 'derby',
-          location: '${oozie.data.dir}',
-          databaseName: '${oozie.db.schema.name}-db'
+          location: '${oozie.data.dir}'
         }
       },
       {
         jdbcUrl: 'jdbc:sqlserver://127.0.0.1;databaseName=some-db;integratedSecurity=true',
         e: {
           dbType: 'mssql',
-          location: '127.0.0.1',
-          databaseName: 'some-db'
+          location: '127.0.0.1'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:sqlserver://127.0.0.1:3011;databaseName=some-db;integratedSecurity=true',
+        e: {
+          dbType: 'mssql',
+          location: '127.0.0.1'
         }
       },
       {
         jdbcUrl: 'jdbc:oracle:thin:@//localhost.com:1521/someDb',
         e: {
           dbType: 'oracle',
-          location: 'localhost.com',
-          databaseName: 'someDb'
+          location: 'localhost.com'
         }
       },
       {
         jdbcUrl: 'jdbc:oracle:thin:@localhost.com:1521:someDb',
         e: {
           dbType: 'oracle',
-          location: 'localhost.com',
-          databaseName: 'someDb'
+          location: 'localhost.com'
         }
       },
       {
         jdbcUrl: 'jdbc:oracle:thin:@//{0}:1521/{1}',
         e: {
           dbType: 'oracle',
-          location: null,
-          databaseName: null
+          location: ""
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:oracle:thin:@//localhost:3301/somedb',
+        e: {
+          dbType: 'oracle',
+          location: 'localhost'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:oracle:thin:@localhost:3302/somedb',
+        e: {
+          dbType: 'oracle',
+          location: 'localhost'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:sqlanywhere:host=some.com;database=somedb',
+        e: {
+          dbType: 'sqla',
+          location: 'some.com'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:sqlanywhere:host=some.com:333;database=somedb',
+        e: {
+          dbType: 'sqla',
+          location: 'some.com'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:sqlanywhere:database=somedb;host=some.com:333',
+        e: {
+          dbType: 'sqla',
+          location: 'some.com'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:sqlanywhere:database=somedb;host=some2.com:333;someadditional=some_param',
+        e: {
+          dbType: 'sqla',
+          location: 'some2.com'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:oracle:thin:scott/tiger@myhost:1521:orcl',
+        e: {
+          dbType: 'oracle',
+          location: 'myhost'
+        }
+      },
+      {
+        jdbcUrl: 'jdbc:custom:custom/@@@',
+        e: {
+          dbType: null,
+          location: ''
         }
       }
     ].forEach(function(test) {
       it('when jdbc url is ' + test.jdbcUrl + ' result is ' + JSON.stringify(test.e), function() {
-        expect(dbUtils.parseJdbcUrl(test.jdbcUrl)).to.be.eql(test.e);
+        expect(dbUtils.parseJdbcUrl(test.jdbcUrl)).to.be.deep.eql(test.e);
       });
     });
   });

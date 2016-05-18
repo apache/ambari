@@ -41,7 +41,6 @@ describe('App.BackgroundOperationsController', function () {
      *
      */
     App.set('clusterName', 'testName');
-    App.bgOperationsUpdateInterval = 100;
 
     var tests = Em.A([
       {
@@ -112,13 +111,6 @@ describe('App.BackgroundOperationsController', function () {
       }
     ]);
 
-    beforeEach(function () {
-      App.testMode = false;
-    });
-    afterEach(function () {
-      App.testMode = true;
-    });
-
     tests.forEach(function (test) {
       it(test.m, function () {
         controller.set('levelInfo', test.levelInfo);
@@ -133,11 +125,9 @@ describe('App.BackgroundOperationsController', function () {
   describe('#startPolling()', function () {
 
     beforeEach(function () {
-      sinon.spy(App.updater, 'run');
       sinon.spy(controller, 'requestMostRecent');
     });
     afterEach(function () {
-      App.updater.run.restore();
       controller.requestMostRecent.restore();
     });
 
@@ -177,6 +167,15 @@ describe('App.BackgroundOperationsController', function () {
   });
 
   describe('#callBackForMostRecent()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.router.get('clusterController'), 'restoreUpgradeState', Em.K);
+    });
+
+    afterEach(function () {
+      App.router.get('clusterController').restoreUpgradeState.restore();
+    });
+
     it('No requests exists', function () {
       var data = {
         items: []
@@ -310,6 +309,22 @@ describe('App.BackgroundOperationsController', function () {
         },
         result: [
           {id: 2}
+        ]
+      },
+      {
+        title: 'two old request and two current',
+        content: {
+          currentRequestIds: [3, 4],
+          services: [
+            {id: 1},
+            {id: 2},
+            {id: 3},
+            {id: 4}
+          ]
+        },
+        result: [
+          {id: 3},
+          {id: 4}
         ]
       }
     ];
@@ -660,7 +675,7 @@ describe('App.BackgroundOperationsController', function () {
       controller.set('services', [request]);
       controller.callBackFilteredByRequest(data);
       expect(request.get('previousTaskStatusMap')).to.eql({"1": "COMPLETED"});
-      expect(request.get('hostsMap')['host1'].logTasks.length).to.equal(1);
+      expect(request.get('hostsMap.host1.logTasks.length')).to.equal(1);
       expect(request.get('isRunning')).to.equal(false);
     });
 
@@ -694,7 +709,7 @@ describe('App.BackgroundOperationsController', function () {
       controller.set('services', [request]);
       controller.callBackFilteredByRequest(data);
       expect(request.get('previousTaskStatusMap')).to.eql({"1": "COMPLETED", "2": "IN_PROGRESS"});
-      expect(request.get('hostsMap')['host1'].logTasks.length).to.equal(2);
+      expect(request.get('hostsMap.host1.logTasks.length')).to.equal(2);
       expect(request.get('isRunning')).to.equal(true);
     });
   });

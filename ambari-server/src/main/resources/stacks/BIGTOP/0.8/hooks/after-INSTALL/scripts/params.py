@@ -35,7 +35,7 @@ else:
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
-versioned_hdp_root = '/usr/bigtop/current'
+versioned_stack_root = '/usr/bigtop/current'
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 #java params

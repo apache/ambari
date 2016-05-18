@@ -320,7 +320,10 @@ public class JwtAuthenticationFilter implements Filter {
       } else {
         // if any of the configured audiences is found then consider it
         // acceptable
-        boolean found = false;
+        if (tokenAudienceList == null) {
+          LOG.warn("JWT token has no audiences, validation failed.");
+          return false;
+        }
         for (String aud : tokenAudienceList) {
           if (audiences.contains(aud)) {
             LOG.debug("JWT token audience has been successfully validated");
@@ -350,7 +353,7 @@ public class JwtAuthenticationFilter implements Filter {
     boolean valid = false;
     try {
       Date expires = jwtToken.getJWTClaimsSet().getExpirationTime();
-      if (expires != null && new Date().before(expires)) {
+      if (expires == null || new Date().before(expires)) {
         LOG.debug("JWT token expiration date has been "
             + "successfully validated");
         valid = true;

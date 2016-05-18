@@ -49,10 +49,20 @@ App.MainHostMenuView = Em.CollectionView.extend({
         name: 'versions',
         label: Em.I18n.t('hosts.host.menu.stackVersions'),
         routing: 'stackVersions',
-        hidden: function () {
-          return !App.get('supports.stackUpgrade') || !App.get('stackVersionsAvailable')
-        }.property('App.supports.stackUpgrade'),
+        hidden: !App.get('stackVersionsAvailable'),
         id: 'host-details-summary-version'
+      }),
+      Em.Object.create({
+        name: 'logs',
+        label: Em.I18n.t('hosts.host.menu.logs'),
+        routing: 'logs',
+        hidden: function () {
+          if (App.get('supports.logSearch')) {
+            return !(App.Service.find().someProperty('serviceName', 'LOGSEARCH') && !App.get('isClusterUser'));
+          }
+          return true;
+        }.property('App.supports.logSearch'),
+        id: 'host-details-summary-logs'
       })
     ];
   }.property('App.stackVersionsAvailable'),
@@ -90,9 +100,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
   },
 
   deactivateChildViews: function () {
-    $.each(this._childViews, function () {
-      this.set('active', "");
-    });
+    this.get('_childViews').setEach('active', '');
   },
 
   itemViewClass: Em.View.extend({

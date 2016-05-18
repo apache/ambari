@@ -54,6 +54,9 @@ import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertTarget;
@@ -61,6 +64,7 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.alert.TargetType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,6 +73,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * {@link AlertGroupResourceProvider} tests.
@@ -85,7 +91,7 @@ public class AlertGroupResourceProviderTest {
   private static final String ALERT_TARGET_DESC = "Admins and Others";
   private static final String ALERT_TARGET_TYPE = TargetType.EMAIL.name();
 
-  private static final Long ALERT_DEF_ID = Long.valueOf(10);
+  private static final Long ALERT_DEF_ID = 10L;
   private static final String ALERT_DEF_NAME = "Mock Definition";
   private static final String ALERT_DEF_LABEL = "Mock Label";
   private static final String ALERT_DEF_DESCRIPTION = "Mock Description";
@@ -115,31 +121,89 @@ public class AlertGroupResourceProviderTest {
 
     assertNotNull(m_injector);
 
-    expect(m_amc.getClusters()).andReturn(m_clusters).atLeastOnce();
-    expect(m_clusters.getCluster((String) anyObject())).andReturn(m_cluster).atLeastOnce();
-    expect(m_cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(m_amc.getClusters()).andReturn(m_clusters).anyTimes();
+    expect(m_clusters.getCluster((String) anyObject())).andReturn(m_cluster).anyTimes();
+    expect(m_clusters.getClusterById(1L)).andReturn(m_cluster).anyTimes();
+    expect(m_cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(m_cluster.getResourceId()).andReturn(4L).anyTimes();
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
+  }
+
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsAdministrator() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsClusterAdministrator() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsServiceAdministrator() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsClusterUser() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsViewUser() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createViewUser(99L));
   }
 
   /**
    * @throws Exception
    */
-  @Test
-  public void testGetResourcesNoPredicate() throws Exception {
-    AlertGroupResourceProvider provider = createProvider(null);
+  private void testGetResourcesNoPredicate(Authentication authentication) throws Exception {
+    AlertGroupResourceProvider provider = createProvider(m_amc);
 
     Request request = PropertyHelper.getReadRequest("AlertGroup/cluster_name",
         "AlertGroup/id");
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Set<Resource> results = provider.getResources(request, null);
 
     assertEquals(0, results.size());
   }
 
+  @Test
+  public void testGetResourcesClusterPredicateAsAdministrator() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsClusterAdministrator() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createClusterAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsServiceAdministrator() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createServiceAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsClusterUser() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createClusterUser(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsViewUser() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createViewUser(99L), false);
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testGetResourcesClusterPredicate() throws Exception {
+  private void testGetResourcesClusterPredicate(Authentication authentication, boolean expectResults) throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertGroupResourceProvider.ALERT_GROUP_ID,
         AlertGroupResourceProvider.ALERT_GROUP_NAME,
@@ -154,36 +218,64 @@ public class AlertGroupResourceProviderTest {
 
     replay(m_amc, m_clusters, m_cluster, m_dao);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     AlertGroupResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, predicate);
 
-    assertEquals(1, results.size());
+    assertEquals(expectResults ? 1 : 0, results.size());
 
-    Resource r = results.iterator().next();
+    if(expectResults) {
+      Resource r = results.iterator().next();
 
-    assertEquals(ALERT_GROUP_NAME,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
+      assertEquals(ALERT_GROUP_NAME,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
 
-    assertEquals(ALERT_GROUP_ID,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
+      assertEquals(ALERT_GROUP_ID,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
 
-    assertEquals(ALERT_GROUP_CLUSTER_NAME,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
+      assertEquals(ALERT_GROUP_CLUSTER_NAME,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
 
-    // verify definitions do not come back when not requested
-    assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS));
+      // verify definitions do not come back when not requested
+      assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS));
 
-    // verify alerts do not come back when not requested
-    assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS));
+      // verify alerts do not come back when not requested
+      assertNull(r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS));
+    }
 
     verify(m_amc, m_clusters, m_cluster, m_dao);
+  }
+
+  @Test
+  public void testGetResourcesAllPropertiesAsAdministrator() throws Exception {
+    testGetResourcesAllProperties(TestAuthenticationFactory.createAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesAllPropertiesAsClusterAdministrator() throws Exception {
+    testGetResourcesAllProperties(TestAuthenticationFactory.createClusterAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesAllPropertiesAsServiceAdministrator() throws Exception {
+    testGetResourcesAllProperties(TestAuthenticationFactory.createServiceAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesAllPropertiesAsClusterUser() throws Exception {
+    testGetResourcesAllProperties(TestAuthenticationFactory.createClusterUser(), true);
+  }
+
+  @Test
+  public void testGetResourcesAllPropertiesAsViewUser() throws Exception {
+    testGetResourcesAllProperties(TestAuthenticationFactory.createViewUser(99L), false);
   }
 
   /**
    * @throws Exception
    */
-  @Test
-  public void testGetResourcesAllProperties() throws Exception {
+  private void testGetResourcesAllProperties(Authentication authentication, boolean expectResults) throws Exception {
     Request request = PropertyHelper.getReadRequest();
 
     Predicate predicate = new PredicateBuilder().property(
@@ -194,43 +286,70 @@ public class AlertGroupResourceProviderTest {
 
     replay(m_amc, m_clusters, m_cluster, m_dao);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     AlertGroupResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, predicate);
 
-    assertEquals(1, results.size());
+    assertEquals(expectResults ? 1 : 0, results.size());
 
-    Resource r = results.iterator().next();
+    if(expectResults) {
+      Resource r = results.iterator().next();
 
-    assertEquals(ALERT_GROUP_NAME,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
+      assertEquals(ALERT_GROUP_NAME,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
 
-    assertEquals(ALERT_GROUP_ID,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
+      assertEquals(ALERT_GROUP_ID,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
 
-    assertEquals(ALERT_GROUP_CLUSTER_NAME,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
+      assertEquals(ALERT_GROUP_CLUSTER_NAME,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
 
 
-    // verify definitions and targets come back when requested
-    List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
-    List<AlertTarget> targets = (List<AlertTarget>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
+      // verify definitions and targets come back when requested
+      List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
+      List<AlertTarget> targets = (List<AlertTarget>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
 
-    assertNotNull(definitions);
-    assertEquals(1, definitions.size());
-    assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
-    assertEquals(SourceType.METRIC, definitions.get(0).getSourceType());
-    assertNotNull(targets);
-    assertEquals(1, targets.size());
+      assertNotNull(definitions);
+      assertEquals(1, definitions.size());
+      assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
+      assertEquals(SourceType.METRIC, definitions.get(0).getSourceType());
+      assertNotNull(targets);
+      assertEquals(1, targets.size());
+    }
 
     verify(m_amc, m_clusters, m_cluster, m_dao);
   }
 
+  @Test
+  public void testGetSingleResourceAsAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createAdministrator(), true);
+  }
+
+  @Test
+  public void testGetSingleResourceAsClusterAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createClusterAdministrator(), true);
+  }
+
+  @Test
+  public void testGetSingleResourceAsServiceAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createServiceAdministrator(), true);
+  }
+
+  @Test
+  public void testGetSingleResourceAsClusterUser() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createClusterUser(), true);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetSingleResourceAsViewUser() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createViewUser(99L), false);
+  }
   /**
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testGetSingleResource() throws Exception {
+  private void testGetSingleResource(Authentication authentication, boolean expectResults) throws Exception {
     Request request = PropertyHelper.getReadRequest();
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
@@ -244,46 +363,76 @@ public class AlertGroupResourceProviderTest {
     expect(m_dao.findGroupById(ALERT_GROUP_ID.longValue())).andReturn(
         getMockEntities().get(0));
 
-    replay(amc, m_dao);
+    expect(amc.getClusters()).andReturn(m_clusters).atLeastOnce();
+
+    replay(amc, m_dao, m_clusters, m_cluster);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertGroupResourceProvider provider = createProvider(amc);
     Set<Resource> results = provider.getResources(request, predicate);
 
-    assertEquals(1, results.size());
+    assertEquals(expectResults ? 1 : 0, results.size());
 
-    Resource r = results.iterator().next();
+    if(expectResults) {
+      Resource r = results.iterator().next();
 
-    assertEquals(ALERT_GROUP_NAME,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
+      assertEquals(ALERT_GROUP_NAME,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_NAME));
 
-    assertEquals(ALERT_GROUP_ID,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
+      assertEquals(ALERT_GROUP_ID,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_ID));
 
-    assertEquals(ALERT_GROUP_CLUSTER_NAME,
-        r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
+      assertEquals(ALERT_GROUP_CLUSTER_NAME,
+          r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME));
 
-    // verify definitions and targets are returned on single instances
-    List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
-    List<AlertTarget> targets = (List<AlertTarget>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
+      // verify definitions and targets are returned on single instances
+      List<AlertDefinitionResponse> definitions = (List<AlertDefinitionResponse>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_DEFINITIONS);
+      List<AlertTarget> targets = (List<AlertTarget>) r.getPropertyValue(AlertGroupResourceProvider.ALERT_GROUP_TARGETS);
 
-    assertNotNull(definitions);
-    assertNotNull(targets);
+      assertNotNull(definitions);
+      assertNotNull(targets);
 
-    assertEquals(1, definitions.size());
-    assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
-    assertEquals(SourceType.METRIC, definitions.get(0).getSourceType());
+      assertEquals(1, definitions.size());
+      assertEquals(ALERT_DEF_NAME, definitions.get(0).getName());
+      assertEquals(SourceType.METRIC, definitions.get(0).getSourceType());
 
-    assertEquals(1, targets.size());
-    assertEquals(ALERT_TARGET_NAME, targets.get(0).getName());
+      assertEquals(1, targets.size());
+      assertEquals(ALERT_TARGET_NAME, targets.get(0).getName());
+    }
 
     verify(amc, m_dao);
+  }
+
+  @Test
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsViewUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createViewUser(99L));
   }
 
   /**
    * @throws Exception
    */
-  @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResources(Authentication authentication) throws Exception {
     Capture<List<AlertGroupEntity>> listCapture = new Capture<List<AlertGroupEntity>>();
 
     // the definition IDs to associate with the group
@@ -316,6 +465,8 @@ public class AlertGroupResourceProviderTest {
 
     replay(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     AlertGroupResourceProvider provider = createProvider(m_amc);
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
@@ -344,12 +495,36 @@ public class AlertGroupResourceProviderTest {
     verify(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
   }
 
+  @Test
+  public void testUpdateResourcesAsAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsServiceAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsClusterUser() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsViewUser() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testUpdateResources() throws Exception {
+  public void testUpdateResources(Authentication authentication) throws Exception {
     Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
 
     // the definition IDs to associate with the group
@@ -386,6 +561,8 @@ public class AlertGroupResourceProviderTest {
         definitionEntities).once();
 
     replay(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertGroupResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = new HashMap<String, Object>();
@@ -430,14 +607,38 @@ public class AlertGroupResourceProviderTest {
     verify(m_amc, m_clusters, m_cluster, m_dao, m_definitionDao);
   }
 
+  @Test
+  public void testUpdateDefaultGroupAsAdministrator() throws Exception {
+     testUpdateDefaultGroup(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testUpdateDefaultGroupAsClusterAdministrator() throws Exception {
+    testUpdateDefaultGroup(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateDefaultGroupAsServiceAdministrator() throws Exception {
+    testUpdateDefaultGroup(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateDefaultGroupAsClusterUser() throws Exception {
+    testUpdateDefaultGroup(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateDefaultGroupAsViewUser() throws Exception {
+    testUpdateDefaultGroup(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * Tests that updating a default group doesn't change read-only properties
    *
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testUpdateDefaultGroup() throws Exception {
+  private  void testUpdateDefaultGroup(Authentication authentication) throws Exception {
     Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
 
     // the definition IDs to associate with the group
@@ -464,6 +665,7 @@ public class AlertGroupResourceProviderTest {
 
     AlertGroupEntity group = new AlertGroupEntity();
     group.setDefault(true);
+    group.setClusterId(1L);
     group.setGroupName(ALERT_GROUP_NAME);
     group.setAlertDefinitions(getMockDefinitions());
     group.setAlertTargets(getMockTargets());
@@ -476,7 +678,9 @@ public class AlertGroupResourceProviderTest {
     expect(m_dao.findTargetsById(EasyMock.eq(newTargets))).andReturn(
         newTargetEntities).once();
 
-    replay(m_dao, m_definitionDao);
+    replay(m_dao, m_definitionDao, m_amc, m_clusters, m_cluster);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertGroupResourceProvider provider = createProvider(m_amc);
 
@@ -517,11 +721,35 @@ public class AlertGroupResourceProviderTest {
     verify(m_dao, m_definitionDao);
   }
 
+  @Test
+  public void testDeleteResourcesAsAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsServiceAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterUser() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsViewUser() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testDeleteResources() throws Exception {
+  private void testDeleteResources(Authentication authentication) throws Exception {
     Capture<AlertGroupEntity> entityCapture = new Capture<AlertGroupEntity>();
     Capture<List<AlertGroupEntity>> listCapture = new Capture<List<AlertGroupEntity>>();
 
@@ -529,6 +757,8 @@ public class AlertGroupResourceProviderTest {
     expectLastCall();
 
     replay(m_amc, m_clusters, m_cluster, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertGroupResourceProvider provider = createProvider(m_amc);
 
@@ -561,7 +791,7 @@ public class AlertGroupResourceProviderTest {
     expectLastCall();
     replay(m_dao);
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     AlertGroupEntity entity1 = entityCapture.getValue();
     assertEquals(ALERT_GROUP_ID, entity1.getGroupId());
@@ -569,13 +799,37 @@ public class AlertGroupResourceProviderTest {
     verify(m_amc, m_clusters, m_cluster, m_dao);
   }
 
+  @Test
+  public void testDeleteDefaultGroupAsAdministrator() throws Exception {
+    testDeleteDefaultGroup(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteDefaultGroupAsClusterAdministrator() throws Exception {
+    testDeleteDefaultGroup(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteDefaultGroupAsServiceAdministrator() throws Exception {
+    testDeleteDefaultGroup(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteDefaultGroupAsClusterUser() throws Exception {
+    testDeleteDefaultGroup(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteDefaultGroupAsViewUser() throws Exception {
+    testDeleteDefaultGroup(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * Tests that a default group cannot be deleted via the resource provider.
    *
    * @throws Exception
    */
-  @Test
-  public void testDeleteDefaultGroup() throws Exception {
+  private void testDeleteDefaultGroup(Authentication authentication) throws Exception {
     AlertGroupEntity group = new AlertGroupEntity();
     group.setGroupId(ALERT_GROUP_ID);
     group.setDefault(true);
@@ -586,7 +840,9 @@ public class AlertGroupResourceProviderTest {
     resetToStrict(m_dao);
     expect(m_dao.findGroupById(ALERT_GROUP_ID)).andReturn(group).anyTimes();
 
-    replay(m_dao);
+    replay(m_dao, m_amc, m_clusters, m_cluster);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertGroupResourceProvider provider = createProvider(m_amc);
 
@@ -596,8 +852,8 @@ public class AlertGroupResourceProviderTest {
         AlertGroupResourceProvider.ALERT_GROUP_ID).equals(
         ALERT_GROUP_ID.toString()).toPredicate();
 
-    provider.deleteResources(predicate);
-    verify(m_dao);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
+    verify(m_dao, m_amc);
   }
 
   /**

@@ -26,7 +26,7 @@ def mahout():
   import params
 
   Directory( params.mahout_conf_dir,
-             recursive = True,
+             create_parents = True,
              owner = params.mahout_user,
              group = params.user_group
   )

@@ -43,7 +43,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
     if (currentStep === 1) {
       return  Em.I18n.t('admin.highAvailability.wizard.rollback.header.title');
     } else {
-      return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.header.title');
+      return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.header');
     }
   }.property(),
 
@@ -55,7 +55,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
     if (currentStep === 1) {
       return  Em.I18n.t('admin.highAvailability.rollback.notice.inProgress');
     } else {
-      return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.notice.inProgress');
+      return  Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress');
     }
   }.property(),
 

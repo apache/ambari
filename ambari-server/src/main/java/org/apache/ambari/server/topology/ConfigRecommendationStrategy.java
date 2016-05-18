@@ -33,5 +33,10 @@ public enum ConfigRecommendationStrategy {
    *  Configuration recommendations are always applied for properties listed as stack defaults,
    *  but not for configurations defined by the user in the Blueprint and/or Cluster Creation Template.
    */
-  ONLY_STACK_DEFAULTS_APPLY;
+  ONLY_STACK_DEFAULTS_APPLY,
+  /**
+   *  Configuration recommendations are always applied, overriding stack defaults but they don't
+   *  override configuration defined by the user in the Blueprint and/or Cluster Creation Template.
+   */
+  ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES;
 }

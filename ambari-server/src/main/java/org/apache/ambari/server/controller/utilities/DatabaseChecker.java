@@ -18,23 +18,35 @@
 
 package org.apache.ambari.server.controller.utilities;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +54,9 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+
+/*This class should not be used anymore
+* now we will use DatabaseConsistencyChecker*/
 public class DatabaseChecker {
 
   static Logger LOG = LoggerFactory.getLogger(DatabaseChecker.class);
@@ -142,27 +157,136 @@ public class DatabaseChecker {
     if (checkPassed) {
       LOG.info("DB consistency check passed.");
     } else {
-      LOG.error("DB consistency check failed.");
+      String errorMessage = "DB consistency check failed. Run \"ambari-server start --skip-database-validation\" to skip validation.";
+      LOG.error(errorMessage);
+      throw new AmbariException(errorMessage);
+    }
+  }
+
+  private static boolean clusterConfigsContainTypeAndTag(Collection<ClusterConfigEntity> clusterConfigEntities,
+                                                         String typeName, String tag) {
+    for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
+      if (typeName.equals(clusterConfigEntity.getType()) && tag.equals(clusterConfigEntity.getTag())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Validates configuration consistency. Checks that every config type from stack is presented in
+   * ClusterConfigMapping. Checks that for each config type exactly one is selected. Checks that ClusterConfig
+   * contains type_names and tags from ClusterConfigMapping.
+   *
+   * @throws AmbariException if check failed
+   */
+  public static void checkDBConfigsConsistency() throws AmbariException {
+    LOG.info("Checking DB configs consistency");
+
+    boolean checkPassed = true;
+
+    if (ambariMetaInfo == null) {
+      ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    }
+
+    ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    List<ClusterEntity> clusters = clusterDAO.findAll();
+    if (clusters != null) {
+      for (ClusterEntity clusterEntity : clusters) {
+        Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+        Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
+
+        if (configMappingEntities != null) {
+          Map<String, Integer> selectedCountForType = new HashMap<>();
+          for (ClusterConfigMappingEntity clusterConfigMappingEntity : configMappingEntities) {
+            String typeName = clusterConfigMappingEntity.getType();
+            if (clusterConfigMappingEntity.isSelected() > 0) {
+              int selectedCount = selectedCountForType.get(typeName) != null ? selectedCountForType.get(typeName) : 0;
+              selectedCountForType.put(typeName, selectedCount + 1);
+
+              // Check that ClusterConfig contains type_name and tag from ClusterConfigMapping
+              if (!clusterConfigsContainTypeAndTag(clusterConfigEntities, typeName, clusterConfigMappingEntity.getTag())) {
+                checkPassed = false;
+                LOG.error("ClusterConfig does not contain mapping for type_name=" + typeName + " tag="
+                    + clusterConfigMappingEntity.getTag());
+              }
+            } else {
+              if (!selectedCountForType.containsKey(typeName)) {
+                selectedCountForType.put(typeName, 0);
+              }
+            }
+          }
+
+          // Check that every config type from stack is presented in ClusterConfigMapping
+          Collection<ClusterServiceEntity> clusterServiceEntities = clusterEntity.getClusterServiceEntities();
+          ClusterStateEntity clusterStateEntity = clusterEntity.getClusterStateEntity();
+          if (clusterStateEntity != null) {
+            StackEntity currentStack = clusterStateEntity.getCurrentStack();
+            StackInfo stack = ambariMetaInfo.getStack(currentStack.getStackName(), currentStack.getStackVersion());
+
+            for (ClusterServiceEntity clusterServiceEntity : clusterServiceEntities) {
+              if (!State.INIT.equals(clusterServiceEntity.getServiceDesiredStateEntity().getDesiredState())) {
+                String serviceName = clusterServiceEntity.getServiceName();
+                ServiceInfo serviceInfo = ambariMetaInfo.getService(stack.getName(), stack.getVersion(), serviceName);
+                for (String configTypeName : serviceInfo.getConfigTypeAttributes().keySet()) {
+                  if (selectedCountForType.get(configTypeName) == null) {
+                    checkPassed = false;
+                    LOG.error("ClusterConfigMapping does not contain mapping for service=" + serviceName + " type_name="
+                        + configTypeName);
+                  } else {
+                    // Check that for each config type exactly one is selected
+                    if (selectedCountForType.get(configTypeName) == 0) {
+                      checkPassed = false;
+                      LOG.error("ClusterConfigMapping selected count is 0 for service=" + serviceName + " type_name="
+                          + configTypeName);
+                    } else if (selectedCountForType.get(configTypeName) > 1) {
+                      checkPassed = false;
+                      LOG.error("ClusterConfigMapping selected count is more than 1 for service=" + serviceName
+                          + " type_name=" + configTypeName);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (checkPassed) {
+      LOG.info("DB configs consistency check passed.");
+    } else {
+      String errorMessage = "DB configs consistency check failed. Run \"ambari-server start --skip-database-validation\" to skip validation.";
+      LOG.error(errorMessage);
+      throw new AmbariException(errorMessage);
     }
   }
 
   public static void checkDBVersion() throws AmbariException {
 
     LOG.info("Checking DB store version");
-    if (ambariMetaInfo == null) {
-      ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    }
     if (metainfoDAO == null) {
       metainfoDAO = injector.getInstance(MetainfoDAO.class);
     }
 
     MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY);
     String schemaVersion = null;
-    String serverVersion = null;
 
     if (schemaVersionEntity != null) {
       schemaVersion = schemaVersionEntity.getMetainfoValue();
-      serverVersion = ambariMetaInfo.getServerVersion();
+    }
+
+    Configuration conf = injector.getInstance(Configuration.class);
+    File versionFile = new File(conf.getServerVersionFilePath());
+    if (!versionFile.exists()) {
+      throw new AmbariException("Server version file does not exist.");
+    }
+    String serverVersion = null;
+    try (Scanner scanner = new Scanner(versionFile)) {
+      serverVersion = scanner.useDelimiter("\\Z").next();
+
+    } catch (IOException ioe) {
+      throw new AmbariException("Unable to read server version file.");
     }
 
     if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 3) != 0) {

@@ -38,18 +38,23 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               } else {
                 if (router.get('clusterInstallCompleted')) {
                   App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                    App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
-                      router.get('mainController').initialize();
-                    });
+                    if (!App.get('isOnlyViewUser')) {
+                      App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
+                        router.get('mainController').initialize();
+                      });
+                    } else {
+                      App.router.transitionTo('main.views.index');
+                      App.router.get('clusterController').set('isLoaded', true); // hide loading bar
+                    }
                   });
                 }
                 else {
                   Em.run.next(function () {
                     App.clusterStatus.updateFromServer().complete(function () {
                       var currentClusterStatus = App.clusterStatus.get('value');
-                      if (router.get('currentState.parentState.name') !== 'views'
+                      if (router.get('currentState.parentState.name') !== 'views' && router.get('currentState.parentState.name') !== 'view'
                           && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
-                        if (App.isAccessible('ADMIN')) {
+                        if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
                           self.redirectToInstaller(router, currentClusterStatus, false);
                         } else {
                           Em.run.next(function () {
@@ -180,6 +185,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   }),
 
   views: require('routes/views'),
+  view: require('routes/view'),
+
 
   hosts: Em.Route.extend({
     route: '/hosts',
@@ -188,6 +195,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       connectOutlets: function (router, context) {
         App.loadTimer.start('Hosts Page');
         router.get('mainController').connectOutlet('mainHost');
+        router.get('mainHostController').connectOutlet('mainHostComboSearchBox');
       }
     }),
 
@@ -258,6 +266,20 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         }
       }),
 
+      logs: Em.Route.extend({
+        route: '/logs:query',
+        connectOutlets: function (router, context) {
+          if (App.get('supports.logSearch')) {
+            router.get('mainHostDetailsController').connectOutlet('mainHostLogs')
+          } else {
+            router.transitionTo('summary');
+          }
+        },
+        serialize: function(router, params) {
+          return this.serializeQueryParams(router, params, 'mainHostDetailsController');
+        }
+      }),
+
       hostNavigate: function (router, event) {
         var parent = event.view._parentView;
         parent.deactivateChildViews();
@@ -306,13 +328,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.set('mainAlertInstancesController.isUpdating', false);
       },
 
-      unroutePath: function (router, context) {
+      exitRoute: function (router, context, callback) {
         var controller = router.get('mainAlertDefinitionDetailsController');
-        if (!controller.get('forceTransition') && controller.get('isEditing')) {
-          controller.showSavePopup(context);
+        if (controller.get('isEditing')) {
+          controller.showSavePopup(callback);
         } else {
-          controller.set('forceTransition', false);
-          this._super(router, context);
+          callback();
         }
       }
     }),
@@ -327,7 +348,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+      if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
+        && !(App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });
@@ -335,7 +357,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     routePath: function (router, event) {
-      if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+      if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') && !(App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
         Em.run.next(function () {
           App.router.transitionTo('main.dashboard.index');
         });
@@ -362,6 +384,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     adminKerberos: Em.Route.extend({
       route: '/kerberos',
+      enter: function (router, transition) {
+        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS')) {
+          router.transitionTo('main.dashboard.index');
+        }
+      },
       index: Em.Route.extend({
         route: '/',
         connectOutlets: function (router, context) {
@@ -433,6 +460,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                 });
               },
               didInsertElement: function () {
+                this._super();
                 this.fitHeight();
               }
             });
@@ -498,9 +526,30 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     }),
     adminServiceAccounts: Em.Route.extend({
       route: '/serviceAccounts',
+      enter: function (router, transition) {
+        if (router.get('loggedIn') && !App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS')) {
+          router.transitionTo('main.dashboard.index');
+        }
+      },
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "adminServiceAccounts");
         router.get('mainAdminController').connectOutlet('mainAdminServiceAccounts');
+      }
+    }),
+
+    adminServiceAutoStart: Em.Route.extend({
+      route: '/serviceAutoStart',
+      connectOutlets: function (router) {
+        router.set('mainAdminController.category', "serviceAutoStart");
+        router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
+      },
+      exitRoute: function (router, context, callback) {
+        var controller = router.get('mainAdminServiceAutoStartController');
+        if (!controller.get('isSaveDisabled')) {
+          controller.showSavePopup(callback);
+        } else {
+          callback();
+        }
       }
     }),
 
@@ -651,12 +700,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             }
           });
         },
-        unroutePath: function (router, context) {
+        exitRoute: function (router, context, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
-          if (!controller.get('forceTransition') && controller.hasUnsavedChanges()) {
-            controller.showSavePopup(context);
+          // If another user is running some wizard, current user can't save configs
+          if (controller.hasUnsavedChanges() && !router.get('wizardWatcherController.isWizardRunning')) {
+            controller.showSavePopup(callback);
           } else {
-            this._super(router, context);
+            callback();
           }
         }
       }),
@@ -703,6 +753,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 
     enableRAHighAvailability: require('routes/ra_high_availability_routes'),
+
+    addHawqStandby: require('routes/add_hawq_standby_routes'),
+
+    removeHawqStandby: require('routes/remove_hawq_standby_routes'),
+
+    activateHawqStandby: require('routes/activate_hawq_standby_routes'),
 
     rollbackHighAvailability: require('routes/rollbackHA_routes')
   }),

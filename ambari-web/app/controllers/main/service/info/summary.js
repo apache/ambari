@@ -45,6 +45,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   sectionNameSuffix: "_SUMMARY",
 
   /**
+   * HiveServer2 JDBC connection endpoint data
+   * @type {array}
+   */
+  hiveServerEndPoints: [],
+
+  /**
    * Ranger plugins data
    * @type {array}
    */
@@ -83,12 +89,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       serviceName: 'STORM',
       type: 'ranger-storm-plugin-properties',
       propertyName: 'ranger-storm-plugin-enabled',
-      valueForEnable: 'Yes'
-    },
-    {
-      serviceName: 'KAFKA',
-      type: 'ranger-kafka-plugin-properties',
-      propertyName: 'ranger-kafka-plugin-enabled',
       valueForEnable: 'Yes'
     },
     {
@@ -223,6 +223,65 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   },
 
   /**
+   * This method is invoked when hive view is rendered to fetch and display
+   * information for JDBC connect string for HiveServer2 instances
+   * @method  setHiveEndPointsValue
+   * @public
+   */
+  setHiveEndPointsValue: function() {
+    var self = this;
+    var tags = [
+      {
+        siteName: 'hive-site'
+      },
+      {
+        siteName: 'hive-interactive-site'
+      }
+    ];
+
+    var siteToComponentMap = {
+      'hive-site': 'HIVE_SERVER',
+      'hive-interactive-site': 'HIVE_SERVER_INTERACTIVE'
+    };
+
+    App.router.get('configurationController').getConfigsByTags(tags).done(function (configs) {
+
+      var hiveSiteIndex =  configs.map(function(item){
+        return item.type;
+      }).indexOf('hive-site');
+
+      // if hive-site is not first item then rotate the array to make it first
+      if (!!hiveSiteIndex) {
+        configs.push(configs.shift());
+      }
+
+      var hiveSiteDynamicDiscovery = configs[0].properties['hive.server2.support.dynamic.service.discovery'];
+      var hiveSiteZkNameSpace =  configs[0].properties['hive.server2.zookeeper.namespace'];
+      var hiveSiteZkQuorom =  configs[0].properties['hive.zookeeper.quorum'];
+
+
+      configs.forEach(function(_config) {
+        var masterComponent = App.MasterComponent.find().findProperty('componentName', siteToComponentMap[_config.type]);
+        if (_config.type === 'hive-interactive-site') {
+          hiveSiteDynamicDiscovery =  _config.properties['hive.server2.support.dynamic.service.discovery'] || hiveSiteDynamicDiscovery;
+          hiveSiteZkQuorom =  _config.properties['hive.zookeeper.quorum'] || hiveSiteZkQuorom;
+          hiveSiteZkNameSpace =  _config.properties['hive.server2.zookeeper.namespace'] || hiveSiteZkNameSpace;
+        }
+        if (masterComponent && !!masterComponent.get('totalCount')) {
+          var hiveEndPoint = {
+            isVisible: hiveSiteDynamicDiscovery,
+            componentName: masterComponent.get('componentName'),
+            label: masterComponent.get('displayName') + ' Endpoint',
+            value: Em.I18n.t('services.service.summary.hiveserver2.endpoint.value').format(hiveSiteZkQuorom, hiveSiteZkNameSpace),
+            tooltipText: Em.I18n.t('services.service.summary.hiveserver2.endpoint.tooltip.text').format(masterComponent.get('displayName'))
+          };
+          self.get('hiveServerEndPoints').pushObject(Em.Object.create(hiveEndPoint));
+        }
+      });
+    });
+  },
+
+  /**
    * Send start command for selected Flume Agent
    * @method startFlumeAgent
    */
@@ -294,9 +353,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   },
 
   showServiceAlertsPopup: function (event) {
-    var service = event.context;
+    var context = event.context;
     return App.ModalPopup.show({
-      header: Em.I18n.t('services.service.summary.alerts.popup.header').format(service.get('displayName')),
+      header: Em.I18n.t('services.service.summary.alerts.popup.header').format(context.get('displayName')),
       autoHeight: false,
       classNames: ['forty-percent-width-modal'],
       bodyClass: Em.View.extend({
@@ -312,7 +371,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           this.$(".timeago").tooltip('destroy');
         },
         alerts: function () {
-          var serviceDefinitions = this.get('controller.content').filterProperty('service', service);
+          var property = context.get('componentName') ? 'componentName' : 'serviceName';
+          var serviceDefinitions = this.get('controller.content').filterProperty(property, context.get(property));
           // definitions should be sorted in order: critical, warning, ok, unknown, other
           var criticalDefinitions = [], warningDefinitions = [], okDefinitions = [], unknownDefinitions = [];
           serviceDefinitions.forEach(function (definition) {

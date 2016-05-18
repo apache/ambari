@@ -16,58 +16,52 @@
 * limitations under the License.
 -->
 <ol class="breadcrumb">
-  <li><a href="#/users">Users</a></li>
-  <li class="active">Create Local User</li>
+  <li><a href="#/users">{{'common.users' | translate}}</a></li>
+  <li class="active">{{'users.create' | translate}}</li>
 </ol>
 <hr>
 <form class="form-horizontal create-user-form" role="form" novalidate name="form" autocomplete="off">
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
-    <label for="username" class="col-sm-2 control-label">Username</label>
+    <label for="username" class="col-sm-2 control-label">{{'users.username' | translate}}</label>
     <div class="col-sm-10">
-      <input type="text" id="username" class="form-control username-input" name="user_name" placeholder="User name" ng-model="user.user_name" required autocomplete="off">
-      <div class="alert alert-danger top-margin" ng-show="form.user_name.$error.required && form.submitted">
-        This field is required.
-      </div>
+      <input type="text" id="username" class="form-control username-input" name="user_name" placeholder="{{'users.userName' | translate}}" ng-model="user.user_name" required autocomplete="off">
+      <div class="alert alert-danger top-margin" ng-show="form.user_name.$error.required && form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
     </div>
   </div>
   <div class="form-group">
-    <label for="" class="col-sm-2 control-label">Type</label>
+    <label for="" class="col-sm-2 control-label">{{'common.type' | translate}}</label>
     <div class="col-sm-10">
-      <label for="" class="control-label">Local</label>
+      <label for="" class="control-label">{{'common.local' | translate}}</label>
     </div>
   </div>
   <div class="form-group">
-    <label for="" class="col-sm-2 control-label">Status</label>
+    <label for="" class="col-sm-2 control-label">{{'users.status' | translate}}</label>
     <div class="col-sm-10">
-      <toggle-switch model="user.active" on-label="Active" off-label="Inactive" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
+      <toggle-switch model="user.active" on-label="{{'users.active' | translate}}" off-label="{{'users.inactive' | translate}}" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
     </div>
   </div>
   <div class="form-group">
-    <label for="" class="col-sm-2 control-label"><span class="glyphicon glyphicon-flash"></span>Ambari Admin</label>
+    <label for="" class="col-sm-2 control-label"><span class="glyphicon glyphicon-flash"></span>{{'users.ambariAdmin' | translate}}</label>
     <div class="col-sm-10">
-      <toggle-switch ng-disabled="isCurrentUser" model="user.admin" on-label="Yes" off-label="No" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
+      <toggle-switch ng-disabled="isCurrentUser" model="user.admin" on-label="{{'common.yes' | translate}}" off-label="{{'common.no' | translate}}" class="switch-primary userstatus" data-off-color="danger"></toggle-switch>
     </div>
     </div>
   <div class="form-group" ng-class="{'has-error' : (form.password.$error.required && form.submitted) || form.confirmPassword.$error.passwordVerify}">
-    <label for="password" class="col-sm-2 control-label">Password</label>
+    <label for="password" class="col-sm-2 control-label">{{'users.password' | translate}}</label>
     <div class="col-sm-10">
-      <input type="password" class="form-control bottom-margin userpassword" name="password" placeholder="Password" required ng-model="user.password" autocomplete="off">
-      <input type="password" class="form-control bottom-margin userpasswordconfirm" name="confirmPassword" placeholder="Password confirmation" required ng-model="user.passwordConfirmation"
+      <input type="password" class="form-control bottom-margin userpassword" name="password" placeholder="{{'users.password' | translate}}" required ng-model="user.password" autocomplete="off">
+      <input type="password" class="form-control bottom-margin userpasswordconfirm" name="confirmPassword" placeholder="{{'users.passwordConfirmation' | translate}}" required ng-model="user.passwordConfirmation"
         password-verify="user.password" autocomplete="off">
 
-      <div class="alert alert-danger" ng-show='form.confirmPassword.$error.passwordVerify'>
-        Password must match!
-      </div>
-      <div class="alert alert-danger" ng-show='form.password.$error.required && form.submitted'>
-        Password required!
-      </div>
+      <div class="alert alert-danger" ng-show='form.confirmPassword.$error.passwordVerify'>{{'users.alerts.wrongPassword' | translate}}</div>
+      <div class="alert alert-danger" ng-show='form.password.$error.required && form.submitted'>{{'users.alerts.passwordRequired' | translate}}</div>
       
     </div>
   </div>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <button class="btn btn-primary pull-right left-margin saveuser" ng-click="createUser()">Save</button>
-      <a class="btn btn-default pull-right cancel" href ng-click="cancel()">Cancel</a>
+      <button class="btn btn-primary pull-right left-margin saveuser" ng-click="createUser()">{{'common.controls.save' | translate}}</button>
+      <a class="btn btn-default pull-right cancel" href ng-click="cancel()">{{'common.controls.cancel' | translate}}</a>
     </div>
   </div>
       

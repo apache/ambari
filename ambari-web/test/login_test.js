@@ -16,29 +16,8 @@
  * limitations under the License.
  */
 
-var App = require('app');
-
 require('controllers/login_controller');
 
 describe('App.LoginController', function () {
-
-  var loginController = App.LoginController.create();
-
-  describe('#validateCredentials()', function () {
-    /*
-    it('should return undefined if no username is present', function () {
-      loginController.set('loginName', '');
-      expect(loginController.validateCredentials()).to.equal(undefined);
-    })
-    it('should return undefined if no password is present', function () {
-      loginController.set('password', '');
-      expect(loginController.validateCredentials()).to.equal(undefined);
-    })
-    it('should return the user object with the specified username and password (dummy until actual integration)', function () {
-      loginController.set('loginName', 'admin');
-      loginController.set('password', 'admin');
-      expect(loginController.validateCredentials().get('loginName'), 'admin');
-    })
-    */
-  })
+  describe('#validateCredentials()', function () {});
 });

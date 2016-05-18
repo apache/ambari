@@ -27,6 +27,7 @@ See the documentation pages for the view examples.
 * [Favorite view](favorite-view/docs/index.md) : Exposes a simple resource to work with instance parameters and data.
 * [Calculator View](calculator-view/docs/index.md) : Includes a simple resource.
 * [Phone List View](phone-list-view/docs/index.md) : Demonstrates simple view persistence.
+* [Phone List Upgrade View](phone-list-upgrade-view/docs/index.md) : Demonstrates view data migration from Phone List View.
 * [Property View](property-view/docs/index.md) : Demonstrates view configuration property options.
 * [Property Validator View](property-validator-view/docs/index.md) : Demonstrates configuration property validator.
 * [Weather view](weather-view/docs/index.md) : Demonstrates the the use of instance parameters, a servlet for a dynamic UI and a managed resource.

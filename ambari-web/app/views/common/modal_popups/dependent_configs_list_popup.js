@@ -20,18 +20,18 @@ var App = require('app');
 
 /**
  * Show confirmation popup
- * @param {[Object]} configs
+ * @param {[Object]} recommendations
  * @param {function} [primary=null]
  * @param {function} [secondary=null]
  * we use this parameter to defer saving configs before we make some decisions.
  * @return {App.ModalPopup}
  */
-App.showDependentConfigsPopup = function (configs, primary, secondary) {
+App.showDependentConfigsPopup = function (recommendations, primary, secondary) {
   return App.ModalPopup.show({
     encodeBody: false,
     header: Em.I18n.t('popup.dependent.configs.header'),
     classNames: ['sixty-percent-width-modal','modal-full-width'],
-    configs: configs,
+    recommendations: recommendations,
     secondaryClass: 'cancel-button',
     bodyClass: Em.View.extend({
       templateName: require('templates/common/modal_popups/dependent_configs_list'),
@@ -45,39 +45,38 @@ App.showDependentConfigsPopup = function (configs, primary, secondary) {
         },
         updateCheckboxObserver: function () {
           Em.run.once(this, 'updateCheckbox');
-        }.observes('parentView.parentView.configs.@each.saveRecommended'),
+        }.observes('parentView.parentView.recommendations.@each.saveRecommended'),
 
         updateCheckbox: function() {
-          this.set('checked', !(this.get('parentView.parentView.configs')|| []).someProperty('saveRecommended', false));
+          this.set('checked', !(this.get('parentView.parentView.recommendations') || []).someProperty('saveRecommended', false));
         },
         updateSaveRecommended: function() {
-          this.get('parentView.parentView.configs').setEach('saveRecommended', this.get('checked'));
+          this.get('parentView.parentView.recommendations').setEach('saveRecommended', this.get('checked'));
         }
       })
     }),
+    saveChanges: function() {
+      this.get('recommendations').forEach(function (c) {
+        Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
+      })
+    },
+    discardChanges: function() {
+      this.get('recommendations').forEach(function(c) {
+        Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
+      });
+    },
     onPrimary: function () {
       this._super();
-      this.get('configs').forEach(function (c) {
-        Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
-      });
-      if (primary) {
-        primary();
-      }
+      if (primary) primary();
+      this.saveChanges();
     },
     onSecondary: function() {
       this._super();
-      this.get('configs').forEach(function(c) {
-        Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
-      });
-      if (secondary) {
-        secondary();
-      }
+      if (secondary) secondary();
+      this.discardChanges();
     },
     onClose: function () {
-      this._super();
-      if (secondary) {
-        secondary();
-      }
+      this.onSecondary();
     }
   });
 };

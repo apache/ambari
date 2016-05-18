@@ -102,7 +102,7 @@ public class HostVersionOutOfSyncListenerTest {
     addHost("h1");
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     c1.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
     clusters.mapHostToCluster("h1", "c1");
   }
@@ -415,15 +415,15 @@ public class HostVersionOutOfSyncListenerTest {
     assertRepoVersionState(stackId.getStackId(), "2.2.9-9999", RepositoryVersionState.INSTALLED);
 
     // make it seems like we upgraded, but 1 host still hasn't finished
-    hv1.setState(RepositoryVersionState.UPGRADED);
-    hv2.setState(RepositoryVersionState.UPGRADING);
+    hv1.setState(RepositoryVersionState.INSTALLED);
+    hv2.setState(RepositoryVersionState.INSTALLING);
     hostVersionDAO.merge(hv1);
     hostVersionDAO.merge(hv2);
 
     // recalculate and ensure that the cluster is UPGRADING
     c1.recalculateAllClusterVersionStates();
     assertRepoVersionState(stackId.getStackId(), "2.2.0", RepositoryVersionState.CURRENT);
-    assertRepoVersionState(stackId.getStackId(), "2.2.9-9999", RepositoryVersionState.UPGRADING);
+    assertRepoVersionState(stackId.getStackId(), "2.2.9-9999", RepositoryVersionState.INSTALLING);
 
     // delete the host that was UPGRADING, and DON'T call recalculate; let the
     // event handle it
@@ -431,7 +431,7 @@ public class HostVersionOutOfSyncListenerTest {
     clusters.deleteHost("h2");
     injector.getInstance(UnitOfWork.class).end();
     assertRepoVersionState(stackId.getStackId(), "2.2.0", RepositoryVersionState.CURRENT);
-    assertRepoVersionState(stackId.getStackId(), "2.2.9-9999", RepositoryVersionState.UPGRADED);
+    assertRepoVersionState(stackId.getStackId(), "2.2.9-9999", RepositoryVersionState.INSTALLED);
   }
 
   private void addHost(String hostname) throws AmbariException {
@@ -443,7 +443,7 @@ public class HostVersionOutOfSyncListenerTest {
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
+    hostAttributes.put("os_release_version", "6.4");
     host1.setHostAttributes(hostAttributes);
 
     host1.persist();
@@ -487,7 +487,7 @@ public class HostVersionOutOfSyncListenerTest {
           .getServiceComponent(componentName), hostName));
       ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(cl.getClusterId(),
           stackIdObj.getStackName(), stackIdObj.getStackVersion(),
-          serviceName, componentName, hostName);
+          serviceName, componentName, hostName, false /* recovery not enabled */);
       m_eventPublisher.publish(event);
     }
   }

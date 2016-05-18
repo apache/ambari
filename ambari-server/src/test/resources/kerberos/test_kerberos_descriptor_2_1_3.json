@@ -21,7 +21,7 @@
       "configuration": "cluster-env/smokeuser_principal_name",
       "type": "user",
       "local_username": "${cluster-env/smokeuser}",
-      "value": "${cluster-env/smokeuser}-${cluster_name}@${realm}"
+      "value": "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}"
     },
     "name": "smokeuser",
     "keytab": {
@@ -318,7 +318,7 @@
         "configuration": "hadoop-env/hdfs_principal_name",
         "type": "user",
         "local_username": "${hadoop-env/hdfs_user}",
-        "value": "${hadoop-env/hdfs_user}-${cluster_name}@${realm}"
+        "value": "${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}"
       },
       "name": "hdfs",
       "keytab": {
@@ -370,7 +370,7 @@
         "configuration": "spark-defaults/spark.history.kerberos.principal",
         "type": "user",
         "local_username": "${spark-env/spark_user}",
-        "value": "${spark-env/spark_user}-${cluster_name}@${realm}"
+        "value": "${spark-env/spark_user}-${cluster_name|toLower()}@${realm}"
       },
       "name": "sparkuser",
       "keytab": {
@@ -411,7 +411,7 @@
         "configuration": "accumulo-env/accumulo_principal_name",
         "type": "user",
         "local_username": "${accumulo-env/accumulo_user}",
-        "value": "${accumulo-env/accumulo_user}-${cluster_name}@${realm}"
+        "value": "${accumulo-env/accumulo_user}-${cluster_name|toLower()}@${realm}"
       },
       "name": "accumulo",
       "keytab": {
@@ -451,7 +451,7 @@
         "configuration": "accumulo-site/trace.user",
         "type": "user",
         "local_username": "${accumulo-env/accumulo_user}",
-        "value": "tracer-${cluster_name}@${realm}"
+        "value": "tracer-${cluster_name|toLower()}@${realm}"
       },
       "name": "accumulo_tracer",
       "keytab": {
@@ -591,7 +591,7 @@
         "configuration": "hbase-env/hbase_principal_name",
         "type": "user",
         "local_username": "${hbase-env/hbase_user}",
-        "value": "${hbase-env/hbase_user}-${cluster_name}@${realm}"
+        "value": "${hbase-env/hbase_user}-${cluster_name|toLower()}@${realm}"
       },
       "name": "hbase",
       "keytab": {
@@ -940,7 +940,7 @@
       "principal": {
         "configuration": "storm-env/storm_principal_name",
         "type": "user",
-        "value": "${storm-env/storm_user}-${cluster_name}@${realm}"
+        "value": "${storm-env/storm_user}-${cluster_name|toLower()}@${realm}"
       },
       "name": "storm_components",
       "keytab": {
@@ -1009,7 +1009,7 @@
       "name": "ATLAS_SERVER"
     }],
     "auth_to_local_properties": [
-      "application-properties/atlas.http.authentication.kerberos.name.rules"
+      "application-properties/atlas.http.authentication.kerberos.name.rules|new_lines_escaped"
     ],
     "configurations": [{
       "application-properties": {
@@ -1203,13 +1203,18 @@
           "hbase.security.authentication": "kerberos",
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.AccessController",
           "hbase.security.authorization": "true",
-          "zookeeper.znode.parent": "/ams-hbase-secure",
           "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal": "true",
           "hbase.zookeeper.property.jaasLoginRenew": "3600000",
           "hbase.zookeeper.property.authProvider.1": "org.apache.zookeeper.server.auth.SASLAuthenticationProvider",
           "hbase.zookeeper.property.kerberos.removeHostFromPrincipal": "true"
         }
-      }],
+      },
+        {
+          "ams-hbase-site": {
+            "zookeeper.znode.parent": "/ams-hbase-secure"
+          }
+        }
+      ],
       "name": "METRICS_COLLECTOR"
     }],
     "identities": [{

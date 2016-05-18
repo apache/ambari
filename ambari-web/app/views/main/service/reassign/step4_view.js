@@ -23,7 +23,7 @@ App.ReassignMasterWizardStep4View = App.HighAvailabilityProgressPageView.extend(
 
   headerTitle: Em.I18n.t('services.reassign.step4.header'),
 
-  formattedComponentName: Em.computed.formatRole('controller.content.reassign.component_name'),
+  formattedComponentName: Em.computed.formatRole('controller.content.reassign.component_name', false),
 
   noticeInProgress: Em.computed.i18nFormat('services.reassign.step4.status.info', 'formattedComponentName'),
 

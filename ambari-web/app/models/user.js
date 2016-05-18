@@ -26,6 +26,8 @@ App.User = DS.Model.extend({
   auditItems:DS.hasMany('App.ServiceAudit'),
   admin: DS.attr('boolean'),
   operator: DS.attr('boolean'),
+  clusterUser: DS.attr('boolean'),
+
   /**
    * List of permissions assigned to user
    *  Available permissions:

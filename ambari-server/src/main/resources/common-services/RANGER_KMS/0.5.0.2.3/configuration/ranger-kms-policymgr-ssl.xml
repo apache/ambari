@@ -22,25 +22,33 @@
   
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
-    <value>/usr/hdp/current/ranger-kms/conf/ranger-plugin-keystore.jks</value>
+    <value>/etc/ranger/kms/ranger-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
   </property>
 
   <property>
     <name>xasecure.policymgr.clientssl.keystore.password</name>
     <value>myKeyFilePassword</value>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <description>password for keystore</description>
   </property>
 
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
-    <value>/usr/hdp/current/ranger-kms/conf/ranger-plugin-truststore.jks</value>
+    <value>/etc/ranger/kms/ranger-plugin-truststore.jks</value>
     <description>java truststore file</description>
   </property>
 
   <property>
     <name>xasecure.policymgr.clientssl.truststore.password</name>
     <value>changeit</value>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <description>java truststore password</description>
   </property>
 

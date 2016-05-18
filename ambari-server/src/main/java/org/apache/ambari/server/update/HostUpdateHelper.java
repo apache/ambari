@@ -338,7 +338,7 @@ public class HostUpdateHelper {
   /*
   * Method initialize Map with json data from file
   * */
-  private void initHostChangesFileMap() throws AmbariException {
+  protected void initHostChangesFileMap() throws AmbariException {
     JsonObject hostChangesJsonObject = configuration.getHostChangesJson(hostChangesFile);
     hostChangesFileMap = new HashMap<>();
 
@@ -350,6 +350,17 @@ public class HostUpdateHelper {
         throw new AmbariException("Error occurred during mapping Json to Map structure. Please check json structure in file.", e);
       }
     }
+
+    // put current host names to lower case
+    Map<String, Map<String,String>> newHostChangesFileMap = new HashMap<>();
+    for (Map.Entry<String, Map<String,String>> clusterHosts : hostChangesFileMap.entrySet()) {
+      Map<String,String> newHostPairs = new HashMap<>();
+      for (Map.Entry<String, String> hostPair : clusterHosts.getValue().entrySet()) {
+        newHostPairs.put(hostPair.getKey().toLowerCase(), hostPair.getValue().toLowerCase());
+      }
+      newHostChangesFileMap.put(clusterHosts.getKey(), newHostPairs);
+    }
+    hostChangesFileMap = newHostChangesFileMap;
   }
 
   /*

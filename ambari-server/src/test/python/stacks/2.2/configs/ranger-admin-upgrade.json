@@ -56,7 +56,8 @@
     "clusterName": "c1", 
     "hostname": "c6408.ambari.apache.org", 
     "hostLevelParams": {
-        "jdk_location": "http://c6407.ambari.apache.org:8080/resources/", 
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "jdk_location": "http://c6407.ambari.apache.org:8080/resources/",
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_67",
         "java_version": "8",
@@ -75,7 +76,12 @@
         "ambari_db_rca_username": "mapred", 
         "db_driver_filename": "mysql-connector-java.jar", 
         "user_list": "[\"root\",\"ambari-qa\",\"hdfs\",\"ranger\",\"spark\",\"mapred\",\"tez\",\"zookeeper\",\"rangerlogger\",\"kafka\",\"yarn\",\"ams\",\"rangeradmin\"]", 
-        "mysql_jdbc_url": "http://c6407.ambari.apache.org:8080/resources//mysql-connector-java.jar"
+        "mysql_jdbc_url": "http://c6407.ambari.apache.org:8080/resources//mysql-connector-java.jar",
+        "custom_mysql_jdbc_name" : "mysql-connector-java.jar",
+        "custom_oracle_jdbc_name" : "oracle-jdbc-driver.jar",
+        "custom_postgres_jdbc_name" : "test-postgres-jdbc.jar",
+        "custom_mssql_jdbc_name" : "mssql-jdbc-driver.jar",
+        "custom_sqlanywhere_jdbc_name" : "sqla-client-jdbc.tar.gz"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {
@@ -155,7 +161,7 @@
         }, 
         "krb5-conf": {
             "conf_dir": "/etc",
-            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}\n    ",
+            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}\n    ",
             "domains": "",
             "manage_krb5_conf": "true"
         },
@@ -196,7 +202,7 @@
             "container_dn": "", 
             "ldap_url": "", 
             "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
-            "kdc_host": "c6407.ambari.apache.org",
+            "kdc_hosts": "c6407.ambari.apache.org",
             "admin_server_host": "c6407.ambari.apache.org",
             "kdc_type": "mit-kdc"
         }, 
@@ -206,8 +212,7 @@
             "hbase.security.authorization": "true", 
             "hbase.master.kerberos.principal": "amshbase/_HOST@EXAMPLE.COM", 
             "hbase.regionserver.keytab.file": "/etc/security/keytabs/ams-hbase.regionserver.keytab", 
-            "zookeeper.znode.parent": "/ams-hbase-secure", 
-            "hbase.regionserver.kerberos.principal": "amshbase/_HOST@EXAMPLE.COM", 
+            "hbase.regionserver.kerberos.principal": "amshbase/_HOST@EXAMPLE.COM",
             "hbase.myclient.keytab": "/etc/security/keytabs/ams.collector.keytab", 
             "ams.zookeeper.keytab": "/etc/security/keytabs/zk.service.ams.keytab", 
             "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal": "true", 
@@ -391,7 +396,7 @@
             "timeline.metrics.cluster.aggregator.hourly.interval": "3600", 
             "timeline.metrics.host.aggregator.ttl": "86400", 
             "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2", 
-            "timeline.metrics.service.webapp.address": "0.0.0.0:6188", 
+            "timeline.metrics.service.webapp.address": "localhost:6188",
             "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint", 
             "timeline.metrics.host.aggregator.minute.disabled": "false", 
             "timeline.metrics.cluster.aggregator.minute.ttl": "2592000", 
@@ -586,7 +591,8 @@
             "hbase.client.scanner.caching": "10000", 
             "phoenix.sequence.saltBuckets": "2", 
             "hbase.hstore.flusher.count": "2", 
-            "hbase.zookeeper.peerport": "61288"
+            "hbase.zookeeper.peerport": "61288",
+            "zookeeper.znode.parent": "/ams-hbase-secure"
         }, 
         "yarn-env": {
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn", 
@@ -802,6 +808,7 @@
             "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

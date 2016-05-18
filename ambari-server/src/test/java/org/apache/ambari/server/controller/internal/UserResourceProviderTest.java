@@ -99,7 +99,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResources_NonAdministrator() throws Exception {
-    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   @Test
@@ -109,7 +109,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
   @Test
   public void testGetResources_NonAdministrator() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   @Test
@@ -124,12 +124,12 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
   @Test
   public void testGetResource_NonAdministrator_Self() throws Exception {
-    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResource_NonAdministrator_Other() throws Exception {
-    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User100");
+    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User100");
   }
 
   @Test
@@ -144,12 +144,12 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_SetAdmin_NonAdministrator_Self() throws Exception {
-    updateResources_SetAdmin(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    updateResources_SetAdmin(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_SetAdmin_NonAdministrator_Other() throws Exception {
-    updateResources_SetAdmin(TestAuthenticationFactory.createClusterAdministrator("User1"), "User100");
+    updateResources_SetAdmin(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User100");
   }
 
   @Test
@@ -164,12 +164,12 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_SetActive_NonAdministrator_Self() throws Exception {
-    updateResources_SetActive(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    updateResources_SetActive(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_SetActive_NonAdministrator_Other() throws Exception {
-    updateResources_SetActive(TestAuthenticationFactory.createClusterAdministrator("User1"), "User100");
+    updateResources_SetActive(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User100");
   }
 
   @Test
@@ -184,12 +184,12 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
   @Test
   public void testUpdateResources_SetPassword_NonAdministrator_Self() throws Exception {
-    updateResources_SetPassword(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    updateResources_SetPassword(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_SetPassword_NonAdministrator_Other() throws Exception {
-    updateResources_SetPassword(TestAuthenticationFactory.createClusterAdministrator("User1"), "User100");
+    updateResources_SetPassword(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User100");
   }
 
   @Test
@@ -204,12 +204,12 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testDeleteResource_NonAdministrator_Self() throws Exception {
-    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testDeleteResource_NonAdministrator_Other() throws Exception {
-    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User100");
+    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User100");
   }
 
   private Injector createInjector() throws Exception {
@@ -492,7 +492,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
     ResourceProvider provider = getResourceProvider(managementController);
 
-    provider.deleteResources(createPredicate(requestedUsername));
+    provider.deleteResources(new RequestImpl(null, null, null, null), createPredicate(requestedUsername));
 
     // verify
     verifyAll();

@@ -25,7 +25,10 @@ describe('App.MainHostAlertsView', function () {
 
   beforeEach(function () {
     view = App.MainHostAlertsView.create({
-      controller: Em.Object.create()
+      controller: Em.Object.create(),
+      parentView: Em.Object.create({
+        controller: Em.Object.create()
+      })
     });
   });
 
@@ -112,6 +115,141 @@ describe('App.MainHostAlertsView', function () {
       });
     });
 
+  });
+
+  describe("#willInsertElement()", function() {
+    var mock = {
+      loadAlertInstancesByHost: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'loadAlertInstancesByHost');
+      sinon.stub(App.router, 'set');
+      view.set('parentView.controller.content', Em.Object.create({
+        hostName: 'host1'
+      }));
+    });
+    afterEach(function() {
+      mock.loadAlertInstancesByHost.restore();
+      App.router.get.restore();
+      App.router.set.restore();
+    });
+
+    it("loadAlertInstancesByHost should be called", function() {
+      view.willInsertElement();
+      expect(App.router.set.calledWith('mainAlertInstancesController.isUpdating', true)).to.be.true;
+    });
+
+    it("App.router.set should be called", function() {
+      view.willInsertElement();
+      expect(App.router.set.calledWith('mainAlertInstancesController.isUpdating', true)).to.be.true;
+    });
+  });
+
+  describe("#didInsertElement()", function() {
+
+    beforeEach(function() {
+      sinon.spy(view, 'tooltipsUpdater');
+    });
+    afterEach(function() {
+      view.tooltipsUpdater.restore();
+    });
+
+    it("tooltipsUpdater should be called", function() {
+      view.didInsertElement();
+      expect(view.tooltipsUpdater.calledOnce).to.be.true;
+    });
+  });
+
+
+  describe("#paginationLeftClass", function() {
+
+    it("startIndex is 2", function() {
+      view.set('startIndex', 2);
+      expect(view.get('paginationLeftClass')).to.equal('paginate_previous');
+    });
+
+    it("startIndex is 1", function() {
+      view.set('startIndex', 1);
+      expect(view.get('paginationLeftClass')).to.equal('paginate_disabled_previous');
+    });
+
+    it("startIndex is 0", function() {
+      view.set('startIndex', 0);
+      expect(view.get('paginationLeftClass')).to.equal('paginate_disabled_previous');
+    });
+  });
+
+  describe("#paginationRightClass", function() {
+
+    it("endIndex more than filteredCount", function() {
+      view.reopen({
+        endIndex: 4,
+        filteredCount: 3
+      });
+      expect(view.get('paginationRightClass')).to.equal('paginate_disabled_next');
+    });
+
+    it("endIndex equal to filteredCount", function() {
+      view.reopen({
+        endIndex: 4,
+        filteredCount: 4
+      });
+      expect(view.get('paginationRightClass')).to.equal('paginate_disabled_next');
+    });
+
+    it("endIndex less than filteredCount", function() {
+      view.reopen({
+        endIndex: 3,
+        filteredCount: 4
+      });
+      view.propertyDidChange('paginationRightClass');
+      expect(view.get('paginationRightClass')).to.equal('paginate_next');
+    });
+  });
+
+  describe("#clearFilters()", function() {
+    var mock = {
+      clearFilter: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.spy(mock, 'clearFilter');
+    });
+    afterEach(function() {
+      mock.clearFilter.restore();
+    });
+
+    it("clearFilter should be called", function() {
+      view.reopen({
+        'childViews': [mock]
+      });
+      view.clearFilters();
+      expect(view.get('filterConditions')).to.be.empty;
+      expect(mock.clearFilter.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#willDestroyElement()", function() {
+    var mock = {
+      tooltip: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(view, '$').returns(mock);
+      sinon.spy(mock, 'tooltip');
+    });
+    afterEach(function() {
+      view.$.restore();
+      mock.tooltip.restore();
+    });
+
+    it("tooltip should be called", function() {
+      view.willDestroyElement();
+      expect(view.$.calledWith(".enable-disable-button, .timeago, .alert-text")).to.be.true;
+      expect(mock.tooltip.calledWith('destroy')).to.be.true;
+    });
   });
 
 });

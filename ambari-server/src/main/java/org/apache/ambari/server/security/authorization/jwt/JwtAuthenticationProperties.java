@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.security.authorization.jwt;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,7 +59,7 @@ public class JwtAuthenticationProperties {
   }
 
   public void setAudiencesString(String audiencesString) {
-    if (audiencesString != null) {
+    if (StringUtils.isNotEmpty(audiencesString)) {
       // parse into the list
       String[] audArray = audiencesString.split(",");
       audiences = new ArrayList<String>();

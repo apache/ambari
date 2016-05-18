@@ -22,15 +22,17 @@ import flume_upgrade
 from flume import flume
 from flume import get_desired_state
 
-from resource_management import *
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
-from resource_management.libraries.functions.flume_agent_helper import get_flume_status
-
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names, get_flume_status
+from resource_management.libraries.functions.default import default
+from resource_management.core.logger import Logger
+from resource_management.core.resources.service import Service
 import service_mapping
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.constants import StackFeature, Direction
 
 class FlumeHandler(Script):
   def configure(self, env):
@@ -40,8 +42,8 @@ class FlumeHandler(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FlumeHandlerLinux(FlumeHandler):
-  def get_stack_to_component(self):
-    return {"HDP": "flume-server"}
+  def get_component_name(self):
+    return "flume-server"
 
   def install(self, env):
     import params
@@ -88,17 +90,25 @@ class FlumeHandlerLinux(FlumeHandler):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if not params.version or Script.is_hdp_stack_less_than("2.2"):
+    # the stack does not support rolling upgrade
+    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
       return
 
     Logger.info("Executing Flume Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "flume", params.version)
-    hdp_select.select("flume-server", params.version)
+    stack_select.select("flume-server", params.version)
 
     # only restore on upgrade, not downgrade
     if params.upgrade_direction == Direction.UPGRADE:
       flume_upgrade.pre_start_restore()
+      
+  def get_log_folder(self):
+    import params
+    return params.flume_log_dir
+  
+  def get_user(self):
+    import params
+    return None # means that is run from the same user as ambari is run
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FlumeHandlerWindows(FlumeHandler):

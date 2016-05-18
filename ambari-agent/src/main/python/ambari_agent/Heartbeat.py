@@ -44,7 +44,7 @@ class Heartbeat:
     global clusterId, clusterDefinitionRevision, firstContact
     timestamp = int(time.time()*1000)
     queueResult = self.actionQueue.result()
-
+    recovery_timestamp = self.actionQueue.controller.recovery_manager.recovery_timestamp
 
     nodeStatus = { "status" : "HEALTHY",
                    "cause" : "NONE" }
@@ -52,7 +52,8 @@ class Heartbeat:
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
                   'hostname'          : hostname(self.config),
-                  'nodeStatus'        : nodeStatus
+                  'nodeStatus'        : nodeStatus,
+                  'recoveryTimestamp' : recovery_timestamp
                 }
 
     rec_status = self.actionQueue.controller.recovery_manager.get_recovery_status()
@@ -74,8 +75,10 @@ class Heartbeat:
     if int(id) == 0:
       componentsMapped = False
 
-    logger.info("Building Heartbeat: {responseId = %s, timestamp = %s, commandsInProgress = %s, componentsMapped = %s}",
-        str(id), str(timestamp), repr(commandsInProgress), repr(componentsMapped))
+    logger.info("Building Heartbeat: {responseId = %s, timestamp = %s, "
+                "commandsInProgress = %s, componentsMapped = %s,"
+                "recoveryTimestamp = %s}",
+        str(id), str(timestamp), repr(commandsInProgress), repr(componentsMapped), str(recovery_timestamp))
 
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("Heartbeat: %s", pformat(heartbeat))

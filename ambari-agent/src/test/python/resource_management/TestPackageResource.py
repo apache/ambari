@@ -93,6 +93,7 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_rhel(self, shell_mock):
+    shell_mock.return_value = (0,'')
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packag'}]
@@ -106,6 +107,7 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_pattern_rhel(self, shell_mock):
+    shell_mock.return_value = (0,'')
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packag'}]
@@ -118,12 +120,14 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_pattern_installed_rhel(self, shell_mock):
+    shell_mock.return_value = (0,'')
     sys.modules['yum'] = MagicMock()
     sys.modules['yum'].YumBase.return_value = MagicMock()
     sys.modules['yum'].YumBase.return_value.rpmdb = MagicMock()
     sys.modules['yum'].YumBase.return_value.rpmdb.simplePkgList.return_value = [('some_package_1_2_3',)]
     with Environment('/') as env:
       Package("some_package*",
+              logoutput = False
       )
     self.assertEqual(shell_mock.call_count, 0, "shell.checked_call shouldn't be called")
 
@@ -179,6 +183,7 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_use_repos_rhel(self, shell_mock):
+    shell_mock.return_value = (0,'')
     with Environment('/') as env:
       Package("some_package", use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
               logoutput = False
@@ -233,6 +238,7 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_version_attr(self, shell_mock):
+    shell_mock.return_value = (0,'')
     with Environment('/') as env:
       Package("some_package",
               version = "3.5.0",

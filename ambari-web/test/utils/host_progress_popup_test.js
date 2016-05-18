@@ -26,138 +26,59 @@ require('utils/host_progress_popup');
 
 describe('App.HostPopup', function () {
 
-  var services = [
-    {
-      displayName: "Start service WebHCat",
-      hosts: [
-        {
-          logTasks: [
-            {
-              Tasks: {
-                command: "START",
-                host_name: "ip-10-12-123-90.ec2.internal",
-                role: "WEBHCAT_SERVER",
-                status: "QUEUED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/23/tasks/94"
-            }
-          ],
-          name: "ip-10-12-123-90.ec2.internal",
-          publicName: "ip-10-12-123-90.ec2.internal",
-          serviceName: "Start service WebHCat"
-        }
-      ],
-      isRunning: false
-    },
-    {
-      displayName: "Start service Hive/HCat",
-      hosts: [
-        {
-          logTasks: [
-            {
-              Tasks: {
-                command: "INSTALL",
-                host_name: "ip-10-12-123-90.ec2.internal",
-                status: "COMPLETED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/15/tasks/76"
-            }
-          ],
-          name: "ip-10-12-123-90.ec2.internal",
-          publicName: "ip-10-12-123-90.ec2.internal",
-          serviceName: "Start service Hive/HCat"
-        },
-        {
-          logTasks: [
-            {
-              Tasks: {
-                command: "START",
-                host_name: "ip-10-33-7-23.ec2.internal",
-                status: "COMPLETED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/15/tasks/78"
-            },
-            {
-              Tasks: {
-                command: "START",
-                host_name: "ip-10-33-7-23.ec2.internal",
-                status: "COMPLETED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/15/tasks/79"
-            }
-          ],
-          name: "ip-10-33-7-23.ec2.internal",
-          publicName: "ip-10-33-7-23.ec2.internal",
-          serviceName: "Start service Hive/HCat"
-        }
-      ],
-      isRunning: false
-    }
-  ];
-
-  var test_tasks = [
+  var testTasks = [
     {
       t: [
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 2,
-            role: "NAMENODE"
+            id: 2
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 3,
-            role: "NAMENODE"
+            id: 3
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 1,
-            role: "NAMENODE"
+            id: 1
           }
         }
       ],
       m: 'All COMPLETED',
       r: 'SUCCESS',
       p: 100,
-      ids: [1,2,3],
-      name: "host1",
-      displayHostNameResult: "host1"
+      ids: [1,2,3]
     },
     {
       t: [
         {
           Tasks: {
             status: 'FAILED',
-            id: 2,
-            role: "NAMENODE"
+            id: 2
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 1,
-            role: "NAMENODE"
+            id: 1
           }
         }
         ,
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 3,
-            role: "NAMENODE"
+            id: 3
           }
         }
       ],
       m: 'One FAILED',
       r: 'FAILED',
       p: 100,
-      ids: [1,2,3],
-      name: "",
-      displayHostNameResult: "n/a"
+      ids: [1,2,3]
     },
     {
       t: [
@@ -177,57 +98,47 @@ describe('App.HostPopup', function () {
       m: 'One ABORTED',
       r: 'ABORTED',
       p: 100,
-      ids: [1,2],
-      name: null,
-      displayHostNameResult: "n/a"
+      ids: [1,2]
     },
     {
       t: [
         {
           Tasks: {
             status: 'TIMEDOUT',
-            id: 3,
-            role: "NAMENODE"
+            id: 3
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 1,
-            role: "AMBARI_SERVER_ACTION"
+            id: 1
           }
         }
       ],
       m: 'One TIMEDOUT',
       r: 'TIMEDOUT',
       p: 100,
-      ids: [1,3],
-      name: "host2",
-      displayHostNameResult: "host2"
+      ids: [1,3]
     },
     {
       t: [
         {
           Tasks: {
             status: 'IN_PROGRESS',
-            id: 1,
-            role: "NAMENODE"
+            id: 1
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 2,
-            role: "AMBARI_SERVER_ACTION"
+            id: 2
           }
         }
       ],
       m: 'One IN_PROGRESS',
       r: 'IN_PROGRESS',
       p: 68,
-      ids: [1,2],
-      name: null,
-      displayHostNameResult: "Ambari Server Host"
+      ids: [1,2]
     },
     {
       t: [
@@ -247,9 +158,7 @@ describe('App.HostPopup', function () {
       m: 'Something else',
       r: 'PENDING',
       p: 55,
-      ids: [2,3],
-      name: undefined,
-      displayHostNameResult: "n/a"
+      ids: [2,3]
     }
   ];
 
@@ -368,25 +277,17 @@ describe('App.HostPopup', function () {
   });
 
   describe('#getStatus', function() {
-    test_tasks.forEach(function(test_task) {
-      it(test_task.m, function() {
-        expect(App.HostPopup.getStatus(test_task.t)[0]).to.equal(test_task.r);
+    testTasks.forEach(function(testTask) {
+      it(testTask.m, function() {
+        expect(App.HostPopup.getStatus(testTask.t)[0]).to.equal(testTask.r);
       });
     });
   });
 
   describe('#getProgress', function() {
-    test_tasks.forEach(function(test_task) {
-      it(test_task.m, function() {
-        expect(App.HostPopup.getProgress(test_task.t)).to.equal(test_task.p);
-      });
-    });
-  });
-
-  describe('#getDisplayHostname', function() {
-    test_tasks.forEach(function(test_task) {
-      it(test_task.m, function() {
-        expect(App.HostPopup.getDisplayHostname(test_task.name, test_task.t)).to.equal(test_task.displayHostNameResult);
+    testTasks.forEach(function(testTask) {
+      it(testTask.m, function() {
+        expect(App.HostPopup.getProgress(testTask.t)).to.equal(testTask.p);
       });
     });
   });
@@ -401,11 +302,9 @@ describe('App.HostPopup', function () {
 
   describe('#abortRequest', function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       sinon.spy(App, 'showConfirmationPopup');
     });
     afterEach(function () {
-      App.ajax.send.restore();
       App.showConfirmationPopup.restore();
     });
     it('should show confirmation popup', function () {
@@ -483,6 +382,7 @@ describe('App.HostPopup', function () {
     beforeEach(function (){
       sinon.stub(App.HostPopup, "get").returns(true);
       sinon.spy(App.HostPopup, "set");
+      this.stub = sinon.stub(App.router, "get");
     });
 
     afterEach(function (){
@@ -492,14 +392,14 @@ describe('App.HostPopup', function () {
     });
 
     it("should display '2 Background Operations Running' when there are 2 background operations running", function(){
-      sinon.stub(App.router, "get").returns(2);
+      this.stub.returns(2);
       App.HostPopup.setBackgroundOperationHeader(false);
 
       expect(App.HostPopup.set.calledWith("popupHeaderName", "2 Background Operations Running")).to.be.true;
     });
 
     it("should display '1 Background Operation Running' when there is 1 background operation running", function(){
-      sinon.stub(App.router, "get").returns(1);
+      this.stub.returns(1);
       App.HostPopup.setBackgroundOperationHeader(false);
 
       expect(App.HostPopup.set.calledWith("popupHeaderName", "1 Background Operation Running")).to.be.true;

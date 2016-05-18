@@ -17,57 +17,11 @@
  */
 
 var App = require('app');
-require('utils/configs/config_initializer_class');
 var stringUtils = require('utils/string_utils');
 
-/**
- * Regexp for host with port ('hostName:1234')
- *
- * @type {string}
- */
-var hostWithPort = "([\\w|\\.]*)(?=:)";
-
-/**
- * Regexp for host with port and protocol ('://hostName:1234')
- *
- * @type {string}
- */
-var hostWithPrefix = ":\/\/" + hostWithPort;
-
-/**
- * Regexp used to determine if mount point is windows-like
- *
- * @type {RegExp}
- */
-var winRegex = /^([a-z]):\\?$/;
-
-/**
- * Settings for <code>host_with_component</code>-initializer
- * Used for configs with value equal to hostName that has <code>component</code>
- * Value may be modified with if <code>withModifier</code> is true (it is by default)
- * <code>hostWithPort</code>-regexp will be used in this case
- *
- * @see _initAsHostWithComponent
- * @param {string} component
- * @param {boolean} [withModifier=true]
- * @return {object}
- */
-function getSimpleComponentConfig(component, withModifier) {
-  if (arguments.length === 1) {
-    withModifier = true;
-  }
-  var config = {
-    type: 'host_with_component',
-    component: component
-  };
-  if (withModifier) {
-    config.modifier = {
-      type: 'regexp',
-      regex: hostWithPort
-    }
-  }
-  return config;
-}
+require('utils/configs/config_initializer_class');
+require('utils/configs/mount_points_based_initializer_mixin');
+require('utils/configs/hosts_based_initializer_mixin');
 
 /**
  * Zookeeper-based configs don't have any customization settings
@@ -79,90 +33,6 @@ function getZKBasedConfig() {
   return {
     type: 'zookeeper_based'
   };
-}
-
-/**
- * Almost the same to <code>getSimpleComponentConfig</code>, but with possibility to modify <code>replaceWith</code>-value
- * <code>prefix</code> is added before it
- * <code>suffix</code> is added after it
- * <code>hostWithPrefix</code>-regexp is used
- *
- * @see _initAsHostWithComponent
- * @param {string} component
- * @param {string} [prefix]
- * @param {string} [suffix]
- * @returns {object}
- */
-function getComponentConfigWithAffixes (component, prefix, suffix) {
-  prefix = prefix || '';
-  suffix = suffix || '';
-  return {
-    type: 'host_with_component',
-    component: component,
-    modifier: {
-      type: 'regexp',
-      regex: hostWithPrefix,
-      prefix: prefix,
-      suffix: suffix
-    }
-  };
-}
-
-/**
- * Settings for <code>hosts_with_components</code>-initializer
- * Used for configs with value equal to the hosts list
- * May set value as array (if <code>asArray</code> is true) or as comma-sepratated string (if <code>asArray</code> is false)
- *
- * @see _initAsHostsWithComponents
- * @param {string|string[]} components
- * @param {boolean} [asArray=false]
- * @returns {{type: string, components: string[], asArray: boolean}}
- */
-function getComponentsHostsConfig(components, asArray) {
-  if (1 === arguments.length) {
-    asArray = false;
-  }
-  return {
-    type: 'hosts_with_components',
-    components: Em.makeArray(components),
-    asArray: asArray
-  };
-}
-
-/**
- * Settings for <code>single_mountpoint</code>-initializer
- * Used for configs with value as one of the possible mount points
- *
- * @see _initAsSingleMountPoint
- * @param {string|string[]} components
- * @param {string} winReplacer
- * @returns {{components: string[], winReplacer: string, type: string}}
- */
-function getSingleMountPointConfig(components, winReplacer) {
-  winReplacer = winReplacer || 'default';
-  return {
-    components: Em.makeArray(components),
-    winReplacer: winReplacer,
-    type: 'single_mountpoint'
-  }
-}
-
-/**
- * Settings for <code>multiple_mountpoints</code>-initializer
- * Used for configs with value as all of the possible mount points
- *
- * @see _initAsMultipleMountPoints
- * @param {string|string[]} components
- * @param {string} winReplacer
- * @returns {{components: string[], winReplacer: string, type: string}}
- */
-function getMultipleMountPointsConfig(components, winReplacer) {
-  winReplacer = winReplacer || 'default';
-  return {
-    components: Em.makeArray(components),
-    winReplacer: winReplacer,
-    type: 'multiple_mountpoints'
-  }
 }
 
 /**
@@ -183,89 +53,88 @@ function getMultipleMountPointsConfig(components, winReplacer) {
  *
  * @instance ConfigInitializer
  */
-App.ConfigInitializer = App.ConfigInitializerClass.create({
+App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedInitializerMixin, App.HostsBasedInitializerMixin, {
 
-  initializers: {
-    'dfs.namenode.rpc-address': getSimpleComponentConfig('NAMENODE'),
-    'dfs.http.address': getSimpleComponentConfig('NAMENODE'),
-    'dfs.namenode.http-address': getSimpleComponentConfig('NAMENODE'),
-    'dfs.https.address': getSimpleComponentConfig('NAMENODE'),
-    'dfs.namenode.https-address': getSimpleComponentConfig('NAMENODE'),
-    'dfs.secondary.http.address': getSimpleComponentConfig('SECONDARY_NAMENODE'),
-    'dfs.namenode.secondary.http-address': getSimpleComponentConfig('SECONDARY_NAMENODE'),
-    'yarn.resourcemanager.hostname': getSimpleComponentConfig('RESOURCEMANAGER', false),
-    'yarn.resourcemanager.resource-tracker.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'yarn.resourcemanager.webapp.https.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'yarn.resourcemanager.webapp.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'yarn.resourcemanager.scheduler.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'yarn.resourcemanager.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'yarn.resourcemanager.admin.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'yarn.timeline-service.webapp.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
-    'yarn.timeline-service.webapp.https.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
-    'yarn.timeline-service.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
-    'mapred.job.tracker': getSimpleComponentConfig('JOBTRACKER'),
-    'mapred.job.tracker.http.address': getSimpleComponentConfig('JOBTRACKER'),
-    'mapreduce.history.server.http.address': getSimpleComponentConfig('HISTORYSERVER'),
-    'hive_hostname': getSimpleComponentConfig('HIVE_SERVER', false),
-    'oozie_hostname': getSimpleComponentConfig('OOZIE_SERVER', false),
-    'oozie.base.url': getComponentConfigWithAffixes('OOZIE_SERVER', '://'),
-    'hawq_dfs_url': getSimpleComponentConfig('NAMENODE'),
-    'hawq_rm_yarn_address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'hawq_rm_yarn_scheduler_address': getSimpleComponentConfig('RESOURCEMANAGER'),
-    'fs.default.name': getComponentConfigWithAffixes('NAMENODE', '://'),
-    'fs.defaultFS': getComponentConfigWithAffixes('NAMENODE', '://'),
-    'hbase.rootdir': getComponentConfigWithAffixes('NAMENODE', '://'),
-    'instance.volumes': getComponentConfigWithAffixes('NAMENODE', '://'),
-    'yarn.log.server.url': getComponentConfigWithAffixes('HISTORYSERVER', '://'),
-    'mapreduce.jobhistory.webapp.address': getSimpleComponentConfig('HISTORYSERVER'),
-    'mapreduce.jobhistory.address': getSimpleComponentConfig('HISTORYSERVER'),
-    'kafka.ganglia.metrics.host': getSimpleComponentConfig('GANGLIA_SERVER', false),
-    'hive_master_hosts': getComponentsHostsConfig(['HIVE_METASTORE', 'HIVE_SERVER']),
-    'hadoop_host': getSimpleComponentConfig('NAMENODE', false),
-    'nimbus.host': getSimpleComponentConfig('NIMBUS', false),
-    'nimbus.seeds': getComponentsHostsConfig('NIMBUS', true),
-    'storm.zookeeper.servers': getComponentsHostsConfig('ZOOKEEPER_SERVER', true),
-    'hawq_master_address_host': getSimpleComponentConfig('HAWQMASTER', false),
-    'hawq_standby_address_host': getSimpleComponentConfig('HAWQSTANDBY', false),
+  initializers: function() {
+    return {
+      'dfs.namenode.rpc-address': this.getSimpleComponentConfig('NAMENODE'),
+      'dfs.http.address': this.getSimpleComponentConfig('NAMENODE'),
+      'dfs.namenode.http-address': this.getSimpleComponentConfig('NAMENODE'),
+      'dfs.https.address': this.getSimpleComponentConfig('NAMENODE'),
+      'dfs.namenode.https-address': this.getSimpleComponentConfig('NAMENODE'),
+      'dfs.secondary.http.address': this.getSimpleComponentConfig('SECONDARY_NAMENODE'),
+      'dfs.namenode.secondary.http-address': this.getSimpleComponentConfig('SECONDARY_NAMENODE'),
+      'yarn.resourcemanager.hostname': this.getSimpleComponentConfig('RESOURCEMANAGER', false),
+      'yarn.resourcemanager.resource-tracker.address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'yarn.resourcemanager.webapp.https.address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'yarn.resourcemanager.webapp.address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'yarn.resourcemanager.scheduler.address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'yarn.resourcemanager.address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'yarn.resourcemanager.admin.address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'yarn.timeline-service.webapp.address': this.getSimpleComponentConfig('APP_TIMELINE_SERVER'),
+      'yarn.timeline-service.webapp.https.address': this.getSimpleComponentConfig('APP_TIMELINE_SERVER'),
+      'yarn.timeline-service.address': this.getSimpleComponentConfig('APP_TIMELINE_SERVER'),
+      'mapred.job.tracker': this.getSimpleComponentConfig('JOBTRACKER'),
+      'mapred.job.tracker.http.address': this.getSimpleComponentConfig('JOBTRACKER'),
+      'mapreduce.history.server.http.address': this.getSimpleComponentConfig('HISTORYSERVER'),
+      'oozie.base.url': this.getComponentConfigWithAffixes('OOZIE_SERVER', '://'),
+      'hawq_dfs_url': this.getSimpleComponentConfig('NAMENODE'),
+      'hawq_rm_yarn_address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'hawq_rm_yarn_scheduler_address': this.getSimpleComponentConfig('RESOURCEMANAGER'),
+      'fs.default.name': this.getComponentConfigWithAffixes('NAMENODE', '://'),
+      'fs.defaultFS': this.getComponentConfigWithAffixes('NAMENODE', '://'),
+      'hbase.rootdir': this.getComponentConfigWithAffixes('NAMENODE', '://'),
+      'instance.volumes': this.getComponentConfigWithAffixes('NAMENODE', '://'),
+      'yarn.log.server.url': this.getComponentConfigWithAffixes('HISTORYSERVER', '://'),
+      'mapreduce.jobhistory.webapp.address': this.getSimpleComponentConfig('HISTORYSERVER'),
+      'mapreduce.jobhistory.address': this.getSimpleComponentConfig('HISTORYSERVER'),
+      'kafka.ganglia.metrics.host': this.getSimpleComponentConfig('GANGLIA_SERVER', false),
+      'hive_master_hosts': this.getComponentsHostsConfig(['HIVE_METASTORE', 'HIVE_SERVER']),
+      'hadoop_host': this.getSimpleComponentConfig('NAMENODE', false),
+      'nimbus.host': this.getSimpleComponentConfig('NIMBUS', false),
+      'nimbus.seeds': this.getComponentsHostsConfig('NIMBUS', true),
+      'storm.zookeeper.servers': this.getComponentsHostsConfig('ZOOKEEPER_SERVER', true),
+      'hawq_master_address_host': this.getSimpleComponentConfig('HAWQMASTER', false),
+      'hawq_standby_address_host': this.getSimpleComponentConfig('HAWQSTANDBY', false),
 
-    '*.broker.url': {
-      type: 'host_with_component',
-      component: 'FALCON_SERVER',
-      modifier: {
-        type: 'regexp',
-        regex: 'localhost'
-      }
-    },
+      '*.broker.url': {
+        type: 'host_with_component',
+        component: 'FALCON_SERVER',
+        modifier: {
+          type: 'regexp',
+          regex: 'localhost'
+        }
+      },
 
-    'zookeeper.connect': getZKBasedConfig(),
-    'hive.zookeeper.quorum': getZKBasedConfig(),
-    'templeton.zookeeper.hosts': getZKBasedConfig(),
-    'hadoop.registry.zk.quorum': getZKBasedConfig(),
-    'hive.cluster.delegation.token.store.zookeeper.connectString': getZKBasedConfig(),
-    'instance.zookeeper.host': getZKBasedConfig(),
+      'zookeeper.connect': getZKBasedConfig(),
+      'hive.zookeeper.quorum': getZKBasedConfig(),
+      'templeton.zookeeper.hosts': getZKBasedConfig(),
+      'hadoop.registry.zk.quorum': getZKBasedConfig(),
+      'hive.cluster.delegation.token.store.zookeeper.connectString': getZKBasedConfig(),
+      'instance.zookeeper.host': getZKBasedConfig(),
 
-    'dfs.name.dir': getMultipleMountPointsConfig('NAMENODE', 'file'),
-    'dfs.namenode.name.dir': getMultipleMountPointsConfig('NAMENODE', 'file'),
-    'dfs.data.dir': getMultipleMountPointsConfig('DATANODE', 'file'),
-    'dfs.datanode.data.dir': getMultipleMountPointsConfig('DATANODE', 'file'),
-    'yarn.nodemanager.local-dirs': getMultipleMountPointsConfig('NODEMANAGER'),
-    'yarn.nodemanager.log-dirs': getMultipleMountPointsConfig('NODEMANAGER'),
-    'mapred.local.dir': getMultipleMountPointsConfig(['TASKTRACKER', 'NODEMANAGER']),
-    'log.dirs': getMultipleMountPointsConfig('KAFKA_BROKER'),
+      'dfs.name.dir': this.getMultipleMountPointsConfig('NAMENODE', 'file'),
+      'dfs.namenode.name.dir': this.getMultipleMountPointsConfig('NAMENODE', 'file'),
+      'dfs.data.dir': this.getMultipleMountPointsConfig('DATANODE', 'file'),
+      'dfs.datanode.data.dir': this.getMultipleMountPointsConfig('DATANODE', 'file'),
+      'yarn.nodemanager.local-dirs': this.getMultipleMountPointsConfig('NODEMANAGER'),
+      'yarn.nodemanager.log-dirs': this.getMultipleMountPointsConfig('NODEMANAGER'),
+      'mapred.local.dir': this.getMultipleMountPointsConfig(['TASKTRACKER', 'NODEMANAGER']),
+      'log.dirs': this.getMultipleMountPointsConfig('KAFKA_BROKER'),
 
-    'fs.checkpoint.dir': getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-    'dfs.namenode.checkpoint.dir': getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-    'yarn.timeline-service.leveldb-timeline-store.path': getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-    'yarn.timeline-service.leveldb-state-store.path': getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-    'dataDir': getSingleMountPointConfig('ZOOKEEPER_SERVER'),
-    'oozie_data_dir': getSingleMountPointConfig('OOZIE_SERVER'),
-    'storm.local.dir': getSingleMountPointConfig(['NODEMANAGER', 'NIMBUS']),
-    '*.falcon.graph.storage.directory': getSingleMountPointConfig('FALCON_SERVER'),
-    '*.falcon.graph.serialize.path': getSingleMountPointConfig('FALCON_SERVER')
-  },
+      'fs.checkpoint.dir': this.getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
+      'dfs.namenode.checkpoint.dir': this.getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
+      'yarn.timeline-service.leveldb-timeline-store.path': this.getSingleMountPointConfig('APP_TIMELINE_SERVER'),
+      'yarn.timeline-service.leveldb-state-store.path': this.getSingleMountPointConfig('APP_TIMELINE_SERVER'),
+      'dataDir': this.getSingleMountPointConfig('ZOOKEEPER_SERVER'),
+      'oozie_data_dir': this.getSingleMountPointConfig('OOZIE_SERVER'),
+      'storm.local.dir': this.getSingleMountPointConfig(['NODEMANAGER', 'NIMBUS']),
+      '*.falcon.graph.storage.directory': this.getSingleMountPointConfig('FALCON_SERVER'),
+      '*.falcon.graph.serialize.path': this.getSingleMountPointConfig('FALCON_SERVER')
+    }
+  }.property(''),
 
   uniqueInitializers: {
-    'hadoop.registry.rm.enabled': '_setYarnSliderDependency',
     'ranger_admin_password': '_setRangerAdminPassword',
     'hive_database': '_initHiveDatabaseValue',
     'templeton.hive.properties': '_initTempletonHiveProperties',
@@ -276,26 +145,10 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   },
 
   initializerTypes: [
-    {name: 'host_with_component', method: '_initAsHostWithComponent'},
-    {name: 'hosts_with_components', method: '_initAsHostsWithComponents'},
     {name: 'zookeeper_based', method: '_initAsZookeeperServersList'},
     {name: 'single_mountpoint', method: '_initAsSingleMountPoint'},
     {name: 'multiple_mountpoints', method: '_initAsMultipleMountPoints'}
   ],
-
-  /**
-   * Map for methods used as value-modifiers for configProperties with values as mount point(s)
-   * Used if mount point is win-like (@see winRegex)
-   * Key: id
-   * Value: method-name
-   *
-   * @type {{default: string, file: string, slashes: string}}
-   */
-  winReplacersMap: {
-    default: '_defaultWinReplace',
-    file: '_winReplaceWithFile',
-    slashes: '_defaultWinReplaceWithAdditionalSlashes'
-  },
 
   /**
    * Some strange method that should define <code>ranger_admin_password</code>
@@ -307,83 +160,6 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   _setRangerAdminPassword: function(configProperty) {
     var value = 'P1!q' + stringUtils.getRandomString(12);
     Em.setProperties(configProperty, {'value': value, 'recommendedValue': value, 'retypedPassword': value});
-    return configProperty;
-  },
-
-
-  /**
-   * Set specific config for YARN that depends on SLIDER.
-   * TODO DELETE as soon as <code>hadoop.registry.rm.enabled</code> will be fetched from stack adviser!
-   *
-   * @param configProperty
-   * @param localDb
-   * @param dependencies
-   * @private
-   */
-  _setYarnSliderDependency: function(configProperty, localDb, dependencies) {
-    var res = (!!dependencies.sliderSelected).toString();
-    if (Em.get(configProperty, 'value') !== res) {
-      Em.set(configProperty, 'recommendedValue', res);
-      Em.set(configProperty, 'value', res);
-    }
-  },
-
-  /**
-   * Initializer for configs with value equal to hostName with needed component
-   * Value example: 'hostName'
-   *
-   * @param {configProperty} configProperty
-   * @param {topologyLocalDB} localDB
-   * @param {object} dependencies
-   * @param {object} initializer
-   * @returns {Object}
-   * @private
-   */
-  _initAsHostWithComponent: function (configProperty, localDB, dependencies, initializer) {
-    var component = localDB.masterComponentHosts.findProperty('component', initializer.component);
-    if (!component) {
-      return configProperty;
-    }
-    if (initializer.modifier) {
-      var replaceWith = Em.getWithDefault(initializer.modifier, 'prefix', '')
-        + component.hostName
-        + Em.getWithDefault(initializer.modifier, 'suffix', '');
-      this.setRecommendedValue(configProperty, initializer.modifier.regex, replaceWith);
-    }
-    else {
-      Em.setProperties(configProperty, {
-        recommendedValue: component.hostName,
-        value: component.hostName
-      })
-    }
-
-    return configProperty;
-  },
-
-  /**
-   * Initializer for configs with value equal to hostNames with needed components
-   * May be array or comma-separated list
-   * Depends on <code>initializer.asArray</code> (true - array, false - string)
-   * Value example: 'hostName1,hostName2,hostName3' or ['hostName1', 'hostName2', 'hostName3']
-   *
-   * @param {configProperty} configProperty
-   * @param {topologyLocalDB} localDB
-   * @param {object} dependencies
-   * @param {object} initializer
-   * @return {Object}
-   * @private
-   */
-  _initAsHostsWithComponents: function (configProperty, localDB, dependencies, initializer) {
-    var hostNames = localDB.masterComponentHosts.filter(function (masterComponent) {
-      return initializer.components.contains(masterComponent.component);
-    }).mapProperty('hostName');
-    if (!initializer.asArray) {
-      hostNames = hostNames.uniq().join(',');
-    }
-    Em.setProperties(configProperty, {
-      value: hostNames,
-      recommendedValue: hostNames
-    });
     return configProperty;
   },
 
@@ -508,7 +284,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    */
   _initYarnRMzkAddress: function (configProperty, localDB, dependencies) {
     var value = localDB.masterComponentHosts.filterProperty('component', 'ZOOKEEPER_SERVER').map(function (component) {
-      return component.hostName + ':' + dependencies.clientPort
+      return component.hostName + ':' + dependencies.clientPort;
     }).join(',');
     Em.setProperties(configProperty, {
       value: value,
@@ -527,9 +303,11 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * @private
    */
   _initHiveMetastoreUris: function (configProperty, localDB, dependencies) {
-    var hiveMSUris = this.getHiveMetastoreUris(localDB.masterComponentHosts, dependencies['hive.metastore.uris']);
-    if (hiveMSUris) {
-      this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
+    if (App.config.getConfigTagFromFileName(Em.get(configProperty, 'filename')) === 'hive-site') {
+      var hiveMSUris = this.getHiveMetastoreUris(localDB.masterComponentHosts, dependencies['hive.metastore.uris']);
+      if (hiveMSUris) {
+        this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
+      }
     }
     return configProperty;
   },
@@ -573,254 +351,9 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
     var re = new RegExp(regex);
     recommendedValue = recommendedValue.replace(re, replaceWith);
     Em.set(configProperty, 'recommendedValue', recommendedValue);
-    Em.set(configProperty, 'value', Em.isNone(Em.get(configProperty, 'recommendedValue')) ? '' : recommendedValue);
+    var value = Em.isNone(Em.get(configProperty, 'recommendedValue')) ? '' : recommendedValue;
+    Em.set(configProperty, 'value', value);
+    Em.set(configProperty, 'initialValue', value);
     return configProperty;
-  },
-
-  /**
-   * Initializer for configs with value as one of the possible mount points
-   * Only hosts that contains on the components from <code>initializer.components</code> are processed
-   * Hosts with Windows needs additional processing (@see winReplacersMap)
-   * Value example: '/', '/some/cool/dir'
-   *
-   * @param {configProperty} configProperty
-   * @param {topologyLocalDB} localDB
-   * @param {object} dependencies
-   * @param {object} initializer
-   * @return {Object}
-   */
-  _initAsSingleMountPoint: function (configProperty, localDB, dependencies, initializer) {
-    var hostsInfo = this._updateHostInfo(localDB.hosts);
-    var setOfHostNames = this._getSetOfHostNames(localDB, initializer);
-    var winReplacersMap = this.get('winReplacersMap');
-    // In Add Host Wizard, if we did not select this slave component for any host, then we don't process any further.
-    if (!setOfHostNames.length) {
-      return configProperty;
-    }
-    var allMountPoints = this._getAllMountPoints(setOfHostNames, hostsInfo);
-
-    var mPoint = allMountPoints[0].mountpoint;
-    if (mPoint === "/") {
-      mPoint = Em.get(configProperty, 'recommendedValue');
-    }
-    else {
-      var mp = mPoint.toLowerCase();
-      if (winRegex.test(mp)) {
-        var methodName = winReplacersMap[initializer.winReplacer];
-        mPoint = this[methodName].call(this, configProperty, mp);
-      }
-      else {
-        mPoint = mPoint + Em.get(configProperty, 'recommendedValue');
-      }
-    }
-    Em.setProperties(configProperty, {
-      value: mPoint,
-      recommendedValue: mPoint
-    });
-
-    return configProperty;
-  },
-
-  /**
-   * Initializer for configs with value as all of the possible mount points
-   * Only hosts that contains on the components from <code>initializer.components</code> are processed
-   * Hosts with Windows needs additional processing (@see winReplacersMap)
-   * Value example: '/\n/some/cool/dir' (`\n` - is divider)
-   *
-   * @param {Object} configProperty
-   * @param {topologyLocalDB} localDB
-   * @param {object} dependencies
-   * @param {object} initializer
-   * @return {Object}
-   */
-  _initAsMultipleMountPoints: function (configProperty, localDB, dependencies, initializer) {
-    var hostsInfo = this._updateHostInfo(localDB.hosts);
-    var self = this;
-    var setOfHostNames = this._getSetOfHostNames(localDB, initializer);
-    var winReplacersMap = this.get('winReplacersMap');
-    // In Add Host Wizard, if we did not select this slave component for any host, then we don't process any further.
-    if (!setOfHostNames.length) {
-      return configProperty;
-    }
-
-    var allMountPoints = this._getAllMountPoints(setOfHostNames, hostsInfo);
-    var mPoint = '';
-
-    allMountPoints.forEach(function (eachDrive) {
-      if (eachDrive.mountpoint === '/') {
-        mPoint += Em.get(configProperty, 'recommendedValue') + "\n";
-      }
-      else {
-        var mp = eachDrive.mountpoint.toLowerCase();
-        if (winRegex.test(mp)) {
-          var methodName = winReplacersMap[initializer.winReplacer];
-          mPoint += self[methodName].call(this, configProperty, mp);
-        }
-        else {
-          mPoint += eachDrive.mountpoint + Em.get(configProperty, 'recommendedValue') + "\n";
-        }
-      }
-    }, this);
-
-    Em.setProperties(configProperty, {
-      value: mPoint,
-      recommendedValue: mPoint
-    });
-
-    return configProperty;
-  },
-
-  /**
-   * Replace drive-based windows-path with 'file:///'
-   *
-   * @param {configProperty} configProperty
-   * @param {string} mountPoint
-   * @returns {string}
-   * @private
-   */
-  _winReplaceWithFile: function (configProperty, mountPoint) {
-    var winDriveUrl = mountPoint.toLowerCase().replace(winRegex, 'file:///$1:');
-    return winDriveUrl + Em.get(configProperty, 'recommendedValue') + '\n';
-  },
-
-  /**
-   * Replace drive-based windows-path
-   *
-   * @param {configProperty} configProperty
-   * @param {string} mountPoint
-   * @returns {string}
-   * @private
-   */
-  _defaultWinReplace: function (configProperty, mountPoint) {
-    var winDrive = mountPoint.toLowerCase().replace(winRegex, '$1:');
-    var winDir = Em.get(configProperty, 'recommendedValue').replace(/\//g, '\\');
-    return winDrive + winDir + '\n';
-  },
-
-  /**
-   * Same to <code>_defaultWinReplace</code>, but with extra-slash in the end
-   *
-   * @param {configProperty} configProperty
-   * @param {string} mountPoint
-   * @returns {string}
-   * @private
-   */
-  _defaultWinReplaceWithAdditionalSlashes: function (configProperty, mountPoint) {
-    var winDrive = mountPoint.toLowerCase().replace(winRegex, '$1:');
-    var winDir = Em.get(configProperty, 'recommendedValue').replace(/\//g, '\\\\');
-    return winDrive + winDir + '\n';
-  },
-
-  /**
-   * Update information from localDB using <code>App.Host</code>-model
-   *
-   * @param {object} hostsInfo
-   * @returns {object}
-   * @private
-   */
-  _updateHostInfo: function (hostsInfo) {
-    App.Host.find().forEach(function (item) {
-      if (!hostsInfo[item.get('id')]) {
-        hostsInfo[item.get('id')] = {
-          name: item.get('id'),
-          cpu: item.get('cpu'),
-          memory: item.get('memory'),
-          disk_info: item.get('diskInfo'),
-          bootStatus: "REGISTERED",
-          isInstalled: true
-        };
-      }
-    });
-    return hostsInfo;
-  },
-
-  /**
-   * Determines if mount point is valid
-   * Criterias:
-   * <ul>
-   *   <li>Should has available space</li>
-   *   <li>Should not be home-dir</li>
-   *   <li>Should not be docker-dir</li>
-   *   <li>Should not be boot-dir</li>
-   *   <li>Should not be dev-dir</li>
-   * </ul>
-   *
-   * @param {{mountpoint: string, available: number}} mPoint
-   * @returns {boolean} true - valid, false - invalid
-   * @private
-   */
-  _filterMountPoint: function (mPoint) {
-    var isAvailable = mPoint.available !== 0;
-    if (!isAvailable) {
-      return false;
-    }
-
-    var notHome = !['/', '/home'].contains(mPoint.mountpoint);
-    var notDocker = !['/etc/resolv.conf', '/etc/hostname', '/etc/hosts'].contains(mPoint.mountpoint);
-    var notBoot = mPoint.mountpoint && !(mPoint.mountpoint.startsWith('/boot') || mPoint.mountpoint.startsWith('/mnt'));
-    var notDev = !(['devtmpfs', 'tmpfs', 'vboxsf', 'CDFS'].contains(mPoint.type));
-
-    return notHome && notDocker && notBoot && notDev;
-  },
-
-  /**
-   * Get list of hostNames from localDB which contains needed components
-   *
-   * @param {topologyLocalDB} localDB
-   * @param {object} initializer
-   * @returns {string[]}
-   * @private
-   */
-  _getSetOfHostNames: function (localDB, initializer) {
-    var masterComponentHostsInDB = Em.getWithDefault(localDB, 'masterComponentHosts', []);
-    var slaveComponentHostsInDB = Em.getWithDefault(localDB, 'slaveComponentHosts', []);
-    var hosts = masterComponentHostsInDB.filter(function (master) {
-      return initializer.components.contains(master.component);
-    }).mapProperty('hostName');
-
-    var sHosts = slaveComponentHostsInDB.find(function (slave) {
-      return initializer.components.contains(slave.componentName);
-    });
-    if (sHosts) {
-      hosts = hosts.concat(sHosts.hosts.mapProperty('hostName'));
-    }
-    return hosts;
-  },
-
-  /**
-   * Get list of all unique valid mount points for hosts
-   *
-   * @param {string[]} setOfHostNames
-   * @param {object} hostsInfo
-   * @returns {string[]}
-   * @private
-   */
-  _getAllMountPoints: function (setOfHostNames, hostsInfo) {
-    var allMountPoints = [];
-    for (var i = 0; i < setOfHostNames.length; i++) {
-      var hostname = setOfHostNames[i];
-      var mountPointsPerHost = hostsInfo[hostname].disk_info;
-      var mountPointAsRoot = mountPointsPerHost.findProperty('mountpoint', '/');
-
-      // If Server does not send any host details information then atleast one mountpoint should be presumed as root
-      // This happens in a single container Linux Docker environment.
-      if (!mountPointAsRoot) {
-        mountPointAsRoot = {
-          mountpoint: '/'
-        };
-      }
-
-      mountPointsPerHost.filter(this._filterMountPoint).forEach(function (mPoint) {
-        if( !allMountPoints.findProperty("mountpoint", mPoint.mountpoint)) {
-          allMountPoints.push(mPoint);
-        }
-      }, this);
-    }
-
-    if (!allMountPoints.length) {
-      allMountPoints.push(mountPointAsRoot);
-    }
-    return allMountPoints;
   }
-
 });

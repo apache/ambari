@@ -16,28 +16,32 @@
  * limitations under the License.
  */
 
-var ui_utils = require('utils/ui_effects');
-var App = require('app');
+var uiUtils = require('utils/ui_effects');
 
 describe('utils/ui_effects', function(){
   describe('#pulsate()', function(){
     beforeEach(function(){
       $('body').append('<div id="pulsate-test-dom"></div>');
       this.clock = sinon.useFakeTimers();
+      this.clb = Em.K;
+      sinon.spy(this, 'clb');
+    });
+
+    afterEach(function () {
+      this.clb.restore();
     });
 
     it('opacity should be 0.2 on 5-th iteration', function() {
       var domEl = $('#pulsate-test-dom');
-      ui_utils.pulsate(domEl, 1000);
+      uiUtils.pulsate(domEl, 1000);
       this.clock.tick(300);
-      expect(parseFloat(domEl.css('opacity')).toFixed(1)).to.eql('0.2');
+      expect(parseFloat(domEl.css('opacity')).toFixed(1)).to.be.equal('0.2');
     });
     it('should call callback at the end', function() {
       var domEl = $('#pulsate-test-dom');
-      var stub = sinon.stub();
-      ui_utils.pulsate(domEl, 1000, stub);
+      uiUtils.pulsate(domEl, 1000, this.clb);
       this.clock.tick(2000);
-      expect(stub.calledOnce).to.be.ok;
+      expect(this.clb.calledOnce).to.be.ok;
     });
 
     afterEach(function(){

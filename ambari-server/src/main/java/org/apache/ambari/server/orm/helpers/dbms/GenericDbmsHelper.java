@@ -243,6 +243,16 @@ public class GenericDbmsHelper implements DbmsHelper {
     return createIndex;
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getDropIndexStatement(String indexName, String tableName) {
+    String dropIndex = databasePlatform.buildDropIndex(tableName, indexName);
+    return dropIndex;
+  }
+
   @Override
   public String getAddUniqueConstraintStatement(String tableName, String constraintName, String... columnNames){
     UniqueKeyConstraint uniqueKeyConstraint = new UniqueKeyConstraint();

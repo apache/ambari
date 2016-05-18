@@ -55,6 +55,7 @@
         "ServiceComponentInfo/service_name",
         "ServiceComponentInfo/component_name",
         "ServiceComponentInfo/cluster_name",
+        "ServiceComponentInfo/display_name",
         "ServiceComponentInfo/state",
         "ServiceComponents/display_name",
         "ServiceComponents/description",
@@ -62,6 +63,7 @@
         "ServiceComponentInfo/total_count",
         "ServiceComponentInfo/started_count",
         "ServiceComponentInfo/installed_count",
+        "ServiceComponentInfo/recovery_enabled",
         "params/run_smoke_test",
         "_"
     ],
@@ -70,6 +72,7 @@
         "HostRoles/cluster_name",
         "HostRoles/host_name",
         "HostRoles/component_name",
+        "HostRoles/display_name",
         "HostRoles/state",
         "HostRoles/desired_state",
         "HostRoles/stack_id",
@@ -240,6 +243,13 @@
         "StackServiceComponents/is_master",
         "StackServiceComponents/cardinality",
         "StackServiceComponents/custom_commands",
+        "StackServiceComponents/recovery_enabled",
+        "StackServiceComponents/advertise_version",
+        "StackServiceComponents/decommission_allowed",
+        "StackServiceComponents/reassign_allowed",
+        "StackServiceComponents/has_bulk_commands_definition",
+        "StackServiceComponents/bulk_commands_display_name",
+        "StackServiceComponents/bulk_commands_master_component_name",
         "auto_deploy/enabled",
         "auto_deploy/location",
         "_"
@@ -354,7 +364,8 @@
         "host_groups/components",
         "host_groups/cardinality",
         "configurations",
-        "validate_topology"
+        "validate_topology",
+        "settings"
     ],
     "Recommendation":[
         "Recommendation/id",

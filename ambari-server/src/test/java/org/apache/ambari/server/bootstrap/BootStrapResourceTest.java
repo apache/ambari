@@ -24,7 +24,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.net.ServerSocket;
 
 import javax.ws.rs.core.MediaType;
 
@@ -78,6 +80,17 @@ public class BootStrapResourceTest extends JerseyTest {
   public void setUp() throws Exception {
     super.setUp();
     injector = Guice.createInjector(new MockModule());
+  }
+
+  @Override
+  protected int getPort(int defaultPort) {
+    // Find a free port
+    try (ServerSocket socket = new ServerSocket(0)) {
+      return socket.getLocalPort();
+    } catch (IOException e) {
+      // Ignore
+    }
+    return defaultPort;
   }
 
   protected JSONObject createDummySshInfo() throws JSONException {

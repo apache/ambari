@@ -85,7 +85,7 @@ class MSSQLConfig(DBMSConfig):
                                                                        properties, self.dbAuthKeys.user_name_key, DEFAULT_USERNAME)
     self.database_password = DBMSConfig._init_member_with_default(options, "database_password", "")
     if not self.database_password:
-      self.database_password = DBMSConfig._read_password_from_properties(properties)
+      self.database_password = DBMSConfig._read_password_from_properties(properties, options)
 
     self.database_url = self._build_sql_server_connection_string()
 
@@ -148,7 +148,7 @@ class MSSQLConfig(DBMSConfig):
 
     return True
 
-  def _setup_remote_server(self, properties):
+  def _setup_remote_server(self, properties, options):
     if self.ensure_jdbc_driver_installed(properties):
       properties.removeOldProp(self.dbPropKeys.port_key)
       properties.removeOldProp(self.dbAuthKeys.integrated_auth_key)
@@ -164,7 +164,7 @@ class MSSQLConfig(DBMSConfig):
         properties.process_pair(self.dbPropKeys.port_key, self.database_port)
       properties.process_pair(self.dbPropKeys.db_name_key, self.database_name)
 
-      self._store_db_auth_config(properties, self.dbAuthKeys)
+      self._store_db_auth_config(properties, self.dbAuthKeys, options)
 
       properties.process_pair(self.dbPropKeys.db_url_key, self.database_url)
     pass
@@ -262,7 +262,7 @@ class MSSQLConfig(DBMSConfig):
     #No need to append the username and password, the Ambari server adds them by itself when connecting to the database
     return databaseUrl
 
-  def _store_db_auth_config(self, properties, keys):
+  def _store_db_auth_config(self, properties, keys, options):
     if (self.use_windows_authentication):
       properties.process_pair(keys.integrated_auth_key, "True")
       properties.removeProp(keys.password_key)
@@ -272,7 +272,7 @@ class MSSQLConfig(DBMSConfig):
       properties.process_pair(keys.user_name_key, self.database_username)
 
       if self.isSecure:
-        encrypted_password = encrypt_password(keys.password_alias, self.database_password)
+        encrypted_password = encrypt_password(keys.password_alias, self.database_password, options)
         if self.database_password != encrypted_password:
           properties.process_pair(keys.password_key, encrypted_password)
       else:
@@ -338,8 +338,8 @@ class MSSQLAmbariDBConfig(MSSQLConfig):
     self.drop_tables_script_file = compress_backslashes(DBMSConfig._init_member_with_default(options, "cleanup_db_script_file",
         "resources" + os.path.sep + "Ambari-DDL-SQLServer-DROP.sql"))
 
-  def _setup_remote_server(self, properties):
-    super(MSSQLAmbariDBConfig, self)._setup_remote_server(properties)
+  def _setup_remote_server(self, properties, options):
+    super(MSSQLAmbariDBConfig, self)._setup_remote_server(properties, options)
 
     properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, self.driver_class_name)
     properties.process_pair(JDBC_RCA_HOSTNAME_PROPERTY, ensure_double_backslashes(self.database_host))

@@ -139,11 +139,4 @@
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
-  <property>
-    <name>zookeeper.znode.parent</name>
-    <value></value>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-  </property>
 </configuration>

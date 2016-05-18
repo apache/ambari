@@ -17,10 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
  * Helper class for maintaining RepositoryVersionEntity along with
@@ -28,11 +29,11 @@ import java.util.List;
  */
 public class CompatibleRepositoryVersion {
   private RepositoryVersionEntity repositoryVersionEntity;
-  private List<String> supportedTypes;
+  private Set<UpgradeType> supportedTypes;
 
   public CompatibleRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     this.repositoryVersionEntity = repositoryVersionEntity;
-    this.supportedTypes = new ArrayList<String>();
+    this.supportedTypes = new HashSet<>();
   }
 
   /**
@@ -40,16 +41,14 @@ public class CompatibleRepositoryVersion {
    *
    * @param type Supported Upgrade Type.
    */
-  public void addUpgradePackType(String type) {
-    if (!supportedTypes.contains(type)) {
-      supportedTypes.add(type);
-    }
+  public void addUpgradePackType(UpgradeType type) {
+    supportedTypes.add(type);
   }
 
   /**
    * @return List of supported Upgrade Type(s).
    */
-  public List<String> getSupportedTypes() {
+  public Set<UpgradeType> getSupportedTypes() {
     return supportedTypes;
   }
 
@@ -59,4 +58,5 @@ public class CompatibleRepositoryVersion {
   public RepositoryVersionEntity getRepositoryVersionEntity() {
     return repositoryVersionEntity;
   }
+
 }

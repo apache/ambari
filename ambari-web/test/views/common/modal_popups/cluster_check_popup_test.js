@@ -245,26 +245,53 @@ describe('App.showClusterCheckPopup', function () {
   });
 
   cases.forEach(function (item) {
-    it(item.title, function () {
-      var popup = App.showClusterCheckPopup(item.inputData.data, item.inputData.popup, item.inputData.configs, item.inputData.upgradeVersion),
+
+    describe(item.title, function () {
+
+      var popup;
+      var popupBody;
+
+      beforeEach(function () {
+        popup = App.showClusterCheckPopup(item.inputData.data, item.inputData.popup, item.inputData.configs, item.inputData.upgradeVersion);
         popupBody = popup.bodyClass.create();
-      popup.onPrimary();
-      Em.keys(item.result).forEach(function (key) {
-        expect(popup[key]).to.equal(item.result[key]);
+        popup.onPrimary();
       });
-      Em.keys(item.bodyResult).forEach(function (key) {
-        expect(popupBody[key]).to.eql(item.bodyResult[key]);
+
+      describe('result', function () {
+        Em.keys(item.result).forEach(function (key) {
+          it(key, function () {
+            expect(popup[key]).to.equal(item.result[key]);
+          });
+        });
       });
-      expect(isCallbackExecuted).to.equal(item.isCallbackExecuted);
+
+      describe('bodyResult', function () {
+        Em.keys(item.bodyResult).forEach(function (key) {
+          it(key, function () {
+            expect(popupBody[key]).to.eql(item.bodyResult[key]);
+          });
+        });
+      });
+
+      it('callbackExecuted', function () {
+        expect(isCallbackExecuted).to.equal(item.isCallbackExecuted);
+      });
+
       if (item.bodyResult.hasConfigsMergeConflicts) {
-        var configsMergeTable = popupBody.configsMergeTable.create();
-        configsMergeTable.didInsertElement();
-        expect(configsMergeTable.configs).to.eql(item.configsResult);
-        expect(App.tooltip.calledOnce).to.be.true;
-        expect(App.tooltip.firstCall.args[1].title).to.equal(item.inputData.upgradeVersion);
-      } else {
-        expect(App.tooltip.calledOnce).to.be.false;
+        it('hasConfigsMergeConflicts = true', function () {
+          var configsMergeTable = popupBody.configsMergeTable.create();
+          configsMergeTable.didInsertElement();
+          expect(configsMergeTable.configs).to.eql(item.configsResult);
+          expect(App.tooltip.calledOnce).to.be.true;
+          expect(App.tooltip.firstCall.args[1].title).to.equal(item.inputData.upgradeVersion);
+        });
       }
+      else {
+        it('App.tooltip is not called', function () {
+          expect(App.tooltip.called).to.be.false;
+        });
+      }
+
     });
   });
 

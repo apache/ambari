@@ -362,46 +362,53 @@
   .undo-button {
     margin-left: @undo-btn-margin;
   }
+}
 
-  .bootstrap-switch {
-    &,
-    &.bootstrap-switch-focused {
-      border-color: transparent;
-      box-shadow: none;
-    }
+.bootstrap-switch {
+  &,
+  &.bootstrap-switch-focused {
+    border-color: transparent;
+    box-shadow: none;
+  }
 
-    .bootstrap-switch-label {
-      background-color: @toggle-widget-handle-background-color;
-      background-image: none;
+  .bootstrap-switch-label {
+    background-color: @toggle-widget-handle-background-color;
+    background-image: none;
+    text-shadow: none;
+    border-width: 0;
+    padding: 2px 8px;
+    border-left: 1px solid transparent;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid @toggle-widget-handle-background-color;
+  }
+
+  .bootstrap-switch-handle-on,
+  .bootstrap-switch-handle-off {
+    color: @toggle-widget-text-color;
+    font-size: @toggle-widget-text-size;
+    background-image: none;
+    text-shadow: none;
+    border: none;
+    padding: 2px 0;
+
+    &:hover {
       text-shadow: none;
-      border-width: 0;
-      padding: 2px 8px;
-      border-left: 1px solid transparent;
-      border-right: 1px solid transparent;
-      border-bottom: 1px solid @toggle-widget-handle-background-color;
-    }
-
-    .bootstrap-switch-handle-on,
-    .bootstrap-switch-handle-off {
       color: @toggle-widget-text-color;
-      font-size: @toggle-widget-text-size;
+    }
+
+    &.bootstrap-switch-default {
+      background-color: @toggle-widget-on-background-color;
+    }
+
+    &.bootstrap-switch-success {
+      background-color: @toggle-widget-off-background-color;
+    }
+
+    &.bootstrap-switch-default,
+    &.bootstrap-switch-success {
+      color: @toggle-widget-text-color;
       background-image: none;
       text-shadow: none;
-      border: none;
-      padding: 2px 0;
-
-      &:hover {
-        text-shadow: none;
-        color: @toggle-widget-text-color;
-      }
-
-      &.bootstrap-switch-default {
-        background-color: @toggle-widget-on-background-color;
-      }
-
-      &.bootstrap-switch-success {
-        background-color: @toggle-widget-off-background-color;
-      }
     }
   }
 }
@@ -454,7 +461,6 @@
   .bootstrap-checkbox {
     &>button.btn {
       padding: 0;
-      margin-top: -7px;
       color: @green;
       &:focus {
         border-color: none;

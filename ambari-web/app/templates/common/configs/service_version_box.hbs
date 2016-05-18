@@ -22,7 +22,7 @@
     <div {{bindAttr class=":version-info :box :pull-right view.serviceVersion.isDisplayed:displayed view.serviceVersion.isDisabled:grayedOut"}} {{action doAction view.serviceVersion view.actionTypes.SWITCH target="view.parentView"}}>
       <div class="top-label">
         <span class="label label-info">{{view.serviceVersion.versionText}}</span>
-        <span class="author pull-right">{{view.serviceVersion.author}}</span>
+        <span class="author pull-right">{{view.serviceVersion.authorFormatted}}</span>
       </div>
       <div class="content">{{view.serviceVersion.timeSinceCreated}}</div>
       <div class="stack-label">{{view.serviceVersion.stackVersion}}</div>
@@ -39,13 +39,15 @@
       <div class="content">
         <span class="label label-info">{{view.serviceVersion.versionText}}</span> <span class="pull-right"><strong>{{view.serviceVersion.configGroupName}}</strong></span>
         <span class="stack">{{view.serviceVersion.stackVersion}}</span>
-        <div class="date"><strong>{{view.serviceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.serviceVersion.createdDate}}</strong></div>
+        <div class="date"><strong>{{view.serviceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.serviceVersion.createdDate}}</strong></div>
         <div class="notes">{{view.serviceVersion.fullNotes}}</div>
       </div>
       <div class="version-operations-buttons">
         <button {{bindAttr disabled="view.disabledActionAttr.view" class=":btn view.serviceVersion.isDisplayed:not-allowed-cursor" title="view.disabledActionMessages.view"}} {{action doAction view.serviceVersion view.actionTypes.SWITCH target="view.parentView"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
         {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
           <button {{bindAttr disabled="view.disabledActionAttr.compare" class=":btn view.serviceVersion.isDisplayed:not-allowed-cursor" title="view.disabledActionMessages.compare"}} {{action doAction view.serviceVersion view.actionTypes.COMPARE target="view.parentView"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+        {{/isAuthorized}}
+        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
           <button {{bindAttr disabled="view.disabledActionAttr.revert" class=":btn view.serviceVersion.isCurrent:not-allowed-cursor view.serviceVersion.isCompatible::hidden" title="view.disabledActionMessages.revert"}} {{action doAction view.serviceVersion view.actionTypes.REVERT target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
         {{/isAuthorized}}
       </div>

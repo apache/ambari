@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 
 /**
  * Generic JDBC based resource provider.
@@ -235,7 +234,7 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
           throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     Connection connection = null;
     try {

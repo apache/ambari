@@ -17,12 +17,14 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import conf_select, stack_select
 from falcon import falcon
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.constants import StackFeature
 
 class FalconClient(Script):
   def configure(self, env):
@@ -35,8 +37,8 @@ class FalconClient(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FalconClientLinux(FalconClient):
-  def get_stack_to_component(self):
-    return {"HDP": "falcon-client"}
+  def get_component_name(self):
+    return "falcon-client"
 
   def install(self, env):
     self.install_packages(env)
@@ -48,13 +50,13 @@ class FalconClientLinux(FalconClient):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+    # the stack does not support rolling upgrade
+    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
       return
 
     Logger.info("Executing Falcon Client Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
-    hdp_select.select("falcon-client", params.version)
+    stack_select.select("falcon-client", params.version)
 
   def security_status(self, env):
     import status_params

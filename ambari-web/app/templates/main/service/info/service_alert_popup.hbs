@@ -30,6 +30,7 @@
             </div>
           </div>
           <div class="span4 status-col" rel="alert-status-tooltip" >
+            {{view App.AlertDefinitionSummary contentBinding="alert"}}
             <span class="timeago" {{bindAttr data-original-title="alert.lastTriggeredVerboseDisplay"}}>
               <span class="status-icon">{{{alert.status}}}</span>
               <time>{{alert.lastTriggeredForFormatted}}</time>

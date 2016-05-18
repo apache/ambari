@@ -51,6 +51,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -81,29 +82,42 @@ public class JwtAuthenticationFilterTest {
   }
 
   private JwtAuthenticationProperties createTestProperties() {
+    return createTestProperties(Collections.singletonList("test-audience"));
+  }
+
+  private JwtAuthenticationProperties createTestProperties(List<String> audiences) {
     JwtAuthenticationProperties properties = new JwtAuthenticationProperties();
     properties.setCookieName("non-default");
     properties.setPublicKey(publicKey);
-    properties.setAudiences(Collections.singletonList("test-audience"));
+    properties.setAudiences(audiences);
 
     return properties;
   }
 
   private SignedJWT getSignedToken() throws JOSEException {
+    return getSignedToken("test-audience");
+  }
+
+  private SignedJWT getSignedToken(String audience) throws JOSEException {
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(System.currentTimeMillis());
+    calendar.add(Calendar.DATE, 1); //add one day
+    return getSignedToken(calendar.getTime(), audience);
+  }
+  
+  private SignedJWT getSignedToken(Date expirationTime, String audience) throws JOSEException {
     RSASSASigner signer = new RSASSASigner(privateKey);
 
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeInMillis(System.currentTimeMillis());
-
     JWTClaimsSet claimsSet = new JWTClaimsSet();
     claimsSet.setSubject("test-user");
     claimsSet.setIssuer("unit-test");
     claimsSet.setIssueTime(calendar.getTime());
 
-    calendar.add(Calendar.DATE, 1); //add one day
-    claimsSet.setExpirationTime(calendar.getTime());
+    claimsSet.setExpirationTime(expirationTime);
 
-    claimsSet.setAudience("test-audience");
+    claimsSet.setAudience(audience);
 
     SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claimsSet);
     signedJWT.sign(signer);
@@ -228,11 +242,50 @@ public class JwtAuthenticationFilterTest {
   }
 
   @Test
+  public void testValidateNullAudiences() throws Exception {
+    JwtAuthenticationProperties properties = createTestProperties(null);
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
+
+    boolean isValid = filter.validateAudiences(getSignedToken());
+
+    assertEquals(true, isValid);
+
+    isValid = filter.validateAudiences(getInvalidToken());
+
+    assertEquals(true, isValid);
+  }
+
+  @Test
+  public void testValidateTokenWithoutAudiences() throws Exception {
+    JwtAuthenticationProperties properties = createTestProperties();
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
+
+    boolean isValid = filter.validateAudiences(getSignedToken(null));
+
+    assertEquals(false, isValid);
+  }
+
+  @Test
   public void testValidateExpiration() throws Exception {
     JwtAuthenticationProperties properties = createTestProperties();
     JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
 
     boolean isValid = filter.validateExpiration(getSignedToken());
+
+    assertEquals(true, isValid);
+
+    isValid = filter.validateExpiration(getInvalidToken());
+
+    assertEquals(false, isValid);
+
+  }
+
+  @Test
+  public void testValidateNoExpiration() throws Exception {
+    JwtAuthenticationProperties properties = createTestProperties();
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
+
+    boolean isValid = filter.validateExpiration(getSignedToken(null, "test-audience"));
 
     assertEquals(true, isValid);
 

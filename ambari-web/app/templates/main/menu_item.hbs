@@ -17,13 +17,8 @@
 }}
 
 
-<a href="#" {{action goToSection view.content.routing target="view"}}>
+<a href="#" {{action goToSection view.content.routing target="view"}} {{bindAttr class="view.content.isView:views-button-container"}}>
   {{{unbound view.content.label}}}
-  {{#if view.hasAlertsLabel}}
-    <span {{bindAttr class=":label view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-      {{view.alertsCount}}
-    </span>
-  {{/if}}
 </a>
 
 <!--dropdown menu for the items had dropdowns-->

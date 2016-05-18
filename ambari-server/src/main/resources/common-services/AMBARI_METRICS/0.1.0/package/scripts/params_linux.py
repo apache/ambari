@@ -18,8 +18,10 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
 from ambari_commons import OSCheck
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 

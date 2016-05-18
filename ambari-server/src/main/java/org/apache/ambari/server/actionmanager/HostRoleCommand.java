@@ -58,6 +58,7 @@ public class HostRoleCommand {
   private String structuredOut = "";
   private int exitCode = 999; //Default is unknown
   private long startTime = -1;
+  private long originalStartTime = -1;
   private long endTime = -1;
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
@@ -74,6 +75,9 @@ public class HostRoleCommand {
   @Inject
   private HostDAO hostDAO;
 
+  @Inject
+  private ExecutionCommandWrapperFactory ecwFactory;
+
   /**
    * Simple constructor, should be created using the Factory class.
    * @param hostName Host name
@@ -84,8 +88,9 @@ public class HostRoleCommand {
    */
   @AssistedInject
   public HostRoleCommand(String hostName, Role role,
-                         ServiceComponentHostEvent event, RoleCommand command, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
-    this(hostName, role, event, command, false, false, hostDAO, executionCommandDAO);
+      ServiceComponentHostEvent event, RoleCommand command, HostDAO hostDAO,
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
+    this(hostName, role, event, command, false, false, hostDAO, executionCommandDAO, ecwFactory);
   }
 
   /**
@@ -100,9 +105,10 @@ public class HostRoleCommand {
   @AssistedInject
   public HostRoleCommand(String hostName, Role role, ServiceComponentHostEvent event,
       RoleCommand roleCommand, boolean retryAllowed, boolean autoSkipFailure, HostDAO hostDAO,
-      ExecutionCommandDAO executionCommandDAO) {
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
+    this.ecwFactory = ecwFactory;
 
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
@@ -120,9 +126,10 @@ public class HostRoleCommand {
   @AssistedInject
   public HostRoleCommand(Host host, Role role, ServiceComponentHostEvent event,
       RoleCommand roleCommand, boolean retryAllowed, boolean autoSkipFailure, HostDAO hostDAO,
-      ExecutionCommandDAO executionCommandDAO) {
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
+    this.ecwFactory = ecwFactory;
 
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
@@ -134,9 +141,11 @@ public class HostRoleCommand {
   }
 
   @AssistedInject
-  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, HostDAO hostDAO,
+      ExecutionCommandDAO executionCommandDAO, ExecutionCommandWrapperFactory ecwFactory) {
     this.hostDAO = hostDAO;
     this.executionCommandDAO = executionCommandDAO;
+    this.ecwFactory = ecwFactory;
 
     taskId = hostRoleCommandEntity.getTaskId();
 
@@ -160,6 +169,7 @@ public class HostRoleCommand {
     structuredOut = hostRoleCommandEntity.getStructuredOut() != null ? new String(hostRoleCommandEntity.getStructuredOut()) : "";
     exitCode = hostRoleCommandEntity.getExitcode();
     startTime = hostRoleCommandEntity.getStartTime();
+    originalStartTime = hostRoleCommandEntity.getOriginalStartTime();
     endTime = hostRoleCommandEntity.getEndTime() != null ? hostRoleCommandEntity.getEndTime() : -1L;
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
     attemptCount = hostRoleCommandEntity.getAttemptCount();
@@ -182,6 +192,7 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setStdOut(stdout.getBytes());
     hostRoleCommandEntity.setStructuredOut(structuredOut.getBytes());
     hostRoleCommandEntity.setStartTime(startTime);
+    hostRoleCommandEntity.setOriginalStartTime(originalStartTime);
     hostRoleCommandEntity.setEndTime(endTime);
     hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
     hostRoleCommandEntity.setAttemptCount(attemptCount);
@@ -328,6 +339,14 @@ public class HostRoleCommand {
     this.startTime = startTime;
   }
 
+  public long getOriginalStartTime() {
+    return originalStartTime;
+  }
+
+  public void setOriginalStartTime(long originalStartTime) {
+    this.originalStartTime = originalStartTime;
+  }
+
   public long getLastAttemptTime() {
     return lastAttemptTime;
   }
@@ -370,9 +389,8 @@ public class HostRoleCommand {
       if (commandEntity == null) {
         throw new RuntimeException("Invalid DB state, broken one-to-one relation for taskId=" + taskId);
       }
-      executionCommandWrapper = new ExecutionCommandWrapper(new String(
-          commandEntity.getCommand()
-      ));
+
+      executionCommandWrapper = ecwFactory.createFromJson(new String(commandEntity.getCommand()));
     }
 
     return executionCommandWrapper;
@@ -429,6 +447,7 @@ public class HostRoleCommand {
     builder.append("  stderr: ").append(stderr).append("\n");
     builder.append("  exitcode: ").append(exitCode).append("\n");
     builder.append("  Start time: ").append(startTime).append("\n");
+    builder.append("  Original Start time: ").append(originalStartTime).append("\n");
     builder.append("  Last attempt time: ").append(lastAttemptTime).append("\n");
     builder.append("  attempt count: ").append(attemptCount).append("\n");
     return builder.toString();

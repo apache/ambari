@@ -22,12 +22,14 @@
 
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
+    <display-name>Repository config username</display-name>
     <value>keyadmin</value>
     <description></description>
   </property>
 
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
+    <display-name>Repository config password</display-name>
     <value>keyadmin</value>
     <property-type>PASSWORD</property-type>
     <description></description>
@@ -38,67 +40,127 @@
 
   <property>
     <name>DB_FLAVOR</name>
+    <display-name>DB FLAVOR</display-name>
     <value>MYSQL</value>
-    <description></description>
+    <description>The database type to be used</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>MYSQL</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>ORACLE</value>
+          <label>ORACLE</label>
+        </entry>
+        <entry>
+          <value>POSTGRES</value>
+          <label>POSTGRES</label>
+        </entry>
+        <entry>
+          <value>MSSQL</value>
+          <label>MSSQL</label>
+        </entry>
+        <entry>
+          <value>SQLA</value>
+          <label>SQL Anywhere</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
     <name>SQL_CONNECTOR_JAR</name>
-    <value>/usr/share/java/mysql-connector-java.jar</value>
+    <display-name>SQL connector jar</display-name>
+    <value>{{driver_curl_target}}</value>
     <description>Location of DB client library (please check the location of the jar file)</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>kms-properties</type>
+        <name>DB_FLAVOR</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>db_root_user</name>
+    <display-name>Database Administrator (DBA) username</display-name>
     <value>root</value>
-    <description></description>
+    <description>Database admin user. This user should have DBA permission to create the Ranger Database and Ranger Database User</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_root_password</name>
+    <display-name>Database Administrator (DBA) password</display-name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Database password for the database admin username</description>
     <value-attributes>
       <type>password</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
 
   <property>
     <name>db_host</name>
-    <value>localhost</value>
-    <description></description>
+    <display-name>Ranger KMS DB host</display-name>
+    <value></value>
+    <description>Database host</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_name</name>
+    <display-name>Ranger KMS DB name</display-name>
     <value>rangerkms</value>
-    <description></description>
+    <description>Database name</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_user</name>
+    <display-name>Ranger KMS DB username</display-name>
     <value>rangerkms</value>
-    <description></description>
+    <description>Database username used for the Ranger KMS schema</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>db_password</name>
+    <display-name>Ranger KMS DB password</display-name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description>Database password for the Ranger KMS schema</description>
     <value-attributes>
       <type>password</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
 
   <property>
     <name>KMS_MASTER_KEY_PASSWD</name>
+    <display-name>KMS master key password</display-name>
     <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
     <value-attributes>
       <type>password</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
 

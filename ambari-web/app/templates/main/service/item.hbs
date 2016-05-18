@@ -18,8 +18,8 @@
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
   <div class="span3 quick-links-wrapper">
-    {{#if view.service.quickLinks.length}}
-      {{#view App.QuickViewLinks contentBinding="view.service"}}
+    {{#view App.QuickViewLinks contentBinding="view.service"}}
+      {{#if view.showQuickLinks}}
         <ul class="nav nav-pills move">
           <li class="dropdown quick-links-dropdown">
             <a class="dropdown-toggle" id="quick-links-dropdown-btn" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
@@ -32,7 +32,7 @@
                       <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
                       <ul class="dropdown-menu">
                         {{#each quickLinks}}
-                          <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                          <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
                         {{/each}}
                       </ul>
                     </li>
@@ -40,20 +40,20 @@
                 {{else}}
                   {{#if view.quickLinks}}
                     {{#each view.quickLinks}}
-                      <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                      <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
                     {{/each}}
                   {{else}}
-                    <div class="alert alert-danger"><small>{{t quick.links.error.label2}}</small></div>
+                    <div class="alert alert-danger"><small>{{t quick.links.error.quicklinks.unavailable.label}}</small></div>
                   {{/if}}
                 {{/if}}
               {{else}}
-                <div class="spinner"></div>
+                {{view App.SpinnerView}}
               {{/if}}
            </ul>
           </li>
         </ul>
-      {{/view}}
-    {{/if}}
+      {{/if}}
+    {{/view}}
   </div>
 
 {{#isAuthorized "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.START_STOP, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA"}}
@@ -109,7 +109,7 @@
             </li>
             {{/each}}
           {{else}}
-            <div class="spinner service-button-spinner"></div>
+            {{view App.SpinnerView classNames="service-button-spinner"}}
           {{/if}}
         {{/isAuthorized}}
       </ul>

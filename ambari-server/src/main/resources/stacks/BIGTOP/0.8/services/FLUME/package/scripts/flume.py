@@ -30,7 +30,7 @@ def flume(action = None):
     for n in find_expected_agent_names():
       os.unlink(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'))
 
-    Directory(params.flume_conf_dir, recursive=True)
+    Directory(params.flume_conf_dir, create_parents = True)
     Directory(params.flume_log_dir, owner=params.flume_user)
 
     File(format("{flume_conf_dir}/flume-env.sh"),

@@ -18,12 +18,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import sys
+sys.path.append("/usr/lib/python2.6/site-packages/") # this file can be run with python2.7 that why we need this
+
 # On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
 # Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
 # {}-format() are to be avoided.
 
 import time
-import sys
 import logging
 import pprint
 import os
@@ -674,7 +676,7 @@ class BootstrapDefault(Bootstrap):
     params = self.shared_state
     user = params.user
 
-    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0} ; sudo chmod 755 {3} ; sudo chmod 755 {2} ; sudo chmod 777 {0}".format(
+    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0} ; sudo chmod 755 {3} ; sudo chmod 755 {2} ; sudo chmod 1777 {0}".format(
       self.TEMP_FOLDER, quote_bash_args(params.user), DEFAULT_AGENT_DATA_FOLDER, DEFAULT_AGENT_LIB_FOLDER)
 
     ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,

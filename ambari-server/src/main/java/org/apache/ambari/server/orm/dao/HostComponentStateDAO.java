@@ -160,8 +160,7 @@ public class HostComponentStateDAO {
   }
 
   /**
-   * Merges the managed entity, calling {@link EntityManager#flush()}
-   * immediately after. This fixes concurrent transaction issues on SQL Server.
+   * Merges the managed entity
    *
    * @param hostComponentStateEntity
    * @return
@@ -170,7 +169,9 @@ public class HostComponentStateDAO {
   public HostComponentStateEntity merge(HostComponentStateEntity hostComponentStateEntity) {
     EntityManager entityManager = entityManagerProvider.get();
     hostComponentStateEntity = entityManager.merge(hostComponentStateEntity);
-    entityManager.flush();
+//    Flush call here causes huge performance loss on bulk update of host components
+//    we should consider other solutions for issues with concurrent transactions
+//    entityManager.flush();
     return hostComponentStateEntity;
   }
 

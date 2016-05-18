@@ -28,7 +28,7 @@ def create_dirs(data_dir, params):
   :param params: parameters
   """
   Directory(data_dir,
-            recursive=True,
+            create_parents = True,
             mode=0755,
             owner=params.hdfs_user,
             group=params.user_group,
@@ -40,7 +40,7 @@ def datanode(action=None):
   import params
   if action == "configure":
     Directory(params.dfs_domain_socket_dir,
-              recursive=True,
+              create_parents = True,
               mode=0751,
               owner=params.hdfs_user,
               group=params.user_group)

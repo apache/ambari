@@ -28,15 +28,21 @@ var user,
     id: 'user'
   };
 
+function getUser() {
+  return App.User.createRecord(userData);
+}
+
 describe('App.User', function () {
 
   beforeEach(function () {
-    user = App.User.createRecord(userData);
+    user = getUser();
   });
 
   afterEach(function () {
     modelSetup.deleteRecord(user);
   });
+
+  App.TestAliases.testAsComputedAlias(getUser(), 'id', 'userName', 'string');
 
   describe('#id', function () {
     it('should take value from userName', function () {
@@ -57,27 +63,17 @@ describe('App.User', function () {
   });
 });
 
+function getForm() {
+  return App.CreateUserForm.create();
+}
+
 describe('App.CreateUserForm', function () {
 
   beforeEach(function () {
-    form = App.CreateUserForm.create();
+    form = getForm();
   });
 
-  describe('#object', function () {
-
-    before(function () {
-      sinon.stub(App, 'get').withArgs('router.mainAdminUserCreateController.content').returns(userData);
-    });
-
-    after(function () {
-      App.get.restore();
-    });
-
-    it('should take data from controller', function () {
-      expect(form.get('object')).to.eql(userData);
-    });
-
-  });
+  App.TestAliases.testAsComputedAlias(getForm(), 'object', 'App.router.mainAdminUserCreateController.content', 'object');
 
   describe('#field.userName.toLowerCase', function () {
     it('should convert userName into lower case', function () {

@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from PythonExecutor import PythonExecutor
+from resource_management.core.exceptions import ClientComponentHasNoStatus, ComponentIsNotRunning
 
 import imp
 import sys
@@ -42,12 +43,13 @@ class PythonReflectiveExecutor(PythonExecutor):
     
   def run_file(self, script, script_params, tmpoutfile, tmperrfile,
                timeout, tmpstructedoutfile, callback, task_id,
-               override_output_files = True, handle = None, log_info_on_failure=True):   
+               override_output_files = True, backup_log_files = True,
+               handle = None, log_info_on_failure=True):
     pythonCommand = self.python_command(script, script_params)
     logger.debug("Running command reflectively " + pprint.pformat(pythonCommand))
     
     script_dir = os.path.dirname(script)
-    self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files)
+    self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
     returncode = 1
 
     try:
@@ -57,8 +59,10 @@ class PythonReflectiveExecutor(PythonExecutor):
       returncode = e.code
       if returncode:
         logger.debug("Reflective command failed with return_code=" + str(e))
-    except Exception: 
+    except (ClientComponentHasNoStatus, ComponentIsNotRunning):
       logger.debug("Reflective command failed with exception:", exc_info=1)
+    except Exception:
+      logger.info("Reflective command failed with exception:", exc_info=1)
     else: 
       returncode = 0
       
@@ -80,7 +84,7 @@ class PythonContext:
     self.old_logging_disable = logging.root.manager.disable
     
     logging.disable(logging.ERROR)
-    sys.path.append(self.script_dir)
+    sys.path.insert(0, self.script_dir)
     sys.argv = self.pythonCommand[1:]
 
   def __exit__(self, exc_type, exc_val, exc_tb):

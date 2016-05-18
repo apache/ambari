@@ -30,7 +30,7 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "configure",
                        config_file="default_client.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive',
@@ -39,7 +39,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
         owner = 'hive',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
         group = 'hadoop',
@@ -85,7 +85,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content = Template('hive.conf.j2'),
@@ -106,7 +106,7 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "configure",
                        config_file="secured_client.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive',
@@ -115,7 +115,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
         owner = 'hive',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
         group = 'hadoop',
@@ -161,7 +161,7 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content = Template('hive.conf.j2'),
@@ -185,15 +185,17 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True,)
     self.assertNoMoreResources()
 
+  @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
-  def test_pre_upgrade_restart_23(self, call_mock):
+  def test_pre_upgrade_restart_23(self, call_mock, os_path__exists_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    os_path__exists_mock.return_value = False
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.0-1234'
@@ -204,7 +206,7 @@ class TestHiveClient(RMFTestCase):
                        classname = "HiveClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)

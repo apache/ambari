@@ -42,13 +42,13 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 /**
  * Resource provider for group resources.
  */
-class GroupResourceProvider extends AbstractControllerResourceProvider {
+public class GroupResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
   // Groups
-  protected static final String GROUP_GROUPNAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Groups", "group_name");
-  protected static final String GROUP_LDAP_GROUP_PROPERTY_ID = PropertyHelper.getPropertyId("Groups", "ldap_group");
+  public static final String GROUP_GROUPNAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Groups", "group_name");
+  public static final String GROUP_LDAP_GROUP_PROPERTY_ID = PropertyHelper.getPropertyId("Groups", "ldap_group");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -160,7 +160,7 @@ class GroupResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<GroupRequest> requests = new HashSet<GroupRequest>();
 

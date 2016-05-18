@@ -21,27 +21,31 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DefaultPhoenixDataSource implements ConnectionProvider {
+public class DefaultPhoenixDataSource implements PhoenixConnectionProvider {
 
   static final Log LOG = LogFactory.getLog(DefaultPhoenixDataSource.class);
-  private static final String ZOOKEEPER_CLIENT_PORT =
-    "hbase.zookeeper.property.clientPort";
+  private static final String ZOOKEEPER_CLIENT_PORT = "hbase.zookeeper.property.clientPort";
   private static final String ZOOKEEPER_QUORUM = "hbase.zookeeper.quorum";
   private static final String ZNODE_PARENT = "zookeeper.znode.parent";
 
   private static final String connectionUrl = "jdbc:phoenix:%s:%s:%s";
   private final String url;
 
+  private Configuration hbaseConf;
+
   public DefaultPhoenixDataSource(Configuration hbaseConf) {
-    String zookeeperClientPort = hbaseConf.getTrimmed(ZOOKEEPER_CLIENT_PORT,
-      "2181");
+    this.hbaseConf = hbaseConf;
+    String zookeeperClientPort = hbaseConf.getTrimmed(ZOOKEEPER_CLIENT_PORT, "2181");
     String zookeeperQuorum = hbaseConf.getTrimmed(ZOOKEEPER_QUORUM);
-    String znodeParent = hbaseConf.getTrimmed(ZNODE_PARENT, "/hbase");
+    String znodeParent = hbaseConf.getTrimmed(ZNODE_PARENT, "/ams-hbase-unsecure");
     if (zookeeperQuorum == null || zookeeperQuorum.isEmpty()) {
       throw new IllegalStateException("Unable to find Zookeeper quorum to " +
         "access HBase store using Phoenix.");
@@ -51,6 +55,15 @@ public class DefaultPhoenixDataSource implements ConnectionProvider {
       zookeeperQuorum,
       zookeeperClientPort,
       znodeParent);
+  }
+
+  /**
+   * Get HBaseAdmin for table ops.
+   * @return @HBaseAdmin
+   * @throws IOException
+   */
+  public HBaseAdmin getHBaseAdmin() throws IOException {
+    return (HBaseAdmin) ConnectionFactory.createConnection(hbaseConf).getAdmin();
   }
 
   /**

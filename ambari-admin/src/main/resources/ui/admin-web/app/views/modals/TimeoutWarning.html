@@ -19,9 +19,7 @@
 <div class="modal-header">
   <h4 class="modal-title">{{title}}</h4>
 </div>
-<div class="modal-body">
-  You will be automatically logged out in <b>{{remainTime}}</b> seconds due to inactivity.
-</div>
+<div class="modal-body" translate="common.alerts.timeOut" translate-values="{time: remainTime}"></div>
 <div class="modal-footer">
   <button class="btn btn-default" ng-click="logout()">{{secondaryText}}</button>
   <button class="btn btn-primary" ng-click="remain()">{{primaryText}}</button>

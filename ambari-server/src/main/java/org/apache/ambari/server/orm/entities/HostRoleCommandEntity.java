@@ -32,6 +32,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.Lob;
@@ -48,7 +49,11 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.commons.lang.ArrayUtils;
 
 @Entity
-@Table(name = "host_role_command")
+@Table(name = "host_role_command"
+       , indexes = {
+           @Index(name = "idx_hrc_request_id", columnList = "request_id")
+         , @Index(name = "idx_hrc_status_role", columnList = "status, role")
+       })
 @TableGenerator(name = "host_role_command_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "host_role_command_id_seq"
@@ -56,6 +61,9 @@ import org.apache.commons.lang.ArrayUtils;
 )
 @NamedQueries({
     @NamedQuery(name = "HostRoleCommandEntity.findCountByCommandStatuses", query = "SELECT COUNT(command.taskId) FROM HostRoleCommandEntity command WHERE command.status IN :statuses"),
+    @NamedQuery(name = "HostRoleCommandEntity.findByRequestIdAndStatuses", query="SELECT task FROM HostRoleCommandEntity task WHERE task.requestId=:requestId AND task.status IN :statuses ORDER BY task.taskId ASC"),
+    @NamedQuery(name = "HostRoleCommandEntity.findTasksByStatusesOrderByIdDesc", query = "SELECT task FROM HostRoleCommandEntity task WHERE task.requestId = :requestId AND task.status IN :statuses ORDER BY task.taskId DESC"),
+    @NamedQuery(name = "HostRoleCommandEntity.findNumTasksAlreadyRanInStage", query = "SELECT COUNT(task.taskId) FROM HostRoleCommandEntity task WHERE task.requestId = :requestId AND task.taskId > :taskId AND task.stageId > :stageId AND task.status NOT IN :statuses"),
     @NamedQuery(name = "HostRoleCommandEntity.findByCommandStatuses", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.status IN :statuses ORDER BY command.requestId, command.stageId"),
     @NamedQuery(name = "HostRoleCommandEntity.findByHostId", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostId=:hostId"),
     @NamedQuery(name = "HostRoleCommandEntity.findByHostRole", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostEntity.hostName=:hostName AND command.requestId=:requestId AND command.stageId=:stageId AND command.role=:role ORDER BY command.taskId"),
@@ -128,6 +136,13 @@ public class HostRoleCommandEntity {
   @Basic
   @Column(name = "start_time", nullable = false)
   private Long startTime = -1L;
+
+  /**
+   * Because the startTime is allowed to be overwritten, introduced a new column for the original start time.
+   */
+  @Basic
+  @Column(name = "original_start_time", nullable = false)
+  private Long originalStartTime = -1L;
 
   @Basic
   @Column(name = "end_time", nullable = false)
@@ -276,6 +291,22 @@ public class HostRoleCommandEntity {
     this.startTime = startTime;
   }
 
+  /**
+   * Get the original time the command was first scheduled on the agent. This value is never overwritten.
+   * @return Original start time
+   */
+  public Long getOriginalStartTime() {
+    return originalStartTime;
+  }
+
+  /**
+   * Set the original start time when the command is first scheduled. This value is never overwritten.
+   * @param originalStartTime Original start time
+   */
+  public void setOriginalStartTime(Long originalStartTime) {
+    this.originalStartTime = originalStartTime;
+  }
+
   public Long getLastAttemptTime() {
     return lastAttemptTime;
   }
@@ -414,6 +445,9 @@ public class HostRoleCommandEntity {
     if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) {
       return false;
     }
+    if (originalStartTime != null ? !originalStartTime.equals(that.originalStartTime) : that.originalStartTime != null) {
+      return false;
+    }
     if (status != null ? !status.equals(that.status) : that.status != null) {
       return false;
     }
@@ -457,6 +491,7 @@ public class HostRoleCommandEntity {
     result = 31 * result + (outputLog != null ? outputLog.hashCode() : 0);
     result = 31 * result + (errorLog != null ? errorLog.hashCode() : 0);
     result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
+    result = 31 * result + (originalStartTime != null ? originalStartTime.hashCode() : 0);
     result = 31 * result + (lastAttemptTime != null ? lastAttemptTime.hashCode() : 0);
     result = 31 * result + (attemptCount != null ? attemptCount.hashCode() : 0);
     result = 31 * result + (endTime != null ? endTime.hashCode() : 0);

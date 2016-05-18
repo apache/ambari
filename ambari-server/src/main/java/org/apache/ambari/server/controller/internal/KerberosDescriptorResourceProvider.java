@@ -146,7 +146,7 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws SystemException,
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Resource> setResources = getResources(new RequestImpl(null, null, null, null), predicate);

@@ -33,6 +33,10 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.LdapSyncEventEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import javax.naming.OperationNotSupportedException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -157,13 +162,19 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
    */
   public LdapSyncEventResourceProvider(AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
+
+    EnumSet<RoleAuthorization> roleAuthorizations =
+        EnumSet.of(RoleAuthorization.AMBARI_MANAGE_GROUPS, RoleAuthorization.AMBARI_MANAGE_USERS);
+
+    setRequiredCreateAuthorizations(roleAuthorizations);
+    setRequiredDeleteAuthorizations(roleAuthorizations);
   }
 
 
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request event)
+  public RequestStatus createResourcesAuthorized(Request event)
       throws SystemException, UnsupportedPropertyException,
       ResourceAlreadyExistsException, NoSuchParentResourceException {
     Set<LdapSyncEventEntity> newEvents = new HashSet<LdapSyncEventEntity>();
@@ -208,7 +219,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     modifyResources(getDeleteCommand(predicate));
     notifyDelete(Resource.Type.ViewInstance, predicate);
@@ -344,9 +355,21 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
   private Command<LdapSyncEventEntity> getCreateCommand(final Map<String, Object> properties) {
     return new Command<LdapSyncEventEntity>() {
       @Override
-      public LdapSyncEventEntity invoke() throws AmbariException {
+      public LdapSyncEventEntity invoke() throws AmbariException, AuthorizationException {
 
         LdapSyncEventEntity eventEntity = toEntity(properties);
+
+        for (LdapSyncSpecEntity ldapSyncSpecEntity : eventEntity.getSpecs()) {
+          if (ldapSyncSpecEntity.getPrincipalType() == LdapSyncSpecEntity.PrincipalType.USERS) {
+            if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_USERS)) {
+              throw new AuthorizationException("The uthenticated user is not authorized to syng LDAP users");
+            }
+          } else {
+            if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_GROUPS)) {
+              throw new AuthorizationException("The uthenticated user is not authorized to syng LDAP groups");
+            }
+          }
+        }
 
         events.put(eventEntity.getId(), eventEntity);
 

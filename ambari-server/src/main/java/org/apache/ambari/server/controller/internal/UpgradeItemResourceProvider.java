@@ -49,6 +49,8 @@ import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.utils.SecretReference;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Manages the ability to get the status of upgrades.
@@ -56,11 +58,11 @@ import com.google.inject.Inject;
 @StaticallyInject
 public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
 
-  protected static final String UPGRADE_CLUSTER_NAME = "UpgradeItem/cluster_name";
-  protected static final String UPGRADE_REQUEST_ID = "UpgradeItem/request_id";
-  protected static final String UPGRADE_GROUP_ID = "UpgradeItem/group_id";
-  protected static final String UPGRADE_ITEM_STAGE_ID = "UpgradeItem/stage_id";
-  protected static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
+  public static final String UPGRADE_CLUSTER_NAME = "UpgradeItem/cluster_name";
+  public static final String UPGRADE_REQUEST_ID = "UpgradeItem/request_id";
+  public static final String UPGRADE_GROUP_ID = "UpgradeItem/group_id";
+  public static final String UPGRADE_ITEM_STAGE_ID = "UpgradeItem/stage_id";
+  public static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_ITEM_STAGE_ID));
@@ -93,6 +95,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
     for (String p : StageResourceProvider.PROPERTY_IDS) {
       STAGE_MAPPED_IDS.put(p, p.replace("Stage/", "UpgradeItem/"));
     }
+
     PROPERTY_IDS.addAll(STAGE_MAPPED_IDS.values());
 
     // keys
@@ -224,8 +227,13 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
             Resource r = resultMap.get(l);
             if (null != r) {
               for (String propertyId : StageResourceProvider.PROPERTY_IDS) {
-                setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId),
-                  stage.getPropertyValue(propertyId), requestPropertyIds);
+                // Attempt to mask any passwords in fields that are property maps.
+                Object value = stage.getPropertyValue(propertyId);
+                if (StageResourceProvider.PROPERTIES_TO_MASK_PASSWORD_IN.contains(propertyId) &&
+                    value.getClass().equals(String.class) && !StringUtils.isBlank((String) value)) {
+                  value = SecretReference.maskPasswordInPropertyMap((String) value);
+                }
+                setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId), value, requestPropertyIds);
               }
             }
           }

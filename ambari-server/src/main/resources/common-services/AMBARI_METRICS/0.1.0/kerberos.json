@@ -12,6 +12,9 @@
           "name": "METRICS_COLLECTOR",
           "identities": [
             {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
               "name": "ams_hbase_master_hbase",
               "principal": {
                 "value": "amshbase/_HOST@${realm}",
@@ -104,11 +107,15 @@
                 "hadoop.security.authentication": "kerberos",
                 "hbase.coprocessor.master.classes": "org.apache.hadoop.hbase.security.access.AccessController",
                 "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.AccessController",
-                "zookeeper.znode.parent": "/ams-hbase-secure",
                 "hbase.zookeeper.property.kerberos.removeHostFromPrincipal": "true",
                 "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal": "true",
                 "hbase.zookeeper.property.authProvider.1": "org.apache.zookeeper.server.auth.SASLAuthenticationProvider",
                 "hbase.zookeeper.property.jaasLoginRenew": "3600000"
+              }
+            },
+            {
+              "ams-hbase-site": {
+                "zookeeper.znode.parent": "/ams-hbase-secure"
               }
             }
           ]

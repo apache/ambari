@@ -20,8 +20,7 @@ limitations under the License.
 from resource_management.libraries.script.hook import Hook
 from shared_initialization import link_configs
 from shared_initialization import setup_config
-from shared_initialization import setup_hdp_install_directory
-from resource_management.libraries.script import Script
+from shared_initialization import setup_stack_symlinks
 
 class AfterInstallHook(Hook):
 
@@ -29,7 +28,7 @@ class AfterInstallHook(Hook):
     import params
 
     env.set_params(params)
-    setup_hdp_install_directory()
+    setup_stack_symlinks()
     setup_config()
 
     link_configs(self.stroutfile)

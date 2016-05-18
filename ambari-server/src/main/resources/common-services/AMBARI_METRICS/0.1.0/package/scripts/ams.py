@@ -18,7 +18,12 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.functions.format import format
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.str_utils import compress_backslashes
@@ -34,12 +39,12 @@ def ams(name=None):
 
     Directory(params.ams_collector_conf_dir,
               owner=params.ams_user,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.ams_checkpoint_dir,
               owner=params.ams_user,
-              recursive=True
+              create_parents = True
     )
 
     XmlConfig("ams-site.xml",
@@ -155,7 +160,7 @@ def ams(name=None):
 
     Directory(params.ams_monitor_conf_dir,
               owner=params.ams_user,
-              recursive=True
+              create_parents = True
     )
 
     TemplateConfig(
@@ -177,27 +182,37 @@ def ams(name=None):
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def ams(name=None):
+def ams(name=None, action=None):
   import params
 
   if name == 'collector':
     Directory(params.ams_collector_conf_dir,
               owner=params.ams_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True,
+              recursive_ownership = True,
     )
-
+    
     Directory(params.ams_checkpoint_dir,
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True
+              create_parents = True,
+              recursive_ownership = True
     )
 
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
               configurations=params.config['configurations']['ams-site'],
               configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              owner=params.ams_user,
+              group=params.user_group
+    )
+
+    XmlConfig("ssl-server.xml",
+              conf_dir=params.ams_collector_conf_dir,
+              configurations=params.config['configurations']['ams-ssl-server'],
+              configuration_attributes=params.config['configuration_attributes']['ams-ssl-server'],
               owner=params.ams_user,
               group=params.user_group
     )
@@ -241,7 +256,7 @@ def ams(name=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True,
+              create_parents = True,
               mode=0755,
     )
 
@@ -249,7 +264,7 @@ def ams(name=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True,
+              create_parents = True,
               mode=0755,
     )
 
@@ -261,7 +276,7 @@ def ams(name=None):
 
     # On some OS this folder could be not exists, so we will create it before pushing there files
     Directory(params.limits_conf_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root'
     )
@@ -281,7 +296,7 @@ def ams(name=None):
                 mode = 0755,
                 group=params.user_group,
                 cd_access="a",
-                recursive=True
+                create_parents = True
       )
     pass
 
@@ -323,34 +338,37 @@ def ams(name=None):
                 mode=0644
       )
 
+    if params.metric_collector_https_enabled:
+      export_ca_certs(params.ams_collector_conf_dir)
+
     pass
 
   elif name == 'monitor':
     Directory(params.ams_monitor_conf_dir,
               owner=params.ams_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.ams_monitor_log_dir,
               owner=params.ams_user,
               group=params.user_group,
               mode=0755,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.ams_monitor_pid_dir,
               owner=params.ams_user,
               group=params.user_group,
               mode=0755,
-              recursive=True
+              create_parents = True
     )
 
     Directory(format("{ams_monitor_dir}/psutil/build"),
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True)
+              create_parents = True)
 
     Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_dir}")
     )
@@ -374,7 +392,79 @@ def ams(name=None):
          content=InlineTemplate(params.ams_env_sh_template)
     )
 
-    # TODO
+    if params.metric_collector_https_enabled:
+      export_ca_certs(params.ams_monitor_conf_dir)
+
     pass
+  elif name == 'grafana':
+
+    ams_grafana_directories = [
+                              params.ams_grafana_conf_dir,
+                              params.ams_grafana_log_dir,
+                              params.ams_grafana_data_dir,
+                              params.ams_grafana_pid_dir
+                              ]
+
+    for ams_grafana_directory in ams_grafana_directories:
+      Directory(ams_grafana_directory,
+                owner=params.ams_user,
+                group=params.user_group,
+                mode=0755,
+                recursive_ownership = True
+                )
+
+    File(format("{ams_grafana_conf_dir}/ams-grafana-env.sh"),
+         owner=params.ams_user,
+         group=params.user_group,
+         content=InlineTemplate(params.ams_grafana_env_sh_template)
+         )
+
+    File(format("{ams_grafana_conf_dir}/ams-grafana.ini"),
+         owner=params.ams_user,
+         group=params.user_group,
+         content=InlineTemplate(params.ams_grafana_ini_template),
+         mode=0600
+         )
+
+    if action != 'stop':
+      for dir in ams_grafana_directories:
+        Execute(('chown', '-R', params.ams_user, dir),
+                sudo=True
+                )
+
+    if params.metric_collector_https_enabled:
+      export_ca_certs(params.ams_grafana_conf_dir)
+
+    pass
+
+def export_ca_certs(dir_path):
+  # export ca certificates on every restart to handle changed truststore content
+
+  import params
+  import tempfile
+
+  ca_certs_path = os.path.join(dir_path, params.metric_truststore_ca_certs)
+  truststore = params.metric_truststore_path
+
+  tmpdir = tempfile.mkdtemp()
+  truststore_p12 = os.path.join(tmpdir,'truststore.p12')
+
+  if (params.metric_truststore_type.lower() == 'jks'):
+    # Convert truststore from JKS to PKCS12
+    cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
+    Execute(cmd,
+    )
+    truststore = truststore_p12
+
+  # Export all CA certificates from the truststore to the conf directory
+  cmd = format("{sudo} openssl pkcs12 -in {truststore} -out {ca_certs_path} -cacerts -nokeys -passin pass:{metric_truststore_password}")
+  Execute(cmd,
+  )
+  Execute(('chown', params.ams_user, ca_certs_path),
+          sudo=True
+  )
+  Execute(format('{sudo} rm -rf {tmpdir}')
+  )
+
 
   pass

@@ -24,19 +24,21 @@ describe('App.EnhancedConfigsMixin', function() {
   var instanceObject = mixinObject.create({});
   describe('#removeCurrentFromDependentList()', function() {
     it('update some fields', function() {
-      instanceObject.get('_dependentConfigValues').pushObject({
+      instanceObject.get('recommendations').pushObject({
           saveRecommended: true,
           saveRecommendedDefault: true,
+          configGroup: "Default",
           propertyName: 'p1',
-          fileName: 'f1',
+          propertyFileName: 'f1',
           value: 'v1'
         });
       instanceObject.removeCurrentFromDependentList(Em.Object.create({name: 'p1', filename: 'f1.xml', value: 'v2'}));
-      expect(instanceObject.get('_dependentConfigValues')[0]).to.eql({
+      expect(instanceObject.get('recommendations')[0]).to.eql({
         saveRecommended: false,
         saveRecommendedDefault: false,
+        configGroup: "Default",
         propertyName: 'p1',
-        fileName: 'f1',
+        propertyFileName: 'f1',
         value: 'v1'
       });
     });

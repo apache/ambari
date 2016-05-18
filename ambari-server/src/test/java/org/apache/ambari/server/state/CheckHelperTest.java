@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import junit.framework.Assert;
@@ -29,11 +30,11 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.checks.ServicesUpCheck;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -60,6 +61,9 @@ public class CheckHelperTest {
    * Makes sure that people don't forget to add new checks to registry.
    */
 
+  /**
+   * Sunny case when applicable.
+   */
   @Test
   public void testPreUpgradeCheck() throws Exception {
     final CheckHelper helper = new CheckHelper();
@@ -75,6 +79,9 @@ public class CheckHelperTest {
     EasyMock.verify(descriptor);
   }
 
+  /**
+   * Checks can be ignored, even if they are expected to fail.
+   */
   @Test
   public void testPreUpgradeCheckNotApplicable() throws Exception {
     final CheckHelper helper = new CheckHelper();
@@ -87,6 +94,9 @@ public class CheckHelperTest {
     EasyMock.verify(descriptor);
   }
 
+  /**
+   * Check that throwing an exception still fails.
+   */
   @Test
   public void testPreUpgradeCheckThrowsException() throws Exception {
     final CheckHelper helper = new CheckHelper();
@@ -102,6 +112,25 @@ public class CheckHelperTest {
     final List<PrerequisiteCheck> upgradeChecks = helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry);
     EasyMock.verify(descriptor);
     Assert.assertEquals(PrereqCheckStatus.FAIL, upgradeChecks.get(0).getStatus());
+  }
+
+  /**
+   * Test that applicable tests that fail when configured to bypass failures results in a status of {@see PrereqCheckStatus.BYPASS}
+   */
+  @Test
+  public void testPreUpgradeCheckBypassesFailure() throws Exception {
+    // This mock class extends CheckHelper and overrides the getPrerequisiteChecks method in order to return
+    // a PrerequisiteCheck object whose status is FAIL.
+    final CheckHelperMock helper =  new CheckHelperMock();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+
+    PrereqCheckRequest checkRequest = EasyMock.createNiceMock(PrereqCheckRequest.class);
+    EasyMock.expect(checkRequest.getClusterName()).andReturn("c1").anyTimes();
+    EasyMock.replay(checkRequest);
+
+    final List<PrerequisiteCheck> upgradeChecks = helper.performChecks(checkRequest, updateChecksRegistry);
+    Assert.assertEquals(1, upgradeChecks.size());
+    Assert.assertEquals(PrereqCheckStatus.BYPASS, upgradeChecks.get(0).getStatus());
   }
 
   @Test
@@ -128,6 +157,7 @@ public class CheckHelperTest {
         bind(Clusters.class).toInstance(clusters);
         bind(ClusterVersionDAO.class).toProvider(Providers.<ClusterVersionDAO>of(null));
         bind(HostVersionDAO.class).toProvider(Providers.<HostVersionDAO>of(null));
+        bind(UpgradeDAO.class).toProvider(Providers.<UpgradeDAO>of(null));
         bind(RepositoryVersionDAO.class).toProvider(Providers.<RepositoryVersionDAO>of(null));
         bind(RepositoryVersionHelper.class).toProvider(Providers.<RepositoryVersionHelper>of(null));
         bind(AmbariMetaInfo.class).toProvider(Providers.<AmbariMetaInfo>of(null));
@@ -147,6 +177,35 @@ public class CheckHelperTest {
     Assert.assertEquals(PrereqCheckStatus.FAIL, upgradeChecks.get(0).getStatus());
     //non existing cluster is an expected error
     Assert.assertTrue(!upgradeChecks.get(0).getFailReason().equals("Unexpected server error happened"));
+  }
+
+  class CheckHelperMock extends CheckHelper {
+    @Override
+    public List<DescriptorPreCheck> getApplicablePrerequisiteChecks(PrereqCheckRequest request,
+                                                          List<AbstractCheckDescriptor> checksRegistry) {
+
+      List<DescriptorPreCheck> applicablePreChecks = new LinkedList<>();
+
+      try {
+        CheckDescription description = CheckDescription.SERVICES_UP;
+        PrerequisiteCheck check = new PrerequisiteCheck(description, "c1");
+        check.setStatus(PrereqCheckStatus.FAIL);
+
+        AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
+        EasyMock.expect(descriptor.isApplicable(EasyMock.<PrereqCheckRequest>anyObject())).andReturn(true);
+        EasyMock.expect(descriptor.getDescription()).andReturn(description).anyTimes();
+
+        // Allow bypassing failures
+        EasyMock.expect(descriptor.isStackUpgradeAllowedToBypassPreChecks()).andReturn(true);
+        EasyMock.replay(descriptor);
+
+        applicablePreChecks.add(new DescriptorPreCheck(descriptor, check));
+      } catch (AmbariException e) {
+        ;
+      }
+
+      return applicablePreChecks;
+    }
   }
 }
 

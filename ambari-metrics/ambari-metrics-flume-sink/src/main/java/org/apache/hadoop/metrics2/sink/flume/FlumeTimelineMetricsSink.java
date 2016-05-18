@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.metrics2.sink.flume;
 
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.flume.Context;
 import org.apache.flume.FlumeException;
@@ -96,9 +95,13 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
         String.valueOf(TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS)));
     metricsCaches = new HashMap<String, TimelineMetricsCache>();
-    String collectorHostname = configuration.getProperty(COLLECTOR_HOST_PROPERTY);
-    String port = configuration.getProperty(COLLECTOR_PORT_PROPERTY);
-    collectorUri = "http://" + collectorHostname + ":" + port + "/ws/v1/timeline/metrics";
+    collectorUri = configuration.getProperty(COLLECTOR_PROPERTY) + WS_V1_TIMELINE_METRICS;
+    if (collectorUri.toLowerCase().startsWith("https://")) {
+      String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
+      String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
+      String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
+      loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
+    }
     pollFrequency = Long.parseLong(configuration.getProperty("collectionFrequency"));
 
     String[] metrics = configuration.getProperty(COUNTER_METRICS_PROPERTY).trim().split(",");
@@ -135,12 +138,11 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     public void run() {
       LOG.debug("Collecting Metrics for Flume");
       try {
-        Map<String, Map<String, String>> metricsMap =
-            JMXPollUtil.getAllMBeans();
+        Map<String, Map<String, String>> metricsMap = JMXPollUtil.getAllMBeans();
         long currentTimeMillis = System.currentTimeMillis();
         for (String component : metricsMap.keySet()) {
           Map<String, String> attributeMap = metricsMap.get(component);
-          LOG.info("Attributes for component " + component);
+          LOG.debug("Attributes for component " + component);
           processComponentAttributes(currentTimeMillis, component, attributeMap);
         }
       } catch (UnableToConnectException uce) {
@@ -188,8 +190,6 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       timelineMetric.setInstanceId(component);
       timelineMetric.setAppId("FLUME_HANDLER");
       timelineMetric.setStartTime(currentTimeMillis);
-      timelineMetric.setType(ClassUtils.getShortCanonicalName(
-          attributeValue, "Number"));
       timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));
       return timelineMetric;
     }

@@ -22,48 +22,57 @@ require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widgets/datanode_live');
 
+var view;
+
+function testCounterOrNa(propertyName, dependentKey) {
+  describe('#' + propertyName, function () {
+
+    beforeEach(function () {
+      view.reopen({
+        model: Em.Object.create({
+          metricsNotAvailable: true
+        })
+      });
+      view.get('model').set(dependentKey, []);
+    });
+
+    it('n/a (1)', function () {
+      view.get('model').set(dependentKey, []);
+      view.get('model').set('metricsNotAvailable', true);
+      expect(view.get(propertyName)).to.be.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('n/a (2)', function () {
+      view.get('model').set(dependentKey, null);
+      view.get('model').set('metricsNotAvailable', true);
+      expect(view.get(propertyName)).to.be.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('n/a (3)', function () {
+      view.get('model').set(dependentKey, null);
+      view.get('model').set('metricsNotAvailable', false);
+      expect(view.get(propertyName)).to.be.equal(Em.I18n.t('services.service.summary.notAvailable'));
+    });
+
+    it('value exist', function () {
+      view.get('model').set(dependentKey, [{}]);
+      view.get('model').set('metricsNotAvailable', false);
+      expect(view.get(propertyName)).to.be.equal(1);
+    });
+
+  });
+}
+
 describe('App.DataNodeUpView', function() {
 
-  var tests = [
-    {
-      data: 100,
-      e: {
-        isRed: false,
-        isOrange: false,
-        isGreen: true
-      }
-    },
-    {
-      data: 0,
-      e: {
-        isRed: true,
-        isOrange: false,
-        isGreen: false
-      }
-    },
-    {
-      data: 50,
-      e: {
-        isRed: false,
-        isOrange: true,
-        isGreen: false
-      }
-    }
-  ];
-
-  tests.forEach(function(test) {
-    describe('', function() {
-      var dataNodeUpView = App.DataNodeUpView.create({model_type:null, data: test.data, content: test.data.toString()});
-      it('isRed', function() {
-        expect(dataNodeUpView.get('isRed')).to.equal(test.e.isRed);
-      });
-      it('isOrange', function() {
-        expect(dataNodeUpView.get('isOrange')).to.equal(test.e.isOrange);
-      });
-      it('isGreen', function() {
-        expect(dataNodeUpView.get('isGreen')).to.equal(test.e.isGreen);
-      });
-    });
+  beforeEach(function () {
+    view = App.DataNodeUpView.create();
   });
+
+  testCounterOrNa('dataNodesLive', 'liveDataNodes');
+
+  testCounterOrNa('dataNodesDead', 'deadDataNodes');
+
+  testCounterOrNa('dataNodesDecom', 'decommissionDataNodes');
 
 });

@@ -18,20 +18,22 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.StageEntity;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class HostDAO {
@@ -111,11 +113,6 @@ public class HostDAO {
   @Transactional
   public void remove(HostEntity hostEntity) {
     entityManagerProvider.get().remove(merge(hostEntity));
-  }
-
-  @Transactional
-  public void removeByName(String hostName) {
-    remove(findByName(hostName));
   }
 
   public List<String> getHostNamesByHostIds(List<Long> hostIds) {

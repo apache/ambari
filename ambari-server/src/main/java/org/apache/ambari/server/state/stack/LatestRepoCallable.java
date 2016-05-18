@@ -21,13 +21,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +75,8 @@ public class LatestRepoCallable implements Callable<Void> {
             LOOKUP_CONNECTION_TIMEOUT, LOOKUP_READ_TIMEOUT,
             null, null, null);
 
-        LOG.info("Loading latest URL info for stack " + stack.getName() + "-" +
-                stack.getVersion() + " from " + sourceUri);
+        LOG.info("Loading latest URL info for stack {}-{} from {}", stack.getName(),
+                stack.getVersion(), sourceUri);
         latestUrlMap = gson.fromJson(new InputStreamReader(
             streamProvider.readFrom(sourceUri)), type);
       } else {
@@ -84,23 +88,24 @@ public class LatestRepoCallable implements Callable<Void> {
         }
 
         if (jsonFile.exists()) {
-          LOG.info("Loading latest URL info for stack " + stack.getName() + "-" +
-                  stack.getVersion() + " from " + jsonFile);
+          LOG.info("Loading latest URL info for stack{}-{} from {}", stack.getName(),
+                  stack.getVersion(), jsonFile);
           latestUrlMap = gson.fromJson(new FileReader(jsonFile), type);
         }
       }
     } catch (Exception e) {
-      LOG.info("Could not load the URI for stack " + stack.getName() + "-" +
-              stack.getVersion() + " from " + sourceUri + " (" + e.getMessage() + ")" +
-              ". Using default repository values.");
+      LOG.info("Could not load the URI for stack {}-{} from {}, ({}).  Using default repository values",
+          stack.getName(), stack.getVersion(), sourceUri, e.getMessage());
       throw e;
     }
 
-
+    // !!! process latest overrides
     if (null != latestUrlMap) {
       for (RepositoryInfo ri : stack.getRepositories()) {
         if (latestUrlMap.containsKey(ri.getRepoId())) {
+
           Map<String, Object> valueMap = latestUrlMap.get(ri.getRepoId());
+
           if (valueMap.containsKey("latest")) {
 
             @SuppressWarnings("unchecked")
@@ -112,7 +117,7 @@ public class LatestRepoCallable implements Callable<Void> {
               // Agents do the reverse action (take the base url, and append <name>.repo)
 
               String repo_file_format;
-              
+
               if(os_family.isUbuntuFamily(ri.getOsType())) {
                 repo_file_format = "list";
               } else {
@@ -141,8 +146,75 @@ public class LatestRepoCallable implements Callable<Void> {
       }
     }
 
+    StackId stackId = new StackId(stack);
+    if (!latestUrlMap.containsKey(stackId.toString())) {
+      return null;
+    }
+
+    Map<String, Object> map = latestUrlMap.get(stackId.toString());
+    if (null == map || !map.containsKey("manifests")) {
+      return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> versionMap = (Map<String, Object>) map.get("manifests");
+
+    // EACH VDF is for ONLY ONE repository.  We must provide a merged view.
+    // there is no good way around this, so we have to make some concessions
+
+    // !!! each key is a version number, and the value is a map containing
+    // os_family -> VDF link
+
+    for (Entry<String, Object> entry : versionMap.entrySet()) {
+      String version = entry.getKey();
+
+      @SuppressWarnings("unchecked")
+      Map<String, String> osMap = (Map<String, String>) entry.getValue();
+
+      VersionDefinitionXml xml = mergeDefinitions(stackId, version, osMap);
+
+      if (null != xml) {
+        stack.addVersionDefinition(version, xml);
+      }
+    }
+
     return null;
   }
+
+  /**
+   * Merges definitions loaded from the common file
+   * @param stackId the stack id
+   * @param version the version string
+   * @param osMap   the map containing all the VDF for an OS
+   * @return the merged version definition
+   * @throws Exception
+   */
+  private VersionDefinitionXml mergeDefinitions(StackId stackId, String version, Map<String, String> osMap) throws Exception {
+    VersionDefinitionXml.Merger merger = new VersionDefinitionXml.Merger();
+
+    for (Entry<String, String> versionEntry : osMap.entrySet()) {
+      String uriString = versionEntry.getValue();
+
+      if ('.' == uriString.charAt(0)) {
+        uriString = new File(stackRepoFolder, uriString).toURI().toString();
+      }
+
+      try {
+        URI uri = new URI(uriString);
+
+        VersionDefinitionXml xml = VersionDefinitionXml.load(uri.toURL());
+
+        merger.add(version, xml);
+      } catch (Exception e) {
+        LOG.warn("Could not load version definition for {} identified by {}. {}",
+            stackId, uriString, e.getMessage(), e);
+      }
+    }
+
+    return merger.merge();
+  }
+
+
 
   /**
    * Resolves a base url given that certain OS types can be used interchangeably.

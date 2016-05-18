@@ -126,13 +126,14 @@ def get_ntp_service():
 class HostInfoLinux(HostInfo):
   # List of project names to be used to find alternatives folders etc.
   DEFAULT_PROJECT_NAMES = [
-    "hadoop*", "hadoop", "hbase", "hcatalog", "hive", "ganglia",
+    "hadoop*", "hadoop", "hbase", "hcatalog", "hive",
     "oozie", "sqoop", "hue", "zookeeper", "mapred", "hdfs", "flume",
     "storm", "hive-hcatalog", "tez", "falcon", "ambari_qa", "hadoop_deploy",
     "rrdcached", "hcat", "ambari-qa", "sqoop-ambari-qa", "sqoop-ambari_qa",
     "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce",
     "knox", "yarn", "hive-webhcat", "kafka", "slider", "storm-slider-client",
-    "ganglia-web", "mahout", "spark", "pig", "phoenix", "ranger", "accumulo"
+    "mahout", "spark", "pig", "phoenix", "ranger", "accumulo",
+    "ambari-metrics-collector", "ambari-metrics-monitor", "atlas"
   ]
 
 
@@ -208,7 +209,13 @@ class HostInfoLinux(HostInfo):
     try:
       pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
       for pid in pids:
-        cmd = open(os.path.join('/proc', pid, 'cmdline'), 'rb').read()
+        try:
+          fp = open(os.path.join('/proc', pid, 'cmdline'), 'rb')
+        except IOError:
+          continue # avoid race condition if this process already died, since the moment we got pids list.
+
+        cmd = fp.read()
+        fp.close()
         cmd = cmd.replace('\0', ' ')
         if not 'AmbariServer' in cmd:
           if 'java' in cmd:
@@ -218,7 +225,7 @@ class HostInfoLinux(HostInfo):
             for filter in self.PROC_FILTER:
               if filter in cmd:
                 dict['hadoop'] = True
-            dict['command'] = cmd.strip()
+            dict['command'] = unicode(cmd.strip(), errors='ignore')
             for line in open(os.path.join('/proc', pid, 'status')):
               if line.startswith('Uid:'):
                 uid = int(line.split()[1])

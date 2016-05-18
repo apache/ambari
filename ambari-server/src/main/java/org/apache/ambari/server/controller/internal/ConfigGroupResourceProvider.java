@@ -41,6 +41,10 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -54,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -107,6 +112,18 @@ public class ConfigGroupResourceProvider extends
        Map<Resource.Type, String> keyPropertyIds,
        AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
+
+    EnumSet<RoleAuthorization> manageGroupsAuthSet =
+        EnumSet.of(RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS, RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS);
+
+    setRequiredCreateAuthorizations(manageGroupsAuthSet);
+    setRequiredDeleteAuthorizations(manageGroupsAuthSet);
+    setRequiredUpdateAuthorizations(manageGroupsAuthSet);
+
+
+    setRequiredGetAuthorizations(EnumSet.of(RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS, RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS, RoleAuthorization.SERVICE_COMPARE_CONFIGS));
   }
 
   @Override
@@ -115,7 +132,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   @Override
-  public RequestStatus createResources(Request request) throws
+  public RequestStatus createResourcesAuthorized(Request request) throws
        SystemException, UnsupportedPropertyException,
        ResourceAlreadyExistsException, NoSuchParentResourceException {
 
@@ -129,7 +146,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws
+  public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
        SystemException, UnsupportedPropertyException, NoSuchResourceException,
        NoSuchParentResourceException {
 
@@ -177,7 +194,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate) throws
+  public RequestStatus updateResourcesAuthorized(Request request, Predicate predicate) throws
        SystemException, UnsupportedPropertyException,
        NoSuchResourceException, NoSuchParentResourceException {
 
@@ -198,7 +215,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate) throws
        SystemException, UnsupportedPropertyException, NoSuchResourceException,
        NoSuchParentResourceException {
 
@@ -207,7 +224,7 @@ public class ConfigGroupResourceProvider extends
 
       modifyResources(new Command<Void>() {
         @Override
-        public Void invoke() throws AmbariException {
+        public Void invoke() throws AmbariException, AuthorizationException {
           deleteConfigGroup(configGroupRequest);
           return null;
         }
@@ -252,7 +269,7 @@ public class ConfigGroupResourceProvider extends
     Set<ConfigGroupResponse> responses =
         createResources(new Command<Set<ConfigGroupResponse>>() {
           @Override
-          public Set<ConfigGroupResponse> invoke() throws AmbariException {
+          public Set<ConfigGroupResponse> invoke() throws AmbariException, AuthorizationException {
             return createConfigGroups(requests);
           }
         });
@@ -275,7 +292,7 @@ public class ConfigGroupResourceProvider extends
 
     modifyResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         updateConfigGroups(requests);
         return null;
       }
@@ -410,7 +427,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   private synchronized void deleteConfigGroup(ConfigGroupRequest request)
-    throws AmbariException {
+      throws AmbariException, AuthorizationException {
     if (request.getId() == null) {
       throw new AmbariException("Config group id is a required field.");
     }
@@ -430,6 +447,24 @@ public class ConfigGroupResourceProvider extends
       + ", clusterName = " + cluster.getClusterName()
       + ", id = " + request.getId()
       + ", user = " + getManagementController().getAuthName());
+
+    ConfigGroup configGroup = cluster.getConfigGroups().get(request.getId());
+
+    if (configGroup == null) {
+      throw new ConfigGroupNotFoundException(cluster.getClusterName(), request.getId().toString());
+    }
+
+    if (StringUtils.isEmpty(configGroup.getServiceName())) {
+      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
+        throw new AuthorizationException("The authenticated user is not authorized to delete config groups");
+      }
+    } else {
+      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS)) {
+        throw new AuthorizationException("The authenticated user is not authorized to delete config groups");
+      }
+    }
 
     cluster.deleteConfigGroup(request.getId());
   }
@@ -453,7 +488,7 @@ public class ConfigGroupResourceProvider extends
   }
 
   private synchronized Set<ConfigGroupResponse> createConfigGroups
-    (Set<ConfigGroupRequest> requests) throws AmbariException {
+    (Set<ConfigGroupRequest> requests) throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -508,15 +543,33 @@ public class ConfigGroupResourceProvider extends
 
       verifyHostList(cluster, hosts, request);
 
+      String serviceName = null;
+      if (request.getConfigs() != null && !request.getConfigs().isEmpty()) {
+        try {
+          serviceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+        } catch (IllegalArgumentException e) {
+          // Ignore this since we may have hit a config type that spans multiple services. This may
+          // happen in unit test cases but should not happen with later versions of stacks.
+        }
+      }
+
+      if (StringUtils.isEmpty(serviceName)) {
+        if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+            RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
+          throw new AuthorizationException("The authenticated user is not authorized to create config groups");
+        }
+      } else {
+        if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+            RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS)) {
+          throw new AuthorizationException("The authenticated user is not authorized to create config groups");
+        }
+      }
+
       ConfigGroup configGroup = configGroupFactory.createNew(cluster,
         request.getGroupName(),
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
 
-      String serviceName = null;
-      if (request.getConfigs() != null && !request.getConfigs().isEmpty()) {
-        serviceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
-      }
       configGroup.setServiceName(serviceName);
 
       // Persist before add, since id is auto-generated
@@ -546,7 +599,7 @@ public class ConfigGroupResourceProvider extends
     return configGroupResponses;
   }
 
-  private synchronized void updateConfigGroups (Set<ConfigGroupRequest> requests) throws AmbariException {
+  private synchronized void updateConfigGroups (Set<ConfigGroupRequest> requests) throws AmbariException, AuthorizationException {
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
       return;
@@ -579,6 +632,17 @@ public class ConfigGroupResourceProvider extends
       }
       String serviceName = configGroup.getServiceName();
       String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+      if (StringUtils.isEmpty(serviceName) && StringUtils.isEmpty(requestServiceName)) {
+        if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+            RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
+          throw new AuthorizationException("The authenticated user is not authorized to update config groups");
+        }
+      } else {
+        if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+            RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS)) {
+          throw new AuthorizationException("The authenticated user is not authorized to update config groups");
+        }
+      }
       if (serviceName != null && requestServiceName !=null && !StringUtils.equals(serviceName, requestServiceName)) {
         throw new IllegalArgumentException("Config group " + configGroup.getId() +
             " is mapped to service " + serviceName + ", " +

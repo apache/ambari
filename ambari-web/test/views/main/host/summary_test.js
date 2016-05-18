@@ -24,21 +24,34 @@ require('mappers/server_data_mapper');
 require('views/main/host/summary');
 
 var mainHostSummaryView;
-var extendedMainHostSummaryView = App.MainHostSummaryView.extend({content: {}, addToolTip: function(){}, installedServices: []});
 var modelSetup = require('test/init_model_test');
 
 describe('App.MainHostSummaryView', function() {
 
   beforeEach(function() {
     modelSetup.setupStackServiceComponent();
-    mainHostSummaryView = extendedMainHostSummaryView.create({});
+    mainHostSummaryView = App.MainHostSummaryView.create({content: Em.Object.create()});
   });
 
   afterEach(function(){
     modelSetup.cleanStackServiceComponent();
   });
 
-  describe('#sortedComponents', function() {
+  describe("#installedServices", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.Service, 'find').returns([Em.Object.create({serviceName: 'S1'})]);
+    });
+    afterEach(function() {
+      App.Service.find.restore();
+    });
+
+    it("should return installed services", function() {
+      expect(mainHostSummaryView.get('installedServices')).to.eql(['S1']);
+    });
+  });
+
+  describe('#sortedComponentsFormatter()', function() {
 
     var tests = Em.A([
       {
@@ -274,107 +287,71 @@ describe('App.MainHostSummaryView', function() {
 
   describe('#addableComponents', function() {
 
+    beforeEach(function() {
+      this.mock = sinon.stub(App.StackServiceComponent, 'find');
+      sinon.stub(mainHostSummaryView, 'hasCardinalityConflict').returns(false);
+    });
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+      mainHostSummaryView.hasCardinalityConflict.restore();
+    });
+
     var tests = Em.A([
       {
-        installableClientComponents: [{}, {}],
+        addableToHostComponents: [
+          Em.Object.create({
+            serviceName: 'HDFS',
+            componentName: 'DATANODE',
+            isAddableToHost: true
+          }),
+          Em.Object.create({
+            serviceName: 'HDFS',
+            componentName: 'HDFS_CLIENT',
+            isAddableToHost: true
+          })
+        ],
         content: Em.Object.create({
           hostComponents: Em.A([
             Em.Object.create({
               componentName: 'HDFS_CLIENT'
-            }),
-            Em.Object.create({
-              componentName: 'DATANODE'
             })
           ])
         }),
-        services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: ['NODEMANAGER', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT'],
+        services: ['HDFS'],
+        e: ['DATANODE'],
         m: 'some components are already installed'
       },
       {
-        installableClientComponents: [],
+        addableToHostComponents: [
+          Em.Object.create({
+            serviceName: 'HDFS',
+            componentName: 'HDFS_CLIENT',
+            isAddableToHost: true
+          })
+        ],
         content: Em.Object.create({
           hostComponents: Em.A([
             Em.Object.create({
               componentName: 'HDFS_CLIENT'
-            }),
-            Em.Object.create({
-              componentName: 'YARN_CLIENT'
-            }),
-            Em.Object.create({
-              componentName: 'MAPREDUCE2_CLIENT'
-            }),
-            Em.Object.create({
-              componentName: 'NODEMANAGER'
             })
           ])
         }),
-        services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: ['DATANODE'],
-        m: 'all clients and some other components are already installed'
+        services: ['HDFS'],
+        e: [],
+        m: 'all components are already installed'
       }
     ]);
 
     tests.forEach(function(test) {
       it(test.m, function() {
-        mainHostSummaryView.reopen({installableClientComponents: test.installableClientComponents});
+        this.mock.returns(test.addableToHostComponents);
         mainHostSummaryView.set('content', test.content);
-        mainHostSummaryView.set('installedServices', test.services);
+        mainHostSummaryView.reopen({
+          installedServices: test.services
+        });
+        mainHostSummaryView.propertyDidChange('addableComponents');
         expect(mainHostSummaryView.get('addableComponents').mapProperty('componentName')).to.eql(test.e);
       });
-    });
-
-  });
-
-  describe("#clientsWithCustomCommands", function() {
-    before(function() {
-      sinon.stub(App.StackServiceComponent, 'find', function(component) {
-        var customCommands = [];
-
-        if (component == 'WITH_CUSTOM_COMMANDS') {
-          customCommands = ['CUSTOMCOMMAND'];
-        }
-
-        var obj = Em.Object.create({
-          customCommands: customCommands,
-          filterProperty: function () {
-            return {
-              mapProperty: Em.K
-            };
-          }
-        });
-        return obj;
-      });
-    });
-
-    after(function() {
-      App.StackServiceComponent.find.restore();
-    });
-    var content = Em.Object.create({
-      hostComponents: Em.A([
-        Em.Object.create({
-          componentName: 'WITH_CUSTOM_COMMANDS',
-          displayName: 'WITH_CUSTOM_COMMANDS',
-          hostName: 'c6401',
-          service: Em.Object.create({
-            serviceName: 'TESTSRV'
-          })
-        }),
-        Em.Object.create({
-          componentName: 'WITHOUT_CUSTOM_COMMANDS',
-          displayName: 'WITHOUT_CUSTOM_COMMANDS',
-          hostName: 'c6401',
-          service: Em.Object.create({
-            serviceName: 'TESTSRV'
-          })
-        })
-      ])
-    });
-
-    it("Clients with custom commands only", function() {
-      mainHostSummaryView.set('content', content);
-      expect(mainHostSummaryView.get('clientsWithCustomCommands').length).to.eql(1);
-      expect(mainHostSummaryView.get('clientsWithCustomCommands')).to.have.deep.property('[0].commands[0].command', 'CUSTOMCOMMAND');
     });
   });
 
@@ -474,5 +451,215 @@ describe('App.MainHostSummaryView', function() {
       ]);
     });
 
+  });
+
+  describe("#needToRestartMessage", function() {
+
+    it("one component", function() {
+      var expected = Em.I18n.t('hosts.host.details.needToRestart').format(1, Em.I18n.t('common.component').toLowerCase());
+      mainHostSummaryView.set('content', Em.Object.create({
+        componentsWithStaleConfigsCount: 1
+      }));
+      expect(mainHostSummaryView.get('needToRestartMessage')).to.equal(expected);
+    });
+
+    it("multiple components", function() {
+      var expected = Em.I18n.t('hosts.host.details.needToRestart').format(2, Em.I18n.t('common.components').toLowerCase());
+      mainHostSummaryView.set('content', Em.Object.create({
+        componentsWithStaleConfigsCount: 2
+      }));
+      expect(mainHostSummaryView.get('needToRestartMessage')).to.equal(expected);
+    });
+
+  });
+
+  describe("#redrawComponents()", function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+      sinon.stub(mainHostSummaryView, 'sortedComponentsFormatter');
+      sinon.stub(App.router, 'set');
+    });
+    afterEach(function() {
+      this.mock.restore();
+      mainHostSummaryView.sortedComponentsFormatter.restore();
+      App.router.set.restore();
+    });
+
+    it("redrawComponents is false", function() {
+      this.mock.returns(false);
+      mainHostSummaryView.redrawComponents();
+      expect(mainHostSummaryView.sortedComponentsFormatter.called).to.be.false;
+    });
+
+    it("redrawComponents is true", function() {
+      this.mock.returns(true);
+      mainHostSummaryView.redrawComponents();
+      expect(mainHostSummaryView.sortedComponentsFormatter.calledOnce).to.be.true;
+      expect(mainHostSummaryView.get('sorteComponents')).to.be.empty;
+      expect(App.router.set.calledWith('mainHostDetailsController.redrawComponents', false)).to.be.true;
+    });
+
+  });
+
+  describe("#willInsertElement()", function() {
+
+    beforeEach(function() {
+      sinon.stub(mainHostSummaryView, 'sortedComponentsFormatter');
+      sinon.stub(mainHostSummaryView, 'addObserver');
+    });
+    afterEach(function() {
+      mainHostSummaryView.sortedComponentsFormatter.restore();
+      mainHostSummaryView.addObserver.restore();
+    });
+
+    it("sortedComponentsFormatter should be called ", function() {
+      mainHostSummaryView.willInsertElement();
+      expect(mainHostSummaryView.sortedComponentsFormatter.calledOnce).to.be.true;
+      expect(mainHostSummaryView.addObserver.calledWith('content.hostComponents.length', mainHostSummaryView, 'sortedComponentsFormatter')).to.be.true;
+      expect(mainHostSummaryView.get('sortedComponents')).to.be.empty;
+    });
+  });
+
+  describe("#didInsertElement()", function() {
+
+    beforeEach(function() {
+      sinon.stub(mainHostSummaryView, 'addToolTip');
+    });
+    afterEach(function() {
+      mainHostSummaryView.addToolTip.restore();
+    });
+
+    it("addToolTip should be called", function() {
+      mainHostSummaryView.didInsertElement();
+      expect(mainHostSummaryView.addToolTip.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#addToolTip()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'tooltip');
+      mainHostSummaryView.removeObserver('addComponentDisabled', mainHostSummaryView, 'addToolTip');
+    });
+    afterEach(function() {
+      App.tooltip.restore();
+    });
+
+    it("addComponentDisabled is false ", function() {
+      mainHostSummaryView.reopen({
+        addComponentDisabled: false
+      });
+      mainHostSummaryView.addToolTip();
+      expect(App.tooltip.called).to.be.false;
+    });
+
+    it("addComponentDisabled is true ", function() {
+      mainHostSummaryView.reopen({
+        addComponentDisabled: true
+      });
+      mainHostSummaryView.addToolTip();
+      expect(App.tooltip.called).to.be.true;
+    });
+
+  });
+
+  describe("#installableClientComponents", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.StackServiceComponent, 'find').returns([
+        Em.Object.create({
+          isClient: true,
+          serviceName: 'S1',
+          componentName: 'C1'
+        }),
+        Em.Object.create({
+          isClient: true,
+          serviceName: 'S1',
+          componentName: 'C2'
+        }),
+        Em.Object.create({
+          isClient: true,
+          serviceName: 'S2',
+          componentName: 'C1'
+        })
+      ]);
+    });
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+    });
+
+    it("should return installable client components", function() {
+      mainHostSummaryView.reopen({
+        installedServices: ['S1'],
+        clients: [
+          Em.Object.create({componentName: 'C2'})
+        ]
+      });
+      mainHostSummaryView.propertyDidChange('installableClientComponents');
+      expect(mainHostSummaryView.get('installableClientComponents').mapProperty('componentName')).to.eql(['C1']);
+    });
+  });
+
+  describe("#hasCardinalityConflict()", function () {
+
+    beforeEach(function() {
+      this.mockSlave = sinon.stub(App.SlaveComponent, 'find');
+      this.mockStack = sinon.stub(App.StackServiceComponent, 'find');
+    });
+
+    afterEach(function() {
+      this.mockSlave.restore();
+      this.mockStack.restore();
+    });
+
+    it("totalCount equal to maxToInstall", function() {
+      this.mockSlave.returns(Em.Object.create({
+        totalCount: 1
+      }));
+      this.mockStack.returns(Em.Object.create({
+        maxToInstall: 1
+      }));
+      expect(mainHostSummaryView.hasCardinalityConflict('C1')).to.be.true;
+    });
+
+    it("totalCount more than maxToInstall", function() {
+      this.mockSlave.returns(Em.Object.create({
+        totalCount: 2
+      }));
+      this.mockStack.returns(Em.Object.create({
+        maxToInstall: 1
+      }));
+      expect(mainHostSummaryView.hasCardinalityConflict('C1')).to.be.true;
+    });
+
+    it("totalCount less than maxToInstall", function() {
+      this.mockSlave.returns(Em.Object.create({
+        totalCount: 0
+      }));
+      this.mockStack.returns(Em.Object.create({
+        maxToInstall: 1
+      }));
+      expect(mainHostSummaryView.hasCardinalityConflict('C1')).to.be.false;
+    });
+  });
+
+  describe("#installClients()", function () {
+
+    beforeEach(function () {
+      var controller = {installClients: Em.K};
+      sinon.spy(controller, 'installClients');
+      mainHostSummaryView.set('controller', controller);
+      mainHostSummaryView.reopen({'notInstalledClientComponents': [1,2,3]});
+    });
+
+    afterEach(function () {
+      mainHostSummaryView.get('controller.installClients').restore();
+    });
+
+    it("should call installClients method from controller", function () {
+      mainHostSummaryView.installClients();
+      expect(mainHostSummaryView.get('controller.installClients').calledWith([1,2,3])).to.be.true;
+    });
   });
 });

@@ -214,6 +214,30 @@ public class ConfigUpgradeChangeDefinition {
   public static class Masked {
     @XmlAttribute(name = "mask")
     public boolean mask = false;
+
+    /**
+     * The key to read for the if condition.
+     */
+    @XmlAttribute(name = "if-key")
+    public String ifKey;
+
+    /**
+     * The config type to read for the if condition.
+     */
+    @XmlAttribute(name = "if-type")
+    public String ifType;
+
+    /**
+     * The property value to compare against for the if condition.
+     */
+    @XmlAttribute(name = "if-value")
+    public String ifValue;
+
+    /**
+     * The property key state for the if condition
+     */
+    @XmlAttribute(name = "if-key-state")
+    public PropertyKeyState ifKeyState;
   }
 
 
@@ -228,6 +252,18 @@ public class ConfigUpgradeChangeDefinition {
 
     @XmlAttribute(name = "value")
     public String value;
+
+    @Override
+    public String toString() {
+      return "Set{" +
+              ", key='" + key + '\'' +
+              ", value='" + value + '\'' +
+              ", ifKey='" + ifKey + '\'' +
+              ", ifType='" + ifType + '\'' +
+              ", ifValue='" + ifValue + '\'' +
+              ", ifKeyState='" + ifKeyState + '\'' +
+              '}';
+    }
   }
 
   /**
@@ -337,33 +373,6 @@ public class ConfigUpgradeChangeDefinition {
     @XmlAttribute(name = "coerce-to")
     public TransferCoercionType coerceTo;
 
-    // if the condition is true apply the transfer action
-    // only supported conditional action is DELETE
-    // if-type/if-key == if-value
-    /**
-     * The key to read for the if condition.
-     */
-    @XmlAttribute(name = "if-key")
-    public String ifKey;
-
-    /**
-     * The config type to read for the if condition.
-     */
-    @XmlAttribute(name = "if-type")
-    public String ifType;
-
-    /**
-     * The property value to compare against for the if condition.
-     */
-    @XmlAttribute(name = "if-value")
-    public String ifValue;
-
-    /**
-     * The property key state for the if condition
-     */
-    @XmlAttribute(name = "if-key-state")
-    public PropertyKeyState ifKeyState;
-
     /**
      * The keys to keep when the action is {@link TransferOperation#DELETE}.
      */
@@ -422,8 +431,11 @@ public class ConfigUpgradeChangeDefinition {
               "key='" + key + '\'' +
               ", find='" + find + '\'' +
               ", replaceWith='" + replaceWith + '\'' +
+              ", ifKey='" + ifKey + '\'' +
+              ", ifType='" + ifType + '\'' +
+              ", ifValue='" + ifValue + '\'' +
+              ", ifKeyState='" + ifKeyState + '\'' +
               '}';
     }
   }
-
 }

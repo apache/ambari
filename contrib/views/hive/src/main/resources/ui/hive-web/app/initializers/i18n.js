@@ -201,6 +201,7 @@ TRANSLATIONS = {
     collapse: 'Collapse message',
     previousPage: 'previous',
     uploadTable: 'Upload Table',
+    showPreview: 'Preview',
     nextPage: 'next',
     loadMore: 'Load more...',
     saveHdfs: 'Save to HDFS',
@@ -211,7 +212,10 @@ TRANSLATIONS = {
 
   labels: {
     noTablesMatch: 'No tables match',
-    table: 'Table '
+    table: 'Table ',
+    hoursShort: "{{hours}} hrs",
+    minsShort: "{{minutes}} mins",
+    secsShort: "{{seconds}} secs"
   },
 
   popover: {
@@ -240,9 +244,65 @@ TRANSLATIONS = {
   hive: {
     errors: {
       'no.query': "No query to process.",
-      'emptyDatabase' : "Please select Database.",
-      'emptyTableName' : "Please enter tableName.",
-      'emptyIsFirstRow' : "Please select is First Row Header?"
+      'emptyDatabase' : "Please select {{ database }}.",
+      'emptyTableName' : "Please enter {{ tableNameField }}.",
+      'illegalTableName':"Illegal {{ tableNameField }} : '{{ tableName }}'",
+      'emptyIsFirstRow' : "{{isFirstRowHeaderField}} cannot be null.",
+      'emptyHeaders':"Headers (containing column names) cannot be null.",
+      'emptyColumnName':"Column name cannot be null.",
+      'illegalColumnName':"Illegal column name : '{{columnName}}' in column number {{index}}",
+    },
+    messages : {
+      'generatingPreview':"Generating Preview.",
+      'startingToCreateActualTable' : "Starting to create Actual table",
+      'waitingToCreateActualTable' : "Waiting for creation of Actual table",
+      'successfullyCreatedActualTable' : "Successfully created Actual table.",
+      'failedToCreateActualTable' : "Failed to create Actual table.",
+      'startingToCreateTemporaryTable' : "Starting to create Temporary table.",
+      'waitingToCreateTemporaryTable' : "Waiting for creation of Temporary table.",
+      'successfullyCreatedTemporaryTable' : "Successfully created Temporary table.",
+      'failedToCreateTemporaryTable' : " Failed to create temporary table.",
+      'deletingTable' :  "Deleting {{table}} table.",
+      'succesfullyDeletedTable' :  "Successfully deleted {{ table}} table.",
+      'failedToDeleteTable' :  "Failed to delete {{table}} table.",
+      'startingToUploadFile' :  "Starting to upload the file.",
+      'waitingToUploadFile' :  "Waiting for uploading file.",
+      'successfullyUploadedFile' :  "Successfully uploaded file.",
+      'failedToUploadFile' :  "Failed to upload file.",
+      'startingToInsertRows' :  "Starting to insert rows from temporary table to actual table.",
+      'waitingToInsertRows' :  "Waiting for insertion of rows from temporary table to actual table.",
+      'successfullyInsertedRows' :  "Successfully inserted rows from temporary table to actual table.",
+      'failedToInsertRows' :  "Failed to insert rows from temporary table to actual table.",
+      'startingToDeleteTemporaryTable' :  "Starting to delete temporary table.",
+      'waitingToDeleteTemporaryTable' :  "Waiting for deletion of temporary table.",
+      'successfullyDeletedTemporaryTable' :  "Successfully deleted temporary table",
+      'manuallyDeleteTable' :  "You will have to manually delete the table {{databaseName}}.{{tableName}}",
+      'uploadingFromHdfs' :  "Uploading file from HDFS ",
+      'successfullyUploadedTableMessage' : "Table {{tableName}} created in database {{databaseName}}",
+      'successfullyUploadedTableHeader' : "Uploaded Successfully"
+    },
+    words :{
+      temporary : "Temporary",
+      actual : "Actual",
+      database : "Database",
+    },
+    ui : {
+      'uploadProgress' : "Upload Progress",
+      'uploadFromLocal':"Upload from Local",
+      'uploadFromHdfs':"Upload from HDFS",
+      'selectFileType':"Select File Type",
+      'fileType':"File type",
+      'selectFromLocal':"Select from local",
+      'hdfsPath':"HDFS Path",
+      'selectDatabase':"Select a Database",
+      'tableName':"Table name",
+      'tableNameErrorMessage':"Only alphanumeric and underscore characters are allowed in table name.",
+      'tableNameTooltip':"Enter valid (alphanumeric + underscore) table name.",
+      'storedAs':"Stored as",
+      'isFirstRowHeader':"Is first row header ?",
+      'columnNameTooltip':"Enter valid (alphanumeric + underscore) column name.",
+      'columnNameErrorMessage':"Only alphanumeric and underscore characters are allowed in column names.",
+
     }
   },
 

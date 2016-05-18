@@ -28,11 +28,9 @@ describe('App.ResourceManagerUptimeView', function() {
   var tests = [
     {
       model: Em.Object.create({
-        resourceManagerStartTime: ((new Date()).getTime() - 192.1*24*3600*1000)
+        resourceManagerStartTime: (new Date()).getTime() - 192.1*24*3600*1000
       }),
       e: {
-        isRed: false,
-        isOrange: false,
         isGreen: true,
         isNA: false,
         content: '192.1 d',
@@ -44,8 +42,6 @@ describe('App.ResourceManagerUptimeView', function() {
         resourceManagerStartTime: 0
       }),
       e: {
-        isRed: false,
-        isOrange: false,
         isGreen: false,
         isNA: true,
         content: Em.I18n.t('services.service.summary.notAvailable'),
@@ -57,8 +53,6 @@ describe('App.ResourceManagerUptimeView', function() {
         resourceManagerStartTime: null
       }),
       e: {
-        isRed: false,
-        isOrange: false,
         isGreen: false,
         isNA: true,
         content: Em.I18n.t('services.service.summary.notAvailable'),
@@ -76,12 +70,6 @@ describe('App.ResourceManagerUptimeView', function() {
       });
       it('data', function() {
         expect(resourceManagerUptimeView.get('data')).to.equal(test.e.data);
-      });
-      it('isRed', function() {
-        expect(resourceManagerUptimeView.get('isRed')).to.equal(test.e.isRed);
-      });
-      it('isOrange', function() {
-        expect(resourceManagerUptimeView.get('isOrange')).to.equal(test.e.isOrange);
       });
       it('isGreen', function() {
         expect(resourceManagerUptimeView.get('isGreen')).to.equal(test.e.isGreen);

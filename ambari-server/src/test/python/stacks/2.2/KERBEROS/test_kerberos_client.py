@@ -38,7 +38,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -46,7 +46,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -64,7 +64,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -72,7 +72,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -91,12 +91,13 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-
+    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/tmp/curl_krb_cache', action=["delete"],
+                              )
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/tmp/AMBARI-artifacts//UnlimitedJCEPolicyJDK7.zip',
                             content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
@@ -110,7 +111,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -118,7 +119,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -136,7 +137,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="configure",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -144,7 +145,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -270,7 +271,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="set_keytab",
                        config_dict=json_data,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -278,7 +279,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('File', "/etc/security/keytabs/spnego.service.keytab",
                               owner='root',
@@ -303,7 +304,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('File', "/etc/security/keytabs/smokeuser.headless.keytab",
                           owner='ambari-qa',
@@ -347,7 +348,7 @@ class TestKerberosClient(RMFTestCase):
                        classname="KerberosClient",
                        command="remove_keytab",
                        config_dict=json_data,
-                       hdp_stack_version=self.STACK_VERSION,
+                       stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -355,3 +356,21 @@ class TestKerberosClient(RMFTestCase):
                               action=['delete'])
     self.assertResourceCalled('File', "/etc/security/keytabs/smokeuser.headless.keytab",
                               action=['delete'])
+
+  def test_kdc_host_backwards_compatibility(self):
+    json_data = use_cases.get_unmanged_kdc_use_case()
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
+                       classname="KerberosClient",
+                       command="configure",
+                       config_dict=json_data,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+
+    # The kdc_hosts is expected to be taken from the JSON configuration data as-is
+    self.assertEquals('c6401.ambari.apache.org, c6402.ambari.apache.org', sys.modules['params'].kdc_hosts)
+
+    # The kdc_host is expected to generated using kdc_hosts, but only the first host is used since
+    # previous versions only knew how to handle a single KDC host
+    self.assertEquals('c6401.ambari.apache.org', sys.modules['params'].kdc_host)

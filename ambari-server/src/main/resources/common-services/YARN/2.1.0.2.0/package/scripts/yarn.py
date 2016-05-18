@@ -19,11 +19,24 @@ Ambari Agent
 
 """
 
-from resource_management import *
-import sys
+# Python Imports
 import os
+
+# Ambari Common and Resource Management Imports
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import File
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
+from resource_management.core.logger import Logger
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+
+# Local Imports
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -71,7 +84,15 @@ def yarn(name = None):
                            mode=0777,
                            recursive_chmod=True
       )
-      
+
+    # create the /tmp folder with proper permissions if it doesn't exist yet
+    if params.entity_file_history_directory.startswith('/tmp'):
+        params.HdfsResource(params.hdfs_tmp_dir,
+                            action="create_on_execute",
+                            type="directory",
+                            owner=params.hdfs_user,
+                            mode=0777,
+        )
 
     params.HdfsResource(params.entity_file_history_directory,
                            action="create_on_execute",
@@ -101,13 +122,12 @@ def yarn(name = None):
     Directory(params.jhs_leveldb_state_store_dir,
               owner=params.mapred_user,
               group=params.user_group,
-              recursive=True,
+              create_parents = True,
               cd_access="a",
+              recursive_ownership = True,
               )
-    Execute(("chown", "-R", format("{mapred_user}:{user_group}"), params.jhs_leveldb_state_store_dir),
-            sudo = True,
-    )
 
+  #<editor-fold desc="Node Manager Section">
   if name == "nodemanager":
 
     # First start after enabling/disabling security
@@ -124,6 +144,7 @@ def yarn(name = None):
 
       # Setting NM marker file
       if params.security_enabled:
+        Directory(params.nm_security_marker_dir)
         File(params.nm_security_marker,
              content="Marker file to track first start after enabling/disabling security. "
                      "During first start yarn local, log dirs are removed and recreated"
@@ -133,23 +154,31 @@ def yarn(name = None):
 
 
     if not params.security_enabled or params.toggle_nm_security:
-      Directory(params.nm_local_dirs_list + params.nm_log_dirs_list,
+      Directory(params.nm_log_dirs_list,
                 owner=params.yarn_user,
                 group=params.user_group,
-                recursive=True,
+                create_parents = True,
                 cd_access="a",
                 ignore_failures=True,
-                mode=0775
+                mode=0775)
+      Directory(params.nm_local_dirs_list,
+                owner=params.yarn_user,
+                group=params.user_group,
+                create_parents = True,
+                cd_access="a",
+                ignore_failures=True,
+                mode=0775,
+                recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
                 )
-      Execute(("chmod", "-R", "755") + tuple(params.nm_local_dirs_list),
-                sudo=True,
-      )
+
+    create_hive_llap_work_dir(params)
+  #</editor-fold>
 
   if params.yarn_nodemanager_recovery_dir:
     Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
               owner=params.yarn_user,
               group=params.user_group,
-              recursive=True,
+              create_parents = True,
               mode=0755,
               cd_access = 'a',
     )
@@ -157,19 +186,20 @@ def yarn(name = None):
   Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             cd_access = 'a',
   )
 
   Directory([params.mapred_pid_dir_prefix, params.mapred_pid_dir, params.mapred_log_dir_prefix, params.mapred_log_dir],
             owner=params.mapred_user,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             cd_access = 'a',
   )
   Directory([params.yarn_log_dir_prefix],
             owner=params.yarn_user,
-            recursive=True,
+            group=params.user_group,
+            create_parents = True,
             ignore_failures=True,
             cd_access = 'a',
   )
@@ -185,7 +215,7 @@ def yarn(name = None):
 
   # During RU, Core Masters and Slaves need hdfs-site.xml
   # TODO, instead of specifying individual configs, which is susceptible to breaking when new configs are added,
-  # RU should rely on all available in /usr/hdp/<version>/hadoop/conf
+  # RU should rely on all available in <stack-root>/<version>/hadoop/conf
   if 'hdfs-site' in params.config['configurations']:
     XmlConfig("hdfs-site.xml",
               conf_dir=params.hadoop_conf_dir,
@@ -244,16 +274,16 @@ def yarn(name = None):
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,
        group=params.user_group,
-       recursive=True,
+       create_parents = True,
        cd_access="a",
     )
 
-    # if HDP stack is greater than/equal to 2.2, mkdir for state store property (added in 2.2)
-    if (Script.is_hdp_stack_greater_or_equal("2.2")):
+    # if stack support application timeline-service state store property (timeline_state_store stack feature)
+    if params.stack_supports_timeline_state_store:
       Directory(params.ats_leveldb_state_store_dir,
        owner=params.yarn_user,
        group=params.user_group,
-       recursive=True,
+       create_parents = True,
        cd_access="a",
       )
     # app timeline server 1.5 directories
@@ -329,7 +359,7 @@ def yarn(name = None):
 
   Directory(params.cgroups_dir,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             mode=0755,
             cd_access="a")
 
@@ -392,7 +422,7 @@ def yarn(name = None):
     )
 
     Directory(params.hadoop_conf_secure_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               cd_access='a',
@@ -433,3 +463,32 @@ def yarn(name = None):
          owner=params.mapred_user,
          group=params.user_group
     )
+
+
+def create_hive_llap_work_dir(params):
+  """
+  Create the work directory needed by LLAP, which is required on all NodeManagers.
+  This needs to be whenever NodeManagers are restarted, or after Hive Server Interactive and LLAP are added and started
+  via a custom command
+  :param params: Command parameters dictionary.
+  """
+  if params.hive_llap_work_dirs_list is None or params.hive_server_interactive_host is None or not params.security_enabled:
+    Logger.info("Skip creating any Hive LLAP work dir since either it's empty, Hive Interactive is not present, "
+                "or cluster is not kerberized.")
+    return
+
+  # If we already created this dir list because it has the same value as NM Local Dirs, then skip it
+  skip = False
+  if params.nm_local_dirs_list is not None and set(params.nm_local_dirs_list) == set(params.hive_llap_work_dirs_list):
+    skip = True
+
+  if skip:
+    Logger.info(format("Skip creating Hive LLAP Work Dirs since it is equivalent to NM Local Dirs: {nm_local_dirs_list}"))
+  else:
+    Logger.info(format("Hive Server Interactive is present on the cluster, ensure that the Hive LLAP work dirs exist: {hive_llap_work_dirs_list}"))
+    Directory(params.hive_llap_work_dirs_list,
+              owner=params.yarn_user,
+              group=params.user_group,
+              create_parents=True,
+              ignore_failures=False,
+              mode=0775)

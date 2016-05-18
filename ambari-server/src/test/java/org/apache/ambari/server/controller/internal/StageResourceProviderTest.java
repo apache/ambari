@@ -22,9 +22,11 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +54,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
@@ -72,6 +75,7 @@ public class StageResourceProviderTest {
   private AmbariManagementController managementController = null;
   private Injector injector;
   private HostRoleCommandDAO hrcDao = null;
+  private TopologyManager topologyManager = null;
 
   @Before
   public void before() {
@@ -79,6 +83,9 @@ public class StageResourceProviderTest {
     clusters = createStrictMock(Clusters.class);
     cluster = createStrictMock(Cluster.class);
     hrcDao = createStrictMock(HostRoleCommandDAO.class);
+    topologyManager = EasyMock.createNiceMock(TopologyManager.class);
+
+    expect(topologyManager.getStages()).andReturn(new ArrayList<StageEntity>()).atLeastOnce();
 
     expect(hrcDao.findAggregateCounts(EasyMock.anyObject(Long.class))).andReturn(
         new HashMap<Long, HostRoleCommandStatusSummaryDTO>() {
@@ -88,7 +95,7 @@ public class StageResourceProviderTest {
           }
         }).anyTimes();
 
-    replay(hrcDao);
+    replay(hrcDao, topologyManager);
 
     managementController = createNiceMock(AmbariManagementController.class);
 
@@ -130,21 +137,14 @@ public class StageResourceProviderTest {
     verify(clusters, cluster);
   }
 
-  @Test
+  @Test(expected = UnsupportedOperationException.class)
   public void testDeleteResources() throws Exception {
     StageResourceProvider provider = new StageResourceProvider(managementController);
-
     Predicate predicate = createNiceMock(Predicate.class);
-    try {
-      provider.deleteResources(predicate);
-      fail("Expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
   }
 
   @Test
-  @Ignore
   public void testGetResources() throws Exception {
     StageResourceProvider provider = new StageResourceProvider(managementController);
 
@@ -167,13 +167,98 @@ public class StageResourceProviderTest {
     Resource resource = resources.iterator().next();
 
     Assert.assertEquals(100.0, resource.getPropertyValue(StageResourceProvider.STAGE_PROGRESS_PERCENT));
-    Assert.assertEquals("COMPLETED", resource.getPropertyValue(StageResourceProvider.STAGE_STATUS));
+    Assert.assertEquals(HostRoleStatus.COMPLETED, resource.getPropertyValue(StageResourceProvider.STAGE_STATUS));
+    Assert.assertEquals(HostRoleStatus.COMPLETED, resource.getPropertyValue(StageResourceProvider.STAGE_DISPLAY_STATUS));
     Assert.assertEquals(1000L, resource.getPropertyValue(StageResourceProvider.STAGE_START_TIME));
     Assert.assertEquals(2500L, resource.getPropertyValue(StageResourceProvider.STAGE_END_TIME));
 
     verify(dao, clusters, cluster);
-
   }
+
+  @Test
+  public void testGetResourcesWithRequest() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+
+    Request request = createNiceMock(Request.class);
+    Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_REQUEST_ID).equals(1L).toPredicate();
+
+    List<StageEntity> entities = getStageEntities(HostRoleStatus.COMPLETED);
+
+    expect(dao.findAll(request, predicate)).andReturn(entities);
+
+    expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    reset(topologyManager);
+    expect(topologyManager.getRequest(EasyMock.anyLong())).andReturn(null).atLeastOnce();
+
+    replay(topologyManager, dao, clusters, cluster, request);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+
+    Resource resource = resources.iterator().next();
+
+    Assert.assertEquals(100.0, resource.getPropertyValue(StageResourceProvider.STAGE_PROGRESS_PERCENT));
+    Assert.assertEquals(HostRoleStatus.COMPLETED, resource.getPropertyValue(StageResourceProvider.STAGE_STATUS));
+    Assert.assertEquals(HostRoleStatus.COMPLETED, resource.getPropertyValue(StageResourceProvider.STAGE_DISPLAY_STATUS));
+    Assert.assertEquals(1000L, resource.getPropertyValue(StageResourceProvider.STAGE_START_TIME));
+    Assert.assertEquals(2500L, resource.getPropertyValue(StageResourceProvider.STAGE_END_TIME));
+
+    verify(topologyManager, dao, clusters, cluster);
+  }
+
+  /**
+   * Tests getting the display status of a stage which can differ from the final
+   * status.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetDisplayStatus() throws Exception {
+    // clear the HRC call so that it has the correct summary fields to represent
+    // 1 skipped and 1 completed task
+    EasyMock.reset(hrcDao);
+    expect(hrcDao.findAggregateCounts(EasyMock.anyObject(Long.class))).andReturn(
+        new HashMap<Long, HostRoleCommandStatusSummaryDTO>() {
+          {
+            put(0L, new HostRoleCommandStatusSummaryDTO(0, 1000L, 2500L, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+                0, 0, 1));
+          }
+        }).anyTimes();
+
+    replay(hrcDao);
+
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+
+    Request request = createNiceMock(Request.class);
+    Predicate predicate = createNiceMock(Predicate.class);
+
+    // make the stage skippable so it resolves to COMPLETED even though it has a
+    // skipped failure
+    List<StageEntity> entities = getStageEntities(HostRoleStatus.SKIPPED_FAILED);
+    entities.get(0).setSkippable(true);
+
+    expect(dao.findAll(request, predicate)).andReturn(entities);
+
+    expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+
+    replay(dao, clusters, cluster, request, predicate);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+
+    Resource resource = resources.iterator().next();
+
+    // verify the two statuses
+    Assert.assertEquals(HostRoleStatus.COMPLETED, resource.getPropertyValue(StageResourceProvider.STAGE_STATUS));
+    Assert.assertEquals(HostRoleStatus.SKIPPED_FAILED, resource.getPropertyValue(StageResourceProvider.STAGE_DISPLAY_STATUS));
+
+    verify(dao, clusters, cluster);
+  }
+
 
   @Test
   @Ignore
@@ -267,6 +352,7 @@ public class StageResourceProviderTest {
       binder.bind(HostRoleCommandDAO.class).toInstance(hrcDao);
       binder.bind(AmbariManagementController.class).toInstance(managementController);
       binder.bind(ActionMetadata.class);
+      binder.bind(TopologyManager.class).toInstance(topologyManager);
     }
   }
 }

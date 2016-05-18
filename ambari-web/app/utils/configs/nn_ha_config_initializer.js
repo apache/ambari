@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('utils/configs/ha_config_initializer_class');
+require('utils/configs/hosts_based_initializer_mixin');
 
 /**
  * @typedef {topologyLocalDB} extendedTopologyLocalDB
@@ -80,46 +81,51 @@ function getReplaceNamespaceConfig(toReplace) {
  *
  * @class {NnHaConfigInitializer}
  */
-App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
+App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
 
-  initializers: {
-    'dfs.ha.namenodes.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
-    'dfs.namenode.rpc-address.${dfs.nameservices}.nn1': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', true, '', '', 'nnRpcPort', true),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.rpc-address.${dfs.nameservices}.nn2': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', false, '', '', '8020', false),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.http-address.${dfs.nameservices}.nn1': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpPort', true),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.http-address.${dfs.nameservices}.nn2': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', false, '', '', '50070', false),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.https-address.${dfs.nameservices}.nn1': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpsPort', true),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.https-address.${dfs.nameservices}.nn2': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', false, '', '', '50470', false),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.client.failover.proxy.provider.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
-    'dfs.nameservices': getNamespaceConfig(),
-    'fs.defaultFS': getNamespaceConfig('hdfs://'),
-    'dfs.namenode.shared.edits.dir': [
-      App.HaConfigInitializerClass.getHostsWithPortConfig('JOURNALNODE', 'qjournal://', '/${dfs.nameservices}', ';', '8485', false),
-      getReplaceNamespaceConfig('${dfs.nameservices}')
-    ],
-    'ha.zookeeper.quorum': App.HaConfigInitializerClass.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true)
-  },
+  initializers: function () {
+
+    return {
+      'dfs.ha.namenodes.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
+      'dfs.namenode.rpc-address.${dfs.nameservices}.nn1': [
+        this.getHostWithPortConfig('NAMENODE', true, '', '', 'nnRpcPort', true),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.rpc-address.${dfs.nameservices}.nn2': [
+        this.getHostWithPortConfig('NAMENODE', false, '', '', '8020', false),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.http-address.${dfs.nameservices}.nn1': [
+        this.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpPort', true),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.http-address.${dfs.nameservices}.nn2': [
+        this.getHostWithPortConfig('NAMENODE', false, '', '', '50070', false),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.https-address.${dfs.nameservices}.nn1': [
+        this.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpsPort', true),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.https-address.${dfs.nameservices}.nn2': [
+        this.getHostWithPortConfig('NAMENODE', false, '', '', '50470', false),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.client.failover.proxy.provider.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
+      'dfs.nameservices': getNamespaceConfig(),
+      'dfs.internal.nameservices': getNamespaceConfig(),
+      'fs.defaultFS': getNamespaceConfig('hdfs://'),
+      'dfs.namenode.shared.edits.dir': [
+        this.getHostsWithPortConfig('JOURNALNODE', 'qjournal://', '/${dfs.nameservices}', ';', '8485', false),
+        getReplaceNamespaceConfig('${dfs.nameservices}')
+      ],
+      'ha.zookeeper.quorum': this.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true)
+    };
+  }.property(),
 
   uniqueInitializers: {
     'hbase.rootdir': '_initHbaseRootDir',
+    'hawq_dfs_url': '_initHawqDfsUrl',
     'instance.volumes': '_initInstanceVolumes',
     'instance.volumes.replacements': '_initInstanceVolumesReplacements',
     'dfs.journalnode.edits.dir': '_initDfsJnEditsDir'
@@ -272,8 +278,32 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
     if (localDB.installedServices.contains('AMBARI_METRICS')) {
       var value = dependencies.serverConfigs.findProperty('type', 'ams-hbase-site').properties['hbase.rootdir'];
       var currentNameNodeHost = localDB.masterComponentHosts.filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
-      value = (value == "hdfs://" + currentNameNodeHost) ? "hdfs://" + dependencies.namespaceId : value;
-      configProperty.isVisible = configProperty.value != value;
+      if(value.contains("hdfs://" + currentNameNodeHost)){
+        value = value.replace(/\/\/[^\/]*/, '//' + dependencies.namespaceId);
+        configProperty.isVisible = true;
+      }
+      Em.setProperties(configProperty, {
+        value: value,
+        recommendedValue: value
+      });
+    }
+    return configProperty;
+  },
+
+  /**
+   * Unique initializer for <code>hawq_dfs_url</code> (Hawq service)
+   *
+   * @param {configProperty} configProperty
+   * @param {extendedTopologyLocalDB} localDB
+   * @param {nnHaConfigDependencies} dependencies
+   * @param {object} initializer
+   * @method _initHawqDfsUrl
+   * @return {object}
+   * @private
+   */
+  _initHawqDfsUrl: function (configProperty, localDB, dependencies, initializer) {
+    if (localDB.installedServices.contains('HAWQ')) {
+      var value = dependencies.serverConfigs.findProperty('type', 'hawq-site').properties['hawq_dfs_url'].replace(/(^.*:[0-9]+)(?=\/)/, dependencies.namespaceId);
       Em.setProperties(configProperty, {
         value: value,
         recommendedValue: value

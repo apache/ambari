@@ -23,6 +23,7 @@ require('controllers/main/host/add_controller');
 require('models/host_component');
 require('models/service');
 require('mappers/server_data_mapper');
+var testHelpers = require('test/helpers');
 
 describe('App.AddHostController', function () {
 
@@ -302,30 +303,26 @@ describe('App.AddHostController', function () {
 
   describe('#installServices()', function () {
 
-    beforeEach(function () {
-      sinon.spy(App.ajax, "send");
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('No hosts', function () {
       controller.set('content.cluster', {name: 'cl'});
       controller.set('testDBHosts', {});
       expect(controller.installServices()).to.be.false;
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.host_components.update');
+      expect(args).to.not.exists;
     });
     it('Cluster name is empty', function () {
       controller.set('content.cluster', {name: ''});
       controller.set('testDBHosts', {'host1': {}});
       expect(controller.installServices()).to.be.false;
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.host_components.update');
+      expect(args).to.not.exists;
     });
     it('Cluster name is correct and hosts are present', function () {
       controller.set('content.cluster', {name: 'cl'});
       controller.set('testDBHosts', {'host1': {isInstalled: false}});
       expect(controller.installServices()).to.be.true;
-      expect(App.ajax.send.called).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host_components.update');
+      expect(args).to.exists;
     });
   });
 
@@ -403,7 +400,7 @@ describe('App.AddHostController', function () {
     after(function () {
       App.router.getClusterName.restore();
     });
-    it("", function () {
+    it("cluster data is valid", function () {
       controller.set('clusterStatusTemplate', {'prop': 'clusterStatusTemplate'});
       expect(controller.getCluster()).to.be.eql({
         prop: 'clusterStatusTemplate',
@@ -412,12 +409,13 @@ describe('App.AddHostController', function () {
     });
   });
 
-  describe("#loadServices", function () {
+  /*describe("#loadServices", function () {
     var services = {
       db: null,
       stack: [],
       model: []
     };
+
     beforeEach(function () {
       sinon.stub(controller, 'getDBProperty', function () {
         return services.db;
@@ -430,113 +428,166 @@ describe('App.AddHostController', function () {
       });
       sinon.stub(controller, 'setDBProperty', Em.K);
     });
+
     afterEach(function () {
       controller.getDBProperty.restore();
       App.StackService.find.restore();
       App.Service.find.restore();
       controller.setDBProperty.restore();
     });
-    it("No services in db, no installed services", function () {
-      services.stack = [Em.Object.create({
-        serviceName: 'S1'
-      })];
-      controller.loadServices();
-      expect(controller.setDBProperty.getCall(0).args).to.eql(['services',
-        {
-          selectedServices: [],
-          installedServices: []
-        }
-      ]);
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isInstalled: false,
-          isSelected: false
-        })
-      ])
-    });
-    it("No services in db, installed service present", function () {
-      services.stack = [
-        Em.Object.create({
-          serviceName: 'S1'
-        }),
-        Em.Object.create({
-          serviceName: 'S2'
-        })
-      ];
-      services.model = [
-        Em.Object.create({
-          serviceName: 'S1'
-        })
-      ];
-      controller.loadServices();
-      expect(controller.setDBProperty.getCall(0).args).to.eql(['services',
-        {
-          selectedServices: ['S1'],
-          installedServices: ['S1']
-        }
-      ]);
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isInstalled: true,
-          isSelected: true
-        }),
-        Em.Object.create({
-          serviceName: 'S2',
-          isInstalled: false,
-          isSelected: false
-        })
-      ]);
-    });
-    it("DB is empty", function () {
-      services.stack = [Em.Object.create({
-        serviceName: 'S1'
-      })];
-      services.db = {
-        selectedServices: [],
-        installedServices: []
-      };
-      controller.loadServices();
-      expect(controller.setDBProperty.called).to.be.false;
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isSelected: false,
-          isInstalled: false
-        })
-      ]);
-    });
-    it("DB has selected and installed services", function () {
-      services.stack = [
-        Em.Object.create({
-          serviceName: 'S1'
-        }),
-        Em.Object.create({
-          serviceName: 'S2'
-        })
-      ];
-      services.db = {
-        selectedServices: ['S1'],
-        installedServices: ['S2']
-      };
-      controller.loadServices();
-      expect(controller.setDBProperty.called).to.be.false;
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isInstalled: false,
-          isSelected: true
-        }),
-        Em.Object.create({
-          serviceName: 'S2',
-          isInstalled: true,
-          isSelected: false
-        })
-      ]);
-    });
-  });
 
+    Em.A([
+      {
+        m: 'No services in db, no installed services',
+        service: {
+          db: null,
+          stack: [Em.Object.create({
+            serviceName: 'S1'
+          })],
+          model: []
+        },
+        e: {
+
+          db: ['services',
+            {
+              selectedServices: [],
+              installedServices: []
+            }
+          ],
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isInstalled: false,
+              isSelected: false
+            })
+          ]
+        }
+      },
+      {
+        m: 'No services in db, installed service present',
+        service: {
+          db: null,
+          stack: [
+            Em.Object.create({
+              serviceName: 'S1'
+            }),
+            Em.Object.create({
+              serviceName: 'S2'
+            })
+          ],
+          model: [
+            Em.Object.create({
+              serviceName: 'S1'
+            })
+          ]
+        },
+        e: {
+          db: ['services',
+            {
+              selectedServices: ['S1'],
+              installedServices: ['S1']
+            }
+          ],
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isInstalled: true,
+              isSelected: true
+            }),
+            Em.Object.create({
+              serviceName: 'S2',
+              isInstalled: false,
+              isSelected: false
+            })
+          ]
+        }
+      },
+      {
+        m: 'DB is empty',
+        service: {
+          db: {
+            selectedServices: [],
+            installedServices: []
+          },
+          stack: [Em.Object.create({
+            serviceName: 'S1'
+          })],
+          model: []
+        },
+        e: {
+          db: false,
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isSelected: false,
+              isInstalled: false
+            })
+          ]
+        }
+      },
+      {
+        m: 'DB has selected and installed services',
+        service: {
+          db: {
+            selectedServices: ['S1'],
+            installedServices: ['S2']
+          },
+          stack: [
+            Em.Object.create({
+              serviceName: 'S1'
+            }),
+            Em.Object.create({
+              serviceName: 'S2'
+            })
+          ],
+          model: []
+        },
+        e: {
+          db: false,
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isInstalled: false,
+              isSelected: true
+            }),
+            Em.Object.create({
+              serviceName: 'S2',
+              isInstalled: true,
+              isSelected: false
+            })
+          ]
+        }
+      }
+    ]).forEach(function (test) {
+
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          services = test.service;
+          controller.loadServices();
+        });
+
+        it('services are valid', function () {
+          expect(controller.get('content.services')).to.be.eql(test.e.services);
+        });
+
+        if (test.e.db) {
+          it('setDBProperty is called with valid arguments', function () {
+            expect(controller.setDBProperty.getCall(0).args).to.eql(test.e.db);
+          });
+        }
+        else {
+          it('setDBProperty is not called', function () {
+            expect(controller.setDBProperty.called).to.be.false;
+          });
+        }
+
+      });
+
+    });
+
+  });
+*/
   describe("#loadSlaveComponentHosts()", function () {
 
     var mock = {
@@ -601,24 +652,28 @@ describe('App.AddHostController', function () {
   });
 
   describe("#saveClients()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(App.StackServiceComponent, 'find').returns('StackServiceComponent');
       sinon.stub(controller, 'getClientsToInstall').returns(['client']);
       sinon.stub(controller, 'setDBProperty', Em.K);
+      controller.set('content.services', [Em.Object.create({'isSelected': true, 'isInstallable': true})]);
+      controller.saveClients();
     });
-    after(function () {
+    afterEach(function () {
       controller.setDBProperty.restore();
       App.StackServiceComponent.find.restore();
       controller.getClientsToInstall.restore();
     });
-    it("", function () {
-      controller.set('content.services', [Em.Object.create({'isSelected': true, 'isInstallable': true})]);
-      controller.saveClients();
+    it("getClientsToInstall called with valid arguments", function () {
       expect(controller.getClientsToInstall.calledWith(
         [Em.Object.create({'isSelected': true, 'isInstallable': true})],
         'StackServiceComponent'
       )).to.be.true;
+    });
+    it('setDBProperty called with valid arguments', function () {
       expect(controller.setDBProperty.calledWith('clientInfo', ['client'])).to.be.true;
+    });
+    it('content.clients are valid', function () {
       expect(controller.get('content.clients')).to.be.eql(['client']);
     });
   });
@@ -688,16 +743,12 @@ describe('App.AddHostController', function () {
   });
 
   describe("#applyConfigGroup()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it("No config groups", function () {
       controller.set('content.configGroups', []);
       controller.applyConfigGroup();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
+      expect(args).to.not.exists;
     });
     it("selectedConfigGroup absent", function () {
       controller.set('content.configGroups', [
@@ -707,7 +758,8 @@ describe('App.AddHostController', function () {
         }
       ]);
       controller.applyConfigGroup();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
+      expect(args).to.not.exists;
     });
     it("selectedConfigGroup present", function () {
       controller.set('content.configGroups', [
@@ -726,9 +778,9 @@ describe('App.AddHostController', function () {
         }
       ]);
       controller.applyConfigGroup();
-
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('config_groups.update_config_group');
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
         "id": 1,
         "configGroup": {
           "ConfigGroup": {
@@ -752,7 +804,7 @@ describe('App.AddHostController', function () {
     after(function () {
       controller.getDBProperty.restore();
     });
-    it("", function () {
+    it("content.configGroups are valid", function () {
       controller.getServiceConfigGroups();
       expect(controller.get('content.configGroups')).to.eql(['serviceConfigGroup']);
     });
@@ -777,23 +829,29 @@ describe('App.AddHostController', function () {
   });
 
   describe("#loadServiceConfigGroups()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(controller, 'loadServiceConfigGroupsBySlaves', Em.K);
       sinon.stub(controller, 'loadServiceConfigGroupsByClients', Em.K);
       sinon.stub(controller, 'sortServiceConfigGroups', Em.K);
+      controller.loadServiceConfigGroups();
     });
-    after(function () {
+    afterEach(function () {
       controller.loadServiceConfigGroupsBySlaves.restore();
       controller.loadServiceConfigGroupsByClients.restore();
       controller.sortServiceConfigGroups.restore();
     });
-    it("", function () {
-      controller.loadServiceConfigGroups();
+    it("loadServiceConfigGroupsByClients called with []", function () {
       expect(controller.loadServiceConfigGroupsByClients.calledWith([])).to.be.true;
-      expect(controller.loadServiceConfigGroupsBySlaves.calledWith([])).to.be.true;
-      expect(controller.sortServiceConfigGroups.calledWith([])).to.be.true;
-      expect(controller.get('content.configGroups')).to.eql([]);
     });
+    it('loadServiceConfigGroupsBySlaves called with []', function () {
+      expect(controller.loadServiceConfigGroupsBySlaves.calledWith([])).to.be.true;
+    });
+    it('sortServiceConfigGroups called with []', function () {
+      expect(controller.sortServiceConfigGroups.calledWith([])).to.be.true;
+    });
+    it('content.configGroups are empty', function () {
+      expect(controller.get('content.configGroups')).to.eql([]);
+    })
   });
 
   describe("#sortServiceConfigGroups", function () {
@@ -1114,161 +1172,23 @@ describe('App.AddHostController', function () {
     });
   });
 
-  describe("#loadAllPriorSteps()", function () {
-    var stepsSet = {
-      '1': [
-        {
-          name: 'load',
-          args: ['hosts']
-        },
-        {
-          name: 'load',
-          args: ['installOptions']
-        },
-        {
-          name: 'load',
-          args: ['cluster']
-        }
-      ],
-      '2': [
-        {
-          name: 'loadServices',
-          args: []
-        }
-      ],
-      '3': [
-        {
-          name: 'loadClients',
-          args: []
-        },
-        {
-          name: 'loadServices',
-          args: []
-        },
-        {
-          name: 'loadMasterComponentHosts',
-          args: []
-        },
-        {
-          name: 'loadSlaveComponentHosts',
-          args: []
-        },
-        {
-          name: 'load',
-          args: ['hosts']
-        }
-      ],
-      '5': [
-        {
-          name: 'loadServiceConfigProperties',
-          args: []
-        },
-        {
-          name: 'getServiceConfigGroups',
-          args: []
-        }
-      ]
-    };
-    var testCases = [
-      {
-        currentStep: '0',
-        calledFunctions: []
-      },
-      {
-        currentStep: '1',
-        calledFunctions: stepsSet['1']
-      },
-      {
-        currentStep: '2',
-        calledFunctions: stepsSet['1'].concat(stepsSet['2'])
-      },
-      {
-        currentStep: '3',
-        calledFunctions: stepsSet['3'].concat(stepsSet['2'], stepsSet['1'])
-      },
-      {
-        currentStep: '4',
-        calledFunctions: stepsSet['3'].concat(stepsSet['2'], stepsSet['1'])
-      },
-      {
-        currentStep: '5',
-        calledFunctions: stepsSet['5'].concat(stepsSet['3'], stepsSet['2'], stepsSet[1])
-      },
-      {
-        currentStep: '6',
-        calledFunctions: stepsSet['5'].concat(stepsSet['3'], stepsSet['2'], stepsSet[1])
-      },
-      {
-        currentStep: '7',
-        calledFunctions: stepsSet['5'].concat(stepsSet['3'], stepsSet['2'], stepsSet[1])
-      },
-      {
-        currentStep: '8',
-        calledFunctions: []
-      }
-    ];
-    var functionsToCall = [
-      'loadServiceConfigProperties',
-      'getServiceConfigGroups',
-      'loadClients',
-      'loadServices',
-      'loadMasterComponentHosts',
-      'loadSlaveComponentHosts',
-      'load'
-    ];
-    beforeEach(function () {
-      this.mock = sinon.stub(controller, 'get');
-      sinon.stub(controller, 'loadServiceConfigProperties', Em.K);
-      sinon.stub(controller, 'getServiceConfigGroups', Em.K);
-      sinon.stub(controller, 'loadClients', Em.K);
-      sinon.stub(controller, 'loadServices', Em.K);
-      sinon.stub(controller, 'loadMasterComponentHosts', Em.K);
-      sinon.stub(controller, 'loadSlaveComponentHosts', Em.K);
-      sinon.stub(controller, 'load', Em.K);
-      sinon.stub(controller, 'saveClusterStatus', Em.K);
-    });
-    afterEach(function () {
-      this.mock.restore();
-      controller.loadServiceConfigProperties.restore();
-      controller.getServiceConfigGroups.restore();
-      controller.loadClients.restore();
-      controller.loadServices.restore();
-      controller.loadMasterComponentHosts.restore();
-      controller.loadSlaveComponentHosts.restore();
-      controller.load.restore();
-      controller.saveClusterStatus.restore();
-    });
-    testCases.forEach(function (test) {
-      it("current step - " + test.currentStep, function () {
-        this.mock.returns(test.currentStep);
-        controller.loadAllPriorSteps();
-        functionsToCall.forEach(function (fName) {
-          var callStack = test.calledFunctions.filterProperty('name', fName);
-          if (callStack.length > 0) {
-            callStack.forEach(function (f, index) {
-              expect(controller[f.name].getCall(index).args).to.eql(f.args);
-            }, this);
-          } else {
-            expect(controller[fName].called).to.be.false;
-          }
-        }, this);
-      });
-    }, this);
-  });
-
   describe("#clearAllSteps()", function () {
     beforeEach(function () {
       sinon.stub(controller, 'clearInstallOptions', Em.K);
       sinon.stub(controller, 'getCluster').returns({});
+      controller.clearAllSteps();
     });
     afterEach(function () {
       controller.clearInstallOptions.restore();
       controller.getCluster.restore();
     });
-    it("", function () {
-      controller.clearAllSteps();
+    it("getCluster called once", function () {
       expect(controller.getCluster.calledOnce).to.be.true;
+    });
+    it('clearInstallOptions called once', function () {
       expect(controller.clearInstallOptions.calledOnce).to.be.true;
+    });
+    it('content.cluster is empty object', function () {
       expect(controller.get('content.cluster')).to.eql({});
     });
   });
@@ -1294,25 +1214,31 @@ describe('App.AddHostController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'clearAllSteps', Em.K);
       sinon.stub(controller, 'clearStorageData', Em.K);
-      sinon.stub(App.updater, 'immediateRun', Em.K);
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'updateAll');
       sinon.spy(mock, 'getAllHostNames');
+      controller.finish();
     });
     afterEach(function () {
       controller.clearAllSteps.restore();
       controller.clearStorageData.restore();
-      App.updater.immediateRun.restore();
       App.router.get.restore();
       mock.updateAll.restore();
       mock.getAllHostNames.restore();
     });
-    it("", function () {
-      controller.finish();
+    it("clearAllSteps called once", function () {
       expect(controller.clearAllSteps.calledOnce).to.be.true;
+    });
+    it('clearStorageData called once', function () {
       expect(controller.clearStorageData.calledOnce).to.be.true;
+    });
+    it('updateAll called once', function () {
       expect(mock.updateAll.calledOnce).to.be.true;
+    });
+    it('App.updater.immediateRun called with valid arguments', function () {
       expect(App.updater.immediateRun.calledWith('updateHost')).to.be.true;
+    });
+    it('getAllHostNames called once', function () {
       expect(mock.getAllHostNames.calledOnce).to.be.true;
     });
   });

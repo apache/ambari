@@ -54,13 +54,11 @@ public class AuthConfigurationBuilder {
     String auth;
     auth = context.getProperties().get("webhdfs.auth");
 
-    if (auth == null || auth.isEmpty()) {
-      try {
-        auth = getConfigurationFromAmbari();
-      } catch (NoClusterAssociatedException e) {
-        auth = "auth=SIMPLE";
-        LOG.warn(String.format("HDFS090 Authentication parameters could not be determined. %s assumed.", auth));
-      }
+    if ((auth == null || auth.isEmpty()) && context.getCluster() != null) {
+      auth = getConfigurationFromAmbari();
+    } else  {
+      auth = "auth=SIMPLE";
+      LOG.warn(String.format("HDFS090 Authentication parameters could not be determined. %s assumed.", auth));
     }
 
     parseAuthString(auth);
@@ -81,9 +79,16 @@ public class AuthConfigurationBuilder {
    * Determine configuration from Ambari.
    */
   private String getConfigurationFromAmbari() throws NoClusterAssociatedException {
-    String authMethod = ambariApi.getCluster().getConfigurationValue(
+    String authMethod = context.getCluster().getConfigurationValue(
         "core-site", "hadoop.security.authentication");
-    return String.format("auth=%s", authMethod);
+
+    String authString = String.format("auth=%s", authMethod);
+
+    String proxyUser = context.getCluster().getConfigurationValue("cluster-env","ambari_principal_name");
+    if(proxyUser != null && !authMethod.equalsIgnoreCase("SIMPLE")){
+      authString = authString + String.format(";proxyuser=%s",proxyUser.split("@")[0]);
+    }
+    return authString;
   }
 
   /**

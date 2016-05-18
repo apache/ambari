@@ -42,7 +42,7 @@ describe('App.MainMenuView', function () {
       });
     });
 
-    describe('#dropdownCategories', function () {
+    describe.skip('#dropdownCategories', function () {
 
       var cases = [
         {
@@ -91,13 +91,17 @@ describe('App.MainMenuView', function () {
         }
       ];
 
+      beforeEach(function () {
+        this.mock = sinon.stub(App, 'get');
+      });
+
       afterEach(function () {
-        App.get.restore();
+        this.mock.restore();
       });
 
       cases.forEach(function (item) {
         it(item.title, function () {
-          sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(item.isHadoopWindowsStack);
+          this.mock.withArgs('isHadoopWindowsStack').returns(item.isHadoopWindowsStack);
           var menuItem = mainMenuView.get('content').findProperty('content.routing', item.itemName);
           menuItem.propertyDidChange('dropdownCategories');
           expect(menuItem.get('dropdownCategories')).to.eql(item.dropdownCategories);

@@ -78,6 +78,16 @@ describe('#CreateViewInstanceCtrl', function () {
         }
       ]
     });
+    $httpBackend.whenGET(/\/api\/v1\/remoteclusters\?fields=ClusterInfo\/services&_=\d+/).respond(200, {
+      "items" : [
+         {
+           "ClusterInfo" : {
+            "name" : "c1",
+            "services" : ["HDFS"]
+          }
+        }
+      ]
+    });
     scope.$digest();
     $httpBackend.flush();
     chai.expect(scope.view.ViewVersionInfo.parameters[0].value).to.equal('d');

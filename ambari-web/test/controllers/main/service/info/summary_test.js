@@ -18,6 +18,10 @@
 
 var App = require('app');
 require('controllers/main/service/info/summary');
+var testHelpers = require('test/helpers');
+function getController() {
+  return App.MainServiceInfoSummaryController.create();
+}
 
 describe('App.MainServiceInfoSummaryController', function () {
 
@@ -26,6 +30,8 @@ describe('App.MainServiceInfoSummaryController', function () {
   beforeEach(function () {
     controller = App.MainServiceInfoSummaryController.create();
   });
+
+App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isServiceWithEnhancedWidgets', 'someWidgetGraphExists']);
 
   describe('#setRangerPlugins', function () {
 
@@ -128,95 +134,9 @@ describe('App.MainServiceInfoSummaryController', function () {
 
   });
 
-  describe('#getRangerPluginsStatus', function () {
-
-    var data = {
-        'Clusters': {
-          'desired_configs': {
-            'ranger-hdfs-plugin-properties': {
-              'tag': 'version1'
-            },
-            'hive-env': {
-              'tag': 'version2'
-            },
-            'ranger-hbase-plugin-properties': {
-              'tag': 'version3'
-            }
-          }
-        }
-      },
-      cases = [
-        {
-          isPreviousRangerConfigsCallFailed: false,
-          ajaxRequestSent: true,
-          title: 'initial case'
-        },
-        {
-          isPreviousRangerConfigsCallFailed: true,
-          hdfsTag: 'version1',
-          hiveTag: 'version2',
-          hbaseTag: 'version3',
-          ajaxRequestSent: true,
-          title: 'previous call failed'
-        },
-        {
-          isPreviousRangerConfigsCallFailed: false,
-          hdfsTag: 'version2',
-          hiveTag: 'version2',
-          hbaseTag: 'version3',
-          ajaxRequestSent: true,
-          title: 'configs changed'
-        },
-        {
-          isPreviousRangerConfigsCallFailed: false,
-          hdfsTag: 'version1',
-          hiveTag: 'version2',
-          hbaseTag: 'version3',
-          ajaxRequestSent: false,
-          title: 'configs unchanged'
-        }
-      ];
+  describe('#getRangerPluginsStatusSuccess', function () {
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-      sinon.stub(App.Service, 'find').returns([
-        Em.Object.create({
-          serviceName: 'HDFS'
-        }),
-        Em.Object.create({
-          serviceName: 'HIVE'
-        }),
-        Em.Object.create({
-          serviceName: 'HBASE'
-        }),
-        Em.Object.create({
-          serviceName: 'YARN'
-        })
-      ]);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-      App.Service.find.restore();
-    });
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        controller.set('isPreviousRangerConfigsCallFailed', item.isPreviousRangerConfigsCallFailed);
-        controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').tag = item.hdfsTag;
-        controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').tag = item.hbaseTag;
-        controller.getRangerPluginsStatus(data);
-        expect(App.ajax.send.calledOnce).to.equal(item.ajaxRequestSent);
-        if (item.ajaxRequestSent) {
-          expect(App.ajax.send.getCall(0).args[0].data.urlParams.contains('ranger-yarn-plugin-properties')).to.be.false;
-        }
-      });
-    });
-
-  });
-
-  describe('#getRangerPluginsStatusSuccess', function () {
-    it('relevant plugin statuses are set', function () {
       controller.getRangerPluginsStatusSuccess({
         'items': [
           {
@@ -239,9 +159,18 @@ describe('App.MainServiceInfoSummaryController', function () {
           }
         ]
       });
+    });
+
+    it('isPreviousRangerConfigsCallFailed is false', function () {
       expect(controller.get('isPreviousRangerConfigsCallFailed')).to.be.false;
+    });
+    it('rangerPlugins.HDFS status is valid', function () {
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').status).to.equal(Em.I18n.t('alerts.table.state.enabled'));
+    });
+    it('rangerPlugins.HIVE status is valid', function () {
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HIVE').status).to.equal(Em.I18n.t('alerts.table.state.enabled'));
+    });
+    it('rangerPlugins.HBASE status is valid', function () {
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').status).to.equal(Em.I18n.t('common.unknown'));
     });
   });
@@ -256,19 +185,14 @@ describe('App.MainServiceInfoSummaryController', function () {
   });
 
   describe("#getActiveWidgetLayout() for Enhanced Dashboard", function () {
-    before(function () {
-      sinon.stub(App.ajax, 'send');
-    });
-    after(function () {
-      App.ajax.send.restore();
-    });
+
     it("make GET call", function () {
-      var controller = App.MainServiceInfoSummaryController.create({
+      var _controller = App.MainServiceInfoSummaryController.create({
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
-      controller.getActiveWidgetLayout();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('widgets.layouts.active.get');
+      _controller.getActiveWidgetLayout();
+      expect(testHelpers.findAjaxRequest('name', 'widgets.layouts.active.get')).to.exists;
     });
   });
 
@@ -282,14 +206,14 @@ describe('App.MainServiceInfoSummaryController', function () {
       App.widgetMapper.map.restore();
     });
     it("isWidgetLayoutsLoaded should be set to true", function () {
-      var controller = App.MainServiceInfoSummaryController.create({
+      var _controller = App.MainServiceInfoSummaryController.create({
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
-      controller.getActiveWidgetLayoutSuccessCallback({items:[{
+      _controller.getActiveWidgetLayoutSuccessCallback({items:[{
         WidgetLayoutInfo: {}
       }]});
-      expect(controller.get('isWidgetsLoaded')).to.be.true;
+      expect(_controller.get('isWidgetsLoaded')).to.be.true;
     });
 
   });
@@ -298,24 +222,22 @@ describe('App.MainServiceInfoSummaryController', function () {
     beforeEach(function () {
       sinon.stub(App.widgetLayoutMapper, 'map');
       sinon.stub(controller, 'propertyDidChange');
-    });
-    afterEach(function () {
-      App.widgetLayoutMapper.map.restore();
-      controller.propertyDidChange.restore();
-    });
-    it("", function () {
       var params = {
         data: {
           WidgetLayoutInfo: {
             widgets: [
-              {
-                id: 1
-              }
+              {id: 1}
             ]
           }
         }
       };
       controller.hideWidgetSuccessCallback({}, {}, params);
+    });
+    afterEach(function () {
+      App.widgetLayoutMapper.map.restore();
+      controller.propertyDidChange.restore();
+    });
+    it("mapper is called with valid data", function () {
       expect(App.widgetLayoutMapper.map.calledWith({
         items: [{
           WidgetLayoutInfo: {
@@ -329,6 +251,8 @@ describe('App.MainServiceInfoSummaryController', function () {
           }
         }]
       })).to.be.true;
+    });
+    it('`widgets` is forced to be recalculated', function () {
       expect(controller.propertyDidChange.calledWith('widgets')).to.be.true;
     });
   });

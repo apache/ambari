@@ -28,22 +28,39 @@ def ranger_service(name, action=None):
   
   if name == 'ranger_admin':
     no_op_test = format('ps -ef | grep proc_rangeradmin | grep -v grep')
-    Execute(params.ranger_start, environment=env_dict, user=params.unix_user, not_if=no_op_test)
+    try:
+      Execute(params.ranger_start, environment=env_dict, user=params.unix_user, not_if=no_op_test)
+    except:
+      show_logs(params.admin_log_dir, params.unix_user)
+      raise
   elif name == 'ranger_usersync':
     no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
-
-
-    if params.stack_is_hdp23_or_further:
-      Execute(('chown','-R', format('{unix_user}:{unix_group}'), format('{usersync_log_dir}/')), sudo=True)
-      Execute(params.usersync_start,
-              environment=env_dict,
-              not_if=no_op_test,
-              user=params.unix_user,
-      )
+    if params.stack_supports_usersync_non_root:
+      try:
+        Execute(params.usersync_start,
+                environment=env_dict,
+                not_if=no_op_test,
+                user=params.unix_user
+        )
+      except:
+        show_logs(params.usersync_log_dir, params.unix_user)
+        raise
     else:
       # Usersync requires to be run as root for 2.2
       Execute((params.usersync_start,),
               environment={'JAVA_HOME': params.java_home},
               not_if=no_op_test,
-              sudo=True,
+              sudo=True
       )
+  elif name == 'ranger_tagsync' and params.stack_supports_ranger_tagsync:
+    no_op_test = format('ps -ef | grep proc_rangertagsync | grep -v grep')
+    cmd = format('{tagsync_services_file} start')
+    try:
+      Execute(cmd,
+        environment=env_dict,
+        user=params.unix_user,
+        not_if=no_op_test
+      )
+    except:
+      show_logs(params.tagsync_log_dir, params.unix_user)
+      raise

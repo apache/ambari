@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
@@ -40,6 +41,7 @@ import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -49,8 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 
 /**
  * This class analyzes a service's metrics to determine if additional
@@ -206,8 +206,11 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         pp.populateResources(resources, request, predicate);
       }
 
+    } catch (AuthorizationException e) {
+      // Need to rethrow the catched 'AuthorizationException'.
+      throw e;
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Error loading deferred resources", e);
       throw new SystemException("Error loading deferred resources", e);
     }
 

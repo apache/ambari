@@ -194,6 +194,15 @@ public class QueryCreateHandler extends BaseManagementHandler {
     return result;
   }
 
+  @Override
+  protected ResultMetadata convert(RequestStatusMetaData requestStatusMetaData) {
+    if (requestStatusMetaData == null) {
+      return null;
+    }
+
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Get the resource factory instance.
    * @return  a factory for creating resource instances

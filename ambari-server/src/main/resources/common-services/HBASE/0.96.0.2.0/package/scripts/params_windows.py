@@ -27,7 +27,7 @@ config = Script.get_config()
 hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
 hbase_bin_dir = os.path.join(os.environ["HBASE_HOME"],'bin')
 hbase_executable = os.path.join(hbase_bin_dir,"hbase.cmd")
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 hbase_user = hadoop_user
 

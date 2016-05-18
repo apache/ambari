@@ -32,7 +32,7 @@ class TestTezClient(RMFTestCase):
                        classname = "TezClient",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -43,7 +43,7 @@ class TestTezClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/tez/conf',
       owner = 'tez',
       group = 'hadoop',
-      recursive = True
+      create_parents = True
     )
 
     self.assertResourceCalled('XmlConfig', 'tez-site.xml',
@@ -63,33 +63,33 @@ class TestTezClient(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  @patch("resource_management.libraries.functions.get_hdp_version")
-  def test_upgrade(self, get_hdp_version_mock):
+  @patch("resource_management.libraries.functions.get_stack_version")
+  def test_upgrade(self, get_stack_version_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
                        command = "restart",
                        config_file="client-upgrade.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    get_hdp_version_mock.return_value = "2.2.1.0-2067"
+    get_stack_version_mock.return_value = "2.2.1.0-2067"
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
-    # for now, it's enough that hdp-select is confirmed
+    # for now, it's enough that <stack-selector-tool> is confirmed
 
-  @patch("resource_management.libraries.functions.get_hdp_version")
-  def test_upgrade_23(self, get_hdp_version_mock):
+  @patch("resource_management.libraries.functions.get_stack_version")
+  def test_upgrade_23(self, get_stack_version_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
                        command = "restart",
                        config_file="client-upgrade.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    get_hdp_version_mock.return_value = "2.2.1.0-2067"
+    get_stack_version_mock.return_value = "2.2.1.0-2067"
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', '2.2.1.0-2067'), sudo=True)
 
-    # for now, it's enough that hdp-select is confirmed
+    # for now, it's enough that <stack-selector-tool> is confirmed
 
   def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/client-upgrade.json"
@@ -103,7 +103,7 @@ class TestTezClient(RMFTestCase):
                        classname = "TezClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,28 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
+import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
+import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMROY_DRIVER;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.api.query.render.AlertStateSummary;
 import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer.AlertDefinitionSummary;
@@ -47,45 +64,38 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.persistence.EntityManager;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
-import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMROY_DRIVER;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 
 /**
  * Test the AlertResourceProvider class
  */
 public class AlertResourceProviderTest {
 
-  private static final Long ALERT_VALUE_ID = Long.valueOf(1000L);
+  private static final Long ALERT_VALUE_ID = 1000L;
   private static final String ALERT_VALUE_LABEL = "My Label";
-  private static final Long ALERT_VALUE_TIMESTAMP = Long.valueOf(1L);
+  private static final Long ALERT_VALUE_TIMESTAMP = 1L;
   private static final String ALERT_VALUE_TEXT = "My Text";
   private static final String ALERT_VALUE_COMPONENT = "component";
   private static final String ALERT_VALUE_HOSTNAME = "host";
@@ -96,7 +106,6 @@ public class AlertResourceProviderTest {
   private AmbariManagementController m_amc;
 
   @Before
-  @SuppressWarnings("boxing")
   public void before() throws Exception {
     m_dao = EasyMock.createNiceMock(AlertsDAO.class);
 
@@ -109,21 +118,49 @@ public class AlertResourceProviderTest {
     Clusters clusters = m_injector.getInstance(Clusters.class);
 
     expect(m_amc.getClusters()).andReturn(clusters).atLeastOnce();
-    expect(clusters.getCluster(capture(new Capture<String>()))).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1L));
+    expect(clusters.getCluster(capture(EasyMock.<String>newCapture()))).andReturn(cluster).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
+    expect(cluster.getClusterProperty(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1")).andReturn("1").atLeastOnce();
 
     replay(m_amc, clusters, cluster);
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
   }
 
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
 
   /**
    * @throws Exception
    */
   @Test
-  public void testGetCluster() throws Exception {
-    expect( m_dao.findAll(capture(new Capture<AlertCurrentRequest>())) ).andReturn(getClusterMockEntities()).anyTimes();
+  public void testGetClusterAsAdministrator() throws Exception {
+    testGetCluster(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetClusterAsClusterAdministrator() throws Exception {
+    testGetCluster(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetClusterAsClusterUser() throws Exception {
+    testGetCluster(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetClusterAsViewOnlyUser() throws Exception {
+    testGetCluster(TestAuthenticationFactory.createViewUser(99L));
+  }
+
+  private void testGetCluster(Authentication authentication) throws Exception {
+    expect(m_dao.findAll(capture(EasyMock.<AlertCurrentRequest>newCapture()))).andReturn(getClusterMockEntities()).anyTimes();
 
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
@@ -148,11 +185,32 @@ public class AlertResourceProviderTest {
    * Test for service
    */
   @Test
-  public void testGetService() throws Exception {
-    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
+  public void testGetServiceAsAdministrator() throws Exception {
+    testGetService(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetServiceAsClusterAdministrator() throws Exception {
+    testGetService(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetServiceAsClusterUser() throws Exception {
+    testGetService(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetServiceAsViewOnlyUser() throws Exception {
+    testGetService(TestAuthenticationFactory.createViewUser(99L));
+  }
+
+  private void testGetService(Authentication authentication) throws Exception {
+    expect(m_dao.findAll(capture(EasyMock.<AlertCurrentRequest>newCapture()))).andReturn(
         getClusterMockEntities()).anyTimes();
 
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
@@ -179,11 +237,32 @@ public class AlertResourceProviderTest {
    * Test for service
    */
   @Test
-  public void testGetHost() throws Exception {
-    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
+  public void testGetHostAsAdministrator() throws Exception {
+    testGetHost(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetHostAsClusterAdministrator() throws Exception {
+    testGetHost(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetHostAsClusterUser() throws Exception {
+    testGetHost(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetHostAsViewOnlyUser() throws Exception {
+    testGetHost(TestAuthenticationFactory.createViewUser(99L));
+  }
+
+  private void testGetHost(Authentication authentication) throws Exception {
+    expect(m_dao.findAll(capture(EasyMock.<AlertCurrentRequest>newCapture()))).andReturn(
         getClusterMockEntities()).anyTimes();
 
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
@@ -206,18 +285,40 @@ public class AlertResourceProviderTest {
     verify(m_dao);
   }
 
+
+  @Test
+  public void testGetClusterSummaryAsAdministrator() throws Exception {
+    testGetClusterSummary(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetClusterSummaryAsClusterAdministrator() throws Exception {
+    testGetClusterSummary(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetClusterSummaryAsClusterUser() throws Exception {
+    testGetClusterSummary(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetClusterSummaryAsViewOnlyUser() throws Exception {
+    testGetClusterSummary(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * Tests that the {@link AlertSummaryRenderer} correctly transforms the alert
    * data.
    *
    * @throws Exception
    */
-  @Test
-  public void testGetClusterSummary() throws Exception {
-    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
+  private void testGetClusterSummary(Authentication authentication) throws Exception {
+    expect(m_dao.findAll(capture(EasyMock.<AlertCurrentRequest>newCapture()))).andReturn(
         getMockEntitiesManyStates()).anyTimes();
 
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_DEFINITION_NAME,
@@ -257,19 +358,40 @@ public class AlertResourceProviderTest {
     Assert.assertEquals(3, alertStateSummary.Unknown.Count);
   }
 
+  @Test
+  public void testGetClusterGroupedSummaryAsAdministrator() throws Exception {
+    testGetClusterGroupedSummary(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetClusterGroupedSummaryAsClusterAdministrator() throws Exception {
+    testGetClusterGroupedSummary(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetClusterGroupedSummaryAsClusterUser() throws Exception {
+    testGetClusterGroupedSummary(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetClusterGroupedSummaryAsViewOnlyUser() throws Exception {
+    testGetClusterGroupedSummary(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * Tests that the {@link AlertSummaryGroupedRenderer} correctly transforms the
    * alert data.
    *
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testGetClusterGroupedSummary() throws Exception {
-    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
+  private void testGetClusterGroupedSummary(Authentication authentication) throws Exception {
+    expect(m_dao.findAll(capture(EasyMock.<AlertCurrentRequest>newCapture()))).andReturn(
         getMockEntitiesManyStates()).anyTimes();
 
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID, AlertResourceProvider.ALERT_DEFINITION_NAME,
@@ -303,7 +425,7 @@ public class AlertResourceProviderTest {
 
     Resource summaryResource = summaryResources.getObject();
     List<AlertDefinitionSummary> summaryList = (List<AlertDefinitionSummary>) summaryResource.getPropertyValue("alerts_summary_grouped");
-    Assert.assertEquals(4, summaryList.size());
+    assertEquals(4, summaryList.size());
 
     AlertDefinitionSummary nnSummary = null;
     AlertDefinitionSummary rmSummary = null;
@@ -352,15 +474,34 @@ public class AlertResourceProviderTest {
     Assert.assertEquals(ALERT_VALUE_TEXT, flumeSummary.State.Unknown.AlertText);
   }
 
+  @Test
+  public void testGetClusterGroupedSummaryMaintenanceCountsAsAdministrator() throws Exception {
+    testGetClusterGroupedSummaryMaintenanceCounts(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetClusterGroupedSummaryMaintenanceCountsAsClusterAdministrator() throws Exception {
+    testGetClusterGroupedSummaryMaintenanceCounts(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetClusterGroupedSummaryMaintenanceCountsAsClusterUser() throws Exception {
+    testGetClusterGroupedSummaryMaintenanceCounts(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetClusterGroupedSummaryMaintenanceCountsAsViewOnlyUser() throws Exception {
+    testGetClusterGroupedSummaryMaintenanceCounts(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * Tests that the {@link AlertSummaryGroupedRenderer} correctly transforms the
-   * alert data when it has maintenace mode alerts.
+   * alert data when it has maintenance mode alerts.
    *
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testGetClusterGroupedSummaryMaintenanceCounts() throws Exception {
+  private void testGetClusterGroupedSummaryMaintenanceCounts(Authentication authentication) throws Exception {
     // turn on MM for all alerts in the WARNING state
     List<AlertCurrentEntity> currents = getMockEntitiesManyStates();
     for (AlertCurrentEntity current : currents) {
@@ -369,10 +510,12 @@ public class AlertResourceProviderTest {
       }
     }
 
-    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
+    expect(m_dao.findAll(capture(EasyMock.<AlertCurrentRequest>newCapture()))).andReturn(
         currents).anyTimes();
 
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Request request = PropertyHelper.getReadRequest(
         AlertResourceProvider.ALERT_ID,
@@ -406,7 +549,7 @@ public class AlertResourceProviderTest {
 
     Resource summaryResource = summaryResources.getObject();
     List<Object> summaryList = (List<Object>) summaryResource.getPropertyValue("alerts_summary_grouped");
-    Assert.assertEquals(4, summaryList.size());
+    assertEquals(4, summaryList.size());
   }
 
   /**
@@ -420,6 +563,8 @@ public class AlertResourceProviderTest {
     expect(m_dao.getCount(EasyMock.anyObject(Predicate.class))).andReturn(0).atLeastOnce();
 
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     Set<String> requestProperties = new HashSet<String>();
     requestProperties.add(AlertResourceProvider.ALERT_ID);
@@ -460,6 +605,7 @@ public class AlertResourceProviderTest {
   private List<AlertCurrentEntity> getClusterMockEntities() throws Exception {
     AlertCurrentEntity current = new AlertCurrentEntity();
     current.setAlertId(Long.valueOf(1000L));
+    current.setHistoryId(ALERT_VALUE_ID);
     current.setLatestTimestamp(Long.valueOf(1L));
     current.setOriginalTimestamp(Long.valueOf(2L));
 
@@ -475,7 +621,15 @@ public class AlertResourceProviderTest {
     history.setHostName(ALERT_VALUE_HOSTNAME);
     history.setServiceName(ALERT_VALUE_SERVICE);
 
+    ResourceEntity clusterResourceEntity = new ResourceEntity();
+    clusterResourceEntity.setId(4L);
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterId(2L);
+    clusterEntity.setResource(clusterResourceEntity);
+
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setCluster(clusterEntity);
 
     history.setAlertDefinition(definition);
     current.setAlertHistory(history);
@@ -542,9 +696,17 @@ public class AlertResourceProviderTest {
       history.setHostName(ALERT_VALUE_HOSTNAME);
       history.setServiceName(service);
 
+      ResourceEntity clusterResourceEntity = new ResourceEntity();
+      clusterResourceEntity.setId(4L);
+
+      ClusterEntity clusterEntity = new ClusterEntity();
+      clusterEntity.setClusterId(2L);
+      clusterEntity.setResource(clusterResourceEntity);
+
       AlertDefinitionEntity definition = new AlertDefinitionEntity();
       definition.setDefinitionId(Long.valueOf(i));
       definition.setDefinitionName(definitionName);
+      definition.setCluster(clusterEntity);
       history.setAlertDefinition(definition);
       current.setAlertHistory(history);
       currents.add(current);
@@ -555,8 +717,8 @@ public class AlertResourceProviderTest {
 
 
   /**
-  *
-  */
+   *
+   */
   private class MockModule implements Module {
     @Override
     public void configure(Binder binder) {
@@ -566,7 +728,7 @@ public class AlertResourceProviderTest {
       binder.bind(DBAccessor.class).to(DBAccessorImpl.class);
 
       Clusters clusters = EasyMock.createNiceMock(Clusters.class);
-      Configuration configuration = EasyMock.createMock(Configuration.class);
+      Configuration configuration = EasyMock.createNiceMock(Configuration.class);
 
       binder.bind(Clusters.class).toInstance(clusters);
       binder.bind(Configuration.class).toInstance(configuration);
@@ -579,6 +741,7 @@ public class AlertResourceProviderTest {
       expect(configuration.getMasterKeyLocation()).andReturn(new File("/test")).anyTimes();
       expect(configuration.getTemporaryKeyStoreRetentionMinutes()).andReturn(2l).anyTimes();
       expect(configuration.isActivelyPurgeTemporaryKeyStore()).andReturn(true).anyTimes();
+      expect(configuration.getDatabaseSchema()).andReturn(Configuration.DEFAULT_DERBY_SCHEMA).anyTimes();
       replay(configuration);
     }
   }

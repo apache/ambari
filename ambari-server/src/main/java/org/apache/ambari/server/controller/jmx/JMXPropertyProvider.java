@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
@@ -98,6 +99,8 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
   private final String statePropertyId;
 
+  private final Map<String, String> clusterComponentPortsMap;
+
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -121,7 +124,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
                              String componentNamePropertyId,
                              String statePropertyId) {
 
-    super(componentMetrics, hostNamePropertyId, metricHostProvider);
+    super(componentMetrics, hostNamePropertyId, metricHostProvider, clusterNamePropertyId);
 
     this.streamProvider           = streamProvider;
     this.jmxHostProvider          = jmxHostProvider;
@@ -129,9 +132,16 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
     this.statePropertyId          = statePropertyId;
+    this.clusterComponentPortsMap = new HashMap<>();
   }
 
   // ----- helper methods ----------------------------------------------------
+
+  @Override
+  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate) throws SystemException {
+    clusterComponentPortsMap.clear();
+    return super.populateResources(resources, request, predicate);
+  }
 
   /**
    * Populate a resource by obtaining the requested JMX properties.
@@ -189,12 +199,6 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
       httpsEnabled = true;
     }
 
-    String port = getPort(clusterName, componentName, httpsEnabled);
-    if (port == null) {
-      LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
-      return resource;
-    }
-
     Set<String> hostNames = getHosts(resource, clusterName, componentName);
     if (hostNames == null || hostNames.isEmpty()) {
       LOG.warn("Unable to get JMX metrics.  No host name for " + componentName);
@@ -203,14 +207,21 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
     InputStream in = null;
 
+    String spec = null;
     try {
       try {
         for (String hostName : hostNames) {
           try {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Spec: " + getSpec(protocol, hostName, port, "/jmx"));
+            String port = getPort(clusterName, componentName, hostName, httpsEnabled);
+            if (port == null) {
+              LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
+              return resource;
             }
-            in = streamProvider.readFrom(getSpec(protocol, hostName, port, "/jmx"));
+            spec = getSpec(protocol, hostName, port, "/jmx");
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Spec: " + spec);
+            }
+            in = streamProvider.readFrom(spec);
             // if the ticket becomes invalid (timeout) then bail out
             if (!ticket.isValid()) {
               return resource;
@@ -219,7 +230,9 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
             getHadoopMetricValue(in, ids, resource, request, ticket);
 
           } catch (IOException e) {
-            logException(e);
+            AmbariException detailedException = new AmbariException(
+                String.format("Unable to get JMX metrics from the host %s for the component %s. Spec: %s", hostName, componentName, spec), e);
+            logException(detailedException);
           }
         }
       } finally {
@@ -243,8 +256,10 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
 
+    String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
     for (Map<String, Object> bean : metricHolder.getBeans()) {
-      String category = getCategory(bean);
+      String category = getCategory(bean, clusterName, componentName);
       if (category != null) {
         categories.put(category, bean);
       }
@@ -348,9 +363,15 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     }
   }
 
-  private String getPort(String clusterName, String componentName, boolean httpsEnabled) throws SystemException {
-    String port = jmxHostProvider.getPort(clusterName, componentName, httpsEnabled);
-    return port == null ? DEFAULT_JMX_PORTS.get(componentName) : port;
+  private String getPort(String clusterName, String componentName, String hostName, boolean httpsEnabled) throws SystemException {
+    String portMapKey = String.format("%s-%s-%s", clusterName, componentName, httpsEnabled);
+    String port = clusterComponentPortsMap.get(portMapKey);
+    if (port==null) {
+      port = jmxHostProvider.getPort(clusterName, componentName, hostName, httpsEnabled);
+      port = port == null ? DEFAULT_JMX_PORTS.get(componentName) : port;
+      clusterComponentPortsMap.put(portMapKey, port);
+    }
+    return port;
   }
 
   private String getJMXProtocol(String clusterName, String componentName) {
@@ -363,13 +384,14 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
             Collections.singleton((String) resource.getPropertyValue(hostNamePropertyId));
   }
 
-  private String getCategory(Map<String, Object> bean) {
+  private String getCategory(Map<String, Object> bean, String clusterName, String componentName) {
     if (bean.containsKey(NAME_KEY)) {
       String name = (String) bean.get(NAME_KEY);
 
       if (bean.containsKey(PORT_KEY)) {
         String port = (String) bean.get(PORT_KEY);
-        name = name.replace("ForPort" + port, "");
+        String tag = jmxHostProvider.getJMXRpcMetricTag(clusterName, componentName, port);
+        name = name.replace("ForPort" + port, tag == null ? "" : ",tag=" + tag);
       }
       return name;
     }

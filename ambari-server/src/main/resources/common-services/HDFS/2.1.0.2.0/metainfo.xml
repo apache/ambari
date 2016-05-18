@@ -31,11 +31,21 @@
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
+            <timeout>1800</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_namenode</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>hdfs_audit</logId>
+            </log>
+          </logs>
           <customCommands>
             <customCommand>
               <name>DECOMMISSION</name>
@@ -62,11 +72,23 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
           <commandScript>
             <script>scripts/datanode.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <bulkCommands>
+            <displayName>DataNodes</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>NAMENODE</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>hdfs_datanode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -75,12 +97,19 @@
           <!-- TODO:  cardinality is conditional on HA usage -->
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/snamenode.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_secondarynamenode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -129,6 +158,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_journalnode</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -152,6 +187,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hdfs_zkfc</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
       </components>
 
@@ -165,12 +206,13 @@
             <package>
               <name>hadoop-lzo</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
             </package>
           </packages>
         </osSpecific>
         
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>snappy</name>
@@ -181,10 +223,12 @@
             <package>
               <name>lzo</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
             </package>
             <package>
               <name>hadoop-lzo-native</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
             </package>
             <package>
               <name>hadoop-libhdfs</name>
@@ -204,6 +248,7 @@
             <package>
               <name>liblzo2-2</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
             </package>
             <package>
               <name>hadoop-hdfs</name>
@@ -241,6 +286,7 @@
         <config-type>ranger-hdfs-audit</config-type>
         <config-type>ranger-hdfs-policymgr-ssl</config-type>
         <config-type>ranger-hdfs-security</config-type>
+        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>

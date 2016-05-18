@@ -45,18 +45,7 @@ var compressedResponse = LZString.compressToBase64(JSON.stringify(response2));
 
 describe('App.clusterStatus', function () {
 
-  describe('#isInstalled', function () {
-    notInstalledStates.forEach(function (item) {
-      it('should be false', function () {
-        status.set('clusterState', item);
-        expect(status.get('isInstalled')).to.be.false;
-      });
-    });
-    it('should be true', function () {
-      status.set('clusterState', 'DEFAULT');
-      expect(status.get('isInstalled')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedNotExistsIn(status, 'isInstalled', 'clusterState', notInstalledStates);
 
   describe('#value', function () {
     it('should be set from properties', function () {
@@ -68,14 +57,24 @@ describe('App.clusterStatus', function () {
   });
 
   describe('#getUserPrefSuccessCallback', function () {
-    it('should set the cluster parameters', function () {
-      status.getUserPrefSuccessCallback(response);
-      Em.keys(response).forEach(function (key) {
-        expect(status.get(key)).to.equal(response[key]);
+    describe('response', function () {
+      beforeEach(function () {
+        status.getUserPrefSuccessCallback(response);
       });
-      status.getUserPrefSuccessCallback(compressedResponse);
+      Em.keys(response).forEach(function (key) {
+        it(key, function () {
+          expect(status.get(key)).to.equal(response[key]);
+        });
+      });
+    });
+    describe('compressedResponse', function () {
+      beforeEach(function () {
+        status.getUserPrefSuccessCallback(compressedResponse);
+      });
       Em.keys(response2).forEach(function (key) {
-        expect(status.get(key)).to.equal(response2[key]);
+        it(key, function () {
+          expect(status.get(key)).to.equal(response2[key]);
+        });
       });
     });
   });
@@ -90,22 +89,9 @@ describe('App.clusterStatus', function () {
 
     afterEach(function () {
       status.postUserPref.restore();
-      App.get.restore();
-    });
-
-    it('should return false in test mode', function () {
-      sinon.stub(App, 'get', function(k) {
-        if (k === 'testMode') return true;
-        return Em.get(App, k);
-      });
-      expect(status.setClusterStatus()).to.be.false;
     });
 
     it('should set cluster status in non-test mode', function () {
-      sinon.stub(App, 'get', function(k) {
-        if (k === 'testMode') return false;
-        return Em.get(App, k);
-      });
       var clusterStatus = status.setClusterStatus(newValue);
       expect(clusterStatus).to.eql(newValue);
     });

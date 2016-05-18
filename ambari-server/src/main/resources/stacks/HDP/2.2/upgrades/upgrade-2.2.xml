@@ -79,7 +79,7 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Pre Upgrade Oozie Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -112,8 +112,8 @@
     <group name="CORE_MASTER" title="Core Masters">
       <service-check>false</service-check>
       <service name="HDFS">
-        <component>JOURNALNODE</component>
         <component>NAMENODE</component>
+        <component>JOURNALNODE</component>
         <component>ZKFC</component>
       </service>
 
@@ -332,6 +332,7 @@
     </group>
 
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
+      <scope>COMPLETE</scope>
       <execute-stage title="Update remaining HDP stack to {{version}}">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
@@ -442,6 +443,10 @@
       </component>
 
       <component name="MAPREDUCE2_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -497,6 +502,8 @@
       <component name="TEZ_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_lib_uris_property" />
+
+          <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -531,7 +538,7 @@
         <pre-upgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10010 if Hive is using a binary transfer mode or 10011 if Hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_set_transport_mode"/>
@@ -540,7 +547,7 @@
         <pre-downgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10000 if hive is using a binary transfer mode or 10001 if hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10000 if Hive is using a binary transfer mode or 10001 if Hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_restore_transport_mode_on_downgrade"/>
@@ -594,24 +601,29 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
+          
+          <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
 
-          <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+          <!-- It is extremely important that both of these tasks run on the exact same host. Hence, pick the first alphabetically. -->
+          <task xsi:type="configure_function" hosts="first" />
+
+          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>

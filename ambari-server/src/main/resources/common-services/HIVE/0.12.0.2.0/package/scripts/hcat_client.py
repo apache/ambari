@@ -18,18 +18,21 @@ limitations under the License.
 
 """
 
-import sys
-from resource_management import *
 from hcat import hcat
-from setup_atlas_hive import setup_atlas_hive
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.logger import Logger
+from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.script.script import Script
 
 
 class HCatClient(Script):
   def install(self, env):
     import params
-    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
+    self.install_packages(env)
     self.configure(env)
 
   def configure(self, env):
@@ -48,8 +51,34 @@ class HCatClientWindows(HCatClient):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HCatClientDefault(HCatClient):
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-client"}
+  def get_component_name(self):
+    # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always
+    # update after daemons, this ensures that the hcat directories are correct on hosts
+    # which do not include the WebHCat daemon
+    return "hive-webhcat"
+
+
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    """
+    Execute <stack-selector-tool> before reconfiguring this client to the new stack version.
+
+    :param env:
+    :param upgrade_type:
+    :return:
+    """
+    Logger.info("Executing Hive HCat Client Stack Upgrade pre-restart")
+
+    import params
+    env.set_params(params)
+
+    # this function should not execute if the stack version does not support rolling upgrade
+    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
+      return
+
+    # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always
+    # update after daemons, this ensures that the hcat directories are correct on hosts
+    # which do not include the WebHCat daemon
+    stack_select.select("hive-webhcat", params.version)
 
 
 if __name__ == "__main__":

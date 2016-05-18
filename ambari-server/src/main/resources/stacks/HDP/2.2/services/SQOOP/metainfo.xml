@@ -28,22 +28,23 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysl_connector</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>sqoop_2_2_*</name>
+              <name>sqoop_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>sqoop-2-2-.*</name>
+              <name>sqoop-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

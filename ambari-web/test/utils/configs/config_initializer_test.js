@@ -21,62 +21,7 @@ var App = require('app');
 require('models/configs/objects/service_config_property');
 require('utils/configs/config_initializer');
 
-var serviceConfig,
-  group,
-  serviceConfigProperty,
-
-  components = [
-    {
-      name: 'NameNode',
-      master: true
-    },
-    {
-      name: 'SNameNode',
-      master: true
-    },
-    {
-      name: 'JobTracker',
-      master: true
-    },
-    {
-      name: 'HBase Master',
-      master: true
-    },
-    {
-      name: 'Oozie Master',
-      master: true
-    },
-    {
-      name: 'Hive Metastore',
-      master: true
-    },
-    {
-      name: 'WebHCat Server',
-      master: true
-    },
-    {
-      name: 'ZooKeeper Server',
-      master: true
-    },
-    {
-      name: 'Ganglia',
-      master: true
-    },
-    {
-      name: 'DataNode',
-      slave: true
-    },
-    {
-      name: 'TaskTracker',
-      slave: true
-    },
-    {
-      name: 'RegionServer',
-      slave: true
-    }
-  ],
-  masters = components.filterProperty('master'),
-  slaves = components.filterProperty('slave');
+var serviceConfigProperty;
 
 describe('App.ConfigInitializer', function () {
 
@@ -258,6 +203,7 @@ describe('App.ConfigInitializer', function () {
         dependencies: {
           'hive.metastore.uris': 'thrift://localhost:9083'
         },
+        filename: 'hive-site.xml',
         recommendedValue: 'thrift://localhost:9083',
         value: 'thrift://h0:9083,thrift://h1:9083',
         title: 'comma separated list of Metastore hosts with thrift prefix and port'
@@ -302,22 +248,6 @@ describe('App.ConfigInitializer', function () {
         value: 'h0:2182,h1:2182',
         title: 'should add ZK host and port dynamically'
       },
-      'oozie_hostname': {
-        localDB: {
-          masterComponentHosts: [
-            {
-              component: 'OOZIE_SERVER',
-              hostName: 'h0'
-            },
-            {
-              component: 'OOZIE_SERVER',
-              hostName: 'h1'
-            }
-          ]
-        },
-        value: ['h0', 'h1'],
-        title: 'array that contains names of hosts with Oozie Server'
-      },
       'knox_gateway_host': {
         localDB: {
           masterComponentHosts: [
@@ -347,23 +277,44 @@ describe('App.ConfigInitializer', function () {
       });
     });
 
-    cases['hive_database'].forEach(function (item) {
-      var title = 'hive_database value should be set to {0}';
-      it(title.format(item.value), function () {
-        sinon.stub(App, 'get')
-          .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
-          .withArgs('router.currentState.name').returns(item.currentStateName)
-          .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
-        serviceConfigProperty.setProperties({
-          name: 'hive_database',
-          value: item.receivedValue,
-          options: item.options
-        });
-        App.ConfigInitializer.initialValue(serviceConfigProperty, {}, []);
-        expect(serviceConfigProperty.get('value')).to.equal(item.value);
-        expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+    describe('hive_database', function () {
+
+      beforeEach(function () {
+        this.stub = sinon.stub(App, 'get');
+      });
+
+      afterEach(function () {
         App.get.restore();
       });
+
+      cases.hive_database.forEach(function (item) {
+        var title = 'hive_database value should be set to {0}';
+        describe(title.format(item.value), function () {
+
+          beforeEach(function () {
+            this.stub
+              .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
+              .withArgs('router.currentState.name').returns(item.currentStateName)
+              .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
+            serviceConfigProperty.setProperties({
+              name: 'hive_database',
+              value: item.receivedValue,
+              options: item.options
+            });
+            App.ConfigInitializer.initialValue(serviceConfigProperty, {}, []);
+          });
+
+          it('value is ' + item.value, function () {
+            expect(serviceConfigProperty.get('value')).to.equal(item.value);
+          });
+
+          it('`New MySQL Database` is ' + (item.hidden ? '' : 'not') + ' hidden', function () {
+            expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+          });
+
+        });
+      });
+
     });
 
     cases['hbase.zookeeper.quorum'].forEach(function (item) {
@@ -389,16 +340,17 @@ describe('App.ConfigInitializer', function () {
       });
     });
 
-    it(cases['hive_master_hosts'].title, function () {
+    it(cases.hive_master_hosts.title, function () {
       serviceConfigProperty.set('name', 'hive_master_hosts');
-      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB, []);
-      expect(serviceConfigProperty.get('value')).to.equal(cases['hive_master_hosts'].value);
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases.hive_master_hosts.localDB, []);
+      expect(serviceConfigProperty.get('value')).to.equal(cases.hive_master_hosts.value);
     });
 
     it(cases['hive.metastore.uris'].title, function () {
       serviceConfigProperty.setProperties({
         name: 'hive.metastore.uris',
-        recommendedValue: cases['hive.metastore.uris'].recommendedValue
+        recommendedValue: cases['hive.metastore.uris'].recommendedValue,
+        filename: 'hive-site.xml'
       });
       App.ConfigInitializer.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, {'hive.metastore.uris': cases['hive.metastore.uris'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
@@ -411,7 +363,7 @@ describe('App.ConfigInitializer', function () {
         recommendedValue: cases['templeton.hive.properties'].recommendedValue,
         value: cases['templeton.hive.properties'].recommendedValue
       });
-      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB,  {'hive.metastore.uris': cases['templeton.hive.properties'].recommendedValue});
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB, {'hive.metastore.uris': cases['templeton.hive.properties'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['templeton.hive.properties'].value);
     });
@@ -421,7 +373,7 @@ describe('App.ConfigInitializer', function () {
         name: 'yarn.resourcemanager.zk-address',
         recommendedValue: cases['yarn.resourcemanager.zk-address'].recommendedValue
       });
-      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  cases['yarn.resourcemanager.zk-address'].dependencies);
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB, cases['yarn.resourcemanager.zk-address'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });
@@ -621,18 +573,6 @@ describe('App.ConfigInitializer', function () {
         expectedValue: 'h1:555'
       },
       {
-        config: 'hive_hostname',
-        localDB: getLocalDBForSingleComponent('HIVE_SERVER'),
-        rValue: 'c6407.ambari.apache.org',
-        expectedValue: 'h1'
-      },
-      {
-        config: 'oozie_hostname',
-        localDB: getLocalDBForSingleComponent('OOZIE_SERVER'),
-        rValue: 'c6407.ambari.apache.org',
-        expectedValue: 'h1'
-      },
-      {
         config: 'oozie.base.url',
         localDB: getLocalDBForSingleComponent('OOZIE_SERVER'),
         rValue: 'http://localhost:11000/oozie',
@@ -789,6 +729,7 @@ describe('App.ConfigInitializer', function () {
       },
       {
         config: 'hive.metastore.uris',
+        filename: 'hive-site.xml',
         localDB: getLocalDBForMultipleComponents('HIVE_METASTORE', 2),
         dependencies: {
           'hive.metastore.uris': 'thrift://localhost:9083'
@@ -797,19 +738,30 @@ describe('App.ConfigInitializer', function () {
         expectedValue: 'thrift://h1:9083,thrift://h2:9083'
       }
     ]).forEach(function (test) {
-      it(test.m || test.config, function () {
-        serviceConfigProperty.setProperties({
-          name: test.config,
-          recommendedValue: test.rValue,
-          filename: test.filename
+      describe(test.m || test.config, function () {
+
+        beforeEach(function () {
+          serviceConfigProperty.setProperties({
+            name: test.config,
+            recommendedValue: test.rValue,
+            filename: test.filename
+          });
+          App.ConfigInitializer.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
         });
-        App.ConfigInitializer.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
-        expect(serviceConfigProperty.get('value')).to.eql(test.expectedValue);
+
+        it('value is ' + test.expectedValue, function () {
+          expect(serviceConfigProperty.get('value')).to.eql(test.expectedValue);
+        });
+
         if (Em.isNone(test.expectedRValue)) {
-          expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedValue);
+          it('recommendedValue is ' + test.expectedValue, function () {
+            expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedValue);
+          });
         }
         else {
-          expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedRValue);
+          it('recommendedValue is ' + test.expectedRValue, function () {
+            expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedRValue);
+          });
         }
 
       });

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
 
 import javax.ws.rs.DELETE;
@@ -57,7 +58,6 @@ public class ViewInstanceService extends BaseService {
    */
   private final ViewRegistry viewRegistry;
 
-
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -68,7 +68,7 @@ public class ViewInstanceService extends BaseService {
    */
   public ViewInstanceService(String viewName, String version) {
     this.viewName = viewName;
-    this.version  = version;
+    this.version = version;
 
     viewRegistry = ViewRegistry.getInstance();
   }
@@ -90,11 +90,8 @@ public class ViewInstanceService extends BaseService {
   @Path("{instanceName}")
   @Produces("text/plain")
   public Response getService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @PathParam("instanceName") String instanceName) {
-
-    hasPermission(Request.Type.GET, instanceName);
-    return handleRequest(headers, body, ui, Request.Type.GET,
-        createResource(viewName, version, instanceName));
+                             @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, instanceName));
   }
 
   /**
@@ -108,11 +105,8 @@ public class ViewInstanceService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-
-    hasPermission(Request.Type.GET, null);
-    return handleRequest(headers, body, ui, Request.Type.GET,
-        createResource(viewName, version,  null));
+  public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) throws AuthorizationException {
+    return handleRequest(headers, body, ui, Request.Type.GET, createResource(viewName, version, null));
   }
 
   /**
@@ -130,10 +124,8 @@ public class ViewInstanceService extends BaseService {
   @Path("{instanceName}")
   @Produces("text/plain")
   public Response createService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("instanceName") String instanceName) {
-    hasPermission(Request.Type.POST, instanceName);
-    return handleRequest(headers, body, ui, Request.Type.POST,
-        createResource(viewName, version,  instanceName));
+                                @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    return handleRequest(headers, body, ui, Request.Type.POST, createResource(viewName, version, instanceName));
   }
 
   /**
@@ -148,11 +140,8 @@ public class ViewInstanceService extends BaseService {
    */
   @POST
   @Produces("text/plain")
-  public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-
-    hasPermission(Request.Type.POST, null);
-    return handleRequest(headers, body, ui, Request.Type.POST,
-        createResource(viewName, version,  null));
+  public Response createServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) throws AuthorizationException {
+    return handleRequest(headers, body, ui, Request.Type.POST, createResource(viewName, version, null));
   }
 
   /**
@@ -170,10 +159,8 @@ public class ViewInstanceService extends BaseService {
   @Path("{instanceName}")
   @Produces("text/plain")
   public Response updateService(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("instanceName") String instanceName) {
-
-    hasPermission(Request.Type.PUT, instanceName);
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version,  instanceName));
+                                @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version, instanceName));
   }
 
   /**
@@ -188,10 +175,8 @@ public class ViewInstanceService extends BaseService {
    */
   @PUT
   @Produces("text/plain")
-  public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-
-    hasPermission(Request.Type.PUT, null);
-    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version,  null));
+  public Response updateServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) throws AuthorizationException {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(viewName, version, null));
   }
 
   /**
@@ -208,10 +193,8 @@ public class ViewInstanceService extends BaseService {
   @Path("{instanceName}")
   @Produces("text/plain")
   public Response deleteService(@Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("instanceName") String instanceName) {
-
-    hasPermission(Request.Type.DELETE, instanceName);
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(viewName, version,  instanceName));
+                                @PathParam("instanceName") String instanceName) throws AuthorizationException {
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createResource(viewName, version, instanceName));
   }
 
   /**
@@ -257,7 +240,11 @@ public class ViewInstanceService extends BaseService {
     return new ViewPrivilegeService(viewName, version, instanceName);
   }
 
-
+  @Path("{instanceName}/migrate")
+  public ViewDataMigrationService migrateData(@Context javax.ws.rs.core.Request request,
+                                              @PathParam ("instanceName") String instanceName) {
+    return new ViewDataMigrationService(viewName, version, instanceName);
+  }
   // ----- helper methods ----------------------------------------------------
 
   /**
@@ -269,7 +256,7 @@ public class ViewInstanceService extends BaseService {
    * @return a view instance resource
    */
   private ResourceInstance createResource(String viewName, String viewVersion, String instanceName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
     mapIds.put(Resource.Type.View, viewName);
     mapIds.put(Resource.Type.ViewVersion, viewVersion);
     mapIds.put(Resource.Type.ViewInstance, instanceName);

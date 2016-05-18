@@ -55,26 +55,6 @@ App.DashboardWidgetView = Em.View.extend({
   attributeBindings: ['viewID'],
 
   /**
-   * @type {boolean}
-   */
-  isPieChart: false,
-
-  /**
-   * @type {boolean}
-   */
-  isText: false,
-
-  /**
-   * @type {boolean}
-   */
-  isProgressBar: false,
-
-  /**
-   * @type {boolean}
-   */
-  isLinks: false,
-
-  /**
    * widget content pieChart/ text/ progress bar/links/ metrics. etc
    * @type {Array}
    * @default null
@@ -128,7 +108,7 @@ App.DashboardWidgetView = Em.View.extend({
       var thresh2 = this.get('thresh2');
       var maxValue = this.get('maxValue');
 
-      if (thresh1.trim() != "") {
+      if (thresh1.trim() !== "") {
         if (isNaN(thresh1) || thresh1 > maxValue || thresh1 < 0) {
           this.set('isThresh1Error', true);
           this.set('errorMessage1', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
@@ -149,7 +129,7 @@ App.DashboardWidgetView = Em.View.extend({
       var thresh2 = this.get('thresh2');
       var maxValue = this.get('maxValue');
 
-      if (thresh2.trim() != "") {
+      if (thresh2.trim() !== "") {
         if (isNaN(thresh2) || thresh2 > maxValue || thresh2 < 0) {
           this.set('isThresh2Error', true);
           this.set('errorMessage2', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
@@ -168,8 +148,9 @@ App.DashboardWidgetView = Em.View.extend({
       var thresh2 = this.get('thresh2');
       // update the slider handles and color
       if (this.get('isThresh1Error') === false && this.get('isThresh2Error') === false) {
-        $("#slider-range").slider('values', 0, parseFloat(thresh1));
-        $("#slider-range").slider('values', 1, parseFloat(thresh2));
+        $("#slider-range")
+          .slider('values', 0, parseFloat(thresh1))
+          .slider('values', 1, parseFloat(thresh2));
       }
     }
   }),
@@ -182,13 +163,13 @@ App.DashboardWidgetView = Em.View.extend({
   },
 
   willDestroyElement : function() {
-    $('.tooltip').remove();
+    $("[rel='ZoomInTooltip']").tooltip('destroy');
   },
   /**
    * delete widget
    * @param {object} event
    */
-  deleteWidget: function (event) {
+  deleteWidget: function () {
     var parent = this.get('parentView');
     var self = this;
 
@@ -247,7 +228,7 @@ App.DashboardWidgetView = Em.View.extend({
 
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.popupHeader'),
-      classNames: [ 'sixty-percent-width-modal-edit-widget' ],
+      classNames: ['sixty-percent-width-modal-edit-widget'],
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
         configPropertyObj: configObj
@@ -265,7 +246,7 @@ App.DashboardWidgetView = Em.View.extend({
             var parent = self.get('parentView');
             parent.getUserPref(parent.get('persistKey')).complete(function () {
               var oldValue = parent.get('currentPrefObject');
-              oldValue.threshold[parseInt(self.get('id'))] = [configObj.get('thresh1'), configObj.get('thresh2')];
+              oldValue.threshold[parseInt(self.get('id'), 10)] = [configObj.get('thresh1'), configObj.get('thresh2')];
               parent.postUserPref(parent.get('persistKey'), oldValue);
             });
           }
@@ -275,11 +256,12 @@ App.DashboardWidgetView = Em.View.extend({
       },
 
       didInsertElement: function () {
+        this._super();
         var browserVersion = self.getInternetExplorerVersion();
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
         var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
 
-        if (browserVersion == -1 || browserVersion > 9) {
+        if (browserVersion === -1 || browserVersion > 9) {
           configObj.set('isIE9', false);
           configObj.set('isGreenOrangeRed', true);
           $("#slider-range").slider({
@@ -287,7 +269,7 @@ App.DashboardWidgetView = Em.View.extend({
             min: 0,
             max: maxValue,
             values: handlers,
-            create: function (event, ui) {
+            create: function () {
               updateColors(handlers);
             },
             slide: function (event, ui) {
@@ -331,18 +313,18 @@ App.DashboardWidgetView = Em.View.extend({
    */
   getInternetExplorerVersion: function () {
     var rv = -1; //return -1 for other browsers
-    if (navigator.appName == 'Microsoft Internet Explorer') {
+    if (navigator.appName === 'Microsoft Internet Explorer') {
       var ua = navigator.userAgent;
       var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-      if (re.exec(ua) != null)
+      if (re.exec(ua) != null) {
         rv = parseFloat(RegExp.$1); // IE version 1-10
+      }
     }
     var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
     if (isFirefox) {
       return -2;
-    } else {
-      return rv;
     }
+    return rv;
   },
 
   /**
@@ -353,15 +335,19 @@ App.DashboardWidgetView = Em.View.extend({
    */
   hoverContentTopClass: function () {
     var lineNum = this.get('hiddenInfo.length');
-    if (lineNum == 2) {
+    if (lineNum === 2) {
       return "content-hidden-two-line";
-    } else if (lineNum == 3) {
+    }
+    if (lineNum === 3) {
       return "content-hidden-three-line";
-    } else if (lineNum == 4) {
+    }
+    if (lineNum === 4) {
       return "content-hidden-four-line";
-    } else if (lineNum == 5) {
+    }
+    if (lineNum === 5) {
       return "content-hidden-five-line";
-    } else if (lineNum == 6) {
+    }
+    if (lineNum === 6) {
       return "content-hidden-six-line";
     }
     return '';

@@ -29,7 +29,7 @@
       {{/each}}
     </ul>
 {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
 {{/if}}
 {{#if hasChangedDependencies}}
   <div class="alert alert-warning">

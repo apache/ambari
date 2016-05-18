@@ -18,6 +18,8 @@
 
 package org.apache.ambari.view.cluster;
 
+import java.util.List;
+
 /**
  * View associated cluster.  A cluster may be associated with a view instance so that the view instance may pull
  * configuration values from the cluster.
@@ -39,4 +41,13 @@ public interface Cluster {
    * @return the configuration value
    */
   public String getConfigurationValue(String type, String key);
+
+  /**
+   * Get the hosts for service and componet
+   *
+   * @param serviceName
+   * @param componentName
+   * @return list of hosts
+   */
+  public List<String> getHostsForServiceComponent(String serviceName, String componentName);
 }

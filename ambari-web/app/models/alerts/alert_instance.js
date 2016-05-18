@@ -37,20 +37,26 @@ App.AlertInstance = DS.Model.extend({
   instance: DS.attr('string'),
   state: DS.attr('string'),
   text: DS.attr('string'),
+  repeatTolerance: DS.attr('number'),
+  repeatToleranceRemaining: DS.attr('number'),
   notification: DS.hasMany('App.AlertNotification'),
 
   /**
-   * Status icon markup
+   * @type {boolean}
+   */
+  isMaintenanceStateOn: Em.computed.equal('maintenanceState', 'ON'),
+
+  /**
    * @type {string}
    */
-  status: function () {
-    var isMaintenanceStateOn = this.get('maintenanceState') === 'ON';
-    var state = this.get('state');
-    var stateClass = isMaintenanceStateOn ? 'PENDING' : state;
-    var shortState = this.get('shortState')[state];
-    var maintenanceIcon = isMaintenanceStateOn ? '<span class="icon-medkit"></span> ' : '';
-    return '<div class="label alert-state-single-host alert-state-' + stateClass + '">' + maintenanceIcon + shortState + '</div>';
-  }.property('state'),
+  shortStateMsg: Em.computed.getByKey('shortState', 'state'),
+
+  /**
+   * @type {string}
+   */
+  stateClass: function () {
+    return 'alert-state-' + (this.get('isMaintenanceStateOn') ? 'PENDING' : this.get('state'));
+  }.property('isMaintenanceStateOn'),
 
   /**
    * For alerts we will have processes which are not typical
@@ -124,7 +130,7 @@ App.AlertInstance = DS.Model.extend({
   */  
   escapeSpecialCharactersFromTooltip: function () {
     var displayedText = this.get('text');
-    return  displayedText.replace(/[<>]/g, '');
+    return displayedText.replace(/[<>]/g, '');
   }.property('text'),
 
   /**
@@ -140,6 +146,14 @@ App.AlertInstance = DS.Model.extend({
   typeIcons: {
     'DISABLED': 'icon-off'
   },
+
+  repeatToleranceReceived: function () {
+    return this.get('repeatTolerance') - this.get('repeatToleranceRemaining');
+  }.property('repeatToleranceRemaining', 'repeatTolerance'),
+
+  retryText: function () {
+    return this.get('state') === 'OK' ? '' : Em.I18n.t('models.alert_definition.check.retry').format(this.get('repeatToleranceReceived'), this.get('repeatTolerance'));
+  }.property('state','repeatToleranceRemaining', 'repeatTolerance'),
 
   /**
    * Define if definition serviceName is Ambari

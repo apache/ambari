@@ -29,7 +29,6 @@
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
-      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
   </property>
   <property>
@@ -51,6 +50,7 @@
     <description>Mapreduce User</description>
     <value-attributes>
       <type>user</type>
+      <overridable>false</overridable>
     </value-attributes>
   </property>
   <property>

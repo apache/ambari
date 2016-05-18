@@ -23,11 +23,12 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
@@ -41,13 +42,13 @@ from hive_service import hive_service
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 
-# the legacy conf.server location in HDP 2.2
+# the legacy conf.server location in previous stack versions
 LEGACY_HIVE_SERVER_CONF = "/etc/hive/conf.server"
 
 class HiveMetastore(Script):
   def install(self, env):
     import params
-    self.install_packages(env, exclude_packages = params.hive_exclude_packages)
+    self.install_packages(env)
 
 
   def start(self, env, upgrade_type=None):
@@ -82,8 +83,8 @@ class HiveMetastoreWindows(HiveMetastore):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HiveMetastoreDefault(HiveMetastore):
-  def get_stack_to_component(self):
-    return {"HDP": "hive-metastore"}
+  def get_component_name(self):
+    return "hive-metastore"
 
 
   def status(self, env):
@@ -102,15 +103,15 @@ class HiveMetastoreDefault(HiveMetastore):
 
     env.set_params(params)
 
-    is_stack_hdp_23 = Script.is_hdp_stack_greater_or_equal("2.3")
     is_upgrade = params.upgrade_direction == Direction.UPGRADE
 
-    if is_stack_hdp_23 and is_upgrade:
-      self.upgrade_schema(env)
-
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hive", params.version)
-      hdp_select.select("hive-metastore", params.version)
+      stack_select.select("hive-metastore", params.version)
+
+    if is_upgrade and params.stack_version_formatted_major and \
+            check_stack_feature(StackFeature.HIVE_METASTORE_UPGRADE_SCHEMA, params.stack_version_formatted_major):
+      self.upgrade_schema(env)
 
 
   def security_status(self, env):
@@ -194,11 +195,11 @@ class HiveMetastoreDefault(HiveMetastore):
     # ensure that the JDBC drive is present for the schema tool; if it's not
     # present, then download it first
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
-      target_directory = format("/usr/hdp/{version}/hive/lib")
+      target_directory = format("{stack_root}/{version}/hive/lib")
 
       # download it if it does not exist
       if not os.path.exists(params.source_jdbc_file):
-        jdbc_connector()
+        jdbc_connector(params.target_hive)
 
       target_directory_and_filename = os.path.join(target_directory, os.path.basename(params.source_jdbc_file))
 
@@ -207,7 +208,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
         Execute(format("yes | {sudo} cp {jars_in_hive_lib} {target_directory}"))
 
-        Directory(target_native_libs_directory, recursive=True)
+        Directory(target_native_libs_directory, create_parents = True)
 
         Execute(format("yes | {sudo} cp {libs_in_hive_lib} {target_native_libs_directory}"))
 
@@ -222,15 +223,15 @@ class HiveMetastoreDefault(HiveMetastore):
       File(target_directory_and_filename, mode = 0644)
 
     # build the schema tool command
-    binary = format("/usr/hdp/{version}/hive/bin/schematool")
+    binary = format("{hive_schematool_ver_bin}/schematool")
 
-    # the conf.server directory changed locations between HDP 2.2 and 2.3
+    # the conf.server directory changed locations between stack versions
     # since the configurations have not been written out yet during an upgrade
     # we need to choose the original legacy location
     schematool_hive_server_conf_dir = params.hive_server_conf_dir
     if params.current_version is not None:
-      current_version = format_hdp_stack_version(params.current_version)
-      if compare_versions(current_version, "2.3") < 0:
+      current_version = format_stack_version(params.current_version)
+      if not(check_stack_feature(StackFeature.CONFIG_VERSIONING, current_version)):
         schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
 
     env_dict = {
@@ -239,6 +240,14 @@ class HiveMetastoreDefault(HiveMetastore):
 
     command = format("{binary} -dbType {hive_metastore_db_type} -upgradeSchema")
     Execute(command, user=params.hive_user, tries=1, environment=env_dict, logoutput=True)
+    
+  def get_log_folder(self):
+    import params
+    return params.hive_log_dir
+
+  def get_user(self):
+    import params
+    return params.hive_user
 
 
 if __name__ == "__main__":

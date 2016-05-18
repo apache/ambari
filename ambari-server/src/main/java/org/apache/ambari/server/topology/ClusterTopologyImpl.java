@@ -19,11 +19,6 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,6 +26,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a cluster topology.
@@ -46,6 +47,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private Blueprint blueprint;
   private Configuration configuration;
   private ConfigRecommendationStrategy configRecommendationStrategy;
+  private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
   private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
   private final AmbariContext ambariContext;
@@ -118,7 +120,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   public Collection<String> getHostGroupsForComponent(String component) {
     Collection<String> resultGroups = new ArrayList<String>();
     for (HostGroup group : getBlueprint().getHostGroups().values() ) {
-      if (group.getComponents().contains(component)) {
+      if (group.getComponentNames().contains(component)) {
         resultGroups.add(group.getName());
       }
     }
@@ -171,7 +173,12 @@ public class ClusterTopologyImpl implements ClusterTopology {
     Collection<String> hosts = new ArrayList<String>();
     Collection<String> hostGroups = getHostGroupsForComponent(component);
     for (String group : hostGroups) {
-      hosts.addAll(getHostGroupInfo().get(group).getHostNames());
+      HostGroupInfo hostGroupInfo = getHostGroupInfo().get(group);
+      if (hostGroupInfo != null) {
+        hosts.addAll(hostGroupInfo.getHostNames());
+      } else {
+        LOG.warn("HostGroup {} not found, when checking for hosts for component {}", group, component);
+      }
     }
     return hosts;
   }
@@ -183,7 +190,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   public static boolean isNameNodeHAEnabled(Map<String, Map<String, String>> configurationProperties) {
     return configurationProperties.containsKey("hdfs-site") &&
-        configurationProperties.get("hdfs-site").containsKey("dfs.nameservices");
+           (configurationProperties.get("hdfs-site").containsKey("dfs.nameservices") ||
+            configurationProperties.get("hdfs-site").containsKey("dfs.internal.nameservices"));
   }
 
   @Override
@@ -228,7 +236,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public RequestStatusResponse startHost(String hostName) {
     try {
-      return ambariContext.startHost(hostName, ambariContext.getClusterName(getClusterId()));
+      String hostGroupName = getHostGroupForHost(hostName);
+      HostGroup hostGroup = this.blueprint.getHostGroup(hostGroupName);
+
+      // get the set of components that are marked as INSTALL_ONLY
+      // for this hostgroup
+      Collection<String> installOnlyComponents =
+        hostGroup.getComponentNames(ProvisionAction.INSTALL_ONLY);
+
+      return ambariContext.startHost(hostName, ambariContext.getClusterName(getClusterId()), installOnlyComponents);
     } catch (AmbariException e) {
       LOG.error("Cannot get cluster name for clusterId = " + getClusterId(), e);
       throw new RuntimeException(e);
@@ -246,6 +262,16 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
+  public ProvisionAction getProvisionAction() {
+    return provisionAction;
+  }
+
+  @Override
+  public void setProvisionAction(ProvisionAction provisionAction) {
+    this.provisionAction = provisionAction;
+  }
+
+  @Override
   public Map<String, AdvisedConfiguration> getAdvisedConfigurations() {
     return this.advisedConfigurations;
   }
@@ -255,40 +281,51 @@ public class ClusterTopologyImpl implements ClusterTopology {
     return ambariContext;
   }
 
-  private void registerHostGroupInfo(Map<String, HostGroupInfo> groupInfoMap) throws InvalidTopologyException {
-    checkForDuplicateHosts(groupInfoMap);
-    for (HostGroupInfo hostGroupInfo : groupInfoMap.values() ) {
-      String hostGroupName = hostGroupInfo.getHostGroupName();
+  @Override
+  public void removeHost(String hostname) {
+    for(Map.Entry<String,HostGroupInfo> entry : hostGroupInfoMap.entrySet()) {
+      entry.getValue().removeHost(hostname);
+    }
+  }
+
+  private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {
+    LOG.debug("Registering requested host group information for {} hostgroups", requestedHostGroupInfoMap.size());
+    checkForDuplicateHosts(requestedHostGroupInfoMap);
+
+    for (HostGroupInfo requestedHostGroupInfo : requestedHostGroupInfoMap.values()) {
+      String hostGroupName = requestedHostGroupInfo.getHostGroupName();
+
       //todo: doesn't support using a different blueprint for update (scaling)
       HostGroup baseHostGroup = getBlueprint().getHostGroup(hostGroupName);
+
       if (baseHostGroup == null) {
         throw new IllegalArgumentException("Invalid host_group specified: " + hostGroupName +
             ".  All request host groups must have a corresponding host group in the specified blueprint");
       }
       //todo: split into two methods
-      HostGroupInfo existingHostGroupInfo = hostGroupInfoMap.get(hostGroupName);
-      if (existingHostGroupInfo == null) {
+      HostGroupInfo currentHostGroupInfo = hostGroupInfoMap.get(hostGroupName);
+      if (currentHostGroupInfo == null) {
         // blueprint host group config
         Configuration bpHostGroupConfig = baseHostGroup.getConfiguration();
         // parent config is BP host group config but with parent set to topology cluster scoped config
         Configuration parentConfiguration = new Configuration(bpHostGroupConfig.getProperties(),
             bpHostGroupConfig.getAttributes(), getConfiguration());
 
-        hostGroupInfo.getConfiguration().setParentConfiguration(parentConfiguration);
-        hostGroupInfoMap.put(hostGroupName, hostGroupInfo);
+        requestedHostGroupInfo.getConfiguration().setParentConfiguration(parentConfiguration);
+        hostGroupInfoMap.put(hostGroupName, requestedHostGroupInfo);
       } else {
         // Update.  Either add hosts or increment request count
-        if (! hostGroupInfo.getHostNames().isEmpty()) {
+        if (!requestedHostGroupInfo.getHostNames().isEmpty()) {
           try {
             // this validates that hosts aren't already registered with groups
-            addHostsToTopology(hostGroupInfo);
+            addHostsToTopology(requestedHostGroupInfo);
           } catch (NoSuchHostGroupException e) {
             //todo
             throw new InvalidTopologyException("Attempted to add hosts to unknown host group: " + hostGroupName);
           }
         } else {
-          existingHostGroupInfo.setRequestedCount(
-              existingHostGroupInfo.getRequestedHostCount() + hostGroupInfo.getRequestedHostCount());
+          currentHostGroupInfo.setRequestedCount(
+              currentHostGroupInfo.getRequestedHostCount() + requestedHostGroupInfo.getRequestedHostCount());
         }
         //todo: throw exception in case where request attempts to modify HG configuration in scaling operation
       }
@@ -297,9 +334,20 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
   private void addHostsToTopology(HostGroupInfo hostGroupInfo) throws InvalidTopologyException, NoSuchHostGroupException {
     for (String host: hostGroupInfo.getHostNames()) {
+      registerRackInfo(hostGroupInfo, host);
       addHostToTopology(hostGroupInfo.getHostGroupName(), host);
     }
   }
+
+  private void registerRackInfo(HostGroupInfo hostGroupInfo, String host) {
+    synchronized (hostGroupInfoMap) {
+      HostGroupInfo cachedHGI = hostGroupInfoMap.get(hostGroupInfo.getHostGroupName());
+      if (null != cachedHGI) {
+        cachedHGI.addHostRackInfo(host, hostGroupInfo.getHostRackInfo().get(host));
+      }
+    }
+  }
+
 
   private void checkForDuplicateHosts(Map<String, HostGroupInfo> groupInfoMap) throws InvalidTopologyException {
     Set<String> hosts = new HashSet<String>();
@@ -320,7 +368,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
       }
     }
     if (! duplicates.isEmpty()) {
-      throw new InvalidTopologyException("The following hosts are mapped to multiple host groups: " + duplicates);
+      throw new InvalidTopologyException("The following hosts are mapped to multiple host groups: " + duplicates + "." +
+        " Be aware that host names are converted to lowercase, case differences do not matter in Ambari deployments.");
     }
   }
 }

@@ -16,9 +16,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
 import os
+from resource_management.libraries.script.script import Script
 from status_params import *
 
 config = Script.get_config()
@@ -35,7 +34,7 @@ falcon_home = None
 falcon_log_dir = "."
 
 if os.environ.has_key("HADOOP_HOME"):
-  hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+  stack_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 
 if os.environ.has_key("FALCON_CONF_DIR"):
   falcon_conf_dir = os.environ["FALCON_CONF_DIR"]

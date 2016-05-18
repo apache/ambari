@@ -88,8 +88,27 @@ public class RangerConfigCalculationTest {
       }
     };
 
+    Config rangerEnv = new ConfigImpl("ranger-env") {
+      Map<String, String> mockProperties = new HashMap<String, String>();
+      @Override
+      public Map<String, String> getProperties() {
+        return mockProperties;
+      }
+
+      @Override
+      public void setProperties(Map<String, String> properties) {
+        mockProperties.putAll(properties);
+      }
+
+      @Override
+      public void persist(boolean newConfig) {
+        // no-op
+      }
+    };
+
     expect(cluster.getDesiredConfigByType("admin-properties")).andReturn(adminConfig).atLeastOnce();
     expect(cluster.getDesiredConfigByType("ranger-admin-site")).andReturn(adminSiteConfig).atLeastOnce();
+    expect(cluster.getDesiredConfigByType("ranger-env")).andReturn(rangerEnv).atLeastOnce();
 
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
@@ -144,6 +163,10 @@ public class RangerConfigCalculationTest {
     assertEquals("jdbc:mysql://host1/ranger_audit", map.get("ranger.jpa.audit.jdbc.url"));
     assertEquals("org.eclipse.persistence.platform.database.MySQLPlatform", map.get("ranger.jpa.audit.jdbc.dialect"));
 
+    config = c.getDesiredConfigByType("ranger-env");
+    map = config.getProperties();
+    assertEquals("jdbc:mysql://host1", map.get("ranger_privelege_user_jdbc_url"));
+
     config = c.getDesiredConfigByType("admin-properties");
     config.getProperties().put("DB_FLAVOR", "oracle");
 
@@ -160,6 +183,10 @@ public class RangerConfigCalculationTest {
     assertEquals("oracle.jdbc.OracleDriver", map.get("ranger.jpa.audit.jdbc.driver"));
     assertEquals("jdbc:oracle:thin:@//host1", map.get("ranger.jpa.audit.jdbc.url"));
     assertEquals("org.eclipse.persistence.platform.database.OraclePlatform", map.get("ranger.jpa.audit.jdbc.dialect"));
+
+    config = c.getDesiredConfigByType("ranger-env");
+    map = config.getProperties();
+    assertEquals("jdbc:oracle:thin:@//host1", map.get("ranger_privelege_user_jdbc_url"));
 
   }
 

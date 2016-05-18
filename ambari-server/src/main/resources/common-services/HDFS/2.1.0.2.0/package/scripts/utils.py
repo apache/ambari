@@ -24,7 +24,8 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import check_process_status
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core import shell
 from resource_management.core.shell import as_user, as_sudo
 from resource_management.core.exceptions import ComponentIsNotRunning
@@ -33,6 +34,7 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.show_logs import show_logs
 
 from zkfc_slave import ZkfcSlave
 
@@ -96,8 +98,8 @@ def initiate_safe_zkfc_failover():
     # Failover if this NameNode is active and other NameNode is up and in standby (i.e. ready to become active on failover)
     Logger.info(format("NameNode {namenode_id} is active and NameNode {other_namenode_id} is in standby"))
 
-    failover_command = format("hdfs haadmin -failover {namenode_id} {other_namenode_id}")
-    check_standby_cmd = format("hdfs haadmin -getServiceState {namenode_id} | grep standby")
+    failover_command = format("hdfs haadmin -ns {dfs_ha_nameservices} -failover {namenode_id} {other_namenode_id}")
+    check_standby_cmd = format("hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {namenode_id} | grep standby")
 
     msg = "Rolling Upgrade - Initiating a ZKFC failover on active NameNode host {0}.".format(params.hostname)
     Logger.info(msg)
@@ -134,7 +136,7 @@ def kill_zkfc(zkfc_user):
   """
   There are two potential methods for failing over the namenode, especially during a Rolling Upgrade.
   Option 1. Kill zkfc on primary namenode provided that the secondary is up and has zkfc running on it.
-  Option 2. Silent failover (not supported as of HDP 2.2.0.0)
+  Option 2. Silent failover
   :param zkfc_user: User that started the ZKFC process.
   :return: Return True if ZKFC was killed, otherwise, false.
   """
@@ -206,7 +208,8 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     if create_pid_dir:
       Directory(pid_dir,
                 owner=user,
-                recursive=True)
+                group=params.user_group,
+                create_parents = True)
     if create_log_dir:
       if name == "nfs3":
         Directory(log_dir,
@@ -216,20 +219,21 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
       else:
         Directory(log_dir,
                   owner=user,
-                  recursive=True)
+                  group=params.user_group,
+                  create_parents = True)
 
   if params.security_enabled and name == "datanode":
     ## The directory where pid files are stored in the secure data environment.
     hadoop_secure_dn_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
     hadoop_secure_dn_pid_file = format("{hadoop_secure_dn_pid_dir}/hadoop_secure_dn.pid")
 
-    # At Champlain stack and further, we may start datanode as a non-root even in secure cluster
-    if not (params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0) or params.secure_dn_ports_are_in_use:
+    # At datanode_non_root stack version and further, we may start datanode as a non-root even in secure cluster
+    if not (params.stack_version_formatted and check_stack_feature(StackFeature.DATANODE_NON_ROOT, params.stack_version_formatted)) or params.secure_dn_ports_are_in_use:
       user = "root"
       pid_file = format(
         "{hadoop_pid_dir_prefix}/{hdfs_user}/hadoop-{hdfs_user}-{name}.pid")
 
-    if action == 'stop' and (params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0) and \
+    if action == 'stop' and (params.stack_version_formatted and check_stack_feature(StackFeature.DATANODE_NON_ROOT, params.stack_version_formatted)) and \
       os.path.isfile(hadoop_secure_dn_pid_file):
         # We need special handling for this case to handle the situation
         # when we configure non-root secure DN and then restart it
@@ -264,9 +268,18 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
   if action == "start":
     # remove pid file from dead process
     File(pid_file, action="delete", not_if=process_id_exists_command)
-    Execute(daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports)
+    
+    try:
+      Execute(daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports)
+    except:
+      show_logs(params.hdfs_log_dir, user)
+      raise
   elif action == "stop":
-    Execute(daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports)
+    try:
+      Execute(daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports)
+    except:
+      show_logs(params.hdfs_log_dir, user)
+      raise
     File(pid_file, action="delete")
 
 def get_jmx_data(nn_address, modeler_type, metric, encrypted=False, security_enabled=False):
@@ -351,10 +364,23 @@ def get_hdfs_binary(distro_component_name):
   """
   import params
   hdfs_binary = "hdfs"
-  if params.stack_name == "HDP":
-    # This was used in HDP 2.1 and earlier
-    hdfs_binary = "hdfs"
-    if Script.is_hdp_stack_greater_or_equal("2.2"):
-      hdfs_binary = "/usr/hdp/current/{0}/bin/hdfs".format(distro_component_name)
+  if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
+    hdfs_binary = "{0}/current/{1}/bin/hdfs".format(params.stack_root, distro_component_name)
 
   return hdfs_binary
+
+def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode = False):
+  """
+  Get the dfsadmin base command constructed using hdfs_binary path and passing namenode address as explicit -fs argument
+  :param hdfs_binary: path to hdfs binary to use
+  :param use_specific_namenode: flag if set and Namenode HA is enabled, then the dfsadmin command will use
+  current namenode's address
+  :return: the constructed dfsadmin base command
+  """
+  import params
+  dfsadmin_base_command = ""
+  if params.dfs_ha_enabled and use_specific_namenode:
+    dfsadmin_base_command = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc}")
+  else:
+    dfsadmin_base_command = format("{hdfs_binary} dfsadmin -fs {params.namenode_address}")
+  return dfsadmin_base_command

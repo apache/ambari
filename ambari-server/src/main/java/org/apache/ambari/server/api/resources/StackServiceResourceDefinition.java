@@ -52,6 +52,7 @@ public class StackServiceResourceDefinition extends BaseResourceDefinition {
     setChildren.add(new SubResourceDefinition(Resource.Type.StackServiceComponent));
     setChildren.add(new SubResourceDefinition(Type.StackArtifact));
     setChildren.add(new SubResourceDefinition(Resource.Type.Theme));
+    setChildren.add(new SubResourceDefinition(Resource.Type.QuickLink));
 
     return setChildren;
 

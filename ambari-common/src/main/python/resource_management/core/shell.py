@@ -38,7 +38,7 @@ from resource_management.core.logger import Logger
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 # use quiet=True calls from this folder (logs get too messy duplicating the resources with its commands)
-RMF_FOLDER = 'resource_management/'
+NOT_LOGGED_FOLDER = 'resource_management/core'
 EXPORT_PLACEHOLDER = "[RMF_EXPORT_PLACEHOLDER]"
 ENV_PLACEHOLDER = "[RMF_ENV_PLACEHOLDER]"
 
@@ -52,11 +52,11 @@ def log_function_call(function):
     caller_filename = sys._getframe(1).f_code.co_filename
     # quiet = can be False/True or None -- which means undefined yet
     quiet = kwargs['quiet'] if 'quiet' in kwargs else None
-    is_internal_call = RMF_FOLDER in caller_filename
+    is_internal_call = NOT_LOGGED_FOLDER in caller_filename
     
     if quiet == False or (quiet == None and not is_internal_call):
-      command_alias = string_cmd_from_args_list(command) if isinstance(command, (list, tuple)) else command
-      log_msg = Logger.get_function_repr("{0}['{1}']".format(function.__name__, command_alias), kwargs)
+      command_repr = Logger._get_resource_name_repr(command)
+      log_msg = Logger.get_function_repr("{0}[{1}]".format(function.__name__, command_repr), kwargs)
       Logger.info(log_msg)
       
     # logoutput=False - never log
@@ -141,7 +141,7 @@ def _call_wrapper(command, **kwargs):
         break
       except ExecuteTimeoutException as ex:     
         if on_timeout:
-          Logger.info("Executing '%s'. Reason: %s" % (on_timeout, str(ex)))
+          Logger.info("Executing '{0}'. Reason: {1}".format(on_timeout, str(ex)))
           result = checked_call(on_timeout)
         else:
           raise
@@ -149,7 +149,7 @@ def _call_wrapper(command, **kwargs):
       if is_last_try: # last try
         raise
       else:
-        Logger.info("Retrying after %d seconds. Reason: %s" % (try_sleep, str(ex)))
+        Logger.info("Retrying after {0} seconds. Reason: {1}".format(try_sleep, str(ex)))
         time.sleep(try_sleep)
       
   return result
@@ -171,7 +171,8 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     {int fd} - redirect to file with descriptor.
     {string filename} - redirects to a file with name.
   """
-  command_alias = string_cmd_from_args_list(command) if isinstance(command, (list, tuple)) else command
+  command_alias = Logger.format_command_for_output(command)
+  command_alias = string_cmd_from_args_list(command_alias) if isinstance(command_alias, (list, tuple)) else command_alias
   
   # Append current PATH to env['PATH']
   env = _add_current_path_to_env(env)
@@ -266,7 +267,8 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
             _print(line)    
   
     # Wait for process to terminate
-    proc.wait()
+    if not timeout or not timeout_event.is_set():
+      proc.wait()
 
   finally:
     for fp in files_to_close:
@@ -281,13 +283,13 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
       t.cancel()
     # timeout occurred
     else:
-      err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (command, timeout)
+      err_msg = "Execution of '{0}' was killed due timeout after {1} seconds".format(command, timeout)
       raise ExecuteTimeoutException(err_msg)
    
   code = proc.returncode
   
   if throw_on_failure and code:
-    err_msg = Logger.filter_text(("Execution of '%s' returned %d. %s") % (command_alias, code, all_output))
+    err_msg = Logger.filter_text("Execution of '{0}' returned {1}. {2}".format(command_alias, code, all_output))
     raise Fail(err_msg)
   
   # if separate stderr is enabled (by default it's redirected to out)
@@ -311,7 +313,7 @@ def as_sudo(command, env=None, auto_escape=True):
     #   
     # In that case while passing string,
     # any bash symbols eventually added to command like && || ; < > | << >> would cause problems.
-    err_msg = Logger.filter_text(("String command '%s' cannot be run as sudo. Please supply the command as a tuple of arguments") % (command))
+    err_msg = Logger.filter_text("String command '{0}' cannot be run as sudo. Please supply the command as a tuple of arguments".format(command))
     raise Fail(err_msg)
 
   env = _get_environment_str(_add_current_path_to_env(env)) if env else ENV_PLACEHOLDER

@@ -18,24 +18,12 @@
 
 var App = require('app');
 require('views/common/quick_view_link_view');
+var testHelpers = require('test/helpers');
 
 describe('App.QuickViewLinks', function () {
 
   var quickViewLinks = App.QuickViewLinks.create({
     content: Em.Object.create()
-  });
-
-  describe("#linkTarget", function () {
-    it("blank link", function () {
-      quickViewLinks.set('content.serviceName', 'HDFS');
-      quickViewLinks.propertyDidChange('linkTarget');
-      expect(quickViewLinks.get('linkTarget')).to.equal('_blank');
-    });
-    it("non-blank link", function () {
-      quickViewLinks.set('content.serviceName', 'S1');
-      quickViewLinks.propertyDidChange('linkTarget');
-      expect(quickViewLinks.get('linkTarget')).to.be.empty;
-    });
   });
 
   describe("#ambariProperties", function () {
@@ -45,7 +33,7 @@ describe('App.QuickViewLinks', function () {
     afterEach(function () {
       App.router.get.restore();
     });
-    it("", function () {
+    it("ambariProperties are updated", function () {
       expect(quickViewLinks.get('ambariProperties')).to.eql({p: 1});
     });
   });
@@ -53,28 +41,38 @@ describe('App.QuickViewLinks', function () {
   describe("#didInsertElement()", function () {
     beforeEach(function () {
       sinon.stub(App.router, 'get').returns({p: 1});
-      sinon.stub(quickViewLinks, 'setQuickLinks');
+      sinon.stub(quickViewLinks, 'loadQuickLinksConfigurations');
     });
     afterEach(function () {
       App.router.get.restore();
-      quickViewLinks.setQuickLinks.restore();
+      quickViewLinks.loadQuickLinksConfigurations.restore();
     });
-    it("", function () {
+    it("loadQuickLinksConfigurations is called once", function () {
       quickViewLinks.didInsertElement();
-      expect(quickViewLinks.setQuickLinks.calledOnce).to.be.true;
+      expect(quickViewLinks.loadQuickLinksConfigurations.calledOnce).to.be.true;
     });
   });
 
   describe("#willDestroyElement()", function () {
-    it("", function () {
+
+    beforeEach(function () {
       quickViewLinks.setProperties({
         configProperties: [{}],
         actualTags: [""],
         quickLinks: [{}]
       });
       quickViewLinks.willDestroyElement();
+    });
+
+    it("configProperties empty", function () {
       expect(quickViewLinks.get('configProperties')).to.be.empty;
+    });
+
+    it("actualTags empty", function () {
       expect(quickViewLinks.get('actualTags')).to.be.empty;
+    });
+
+    it("quickLinks empty", function () {
       expect(quickViewLinks.get('quickLinks')).to.be.empty;
     });
   });
@@ -101,20 +99,12 @@ describe('App.QuickViewLinks', function () {
   });
 
   describe("#loadTags()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send');
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it("call $.ajax", function () {
       quickViewLinks.loadTags();
-      expect(App.ajax.send.calledWith({
-        name: 'config.tags',
-        sender: quickViewLinks,
-        success: 'loadTagsSuccess',
-        error: 'loadTagsError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(quickViewLinks);
     });
   });
 
@@ -122,18 +112,10 @@ describe('App.QuickViewLinks', function () {
     beforeEach(function () {
       sinon.stub(quickViewLinks, 'setConfigProperties', function () {
         return {
-          done: function (callback) {
-            callback();
-          }
+          done: Em.clb
         }
       });
       sinon.stub(quickViewLinks, 'getQuickLinksHosts');
-    });
-    afterEach(function () {
-      quickViewLinks.setConfigProperties.restore();
-      quickViewLinks.getQuickLinksHosts.restore();
-    });
-    it("", function () {
       var data = {
         Clusters: {
           desired_configs: {
@@ -144,11 +126,21 @@ describe('App.QuickViewLinks', function () {
         }
       };
       quickViewLinks.loadTagsSuccess(data);
+    });
+    afterEach(function () {
+      quickViewLinks.setConfigProperties.restore();
+      quickViewLinks.getQuickLinksHosts.restore();
+    });
+    it("actualTags is valid", function () {
       expect(quickViewLinks.get('actualTags')[0]).to.eql(Em.Object.create({
         siteName: 'site1',
         tagName: 'tag1'
       }));
+    });
+    it("setConfigProperties is called once", function () {
       expect(quickViewLinks.setConfigProperties.calledOnce).to.be.true;
+    });
+    it("getQuickLinksHosts is called once", function () {
       expect(quickViewLinks.getQuickLinksHosts.calledOnce).to.be.true;
     });
   });
@@ -160,15 +152,65 @@ describe('App.QuickViewLinks', function () {
     afterEach(function () {
       quickViewLinks.getQuickLinksHosts.restore();
     });
-    it("call getQuickLinksHosts", function () {
+    it("call loadQuickLinksConfigurations", function () {
       quickViewLinks.loadTagsError();
       expect(quickViewLinks.getQuickLinksHosts.calledOnce).to.be.true;
     });
   });
 
+  describe("#loadQuickLinksConfigSuccessCallback()", function () {
+    var mock;
+
+    beforeEach(function () {
+      sinon.stub(App.store, 'commit', Em.K);
+      mock = sinon.stub(quickViewLinks, 'getQuickLinksConfiguration');
+    });
+    afterEach(function () {
+      App.store.commit.restore();
+      mock.restore();
+    });
+    it("requiredSites consistent", function () {
+      var quickLinksConfigHBASE = {
+        protocol: {
+          type: "http"
+        },
+        links: [
+          {
+            port: {
+              site: "hbase-site"
+            }
+          }
+        ]
+      };
+      var quickLinksConfigYARN = {
+        protocol: {
+          checks: [
+            {
+              site: "yarn-site"
+            }
+          ],
+          type: "https"
+        },
+        links: [
+          {
+            port: {
+              site: "yarn-site"
+            }
+          }
+        ]
+      };
+      quickViewLinks.set('content.serviceName', 'HBASE');
+      mock.returns(quickLinksConfigHBASE);
+      quickViewLinks.loadQuickLinksConfigSuccessCallback({items: []});
+      quickViewLinks.set('content.serviceName', 'YARN');
+      mock.returns(quickLinksConfigYARN);
+      quickViewLinks.loadQuickLinksConfigSuccessCallback({items: []});
+      expect(quickViewLinks.get('requiredSiteNames')).to.be.eql(["core-site", "hdfs-site", "hbase-site", "yarn-site"]);
+    });
+  });
+
   describe("#getQuickLinksHosts()", function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send');
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
           isMaster: true,
@@ -177,35 +219,30 @@ describe('App.QuickViewLinks', function () {
       ]);
     });
     afterEach(function () {
-      App.ajax.send.restore();
       App.HostComponent.find.restore();
     });
     it("call $.ajax", function () {
       quickViewLinks.getQuickLinksHosts();
-      expect(App.ajax.send.calledWith({
-        name: 'hosts.for_quick_links',
-        sender: quickViewLinks,
-        data: {
-          clusterName: App.get('clusterName'),
-          masterHosts: 'host1',
-          urlParams: ''
-        },
-        success: 'setQuickLinksSuccessCallback'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.for_quick_links');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(quickViewLinks);
+      expect(args[0].data).to.be.eql({
+        clusterName: App.get('clusterName'),
+        masterHosts: 'host1',
+        urlParams: ''
+      });
     });
     it("call $.ajax, HBASE service", function () {
       quickViewLinks.set('content.serviceName', 'HBASE');
       quickViewLinks.getQuickLinksHosts();
-      expect(App.ajax.send.calledWith({
-        name: 'hosts.for_quick_links',
-        sender: quickViewLinks,
-        data: {
-          clusterName: App.get('clusterName'),
-          masterHosts: 'host1',
-          urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
-        },
-        success: 'setQuickLinksSuccessCallback'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.for_quick_links');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(quickViewLinks);
+      expect(args[0].data).to.be.eql({
+        clusterName: App.get('clusterName'),
+        masterHosts: 'host1',
+        urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
+      });
     });
   });
 
@@ -228,11 +265,10 @@ describe('App.QuickViewLinks', function () {
       quickViewLinks.setQuickLinksSuccessCallback();
       expect(quickViewLinks.setEmptyLinks.calledOnce).to.be.true;
     });
-    it("quickLinks is null", function () {
+    it("quickLinks is not configured", function () {
       this.mock.returns([{}]);
-      quickViewLinks.set('content.quickLinks', null);
       quickViewLinks.setQuickLinksSuccessCallback();
-      expect(quickViewLinks.setEmptyLinks.calledOnce).to.be.true;
+      expect(quickViewLinks.setEmptyLinks.calledOnce).to.be.false;
     });
     it("single host", function () {
       this.mock.returns([{hostName: 'host1'}]);
@@ -273,26 +309,26 @@ describe('App.QuickViewLinks', function () {
       mock.getConfigsByTags.restore();
       App.router.get.restore();
     });
-    it("", function () {
+    it("getConfigsByTags called with correct data", function () {
       quickViewLinks.set('actualTags', [{siteName: 'hdfs-site'}]);
+      quickViewLinks.set('requiredSiteNames', ['hdfs-site']);
       quickViewLinks.setConfigProperties();
       expect(mock.getConfigsByTags.calledWith([{siteName: 'hdfs-site'}])).to.be.true;
     });
   });
 
   describe("#setEmptyLinks()", function () {
-    it("", function () {
+    it("empty links are set", function () {
       quickViewLinks.setEmptyLinks();
       expect(quickViewLinks.get('quickLinks')).to.eql([{
-        label: quickViewLinks.t('quick.links.error.label'),
-        url: 'javascript:alert("' + quickViewLinks.t('contact.administrator') + '");return false;'
+        label: quickViewLinks.get('quickLinksErrorMessage'),
       }]);
       expect(quickViewLinks.get('isLoaded')).to.be.true;
     });
   });
 
   describe("#processOozieHosts()", function () {
-    it("", function () {
+    it("host status is valid", function () {
       quickViewLinks.set('content.hostComponents', [Em.Object.create({
         componentName: 'OOZIE_SERVER',
         workStatus: 'STARTED',
@@ -301,6 +337,16 @@ describe('App.QuickViewLinks', function () {
       var host = {hostName: 'host1'};
       quickViewLinks.processOozieHosts([host]);
       expect(host.status).to.equal(Em.I18n.t('quick.links.label.active'));
+    });
+    it("host status is invalid", function () {
+      quickViewLinks.set('content.hostComponents', [Em.Object.create({
+        componentName: 'OOZIE_SERVER',
+        workStatus: 'INSTALLED',
+        hostName: 'host1'
+      })]);
+      var host = {hostName: 'host1'};
+      quickViewLinks.processOozieHosts([host]);
+      expect(quickViewLinks.get('quickLinksErrorMessage')).to.equal(Em.I18n.t('quick.links.error.oozie.label'));
     });
   });
 
@@ -445,91 +491,334 @@ describe('App.QuickViewLinks', function () {
   describe("#findHosts()", function () {
     beforeEach(function () {
       sinon.stub(quickViewLinks, 'getPublicHostName').returns('public_name');
+      sinon.stub(App.MasterComponent, 'find').returns([
+        Em.Object.create({
+          componentName: "C1",
+          hostNames: ["host1", "host2"]
+        })
+      ]);
     });
     afterEach(function () {
       quickViewLinks.getPublicHostName.restore();
+      App.MasterComponent.find.restore();
     });
-    it("", function () {
-      quickViewLinks.set('content.hostComponents', [Em.Object.create({
-        componentName: 'C1',
-        hostName: 'host1'
-      })]);
-      expect(quickViewLinks.findHosts('C1', {})).to.eql([{
-        hostName: 'host1',
-        publicHostName: 'public_name'
-      }]);
+    it("public_name from getPublicHostName", function () {
+      expect(quickViewLinks.findHosts('C1', {})).to.eql([
+        {
+          hostName: 'host1',
+          publicHostName: 'public_name',
+          componentName: 'C1'
+        },
+        {
+          hostName: 'host2',
+          publicHostName: 'public_name',
+          componentName: 'C1'
+        }
+      ]);
     });
   });
 
   describe('#setProtocol', function () {
     var tests = [
+      //Yarn
       {
-        serviceName: "YARN", configProperties: [
-        {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTPS_ONLY'}}
-      ], m: "https for yarn", result: "https"
+        serviceName: "YARN",
+        configProperties: [
+          {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTPS_ONLY'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:[
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
+            ]
+          }
+        },
+        m: "https for yarn (checks for https passed)",
+        result: "https"
       },
       {
-        serviceName: "YARN", configProperties: [
-        {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTP_ONLY'}}
-      ], m: "http for yarn", result: "http"
+        serviceName: "YARN",
+        configProperties: [
+          {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTP_ONLY'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"http",
+            checks:[
+              {property:"yarn.http.policy",
+                desired:"HTTP_ONLY",
+                site:"yarn-site"}
+            ]
+          }
+        },
+        m: "http for yarn (checks for http passed)",
+        result: "http"
       },
       {
-        serviceName: "YARN", configProperties: [
-        {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTP_ONLY'}}
-      ], m: "http for yarn (overrides hadoop.ssl.enabled)", result: "http"
+        serviceName: "YARN",
+        configProperties: [
+          {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTP_ONLY'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:[
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
+            ]
+          }
+        },
+        m: "http for yarn (checks for https did not pass)",
+        result: "http"
       },
       {
-        serviceName: "YARN", configProperties: [
-        {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTPS_ONLY'}}
-      ], m: "https for yarn (overrides hadoop.ssl.enabled)", result: "https"
+        serviceName: "YARN",
+        configProperties: [
+          {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTPS_ONLY'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"http",
+            checks:[
+              {property:"yarn.http.policy",
+                desired:"HTTP_ONLY",
+                site:"yarn-site"}
+            ]
+          }
+        },
+        m: "https for yarn (checks for http did not pass)",
+        result: "https"
       },
       {
-        serviceName: "MAPREDUCE2", configProperties: [
-        {type: 'mapred-site', properties: {'mapreduce.jobhistory.http.policy': 'HTTPS_ONLY'}}
-      ], m: "https for mapreduce2", result: "https"
+        serviceName: "YARN",
+        configProperties: [
+          {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTP_ONLY'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"HTTP_ONLY",
+            checks:[
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
+            ]
+          }
+        },
+        m: "http for yarn (override checks with specific protocol type)",
+        result: "http"
       },
       {
-        serviceName: "MAPREDUCE2", configProperties: [
-        {type: 'mapred-site', properties: {'mapreduce.jobhistory.http.policy': 'HTTP_ONLY'}}
-      ], m: "http for mapreduce2", result: "http"
+        serviceName: "YARN",
+        configProperties: [
+          {type: 'yarn-site', properties: {'yarn.http.policy': 'HTTPS_ONLY'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"HTTPS_ONLY",
+            checks:[
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
+            ]
+          }
+        },
+        m: "https for yarn (override checks with specific protocol type)",
+        result: "https"
+      },
+      //Any service - override hadoop.ssl.enabled
+      {
+        serviceName: "MyService",
+        configProperties: [
+          {type: 'myservice-site', properties: {'myservice.http.policy': 'HTTPS_ONLY'}},
+          {type: 'hdfs-site', properties: {'dfs.http.policy':'HTTP_ONLY'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:[
+              {property:"myservice.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"myservice-site"}
+            ]
+          }
+        },
+        m: "https for MyService (checks for https passed, override hadoop.ssl.enabled)",
+        result: "https"
+      },
+      //Oozie
+      {
+        serviceName: "OOZIE",
+        configProperties: [
+          {type: 'oozie-site', properties: {'oozie.https.port': '12345', 'oozie.https.keystore.file':'/tmp/oozie.jks', 'oozie.https.keystore.pass':'mypass'}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:
+              [
+                {
+                  "property":"oozie.https.port",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.file",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.pass",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                }
+              ]
+          }
+        },
+        m: "https for oozie (checks for https passed)",
+        result: "https"
       },
       {
-        serviceName: "ANYSERVICE", configProperties: [
-        {type: 'hdfs-site', properties: {'dfs.http.policy': 'HTTPS_ONLY'}}
-      ], m: "https for anyservice", servicesSupportsHttps: ["ANYSERVICE"], result: "https"
+        serviceName: "OOZIE",
+        configProperties: [
+          {type: 'oozie-site', properties: {"oozie.base.url":"http://c6401.ambari.apache.org:11000/oozie"}}
+        ],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:
+              [
+                {
+                  "property":"oozie.https.port",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.file",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.pass",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                }
+              ]
+          }
+        },
+        m: "http for oozie (checks for https did not pass)",
+        result: "http"
+      },
+      //Ranger: HDP 2.2
+      {
+        serviceName: "RANGER",
+        configProperties: [{type: 'ranger-site', properties: {'http.enabled': 'false'}}],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:
+              [
+                {
+                  "property":"http.enabled",
+                  "desired":"false",
+                  "site":"ranger-site"
+                }
+              ]
+          }
+        },
+        m: "https for ranger (HDP2.2, checks passed)",
+        result: "https"
       },
       {
-        serviceName: "RANGER", configProperties: [
-        {type: 'ranger-site', properties: {'http.enabled': 'true'}}
-      ], m: "http for ranger (HDP2.2)", result: "http"
+        serviceName: "RANGER",
+        configProperties: [{type: 'ranger-site', properties: {'http.enabled': 'true'}}],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:
+              [
+                {
+                  "property":"http.enabled",
+                  "desired":"false",
+                  "site":"ranger-site"
+                }
+              ]
+          }
+        },
+        m: "http for ranger (HDP2.2, checks for https did not pass)",
+        result: "http"
+      },
+      //Ranger: HDP 2.3
+      {
+        serviceName: "RANGER",
+        configProperties:
+          [
+            {
+              type: 'ranger-admin-site',
+              properties: {'ranger.service.http.enabled': 'false', 'ranger.service.https.attrib.ssl.enabled': 'true'}
+            }
+          ],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:
+              [
+                {
+                  "property":"ranger.service.http.enabled",
+                  "desired":"false",
+                  "site":"ranger-admin-site"
+                },
+                {
+                  "property":"ranger.service.https.attrib.ssl.enabled",
+                  "desired":"true",
+                  "site":"ranger-admin-site"
+                }
+              ]
+          }
+        },
+
+        m: "https for ranger (HDP2.3, checks passed)",
+        result: "https"
       },
       {
-        serviceName: "RANGER", configProperties: [
-        {type: 'ranger-site', properties: {'http.enabled': 'false'}}
-      ], m: "https for ranger (HDP2.2)", result: "https"
-      },
-      {
-        serviceName: "RANGER", configProperties: [
-        {
-          type: 'ranger-admin-site',
-          properties: {'ranger.service.http.enabled': 'true', 'ranger.service.https.attrib.ssl.enabled': 'false'}
-        }
-      ], m: "http for ranger (HDP2.3)", result: "http"
-      },
-      {
-        serviceName: "RANGER", configProperties: [
-        {
-          type: 'ranger-admin-site',
-          properties: {'ranger.service.http.enabled': 'false', 'ranger.service.https.attrib.ssl.enabled': 'true'}
-        }
-      ], m: "https for ranger (HDP2.3)", result: "https"
+        serviceName: "RANGER",
+        configProperties:
+          [
+            {
+              type: 'ranger-admin-site',
+              properties: {'ranger.service.http.enabled': 'true', 'ranger.service.https.attrib.ssl.enabled': 'false'}
+            }
+          ],
+        quickLinksConfig: {
+          protocol:{
+            type:"https",
+            checks:
+              [
+                {
+                  "property":"ranger.service.http.enabled",
+                  "desired":"false",
+                  "site":"ranger-admin-site"
+                },
+                {
+                  "property":"ranger.service.https.attrib.ssl.enabled",
+                  "desired":"true",
+                  "site":"ranger-admin-site"
+                }
+              ]
+          }
+        },
+        m: "http for ranger (HDP2.3, checks for https did not pass)",
+        result: "http"
       }
     ];
 
     tests.forEach(function (t) {
       it(t.m, function () {
         quickViewLinks.set('servicesSupportsHttps', t.servicesSupportsHttps);
-        expect(quickViewLinks.setProtocol(t.serviceName, t.configProperties, t.ambariProperties)).to.equal(t.result);
+        expect(quickViewLinks.setProtocol(t.configProperties, t.quickLinksConfig.protocol)).to.equal(t.result);
       });
     });
   });
@@ -537,86 +826,43 @@ describe('App.QuickViewLinks', function () {
   describe('#setPort', function () {
     var testData = [
       Em.Object.create({
-        'service_id': 'YARN',
         'protocol': 'http',
-        'result': '8088',
-        'default_http_port': '8088',
-        'default_https_port': '8090',
-        'regex': '\\w*:(\\d+)'
+        'port':{
+          'http_property':'yarn.timeline-service.webapp.address',
+          'http_default_port':'8188',
+          'https_property':'yarn.timeline-service.webapp.https.address',
+          'https_default_port':'8090',
+          'regex': '\\w*:(\\d+)',
+          'site':'yarn-site'
+        },
+        'configProperties':
+          [
+            {
+              'type': 'yarn-site',
+              'properties': {'yarn.timeline-service.webapp.address': 'c6401.ambari.apache.org:8188'}
+            }
+          ],
+        'result': '8188'
       }),
+
       Em.Object.create({
-        'service_id': 'YARN',
         'protocol': 'https',
-        'https_config': 'https_config',
-        'result': '8090',
-        'default_http_port': '8088',
-        'default_https_port': '8090',
-        'regex': '\\w*:(\\d+)'
-      }),
-      Em.Object.create({
-        'service_id': 'YARN',
-        'protocol': 'https',
-        'https_config': 'https_config',
-        'result': '8090',
-        'default_http_port': '8088',
-        'default_https_port': '8090',
-        'regex': '\\w*:(\\d+)'
-      }),
-      Em.Object.create({
-        'service_id': 'YARN',
-        'protocol': 'https',
-        'https_config': 'https_config',
-        'config': 'https_config_custom',
-        'site': 'yarn-site',
-        'result': '9091',
-        'default_http_port': '8088',
-        'default_https_port': '8090',
-        'regex': '\\w*:(\\d+)',
-        'configProperties': [{
-          'type': 'yarn-site',
-          'properties': {
-            'https_config': 'h:9090',
-            'https_config_custom': 'h:9091'
-          }
-        }]
-      }),
-      Em.Object.create({
-        'service_id': 'YARN',
-        'protocol': 'https',
-        'http_config': 'http_config',
-        'https_config': 'https_config',
-        'site': 'yarn-site',
-        'result': '9090',
-        'default_http_port': '8088',
-        'default_https_port': '8090',
-        'regex': '\\w*:(\\d+)',
-        'configProperties': [{
-          'type': 'yarn-site',
-          'properties': {
-            'http_config': 'h:9088',
-            'https_config': 'h:9090'
-          }
-        }]
-      }),
-      Em.Object.create({
-        'service_id': 'RANGER',
-        'protocol': 'http',
-        'http_config': 'http_config',
-        'https_config': 'https_config',
-        'result': '6080',
-        'default_http_port': '6080',
-        'default_https_port': '6182',
-        'regex': '(\\d*)+'
-      }),
-      Em.Object.create({
-        'service_id': 'RANGER',
-        'protocol': 'https',
-        'http_config': 'http_config',
-        'https_config': 'https_config',
-        'result': '6182',
-        'default_http_port': '6080',
-        'default_https_port': '6182',
-        'regex': '(\\d*)+'
+        'port':{
+          'http_property':'yarn.timeline-service.webapp.address',
+          'http_default_port':'8188',
+          'https_property':'yarn.timeline-service.webapp.https.address',
+          'https_default_port':'8090',
+          'regex': '\\w*:(\\d+)',
+          'site':'yarn-site'
+        },
+        'configProperties':
+          [
+            {
+              'type': 'yarn-site',
+              'properties': {'yarn.timeline-service.webapp.https.address': 'c6401.ambari.apache.org:8090'}
+            }
+          ],
+        'result': '8090'
       })
     ];
 
@@ -627,9 +873,265 @@ describe('App.QuickViewLinks', function () {
     testData.forEach(function (item) {
       it(item.service_id + ' ' + item.protocol, function () {
         quickViewLinks.set('configProperties', item.configProperties || []);
-        expect(quickViewLinks.setPort(item, item.protocol, item.config)).to.equal(item.result);
+        expect(quickViewLinks.setPort(item.port, item.protocol, item.configProperties)).to.equal(item.result);
       })
     }, this);
+  });
+
+  describe("#getHosts()", function() {
+
+    beforeEach(function() {
+      sinon.stub(quickViewLinks, 'processOozieHosts').returns(['oozieHost']);
+      sinon.stub(quickViewLinks, 'processHdfsHosts').returns(['hdfsHost']);
+      sinon.stub(quickViewLinks, 'processHbaseHosts').returns(['hbaseHost']);
+      sinon.stub(quickViewLinks, 'processYarnHosts').returns(['yarnHost']);
+      sinon.stub(quickViewLinks, 'findHosts').returns(['host1']);
+      App.set('singleNodeInstall', false);
+      sinon.stub(App.QuickLinksConfig, 'find').returns([
+        Em.Object.create({
+          id: 'OOZIE',
+          links: [
+            {
+              component_name: 'OOZIE_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'HDFS',
+          links: [
+            {
+              component_name: 'NAMENODE'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'HBASE',
+          links: [
+            {
+              component_name: 'HBASE_MASTER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'YARN',
+          links: [
+            {
+              component_name: 'RESOURCEMANAGER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'STORM',
+          links: [
+            {
+              component_name: 'STORM_UI_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'ACCUMULO',
+          links: [
+            {
+              component_name: 'ACCUMULO_MONITOR'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'ATLAS',
+          links: [
+            {
+              component_name: 'ATLAS_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'MAPREDUCE2',
+          links: [
+            {
+              component_name: 'HISTORYSERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'AMBARI_METRICS',
+          links: [
+            {
+              component_name: 'METRICS_GRAFANA'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'LOGSEARCH',
+          links: [
+            {
+              component_name: 'LOGSEARCH_SERVER'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'HIVE',
+          links: [
+            {
+              component_name: 'METRICS_GRAFANA'
+            },
+            {
+              component_name: 'HIVE_SERVER_INTERACTIVE'
+            }
+          ]
+        })
+      ]);
+    });
+    afterEach(function() {
+      quickViewLinks.processOozieHosts.restore();
+      quickViewLinks.processHdfsHosts.restore();
+      quickViewLinks.processHbaseHosts.restore();
+      quickViewLinks.findHosts.restore();
+      quickViewLinks.processYarnHosts.restore();
+      App.QuickLinksConfig.find.restore();
+    });
+
+    it("singleNodeInstall is true", function() {
+      App.set('singleNodeInstall', true);
+      App.set('singleNodeAlias', 'host1');
+      expect(quickViewLinks.getHosts({}, 'S1')).to.eql([{
+        hostName: 'host1',
+        publicHostName: 'host1'
+      }])
+    });
+
+    var tests = [
+      {
+        serviceName: 'OOZIE',
+        callback: 'processOozieHosts',
+        result: ['oozieHost']
+      },
+      {
+        serviceName: 'HDFS',
+        callback: 'processHdfsHosts',
+        result: ['hdfsHost']
+      },
+      {
+        serviceName: 'HBASE',
+        callback: 'processHbaseHosts',
+        result: ['hbaseHost']
+      },
+      {
+        serviceName: 'YARN',
+        callback: 'processYarnHosts',
+        result: ['yarnHost']
+      },
+      {
+        serviceName: 'STORM'
+      },
+      {
+        serviceName: 'ACCUMULO'
+      },
+      {
+        serviceName: 'ATLAS'
+      },
+      {
+        serviceName: 'MAPREDUCE2'
+      },
+      {
+        serviceName: 'AMBARI_METRICS'
+      },
+      {
+        serviceName: 'LOGSEARCH'
+      },
+      {
+        serviceName: 'HIVE',
+        result: ['host1', 'host1']
+      }
+    ];
+
+    tests.forEach(function (_test) {
+      var serviceName = _test.serviceName;
+      describe(serviceName, function () {
+        var componentNames;
+
+        beforeEach(function () {
+          componentNames = App.QuickLinksConfig.find().findProperty('id', serviceName).get('links').mapProperty('component_name');
+          this.result = quickViewLinks.getHosts({}, serviceName);
+        });
+
+        it('hosts', function () {
+          expect(this.result).to.be.eql(_test.result || ['host1']);
+        });
+
+        it('components', function () {
+          expect(quickViewLinks.findHosts.callCount).to.be.equal(componentNames.length);
+        });
+
+        if (_test.callback) {
+          it('callback is called once', function () {
+            expect(quickViewLinks[_test.callback].calledOnce).to.be.true;
+          });
+        }
+      });
+    });
+
+    it("custom service without master", function() {
+      expect(quickViewLinks.getHosts({}, 'S1')).to.be.empty;
+    });
+  });
+
+  describe('#reverseType', function () {
+
+    Em.A([
+      {
+        input: 'https',
+        output: 'http'
+      },
+      {
+        input: 'http',
+        output: 'https'
+      },
+      {
+        input: 'some',
+        output: ''
+      }
+    ]).forEach(function (test) {
+      it(JSON.stringify(test.input) + ' -> ' + JSON.stringify(test.output), function () {
+        expect(quickViewLinks.reverseType(test.input)).to.be.equal(test.output)
+      });
+    });
+
+  });
+
+  describe('#meetDesired', function () {
+
+    var configProperties = [
+      {type: 't1', properties: {p1: 1234, p2: null, p3: 'CUSTOM'}}
+    ];
+
+    it('no needed config property', function () {
+      expect(quickViewLinks.meetDesired([], '', '', '')).to.be.false;
+    });
+
+    it('desiredState is `NOT_EXIST` and currentPropertyValue is null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p2', 'NOT_EXIST')).to.be.true;
+    });
+
+    it('desiredState is `NOT_EXIST` and currentPropertyValue is not null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p1', 'NOT_EXIST')).to.be.false;
+    });
+
+    it('desiredState is `EXIST` and currentPropertyValue is null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p2', 'EXIST')).to.be.false;
+    });
+
+    it('desiredState is `EXIST` and currentPropertyValue is not null', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p1', 'EXIST')).to.be.true;
+    });
+
+    it('desiredState is `CUSTOM` and currentPropertyValue is `CUSTOM`', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p3', 'CUSTOM')).to.be.true;
+    });
+
+    it('desiredState is `CUSTOM` and currentPropertyValue is not `CUSTOM`', function () {
+      expect(quickViewLinks.meetDesired(configProperties, 't1', 'p2', 'CUSTOM')).to.be.false;
+    });
+
   });
 
 });

@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,20 +34,20 @@ public class TableRendererTest {
 
   @Test
   public void testRenderMultiValueMap() throws IOException {
-    Map<String, List<String>> map = new HashMap<String, List<String>>();
-    map.put("HDFS", Collections.singletonList("DATANODE"));
-    map.put("MAPREDUCE2", Collections.singletonList("HISTORYSERVER"));
+    Map<String, List<String>> map = new LinkedHashMap<>();
     map.put("ZOOKEEPER", Collections.singletonList("ZOOKEEPER_SERVER"));
+    map.put("MAPREDUCE2", Collections.singletonList("HISTORYSERVER"));
+    map.put("HDFS", Collections.singletonList("DATANODE"));
     assertEquals(IOUtils.toString(new FileInputStream(new File("src/test/resources/2columns"))),
       TableRenderer.renderMultiValueMap(map, "SERVICE", "COMPONENT"));
   }
 
   @Test
   public void testRenderMapValueMap() throws IOException {
-    Map<String, Map<String, String>> map = new HashMap<String, Map<String, String>>();
-    map.put("HDFS", Collections.singletonMap("DATANODE", "STARTED"));
-    map.put("MAPREDUCE2", Collections.singletonMap("HISTORYSERVER", "STARTED"));
+    Map<String, Map<String, String>> map = new LinkedHashMap<>();
     map.put("ZOOKEEPER", Collections.singletonMap("ZOOKEEPER_SERVER", "INSTALLED"));
+    map.put("MAPREDUCE2", Collections.singletonMap("HISTORYSERVER", "STARTED"));
+    map.put("HDFS", Collections.singletonMap("DATANODE", "STARTED"));
     assertEquals(IOUtils.toString(new FileInputStream(new File("src/test/resources/3columns"))),
       TableRenderer.renderMapValueMap(map, "SERVICE", "COMPONENT", "STATE"));
   }

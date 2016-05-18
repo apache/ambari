@@ -19,7 +19,7 @@ limitations under the License.
 from ambari_commons import OSCheck
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script.script import Script
 
@@ -29,6 +29,7 @@ else:
   from params_linux import *
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
@@ -41,19 +42,19 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 security_enabled = False
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # hadoop default parameters
 flume_bin = '/usr/bin/flume-ng'
 flume_hive_home = '/usr/lib/hive'
 flume_hcat_home = '/usr/lib/hive-hcatalog'
 
-# hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  flume_bin = '/usr/hdp/current/flume-server/bin/flume-ng'
-  flume_hive_home = '/usr/hdp/current/hive-metastore'
-  flume_hcat_home = '/usr/hdp/current/hive-webhcat'
+# hadoop parameters for stack supporting rolling upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  flume_bin = format('{stack_root}/current/flume-server/bin/flume-ng')
+  flume_hive_home = format('{stack_root}/current/hive-metastore')
+  flume_hcat_home = format('{stack_root}/current/hive-webhcat')
 
 java_home = config['hostLevelParams']['java_home']
 flume_log_dir = config['configurations']['flume-env']['flume_log_dir']
@@ -96,11 +97,18 @@ if has_metric_collector:
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
       metric_collector_port = '6188'
+  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    metric_collector_protocol = 'https'
+  else:
+    metric_collector_protocol = 'http'
+  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)

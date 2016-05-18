@@ -20,9 +20,9 @@ package org.apache.ambari.view.utils;
 
 import org.apache.ambari.view.ViewContext;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages end user specific objects.
@@ -31,7 +31,7 @@ import java.util.Map;
  * @param <T> user-local class
  */
 public class UserLocal<T> {
-  private static Map<Class, Map<String, Object>> viewSingletonObjects = new HashMap<Class, Map<String, Object>>();
+  private static Map<Class, Map<String, Object>> viewSingletonObjects = new ConcurrentHashMap<Class, Map<String, Object>>();
   private final Class<? extends T> tClass;
 
   public UserLocal(Class<? extends T> tClass) {
@@ -57,7 +57,7 @@ public class UserLocal<T> {
    */
   public T get(ViewContext context) {
     if (!viewSingletonObjects.containsKey(tClass)) {
-      viewSingletonObjects.put(tClass, new HashMap<String, Object>());
+      viewSingletonObjects.put(tClass, new ConcurrentHashMap<String, Object>());
     }
 
     Map<String, Object> instances = viewSingletonObjects.get(tClass);
@@ -75,7 +75,7 @@ public class UserLocal<T> {
    */
   public void set(T obj, ViewContext context) {
     if (!viewSingletonObjects.containsKey(tClass)) {
-      viewSingletonObjects.put(tClass, new HashMap<String, Object>());
+      viewSingletonObjects.put(tClass, new ConcurrentHashMap<String, Object>());
     }
 
     Map<String, Object> instances = viewSingletonObjects.get(tClass);
@@ -134,7 +134,7 @@ public class UserLocal<T> {
    *
    * @param instanceName
    */
-  public static void dropInstanceConnection(String instanceName){
+  public static void dropInstanceCache(String instanceName){
     for(Map<String,Object> cache : viewSingletonObjects.values()){
       for(Iterator<Map.Entry<String, Object>> it = cache.entrySet().iterator();it.hasNext();){
         Map.Entry<String, Object> entry = it.next();

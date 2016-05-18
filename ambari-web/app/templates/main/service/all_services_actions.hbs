@@ -23,37 +23,37 @@
                 <span class="caret"></span>
             </a>
             <ul class="pull-left dropdown-menu">
-                {{#isAuthorized "SERVICE.START_STOP"}}
-                    <li {{bindAttr class="controller.isAllServicesInstalled:disabled"}}>
+                {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
+                    <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}>
                         <a href="#"
-                            {{bindAttr class="controller.isAllServicesInstalled:disabled"}}
-                            {{action gotoAddService target="controller"}}>
+                            {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}
+                            {{action gotoAddService target="view.serviceController"}}>
                             <i class="icon-plus icon-white"></i> {{t services.service.add}}</a>
                     </li>
                 {{/isAuthorized}}
-                {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
+                {{#isAuthorized "SERVICE.START_STOP"}}
                     <li class="divider"></li>
-                    <li {{bindAttr class="controller.isStartAllDisabled:disabled" }}>
+                    <li {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}>
                         <a href="#" data-toggle="modal"
-                            {{bindAttr class="controller.isStartAllDisabled:disabled" }}
-                            {{action "startAllService" target="controller"}}>
-                            <i {{bindAttr class=":icon-play controller.isStartAllDisabled:disabled:enabled " }}></i>
+                            {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}
+                            {{action "startAllService" target="view.serviceController"}}>
+                            <i {{bindAttr class=":icon-play view.serviceController.isStartAllDisabled:disabled:enabled " }}></i>
                             {{t services.service.startAll}}
                         </a>
                     </li>
-                    <li {{bindAttr class="controller.isStopAllDisabled:disabled" }}>
+                    <li {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}>
                         <a href="#" data-toggle="modal"
-                            {{bindAttr class="controller.isStopAllDisabled:disabled" }}
-                            {{action "stopAllService" target="controller"}}>
-                            <i {{bindAttr class=":icon-stop controller.isStopAllDisabled:disabled:enabled" }}></i>
+                            {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}
+                            {{action "stopAllService" target="view.serviceController"}}>
+                            <i {{bindAttr class=":icon-stop view.serviceController.isStopAllDisabled:disabled:enabled" }}></i>
                             {{t services.service.stopAll}}
                         </a>
                     </li>
-                    <li {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}>
+                    <li {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}>
                         <a href="#" data-toggle="modal"
-                            {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}
-                            {{action "restartAllRequired" target="controller"}}>
-                            <i {{bindAttr class=":icon-repeat controller.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
+                            {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}
+                            {{action "restartAllRequired" target="view.serviceController"}}>
+                            <i {{bindAttr class=":icon-repeat view.serviceController.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
                             {{t services.service.restartAllRequired}}
                         </a>
                     </li>

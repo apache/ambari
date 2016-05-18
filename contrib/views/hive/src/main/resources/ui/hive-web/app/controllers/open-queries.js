@@ -249,6 +249,11 @@ export default Ember.ArrayController.extend({
         file.set('fileContent', oldQuery.get('fileContent'));
       }
 
+      // Rollback the oldQuery if it is a DS model (type: 'savedQuery)
+      if (oldQuery.get('constructor.typeKey') !== undefined) {
+        oldQuery.rollback();
+      }
+
       self.removeObject(oldQuery);
       self.pushObject(file);
 
@@ -354,11 +359,15 @@ export default Ember.ArrayController.extend({
 
           defer.promise.then(function (text) {
             model.set('title', text);
-            self.save(model, query).then(function () {
+            self.save(model, query, false, text).then(function () {
               self.closeTab(tab, true);
             });
           }, function () {
             model.rollback();
+            // Rollback the query if it is a DS model
+            if(query.get('constructor.typeKey') !== undefined) {
+              query.rollback();
+            }
             self.closeTab(tab, true);
           });
         }

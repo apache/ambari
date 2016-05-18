@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 
+from ambari_commons.str_utils import cbool, cint
 from resource_management import *
 from resource_management.core.system import System
 import json
@@ -27,6 +28,9 @@ tmp_dir = Script.get_tmp_dir()
 
 #RPM versioning support
 rpm_version = default("/configurations/cluster-env/rpm_version", None)
+
+agent_stack_retry_on_unavailability = cbool(default("/hostLevelParams/agent_stack_retry_on_unavailability", None))
+agent_stack_retry_count = cint(default("/hostLevelParams/agent_stack_retry_count", None))
 
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']

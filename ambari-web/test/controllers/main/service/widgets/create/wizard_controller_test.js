@@ -36,14 +36,13 @@ describe('App.WidgetWizardController', function () {
   describe("#substitueQueueMetrics", function () {
     beforeEach(function () {
       controller = App.WidgetWizardController.create();
-      sinon.stub(App.YARNService, 'find', function (k) {
-        if ('YARN' === k) return Em.Object.create({
+      sinon.stub(App.YARNService, 'find', function () {
+        return Em.Object.create({
           'allQueueNames': ["root", "root/queue1", "root/queue1/queue2", "root/queue1/queue3"]
         });
       });
     });
     afterEach(function () {
-      controller = '';
       App.YARNService.find.restore();
     });
 

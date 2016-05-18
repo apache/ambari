@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implements MetricsSender and provides a way of pushing metrics to application metrics history service using REST
@@ -37,7 +38,7 @@ public class RestMetricsSender implements MetricsSender {
 
   /**
    * Creates unconnected RestMetricsSender with endpoint configured as
-   * http://${metricsHost}:8188/ws/v1/timeline/metrics,
+   * http://${metricsHost}:6188/ws/v1/timeline/metrics,
    * where ${metricsHost} is specified by metricHost param.
    *
    * @param metricsHost the hostname that will be used to access application metrics history service.
@@ -65,15 +66,12 @@ public class RestMetricsSender implements MetricsSender {
       responseString = svc.send(payload);
 
       timer.stop();
-      LOG.info("http response time: " + timer.elapsedMillis() + " ms");
+      LOG.info("http response time: " + timer.elapsed(TimeUnit.MILLISECONDS)
+        + " ms");
 
       if (responseString.length() > 0) {
         LOG.debug("POST response from server: " + responseString);
       }
-    } catch (MalformedURLException e) {
-      LOG.error("", e);
-    } catch (ProtocolException e) {
-      LOG.error("", e);
     } catch (IOException e) {
       LOG.error("", e);
     } finally {

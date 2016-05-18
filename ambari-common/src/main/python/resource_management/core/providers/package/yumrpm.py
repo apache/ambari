@@ -37,8 +37,8 @@ REMOVE_CMD = {
 }
 
 class YumProvider(PackageProvider):
-  def install_package(self, name, use_repos=[], skip_repos=[]):
-    if use_repos or not self._check_existence(name):
+  def install_package(self, name, use_repos=[], skip_repos=[], is_upgrade=False):
+    if is_upgrade or use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(use_repos)
@@ -46,12 +46,12 @@ class YumProvider(PackageProvider):
         cmd = cmd + [disable_repo_option, enable_repo_option]
       cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
+      self.checked_call_with_retries(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
-  def upgrade_package(self, name, use_repos=[], skip_repos=[]):
-    return self.install_package(name, use_repos, skip_repos)
+  def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):
+    return self.install_package(name, use_repos, skip_repos, is_upgrade)
 
   def remove_package(self, name):
     if self._check_existence(name):
@@ -60,6 +60,10 @@ class YumProvider(PackageProvider):
       shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping removal of non-existing package %s" % (name))
+
+  def is_repo_error_output(self, out):
+    return "Failure when receiving data from the peer" in out or \
+           "No more mirrors to try" in out
 
   def _check_existence(self, name):
     """

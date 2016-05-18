@@ -57,18 +57,11 @@ public class PermissionResourceProviderTest {
     reset(dao);
   }
 
-  @Test
+  @Test (expected = UnsupportedOperationException.class)
   public void testCreateResources() throws Exception {
     PermissionResourceProvider provider = new PermissionResourceProvider();
-
     Request request = createNiceMock(Request.class);
-
-    try {
-      provider.createResources(request);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.createResources(request);
   }
 
   @Test
@@ -83,7 +76,8 @@ public class PermissionResourceProviderTest {
     expect(dao.findAll()).andReturn(permissionEntities);
     expect(permissionEntity.getId()).andReturn(99);
     expect(permissionEntity.getPermissionName()).andReturn("AMBARI.ADMINISTRATOR");
-    expect(permissionEntity.getPermissionLabel()).andReturn("Administrator");
+    expect(permissionEntity.getPermissionLabel()).andReturn("Ambari Administrator");
+    expect(permissionEntity.getSortOrder()).andReturn(1);
     expect(permissionEntity.getResourceType()).andReturn(resourceTypeEntity);
     expect(resourceTypeEntity.getName()).andReturn("AMBARI");
 
@@ -96,34 +90,22 @@ public class PermissionResourceProviderTest {
 
     Assert.assertEquals(99, resource.getPropertyValue(PermissionResourceProvider.PERMISSION_ID_PROPERTY_ID));
     Assert.assertEquals("AMBARI.ADMINISTRATOR", resource.getPropertyValue(PermissionResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Administrator", resource.getPropertyValue(PermissionResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
+    Assert.assertEquals("Ambari Administrator", resource.getPropertyValue(PermissionResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
     Assert.assertEquals("AMBARI", resource.getPropertyValue(PermissionResourceProvider.RESOURCE_NAME_PROPERTY_ID));
+    Assert.assertEquals(1, resource.getPropertyValue(PermissionResourceProvider.SORT_ORDER_PROPERTY_ID));
     verify(dao, permissionEntity, resourceTypeEntity);
   }
 
-  @Test
+  @Test (expected = UnsupportedOperationException.class)
   public void testUpdateResources() throws Exception {
     PermissionResourceProvider provider = new PermissionResourceProvider();
-
     Request request = createNiceMock(Request.class);
-
-    try {
-      provider.updateResources(request, null);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.updateResources(request, null);
   }
 
-  @Test
+  @Test (expected = UnsupportedOperationException.class)
   public void testDeleteResources() throws Exception {
     PermissionResourceProvider provider = new PermissionResourceProvider();
-
-    try {
-      provider.deleteResources(null);
-      Assert.fail("expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException e) {
-      // expected
-    }
+    provider.deleteResources(new RequestImpl(null, null, null, null), null);
   }
 }

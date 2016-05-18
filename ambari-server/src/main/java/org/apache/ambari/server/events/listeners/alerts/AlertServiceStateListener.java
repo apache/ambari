@@ -188,16 +188,20 @@ public class AlertServiceStateListener {
         for (AlertDefinitionEntity definition : definitions) {
           try {
             m_definitionDao.remove(definition);
-
-            // remove the default group for the service
-            AlertGroupEntity group = m_alertDispatchDao.findGroupByName(event.getClusterId(),
-              event.getServiceName());
-
-            if (null != group && group.isDefault()) {
-              m_alertDispatchDao.remove(group);
-            }
           } catch (Exception exception) {
             LOG.error("Unable to remove alert definition {}", definition.getDefinitionName(), exception);
+          }
+        }
+
+        // remove the default group for the service
+        AlertGroupEntity group = m_alertDispatchDao.findGroupByName(event.getClusterId(),
+          event.getServiceName());
+
+        if (null != group && group.isDefault()) {
+          try {
+            m_alertDispatchDao.remove(group);
+          } catch (Exception exception) {
+            LOG.error("Unable to remove default alert group {}", group.getGroupName(), exception);
           }
         }
       } finally {

@@ -1,0 +1,284 @@
+<!-- 
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<div class="form-horizontal">
+    <div>
+        <form onsubmit="return false;" class="form-horizontal" id="CreateLogicForm">
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#gridProperties">Grid</a></li>
+                {{#if viewTypePie}}
+                <li><a data-toggle="tab" href="#axisProperties">Column</a></li>
+                {{else}}
+                <li><a data-toggle="tab" href="#axisProperties">Axis</a></li>
+                {{/if}}
+                <li><a data-toggle="tab" href="#graphProperties">Graph</a></li>
+            </ul>
+            <!--   <div class="pull-right text-danger" data-id="alert"><i class="fa fa-exclamation-triangle"></i></div> -->
+            <div class="tab-content">
+                <div id="gridProperties" class="tab-pane fade in active">
+                    <div class="form-group">
+                        <label class="control-label col-md-4">Title:</label>
+                        <div class="col-md-6">
+                            <input type="email" class="form-control" value="{{title}}" name="title" data-grid="true" placeholder="Title">
+                        </div>
+                    </div>
+                </div>
+                <div id="axisProperties" class="tab-pane fade">
+                    {{#if viewTypePie}}
+                    <div class="panel-group">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" href="#collapse1">Column</a>
+                                </h4>
+                            </div>
+                            <div id="collapse1" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div class="form-group" data-id="showX">
+                                        <div class="form-group" data-id="column">
+                                            <label class="control-label col-md-4">Select Column</label>
+                                            <div class="col-md-8">
+                                                <input type="text" class="select2XColumns" data-fetch="true" name="xAxis" placeholder="Select Column">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="control-label col-md-4">Select Value</label>
+                                            <div class="col-md-8">
+                                                <select name="yAxis" data-fetch="true" class="select2Y">
+                                                    <option value="" disabled>Select Value</option>
+                                                    <option value="count" selected>count</option>
+                                                    <!-- <option value="avg">Average</option> -->
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div data-id="time" class="col-md-12">
+                                            <div class="form-group ">
+                                                <label class="col-md-4 control-label">Start Date</label>
+                                                <div class="col-md-8">
+                                                    <input id="startDate" class="form-control unbind" type="text" tabindex="-1">
+                                                </div>
+                                            </div>
+                                            <div class="form-group ">
+                                                <label class="col-md-4 control-label">End Date</label>
+                                                <div class="col-md-8">
+                                                    <input id="endDate" class="form-control unbind" type="text" tabindex="-1">
+                                                </div>
+                                            </div>
+                                            <div class="form-group grid" data-id="dateRangeTitle">
+                                                <span class="dateRangeTitle">Last 1 Hour</span>
+                                                <span class="dateRangeTitle">Today</span>
+                                                <span class="dateRangeTitle">Yesterday</span>
+                                                <span class="dateRangeTitle">Last 7 Days</span>
+                                                <span class="dateRangeTitle">Last 30 Days</span>
+                                                <span class="dateRangeTitle">This Month</span>
+                                                <span class="dateRangeTitle">Last Month</span>
+                                                <span class="dateRangeTitle custome">Custom Range</span>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Time Interval</label>
+                                                <div class="col-md-8">
+                                                    <input type="text" class="form-control" data-fetch="true" disabled name="unit" value="{{unit}}" placeholder="Time Interval">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{else}}
+                    <div class="panel-group">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" href="#collapse1">X axis</a>
+                                </h4>
+                            </div>
+                            <div id="collapse1" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div class="form-group" data-id="showX">
+                                        <div class="form-group">
+                                            <label class="checkbox">
+                                                {{#if firstTime}}
+                                                <input checked="checked" name="showX" value="showX" type="checkbox"> {{else}}
+                                                <input name="showX" value="showX" type="checkbox" {{setChecked showX 'showX'}}>{{/if}}Show X axis
+                                                <i class="fa fa-square-o small"></i>
+                                            </label>
+                                        </div>
+                                        <div class="form-group" data-id="column">
+                                            <label class="control-label col-md-4">Select x axis</label>
+                                            <div class="col-md-8">
+                                                <input type="text" class="select2XColumns" data-fetch="true" name="xAxis" placeholder="Select X axis">
+                                            </div>
+                                        </div>
+                                        <div data-id="time" class="col-md-12">
+                                            <div class="form-group ">
+                                                <label class="col-md-4 control-label">Start Date</label>
+                                                <div class="col-md-8">
+                                                    <input id="startDate" class="form-control unbind" type="text" tabindex="-1">
+                                                </div>
+                                            </div>
+                                            <div class="form-group ">
+                                                <label class="col-md-4 control-label">End Date</label>
+                                                <div class="col-md-8">
+                                                    <input id="endDate" class="form-control unbind" type="text" tabindex="-1">
+                                                </div>
+                                            </div>
+                                            <div class="form-group grid" data-id="dateRangeTitle">
+                                                <span class="dateRangeTitle">Last 1 Hour</span>
+                                                <span class="dateRangeTitle">Today</span>
+                                                <span class="dateRangeTitle">Yesterday</span>
+                                                <span class="dateRangeTitle">Last 7 Days</span>
+                                                <span class="dateRangeTitle">Last 30 Days</span>
+                                                <span class="dateRangeTitle">This Month</span>
+                                                <span class="dateRangeTitle">Last Month</span>
+                                                <span class="dateRangeTitle custome">Custom Range</span>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4">Time Interval</label>
+                                                <div class="col-md-8">
+                                                    <input type="text" class="form-control" data-fetch="true" disabled name="unit" value="{{unit}}" placeholder="Time Interval">
+                                                </div>
+                                            </div>
+                                            <div class="form-group xTimeFormat">
+                                                <label class="control-label col-md-4">X Axis Time Format</label>
+                                                <div class="col-md-8">
+                                                    <input type="text" class="form-control" value="{{xTimeFormat}}" name="xTimeFormat" placeholder="Time Format" />
+                                                    <i class="fa fa-info timeInfo"></i>
+                                                </div>
+                                            </div>
+                                            <div class="form-group xNormalFormat">
+                                                <label class="control-label col-md-4">X Axis Format</label>
+                                                <div class="col-md-8">
+                                                    <input type="text" class="form-control " value="{{xNormalFormat}}" name="xNormalFormat" placeholder="axis Format" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-group">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" href="#collapse2">Y axis</a>
+                                </h4>
+                            </div>
+                            <div id="collapse2" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div class="form-group">
+                                        <label class="checkbox">
+                                            {{#if firstTime}}
+                                            <input checked="checked" name="showY" value="showY" type="checkbox"> {{else}}
+                                            <input name="showY" value="showY" type="checkbox" {{setChecked showY 'showY'}}> {{/if}} Show y axis
+                                            <i class="fa fa-square-o small"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Select Y axis</label>
+                                        <div class="col-md-8">
+                                            <select name="yAxis" data-fetch="true" class="select2Y">
+                                                <option value="" disabled>Select Y axis</option>
+                                                <option value="count" selected>count</option>
+                                               <!--  <option value="avg">Average</option> -->
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Y Axis Format</label>
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control" name="yAxisFormat" value="{{yAxisFormat}}" placeholder="Y Axis Format" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{/if}}
+                </div>
+                <div id="graphProperties" class="tab-pane fade">
+                    <div class="panel-group">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" href="#collapse3">Graph Options</a>
+                                </h4>
+                            </div>
+                            <div id="collapse3" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div class="form-group">
+                                        <label class="checkbox">
+                                            {{#if firstTime}}
+                                            <input checked="checked" name="showLegend" value="showLegend" type="checkbox">{{else}}
+                                            <input name="showLegend" value="showLegend" type="checkbox" {{setChecked showLegend 'showLegend'}}> {{/if}} Show Legend
+                                            <i class="fa fa-square-o small"></i>
+                                        </label>
+                                    </div>
+                                    {{#if viewTypePie}}
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Select Graph Type</label>
+                                        <div class="col-md-8">
+                                            <div class="radio-inline">
+                                                <label>
+                                                    <input type="radio" name="pieOrDonut" value="pie" checked="checked" {{setChecked pieOrDonut 'pie'}}>Pie <i class="fa fa-circle-o small"></i>
+                                                </label>
+                                            </div>
+                                            <div class="radio-inline">
+                                                <label>
+                                                    <input type="radio" name="pieOrDonut" value="donut" {{setChecked pieOrDonut 'donut'}}>Donut<i class="fa fa-circle-o small"></i>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{else}}
+                                    <div class="form-group">
+                                        <div class="radio-inline">
+                                            <label>
+                                                <input type="radio" name="stackOrGroup" value="Stack" {{setChecked stackOrGroup 'Stack'}}>Stack <i class="fa fa-circle-o small"></i>
+                                            </label>
+                                        </div>
+                                        <div class="radio-inline">
+                                            <label>
+                                                <input type="radio" name="stackOrGroup" value="Group" {{setChecked stackOrGroup 'Group'}}>Group<i class="fa fa-circle-o small"></i>
+                                            </label>
+                                        </div>
+                                        <div class="radio-inline">
+                                            <label>
+                                                <input type="radio" class="normalRadio" name="stackOrGroup" value="Normal" {{setChecked stackOrGroup 'Normal'}}>Normal<i class="fa fa-circle-o small"></i>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" data-id="stackOrGroupLov">
+                                        {{#if stackOrGroup}}
+                                        <label class="control-label col-md-4">{{stackOrGroup}}</label>
+                                        {{else}}
+                                        <label class="control-label col-md-4">Normal</label>
+                                        {{/if}}
+                                        <div class="col-md-8">
+                                            <input type="text" class="select2StackColumns" data-fetch="true" name="stackBy" placeholder="Select">
+                                        </div>
+                                    </div>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </form>
+        </div>
+    </div>

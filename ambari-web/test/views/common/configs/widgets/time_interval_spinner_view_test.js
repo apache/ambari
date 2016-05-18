@@ -237,7 +237,7 @@ describe('App.TimeIntervalSpinnerView', function () {
           }
         }
       ]).forEach(function (test) {
-        it('', function () {
+        it(test.e.warn + ' ' + test.e.warnMessage, function () {
           view.set('config', test.config);
           view.prepareContent();
           view.checkErrors();

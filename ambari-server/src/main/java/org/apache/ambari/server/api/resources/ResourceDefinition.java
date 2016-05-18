@@ -39,28 +39,28 @@ public interface ResourceDefinition {
    *
    * @return the plural name of the resource
    */
-  public String getPluralName();
+  String getPluralName();
 
   /**
    * Obtain the singular name of the resource.
    *
    * @return the singular name of the resource
    */
-  public String getSingularName();
+  String getSingularName();
 
   /**
    * Obtain the type of resource.  Is one of {@link Resource.Type}.
    *
    * @return the type of resource
    */
-  public Resource.Type getType();
+  Resource.Type getType();
 
   /**
    * Obtain a set of all child resource types.
    *
    * @return set of sub-resource definitions
    */
-  public Set<SubResourceDefinition> getSubResourceDefinitions();
+  Set<SubResourceDefinition> getSubResourceDefinitions();
 
   /**
    * Obtain any resource post processors.  A resource processor is used to provide resource specific processing of
@@ -68,7 +68,7 @@ public interface ResourceDefinition {
    *
    * @return list of resource specific result processors
    */
-  public List<PostProcessor> getPostProcessors();
+  List<PostProcessor> getPostProcessors();
 
   /**
    * Obtain the associated renderer based on name.
@@ -78,7 +78,7 @@ public interface ResourceDefinition {
    * @return associated renderer instance
    * @throws IllegalArgumentException if name is invalid for this resource
    */
-  public Renderer getRenderer(String name) throws IllegalArgumentException;
+  Renderer getRenderer(String name) throws IllegalArgumentException;
 
   /**
    * Obtain the set of create directives for the resource.  A create directive is
@@ -87,29 +87,42 @@ public interface ResourceDefinition {
    * map of request info properties used by the resource provider when creating
    * the resource.
    */
-  public Collection<String> getCreateDirectives();
+  Collection<String> getCreateDirectives();
+
+  /**
+   * Obtain the set of update directives for the resource.  An update directive is
+   * information that can be provided in the query string of a PUT operation for
+   * the resource.  These directives are not predicates but are put into the
+   * map of request info properties used by the resource provider when updating
+   * the resource.
+   */
+  Collection<String> getUpdateDirectives();
+
+  /**
+   * Obtain the set of delete directives for the resource.  A delete directive is
+   * information that can be provided in the query string of a DELETE operation for
+   * the resource.  These directives are not predicates but are put into the
+   * map of request info properties used by the resource provider when updating
+   * the resource.
+   */
+  Collection<String> getDeleteDirectives();
 
   /**
    * Defines if resource is actually created on the server side during POST
    * operation.
-   * 
+   *
    * @see <a
    *      href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5">
    *      http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5</a>
    * @return {@code true} if resource is creatable, {@code false} otherwise
    */
-  public boolean isCreatable();
+  boolean isCreatable();
 
   /**
    * Resource specific result processor.
    * Used to provide resource specific processing of a result.
    */
-  public interface PostProcessor {
-    public void process(Request request, TreeNode<Resource> resultNode, String href);
+  interface PostProcessor {
+    void process(Request request, TreeNode<Resource> resultNode, String href);
   }
-
-  /**
-   * Retrieves directives from the URI
-   */
-  public Collection<String> getUpdateDirectives();
 }

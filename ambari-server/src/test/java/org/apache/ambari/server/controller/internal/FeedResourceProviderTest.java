@@ -193,7 +193,7 @@ public class FeedResourceProviderTest {
 
     Predicate predicate = new PredicateBuilder().property(FeedResourceProvider.FEED_NAME_PROPERTY_ID).equals("Feed1").toPredicate();
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(service);

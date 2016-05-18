@@ -89,7 +89,7 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
           }
 
           if ("clusters".equals(fragment) && i + 1 < tokenCount) {
-            String clusterName = tokens[i + 1];
+            String clusterName = getClusterName(tokens[i + 1]);
             sb.append(clusterName).append("/");
             sb.append("requests/").append(requestId);
             break;
@@ -98,6 +98,22 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
       }
 
       resultNode.setProperty("href", sb.toString());
+    }
+
+    /**
+     * Get cluster name
+     * Remove query paramter string if there is any
+     *
+     * @param token
+     * @return String
+     * */
+    private String getClusterName(String token){
+      int pos = token.indexOf('?');
+      if(pos > 0) { //cluster name requires to have at least one alphanumeric letter
+        return token.substring(0, pos);
+      } else {
+        return token;
+      }
     }
   }
 

@@ -20,6 +20,7 @@ var App = require('app');
 
 require('mixins/common/widgets/export_metrics_mixin');
 var fileUtils = require('utils/file_utils');
+var testHelpers = require('test/helpers');
 
 describe('App.ExportMetricsMixin', function () {
 
@@ -72,7 +73,6 @@ describe('App.ExportMetricsMixin', function () {
     ];
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       obj.reopen({
         targetView: {
           ajaxIndex: 'index',
@@ -85,21 +85,26 @@ describe('App.ExportMetricsMixin', function () {
       });
     });
 
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     cases.forEach(function (item) {
-      it(item.title, function () {
-        obj.set('isExportMenuHidden', item.isExportMenuHidden);
-        obj.exportGraphData(item.event);
-        var ajaxParams = App.ajax.send.firstCall.args[0];
-        expect(obj.get('isExportMenuHidden')).to.be.true;
-        expect(App.ajax.send.calledOnce).to.be.true;
-        expect(ajaxParams.name).to.equal('index');
-        expect(ajaxParams.data).to.eql({
-          p: 'v',
-          isCSV: item.isCSV
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          obj.set('isExportMenuHidden', item.isExportMenuHidden);
+          obj.exportGraphData(item.event);
+          this.ajaxParams = testHelpers.findAjaxRequest('name', 'index');
+        });
+
+        it('isExportMenuHidden is true', function () {
+          expect(obj.get('isExportMenuHidden')).to.be.true;
+        });
+        it('one request was done', function () {
+          expect(this.ajaxParams[0]).exists;
+        });
+        it('ajax-request with correct data', function () {
+          expect(this.ajaxParams[0].data).to.eql({
+            p: 'v',
+            isCSV: item.isCSV
+          });
         });
       });
     });
@@ -197,13 +202,26 @@ describe('App.ExportMetricsMixin', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        obj.exportGraphDataSuccessCallback(item.response, null, item.params);
-        expect(fileUtils.downloadTextFile.callCount).to.equal(item.downloadTextFileCallCount);
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          obj.exportGraphDataSuccessCallback(item.response, null, item.params);
+        });
+
+        it('downloadTextFile was called needed number of times', function () {
+          expect(fileUtils.downloadTextFile.callCount).to.equal(item.downloadTextFileCallCount);
+        });
+
         if (item.downloadTextFileCallCount) {
-          expect(fileUtils.downloadTextFile.firstCall.args[0].replace(/\s/g, '')).to.equal(item.data);
-          expect(fileUtils.downloadTextFile.firstCall.args[1]).to.equal(item.fileType);
-          expect(fileUtils.downloadTextFile.firstCall.args[2]).to.equal(item.fileName);
+          it('data is valid', function () {
+            expect(fileUtils.downloadTextFile.firstCall.args[0].replace(/\s/g, '')).to.equal(item.data);
+          });
+          it('fileType is valid', function () {
+            expect(fileUtils.downloadTextFile.firstCall.args[1]).to.equal(item.fileType);
+          });
+          it('fileName is valid', function () {
+            expect(fileUtils.downloadTextFile.firstCall.args[2]).to.equal(item.fileName);
+          });
         }
       });
     });
@@ -225,7 +243,7 @@ describe('App.ExportMetricsMixin', function () {
           status: 404
         }, null, '', {
           url: 'url',
-          method: 'GET'
+          type: 'GET'
         });
       expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
       expect(App.ajax.defaultErrorHandler.calledWith({

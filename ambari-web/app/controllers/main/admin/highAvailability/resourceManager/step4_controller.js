@@ -26,9 +26,17 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   clusterDeployState: 'RM_HIGH_AVAILABILITY_DEPLOY',
 
-  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'startAllServices'],
+  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'reconfigureHAWQ', 'reconfigureHDFS', 'startAllServices'],
 
   tasksMessagesPrefix: 'admin.rm_highAvailability.wizard.step',
+
+  initializeTasks: function () {
+    this._super();
+    var numSpliced = 0;
+    if (!App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHAWQ').get('id'), 1);
+    }
+  },
 
   stopRequiredServices: function () {
     this.stopServices(['HDFS']);
@@ -36,41 +44,77 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   installResourceManager: function () {
     var hostName = this.get('content.rmHosts.additionalRM');
-    this.createComponent('RESOURCEMANAGER', hostName, "YARN");
+    this.createInstallComponentTask('RESOURCEMANAGER', hostName, "YARN");
   },
 
   reconfigureYARN: function () {
-    this.loadConfigsTags();
+    this.loadConfigsTags("Yarn");
   },
 
-  loadConfigsTags: function () {
+  reconfigureHAWQ: function () {
+    this.loadConfigsTags("Hawq");
+  },
+
+  reconfigureHDFS: function () {
+    this.loadConfigsTags("Hdfs");
+  },
+
+  loadConfigsTags: function (service) {
+    var onLoadServiceConfigsTags = 'onLoad' + service + "ConfigsTags";
     App.ajax.send({
       name: 'config.tags',
       sender: this,
-      success: 'onLoadConfigsTags',
+      success: onLoadServiceConfigsTags,
       error: 'onTaskError'
     });
   },
 
-  onLoadConfigsTags: function (data) {
+  onLoadYarnConfigsTags: function (data) {
     App.ajax.send({
       name: 'reassign.load_configs',
       sender: this,
       data: {
-        urlParams: '(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')'
+        urlParams: '(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')',
+        type: 'yarn-site'
       },
       success: 'onLoadConfigs',
       error: 'onTaskError'
     });
   },
 
-  onLoadConfigs: function (data) {
-    var propertiesToAdd = this.get('content.configs');
+  onLoadHawqConfigsTags: function (data) {
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: '(type=yarn-client&tag=' + data.Clusters.desired_configs['yarn-client'].tag + ')',
+        type: 'yarn-client'
+      },
+      success: 'onLoadConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadHdfsConfigsTags: function (data) {
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')',
+        type: 'core-site'
+      },
+      success: 'onLoadConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadConfigs: function (data, opt, params) {
+    var propertiesToAdd = this.get('content.configs').filterProperty('filename', params.type);
     propertiesToAdd.forEach(function (property) {
       data.items[0].properties[property.name] = property.value;
     });
 
-    var configData = this.reconfigureSites(['yarn-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER')));
+    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER', false)));
 
     App.ajax.send({
       name: 'common.service.configurations',
@@ -82,7 +126,6 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
       error: 'onTaskError'
     });
   },
-
   onSaveConfigs: function () {
     this.onTaskCompleted();
   },
@@ -91,4 +134,3 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.startServices(true);
   }
 });
-

@@ -80,12 +80,18 @@ describe('App.ServiceConfigView', function () {
     });
 
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        controller.set('selectedService', test.selectedService);
-        controller.set('selectedConfigGroup', test.selectedConfigGroup);
-        view.checkCanEdit();
-        controller.get('selectedService.configCategories').forEach(function (category) {
-          expect(category.get('canAddProperty')).to.equal(test.result[category.get('name')]);
+      describe(test.title, function () {
+
+        beforeEach(function () {
+          controller.set('selectedService', test.selectedService);
+          controller.set('selectedConfigGroup', test.selectedConfigGroup);
+          view.checkCanEdit();
+        });
+        Object.keys(test.result).forEach(function (categoryName) {
+          it(categoryName, function () {
+            var canAddProperty = controller.get('selectedService.configCategories').findProperty('name', categoryName).get('canAddProperty');
+            expect(canAddProperty).to.be.equal(test.result[categoryName]);
+          });
         });
       });
     });

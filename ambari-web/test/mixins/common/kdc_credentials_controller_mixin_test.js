@@ -33,7 +33,7 @@ describe('App.KDCCredentialsControllerMixin', function() {
     mixedObject.destroy();
   });
 
-  describe('#initilizeKDCStoreProperties', function() {
+  describe('#initializeKDCStoreProperties', function() {
     [
       {
         isStorePersisted: true,
@@ -52,36 +52,121 @@ describe('App.KDCCredentialsControllerMixin', function() {
         message: 'Only temporary store available, config should be disabled, and appropriate hint shown'
       }
     ].forEach(function(test) {
-      it(test.message, function() {
-        var configs = [],
-            config;
-        mixedObject.reopen({
-          isStorePersisted: function() {
-            return test.isStorePersisted;
-          }.property()
+      describe(test.message, function() {
+
+        var config;
+
+        beforeEach(function () {
+          var configs = [];
+          mixedObject.reopen({
+            isStorePersisted: function() {
+              return test.isStorePersisted;
+            }.property()
+          });
+          mixedObject.initializeKDCStoreProperties(configs);
+          config = configs.findProperty('name', 'persist_credentials');
         });
-        mixedObject.initilizeKDCStoreProperties(configs);
-        config = configs.findProperty('name', 'persist_credentials');
-        Em.keys(test.e).forEach(function(key) {
-          assert.equal(Em.get(config, key), test.e[key], 'validate attribute: ' + key);
+
+        Object.keys(test.e).forEach(function(key) {
+          it(key, function () {
+            assert.equal(Em.get(config, key), test.e[key], 'validate attribute: ' + key);
+          });
         });
       });
     });
   });
 
+  describe('#updateKDCStoreProperties', function() {
+    [
+      {
+        isStorePersisted: true,
+        e: {
+          isEditable: true,
+          hintMessage: Em.I18n.t('admin.kerberos.credentials.store.hint.supported')
+        },
+        message: 'Persistent store available, config should be editable, and appropriate hint shown',
+        configs: [
+          Em.Object.create({
+            name: 'persist_credentials',
+            isEditable: false,
+            hintMessage: ''
+          })
+        ]
+      },
+      {
+        isStorePersisted: false,
+        e: {
+          isEditable: false,
+          hintMessage: Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported')
+        },
+        message: 'Only temporary store available, config should be disabled, and appropriate hint shown',
+        configs: [
+          Em.Object.create({
+            name: 'persist_credentials',
+            isEditable: true,
+            hintMessage: ''
+          })
+        ]
+      }
+    ].forEach(function(test) {
+        describe(test.message, function() {
+
+          var config;
+
+          beforeEach(function () {
+            var configs = test.configs;
+            mixedObject.reopen({
+              isStorePersisted: function() {
+                return test.isStorePersisted;
+              }.property()
+            });
+            mixedObject.updateKDCStoreProperties(configs);
+            config = configs.findProperty('name', 'persist_credentials');
+          });
+
+          Object.keys(test.e).forEach(function(key) {
+            it(key, function () {
+              assert.equal(Em.get(config, key), test.e[key], 'validate attribute: ' + key);
+            });
+          });
+        });
+      });
+  });
+
   describe('#createKDCCredentials', function() {
-    var createConfig = function(name, value) {
+
+    function createConfig (name, value) {
       return App.ServiceConfigProperty.create({
         name: name,
         value: value
       });
-    };
-    var resolveWith = function(data) {
+    }
+    function resolveWith (data) {
       return $.Deferred().resolve(data).promise();
-    };
-    var rejectWith = function(data) {
+    }
+    function rejectWith (data) {
       return $.Deferred().reject(data).promise();
-    };
+    }
+
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('clusterName').returns('testName');
+      sinon.stub(credentialsUtils, 'createCredentials', function() {
+        return resolveWith();
+      });
+      sinon.stub(credentialsUtils, 'updateCredentials', function() {
+        return resolveWith();
+      });
+      mixedObject.reopen({
+        isStorePersisted: true
+      });
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      credentialsUtils.createCredentials.restore();
+      credentialsUtils.updateCredentials.restore();
+    });
+
     [
       {
         configs: [
@@ -164,36 +249,36 @@ describe('App.KDCCredentialsControllerMixin', function() {
         message: 'Save Admin credentials checkbox unchecked, credentials already stored and should be updated as `temporary`'
       }
     ].forEach(function(test) {
-      it(test.message, function() {
-        sinon.stub(App, 'get').withArgs('clusterName').returns('testName');
-        sinon.stub(credentialsUtils, 'getCredential', function(clusterName, alias) {
-          return test.credentialsExists ? resolveWith() : rejectWith();
-        });
-        sinon.stub(credentialsUtils, 'createCredentials', function() {
-          return resolveWith();
-        });
-        sinon.stub(credentialsUtils, 'updateCredentials', function() {
-          return resolveWith();
+      describe(test.message, function() {
+        beforeEach(function () {
+          sinon.stub(credentialsUtils, 'getCredential', function() {
+            return test.credentialsExists ? resolveWith() : rejectWith();
+          });
+          mixedObject.createKDCCredentials(test.configs);
         });
 
-        mixedObject.reopen({
-          isStorePersisted: function() {
-            return true;
-          }.property()
+        afterEach(function () {
+          credentialsUtils.getCredential.restore();
         });
-        mixedObject.createKDCCredentials(test.configs);
-        assert.equal(credentialsUtils.createCredentials.calledOnce, test.createCredentialFnCalled,  'credentialsUtils#createCredentials called');
+
+        it('credentialsUtils#createCredentials called', function () {
+          expect(credentialsUtils.createCredentials.calledOnce).to.equal(test.createCredentialFnCalled);
+        });
+
         if (test.createCredentialFnCalled) {
-          assert.deepEqual(credentialsUtils.createCredentials.args[0], test.e, 'credentialsUtils#createCredentials called with correct arguments');
+          it('credentialsUtils#createCredentials called with correct arguments', function () {
+            expect(credentialsUtils.createCredentials.args[0]).to.eql(test.e);
+          });
         }
-        credentialsUtils.createCredentials.restore();
-        assert.equal(credentialsUtils.updateCredentials.calledOnce, test.updateCredentialFnCalled, 'credentialUtils#updateCredentials called');
+        it('credentialUtils#updateCredentials called', function () {
+          expect(credentialsUtils.updateCredentials.calledOnce).to.equal(test.updateCredentialFnCalled);
+        });
+
         if (test.updateCredentialFnCalled) {
-          assert.deepEqual(credentialsUtils.updateCredentials.args[0], test.e, 'credentialUtils#updateCredentials called with correct arguments');
+          it('credentialUtils#updateCredentials called with correct arguments', function () {
+            expect(credentialsUtils.updateCredentials.args[0]).to.eql(test.e);
+          });
         }
-        credentialsUtils.updateCredentials.restore();
-        credentialsUtils.getCredential.restore();
-        App.get.restore();
       });
     });
   });

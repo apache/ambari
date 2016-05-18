@@ -18,8 +18,7 @@
 
 var App = require('app');
 var filters = require('views/common/filter_view'),
-  sort = require('views/common/sort_view'),
-  date = require('utils/date/date');
+  sort = require('views/common/sort_view');
 
 App.MainAlertDefinitionsView = App.TableView.extend({
 
@@ -53,6 +52,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   },
 
   willDestroyElement: function () {
+    $(".timeago").tooltip('destroy');
     this.removeObserver('pageContent.length', this, 'tooltipsUpdater');
   },
 
@@ -79,27 +79,15 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
   colPropAssoc: ['', 'label', 'summary', 'serviceName', 'type', 'lastTriggered', 'enabled', 'groups'],
 
-  /**
-   * @type {string}
-   */
-  enabledTooltip: Em.I18n.t('alerts.table.state.enabled.tooltip'),
-
-  /**
-   * @type {string}
-   */
-  disabledTooltip: Em.I18n.t('alerts.table.state.disabled.tooltip'),
-
-  /**
-   * @type {string}
-   */
-  enabledDisplay: Em.I18n.t('alerts.table.state.enabled'),
-
-  /**
-   * @type {string}
-   */
-  disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
-
-  sortView: sort.wrapperView,
+  sortView: sort.wrapperView.extend({
+    didInsertElement: function () {
+      this._super();
+      // set default sorting to status sorting
+      var statusSortingView = this.get('childViews').findProperty('name', 'summary');
+      this.set('controller.sortingColumn', statusSortingView);
+      this.addSortingObserver(statusSortingView.get('name'))
+    }
+  }),
 
   /**
    * Define whether initial view rendering has finished
@@ -229,24 +217,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   serviceFilterView: filters.createSelectView({
     column: 3,
     fieldType: 'filter-input-width',
-    content: function () {
-      return [
-        {
-          value: '',
-          label: Em.I18n.t('common.all')
-        }
-      ].concat(App.Service.find().map(function (service) {
-        return {
-          value: service.get('serviceName'),
-          label: service.get('displayName')
-        }
-      }).concat([
-        {
-          value: 'AMBARI',
-          label: Em.I18n.t('app.name')
-        }
-      ]));
-    }.property('App.router.clusterController.isLoaded'),
+    content: filters.getComputedServicesList(),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
     }
@@ -439,7 +410,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
     onValueChange: function () {
       var value = this.get('value');
-      if (value != undefined) {
+      if (value !== undefined) {
         this.get('content').setEach('selected', false);
         this.set('selected', this.get('content').findProperty('value', value));
         var selectEntry = this.get('content').findProperty('value', value);
@@ -476,7 +447,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    * @type {string}
    */
   paginationRightClass: function () {
-    if ((this.get("endIndex")) < this.get("filteredCount")) {
+    if (this.get("endIndex") < this.get("filteredCount")) {
       return "paginate_next";
     }
     return "paginate_disabled_next";
@@ -510,7 +481,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   tooltipsUpdater: function () {
     Em.run.next(this, function () {
-      App.tooltip($(".enable-disable-button, .timeago"));
+      App.tooltip($(".timeago"));
     });
   },
 

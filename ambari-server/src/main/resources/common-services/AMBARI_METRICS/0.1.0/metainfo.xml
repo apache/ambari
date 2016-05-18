@@ -29,9 +29,11 @@
           <name>METRICS_COLLECTOR</name>
           <displayName>Metrics Collector</displayName>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
+          <cardinality>1+</cardinality>
           <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <timelineAppid>AMS-HBASE</timelineAppid>
+          <recovery_enabled>true</recovery_enabled>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
@@ -46,7 +48,31 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>ams_collector</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>ams_hbase_master</logId>
+            </log>
+            <log>
+              <logId>ams_hbase_regionserver</logId>
+            </log>
+          </logs>
+          <configuration-dependencies>
+            <config-type>ams-site</config-type>
+            <config-type>ams-log4j</config-type>
+            <config-type>ams-hbase-policy</config-type>
+            <config-type>ams-hbase-site</config-type>
+            <config-type>ams-hbase-security-site</config-type>
+            <config-type>ams-hbase-env</config-type>
+            <config-type>ams-hbase-log4j</config-type>
+            <config-type>ams-ssl-server</config-type>
+            <config-type>ams-ssl-client</config-type>
+          </configuration-dependencies>
         </component>
+
         <component>
           <name>METRICS_MONITOR</name>
           <displayName>Metrics Monitor</displayName>
@@ -62,15 +88,33 @@
             <timeout>1200</timeout>
           </commandScript>
         </component>
+
+        <component>
+          <name>METRICS_GRAFANA</name>
+          <displayName>Grafana</displayName>
+          <category>MASTER</category>
+          <cardinality>0-1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/metrics_grafana.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configuration-dependencies>
+            <config-type>ams-grafana-env</config-type>
+            <config-type>ams-grafana-ini</config-type>
+          </configuration-dependencies>
+        </component>
       </components>
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_ams_collector</condition>
             </package>
             <package>
               <name>ambari-metrics-monitor</name>
@@ -79,6 +123,11 @@
             <package>
               <name>ambari-metrics-hadoop-sink</name>
               <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>ambari-metrics-grafana</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_ams_grafana</condition>
             </package>
             <package>
               <name>gcc</name>
@@ -119,7 +168,7 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>600</timeout>
       </commandScript>
 
       <requiredServices>
@@ -127,19 +176,19 @@
       </requiredServices>
 
       <configuration-dependencies>
-        <config-type>ams-site</config-type>
-        <config-type>ams-log4j</config-type>
         <config-type>ams-env</config-type>
-        <config-type>ams-hbase-policy</config-type>
-        <config-type>ams-hbase-site</config-type>
-        <config-type>ams-hbase-security-site</config-type>
-        <config-type>ams-hbase-env</config-type>
-        <config-type>ams-hbase-log4j</config-type>
       </configuration-dependencies>
 
       <excluded-config-types>
         <config-type>storm-site</config-type>
       </excluded-config-types>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
 
     </service>
   </services>

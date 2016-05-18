@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('Auth',['$http', 'Settings', '$window', function($http, Settings, $window) {
+.factory('Auth',['$http', 'Settings', function($http, Settings) {
   var ambari;
   var currentUserName;
   if (localStorage.ambari) {
@@ -35,11 +35,18 @@ angular.module('ambariAdminConsole')
       delete data.app.user;
       localStorage.ambari = JSON.stringify(data);
       // Workaround for sign off within Basic Authorization
-      var origin = $window.location.protocol + '//' + Date.now() + ':' + Date.now() + '@' +
+      //commenting this out since using Date.now() in the url causes a security error in IE and does not log out user
+      /*var origin = $window.location.protocol + '//' + Date.now() + ':' + Date.now() + '@' +
             $window.location.hostname + ($window.location.port ? ':' + $window.location.port : '');
       return $http({
         method: 'GET',
         url: origin + Settings.baseUrl + '/logout'
+      });*/
+      //use an invalid username and password in the request header
+      $http.defaults.headers.common['Authorization'] = 'Basic ' + btoa('invalid_username:password');
+      return $http({
+        method: 'GET',
+        url: Settings.baseUrl + '/logout'
       });
     },
     getCurrentUser: function() {

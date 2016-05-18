@@ -17,6 +17,8 @@
  */
 
 var App = require('app');
+var filters = require('views/common/filter_view');
+var sort = require('views/common/sort_view');
 
 App.MainAlertDefinitionDetailsView = App.TableView.extend({
 
@@ -38,6 +40,14 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    */
   disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
 
+  colPropAssoc: ['serviceName', 'hostName', 'state'],
+
+  /**
+   * return filtered number of all content number information displayed on the page footer bar
+   * @returns {String}
+   */
+  filteredContentInfo: Em.computed.i18nFormat('tableView.filters.filteredAlertInstancesInfo', 'filteredCount', 'totalCount'),
+
   content: function () {
     return this.get('controller.alerts');
   }.property('controller.alerts.@each'),
@@ -45,25 +55,30 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   willInsertElement: function () {
     this._super();
     this.get('controller').clearStep();
-    var self = this,
-      updater = App.router.get('updateController');
-    if (self.get('controller.content.isLoaded')) {
-      self.set('isLoaded', true);
-      self.get('controller').loadAlertInstances();
+
+    if (this.get('controller.content.isLoaded')) {
+      this.set('isLoaded', true);
+      this.get('controller').loadAlertInstances();
+    } else {
+      this.loadDefinitionDetails();
     }
-    else {
-      updater.updateAlertGroups(function () {
-        updater.updateAlertDefinitions(function () {
-          updater.updateAlertDefinitionSummary(function () {
-            self.set('isLoaded', true);
-            // App.AlertDefinition doesn't represents real models
-            // Real model (see AlertDefinition types) should be used
-            self.set('controller.content', App.AlertDefinition.find().findProperty('id', parseInt(self.get('controller.content.id'))));
-            self.get('controller').loadAlertInstances();
-          });
+  },
+
+  loadDefinitionDetails: function() {
+    var self = this,
+        updater = App.router.get('updateController');
+
+    updater.updateAlertGroups(function () {
+      updater.updateAlertDefinitions(function () {
+        updater.updateAlertDefinitionSummary(function () {
+          self.set('isLoaded', true);
+          // App.AlertDefinition doesn't represents real models
+          // Real model (see AlertDefinition types) should be used
+          self.set('controller.content', App.AlertDefinition.find(parseInt(self.get('controller.content.id'))));
+          self.get('controller').loadAlertInstances();
         });
       });
-    }
+    });
   },
 
   didInsertElement: function () {
@@ -80,6 +95,101 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       App.tooltip($(".enable-disable-button"));
     });
   }.observes('controller.content.enabled'),
+
+  sortView: sort.wrapperView.extend({}),
+
+  /**
+   * Sorting header for <label>alertDefinition.label</label>
+   * @type {Em.View}
+   */
+  serviceSort: sort.fieldView.extend({
+    column: 0,
+    name: 'serviceName',
+    displayName: Em.I18n.t('common.service')
+  }),
+
+  /**
+   * Sorting header for <label>alertDefinition.status</label>
+   * @type {Em.View}
+   */
+  hostNameSort: sort.fieldView.extend({
+    column: 1,
+    name: 'hostName',
+    displayName: Em.I18n.t('common.host')
+  }),
+
+  /**
+   * Sorting header for <label>alertDefinition.service.serviceName</label>
+   * @type {Em.View}
+   */
+  stateSort: sort.fieldView.extend({
+    column: 2,
+    name: 'state',
+    displayName: Em.I18n.t('common.status')
+  }),
+
+  /**
+   * Filtering header for <label>alertInstance.hostName</label>
+   * @type {Em.View}
+   */
+  hostNameFilterView: filters.createTextView({
+    column: 1,
+    fieldType: 'input-medium',
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
+    }
+  }),
+
+  /**
+   * Filtering header for <label>alertInstance.serviceName</label>
+   * @type {Em.View}
+   */
+  serviceFilterView: filters.createSelectView({
+    column: 0,
+    fieldType: 'input-small',
+    content: filters.getComputedServicesList(),
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
+  }),
+
+  /**
+   * Filtering header for <label>alertInstance.state</label>
+   * @type {Em.View}
+   */
+  stateFilterView: filters.createSelectView({
+    column: 2,
+    fieldType: 'filter-input-width',
+    content: [
+      {
+        value: '',
+        label: Em.I18n.t('common.all')
+      },
+      {
+        value: 'OK',
+        label: 'OK'
+      },
+      {
+        value: 'WARNING',
+        label: 'WARNING'
+      },
+      {
+        value: 'CRITICAL',
+        label: 'CRITICAL'
+      },
+      {
+        value: 'UNKNOWN',
+        label: 'UNKNOWN'
+      },
+      {
+        value: 'PENDING',
+        label: 'NONE'
+      }
+    ],
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
+  }),
 
   /**
    * View calculates and represents count of alerts on appropriate host during last day
@@ -102,7 +212,6 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       App.tooltip(this.$("[rel=tooltip]"));
       App.tooltip(this.$(".alert-text"), {
         placement: 'left',
-        delay: { "show": 0, "hide": 1500 },
         template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner alert-def-detail-tooltip"></div></div>'
       });
     },
@@ -132,6 +241,14 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
         App.router.get('mainHostDetailsController').set('referer', App.router.location.lastSetURL);
         App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
       }
+    },
+
+    /**
+     * open popup that contain full response of Alert Instance
+     * @param {Object} event
+     */
+    openFullResponse: function(event) {
+      App.showLogsPopup(Em.I18n.t('alerts.instance.fullLogPopup.header'), event.context.get('text'));
     }
 
   }),
@@ -148,7 +265,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    * @type {string}
    */
   paginationRightClass: function () {
-    if ((this.get("endIndex")) < this.get("filteredCount")) {
+    if (this.get("endIndex") < this.get("filteredCount")) {
       return "paginate_next";
     }
     return "paginate_disabled_next";
@@ -181,6 +298,14 @@ App.AlertInstanceServiceHostView = Em.View.extend({
 
   templateName: require('templates/main/alerts/instance_service_host'),
 
+  didInsertElement: function () {
+    App.tooltip(this.$("[rel='UsageTooltip']"));
+  },
+
+  willDestroyElement: function() {
+    this.$("[rel='UsageTooltip']").remove();
+  },
+
   /**
    * Define whether show link for transition to service page
    */
@@ -192,5 +317,21 @@ App.AlertInstanceServiceHostView = Em.View.extend({
    * Define whether show separator between service and hosts labels
    */
   showSeparator: Em.computed.and('instance.serviceDisplayName', 'instance.hostName')
+
+});
+
+App.AlertInstanceStateView = Em.View.extend({
+
+  templateName: require('templates/main/alerts/alert_instance/status'),
+
+  didInsertElement: function () {
+    App.tooltip(this.$("[rel='StateTooltip']"));
+    App.tooltip(this.$("[rel='tooltip']"));
+  },
+
+  willDestroyElement: function() {
+    this.$("[rel='StateTooltip']").remove();
+    this.$("[rel='tooltip']").remove();
+  }
 
 });

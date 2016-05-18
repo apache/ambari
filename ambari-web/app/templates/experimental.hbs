@@ -48,12 +48,23 @@
 		    {{/each}}
     </tbody>
     </table>
-    <div class="control-group" style="margin-bottom: 100px;">
-	    <div class="controls pull-right">
+    <div class="control-group" style="margin-bottom: 70px;">
+        <div class="controls pull-right">
 	      <button class="btn" {{action doCancel target="controller"}}>{{t form.cancel}}</button>
 	      <button class="btn btn-primary" {{action doSave target="controller"}}>{{t common.save}}</button>
 	    </div>
-	  </div>
+	</div>
+    <hr>
+    <div class="control-group" style="margin-bottom: 100px;">
+      {{#isAuthorized "CLUSTER.MANAGE_USER_PERSISTED_DATA"}}
+        <div class="controls pull-left" style="margin-bottom: 100px;">
+          <button class="btn btn-danger" {{action doResetUIStates target="controller"}}>{{t reset.ui.states}}</button>
+          <p class="pull-right" style="margin-left: 10px; padding-top: 5px;">
+              Reset UI state locally and on the server
+          </p>
+        </div>
+      {{/isAuthorized}}
+    </div>
   {{else}}
     <div class="alert alert-error">
       No application supports found. Please login to Ambari and revisit this page.

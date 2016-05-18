@@ -54,27 +54,27 @@ public class BootStrapStatus {
   @XmlElement
   private String log;
 
-  public void setStatus(BSStat status) {
+  public synchronized void setStatus(BSStat status) {
     this.status = status;
   }
 
-  public BSStat getStatus() {
+  public synchronized BSStat getStatus() {
     return this.status;
   }
 
-  public void setHostsStatus(List<BSHostStatus> hostsStatus) {
+  public synchronized void setHostsStatus(List<BSHostStatus> hostsStatus) {
     this.hostsStatus = hostsStatus;
   }
 
-  public List<BSHostStatus> getHostsStatus() {
+  public synchronized List<BSHostStatus> getHostsStatus() {
     return this.hostsStatus;
   }
 
-  public void setLog(String log) {
+  public synchronized void setLog(String log) {
     this.log = log;
   }
 
-  public String getLog() {
+  public synchronized String getLog() {
     return this.log;
   }
 }

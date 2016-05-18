@@ -50,6 +50,7 @@ import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.UdpAddress;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
+import org.snmp4j.transport.UdpTransportMapping;
 import org.snmp4j.util.DefaultPDUFactory;
 
 import com.google.inject.Singleton;
@@ -84,12 +85,45 @@ public class SNMPDispatcher implements NotificationDispatcher {
 
   private Snmp snmp;
 
+  private final Integer port;
+  private volatile UdpTransportMapping transportMapping;
+
   public SNMPDispatcher(Snmp snmp) {
+    this.port = null;
     this.snmp = snmp;
   }
 
   public SNMPDispatcher() throws IOException {
-    this(new Snmp(new DefaultUdpTransportMapping()));
+    this((Integer) null);
+  }
+
+  /**
+   * Creates SNMP server with specified port. In case port is null will be used random value as default
+   * @param port port
+   * @throws IOException
+   */
+  public SNMPDispatcher(Integer port) throws IOException {
+    if(port != null && port >= 0 && port <= '\uffff') {
+      //restrict invalid ports to avoid exception on socket create
+      this.port = port;
+    } else {
+      this.port = null;
+    }
+  }
+
+  private void createTransportMapping() throws IOException {
+    if (transportMapping == null) {
+      synchronized (this) {
+        if (transportMapping == null) {
+          if (port != null) {
+            LOG.info("Setting SNMP dispatch port: " + port);
+            transportMapping = new DefaultUdpTransportMapping(new UdpAddress(port), true);
+          } else {
+            transportMapping = new DefaultUdpTransportMapping();
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -115,7 +149,8 @@ public class SNMPDispatcher implements NotificationDispatcher {
   public void dispatch(Notification notification) {
     LOG.info("Sending SNMP trap: {}", notification.Subject);
     try {
-      snmp = new Snmp(new DefaultUdpTransportMapping());
+      createTransportMapping();
+      snmp = new Snmp(transportMapping);
       SnmpVersion snmpVersion = getSnmpVersion(notification.DispatchProperties);
       sendTraps(notification, snmpVersion);
       successCallback(notification);
@@ -391,5 +426,9 @@ public class SNMPDispatcher implements NotificationDispatcher {
     if (notification.Callback != null) {
       notification.Callback.onSuccess(notification.CallbackIds);
     }
+  }
+
+  public Integer getPort() {
+    return port;
   }
 }

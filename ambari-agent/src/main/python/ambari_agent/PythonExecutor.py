@@ -53,8 +53,11 @@ class PythonExecutor(object):
     pass
 
 
-  def open_subprocess_files(self, tmpoutfile, tmperrfile, override_output_files):
-    if override_output_files: # Recreate files
+  def open_subprocess_files(self, tmpoutfile, tmperrfile, override_output_files, backup_log_files = True):
+    if override_output_files: # Recreate files, existing files are backed up if backup_log_files is True
+      if backup_log_files:
+        self.back_up_log_file_if_exists(tmpoutfile)
+        self.back_up_log_file_if_exists(tmperrfile)
       tmpout =  open(tmpoutfile, 'w')
       tmperr =  open(tmperrfile, 'w')
     else: # Append to files
@@ -62,9 +65,22 @@ class PythonExecutor(object):
       tmperr =  open(tmperrfile, 'a')
     return tmpout, tmperr
 
+  def back_up_log_file_if_exists(self, file_path):
+    if os.path.isfile(file_path):
+      counter = 0
+      while True:
+        # Find backup name that is not used yet (saves logs
+        # from multiple command retries)
+        backup_name = file_path + "." + str(counter)
+        if not os.path.isfile(backup_name):
+          break
+        counter += 1
+      os.rename(file_path, backup_name)
+
   def run_file(self, script, script_params, tmpoutfile, tmperrfile,
                timeout, tmpstructedoutfile, callback, task_id,
-               override_output_files = True, handle = None, log_info_on_failure=True):
+               override_output_files = True, backup_log_files = True, handle = None,
+               log_info_on_failure = True):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
@@ -80,7 +96,7 @@ class PythonExecutor(object):
     logger.debug("Running command " + pprint.pformat(pythonCommand))
     
     if handle is None:
-      tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files)
+      tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files, backup_log_files)
 
       process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
       # map task_id to pid
@@ -150,6 +166,9 @@ class PythonExecutor(object):
       else:
         structured_out = {}
     return out, error, structured_out
+  
+  def preexec_fn(self):
+    os.setpgid(0, 0)
 
   def launch_python_subprocess(self, command, tmpout, tmperr):
     """
@@ -165,7 +184,7 @@ class PythonExecutor(object):
 
     return subprocess.Popen(command,
       stdout=tmpout,
-      stderr=tmperr, close_fds=close_fds, env=command_env)
+      stderr=tmperr, close_fds=close_fds, env=command_env, preexec_fn=self.preexec_fn)
 
   def isSuccessfull(self, returncode):
     return not self.python_process_has_been_killed and returncode == 0

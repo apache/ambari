@@ -17,14 +17,15 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management import *
 import os
 import itertools
 import re
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 
 config = Script.get_config()
 
@@ -38,8 +39,8 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 kinit_path_local = functions.get_kinit_path()
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
@@ -56,6 +57,8 @@ user_group = config['configurations']['cluster-env']['user_group']
 hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 tmp_dir = Script.get_tmp_dir()
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
+
+hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 hdfs_site = config['configurations']['hdfs-site']
@@ -78,5 +81,6 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
+  immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
 )

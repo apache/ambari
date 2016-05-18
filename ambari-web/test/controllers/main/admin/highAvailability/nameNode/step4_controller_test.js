@@ -92,13 +92,22 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
     ];
 
     tests.forEach(function(test) {
-      it(test.m, function() {
-        this.controller.set('isNameNodeStarted', !test.e.isNameNodeStarted);
-        this.controller.checkNnCheckPointStatus(test.responseData);
-        this.clock.tick(this.controller.get('POLL_INTERVAL'));
-        expect(this.controller.get('isNameNodeStarted')).to.be.eql(test.e.isNameNodeStarted);
-        expect(this.controller.get('isNextEnabled')).to.be.eql(test.e.isNextEnabled);
-        expect(this.controller.pullCheckPointStatus.called).to.be.eql(test.e.isPollingCalled);
+      describe(test.m, function() {
+
+        beforeEach(function () {
+          this.controller.set('isNameNodeStarted', !test.e.isNameNodeStarted);
+          this.controller.checkNnCheckPointStatus(test.responseData);
+          this.clock.tick(this.controller.get('POLL_INTERVAL'));
+        });
+        it('isNameNodeStarted is ' + test.e.isNameNodeStarted, function () {
+          expect(this.controller.get('isNameNodeStarted')).to.be.equal(test.e.isNameNodeStarted);
+        });
+        it('isNextEnabled is ' + test.e.isNextEnabled, function () {
+          expect(this.controller.get('isNextEnabled')).to.be.equal(test.e.isNextEnabled);
+        });
+        it('pullCheckPointStatus is ' + (test.e.isPollingCalled ? '' : 'not') + ' called', function () {
+          expect(this.controller.pullCheckPointStatus.called).to.be.equal(test.e.isPollingCalled);
+        });
       });
     });
   });

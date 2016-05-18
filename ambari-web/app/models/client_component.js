@@ -22,11 +22,33 @@ var stringUtils = require('utils/string_utils');
 App.ClientComponent = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   componentName: DS.attr('string'),
+  displayName: DS.attr('string'),
   installedCount: DS.attr('number'),
   startedCount: DS.attr('number'),
   totalCount: DS.attr('number'),
   stackInfo: DS.belongsTo('App.StackServiceComponent'),
   hostNames: DS.attr('array'),
+
+  /**
+   * Defines if all components are in 'INSTALLED' state
+   *
+   * @type {boolean}
+   */
+  allStopped: Em.computed.equalProperties('installedCount', 'totalCount'),
+
+  /**
+   * No stated and no installed component
+   *
+   * @type {boolean}
+   */
+  noOneInstalled: Em.computed.and('!installedCount', '!startedCount'),
+
+  /**
+   * Determines if component may be deleted
+   *
+   * @type {boolean}
+   */
+  allowToDelete: Em.computed.or('allStopped', 'noOneInstalled'),
 
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();
@@ -34,14 +56,6 @@ App.ClientComponent = DS.Model.extend({
 
   summaryValueClassName:function(){
     return 'value_for_'+this.get('componentName').toLowerCase();
-  }.property('componentName'),
-
-  displayName: function() {
-    var displayName = App.format.role(this.get('componentName'));
-    if (this.get('service.serviceName') === this.get('componentName')) {
-      displayName += ' ' + Em.I18n.t('common.client');
-    }
-    return displayName;
   }.property('componentName'),
 
   displayNamePluralized: function() {

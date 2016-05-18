@@ -62,8 +62,26 @@ public class StackServiceComponentResourceProvider extends
   private static final String ADVERTISE_VERSION_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "advertise_version");
 
+  private static final String DECOMISSION_ALLOWED_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "decommission_allowed");
+
+  private static final String REASSIGN_ALLOWED_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "reassign_allowed");
+
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "custom_commands");
+
+  private static final String HAS_BULK_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
+        "StackServiceComponents", "has_bulk_commands_definition");
+
+  private static final String BULK_COMMANDS_DISPLAY_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "bulk_commands_display_name");
+
+  private static final String BULK_COMMANDS_MASTER_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "bulk_commands_master_component_name");
+
+  private static final String RECOVERY_ENABLED = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "recovery_enabled");
 
   private static final String AUTO_DEPLOY_ENABLED_ID = PropertyHelper.getPropertyId(
       "auto_deploy", "enabled");
@@ -141,8 +159,26 @@ public class StackServiceComponentResourceProvider extends
       setResourceProperty(resource, ADVERTISE_VERSION_ID,
           response.isVersionAdvertised(), requestedIds);
 
+      setResourceProperty(resource, DECOMISSION_ALLOWED_ID,
+          response.isDecommissionAlllowed(), requestedIds);
+
+      setResourceProperty(resource, RECOVERY_ENABLED,
+          response.isRecoveryEnabled(), requestedIds);
+
+      setResourceProperty(resource, REASSIGN_ALLOWED_ID,
+          response.isReassignAlllowed(), requestedIds);
+
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
           response.getCustomCommands(), requestedIds);
+
+      setResourceProperty(resource, BULK_COMMANDS_DISPLAY_NAME_PROPERTY_ID,
+          response.getBulkCommandsDisplayName(), requestedIds);
+
+      setResourceProperty(resource, BULK_COMMANDS_MASTER_COMPONENT_NAME_PROPERTY_ID,
+          response.getBulkCommandsMasterComponentName(), requestedIds);
+
+      setResourceProperty(resource, HAS_BULK_COMMANDS_PROPERTY_ID,
+          response.hasBulkCommands(), requestedIds);
 
       AutoDeployInfo autoDeployInfo = response.getAutoDeploy();
       if (autoDeployInfo != null) {
@@ -165,7 +201,8 @@ public class StackServiceComponentResourceProvider extends
         (String) properties.get(STACK_NAME_PROPERTY_ID),
         (String) properties.get(STACK_VERSION_PROPERTY_ID),
         (String) properties.get(SERVICE_NAME_PROPERTY_ID),
-        (String) properties.get(COMPONENT_NAME_PROPERTY_ID));
+        (String) properties.get(COMPONENT_NAME_PROPERTY_ID),
+        (String) properties.get(RECOVERY_ENABLED));
   }
 
   @Override

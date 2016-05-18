@@ -26,13 +26,14 @@ from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 class TestMahoutClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "MAHOUT/1.0.0.2.3/package"
   STACK_VERSION = "2.3"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname = "MahoutServiceCheck",
                        command = "service_check",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -41,17 +42,19 @@ class TestMahoutClient(RMFTestCase):
         mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeoutput',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         dfs_type = '',
-        action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeinput',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -61,9 +64,10 @@ class TestMahoutClient(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeinput/sample-mahout-test.txt',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -74,16 +78,17 @@ class TestMahoutClient(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'file',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
     self.assertResourceCalled('Execute', 'mahout seqdirectory --input /user/ambari-qa/mahoutsmokeinput/'

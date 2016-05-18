@@ -30,35 +30,82 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
 public class TestAuthenticationFactory {
+  public static Authentication createAdministrator() {
+    return createAdministrator("admin");
+  }
+
   public static Authentication createAdministrator(String name) {
     return new TestAuthorization(name, Collections.singleton(createAdministratorGrantedAuthority()));
   }
 
-  public static Authentication createClusterAdministrator(String name) {
-    return new TestAuthorization(name, Collections.singleton(createClusterAdministratorGrantedAuthority()));
+  public static Authentication createClusterAdministrator() {
+    return createClusterAdministrator("clusterAdmin", 4L);
   }
 
-  public static Authentication createServiceAdministrator(String name) {
-    return new TestAuthorization(name, Collections.singleton(createServiceAdministratorGrantedAuthority()));
+  public static Authentication createClusterAdministrator(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
+  }
+
+  public static Authentication createServiceAdministrator() {
+    return createServiceAdministrator("serviceAdmin", 4L);
+  }
+
+  public static Authentication createServiceAdministrator(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createServiceAdministratorGrantedAuthority(clusterResourceId)));
+  }
+
+  public static Authentication createServiceOperator() {
+    return createServiceOperator("serviceOp", 4L);
+  }
+
+  public static Authentication createServiceOperator(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createServiceOperatorGrantedAuthority(clusterResourceId)));
+  }
+
+  public static Authentication createClusterUser() {
+    return createClusterUser("clusterUser", 4L);
+  }
+
+  public static Authentication createClusterUser(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createClusterUserGrantedAuthority(clusterResourceId)));
+  }
+
+  public static Authentication createViewUser(Long viewResourceId) {
+    return createViewUser("viewUser", viewResourceId);
+  }
+
+  public static Authentication createViewUser(String name, Long viewResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createViewUserGrantedAuthority(viewResourceId)));
   }
 
   private static GrantedAuthority createAdministratorGrantedAuthority() {
     return new AmbariGrantedAuthority(createAdministratorPrivilegeEntity());
   }
 
-  private static GrantedAuthority createClusterAdministratorGrantedAuthority() {
-    return new AmbariGrantedAuthority(createClusterAdministratorPrivilegeEntity());
+  private static GrantedAuthority createClusterAdministratorGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createClusterAdministratorPrivilegeEntity(clusterResourceId));
   }
 
-  private static GrantedAuthority createServiceAdministratorGrantedAuthority() {
-    return new AmbariGrantedAuthority(createServiceAdministratorPrivilegeEntity());
+  private static GrantedAuthority createServiceAdministratorGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createServiceAdministratorPrivilegeEntity(clusterResourceId));
+  }
+
+  private static GrantedAuthority createServiceOperatorGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createServiceOperatorPrivilegeEntity(clusterResourceId));
+  }
+
+  private static GrantedAuthority createClusterUserGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createClusterUserPrivilegeEntity(clusterResourceId));
+  }
+
+  private static GrantedAuthority createViewUserGrantedAuthority(Long resourceId) {
+    return new AmbariGrantedAuthority(createViewUserPrivilegeEntity(resourceId));
   }
 
   private static PrivilegeEntity createAdministratorPrivilegeEntity() {
@@ -68,22 +115,44 @@ public class TestAuthenticationFactory {
     return privilegeEntity;
   }
 
-  private static PrivilegeEntity createClusterAdministratorPrivilegeEntity() {
+  private static PrivilegeEntity createClusterAdministratorPrivilegeEntity(Long clusterResourceId) {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-    privilegeEntity.setResource(createClusterResourceEntity());
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
     privilegeEntity.setPermission(createClusterAdministratorPermission());
     return privilegeEntity;
   }
 
-  private static PrivilegeEntity createServiceAdministratorPrivilegeEntity() {
+  private static PrivilegeEntity createServiceAdministratorPrivilegeEntity(Long clusterResourceId) {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-    privilegeEntity.setResource(createClusterResourceEntity());
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
     privilegeEntity.setPermission(createServiceAdministratorPermission());
+    return privilegeEntity;
+  }
+
+  private static PrivilegeEntity createServiceOperatorPrivilegeEntity(Long clusterResourceId) {
+    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
+    privilegeEntity.setPermission(createServiceOperatorPermission());
+    return privilegeEntity;
+  }
+
+  private static PrivilegeEntity createClusterUserPrivilegeEntity(Long clusterResourceId) {
+    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
+    privilegeEntity.setPermission(createClusterUserPermission());
+    return privilegeEntity;
+  }
+
+  private static PrivilegeEntity createViewUserPrivilegeEntity(Long resourceId) {
+    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+    privilegeEntity.setResource(createViewResourceEntity(resourceId));
+    privilegeEntity.setPermission(createViewUserPermission());
     return privilegeEntity;
   }
 
   private static PermissionEntity createAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.AMBARI));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.allOf(RoleAuthorization.class)));
     return permissionEntity;
@@ -91,9 +160,13 @@ public class TestAuthenticationFactory {
 
   private static PermissionEntity createClusterAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
+        RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
+        RoleAuthorization.CLUSTER_MODIFY_CONFIGS,
         RoleAuthorization.CLUSTER_TOGGLE_ALERTS,
+        RoleAuthorization.CLUSTER_MANAGE_ALERTS,
         RoleAuthorization.CLUSTER_TOGGLE_KERBEROS,
         RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK,
         RoleAuthorization.CLUSTER_VIEW_ALERTS,
@@ -122,12 +195,14 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_VIEW_ALERTS,
         RoleAuthorization.SERVICE_VIEW_CONFIGS,
         RoleAuthorization.SERVICE_VIEW_METRICS,
-        RoleAuthorization.SERVICE_VIEW_STATUS_INFO)));
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA)));
     return permissionEntity;
   }
 
   private static PermissionEntity createServiceAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(5);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
         RoleAuthorization.CLUSTER_VIEW_ALERTS,
@@ -152,7 +227,66 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_VIEW_ALERTS,
         RoleAuthorization.SERVICE_VIEW_CONFIGS,
         RoleAuthorization.SERVICE_VIEW_METRICS,
-        RoleAuthorization.SERVICE_VIEW_STATUS_INFO)));
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA)));
+    return permissionEntity;
+  }
+
+  private static PermissionEntity createServiceOperatorPermission() {
+    PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(6);
+    permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
+    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.SERVICE_START_STOP,
+        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
+        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA
+    )));
+    return permissionEntity;
+  }
+
+  private static PermissionEntity createClusterUserPermission() {
+    PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.CLUSTER_USER_PERMISSION);
+    permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
+    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA
+    )));
+    return permissionEntity;
+  }
+
+  private static PermissionEntity createViewUserPermission() {
+    PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.VIEW_USER_PERMISSION);
+    permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
+    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
+      RoleAuthorization.VIEW_USE
+    )));
     return permissionEntity;
   }
 
@@ -163,17 +297,34 @@ public class TestAuthenticationFactory {
     return resourceEntity;
   }
 
-  private static ResourceEntity createClusterResourceEntity() {
+  private static ResourceEntity createClusterResourceEntity(Long clusterResourceId) {
+    return createResourceEntity(ResourceType.CLUSTER, clusterResourceId);
+  }
+
+  private static ResourceEntity createResourceEntity(ResourceType resourceType, Long resourceId) {
     ResourceEntity resourceEntity = new ResourceEntity();
-    resourceEntity.setId(2L);
-    resourceEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
+    resourceEntity.setId(resourceId);
+    resourceEntity.setResourceType(createResourceTypeEntity(resourceType));
+    return resourceEntity;
+  }
+
+  private static ResourceEntity createViewResourceEntity(Long resourceId) {
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setId(resourceId);
+    if(resourceId != null) {
+      resourceEntity.setResourceType(createResourceTypeEntity(ResourceType.VIEW.name(), resourceId.intValue()));
+    }
     return resourceEntity;
   }
 
   private static ResourceTypeEntity createResourceTypeEntity(ResourceType resourceType) {
+    return createResourceTypeEntity(resourceType.name(), resourceType.getId());
+  }
+
+  private static ResourceTypeEntity createResourceTypeEntity(String resourceName, Integer resourceId) {
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
-    resourceTypeEntity.setId(resourceType.getId());
-    resourceTypeEntity.setName(resourceType.name());
+    resourceTypeEntity.setId(resourceId.intValue());
+    resourceTypeEntity.setName(resourceName);
     return resourceTypeEntity;
   }
 

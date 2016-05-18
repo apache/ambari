@@ -35,13 +35,17 @@ App.AlertDefinition = DS.Model.extend({
   serviceName: DS.attr('string'),
   componentName: DS.attr('string'),
   enabled: DS.attr('boolean'),
+  repeat_tolerance_enabled: DS.attr('boolean'),
+  repeat_tolerance: DS.attr('number'),
   scope: DS.attr('string'),
   interval: DS.attr('number'),
   type: DS.attr('string'),
+  helpUrl: DS.attr('string'),
   groups: DS.hasMany('App.AlertGroup'),
   reporting: DS.hasMany('App.AlertReportDefinition'),
-  lastTriggered: DS.attr('number'),
-  lastTriggeredRaw: DS.attr('number'),
+  parameters: DS.hasMany('App.AlertDefinitionParameter'),
+  lastTriggered: 0,
+  lastTriggeredRaw: 0,
 
   //relates only to SCRIPT-type alert definition
   location: DS.attr('string'),
@@ -52,6 +56,7 @@ App.AlertDefinition = DS.Model.extend({
   //relates only METRIC-type alert definition
   jmx: DS.belongsTo('App.AlertMetricsSourceDefinition'),
   ganglia: DS.belongsTo('App.AlertMetricsSourceDefinition'),
+  ams: DS.belongsTo('App.AlertMetricsAmsDefinition'),
   //relates only PORT-type alert definition
   defaultPort: DS.attr('number'),
   portUri: DS.attr('string'),
@@ -132,53 +137,17 @@ App.AlertDefinition = DS.Model.extend({
    * Formatted displayName for <code>componentName</code>
    * @type {String}
    */
-  componentNameFormatted: Em.computed.formatRole('componentName'),
+  componentNameFormatted: Em.computed.formatRole('componentName', false),
 
-  /**
-   * Status generates from child-alerts
-   * Format: OK(1)  WARN(2)  CRIT(1)  UNKN(1)
-   * If single host: show: OK/WARNING/CRITICAL/UNKNOWN
-   * If some there are no alerts with some state, this state isn't shown
-   * If no OK/WARN/CRIT/UNKN state, then show PENDING
-   * Order is equal to example
-   * @type {string}
-   */
-  status: function () {
+  hostCnt: function () {
     var order = this.get('order'),
-        summary = this.get('summary'),
-        hostCnt = 0,
-        self = this;
+      summary = this.get('summary'),
+      hostCnt = 0;
     order.forEach(function (state) {
       hostCnt += summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
     });
-    if (hostCnt > 1) {
-      // multiple hosts
-      return order.map(function (state) {
-        var shortState = self.get('shortState')[state];
-        var result = '';
-        result += summary[state].count ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + ' (' + summary[state].count + ')</span>' : '';
-        // add status with maintenance mode icon
-        result += summary[state].maintenanceCount ?
-        '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + ' (' + summary[state].maintenanceCount + ')</span>' : '';
-        return result;
-      }).without('').join(' ');
-    } else if (hostCnt == 1) {
-      // single host, single status
-      return order.map(function (state) {
-        var shortState = self.get('shortState')[state];
-        var result = '';
-        result += summary[state].count ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + '</span>' : '';
-        // add status with maintenance mode icon
-        result += summary[state].maintenanceCount ?
-        '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + '</span>' : '';
-        return result;
-      }).without('').join(' ');
-    } else if (hostCnt == 0) {
-      // none
-      return '<span class="alert-state-single-host label alert-state-PENDING">NONE</span>';
-    }
-    return '';
-  }.property('summary'),
+    return hostCnt;
+  }.property('order', 'summary'),
 
   latestText: function () {
     var order = this.get('order'), summary = this.get('summary'), text = '';
@@ -197,20 +166,16 @@ App.AlertDefinition = DS.Model.extend({
 
   isHostAlertDefinition: Em.computed.and('isAmbariService', 'isAmbariAgentComponent'),
 
-  typeIconClass: function () {
-    var typeIcons = this.get('typeIcons'),
-        type = this.get('type');
-    return typeIcons[type];
-  }.property('type'),
+  typeIconClass: Em.computed.getByKey('typeIcons', 'type'),
+
+  isTypeAggregate: Em.computed.equal('type', 'AGGREGATE'),
 
   /**
    * if this definition is in state: CRITICAL / WARNING, if true, will show up in alerts fast access popup
    * instances with maintenance mode ON are ignored
    * @type {boolean}
    */
-  isCriticalOrWarning: function () {
-    return !!(this.get('summary.CRITICAL.count') || this.get('summary.WARNING.count'));
-  }.property('summary'),
+  isCriticalOrWarning: Em.computed.or('summary.CRITICAL.count', 'summary.WARNING.count'),
 
   /**
    * if this definition is in state: CRITICAL
@@ -254,6 +219,12 @@ App.AlertDefinition = DS.Model.extend({
   }.property('serviceName', 'service.displayName'),
 
   /**
+   * Determines if alert definition has help url
+   * @type {boolean}
+   */
+  hasHelpUrl: Em.computed.bool('helpUrl'),
+
+  /**
    * List of css-classes for alert types
    * @type {object}
    */
@@ -264,7 +235,8 @@ App.AlertDefinition = DS.Model.extend({
     'PORT': 'icon-signin',
     'AGGREGATE': 'icon-plus',
     'SERVER': 'icon-desktop',
-    'RECOVERY': 'icon-desktop'
+    'RECOVERY': 'icon-desktop',
+    'AMS': 'icon-bar-chart'
   },
 
   /**
@@ -293,14 +265,14 @@ App.AlertDefinition.reopenClass({
    */
   getSortDefinitionsByStatus: function (order) {
     return function (a, b) {
-      var a_summary = a.get('summary'),
-        b_summary = b.get('summary'),
-        st_order = a.get('severityOrder'),
+      var aSummary = a.get('summary'),
+        bSummary = b.get('summary'),
+        stOrder = a.get('severityOrder'),
         ret = 0;
-      for (var i = 0; i < st_order.length; i++) {
-        var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]].count + a_summary[st_order[i]].maintenanceCount,
-          b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]].count + b_summary[st_order[i]].maintenanceCount;
-        ret = b_v - a_v;
+      for (var i = 0; i < stOrder.length; i++) {
+        var aV = Em.isNone(aSummary[stOrder[i]]) ? 0 : aSummary[stOrder[i]].count + aSummary[stOrder[i]].maintenanceCount,
+          bV = Em.isNone(bSummary[stOrder[i]]) ? 0 : bSummary[stOrder[i]].count + bSummary[stOrder[i]].maintenanceCount;
+        ret = bV - aV;
         if (ret !== 0) {
           break;
         }
@@ -309,6 +281,17 @@ App.AlertDefinition.reopenClass({
     };
   }
 
+});
+
+App.AlertDefinitionParameter = DS.Model.extend({
+  name: DS.attr('string'),
+  displayName: DS.attr('string'),
+  units: DS.attr('string'),
+  value: DS.attr('string'),
+  description: DS.attr('string'),
+  type: DS.attr('string'),
+  threshold: DS.attr('string'),
+  visibility: DS.attr('string')
 });
 
 App.AlertReportDefinition = DS.Model.extend({
@@ -326,10 +309,19 @@ App.AlertMetricsUriDefinition = DS.Model.extend({
   http: DS.attr('string'),
   https: DS.attr('string'),
   httpsProperty: DS.attr('string'),
-  httpsPropertyValue: DS.attr('string')
+  httpsPropertyValue: DS.attr('string'),
+  connectionTimeout: DS.attr('number')
+});
+
+App.AlertMetricsAmsDefinition = DS.Model.extend({
+  value: DS.attr('string'),
+  minimalValue: DS.attr('number'),
+  interval: DS.attr('number')
 });
 
 App.AlertDefinition.FIXTURES = [];
 App.AlertReportDefinition.FIXTURES = [];
 App.AlertMetricsSourceDefinition.FIXTURES = [];
 App.AlertMetricsUriDefinition.FIXTURES = [];
+App.AlertMetricsAmsDefinition.FIXTURES = [];
+App.AlertDefinitionParameter.FIXTURES = [];

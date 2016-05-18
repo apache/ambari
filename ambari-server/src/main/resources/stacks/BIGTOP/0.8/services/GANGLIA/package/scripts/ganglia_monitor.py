@@ -71,7 +71,7 @@ class GangliaMonitor(Script):
     Directory(params.ganglia_conf_dir,
               owner="root",
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     ganglia.config()

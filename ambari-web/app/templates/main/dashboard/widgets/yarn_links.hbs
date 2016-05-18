@@ -61,18 +61,18 @@
                           <a href="javascript:void(null)">{{quickLinks.publicHostNameLabel}} &nbsp;</a>
                           <ul class="dropdown-menu">
                             {{#each quickLinks}}
-                              <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                              <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
                             {{/each}}
                           </ul>
                         </li>
                       {{/each}}
                     {{else}}
                       {{#each view.quickLinks}}
-                        <li><a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a></li>
+                        <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
                       {{/each}}
                     {{/if}}
                   {{else}}
-                    <div class="spinner"></div>
+                    {{view App.SpinnerView}}
                   {{/if}}
                 </ul>
               </div>
@@ -80,7 +80,7 @@
           {{/if}}
         </div>
       {{else}}
-        <div class="spinner"></div>
+        {{view App.SpinnerView}}
       {{/if}}
     </li>
   </ul>

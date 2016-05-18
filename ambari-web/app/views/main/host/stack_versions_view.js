@@ -167,6 +167,9 @@ App.MainHostStackVersionsView = App.TableView.extend({
         placement: "top",
         title: Em.I18n.t('hosts.host.stackVersions.outOfSync.tooltip')
       });
+    },
+    willDestroyElement: function () {
+      $(this.get('element')).tooltip('destroy');
     }
   }),
 

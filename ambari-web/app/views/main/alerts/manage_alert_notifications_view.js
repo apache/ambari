@@ -29,15 +29,29 @@ App.ManageAlertNotificationsView = Em.View.extend({
 
   selectedAlertNotificationGroups: function () {
     return this.get('controller.selectedAlertNotification.groups').toArray().mapProperty('displayName').join(', ');
-  }.property('controller.selectedAlertNotification', 'controller.selectedAlertNotification.groups.@each', 'controller.isLoaded'),
+  }.property('controller.selectedAlertNotification', 'controller.selectedAlertNotification.groups.@each.displayName', 'controller.isLoaded'),
 
-  isAddButtonDisabled: true,
+  someAlertNotificationIsSelected: Em.computed.bool('controller.selectedAlertNotification'),
 
-  isEditButtonDisabled: true,
+  /**
+   * @type {boolean}
+   */
+  isAddButtonDisabled: Em.computed.alias('App.isOperator'),
 
-  isRemoveButtonDisabled: true,
+  /**
+   * @type {boolean}
+   */
+  isEditButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
 
-  isDuplicateButtonDisabled: true,
+  /**
+   * @type {boolean}
+   */
+  isRemoveButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
+
+  /**
+   * @type {boolean}
+   */
+  isDuplicateButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
 
   /**
    * Show EMAIL information if selected alert notification has type EMAIL
@@ -55,21 +69,12 @@ App.ManageAlertNotificationsView = Em.View.extend({
     return this.get('controller.selectedAlertNotification.properties')['ambari.dispatch.recipients'];
   }.property('controller.selectedAlertNotification.properties'),
 
+  /**
+   * @type {string}
+   */
   severities: function () {
     return this.get('controller.selectedAlertNotification.alertStates').join(', ');
   }.property('controller.selectedAlertNotification.alertStates'),
-
-  /**
-   * Enable/disable "edit"/"remove"/"duplicate" buttons basing on <code>controller.selectedAlertNotification</code>
-   * @method buttonObserver
-   */
-  buttonObserver: function () {
-    var selectedAlertNotification = this.get('controller.selectedAlertNotification');
-    this.set('isAddButtonDisabled', (!selectedAlertNotification || App.isOperator));
-    this.set('isEditButtonDisabled', (!selectedAlertNotification || App.isOperator));
-    this.set('isRemoveButtonDisabled', (!selectedAlertNotification || App.isOperator));
-    this.set('isDuplicateButtonDisabled', (!selectedAlertNotification || App.isOperator));
-  }.observes('controller.selectedAlertNotification'),
 
   /**
    * Prevent user select more than 1 alert notification
@@ -95,20 +100,20 @@ App.ManageAlertNotificationsView = Em.View.extend({
       var notifications = this.get('controller.alertNotifications');
       if (notifications && notifications.length) {
         this.set('selectedAlertNotification', this.get('controller.selectedAlertNotification') || notifications[0]);
-        this.buttonObserver();
-      }  else {
-        if(!App.isOperator)
-	 {
-	    this.set('isAddButtonDisabled',false);
-	 }
+      } else {
         this.set('selectedAlertNotification', null);
       }
       Em.run.later(this, function () {
         App.tooltip(this.$("[rel='button-info']"));
         App.tooltip(this.$("[rel='button-info-dropdown']"), {placement: 'left'});
-      }, 50) ;
+      }, 50);
     }
   }.observes('controller.isLoaded'),
+
+  willDestroyElement: function () {
+    this.$("[rel='button-info']").tooltip('destroy');
+    this.$("[rel='button-info-dropdown']").tooltip('destroy');
+  },
 
   willInsertElement: function () {
     this.get('controller').loadAlertNotifications();

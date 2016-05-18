@@ -17,24 +17,14 @@
 # during package update. See http://www.ibm.com/developerworks/library/l-rpm2/
 # for details
 
+# Warning: don't add changes to this script directly, please add changes to install-helper.sh.
+
+INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh"
+
 if [ "$1" -eq 0 ]; then  # Action is uninstall
-    /usr/sbin/ambari-server stop > /dev/null 2>&1
-    if [ -d "/etc/ambari-server/conf.save" ]; then
-        mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+    if [ -f "$INSTALL_HELPER" ]; then
+      $INSTALL_HELPER remove
     fi
-
-    if [ -e "/etc/init.d/ambari-server" ]; then
-        # Remove link created during install
-        rm /etc/init.d/ambari-server
-    fi
-
-    mv /etc/ambari-server/conf /etc/ambari-server/conf.save
-
-    if [ -f "/var/lib/ambari-server/install-helper.sh" ]; then
-      /var/lib/ambari-server/install-helper.sh remove
-    fi
-
-    chkconfig --list | grep ambari-server && chkconfig --del ambari-server
 fi
 
 exit 0

@@ -24,6 +24,8 @@ public class OperatingSystemResponse {
   private String stackVersion;
   private String osType;
   private Long repositoryVersionId;
+  private String versionDefinitionId;
+  private boolean ambariManagedRepos = true;
 
   public OperatingSystemResponse(String osType) {
     setOsType(osType);
@@ -59,5 +61,33 @@ public class OperatingSystemResponse {
 
   public void setRepositoryVersionId(Long repositoryVersionId) {
     this.repositoryVersionId = repositoryVersionId;
+  }
+
+  /**
+   * @param id the version definition id
+   */
+  public void setVersionDefinitionId(String id) {
+    versionDefinitionId = id;
+  }
+
+  /**
+   * @return the version definition id
+   */
+  public String getVersionDefinitionId() {
+    return versionDefinitionId;
+  }
+
+  /**
+   * @param managed {@code true} if ambari is managing the repositories for the OS
+   */
+  public void setAmbariManagedRepos(boolean managed) {
+    ambariManagedRepos = managed;
+  }
+
+  /**
+   * @return {@code true} if ambari is managing the repositories for the OS
+   */
+  public boolean isAmbariManagedRepos() {
+    return ambariManagedRepos;
   }
 }

@@ -54,56 +54,6 @@ var serviceConfigProperty,
     })
   ],
 
-  components = [
-    {
-      name: 'NameNode',
-      master: true
-    },
-    {
-      name: 'SNameNode',
-      master: true
-    },
-    {
-      name: 'JobTracker',
-      master: true
-    },
-    {
-      name: 'HBase Master',
-      master: true
-    },
-    {
-      name: 'Oozie Master',
-      master: true
-    },
-    {
-      name: 'Hive Metastore',
-      master: true
-    },
-    {
-      name: 'WebHCat Server',
-      master: true
-    },
-    {
-      name: 'ZooKeeper Server',
-      master: true
-    },
-    {
-      name: 'Ganglia',
-      master: true
-    },
-    {
-      name: 'DataNode',
-      slave: true
-    },
-    {
-      name: 'TaskTracker',
-      slave: true
-    },
-    {
-      name: 'RegionServer',
-      slave: true
-    }
-  ],
   overridableFalseData = [
     {
       isOverridable: false
@@ -120,7 +70,8 @@ var serviceConfigProperty,
     {
       isOverridable: true,
       isEditable: true
-    },    {
+    },
+    {
       isOverridable: true,
       overrides: []
     },
@@ -189,6 +140,17 @@ var serviceConfigProperty,
         recommendedValue: 'recommended'
       },
       result: {
+        value: '',
+        recommendedValue: 'recommended'
+      }
+    },
+    {
+      initial: {
+        value: null,
+        savedValue: 'default',
+        recommendedValue: 'recommended'
+      },
+      result: {
         value: 'default',
         recommendedValue: 'recommended'
       }
@@ -211,134 +173,33 @@ var serviceConfigProperty,
     value: 'value',
     savedValue: 'default'
   },
-  types = ['componentHost', 'componentHosts', 'radio button'],
-  classCases = [
-    {
-      initial: {
-        displayType: 'checkbox'
-      },
-      viewClass: App.ServiceConfigCheckbox
-    },
-    {
-      initial: {
-        displayType: 'checkbox',
-        dependentConfigPattern: 'somPattern'
-      },
-      viewClass: App.ServiceConfigCheckboxWithDependencies
-    },
-    {
-      initial: {
-        displayType: 'password'
-      },
-      viewClass: App.ServiceConfigPasswordField
-    },
-    {
-      initial: {
-        displayType: 'combobox'
-      },
-      viewClass: App.ServiceConfigComboBox
-    },
-    {
-      initial: {
-        displayType: 'radio button'
-      },
-      viewClass: App.ServiceConfigRadioButtons
-    },
-    {
-      initial: {
-        displayType: 'directories'
-      },
-      viewClass: App.ServiceConfigTextArea
-    },
-    {
-      initial: {
-        displayType: 'content'
-      },
-      viewClass: App.ServiceConfigTextAreaContent
+  types = ['componentHost', 'componentHosts', 'radio button'];
 
-    },
-    {
-      initial: {
-        displayType: 'multiLine'
-      },
-      viewClass: App.ServiceConfigTextArea
-    },
-    {
-      initial: {
-        displayType: 'custom'
-      },
-      viewClass: App.ServiceConfigBigTextArea
-    },
-    {
-      initial: {
-        displayType: 'componentHost'
-      },
-      viewClass: App.ServiceConfigMasterHostView
-    },
-    {
-      initial: {
-        displayType: 'componentHosts'
-      },
-      viewClass: App.ServiceConfigComponentHostsView
-    },
-    {
-      initial: {
-        displayType: 'componentHosts'
-      },
-      viewClass: App.ServiceConfigComponentHostsView
-    },
-    {
-      initial: {
-        unit: true,
-        displayType: 'type'
-      },
-      viewClass: App.ServiceConfigTextFieldWithUnit
-    },
-    {
-      initial: {
-        unit: false,
-        displayType: 'type'
-      },
-      viewClass: App.ServiceConfigTextField
-    },
-    {
-      initial: {
-        unit: false,
-        displayType: 'supportTextConnection'
-      },
-      viewClass: App.checkConnectionView
-    }
-  ];
+
+function getProperty() {
+  return App.ServiceConfigProperty.create();
+}
 
 describe('App.ServiceConfigProperty', function () {
 
   beforeEach(function () {
-    serviceConfigProperty = App.ServiceConfigProperty.create();
+    serviceConfigProperty = getProperty();
   });
 
-  describe('#overrideErrorTrigger', function () {
-    it('should be an increment', function () {
-      serviceConfigProperty.set('overrides', configsData[0].overrides);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(1);
-      serviceConfigProperty.set('overrides', []);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(2);
-    });
-  });
+  App.TestAliases.testAsComputedFirstNotBlank(getProperty(), 'placeholder', ['placeholderText', 'savedValue']);
+
+  App.TestAliases.testAsComputedAnd(getProperty(), 'hideFinalIcon', ['!isFinal', 'isNotEditable']);
 
   describe('#isPropertyOverridable', function () {
     overridableFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isPropertyOverridable')).to.be.false;
       });
     });
     overridableTrueData.forEach(function (item) {
       it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isPropertyOverridable')).to.be.true;
       });
     });
@@ -347,17 +208,13 @@ describe('App.ServiceConfigProperty', function () {
   describe('#isOverridden', function () {
     overriddenFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isOverridden')).to.be.false;
       });
     });
     overriddenTrueData.forEach(function (item) {
       it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isOverridden')).to.be.true;
       });
     });
@@ -366,17 +223,13 @@ describe('App.ServiceConfigProperty', function () {
   describe('#isRemovable', function () {
     removableFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isRemovable')).to.be.false;
       });
     });
     removableTrueData.forEach(function (item) {
       it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isRemovable')).to.be.true;
       });
     });
@@ -384,10 +237,14 @@ describe('App.ServiceConfigProperty', function () {
 
   describe('#init', function () {
     initPropertyData.forEach(function (item) {
-      it('should set initial data', function () {
-        serviceConfigPropertyInit = App.ServiceConfigProperty.create(item.initial);
+      describe('should set initial data for ' + JSON.stringify(item), function () {
+        beforeEach(function () {
+          serviceConfigPropertyInit = App.ServiceConfigProperty.create(item.initial);
+        });
         Em.keys(item.result).forEach(function (prop) {
-          expect(serviceConfigPropertyInit.get(prop)).to.equal(item.result[prop]);
+          it(prop, function () {
+            expect(serviceConfigPropertyInit.get(prop)).to.equal(item.result[prop]);
+          });
         });
       });
     });
@@ -396,9 +253,7 @@ describe('App.ServiceConfigProperty', function () {
   describe('#isNotDefaultValue', function () {
     notDefaultFalseData.forEach(function (item) {
       it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
+        serviceConfigProperty.setProperties(item);
         expect(serviceConfigProperty.get('isNotDefaultValue')).to.be.false;
       });
     });
@@ -434,87 +289,10 @@ describe('App.ServiceConfigProperty', function () {
     });
   });
 
-  describe('#viewClass', function () {
-    classCases.forEach(function (item) {
-      it ('should be ' + item.viewClass, function () {
-        Em.keys(item.initial).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item.initial[prop]);
-        });
-        expect(serviceConfigProperty.get('viewClass')).to.eql(item.viewClass);
-      });
-    });
-  });
-
-  describe('#validate', function () {
-    it('not required', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: false,
-        value: ''
-      });
-      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
-      expect(serviceConfigProperty.get('error')).to.be.false;
-    });
-    it('should validate', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: true,
-        value: 'value'
-      });
-      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
-      expect(serviceConfigProperty.get('error')).to.be.false;
-    });
-    it('should fail', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: true,
-        value: 'value'
-      });
-      serviceConfigProperty.set('value', '');
-      expect(serviceConfigProperty.get('errorMessage')).to.equal('This is required');
-      expect(serviceConfigProperty.get('error')).to.be.true;
-    });
-  });
-
   describe('#overrideIsFinalValues', function () {
     it('should be defined as empty array', function () {
       expect(serviceConfigProperty.get('overrideIsFinalValues')).to.eql([]);
     });
-  });
-
-  describe('#updateDescription', function () {
-
-    beforeEach(function () {
-      serviceConfigProperty.setProperties({
-        displayType: 'password',
-        description: ''
-      });
-    });
-
-    it('should add extra-message to the description for `password`-configs', function () {
-
-      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
-      serviceConfigProperty.updateDescription();
-      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
-
-    });
-
-    it('should not add extra-message to the description if it already contains it', function () {
-
-      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
-      serviceConfigProperty.updateDescription();
-      serviceConfigProperty.updateDescription();
-      serviceConfigProperty.updateDescription();
-      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
-      var subd = serviceConfigProperty.get('description').replace(extraMessage, '');
-      expect(subd).to.not.contain(extraMessage);
-    });
-
-    it('should add extra-message to the description if description is not defined', function () {
-
-      serviceConfigProperty.set('description', undefined);
-      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
-      serviceConfigProperty.updateDescription();
-      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
-    });
-
   });
 
 });

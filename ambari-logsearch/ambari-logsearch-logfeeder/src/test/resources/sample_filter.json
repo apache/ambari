@@ -1,0 +1,166 @@
+{
+	"filter": {
+		"hdfs_namenode": {
+			"label": "hdfs_namenode",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"yarn_resourcemanager": {
+			"label": "yarn_resourcemanager",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"logsearch_perf": {
+			"label": "logsearch_perf",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"hdfs_secondarynamenode": {
+			"label": "hdfs_secondarynamenode",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"mapred_historyserver": {
+			"label": "mapred_historyserver",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"ams_hbase_master": {
+			"label": "ams_hbase_master",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"ambari_server": {
+			"label": "ambari_server",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"yarn_timelineserver": {
+			"label": "yarn_timelineserver",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"hdfs_datanode": {
+			"label": "hdfs_datanode",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"logsearch_app": {
+			"label": "logsearch_app",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"kafka_statechange": {
+			"label": "kafka_statechange",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"hbase_master": {
+			"label": "hbase_master",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"kafka_server": {
+			"label": "kafka_server",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"oozie_app": {
+			"label": "oozie_app",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"hive_hiveserver2": {
+			"label": "hive_hiveserver2",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"yarn_nodemanager": {
+			"label": "yarn_nodemanager",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"hbase_regionserver": {
+			"label": "hbase_regionserver",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"ambari_agent": {
+			"label": "ambari_agent",
+			"hosts": ["host1","host2"],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": "2016-04-05T08:30:00.000Z"
+		},
+		"logsearch_feeder": {
+			"label": "logsearch_feeder",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"kafka_controller": {
+			"label": "kafka_controller",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"ams_collector": {
+			"label": "ams_collector",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"yarn_jobsummary": {
+			"label": "yarn_jobsummary",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		},
+		"hive_metastore": {
+			"label": "hive_metastore",
+			"hosts": [],
+			"defaultLevels": ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"],
+			"overrideLevels": [],
+			"expiryTime": ""
+		}
+	},
+	"id": "1459861568220"
+}

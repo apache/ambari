@@ -90,9 +90,7 @@ App.WidgetWizardController = App.WizardController.extend({
     widgetValues: [],
     widgetName: "",
     widgetDescription: "",
-    widgetAuthor: function () {
-      return App.router.get('loginName');
-    }.property('App.router.loginName'),
+    widgetAuthor: Em.computed.alias('App.router.loginName'),
     widgetScope: null
   }),
 
@@ -416,14 +414,21 @@ App.WidgetWizardController = App.WizardController.extend({
     var service = App.Service.find(this.get('content.widgetService'));
 
     this.finish();
-    this.get('popup').hide();
-    App.router.transitionTo('main.services.service.summary', service);
-    if (!App.get('testMode')) {
+    var self = this;
+    var successCallBack = function() {
+      self.get('popup').hide();
+      App.router.transitionTo('main.services.service.summary', service);
+      App.get('router.updateController').updateAll();
+    };
+
+    if (App.get('testMode')) {
+      successCallBack();
+    } else {
       App.clusterStatus.setClusterStatus({
         clusterName: App.router.getClusterName(),
         clusterState: 'DEFAULT',
         localdb: App.db.data
-      });
+      }, {successCallback: successCallBack});
     }
   },
 
@@ -435,6 +440,5 @@ App.WidgetWizardController = App.WizardController.extend({
     this.setCurrentStep('1', false, true);
     this.save('widgetType', '');
     this.resetDbNamespace();
-    App.get('router.updateController').updateAll();
   }
 });

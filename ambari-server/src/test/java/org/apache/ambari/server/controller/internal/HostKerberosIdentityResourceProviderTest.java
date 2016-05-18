@@ -124,7 +124,7 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
         .property(HostKerberosIdentityResourceProvider.KERBEROS_IDENTITY_PRINCIPAL_NAME_PROPERTY_ID)
         .equals("principal@REALM").toPredicate();
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
   }
 
 

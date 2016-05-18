@@ -23,9 +23,14 @@ from alerts.script_alert import ScriptAlert
 from mock.mock import Mock, MagicMock, patch
 import os
 
+from AmbariConfig import AmbariConfig
+
 DUMMY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dummy_files')
 
 class TestScriptAlert(TestCase):
+
+  def setUp(self):
+    self.config = AmbariConfig()
 
   def test_collect(self):
     alert_meta = {
@@ -49,7 +54,6 @@ class TestScriptAlert(TestCase):
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
       self.assertEquals(data['label'], alert_meta['label'])
-      #self.assertEquals(data['text'], expected_text)
       self.assertEquals(data['service'], alert_meta['serviceName'])
       self.assertEquals(data['component'], alert_meta['componentName'])
       self.assertEquals(data['uuid'], alert_meta['uuid'])
@@ -60,7 +64,7 @@ class TestScriptAlert(TestCase):
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
-    alert = ScriptAlert(alert_meta, alert_source_meta, {})
+    alert = ScriptAlert(alert_meta, alert_source_meta, self.config)
     alert.set_helpers(mock_collector, {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
     alert.set_cluster(cluster, host)
 

@@ -92,6 +92,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   // Host Group Components
   public static final String COMPONENT_PROPERTY_ID ="components";
   public static final String COMPONENT_NAME_PROPERTY_ID ="name";
+  public static final String COMPONENT_PROVISION_ACTION_PROPERTY_ID = "provision_action";
 
   // Configurations
   public static final String CONFIGURATION_PROPERTY_ID = "configurations";
@@ -243,7 +244,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
              NoSuchResourceException, NoSuchParentResourceException {
 
@@ -305,6 +306,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       for (HostGroupComponentEntity component : components) {
         Map<String, String> mapComponentProps = new HashMap<String, String>();
         mapComponentProps.put(COMPONENT_NAME_PROPERTY_ID, component.getName());
+
+        if (component.getProvisionAction() != null) {
+          mapComponentProps.put(COMPONENT_PROVISION_ACTION_PROPERTY_ID, component.getProvisionAction().toString());
+        }
+
         listComponentProps.add(mapComponentProps);
       }
       mapGroupProps.put(COMPONENT_PROPERTY_ID, listComponentProps);

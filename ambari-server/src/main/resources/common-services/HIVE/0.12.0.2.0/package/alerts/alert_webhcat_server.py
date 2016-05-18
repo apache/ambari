@@ -26,13 +26,10 @@ import traceback
 import logging
 
 from resource_management.core.environment import Environment
-from resource_management.core.resources import Execute
-from resource_management.core import shell
-from resource_management.libraries.functions import format
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions import get_klist_path
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
-from os import getpid, sep
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
+
 
 RESULT_CODE_OK = "OK"
 RESULT_CODE_CRITICAL = "CRITICAL"
@@ -154,11 +151,13 @@ def execute(configurations={}, parameters={}, host_name=None):
       if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
         kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
 
+      kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
+
       env = Environment.get_instance()
       stdout, stderr, time_millis = curl_krb_request(env.tmp_dir, smokeuser_keytab, smokeuser_principal,
-                                                      query_url, "webhcat_alert_cc_", kerberos_executable_search_paths, True,
-                                                      "WebHCat Server Status", smokeuser,
-                                                      connection_timeout=curl_connection_timeout)
+        query_url, "webhcat_alert_cc_", kerberos_executable_search_paths, True,
+        "WebHCat Server Status", smokeuser, connection_timeout=curl_connection_timeout,
+        kinit_timer_ms = kinit_timer_ms)
 
       # check the response code
       response_code = int(stdout)
@@ -175,9 +174,10 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       # now that we have the http status and it was 200, get the content
       stdout, stderr, total_time = curl_krb_request(env.tmp_dir, smokeuser_keytab, smokeuser_principal,
-                                                      query_url, "webhcat_alert_cc_", kerberos_executable_search_paths,
-                                                      False, "WebHCat Server Status", smokeuser,
-                                                      connection_timeout=curl_connection_timeout)
+        query_url, "webhcat_alert_cc_", kerberos_executable_search_paths,
+        False, "WebHCat Server Status", smokeuser, connection_timeout=curl_connection_timeout,
+        kinit_timer_ms = kinit_timer_ms)
+
       json_response = json.loads(stdout)
     except:
       return (RESULT_CODE_CRITICAL, [traceback.format_exc()])

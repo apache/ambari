@@ -27,33 +27,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
-import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
 public class StackInfo implements Comparable<StackInfo>, Validable{
   private String minJdk;
   private String maxJdk;
-
-  public String getMinJdk() {
-    return minJdk;
-  }
-
-  public void setMinJdk(String minJdk) {
-    this.minJdk = minJdk;
-  }
-
-  public String getMaxJdk() {
-    return maxJdk;
-  }
-
-  public void setMaxJdk(String maxJdk) {
-    this.maxJdk = maxJdk;
-  }
-
   private String name;
   private String version;
   private String minUpgradeVersion;
@@ -73,9 +59,35 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private boolean valid = true;
   private Map<String, Map<PropertyInfo.PropertyType, Set<String>>> propertiesTypesCache =
       Collections.synchronizedMap(new HashMap<String, Map<PropertyInfo.PropertyType, Set<String>>>());
+  /**
+   * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
+   * applied to all commands for services in current stack.
+   */
+  private String stackHooksFolder;
+  private String upgradesFolder = null;
+  private volatile Map<String, PropertyInfo> requiredProperties;
+  private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
+  private Set<String> errorSet = new HashSet<String>();
+  private RepositoryXml repoXml = null;
+
+  public String getMinJdk() {
+    return minJdk;
+  }
+
+  public void setMinJdk(String minJdk) {
+    this.minJdk = minJdk;
+  }
+
+  public String getMaxJdk() {
+    return maxJdk;
+  }
+
+  public void setMaxJdk(String maxJdk) {
+    this.maxJdk = maxJdk;
+  }
 
   /**
-   * 
+   *
    * @return valid xml flag
    */
   @Override
@@ -84,40 +96,28 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   }
 
   /**
-   * 
+   *
    * @param valid set validity flag
    */
   @Override
   public void setValid(boolean valid) {
     this.valid = valid;
-  }    
+  }
 
-  private Set<String> errorSet = new HashSet<String>();
-  
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errorSet.add(error);
   }
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
-  }   
-  
-  @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
   }
-  
-  /**
-   * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
-   * applied to all commands for services in current stack.
-   */
-  private String stackHooksFolder;
 
-  private String upgradesFolder = null;
-
-  private volatile Map<String, PropertyInfo> requiredProperties;
+  @Override
+  public void addErrors(Collection<String> errors) {
+    this.errorSet.addAll(errors);
+  }
 
   public String getName() {
     return name;
@@ -140,9 +140,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     return repositories;
   }
 
-  public void setRepositories(List<RepositoryInfo> repositories) {
-    this.repositories = repositories;
-  }
 
   public synchronized Collection<ServiceInfo> getServices() {
     if (services == null) services = new ArrayList<ServiceInfo>();
@@ -257,8 +254,6 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
     // Get the stack-level Kerberos descriptor file path
     String stackDescriptorFileFilePath = getKerberosDescriptorFileLocation();
-
-    String widgetDescriptorFilePath = getWidgetsDescriptorFileLocation();
 
     // Collect the services' Kerberos descriptor files
     Collection<ServiceInfo> serviceInfos = getServices();
@@ -458,6 +453,35 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
       propertiesTypesCache.put(configType, propertiesTypes);
     }
     return propertiesTypesCache.get(configType);
+  }
+
+  /**
+   * @param key the version that the xml represents
+   * @param xml the version definition object
+   */
+  public void addVersionDefinition(String key, VersionDefinitionXml xml) {
+    versionDefinitions.put(key, xml);
+  }
+
+  /**
+   * @return the list of available definitions on this stack
+   */
+  public Collection<VersionDefinitionXml> getVersionDefinitions() {
+    return versionDefinitions.values();
+  }
+
+  /**
+   * @param rxml  the repository xml object
+   */
+  public void setRepositoryXml(RepositoryXml rxml) {
+    repoXml = rxml;
+  }
+
+  /**
+   * @return the repository xml object, or {@code null} if it couldn't be loaded
+   */
+  public RepositoryXml getRepositoryXml() {
+    return repoXml;
   }
 
 }

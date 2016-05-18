@@ -8,6 +8,7 @@
         "label": "Ambari Agent Heartbeat",
         "description": "This alert is triggered if the server has lost contact with an agent.",
         "interval": 2,
+        "help_url": "https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Alerts#AmbariAlerts-ambari_agent_heartbeat",
         "scope": "HOST",
         "enabled": true,
         "source": {
@@ -25,6 +26,74 @@
         "source": {
           "type": "SERVER",
           "class": "org.apache.ambari.server.alerts.StaleAlertRunnable"
+        }
+      },
+      {
+        "name": "ambari_server_performance",
+        "label": "Ambari Server Performance",
+        "description": "This alert is triggered if the Ambari Server detects that there is a potential performance problem with Ambari. This type of issue can arise for many reasons, but is typically attributed to slow database queries and host resource exhaustion.",
+        "interval": 5,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "SERVER",
+          "class": "org.apache.ambari.server.alerts.AmbariPerformanceRunnable",
+          "parameters": [
+            {
+              "name": "request.by.status.warning.threshold",
+              "display_name": "Get Request Progress",
+              "value": 3000,
+              "type": "NUMERIC",
+              "description": "The time to find requests in progress before a warning alert is triggered.",
+              "units": "ms",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "request.by.status.critical.threshold",
+              "display_name": "Get Request Progress",
+              "value": 5000,
+              "type": "NUMERIC",
+              "description": "The time to find requests in progress before a critical alert is triggered.",
+              "units": "ms",
+              "threshold": "CRITICAL"
+            },
+            {
+              "name": "task.status.aggregation.warning.threshold",
+              "display_name": "Get Request Status",
+              "value": 3000,
+              "type": "NUMERIC",
+              "description": "The time to calculate a request's status from its tasks before a warning alert is triggered.",
+              "units": "ms",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "task.status.aggregation.critical.threshold",
+              "display_name": "Get Request Status",
+              "value": 5000,
+              "type": "NUMERIC",
+              "description": "The time to calculate a request's status from its tasks before a critical alert is triggered.",
+              "units": "ms",
+              "threshold": "CRITICAL"
+            },
+            {
+              "name": "rest.api.cluster.warning.threshold",
+              "display_name": "Get Cluster",
+              "value": 5000,
+              "type": "NUMERIC",
+              "description": "The time to get a cluster via the REST API before a warning alert is triggered.",
+              "units": "ms",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "rest.api.cluster.critical.threshold",
+              "display_name": "Get Cluster",
+              "value": 7000,
+              "type": "NUMERIC",
+              "description": "The time to get a cluster via the REST API before a critical alert is triggered.",
+              "units": "ms",
+              "threshold": "CRITICAL"
+            }
+          ]
         }
       }
     ],
@@ -52,7 +121,7 @@
             {
               "name": "percent.used.space.warning.threshold",
               "display_name": "Warning",
-              "value": 0.5,
+              "value": 50,
               "type": "PERCENT",
               "description": "The percent of disk space consumed before a warning is triggered.",
               "units": "%",
@@ -61,7 +130,7 @@
             {
               "name": "percent.free.space.critical.threshold",
               "display_name": "Critical",
-              "value": 0.8,
+              "value": 80,
               "type": "PERCENT",
               "description": "The percent of disk space consumed before a critical alert is triggered.",
               "units": "%",

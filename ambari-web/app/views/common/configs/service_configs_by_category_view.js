@@ -19,7 +19,6 @@
 var App = require('app');
 
 var validator = require('utils/validator');
-var stringUtils = require('utils/string_utils');
 require('utils/configs/modification_handlers/modification_handler');
 
 App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverridable, {
@@ -325,6 +324,10 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     });
   },
 
+  willDestroyElement: function () {
+    $('[data-toggle=tooltip]').tooltip('destroy');
+  },
+
   /**
    * @returns {string}
    */
@@ -338,27 +341,24 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   },
 
   createProperty: function (propertyObj) {
-    var selectedConfigGroup = this.get('controller.selectedConfigGroup'),
-      isSecureConfig = this.isSecureConfig(propertyObj.name, propertyObj.filename);
-    this.get('serviceConfigs').pushObject(App.ServiceConfigProperty.create({
-      name: propertyObj.name,
-      displayName: propertyObj.displayName || propertyObj.name,
-      value: propertyObj.value,
-      displayType: stringUtils.isSingleLine(propertyObj.value) ? 'string' : 'multiLine',
-      isSecureConfig: isSecureConfig,
-      category: propertyObj.categoryName,
-      serviceName: propertyObj.serviceName,
-      savedValue: null,
-      recommendedValue: null,
-      supportsFinal: App.config.shouldSupportFinal(propertyObj.serviceName, propertyObj.filename),
-      supportsAddingForbidden: false, //Can add a new property implies the given categrary allows adding new properties...
-      filename: propertyObj.filename || '',
-      isUserProperty: true,
-      isNotSaved: true,
-      isRequired: false,
-      group: selectedConfigGroup.get('isDefault') ? null : selectedConfigGroup,
-      isOverridable: selectedConfigGroup.get('isDefault')
-    }));
+    var config;
+    var selectedConfigGroup = this.get('controller.selectedConfigGroup');
+    if (selectedConfigGroup.get('isDefault')) {
+      config = App.config.createDefaultConfig(propertyObj.name, propertyObj.filename, false, {
+        value: propertyObj.value,
+        category: propertyObj.categoryName,
+        isNotSaved: true
+      });
+    } else {
+      config = App.config.createCustomGroupConfig({
+        propertyName: propertyObj.name,
+        filename: propertyObj.filename,
+        value: propertyObj.value,
+        category: propertyObj.categoryName,
+        isNotSaved: true
+      }, selectedConfigGroup);
+    }
+    this.get('serviceConfigs').pushObject(App.ServiceConfigProperty.create(config));
   },
 
   /**
@@ -384,8 +384,28 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
         var configsOfFile = service.get('configs').filterProperty('filename', siteFileName);
 
+        /**
+         * Find duplications within the same confType
+         * Result in error, as no duplicated property keys are allowed in the same configType
+         * */
         function isDuplicatedConfigKey(name) {
           return configsOfFile.findProperty('name', name);
+        }
+
+        /**
+         * find duplications in all confTypes of the service
+         * Result in warning, to remind user the existence of a same-named property
+         * */
+        function isDuplicatedConfigKeyinConfigs(name) {
+          var files = [];
+          var configFiles = service.get('configs').mapProperty('filename').uniq();
+          configFiles.forEach(function(configFile){
+            var configsOfFile = service.get('configs').filterProperty('filename', configFile);
+            if(configsOfFile.findProperty('name', name)){
+              files.push(configFile);
+            }
+          }, this);
+          return files;
         }
 
         var serviceConfigObj = Ember.Object.create({
@@ -403,23 +423,36 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
             var name = this.get('name');
             if (name.trim() != '') {
               if (validator.isValidConfigKey(name)) {
-                if (!isDuplicatedConfigKey(name)) {
-                  this.set('showFilterLink', false);
-                  this.set('isKeyError', false);
-                  this.set('errorMessage', '');
+                if (!isDuplicatedConfigKey(name)) { //no duplication within the same confType
+                  var files = isDuplicatedConfigKeyinConfigs(name);
+                  if (files.length > 0) {
+                    //still check for a warning, if there are duplications across confTypes
+                    this.set('showFilterLink', true);
+                    this.set('isKeyWarning', true);
+                    this.set('isKeyError', false);
+                    this.set('warningMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey.location').format(files.join(" ")));
+                  } else {
+                    this.set('showFilterLink', false);
+                    this.set('isKeyError', false);
+                    this.set('isKeyWarning', false);
+                    this.set('errorMessage', '');
+                  }
                 } else {
                   this.set('showFilterLink', true);
                   this.set('isKeyError', true);
-                  this.set('errorMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey'));
+                  this.set('isKeyWarning', false);
+                  this.set('errorMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.derivedKey.infile'));
                 }
               } else {
                 this.set('showFilterLink', false);
                 this.set('isKeyError', true);
+                this.set('isKeyWarning', false);
                 this.set('errorMessage', Em.I18n.t('form.validator.configKey'));
               }
             } else {
               this.set('showFilterLink', false);
               this.set('isKeyError', true);
+              this.set('isKeyWarning', false);
               this.set('errorMessage', Em.I18n.t('services.service.config.addPropertyWindow.error.required'));
             }
           }.observes('name')
@@ -472,9 +505,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
         App.ModalPopup.show({
           classNames: ['sixty-percent-width-modal'],
-          header: 'Add Property',
-          primary: 'Add',
-          secondary: 'Cancel',
+          header: Em.I18n.t('installer.step7.config.addProperty'),
+          primary: Em.I18n.t('add'),
+          secondary: Em.I18n.t('common.cancel'),
           onPrimary: function () {
             var propertyObj = {
               filename: siteFileName,

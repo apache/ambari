@@ -20,7 +20,7 @@
   <div id="host-details">
     <div class="host-details-header">
       <div class="status-info">
-        <span rel="HealthTooltip" {{bindAttr class="view.content.healthClass view.content.healthIconClass"}} {{bindAttr data-original-title="view.content.healthToolTip" }}></span><span
+        <span rel="HealthTooltip" {{bindAttr class="view.content.healthClass view.content.healthIconClass"}} data-placement="bottom" {{bindAttr data-original-title="view.content.healthToolTip" }}></span><span
               class='host-title'>{{unbound view.content.hostName}}</span>
         {{#unless view.isActive}}
           <span class="host-maintenance-notice pull-right"><span class="icon-medkit"></span> {{t hosts.host.passive.mode}}</span>
@@ -67,5 +67,5 @@
     </div>
   </div>
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}

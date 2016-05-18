@@ -167,9 +167,31 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    */
   seriesTemplate: null,
 
+  /**
+   * Incomplete metrics requests
+   * @type {array}
+   * @default []
+   */
+  runningRequests: [],
+
+  /**
+   * Incomplete metrics requests for detailed view
+   * @type {array}
+   * @default []
+   */
+  runningPopupRequests: [],
+
   _containerSelector: Em.computed.format('#{0}-container', 'id'),
 
   _popupSelector: Em.computed.concat('', '_containerSelector', 'popupSuffix'),
+
+  /**
+   * @type {boolean}
+   */
+  isRequestRunning: function() {
+    var requestsArrayName = this.get('isPopup') ? 'runningPopupRequests' : 'runningRequests';
+    return this.get(requestsArrayName).mapProperty('ajaxIndex').contains(this.get('ajaxIndex'));
+  }.property('runningPopupRequests', 'runningRequests'),
 
   didInsertElement: function () {
     var self = this;
@@ -185,6 +207,10 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     });
   },
 
+  setCurrentTimeIndex: function () {
+    this.set('currentTimeIndex', this.get('parentView.currentTimeRangeIndex'));
+  }.observes('parentView.currentTimeRangeIndex'),
+
   /**
    * Maps server data into series format ready for export to graph and JSON formats
    * @param jsonData
@@ -198,12 +224,15 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       for (var name in data) {
         var currentData = data[name];
         if (currentData) {
+          if (Array.isArray(currentData)) {
+            currentData = currentData.slice(0);
+          }
           var factor = template.factor,
             displayName = template.displayName ? template.displayName(name) : name;
           if (!Em.isNone(factor)) {
             var dataLength = currentData.length;
             for (var i = dataLength; i--;) {
-              currentData[i][0] *= factor;
+              currentData[i] = [currentData[i][0] * factor, currentData[i][1]];
             }
           }
           dataArray.push({
@@ -258,26 +287,6 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   /**
-   * Maps server data for Kafka Broker Topic and Controller Status metrics
-   * into series format ready for export to graph and JSON formats
-   * @param jsonData
-   * @returns {Array}
-   */
-  getKafkaData: function (jsonData) {
-    var dataArray = [],
-      template = this.get('seriesTemplate'),
-      data = Em.get(jsonData, template.path);
-    for (var name in data) {
-      var displayName = template.displayName(name);
-      dataArray.push({
-        name: displayName,
-        data: Em.get(data, name + '.1MinuteRate')
-      });
-    }
-    return dataArray;
-  },
-
-  /**
    * Function to map data into graph series
    * @param jsonData
    * @returns {Array}
@@ -312,6 +321,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     this.$("[rel='ZoomInTooltip']").tooltip('destroy');
     $(this.get('_containerSelector') + ' li.line').off();
     $(this.get('_popupSelector') + ' li.line').off();
+    App.ajax.abortRequests(this.get('runningRequests'));
   },
 
   registerGraph: function () {
@@ -324,34 +334,54 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   loadData: function () {
-    if (this.get('loadGroup') && !this.get('isPopup')) {
+    var self = this,
+      isPopup = this.get('isPopup');
+    if (this.get('loadGroup') && !isPopup) {
       return App.ChartLinearTimeView.LoadAggregator.add(this, this.get('loadGroup'));
     } else {
-      return App.ajax.send({
-        name: this.get('ajaxIndex'),
-        sender: this,
-        data: this.getDataForAjaxRequest(),
-        success: 'loadDataSuccessCallback',
-        error: 'loadDataErrorCallback'
-      });
+      var requestsArrayName = isPopup ? 'runningPopupRequests' : 'runningRequests',
+        request = App.ajax.send({
+          name: this.get('ajaxIndex'),
+          sender: this,
+          data: this.getDataForAjaxRequest(),
+          success: 'loadDataSuccessCallback',
+          error: 'loadDataErrorCallback',
+          callback: function () {
+            self.set(requestsArrayName, self.get(requestsArrayName).reject(function (item) {
+              return item === request;
+            }));
+          }
+        });
+      if (request) request.ajaxIndex = this.get('ajaxIndex');
+      this.get(requestsArrayName).push(request);
+      return request;
     }
   },
 
   getDataForAjaxRequest: function () {
-    var toSeconds = Math.round(App.dateTime() / 1000);
-    var hostName = (this.get('content')) ? this.get('content.hostName') : "";
-
-    var HDFSService = App.HDFSService.find().objectAt(0);
-    var nameNodeName = "";
-    var YARNService = App.YARNService.find().objectAt(0);
-    var resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
-    var timeUnit = this.get('timeUnitSeconds');
+    var fromSeconds,
+      toSeconds,
+      hostName = (this.get('content')) ? this.get('content.hostName') : "",
+      HDFSService = App.HDFSService.find().objectAt(0),
+      nameNodeName = "",
+      YARNService = App.YARNService.find().objectAt(0),
+      resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
     if (HDFSService) {
       nameNodeName = (HDFSService.get('activeNameNode')) ? HDFSService.get('activeNameNode.hostName') : HDFSService.get('nameNode.hostName');
     }
+    if (this.get('currentTimeIndex') === 8 && !Em.isNone(this.get('customStartTime')) && !Em.isNone(this.get('customEndTime'))) {
+      // Custom start and end time is specified by user
+      toSeconds = this.get('customEndTime') / 1000;
+      fromSeconds = this.get('customStartTime') / 1000;
+    } else {
+      // Preset time range is specified by user
+      var timeUnit = this.get('timeUnitSeconds');
+      toSeconds = Math.round(App.dateTime() / 1000);
+      fromSeconds = toSeconds - timeUnit;
+    }
     return {
       toSeconds: toSeconds,
-      fromSeconds: toSeconds - timeUnit,
+      fromSeconds: fromSeconds,
       stepSeconds: 15,
       hostName: hostName,
       nameNodeName: nameNodeName,
@@ -364,15 +394,17 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   loadDataErrorCallback: function (xhr, textStatus, errorThrown) {
-    this.set('isReady', true);
-    if (xhr.readyState == 4 && xhr.status) {
-      textStatus = xhr.status + " " + textStatus;
+    if (!xhr.isForcedAbort) {
+      this.set('isReady', true);
+      if (xhr.readyState == 4 && xhr.status) {
+        textStatus = xhr.status + " " + textStatus;
+      }
+      this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
+      this.setProperties({
+        hasData: false,
+        isExportButtonHidden: true
+      });
     }
-    this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-    this.setProperties({
-      hasData: false,
-      isExportButtonHidden: true
-    });
   },
 
   /**
@@ -551,7 +583,12 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     //if graph opened as modal popup
     var popup_path = $(this.get('_popupSelector'));
     var graph_container = $(this.get('_containerSelector'));
+    var seconds = this.get('parentView.graphSeconds');
     var container;
+    if (!Em.isNone(seconds)) {
+      this.set('timeUnitSeconds', seconds);
+      this.set('parentView.graphSeconds', null);
+    }
     if (popup_path.length) {
       popup_path.children().each(function () {
         $(this).children().remove();
@@ -580,6 +617,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       }
     }
     else {
+      this.set('isPopupReady', true);
       this.set('isReady', true);
       //if Axis X time interval is default(60 minutes)
       if (this.get('timeUnitSeconds') === 3600) {
@@ -607,28 +645,27 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    * @return Rickshaw.Fixtures.Time
    */
   localeTimeUnit: function (timeUnitSeconds) {
-    var timeUnit = new Rickshaw.Fixtures.Time();
-    switch (timeUnitSeconds) {
-      case 604800:
-        timeUnit = timeUnit.unit('day');
-        break;
-      case 2592000:
-        timeUnit = timeUnit.unit('week');
-        break;
-      case 31104000:
-        timeUnit = timeUnit.unit('month');
-        break;
-      default:
-        timeUnit = {
-          name: timeUnitSeconds / 240 + ' minute',
-          seconds: timeUnitSeconds / 4,
-          formatter: function (d) {
-            // format locale specific time
-            var minutes = dateUtils.dateFormatZeroFirst(d.getMinutes());
-            var hours = dateUtils.dateFormatZeroFirst(d.getHours());
-            return hours + ":" + minutes;
-          }
-        };
+    var timeUnit = new Rickshaw.Fixtures.Time(),
+      unitName;
+    if (timeUnitSeconds < 172800) {
+      timeUnit = {
+        name: timeUnitSeconds / 240 + ' minute',
+        seconds: timeUnitSeconds / 4,
+        formatter: function (d) {
+          // format locale specific time
+          var minutes = dateUtils.dateFormatZeroFirst(d.getMinutes());
+          var hours = dateUtils.dateFormatZeroFirst(d.getHours());
+          return hours + ":" + minutes;
+        }
+      };
+    } else if (timeUnitSeconds < 1209600) {
+      timeUnit = timeUnit.unit('day');
+    } else if (timeUnitSeconds < 5184000) {
+      timeUnit = timeUnit.unit('week');
+    } else if (timeUnitSeconds < 62208000) {
+      timeUnit = timeUnit.unit('month');
+    } else {
+      timeUnit = timeUnit.unit('year');
     }
     return timeUnit;
   },
@@ -895,10 +932,18 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     }
 
     this.set('isPopup', true);
+    if (this.get('inWidget') && !this.get('parentView.isClusterMetricsWidget')) {
+      this.setProperties({
+        currentTimeIndex: this.get('parentView.timeIndex'),
+        customStartTime: this.get('parentView.startTime'),
+        customEndTime: this.get('parentView.endTime'),
+        customDurationFormatted: this.get('parentView.durationFormatted')
+      });
+    }
     var self = this;
 
     App.ModalPopup.show({
-      bodyClass: Em.View.extend(App.ExportMetricsMixin, {
+      bodyClass: Em.View.extend(App.ExportMetricsMixin, App.TimeRangeMixin, {
 
         containerId: null,
         containerClass: null,
@@ -913,10 +958,18 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         titleId: null,
         titleClass: null,
 
+        timeRangeClassName: 'graph-details-time-range',
+
         isReady: Em.computed.alias('parentView.graph.isPopupReady'),
+
+        currentTimeRangeIndex: self.get('currentTimeIndex'),
+        customStartTime: self.get('currentTimeIndex') === 8 ? self.get('customStartTime') : null,
+        customEndTime: self.get('currentTimeIndex') === 8 ? self.get('customEndTime') : null,
+        customDurationFormatted: self.get('currentTimeIndex') === 8 ? self.get('customDurationFormatted') : null,
 
         didInsertElement: function () {
           var popupBody = this;
+          this._super();
           App.tooltip(this.$('.corner-icon > .icon-save'), {
             title: Em.I18n.t('common.export')
           });
@@ -953,11 +1006,14 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         }.property(),
 
         rightArrowVisible: function () {
-          return (this.get('isReady') && (this.get('parentView.currentTimeIndex') != 0));
+          // Time range is neither custom nor the least possible preset
+          return (this.get('isReady') && this.get('parentView.currentTimeIndex') != 0 &&
+            this.get('parentView.currentTimeIndex') != 8);
         }.property('isReady', 'parentView.currentTimeIndex'),
 
         leftArrowVisible: function () {
-          return (this.get('isReady') && (this.get('parentView.currentTimeIndex') != 7));
+          // Time range is neither custom nor the largest possible preset
+          return (this.get('isReady') && this.get('parentView.currentTimeIndex') < 7);
         }.property('isReady', 'parentView.currentTimeIndex'),
 
         exportGraphData: function (event) {
@@ -967,6 +1023,17 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
           targetView.exportGraphData({
             context: event.context
           });
+        },
+
+        setTimeRange: function (event) {
+          var index = event.context.index,
+            callback = this.get('parentView').reloadGraphByTime.bind(this.get('parentView'), index);
+          this._super(event, callback, self);
+
+          // Preset time range is specified by user
+          if (index !== 8) {
+            callback();
+          }
         }
       }),
       header: this.get('title'),
@@ -978,10 +1045,15 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       secondary: null,
 
       onPrimary: function () {
+        var targetView = Em.isNone(self.get('parentView.currentTimeRangeIndex')) ? self.get('parentView.parentView') : self.get('parentView');
         self.setProperties({
-          currentTimeIndex: !Em.isNone(self.get('parentView.currentTimeRangeIndex')) ? self.get('parentView.currentTimeRangeIndex') : self.get('parentView.parentView.currentTimeRangeIndex'),
+          currentTimeIndex: targetView.get('currentTimeRangeIndex'),
+          customStartTime: targetView.get('customStartTime'),
+          customEndTime: targetView.get('customEndTime'),
+          customDurationFormatted: targetView.get('customDurationFormatted'),
           isPopup: false
         });
+        App.ajax.abortRequests(this.get('graph.runningPopupRequests'));
         this._super();
       },
 
@@ -994,7 +1066,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
        */
       switchTimeBack: function (event) {
         var index = this.get('currentTimeIndex');
-        // 7 - number of last time state
+        // 7 - number of last preset time state
         if (index < 7) {
           this.reloadGraphByTime(++index);
         }
@@ -1014,8 +1086,13 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
        * @param index
        */
       reloadGraphByTime: function (index) {
+        this.set('childViews.firstObject.currentTimeRangeIndex', index);
         this.set('currentTimeIndex', index);
-        self.set('currentTimeIndex', index);
+        self.setProperties({
+          currentTimeIndex: index,
+          isPopupReady: false
+        });
+        App.ajax.abortRequests(this.get('graph.runningPopupRequests'));
       },
       currentTimeIndex: self.get('currentTimeIndex'),
 
@@ -1030,8 +1107,10 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     });
   },
   reloadGraphByTime: function () {
-    this.loadData();
-  }.observes('timeUnitSeconds'),
+    Em.run.once(this, function () {
+      this.loadData();
+    });
+  }.observes('timeUnitSeconds', 'customStartTime', 'customEndTime'),
 
   timeStates: [
     {name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
@@ -1041,17 +1120,63 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     {name: Em.I18n.t('graphs.timeRange.day'), seconds: 86400},
     {name: Em.I18n.t('graphs.timeRange.week'), seconds: 604800},
     {name: Em.I18n.t('graphs.timeRange.month'), seconds: 2592000},
-    {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
+    {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000},
+    {name: Em.I18n.t('common.custom'), seconds: 0}
   ],
   // should be set by time range control dropdown list when create current graph
   currentTimeIndex: 0,
+  customStartTime: null,
+  customEndTime: null,
+  customDurationFormatted: null,
   setCurrentTimeIndexFromParent: function () {
-    var index = !Em.isNone(this.get('parentView.currentTimeRangeIndex')) ? this.get('parentView.currentTimeRangeIndex') : this.get('parentView.parentView.currentTimeRangeIndex');
-    this.set('currentTimeIndex', index);
-  }.observes('parentView.parentView.currentTimeRangeIndex', 'parentView.currentTimeRangeIndex'),
-  timeUnitSeconds: function () {
-    return this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
-  }.property('currentTimeIndex')
+    // 8 index corresponds to custom start and end time selection
+    var targetView = !Em.isNone(this.get('parentView.currentTimeRangeIndex')) ? this.get('parentView') : this.get('parentView.parentView'),
+      index = targetView.get('currentTimeRangeIndex'),
+      customStartTime = (index === 8) ? targetView.get('customStartTime') : null,
+      customEndTime = (index === 8) ? targetView.get('customEndTime'): null,
+      customDurationFormatted = (index === 8) ? targetView.get('customDurationFormatted'): null;
+    this.setProperties({
+      currentTimeIndex: index,
+      customStartTime: customStartTime,
+      customEndTime: customEndTime,
+      customDurationFormatted: customDurationFormatted
+    });
+    if (index !== 8 || targetView.get('customStartTime') && targetView.get('customEndTime')) {
+      App.ajax.abortRequests(this.get('runningRequests'));
+      if (this.get('inWidget') && !this.get('parentView.isClusterMetricsWidget')) {
+        this.set('parentView.isLoaded', false);
+      } else {
+        this.set('isReady', false);
+      }
+    }
+  }.observes('parentView.parentView.currentTimeRangeIndex', 'parentView.currentTimeRangeIndex', 'parentView.parentView.customStartTime', 'parentView.customStartTime', 'parentView.parentView.customEndTime', 'parentView.customEndTime'),
+  timeUnitSeconds: 3600,
+  timeUnitSecondsSetter: function () {
+    var index = this.get('currentTimeIndex'),
+      startTime = this.get('customStartTime'),
+      endTime = this.get('customEndTime'),
+      durationFormatted = this.get('customDurationFormatted'),
+      seconds;
+    if (index !== 8) {
+      // Preset time range is specified by user
+      seconds = this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
+    } else if (!Em.isNone(startTime) && !Em.isNone(endTime)) {
+      // Custom start and end time is specified by user
+      seconds = (endTime - startTime) / 1000;
+    }
+    if (!Em.isNone(seconds)) {
+      this.set('timeUnitSeconds', seconds);
+      if (this.get('inWidget') && !this.get('parentView.isClusterMetricsWidget')) {
+        this.get('parentView').setProperties({
+          graphSeconds: seconds,
+          timeIndex: index,
+          startTime: startTime,
+          endTime: endTime,
+          durationFormatted: durationFormatted
+        });
+      }
+    }
+  }.observes('currentTimeIndex', 'customStartTime', 'customEndTime')
 
 });
 
@@ -1365,25 +1490,33 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
       (function (_request) {
         var fields = self.formatRequestData(_request);
         var hostName = (_request.context.get('content')) ? _request.context.get('content.hostName') : "";
-
-        App.ajax.send({
+        var xhr = App.ajax.send({
           name: _request.name,
           sender: _request.context,
           data: {
             fields: fields,
             hostName: hostName
           }
-        }).done(function (response) {
+        });
+
+        xhr.done(function (response) {
           console.time('==== runRequestsDone');
           _request.subRequests.forEach(function (subRequest) {
             subRequest.context._refreshGraph.call(subRequest.context, response);
           }, this);
           console.timeEnd('==== runRequestsDone');
         }).fail(function (jqXHR, textStatus, errorThrown) {
-          _request.subRequests.forEach(function (subRequest) {
-            subRequest.context.loadDataErrorCallback.call(subRequest.context, jqXHR, textStatus, errorThrown);
-          }, this);
+          if (!jqXHR.isForcedAbort) {
+            _request.subRequests.forEach(function (subRequest) {
+              subRequest.context.loadDataErrorCallback.call(subRequest.context, jqXHR, textStatus, errorThrown);
+            }, this);
+          }
+        }).always(function () {
+          _request.context.set('runningRequests', _request.context.get('runningRequests').reject(function (item) {
+            return item === xhr;
+          }));
         });
+        _request.context.get('runningRequests').push(xhr);
       })(bulks[id]);
     }
   },
@@ -1394,10 +1527,18 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
    * @returns {number[]}
    */
   formatRequestData: function (request) {
-    var toSeconds = Math.round(App.dateTime() / 1000);
-    var timeUnit = request.context.get('timeUnitSeconds');
+    var fromSeconds, toSeconds;
+    if (request.context.get('currentTimeIndex') === 8 && !Em.isNone(request.context.get('customStartTime')) && !Em.isNone(request.context.get('customEndTime'))) {
+      // Custom start and end time is specified by user
+      toSeconds = request.context.get('customEndTime') / 1000;
+      fromSeconds = request.context.get('customStartTime') / 1000;
+    } else {
+      var timeUnit = request.context.get('timeUnitSeconds');
+      toSeconds = Math.round(App.dateTime() / 1000);
+      fromSeconds = toSeconds - timeUnit;
+    }
     var fields = request.fields.uniq().map(function (field) {
-      return field + "[" + (toSeconds - timeUnit) + "," + toSeconds + "," + 15 + "]";
+      return field + "[" + (fromSeconds) + "," + toSeconds + "," + 15 + "]";
     });
 
     return fields.join(",");

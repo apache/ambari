@@ -1,0 +1,35 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"https",
+      "checks":[
+        {
+          "property":"metadata.enableTLS",
+          "desired":"true",
+          "site":"application-properties"
+        }
+      ]
+    },
+
+    "links": [
+      {
+        "name": "atlas_dashboard",
+        "label": "Atlas Dashboard",
+        "requires_user_name": "true",
+        "component_name": "ATLAS_SERVER",
+        "url": "%@://%@:%@/#!/search?user.name=%@",
+        "port":{
+          "http_property": "atlas.server.http.port",
+          "http_default_port": "21000",
+          "https_property": "atlas.server.https.port",
+          "https_default_port": "21443",
+          "regex": "^(\\d+)$",
+          "site": "application-properties"
+        }
+      }
+    ]
+  }
+}

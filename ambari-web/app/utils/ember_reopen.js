@@ -128,6 +128,16 @@ Ember.sum = function (a, b) {
 };
 
 /**
+ * Execute passed callback
+ *
+ * @param {Function} callback
+ * @returns {*}
+ */
+Ember.clb = function (callback) {
+  return callback();
+};
+
+/**
  *
  */
 Ember.RadioButton = Ember.Checkbox.extend({
@@ -214,6 +224,121 @@ Em.View.reopen({
   }
 });
 
+Ember._HandlebarsBoundView.reopen({
+  /**
+   * overwritten set method of Ember._HandlebarsBoundView to avoid uncaught errors
+   * when trying to set property of destroyed view
+   */
+  render: function(buffer){
+    if(!this.get('isDestroyed') && !this.get('isDestroying')){
+      this._super(buffer);
+    } else {
+      console.debug('Calling set on destroyed view');
+    }
+  }
+});
+
 Ember.TextArea.reopen({
   attributeBindings: ['readonly']
+});
+
+/**
+ * Simply converts query string to object.
+ *
+ * @param  {string} queryString query string e.g. '?param1=value1&param2=value2'
+ * @return {object} converted object
+ */
+function parseQueryParams(queryString) {
+  if (!queryString) {
+    return {};
+  }
+  return queryString.replace(/^\?/, '').split('&').map(decodeURIComponent)
+    .reduce(function(p, c) {
+      var keyVal = c.split('=');
+      p[keyVal[0]] = keyVal[1];
+      return p;
+    }, {});
+};
+
+Ember.Route.reopen({
+  /**
+   *  When you move to a new route by pressing the back or forward button, change url manually, click on link with url defined in href,
+   *  call Router.transitionTo or Router.route this method is called.
+   *  This method unites unroutePath, navigateAway and exit events to handle Route leaving in one place.
+   *  Also unlike the exit event it is possible to stop transition inside this handler.
+   *  To proceed transition just call callback..
+   *
+   * @param {Router}  router
+   * @param {Object|String} context context from transition or path from route
+   * @param {callback} callback should be called to proceed transition
+   */
+  exitRoute: function (router, context, callback) {
+    callback();
+  },
+
+  /**
+   * Query Params serializer. This method should be used inside <code>serialize</code> method.
+   * You need to specify `:query` dynamic sygment in your route's <code>route</code> attribute
+   * e.g. Em.Route.extend({ route: '/login:query'}) and return result of this method.
+   * This method will set <code>serializedQuery</code> property to specified controller by name.
+   * For concrete example see `app/routes/main.js`.
+   *
+   * @example
+   *  queryParams: Em.Route.extend({
+   *   route: '/queryDemo:query',
+   *   serialize: function(route, params) {
+   *     return this.serializeQueryParams(route, params, 'controllerNameToSetQueryObject');
+   *   }
+   *  });
+   *  // now when navigated to http://example.com/#/queryDemo?param1=value1&param2=value2
+   *  // App.router.get('controllerNameToSetQueryObject').get('serializedQuery')
+   *  // will return { param1: 'value1', param2: 'value2' }
+   *
+   * @param  {Em.Router} router router instance passed to <code>serialize</code> method
+   * @param  {object} params dynamic segment passed to <code>seriazlie</code>
+   * @param  {string} controllerName name of the controller to set `serializedQuery` as result
+   * @return {object}
+   */
+  serializeQueryParams: function(router, params, controllerName) {
+    var controller = router.get(controllerName);
+    controller.set('serializedQuery', parseQueryParams(params ? params.query : ''));
+    return params || { query: ''};
+  }
+});
+
+Ember.Router.reopen({
+
+  // reopen original transitionTo and route methods to add calling of exitRoute
+
+  transitionTo: function (router, context) {
+    var self = this;
+    var args = arguments;
+    var transitionTo = self._super;
+    var callback = function () {
+      transitionTo.apply(self, args);
+    };
+    if (!this.get('currentState.exitRoute')) {
+      callback();
+    } else {
+      this.get('currentState').exitRoute(this, context, callback);
+    }
+  },
+
+  route: function (path) {
+    var self = this;
+    var args = arguments;
+    var transitionTo = self._super;
+    var callback = function () {
+      self.get('location').setURL(path);
+      transitionTo.apply(self, args);
+    };
+    var realPath;
+    if (!this.get('currentState.exitRoute')) {
+      callback();
+    } else {
+      realPath = this.get('currentState').absoluteRoute(this);
+      this.get('location').setURL(realPath);
+      this.get('currentState').exitRoute(this, path, callback);
+    }
+  }
 });

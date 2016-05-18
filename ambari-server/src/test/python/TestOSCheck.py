@@ -30,19 +30,31 @@ from mock.mock import MagicMock
 
 from only_for_platform import os_distro_value, os_distro_value_linux
 
-from ambari_commons import OSCheck
+from ambari_commons import os_utils
+
+from ambari_commons import OSCheck, OSConst
 import os_check_type
 
+import shutil
+project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+
+_search_file = os_utils.search_file
+os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 utils = __import__('ambari_server.utils').utils
 # We have to use this import HACK because the filename contains a dash
-with patch("platform.linux_distribution", return_value = os_distro_value_linux):
-  with patch.object(OSCheck, "os_distribution", return_value = os_distro_value):
-    with patch.object(utils, "get_postgre_hba_dir"):
-      ambari_server = __import__('ambari-server')
+with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
+  with patch("os.access", return_value = MagicMock(return_value=True)):
+    with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
+      with patch("platform.linux_distribution", return_value = os_distro_value_linux):
+        with patch.object(OSCheck, "os_distribution", return_value = os_distro_value):
+          with patch.object(utils, "get_postgre_hba_dir"):
+            os.environ["ROOT"] = ""
+            ambari_server = __import__('ambari-server')
+      
+            from ambari_server.serverConfiguration import update_ambari_properties, configDefaults
 
-      from ambari_server.serverConfiguration import update_ambari_properties, configDefaults
-
-
+@patch.object(platform, "linux_distribution", new = MagicMock(return_value=('Redhat', '6.4', 'Final')))
 class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")
   @patch("ambari_commons.os_check._is_oracle_linux")
@@ -50,7 +62,7 @@ class TestOSCheck(TestCase):
 
     # 1 - Any system
     mock_is_oracle_linux.return_value = False
-    mock_linux_distribution.return_value = ('my_os', '', '')
+    mock_linux_distribution.return_value = ('my_os', '2015.09', '')
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'my_os')
 
@@ -66,13 +78,13 @@ class TestOSCheck(TestCase):
 
     # 3 - path exist: '/etc/oracle-release'
     mock_is_oracle_linux.return_value = True
-    mock_linux_distribution.return_value = ('some_os', '', '')
+    mock_linux_distribution.return_value = ('some_os', '1234', '')
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'oraclelinux')
 
     # 4 - Common system
     mock_is_oracle_linux.return_value = False
-    mock_linux_distribution.return_value = ('CenToS', '', '')
+    mock_linux_distribution.return_value = ('CenToS', '4.56', '')
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'centos')
 
@@ -99,31 +111,31 @@ class TestOSCheck(TestCase):
 
     # 1 - Any system
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('MY_os', '', '')
+    mock_linux_distribution.return_value = ('MY_os', '5.6.7', '')
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'my_os')
 
     # 2 - Redhat
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('Centos Linux', '', '')
+    mock_linux_distribution.return_value = ('Centos Linux', '2.4', '')
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'redhat')
 
     # 3 - Ubuntu
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('Ubuntu', '', '')
+    mock_linux_distribution.return_value = ('Ubuntu', '14.04', '')
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'ubuntu')
 
     # 4 - Suse
     mock_exists.return_value = False
     mock_linux_distribution.return_value = (
-    'suse linux enterprise server', '', '')
+    'suse linux enterprise server', '11.3', '')
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'suse')
 
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('SLED', '', '')
+    mock_linux_distribution.return_value = ('SLED', '1.2.3.4.5', '')
     result = OSCheck.get_os_family()
     self.assertEquals(result, 'suse')
 
@@ -141,7 +153,7 @@ class TestOSCheck(TestCase):
   def test_get_os_version(self, mock_linux_distribution):
 
     # 1 - Any system
-    mock_linux_distribution.return_value = ('', '123.45', '')
+    mock_linux_distribution.return_value = ('some_os', '123.45', '')
     result = OSCheck.get_os_version()
     self.assertEquals(result, '123.45')
 
@@ -159,7 +171,7 @@ class TestOSCheck(TestCase):
   def test_get_os_major_version(self, mock_linux_distribution):
 
     # 1
-    mock_linux_distribution.return_value = ('', '123.45.67', '')
+    mock_linux_distribution.return_value = ('abcd_os', '123.45.67', '')
     result = OSCheck.get_os_major_version()
     self.assertEquals(result, '123')
 
@@ -167,6 +179,21 @@ class TestOSCheck(TestCase):
     mock_linux_distribution.return_value = ('Suse', '11', '')
     result = OSCheck.get_os_major_version()
     self.assertEquals(result, '11')
+    
+  @patch.object(OSCheck, "os_distribution")
+  def test_aliases(self, mock_linux_distribution):
+    OSConst.OS_TYPE_ALIASES['qwerty_os123'] = 'aliased_os5'
+    OSConst.OS_FAMILY_COLLECTION.append({          
+          'name': 'aliased_os_family',
+          'os_list': ["aliased_os"]
+    })
+    
+    mock_linux_distribution.return_value = ('qwerty_os', '123.45.67', '')
+    
+    self.assertEquals(OSCheck.get_os_type(), 'aliased_os')
+    self.assertEquals(OSCheck.get_os_major_version(), '5')
+    self.assertEquals(OSCheck.get_os_version(), '5.45.67')
+    self.assertEquals(OSCheck.get_os_family(), 'aliased_os_family')
 
   @patch.object(OSCheck, "os_distribution")
   def test_get_os_release_name(self, mock_linux_distribution):
@@ -187,7 +214,7 @@ class TestOSCheck(TestCase):
       pass
 
   @patch("ambari_server.serverConfiguration.get_conf_dir")
-  def test_update_ambari_properties_os(self, get_conf_dir_mock):
+  def _test_update_ambari_properties_os(self, get_conf_dir_mock):
     from ambari_server import serverConfiguration   # need to modify constants inside the module
 
     properties = ["server.jdbc.user.name=ambari-server\n",

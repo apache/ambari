@@ -16,201 +16,171 @@
  * limitations under the License.
  */
 
-var App = require('app');
-var bind = Ember.run.bind;
+import Ember from 'ember';
+import columnConfig from '../config/files-columns';
 
-App.FilesController = Ember.ArrayController.extend({
-  actions:{
-    moveFile:function (opt,fileArg) {
-      var src, title,
-          file = fileArg || this.get('selectedFiles.firstObject'),
-          moving = this.get('movingFile');
+export default Ember.Controller.extend({
+  logger: Ember.inject.service('alert-messages'),
+  fileSelectionService: Ember.inject.service('files-selection'),
+  lastSelectedFile: Ember.computed.oneWay('fileSelectionService.lastFileSelected'),
+  selectedFilesCount: Ember.computed.oneWay('fileSelectionService.filesCount'),
+  selectedFolderCount: Ember.computed.oneWay('fileSelectionService.folderCount'),
+  isSelected: Ember.computed('selectedFilesCount', 'selectedFolderCount', function() {
+    return (this.get('selectedFilesCount') + this.get('selectedFolderCount')) !== 0;
+  }),
 
-      if (opt == 'cut') {
-        src = file.toJSON({includeId: true});
-        src = Em.merge(src,{name:file.get('name'),path:file.get('path')});
-        this.set('movingFile',src);
-      }
-
-      if (opt == 'move') {
-        this.store.move(moving.path,[this.get('path'),moving.name].join('/').replace('//','/'))
-          .then(bind(this,this.set,'movingFile',null),bind(this,this.throwAlert));
-      }
-
-      if (opt == 'cancel') {
-        this.set('movingFile',null);
-      }
-    },
-    showRenameInput:function () {
-      this.toggleProperty('isRenaming');
-    },
-    renameDir:function (path,newName) {
-      var _this = this,
-          basedir = path.substring(0,path.lastIndexOf('/')+1);
-          newPath = basedir + newName;
-
-      if (path === newPath) {
-        return false;
-      }
-
-      this.store.listdir(basedir).then(function (listdir) {
-        var recordExists = listdir.isAny('id',newPath);
-
-        listdir.forEach(function (file) {
-          _this.store.unloadRecord(file);
-        });
-
-        if (recordExists) {
-          return _this.throwAlert({message:newPath + ' already exists.'});
-        }
-
-        return _this.store.move(path,newPath);
-      }).then(function (newDir) {
-        if (newDir) {
-          _this.store.unloadRecord(newDir);
-          _this.set('path',newPath);
-        }
-      }).catch(bind(this,this.throwAlert));
-
-    },
-    deleteFile:function (deleteForever) {
-      var self = this,
-          selected = this.get('selectedFiles'),
-          moveToTrash = !deleteForever;
-      selected.forEach(function (file) {
-        self.store.remove(file,moveToTrash).then(null,bind(self,self.deleteErrorCallback,file));
-      });
-    },
-    download:function (option) {
-      var files = this.get('selectedFiles').filterBy('readAccess',true);
-      var content = this.get('content');
-      this.store.linkFor(content, option).then(function (link) {
-        window.location.href = link;
-      });
-    },
-
-    mkdir:function (newDirName) {
-      this.store.mkdir(newDirName)
-        .then(bind(this,this.mkdirSuccessCalback),bind(this,this.throwAlert));
-    },
-    upload:function (opt) {
-      if (opt === 'open') {
-        this.set('isUploading',true);
-      }
-
-      if (opt === 'close') {
-        this.set('isUploading',false);
-      }
-    },
-    sort:function (pr) {
-      var currentProperty = this.get('sortProperties');
-      if (pr == currentProperty[0] || pr == 'toggle') {
-        this.toggleProperty('sortAscending');
-      } else{
-        this.set('sortProperties',[pr]);
-        this.set('sortAscending',true);
-      }
-    },
-    confirmChmod:function (file) {
-      this.store
-        .chmod(file)
-        .then(null,Em.run.bind(this,this.chmodErrorCallback,file));
-    },
-    confirmPreview:function (file) {
-      //this.send('download');
-      this.store.linkFor(file, "browse").then(function (link) {
-        window.location.href = link;
-      });
-    },
-    clearSearchField:function () {
-      this.set('searchString','');
-    }
-  },
-  init:function () {
-    if (App.testing) {
-      return this._super();
-    }
-    var controller = this;
-    var adapter = controller.store.adapterFor('file');
-    var url = adapter.buildURL('upload');
-    this.uploader.set('url',url);
-    this.uploader.on('didUpload', function (payload) {
-      controller.store.pushPayload('file', {'file': payload });
-    });
-    this._super();
-  },
-
-  sortProperties: ['name'],
-  sortAscending: true,
-
-  needs: ["file"],
-  movingFile:null,
-  uploader:App.Uploader,
-  isRenaming:false,
-  isUploading:false,
   queryParams: ['path'],
   path: '/',
-  isRootDir:Ember.computed.equal('path', '/'),
-  hideMoving:function () {
-    return (this.movingFile)?[this.path,this.movingFile.name].join('/').replace('//','/')===this.movingFile.path:false;
-  }.property('movingFile','path'),
-  currentDir:function () {
-    return this.get('path').split('/').get('lastObject') || '/';
-  }.property('path'),
-  selectedOne:Ember.computed.equal('selectedFiles.length', 1),
-  isSelected:Ember.computed.gt('selectedFiles.length', 0),
-  selectedFiles:function () {
-    return this.get('content').filterBy('selected', true);
-  }.property('content.@each.selected'),
-  canConcat:function () {
-    return this.get('selectedFiles').filterProperty('isDirectory').get('length')===0;
-  }.property('selectedFiles.length'),
+  columns: columnConfig,
 
-  isSortPropertyEqualsDate: function() {
-    return this.get('sortProperties').get('firstObject') === 'date';
-  }.property('sortProperties.firstObject'),
+  currentMessagesCount: Ember.computed.alias('logger.currentMessagesCount'),
 
-  searchString:'',
-  fileList: function () {
-    var fileList = this.get('arrangedContent');
-    var search = this.get('searchString');
-    return (search)?fileList.filter(function (file) {
-      return !!file.get('name').match(search);
-    }):fileList;
-  }.property('arrangedContent','searchString'),
+  hasHomePath: false,
+  hasTrashPath: false,
 
-  mkdirSuccessCalback:function (newDir) {
-    if (newDir.get('path') != [this.get('path'),newDir.get('name')].join('/')){
-      newDir.unloadRecord();
-      newDir.store.listdir(this.get('path'));
+  currentPathIsTrash: Ember.computed('path', 'trashPath', 'hasTrashPath', function() {
+    return this.get('hasTrashPath') && (this.get('path') === this.get('trashPath'));
+  }),
+
+  // This is required as the validSearchText will be debounced and will not be
+  // called at each change of searchText. searchText is required so that sub
+  // components(file search componenet) UI can be cleared from outside.(i.e, from
+  // the afterModel of the route when the route changes)
+  searchText: '',
+  validSearchText: '',
+
+  sortProperty: [],
+  sortEnabled: Ember.computed('fileSelectionService.files.length', function() {
+    return this.get('fileSelectionService.files.length') === 0;
+  }),
+
+  allSelected: Ember.computed('fileSelectionService.files.length', function() {
+    return this.get('fileSelectionService.files.length') !== 0 && this.get('fileSelectionService.files.length') === this.get('model.length');
+  }),
+
+  parentPath: Ember.computed('path', function() {
+    var path = this.get('path');
+    var parentPath = path.substring(0, path.lastIndexOf('/'));
+    if(Ember.isBlank(parentPath)) {
+      parentPath = '/';
+    }
+
+    if(path === '/') {
+      parentPath = '';
+    }
+    return parentPath;
+  }),
+
+  sortedContent: Ember.computed.sort('model', 'sortProperty'),
+
+  arrangedContent: Ember.computed('model', 'sortProperty', 'validSearchText', function() {
+    var searchText = this.get('validSearchText');
+    if(!Ember.isBlank(searchText)) {
+      return this.get('sortedContent').filter(function(entry) {
+        return !!entry.get('name').match(searchText);
+      });
+    }
+    return this.get('sortedContent');
+  }),
+
+  selectedFilePathsText: function () {
+    var entities = this.get('fileSelectionService.files');
+    var multiplePaths = [];
+
+    if (entities.length === 0) {
+      return this.get('path');
+    } else {
+      multiplePaths = entities.map((entity) => {
+        return entity.get('path');
+      });
+      return multiplePaths.join(', ');
+    }
+  }.property('fileSelectionService.files.[]', 'path'),
+
+  actions: {
+    sortFiles: function(sortColumn) {
+      if (sortColumn['sortOrder'] !== 0) {
+        var sortProperty = sortColumn['key'] + ':' + this._getSortOrderString(sortColumn);
+        this.set('sortProperty', [sortProperty]);
+      } else {
+        this.set('sortProperty', []);
+      }
+    },
+
+    searchFiles: function(searchText) {
+      this.set('validSearchText', searchText);
+    },
+
+    /* Selects a single file. Clears previous selection */
+    selectSingle: function(file) {
+      this.get('fileSelectionService').deselectAll();
+      this.get('fileSelectionService').selectFiles([file]);
+    },
+
+    /*
+      Selects file without clearing the previous selection. If sticky is true
+      then shiftkey was pressed while clicking and we should select all the
+      files in between
+    */
+    selectMultiple: function(file, sticky) {
+      if(!sticky) {
+        if(file.get('isSelected')) {
+          this.get('fileSelectionService').deselectFile(file);
+        } else {
+          this.get('fileSelectionService').selectFiles([file]);
+        }
+      } else {
+        var lastFileSelected = this.get('fileSelectionService.lastFileSelected');
+        var indexRange = this._getIndexRangeBetweenfiles(lastFileSelected, file);
+        if(indexRange[0] === indexRange[1]) {
+          return false;
+        }
+        var filesInRange = this._getFilesInRange(indexRange[0], indexRange[1]);
+        this.get('fileSelectionService').deselectAll();
+        this.get('fileSelectionService').selectFiles(filesInRange);
+      }
+    },
+
+    selectAll: function(selectStatus) {
+      this.get('fileSelectionService').deselectAll();
+      if(selectStatus === false) {
+        this.get('fileSelectionService').selectFiles(this.get('sortedContent'));
+      }
+    },
+
+    /* Deselects the current selections */
+    deselectAll: function() {
+      this.get('fileSelectionService').deselectAll();
+    },
+
+    //Context Menu actions
+    openFolder: function(path) {
+      this.transitionToRoute({queryParams: {path: path}});
     }
   },
 
-  clearSearch:function () {
-    this.set('searchString','');
-  }.observes('path'),
-
-  deleteErrorCallback:function (record,error) {
-    this.model.pushRecord(record);
-    this.throwAlert(error);
+  _getIndexRangeBetweenfiles: function(startFile, endFile) {
+    var startIndex = this.get('arrangedContent').indexOf(startFile);
+    var endIndex = this.get('arrangedContent').indexOf(endFile);
+    if (startIndex < endIndex) {
+      return [startIndex, endIndex];
+    } else {
+      return [endIndex, startIndex];
+    }
   },
 
-  chmodErrorCallback:function (record,error) {
-    record.rollback();
-    this.throwAlert({message:'Permissions change failed'});
+  _getFilesInRange: function(startIndex, endIndex) {
+    var range = Array.apply(null, Array(endIndex - startIndex + 1)).map(function (_, i) {return startIndex + i;});
+    return this.get('arrangedContent').objectsAt(range);
   },
 
-  throwAlert:function (error) {
-    this.send('showAlert',error);
-  },
-
-  showSpinner:function () {
-    this.set('isLoadingFiles',true);
-  },
-
-  hideSpinner:function () {
-    this.set('isLoadingFiles',false);
+  _getSortOrderString: function(column) {
+    if (column['sortOrder'] === -1) {
+      return 'desc';
+    } else if (column['sortOrder'] === 1) {
+      return 'asc';
+    } else {
+      return '';
+    }
   }
 });
-
-

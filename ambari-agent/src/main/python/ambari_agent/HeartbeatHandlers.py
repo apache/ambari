@@ -79,6 +79,7 @@ class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
 
 def signal_handler(signum, frame):
   global _handler
+  logger.info("Ambari-agent received {0} signal, stopping...".format(signum))
   _handler.set_stop()
 
 
@@ -96,18 +97,9 @@ def debug(sig, frame):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HeartbeatStopHandlersLinux(HeartbeatStopHandlers):
-  def __init__(self, stopEvent=None):
-    # Event is used for synchronizing heartbeat iterations (to make possible
-    # manual wait() interruption between heartbeats )
+  def __init__(self):
     self.heartbeat_wait_event = threading.Event()
-
-    # Event is used to stop the Agent process
-    if stopEvent is None:
-      # Allow standalone testing
-      self.stop_event = threading.Event()
-    else:
-      # Allow one unique event per process
-      self.stop_event = stopEvent
+    self._stop = False
 
   def set_heartbeat(self):
     self.heartbeat_wait_event.set()
@@ -116,19 +108,15 @@ class HeartbeatStopHandlersLinux(HeartbeatStopHandlers):
     self.heartbeat_wait_event.clear()
 
   def set_stop(self):
-    self.stop_event.set()
+    self._stop = True
 
   def wait(self, timeout1, timeout2=0):
-    if self.heartbeat_wait_event.wait(timeout=timeout1):
-      # Event signaled, exit
-      return 1
-    # Stop loop when stop event received
-    # Otherwise sleep a bit more to allow STATUS_COMMAND results to be collected
-    # and sent in one heartbeat. Also avoid server overload with heartbeats
-    if self.stop_event.wait(timeout=timeout2):
+    if self._stop:
       logger.info("Stop event received")
       return 0
-    # Timeout
+
+    if self.heartbeat_wait_event.wait(timeout=timeout1):
+      return 1
     return -1
 
 

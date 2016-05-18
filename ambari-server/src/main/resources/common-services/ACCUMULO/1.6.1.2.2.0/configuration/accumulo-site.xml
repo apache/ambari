@@ -24,6 +24,7 @@
   <property>
     <name>instance.volumes</name>
     <value>hdfs://localhost:8020/apps/accumulo/data</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Location of Accumulo data files in HDFS.</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -33,6 +34,7 @@
   <property>
     <name>instance.zookeeper.host</name>
     <value>localhost:2181</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Comma-separated list of ZooKeeper server:port
       pairs.</description>
     <value-attributes>
@@ -174,13 +176,12 @@ $ACCUMULO_HOME/lib/accumulo-proxy.jar,
 $ACCUMULO_HOME/lib/[^.].*.jar,
 $ZOOKEEPER_HOME/zookeeper[^.].*.jar,
 $HADOOP_CONF_DIR,
-/usr/hdp/current/hadoop-client/[^.].*.jar,
-/usr/hdp/current/hadoop-client/lib/(?!slf4j)[^.].*.jar,
-/usr/hdp/current/hadoop-hdfs-client/[^.].*.jar,
-/usr/hdp/current/hadoop-mapreduce-client/[^.].*.jar,
-/usr/hdp/current/hadoop-yarn-client/[^.].*.jar,
-/usr/hdp/current/hadoop-yarn-client/lib/jersey.*.jar,
-/usr/hdp/current/hive-client/lib/hive-accumulo-handler.jar,
+$HADOOP_PREFIX/share/hadoop/common/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/common/lib/(?!slf4j)[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/hdfs/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/mapreduce/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/yarn/[^.].*.jar,
+$HADOOP_PREFIX/share/hadoop/yarn/lib/jersey.*.jar
     </value>
     <description>List of jars and directories that will be added to
       Accumulo's classpath.  Ordering matters, as the entries will be

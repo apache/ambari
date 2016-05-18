@@ -136,7 +136,55 @@ class TestRepositoryResource(TestCase):
 
             self.assertEqual(expected_template_arguments, template_item.context._dict)
             self.assertEqual(RHEL_SUSE_DEFAULT_TEMPLATE, template)
-    
+
+
+    @patch.object(OSCheck, "is_suse_family")
+    @patch.object(OSCheck, "is_ubuntu_family")
+    @patch.object(OSCheck, "is_redhat_family")
+    @patch.object(System, "os_family", new='suse')
+    @patch("resource_management.libraries.providers.repository.File")
+    @patch("resource_management.libraries.providers.repository.checked_call")
+    @patch("resource_management.core.sudo.read_file")
+    @patch("os.path.isfile", new=MagicMock(return_value=True))
+    def test_recreate_repo_suse(self, read_file_mock, checked_call_mock, file_mock,
+                              is_redhat_family, is_ubuntu_family, is_suse_family):
+        is_redhat_family.return_value = False
+        is_ubuntu_family.return_value = False
+        is_suse_family.return_value = True
+        read_file_mock.return_value = "Dummy repo file contents"
+        checked_call_mock.return_value = 0, "Flushing zypper cache"
+        with Environment('/') as env:
+          with patch.object(repository, "__file__", new='/ambari/test/repo/dummy/path/file'):
+            # Check that zypper cache is flushed
+            Repository('hadoop',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_template = RHEL_SUSE_DEFAULT_TEMPLATE,
+                       repo_file_name='Repository')
+
+            self.assertTrue(checked_call_mock.called)
+
+            expected_repo_file_content = "[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
+            template = file_mock.call_args[1]['content']
+            self.assertEqual(expected_repo_file_content, template)
+
+            # Check that if content is equal, zypper cache is not flushed
+            checked_call_mock.reset_mock()
+            read_file_mock.return_value = expected_repo_file_content
+
+            Repository('hadoop',
+                       base_url='http://download.base_url.org/rpm/',
+                       mirror_list='https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
+                       repo_template = RHEL_SUSE_DEFAULT_TEMPLATE,
+                       repo_file_name='Repository')
+
+            self.assertFalse(checked_call_mock.called)
+
+            expected_repo_file_content = "[hadoop]\nname=hadoop\nmirrorlist=https://mirrors.base_url.org/?repo=Repository&arch=$basearch\n\npath=/\nenabled=1\ngpgcheck=0"
+            template = file_mock.call_args[1]['content']
+            self.assertEqual(expected_repo_file_content, template)
+
+
     @patch.object(OSCheck, "is_suse_family")
     @patch.object(OSCheck, "is_ubuntu_family")
     @patch.object(OSCheck, "is_redhat_family")

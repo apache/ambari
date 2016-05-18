@@ -25,6 +25,7 @@ from threading import Thread
 import threading
 from ambari_commons import OSCheck, OSConst
 from ambari_commons import shell
+from resource_management.core import shell as rmf_shell
 
 __all__ = ["installedPkgsByName", "allInstalledPackages", "allAvailablePackages", "nameMatch",
            "getInstalledRepos", "getInstalledPkgsByRepo", "getInstalledPkgsByNames", "getPackageDetails"]
@@ -273,3 +274,11 @@ def getReposToRemove(repos, ignoreList):
     if addToRemoveList:
       reposToRemove.append(repo)
   return reposToRemove
+
+def getInstalledPackageVersion(package_name):
+  if OSCheck.is_ubuntu_family():
+    code, out, err = rmf_shell.checked_call("dpkg -s {0} | grep Version | awk '{{print $2}}'".format(package_name), stderr=subprocess.PIPE)
+  else:
+    code, out, err = rmf_shell.checked_call("rpm -q --queryformat '%{{version}}-%{{release}}' {0} | sed -e 's/\.el[0-9]//g'".format(package_name), stderr=subprocess.PIPE)
+    
+  return out

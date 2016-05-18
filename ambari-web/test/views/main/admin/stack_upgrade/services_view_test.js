@@ -1,4 +1,4 @@
-/**
+ /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,29 +22,6 @@ require('views/main/admin/stack_upgrade/services_view');
 
 describe('App.MainAdminStackServicesView', function () {
   var view = App.MainAdminStackServicesView.create();
-
-  describe("#services", function () {
-    before(function () {
-      sinon.stub(App.StackService, 'find').returns([
-        Em.Object.create({serviceName: 'S1', isInstalled: false}),
-        Em.Object.create({serviceName: 'S2', isInstalled: false})
-      ]);
-      sinon.stub(App.Service, 'find').returns([
-        Em.Object.create({serviceName: 'S1'})
-      ]);
-    });
-    after(function () {
-      App.StackService.find.restore();
-      App.Service.find.restore();
-    });
-    it("", function () {
-      view.propertyDidChange('services');
-      expect(view.get('services')).to.eql([
-        Em.Object.create({serviceName: 'S1', isInstalled: true}),
-        Em.Object.create({serviceName: 'S2', isInstalled: false})
-      ]);
-    });
-  });
 
   describe("#goToAddService()" , function() {
     var mock = Em.Object.create({
@@ -73,14 +50,16 @@ describe('App.MainAdminStackServicesView', function () {
     it("routes to Add Service Wizard and set redirect path on wizard close", function() {
       isAccessibleMock.returns(true);
       view.goToAddService({context: "serviceName"});
-      expect(App.router.get.calledWith('addServiceController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
+      expect(App.router.get.calledWith('addServiceController')).to.be.true;
+      expect(mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(App.get('router').transitionTo.calledWith('main.serviceAdd')).to.be.true;
       expect(mock.get('serviceToInstall')).to.be.equal("serviceName");
     });
     it("routes to Security Wizard", function() {
       isAccessibleMock.returns(true);
       view.goToAddService({context: "KERBEROS"});
-      expect(App.router.get.calledWith('kerberosWizardController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
+      expect(App.router.get.calledWith('kerberosWizardController')).to.be.true;
+      expect(mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(mock.checkAndStartKerberosWizard.calledOnce).to.be.true;
     });
   });

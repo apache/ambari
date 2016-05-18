@@ -103,12 +103,9 @@ class Controller(threading.Thread):
 
     self.move_data_dir_mount_file()
 
-    self.alert_grace_period = int(config.get('agent', 'alert_grace_period', 5))
-
-    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
+    self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir,
       stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
-      self.alert_grace_period, self.cluster_configuration, config,
-      self.recovery_manager)
+      self.cluster_configuration, config, self.recovery_manager)
 
     self.alert_scheduler_handler.start()
 
@@ -171,18 +168,19 @@ class Controller(threading.Thread):
         logger.info("Registration Successful (response id = %s)", self.responseId)
 
         self.isRegistered = True
+
+        # always update cached cluster configurations on registration
+        # must be prior to any other operation
+        self.cluster_configuration.update_configurations_from_heartbeat(ret)
+        self.recovery_manager.update_configuration_from_registration(ret)
+        self.config.update_configuration_from_registration(ret)
+        logger.debug("Updated config:" + str(self.config))
+
         if 'statusCommands' in ret.keys():
           logger.debug("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
         else:
           self.hasMappedComponents = False
-
-        # always update cached cluster configurations on registration
-        self.cluster_configuration.update_configurations_from_heartbeat(ret)
-
-        self.recovery_manager.update_configuration_from_registration(ret)
-        self.config.update_configuration_from_registration(ret)
-        logger.debug("Updated config:" + str(self.config))
 
         # always update alert definitions on registration
         self.alert_scheduler_handler.update_definitions(ret)
@@ -224,7 +222,9 @@ class Controller(threading.Thread):
     else:
       if not LiveStatus.SERVICES:
         self.updateComponents(commands[0]['clusterName'])
+      self.recovery_manager.process_status_commands(commands)
       self.actionQueue.put_status(commands)
+    pass
 
   # For testing purposes
   DEBUG_HEARTBEAT_RETRIES = 0
@@ -300,7 +300,6 @@ class Controller(threading.Thread):
 
         if 'statusCommands' in response_keys:
           # try storing execution command details and desired state
-          self.recovery_manager.process_status_commands(response['statusCommands'])
           self.addToStatusQueue(response['statusCommands'])
 
         if not self.actionQueue.tasks_in_progress_or_pending():
@@ -325,6 +324,10 @@ class Controller(threading.Thread):
         if retry:
           logger.info("Reconnected to %s", self.heartbeatUrl)
 
+        if "recoveryConfig" in response:
+          # update the list of components enabled for recovery
+          self.recovery_manager.update_configuration_from_registration(response)
+
         retry = False
         certVerifFailed = False
         self.DEBUG_SUCCESSFULL_HEARTBEATS += 1
@@ -333,6 +336,7 @@ class Controller(threading.Thread):
       except ssl.SSLError:
         self.repeatRegistration=False
         self.isRegistered = False
+        logger.exception("SSLError while trying to heartbeat.")
         return
       except Exception, err:
         if "code" in err:
@@ -370,19 +374,26 @@ class Controller(threading.Thread):
         self.DEBUG_STOP_HEARTBEATING=True
 
   def run(self):
-    self.actionQueue = ActionQueue(self.config, controller=self)
-    self.actionQueue.start()
-    self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
-
-    opener = urllib2.build_opener()
-    urllib2.install_opener(opener)
-
-    while True:
-      self.repeatRegistration = False
-      self.registerAndHeartbeat()
-      if not self.repeatRegistration:
-        break
+    try:
+      self.actionQueue = ActionQueue(self.config, controller=self)
+      self.actionQueue.start()
+      self.register = Register(self.config)
+      self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
+  
+      opener = urllib2.build_opener()
+      urllib2.install_opener(opener)
+  
+      while True:
+        self.repeatRegistration = False
+        self.registerAndHeartbeat()
+        if not self.repeatRegistration:
+          logger.info("Finished heartbeating and registering cycle")
+          break
+    except:
+      logger.exception("Controller thread failed with exception:")
+      raise
+    
+    logger.info("Controller thread has successfully finished")
 
   def registerAndHeartbeat(self):
     registerResponse = self.registerWithServer()
@@ -403,6 +414,8 @@ class Controller(threading.Thread):
 
         time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
         self.heartbeatWithServer()
+      else:
+        logger.info("Registration response from %s didn't contain 'response' as a key".format(self.serverHostname))
 
   def restartAgent(self):
     ExitHelper().exit(AGENT_AUTO_RESTART_EXIT_CODE)

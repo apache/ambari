@@ -319,6 +319,21 @@ public class ConfigurationTest {
 
 
   @Test
+  public void testGetDefaultServerTaskTimeout() {
+    Properties ambariProperties = new Properties();
+    Configuration conf = new Configuration(ambariProperties);
+
+    Assert.assertEquals(Integer.valueOf(1200), conf.getDefaultServerTaskTimeout());
+
+    ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.SERVER_TASK_TIMEOUT_KEY, "3600");
+
+    conf = new Configuration(ambariProperties);
+
+    Assert.assertEquals(Integer.valueOf(3600), conf.getDefaultServerTaskTimeout());
+  }
+
+  @Test
   public void testGetLdapServerProperties_WrongManagerPassword() throws Exception {
     final Properties ambariProperties = new Properties();
     ambariProperties.setProperty(Configuration.LDAP_MANAGER_PASSWORD_KEY, "somePassword");
@@ -531,6 +546,239 @@ public class ConfigurationTest {
     Assert.assertTrue(configuration.isAlertCacheEnabled());
     Assert.assertEquals(60, configuration.getAlertCacheFlushInterval());
     Assert.assertEquals(1000, configuration.getAlertCacheSize());
+  }
+
+  @Test
+  public void testPropertyProviderThreadPoolSizes() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    Assert.assertEquals(2 * Runtime.getRuntime().availableProcessors(), configuration.getPropertyProvidersThreadPoolCoreSize());
+    Assert.assertEquals(4 * Runtime.getRuntime().availableProcessors(), configuration.getPropertyProvidersThreadPoolMaxSize());
+
+    ambariProperties.setProperty(Configuration.PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY, "44");
+    ambariProperties.setProperty(Configuration.PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_KEY, "22");
+
+    Assert.assertEquals(22, configuration.getPropertyProvidersThreadPoolCoreSize());
+    Assert.assertEquals(44, configuration.getPropertyProvidersThreadPoolMaxSize());
+  }
+
+
+  public void testGetHostRoleCommandStatusSummaryCacheSize() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE, "3000");
+
+    // When
+    long actualCacheSize = configuration.getHostRoleCommandStatusSummaryCacheSize();
+
+    // Then
+    Assert.assertEquals(actualCacheSize, 3000L);
+  }
+
+  @Test
+  public void testGetHostRoleCommandStatusSummaryCacheSizeDefault() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    long actualCacheSize = configuration.getHostRoleCommandStatusSummaryCacheSize();
+
+    // Then
+    Assert.assertEquals(actualCacheSize, Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT);
+  }
+
+  @Test
+  public void testGetHostRoleCommandStatusSummaryCacheExpiryDuration() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION, "60");
+
+    // When
+    long actualCacheExpiryDuration = configuration.getHostRoleCommandStatusSummaryCacheExpiryDuration();
+
+    // Then
+    Assert.assertEquals(actualCacheExpiryDuration, 60L);
+  }
+
+  @Test
+  public void testGetHostRoleCommandStatusSummaryCacheExpiryDurationDefault() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    long actualCacheExpiryDuration = configuration.getHostRoleCommandStatusSummaryCacheExpiryDuration();
+
+    // Then
+    Assert.assertEquals(actualCacheExpiryDuration, Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT);
+  }
+
+  @Test
+  public void testGetHostRoleCommandStatusSummaryCacheEnabled() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED, "true");
+
+    // When
+    boolean actualCacheEnabledConfig = configuration.getHostRoleCommandStatusSummaryCacheEnabled();
+
+    // Then
+    Assert.assertEquals(actualCacheEnabledConfig, true);
+  }
+
+  @Test
+  public void testGetHostRoleCommandStatusSummaryCacheDisabled() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED, "false");
+
+    // When
+    boolean actualCacheEnabledConfig = configuration.getHostRoleCommandStatusSummaryCacheEnabled();
+
+    // Then
+    Assert.assertEquals(actualCacheEnabledConfig, false);
+  }
+
+  @Test
+  public void testGetHostRoleCommandStatusSummaryCacheEnabledDefault() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    boolean actualCacheEnabledConfig = configuration.getHostRoleCommandStatusSummaryCacheEnabled();
+
+    // Then
+    Assert.assertEquals(actualCacheEnabledConfig, Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT);
+  }
+
+  @Test
+  public void testLdapUserSearchFilterDefault() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(false);
+
+    // Then
+    Assert.assertEquals("(&(uid={0})(objectClass=person))", actualLdapUserSearchFilter);
+  }
+
+  @Test
+  public void testLdapUserSearchFilter() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_USERNAME_ATTRIBUTE_KEY, "test_uid");
+    ambariProperties.setProperty(Configuration.LDAP_USER_SEARCH_FILTER_KEY, "{usernameAttribute}={0}");
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(false);
+
+    // Then
+    Assert.assertEquals("test_uid={0}", actualLdapUserSearchFilter);
+  }
+
+  @Test
+  public void testAlternateLdapUserSearchFilterDefault() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(true);
+
+    // Then
+    Assert.assertEquals("(&(userPrincipalName={0})(objectClass=person))", actualLdapUserSearchFilter);
+  }
+
+  @Test
+  public void testAlternatLdapUserSearchFilter() throws Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_USERNAME_ATTRIBUTE_KEY, "test_uid");
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_FILTER_KEY, "{usernameAttribute}={5}");
+
+    // When
+    String actualLdapUserSearchFilter = configuration.getLdapServerProperties().getUserSearchFilter(true);
+
+    // Then
+    Assert.assertEquals("test_uid={5}", actualLdapUserSearchFilter);
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledDefault() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    // When
+    boolean actual =  configuration.isLdapAlternateUserSearchEnabled();
+
+    // Then
+    Assert.assertEquals(false, actual);
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledTrue() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
+
+    // When
+    boolean actual =  configuration.isLdapAlternateUserSearchEnabled();
+
+    // Then
+    Assert.assertEquals(true, actual);
+  }
+
+  @Test
+  public void testAlternateUserSearchEnabledFalse() throws  Exception {
+    // Given
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "false");
+
+    // When
+    boolean actual =  configuration.isLdapAlternateUserSearchEnabled();
+
+    // Then
+    Assert.assertEquals(false, actual);
+  }
+
+  @Test
+  public void testCustomDatabaseProperties() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty("server.jdbc.properties.foo", "fooValue");
+    ambariProperties.setProperty("server.jdbc.properties.bar", "barValue");
+
+    Properties properties = configuration.getDatabaseCustomProperties();
+    Assert.assertEquals(2, properties.size());
+    Assert.assertEquals("fooValue", properties.getProperty("eclipselink.jdbc.property.foo"));
+    Assert.assertEquals("barValue", properties.getProperty("eclipselink.jdbc.property.bar"));
+  }
+
+  @Test
+  public void testCustomPersistenceProperties() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    ambariProperties.setProperty("server.persistence.properties.eclipselink.cache.coordination.channel", "FooChannel");
+    ambariProperties.setProperty("server.persistence.properties.eclipselink.persistence-context.flush-mode", "commit");
+
+    Properties properties = configuration.getPersistenceCustomProperties();
+    Assert.assertEquals(2, properties.size());
+    Assert.assertEquals("FooChannel", properties.getProperty("eclipselink.cache.coordination.channel"));
+    Assert.assertEquals("commit", properties.getProperty("eclipselink.persistence-context.flush-mode"));
   }
 
 }

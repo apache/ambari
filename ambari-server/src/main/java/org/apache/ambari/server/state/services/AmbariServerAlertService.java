@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.services;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +28,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariService;
+import org.apache.ambari.server.alerts.AlertRunnable;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -46,7 +49,9 @@ import com.google.inject.Provider;
 
 /**
  * The {@link AmbariServerAlertService} is used to manage the dynamically loaded
- * {@link Runnable}s which perform server-side alert checks.
+ * {@link AlertRunnable}s which perform server-side alert checks. The
+ * {@link AlertRunnable}s are scheduled using a {@link ScheduledExecutorService}
+ * with a fixed thread pool size.
  */
 @AmbariService
 public class AmbariServerAlertService extends AbstractScheduledService {
@@ -235,20 +240,24 @@ public class AmbariServerAlertService extends AbstractScheduledService {
 
     try {
       Class<?> clazz = Class.forName(sourceClass);
-      if (!Runnable.class.isAssignableFrom(clazz)) {
+      if (!AlertRunnable.class.isAssignableFrom(clazz)) {
         LOG.warn(
-            "Unable to schedule a server side alert for {} because it is not a Runnable",
-            sourceClass);
+            "Unable to schedule a server side alert for {} because it is not an {}", sourceClass,
+            AlertRunnable.class);
+
         return;
       }
 
       // instantiate and inject
-      Runnable runnable = (Runnable) clazz.newInstance();
-      m_injector.injectMembers(runnable);
+      Constructor<? extends AlertRunnable> constructor = clazz.asSubclass(
+          AlertRunnable.class).getConstructor(String.class);
+
+      AlertRunnable alertRunnable = constructor.newInstance(entity.getDefinitionName());
+      m_injector.injectMembers(alertRunnable);
 
       // schedule the runnable alert
       ScheduledFuture<?> scheduledFuture = m_scheduledExecutorService.scheduleWithFixedDelay(
-          runnable, interval, interval, TimeUnit.MINUTES);
+          alertRunnable, interval, interval, TimeUnit.MINUTES);
 
       String definitionName = entity.getDefinitionName();
       ScheduledAlert scheduledAlert = new ScheduledAlert(scheduledFuture, interval);
@@ -258,9 +267,17 @@ public class AmbariServerAlertService extends AbstractScheduledService {
           definitionName, interval);
 
     } catch (ClassNotFoundException cnfe) {
-      LOG.warn(
+      LOG.error(
           "Unable to schedule a server side alert for {} because it could not be found in the classpath",
           sourceClass);
+    } catch (NoSuchMethodException nsme) {
+      LOG.error(
+          "Unable to schedule a server side alert for {} because it does not have a constructor which takes the proper arguments.",
+          sourceClass);
+    } catch (InvocationTargetException ite) {
+      LOG.error(
+          "Unable to schedule a server side alert for {} because an exception occurred while constructing the instance.",
+          sourceClass, ite);
     }
   }
 

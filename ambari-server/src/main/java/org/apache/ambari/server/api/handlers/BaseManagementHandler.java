@@ -27,6 +27,7 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.RequestStatusMetaData;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 
@@ -100,6 +101,7 @@ public abstract class BaseManagementHandler implements RequestHandler {
         resourcesNode.addChild(resource, resource.getType() + ":" + count++);
       }
     }
+    result.setResultMetadata(convert(requestStatus.getStatusMetadata()));
     return result;
   }
 
@@ -133,4 +135,12 @@ public abstract class BaseManagementHandler implements RequestHandler {
    * @return the result of the persist operation
    */
   protected abstract Result persist(ResourceInstance resource, RequestBody body);
+
+  /**
+   * Convert {@link RequestStatusMetaData} object to {@link ResultMetadata} which will be
+   * included in {@link Result} object.
+   * @param requestStatusMetaData request status details
+   * @return result details
+   */
+  protected abstract ResultMetadata convert(RequestStatusMetaData requestStatusMetaData);
 }

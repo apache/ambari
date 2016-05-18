@@ -92,45 +92,45 @@ describe('App.themeMapper', function () {
                     }
                   ],
                   "widgets": [
-                              {
-                                "config": "c1/p1",
-                                "widget": {
-                                  "type": "slider",
-                                  "units": [
-                                            {
-                                              "unit-name": "MB"
-                                            },
-                                            {
-                                              "unit-name": "GB"
-                                            }
-                                            ]
-                                }
-                              },
-                              {
-                                "config": "c1/p2",
-                                "widget": {
-                                  "type": "slider",
-                                  "units": [
-                                            {
-                                              "unit-name": "percent"
-                                            }
-                                            ]
-                                }
-                              }
-                              ],
-                              "placement": {
-                                "configuration-layout": "default",
-                                "configs": [
-                                            {
-                                              "config": "c1/p1",
-                                              "subsection-name": "subsection1"
-                                            },
-                                            {
-                                              "config": "c1/p2",
-                                              "subsection-name": "subsection1"
-                                            }
-                                            ]
-                              }
+                    {
+                      "config": "c1/p1",
+                      "widget": {
+                        "type": "slider",
+                        "units": [
+                          {
+                            "unit-name": "MB"
+                          },
+                          {
+                            "unit-name": "GB"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "config": "c1/p2",
+                      "widget": {
+                        "type": "slider",
+                        "units": [
+                          {
+                            "unit-name": "percent"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "placement": {
+                    "configuration-layout": "default",
+                    "configs": [
+                      {
+                        "config": "c1/p1",
+                        "subsection-name": "subsection1"
+                      },
+                      {
+                        "config": "c1/p2",
+                        "subsection-name": "subsection1"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -139,56 +139,72 @@ describe('App.themeMapper', function () {
       ]
     };
 
-    it('should map theme data', function () {
+    describe('should map theme data', function () {
 
-      App.themesMapper.map(json);
-
-      expect(App.Tab.find().get('length')).to.equal(1);
-      expect(App.Section.find().get('length')).to.equal(2);
-      expect(App.SubSection.find().get('length')).to.equal(1);
-
-      //checking tab
-      expect(App.Tab.find('HDFS_settings').toJSON()).to.eql({
-        id: 'HDFS_settings',
-        name: 'settings',
-        display_name: 'Settings',
-        columns: "2",
-        rows: "1",
-        is_advanced: false,
-        service_name: 'HDFS',
-        is_advanced_hidden: false,
-        is_rendered: false,
-        is_configs_prepared: false
+      beforeEach(function () {
+        App.themesMapper.map(json, []);
       });
 
-      //checking section
-      expect(App.Tab.find('HDFS_settings').get('sections').objectAt(0).toJSON()).to.eql({
-        "id": "Section-1",
-        "name": "Section-1",
-        "display_name": "Section One",
-        "row_index": "0",
-        "row_span": "1",
-        "column_index": "0",
-        "column_span": "1",
-        "section_columns": "2",
-        "section_rows": "3",
-        "tab_id": "HDFS_settings"
+      it('1 Tab is mapped', function () {
+        expect(App.Tab.find().get('length')).to.equal(1);
       });
 
-      //checking subsection
-      expect(App.Tab.find('HDFS_settings').get('sections').objectAt(0).get('subSections').objectAt(0).toJSON()).to.eql({
-        "id": "subsection1",
-        "name": "subsection1",
-        "display_name": "Storage",
-        "border": "false",
-        "row_index": "0",
-        "row_span": "1",
-        "column_index": "0",
-        "depends_on": [],
-        "config_properties": [],
-        "left_vertical_splitter": true,
-        "column_span": "1",
-        "section_id": "Section-1"
+      it('2 Sections are mapped', function () {
+        expect(App.Section.find().get('length')).to.equal(2);
+      });
+
+      it('1 SubSection is mapped', function () {
+        expect(App.SubSection.find().get('length')).to.equal(1);
+      });
+
+      it('HDFS_settings tab is mapped correctly', function () {
+        //checking tab
+        expect(App.Tab.find('HDFS_settings').toJSON()).to.eql({
+          id: 'HDFS_settings',
+          name: 'settings',
+          display_name: 'Settings',
+          columns: "2",
+          rows: "1",
+          is_advanced: false,
+          service_name: 'HDFS',
+          is_advanced_hidden: false,
+          is_rendered: false,
+          is_configs_prepared: false
+        });
+      });
+
+      it('HDFS_settings section is mapped correctly', function () {
+        //checking section
+        expect(App.Tab.find('HDFS_settings').get('sections').objectAt(0).toJSON()).to.eql({
+          "id": "Section-1",
+          "name": "Section-1",
+          "display_name": "Section One",
+          "row_index": "0",
+          "row_span": "1",
+          "column_index": "0",
+          "column_span": "1",
+          "section_columns": "2",
+          "section_rows": "3",
+          "tab_id": "HDFS_settings"
+        });
+      });
+
+      it('HDFS_settings section subsection is mapped correctly', function () {
+        //checking subsection
+        expect(App.Tab.find('HDFS_settings').get('sections').objectAt(0).get('subSections').objectAt(0).toJSON()).to.eql({
+          "id": "subsection1",
+          "name": "subsection1",
+          "display_name": "Storage",
+          "border": "false",
+          "row_index": "0",
+          "row_span": "1",
+          "column_index": "0",
+          "depends_on": [],
+          "config_properties": [],
+          "left_vertical_splitter": true,
+          "column_span": "1",
+          "section_id": "Section-1"
+        });
       });
     });
   });

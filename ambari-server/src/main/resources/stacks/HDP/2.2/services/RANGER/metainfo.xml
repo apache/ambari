@@ -24,36 +24,7 @@
     <service>
       <name>RANGER</name>
       <extends>common-services/RANGER/0.4.0</extends>
-      <themes>
-        <theme>
-          <fileName>theme_version_1.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>ranger_2_2_*-admin</name>
-            </package>
-            <package>
-              <name>ranger_2_2_*-usersync</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>ranger-2-2-.*-admin</name>
-            </package>
-            <package>
-              <name>ranger-2-2-.*-usersync</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
+      <version>0.5.0.2.2</version>
     </service>
   </services>
 </metainfo>

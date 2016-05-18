@@ -32,7 +32,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -43,11 +43,25 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_default()
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar '
+                                         '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              not_if=format("ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar"),
+                              only_if=format("ls /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar")
+                              )
 
     self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1',
         wait_for_finish = False,
@@ -55,10 +69,10 @@ class TestStormUiServer(TestStormBase):
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )
@@ -72,7 +86,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
@@ -92,7 +106,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -103,11 +117,26 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_secured()
+
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar '
+                                         '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              not_if=format("ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar"),
+                              only_if=format("ls /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar")
+                              )
 
     self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1',
         wait_for_finish = False,
@@ -115,10 +144,10 @@ class TestStormUiServer(TestStormBase):
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep backtype.storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
+    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )
@@ -132,7 +161,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
@@ -152,7 +181,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "pre_upgrade_restart",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'storm-client', '2.2.1.0-2067'), sudo=True)
@@ -169,7 +198,7 @@ class TestStormUiServer(TestStormBase):
                      classname = "UiServer",
                      command = "pre_upgrade_restart",
                      config_dict = json_content,
-                     hdp_stack_version = self.STACK_VERSION,
+                     stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,
                      call_mocks = [(0, None, ''), (0, None)],
                      mocks_dict = mocks_dict)
@@ -210,7 +239,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -234,7 +263,7 @@ class TestStormUiServer(TestStormBase):
                         classname = "UiServer",
                         command = "security_status",
                         config_file="secured.json",
-                        hdp_stack_version = self.STACK_VERSION,
+                        stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -251,7 +280,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -261,7 +290,7 @@ class TestStormUiServer(TestStormBase):
                        classname = "UiServer",
                        command = "security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

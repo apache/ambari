@@ -40,7 +40,9 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
     maintenance_state: 'Alert.maintenance_state',
     instance: 'Alert.instance',
     state: 'Alert.state',
-    text: 'Alert.text'
+    text: 'Alert.text',
+    repeat_tolerance: 'Alert.repeat_tolerance',
+    repeat_tolerance_remaining: 'Alert.repeat_tolerance_remaining'
   },
 
   map: function(json) {

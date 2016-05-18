@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('controllers/main/alerts/add_alert_definition/add_alert_definition_controller');
-
+var testHelpers = require('test/helpers');
 var controller;
 
 describe('App.AddAlertDefinitionController', function () {
@@ -28,22 +28,12 @@ describe('App.AddAlertDefinitionController', function () {
   });
 
   describe("#createNewAlertDefinition()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
-    it("", function () {
+    it("valid request is sent", function () {
       controller.createNewAlertDefinition('data');
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'alerts.create_alert_definition',
-        sender: controller,
-        data: {
-          data: 'data'
-        }
-      });
+      var args = testHelpers.findAjaxRequest('name', 'alerts.create_alert_definition');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({data: 'data'});
     });
   });
 
@@ -55,7 +45,7 @@ describe('App.AddAlertDefinitionController', function () {
       controller.clear.restore();
     });
 
-    it("", function () {
+    it("clear is called", function () {
       controller.finish();
       expect(controller.clear.calledOnce).to.be.true;
     });

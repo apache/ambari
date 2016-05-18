@@ -40,6 +40,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hive_metastore</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -76,6 +82,12 @@
             <script>scripts/hive_server.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hive_hiveserver2</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
         <component>
           <name>WEBHCAT_SERVER</name>

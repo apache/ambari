@@ -20,7 +20,13 @@ var App = require('app');
 
 App.ReassignMasterWizardStep7Controller = App.ReassignMasterWizardStep4Controller.extend({
   name: 'reassignMasterWizardStep7Controller',
-  commands: ['putHostComponentsInMaintenanceMode', 'deleteHostComponents', 'cleanMySqlServer', 'configureMySqlServer', 'startServices'],
+  commands: [
+    'putHostComponentsInMaintenanceMode',
+    'deleteHostComponents',
+    'cleanMySqlServer',
+    'configureMySqlServer',
+    'startServices'
+  ],
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
   multiTaskCounter: 0,
 

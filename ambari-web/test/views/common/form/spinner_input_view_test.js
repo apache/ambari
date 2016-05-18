@@ -20,10 +20,15 @@ var App = require('app');
 
 var view;
 var e;
+
+function getView() {
+  return App.SpinnerInputView.create({});
+}
+
 describe('App.SpinnerInputView', function () {
 
   beforeEach(function () {
-    view = App.SpinnerInputView.create({});
+    view = getView();
     e = {
       preventDefault: Em.K
     };
@@ -33,6 +38,8 @@ describe('App.SpinnerInputView', function () {
   afterEach(function () {
     e.preventDefault.restore();
   });
+
+  App.TestAliases.testAsComputedOr(getView(), 'computedDisabled', ['!content.enabled', 'disabled']);
 
   describe('#keyDown', function () {
 

@@ -39,24 +39,24 @@
       </thead>
       <tbody>
       {{#if view.pageContent}}
-        {{#each alertInstance in view.pageContent}}
+        {{#each instance in view.pageContent}}
           <tr>
             <td class="first">
-              {{#if alertInstance.isAmbariServiceName}}
-                {{alertInstance.serviceDisplayName}}
+              {{#if instance.isAmbariServiceName}}
+                {{instance.serviceDisplayName}}
               {{else}}
-                <a href="#" {{action routeToService alertInstance.service}}>{{alertInstance.serviceDisplayName}}</a>
+                <a href="#" {{action routeToService instance.service}}>{{instance.serviceDisplayName}}</a>
               {{/if}}
             </td>
             <td>
-              <a href="#" {{action routeToAlertDefinition alertInstance.definitionId target="controller"}}>{{alertInstance.label}}</a>
+              <a href="#" {{action routeToAlertDefinition instance.definitionId target="controller"}}>{{instance.label}}</a>
             </td>
-            <td>{{{alertInstance.status}}}
-              <time class="timeago" {{bindAttr data-original-title="alertInstance.statusChangedAndLastCheckedFormatted"}}>{{alertInstance.lastTriggeredForFormatted}}</time>
+            <td>
+              {{template "templates/main/alerts/alert_instance/status"}}
             </td>
             <td><span
-                    class="alert-text" {{bindAttr data-original-title="alertInstance.escapeSpecialCharactersFromTooltip"}}
-                    class="alert-text">{{alertInstance.text}}</span></td>
+                    class="alert-text" {{bindAttr data-original-title="instance.escapeSpecialCharactersFromTooltip"}}
+                    class="alert-text">{{instance.text}}</span></td>
           </tr>
         {{/each}}
       {{else}}
@@ -71,7 +71,7 @@
     </table>
 
   {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   {{/if}}
 
   <div class="page-bar">

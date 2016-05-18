@@ -27,17 +27,21 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Blueprint implementation.
@@ -50,6 +54,7 @@ public class BlueprintImpl implements Blueprint {
   private Configuration configuration;
   private BlueprintValidator validator;
   private SecurityConfiguration security;
+  private Setting setting;
 
   public BlueprintImpl(BlueprintEntity entity) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
@@ -65,9 +70,16 @@ public class BlueprintImpl implements Blueprint {
     parseBlueprintHostGroups(entity);
     configuration.setParentConfiguration(stack.getConfiguration(getServices()));
     validator = new BlueprintValidatorImpl(this);
+    processSetting(entity.getSettings());
   }
 
-  public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration, SecurityConfiguration security) {
+  public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration,
+                       SecurityConfiguration security) {
+    this(name, groups, stack, configuration, security, null);
+  }
+
+  public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration,
+                       SecurityConfiguration security, Setting setting) {
     this.name = name;
     this.stack = stack;
     this.security = security;
@@ -82,6 +94,7 @@ public class BlueprintImpl implements Blueprint {
       configuration.setParentConfiguration(stack.getConfiguration(getServices()));
     }
     validator = new BlueprintValidatorImpl(this);
+    this.setting = setting;
   }
 
   public String getName() {
@@ -117,6 +130,11 @@ public class BlueprintImpl implements Blueprint {
     return configuration;
   }
 
+  @Override
+  public Setting getSetting() {
+    return setting;
+  }
+
   /**
    * Get all services represented in blueprint.
    *
@@ -141,6 +159,50 @@ public class BlueprintImpl implements Blueprint {
     return components;
   }
 
+  /**
+   * Get whether the specified component in the service is enabled
+   * for auto start.
+   *
+   * @param serviceName - Service name.
+   * @param componentName - Component name.
+   *
+   * @return True or false.
+   */
+  @Override
+  public boolean isRecoveryEnabled(String serviceName, String componentName) {
+    if (setting == null)
+      return false;
+
+    Set<HashMap<String, String>> settingValue;
+
+    // If component name was specified in the list of "component_settings",
+    // determine if recovery_enabled is true or false and return it.
+    settingValue = setting.getSettingValue(Setting.SETTING_NAME_COMPONENT_SETTINGS);
+    for (Map<String, String> setting : settingValue) {
+      String name = setting.get(Setting.SETTING_NAME_NAME);
+      if (StringUtils.equals(name, componentName)) {
+        return Boolean.parseBoolean(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED));
+      }
+    }
+
+    // If component name is not specified, look up it's service.
+    settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
+    for ( Map<String, String> setting : settingValue){
+      String name = setting.get(Setting.SETTING_NAME_NAME);
+      if (StringUtils.equals(name, serviceName)) {
+        return Boolean.parseBoolean(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED));
+      }
+    }
+
+    // If service name is not specified, look up the cluster setting.
+    settingValue = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
+    for (Map<String, String> setting : settingValue) {
+      return Boolean.parseBoolean(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED));
+    }
+
+    return false;
+  }
+
   @Override
   public Stack getStack() {
     return stack;
@@ -157,7 +219,7 @@ public class BlueprintImpl implements Blueprint {
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
     Collection<HostGroup> resultGroups = new HashSet<HostGroup>();
     for (HostGroup group : hostGroups.values() ) {
-      if (group.getComponents().contains(component)) {
+      if (group.getComponentNames().contains(component)) {
         resultGroups.add(group);
       }
     }
@@ -209,6 +271,7 @@ public class BlueprintImpl implements Blueprint {
 
     createHostGroupEntities(entity);
     createBlueprintConfigEntities(entity);
+    createBlueprintSettingEntities(entity);
 
     return entity;
   }
@@ -255,6 +318,17 @@ public class BlueprintImpl implements Blueprint {
   }
 
   /**
+   * Process blueprint setting.
+   *
+   * @param blueprintSetting
+   */
+  private void processSetting(Collection<BlueprintSettingEntity> blueprintSetting) {
+    if (blueprintSetting != null) {
+      setting = new Setting(parseSetting(blueprintSetting));
+    }
+  }
+
+  /**
    * Obtain configuration as a map of config type to corresponding properties.
    *
    * @return map of config type to map of properties
@@ -266,8 +340,26 @@ public class BlueprintImpl implements Blueprint {
     for (BlueprintConfiguration config : configs) {
       String type = config.getType();
       Map<String, String> typeProperties = gson.<Map<String, String>>fromJson(
-          config.getConfigData(), Map.class);
+              config.getConfigData(), Map.class);
       properties.put(type, typeProperties);
+    }
+    return properties;
+  }
+
+  /**
+   * Deserialization: Obtain setting as a map of setting name to corresponding properties.
+   *
+   * @return map of setting name to map of properties
+   */
+  private Map<String, Set<HashMap<String, String>>> parseSetting(Collection<BlueprintSettingEntity> blueprintSetting) {
+
+    Map<String, Set<HashMap<String, String>>> properties = new HashMap<String, Set<HashMap<String, String>>>();
+    Gson gson = new Gson();
+    for (BlueprintSettingEntity setting : blueprintSetting) {
+      String settingName = setting.getSettingName();
+      Set<HashMap<String, String>> settingProperties = gson.<Set<HashMap<String, String>>>fromJson(
+              setting.getSettingData(), Set.class);
+      properties.put(settingName, settingProperties);
     }
     return properties;
   }
@@ -358,18 +450,25 @@ public class BlueprintImpl implements Blueprint {
     * Create component entities and add to parent host group.
     */
   @SuppressWarnings("unchecked")
-  private void createComponentEntities(HostGroupEntity group, Collection<String> components) {
+  private void createComponentEntities(HostGroupEntity group, Collection<Component> components) {
     Collection<HostGroupComponentEntity> componentEntities = new HashSet<HostGroupComponentEntity>();
     group.setComponents(componentEntities);
 
-    for (String component : components) {
+    for (Component component : components) {
       HostGroupComponentEntity componentEntity = new HostGroupComponentEntity();
       componentEntities.add(componentEntity);
 
-      componentEntity.setName(component);
+      componentEntity.setName(component.getName());
       componentEntity.setBlueprintName(group.getBlueprintName());
       componentEntity.setHostGroupEntity(group);
       componentEntity.setHostGroupName(group.getName());
+
+      // add provision action (if specified) to entity type
+      // otherwise, just leave this column null (provision_action)
+      if (component.getProvisionAction() != null) {
+        componentEntity.setProvisionAction(component.getProvisionAction().toString());
+      }
+
     }
     group.setComponents(componentEntities);
   }
@@ -410,4 +509,26 @@ public class BlueprintImpl implements Blueprint {
     blueprintEntity.setConfigurations(configEntityMap.values());
   }
 
+  /**
+   * Populate setting for serialization to DB.
+   */
+  private void createBlueprintSettingEntities(BlueprintEntity blueprintEntity) {
+    Gson jsonSerializer = new Gson();
+    Setting blueprintSetting = getSetting();
+    if (blueprintSetting != null) {
+      Map<String, BlueprintSettingEntity> settingEntityMap = new HashMap<>();
+      for (Map.Entry<String, Set<HashMap<String, String>>> propEntry : blueprintSetting.getProperties().entrySet()) {
+        String settingName = propEntry.getKey();
+        Set<HashMap<String, String>> properties = propEntry.getValue();
+
+        BlueprintSettingEntity settingEntity = new BlueprintSettingEntity();
+        settingEntityMap.put(settingName, settingEntity);
+        settingEntity.setBlueprintName(getName());
+        settingEntity.setBlueprintEntity(blueprintEntity);
+        settingEntity.setSettingName(settingName);
+        settingEntity.setSettingData(jsonSerializer.toJson(properties));
+      }
+      blueprintEntity.setSettings(settingEntityMap.values());
+    }
+  }
 }

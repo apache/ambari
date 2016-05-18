@@ -24,15 +24,15 @@ angular.module('ambariAdminConsole').constant('UserConstants', {
   TYPES: {
     LOCAL: {
       VALUE: 'LOCAL',
-      NAME: 'Local'
+      LABEL_KEY: 'common.local'
     },
     LDAP: {
       VALUE: 'LDAP',
-      NAME: 'LDAP'
+      LABEL_KEY: 'common.ldap'
     },
     JWT: {
       VALUE: 'JWT',
-      NAME: 'JWT'
+      LABEL_KEY: 'common.jwt'
     }
   }
 });

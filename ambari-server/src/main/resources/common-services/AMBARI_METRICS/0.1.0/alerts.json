@@ -17,12 +17,14 @@
             },
             "warning": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.1
+              "value": 10
             },
             "critical": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.3
-            }
+              "value": 30
+            },
+            "units" : "%",
+            "type": "PERCENT"
           }
         }
       }
@@ -30,8 +32,8 @@
     "METRICS_COLLECTOR": [
       {
         "name": "ams_metrics_collector_autostart",
-        "label": "Metrics Collector Auto-Start",
-        "description": "This alert is triggered if the Metrics Collector has been auto-started for number of times equal to threshold.",
+        "label": "Metrics Collector - Auto-Restart Status",
+        "description": "This alert is triggered if the Metrics Collector has been restarted automatically too frequently in last one hour. By default, a Warning alert is triggered if restarted twice in one hour and a Critical alert is triggered if restarted 4 or more times in one hour.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -129,7 +131,8 @@
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
             },
-            "units" : "%"
+            "units" : "%",
+            "type": "PERCENT"
           },
           "jmx": {
             "property_list": [
@@ -137,31 +140,6 @@
               "java.lang:type=OperatingSystem/AvailableProcessors"
             ],
             "value": "{0} * 100"
-          }
-        }
-      },
-      {
-        "name": "ams_metrics_collector_zookeeper_server_process",
-        "label": "Metrics Collector - ZooKeeper Server Process",
-        "description": "This host-level alert is triggered if the Metrics Collector's ZooKeeper server process cannot be determined to be up and listening on the network.",
-        "interval": 1,
-        "scope": "ANY",
-        "source": {
-          "type": "PORT",
-          "uri": "{{ams-hbase-site/hbase.zookeeper.property.clientPort}}",
-          "default_port": 61181,
-          "reporting": {
-            "ok": {
-              "text": "TCP OK - {0:.3f}s response on port {1}"
-            },
-            "warning": {
-              "text": "TCP OK - {0:.3f}s response on port {1}",
-              "value": 1.5
-            },
-            "critical": {
-              "text": "Connection failed: {0} to {1}:{2}",
-              "value": 5.0
-            }
           }
         }
       }
@@ -176,6 +154,37 @@
         "source": {
           "type": "SCRIPT",
           "path": "AMBARI_METRICS/0.1.0/package/alerts/alert_ambari_metrics_monitor.py"
+        }
+      }
+    ],
+    "METRICS_GRAFANA": [
+      {
+        "name": "grafana_webui",
+        "label": "Grafana Web UI",
+        "description": "This host-level alert is triggered if the Grafana Web UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+              "http": "{{ams-grafana-ini/port}}",
+              "https": "{{ams-grafana-ini/port}}",
+              "https_property": "{{ams-grafana-ini/protocol}}",
+              "https_property_value": "https",
+              "connection_timeout": 5.0,
+              "default_port": 3000
+          },
+          "reporting": {
+              "ok": {
+                  "text": "HTTP {0} response in {2:.3f}s"
+              },
+              "warning":{
+                  "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+              },
+              "critical": {
+                  "text": "Connection failed to {1} ({3})"
+              }
+          }
         }
       }
     ]

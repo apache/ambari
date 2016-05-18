@@ -37,6 +37,8 @@ import com.google.inject.Inject;
  */
 public class RangerConfigCalculation extends AbstractServerAction {
   private static final String SOURCE_CONFIG_TYPE = "admin-properties";
+  private static final String RANGER_ENV_CONFIG_TYPE = "ranger-env";
+  private static final String RANGER_ADMIN_SITE_CONFIG_TYPE = "ranger-admin-site";
 
   @Inject
   private Clusters m_clusters;
@@ -101,6 +103,7 @@ public class RangerConfigCalculation extends AbstractServerAction {
     String url = null;
     String dialect = null;
     String auditUrl = null;
+    String userJDBCUrl = null;
 
     if ("mysql".equals(db)) {
       if (null == dbName) {
@@ -112,19 +115,22 @@ public class RangerConfigCalculation extends AbstractServerAction {
       url = MessageFormat.format("jdbc:mysql://{0}/{1}", dbHost, dbName);
       auditUrl = MessageFormat.format("jdbc:mysql://{0}/{1}", dbHost, auditDbName);
       dialect = "org.eclipse.persistence.platform.database.MySQLPlatform";
+      userJDBCUrl = MessageFormat.format("jdbc:mysql://{0}", dbHost);
     } else if ("oracle".equals(db)) {
       driver = "oracle.jdbc.OracleDriver";
       url = MessageFormat.format("jdbc:oracle:thin:@//{0}", dbHost);
       auditUrl = MessageFormat.format("jdbc:oracle:thin:@//{0}", dbHost);
       dialect = "org.eclipse.persistence.platform.database.OraclePlatform";
+      userJDBCUrl = MessageFormat.format("jdbc:oracle:thin:@//{0}", dbHost);
     }
 
     stdout.append(MessageFormat.format("Database driver: {0}\n", driver));
     stdout.append(MessageFormat.format("Database url: {0}\n", url));
     stdout.append(MessageFormat.format("Database audit url: {0}\n", auditUrl));
     stdout.append(MessageFormat.format("Database dialect: {0}", dialect));
+    stdout.append(MessageFormat.format("Database user jdbc url: {0}", userJDBCUrl));
 
-    Config config = cluster.getDesiredConfigByType("ranger-admin-site");
+    Config config = cluster.getDesiredConfigByType(RANGER_ADMIN_SITE_CONFIG_TYPE);
     Map<String, String> targetValues = config.getProperties();
     targetValues.put("ranger.jpa.jdbc.driver", driver);
     targetValues.put("ranger.jpa.jdbc.url", url);
@@ -134,6 +140,12 @@ public class RangerConfigCalculation extends AbstractServerAction {
     targetValues.put("ranger.jpa.audit.jdbc.url", auditUrl);
     targetValues.put("ranger.jpa.audit.jdbc.dialect", dialect);
 
+    config.setProperties(targetValues);
+    config.persist(false);
+
+    config = cluster.getDesiredConfigByType(RANGER_ENV_CONFIG_TYPE);
+    targetValues = config.getProperties();
+    targetValues.put("ranger_privelege_user_jdbc_url", userJDBCUrl);
     config.setProperties(targetValues);
     config.persist(false);
 

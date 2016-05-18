@@ -17,38 +17,27 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.v2;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AbstractTimelineAggregator;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricClusterAggregate;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricReadHelper;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.EmptyCondition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_AGGREGATED_APP_METRIC_GROUPBY_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_TIME_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 
 public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator {
-  private static final Log LOG = LogFactory.getLog(TimelineMetricClusterAggregator.class);
   private final String aggregateColumnName;
 
-  public TimelineMetricClusterAggregator(PhoenixHBaseAccessor hBaseAccessor,
+  public TimelineMetricClusterAggregator(AGGREGATOR_NAME aggregatorName,
+                                         PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf,
                                          String checkpointLocation,
                                          Long sleepIntervalMillis,
@@ -56,11 +45,12 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
                                          String hostAggregatorDisabledParam,
                                          String inputTableName,
                                          String outputTableName,
-                                         Long nativeTimeRangeDelay) {
-    super(hBaseAccessor, metricsConf, checkpointLocation,
+                                         Long nativeTimeRangeDelay,
+                                         TimelineMetricHAController haController) {
+    super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
       sleepIntervalMillis, checkpointCutOffMultiplier,
       hostAggregatorDisabledParam, inputTableName, outputTableName,
-      nativeTimeRangeDelay);
+      nativeTimeRangeDelay, haController);
 
     if (inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME)) {
       aggregateColumnName = "HOSTS_COUNT";
@@ -84,9 +74,12 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
      */
 
     condition.setStatement(String.format(GET_AGGREGATED_APP_METRIC_GROUPBY_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, nativeTimeRangeDelay),
-      outputTableName, aggregateColumnName, tableName,
+      getQueryHint(startTime), outputTableName, endTime, aggregateColumnName, tableName,
       startTime, endTime));
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Condition: " + condition.toString());
+    }
 
     return condition;
   }

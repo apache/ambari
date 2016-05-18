@@ -22,12 +22,11 @@ import tarfile
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select, tar_archive
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
@@ -35,6 +34,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from resource_management.core.resources.system import File, Execute, Directory, Link
 from resource_management.core.resources.service import Service
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.show_logs import show_logs
 
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -43,13 +43,16 @@ if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 
 import upgrade
-from knox import knox
+from knox import knox, update_knox_logfolder_permissions
 from knox_ldap import ldap
 from setup_ranger_knox import setup_ranger_knox
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
+
 
 class KnoxGateway(Script):
-  def get_stack_to_component(self):
-    return {"HDP": "knox-server"}
+  def get_component_name(self):
+    return "knox-server"
 
   def install(self, env):
     import params
@@ -60,7 +63,7 @@ class KnoxGateway(Script):
          action = "delete",
     )
 
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     knox()
@@ -75,14 +78,14 @@ class KnoxGateway(Script):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class KnoxGatewayWindows(KnoxGateway):
-  def start(self, env):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
     # setup_ranger_knox(env)
     Service(params.knox_gateway_win_service_name, action="start")
 
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     Service(params.knox_gateway_win_service_name, action="stop")
@@ -111,8 +114,7 @@ class KnoxGatewayDefault(KnoxGateway):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       absolute_backup_dir = None
       if params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
         Logger.info("Backing up directories. Initial conf folder: %s" % os.path.realpath(params.knox_conf_dir))
@@ -120,9 +122,9 @@ class KnoxGatewayDefault(KnoxGateway):
         # This will backup the contents of the conf directory into /tmp/knox-upgrade-backup/knox-conf-backup.tar
         absolute_backup_dir = upgrade.backup_data()
 
-      # conf-select will change the symlink to the conf folder.
+      # <conf-selector-tool> will change the symlink to the conf folder.
       conf_select.select(params.stack_name, "knox", params.version)
-      hdp_select.select("knox-server", params.version)
+      stack_select.select("knox-server", params.version)
 
       # Extract the tar of the old conf folder into the new conf directory
       if absolute_backup_dir is not None and params.upgrade_direction and params.upgrade_direction == Direction.UPGRADE:
@@ -154,20 +156,34 @@ class KnoxGatewayDefault(KnoxGateway):
            to = params.knox_pid_dir,
       )
 
-    Execute(daemon_cmd,
-            user=params.knox_user,
-            environment={'JAVA_HOME': params.java_home},
-            not_if=no_op_test
-    )
+    update_knox_logfolder_permissions()
+
+    try:
+      Execute(daemon_cmd,
+              user=params.knox_user,
+              environment={'JAVA_HOME': params.java_home},
+              not_if=no_op_test
+      )
+    except:
+      show_logs(params.knox_logs_dir, params.knox_user)
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     daemon_cmd = format('{knox_bin} stop')
-    Execute(daemon_cmd,
-            environment={'JAVA_HOME': params.java_home},
-            user=params.knox_user,
-    )
+
+    update_knox_logfolder_permissions()
+
+    try:
+      Execute(daemon_cmd,
+              environment={'JAVA_HOME': params.java_home},
+              user=params.knox_user,
+      )
+    except:
+      show_logs(params.knox_logs_dir, params.knox_user)
+      raise
+    
     File(params.knox_pid_file,
          action="delete",
     )
@@ -262,6 +278,14 @@ class KnoxGatewayDefault(KnoxGateway):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
+      
+  def get_log_folder(self):
+    import params
+    return params.knox_logs_dir
+  
+  def get_user(self):
+    import params
+    return params.knox_user
 
 
 if __name__ == "__main__":

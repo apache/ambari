@@ -25,6 +25,7 @@ import threading
 import tempfile
 import time
 from threading import Thread
+import os
 
 from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -155,6 +156,30 @@ class TestPythonExecutor(TestCase):
     self.assertTrue("python" in command[0].lower())
     self.assertEquals("script", command[1])
     self.assertEquals("script_param1", command[2])
+
+  @patch.object(os.path, "isfile")
+  @patch.object(os, "rename")
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  def test_back_up_log_file_if_exists(self, rename_mock, isfile_mock):
+    # Test case when previous log file is absent
+    isfile_mock.return_value = False
+    log_file = "/var/lib/ambari-agent/data/output-13.txt"
+    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor.back_up_log_file_if_exists(log_file)
+    self.assertEquals(isfile_mock.called, True)
+    self.assertEquals(rename_mock.called, False)
+
+    isfile_mock.reset_mock()
+
+    # Test case when 3 previous log files are absent
+    isfile_mock.side_effect = [True, True, True, False]
+    log_file = "/var/lib/ambari-agent/data/output-13.txt"
+    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    executor.back_up_log_file_if_exists(log_file)
+    self.assertEquals(isfile_mock.called, True)
+    self.assertEquals(rename_mock.call_args_list[0][0][0], "/var/lib/ambari-agent/data/output-13.txt")
+    self.assertEquals(rename_mock.call_args_list[0][0][1], "/var/lib/ambari-agent/data/output-13.txt.2")
+    pass
 
 
   class Subprocess_mockup():

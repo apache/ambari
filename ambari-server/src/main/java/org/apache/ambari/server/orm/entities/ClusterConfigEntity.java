@@ -228,8 +228,8 @@ public class ClusterConfigEntity {
 
   @Override
   public int hashCode() {
-    int result = configId != null ? configId.intValue() : 0;
-    result = 31 * result + (clusterId != null ? clusterId.intValue() : 0);
+    int result = configId != null ? configId.hashCode() : 0;
+    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
     result = 31 * result + (type != null ? type.hashCode() : 0);
     result = 31 * result + (tag != null ? tag.hashCode() : 0);
     result = 31 * result + (stack != null ? stack.hashCode() : 0);

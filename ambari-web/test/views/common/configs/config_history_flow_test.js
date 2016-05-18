@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('views/common/configs/config_history_flow');
-
+var testHelpers = require('test/helpers');
 
 describe.skip('App.ConfigHistoryFlowView', function () {
 
@@ -31,91 +31,13 @@ describe.skip('App.ConfigHistoryFlowView', function () {
     serviceVersions: []
   });
 
-  describe('#isSaveDisabled', function () {
-    var testCases = [
-      {
-        params: {
-          isSubmitDisabled: false,
-          versionLoaded: true
-        },
-        result: false
-      },
-      {
-        params: {
-          isSubmitDisabled: true,
-          versionLoaded: true
-        },
-        result: true
-      },
-      {
-        params: {
-          isSubmitDisabled: false,
-          versionLoaded: false
-        },
-        result: true
-      },
-      {
-        params: {
-          isSubmitDisabled: true,
-          versionLoaded: false
-        },
-        result: true
-      }
-    ];
-    testCases.forEach(function (test) {
-      it('isSubmitDisabled - ' + test.params.isSubmitDisabled + ', versionLoaded - ' + test.params.versionLoaded, function () {
-        view.set('controller.isSubmitDisabled', test.params.isSubmitDisabled);
-        view.set('controller.versionLoaded', test.params.versionLoaded);
-        expect(view.get('isSaveDisabled')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedAlias(view, 'serviceName', 'controller.selectedService.serviceName', 'string');
 
-  describe('#showMoreLink', function () {
-    var testCases = [
-      {
-        params: {
-          count: 0
-        },
-        result: false
-      },
-      {
-        params: {
-          count: 100
-        },
-        result: false
-      },
-      {
-        params: {
-          count: 101
-        },
-        result: true
-      }
-    ];
-    testCases.forEach(function (test) {
-      it('notes length - ' + test.params.count, function () {
-        view.set('displayedServiceVersion', Em.Object.create({
-          notes: new Array(test.params.count)
-        }));
-        expect(view.get('showMoreLink')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedOr(view, 'isSaveDisabled', ['controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged']);
 
-  describe('#shortNotes', function () {
-    it('notes length more than 100', function () {
-      view.set('displayedServiceVersion', Em.Object.create({
-        notes: '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123'
-      }));
-      expect(view.get('shortNotes')).to.equal('1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890...');
-    });
-    it('notes length less than 100', function () {
-      view.set('displayedServiceVersion', Em.Object.create({
-        notes: 'notes'
-      }));
-      expect(view.get('shortNotes')).to.equal('notes');
-    });
-  });
+  App.TestAliases.testAsComputedGt(view, 'displayedServiceVersion.notes.length', 100);
+
+  App.TestAliases.testAsComputedTruncate(view, 'shortNotes', 'displayedServiceVersion.notes', 100, 100);
 
   describe('#visibleServiceVersion', function () {
     var testCases = [
@@ -234,15 +156,25 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#openFullList()', function () {
-    it('', function () {
-      var event = {
+    var event;
+    beforeEach(function () {
+      event = {
         stopPropagation: Em.K
       };
       sinon.spy(event, 'stopPropagation');
       view.openFullList(event);
-      expect(event.stopPropagation.calledOnce).to.be.true;
-      expect(view.get('showFullList')).to.be.true;
+    });
+
+    afterEach(function () {
       event.stopPropagation.restore();
+    });
+
+    it('stopPropagation is called once', function () {
+      expect(event.stopPropagation.calledOnce).to.be.true;
+    });
+
+    it('stopPropagation is true', function () {
+      expect(view.get('stopPropagation')).to.be.true;
     });
   });
 
@@ -277,63 +209,107 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#didInsertElement()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(App, 'tooltip');
       view.didInsertElement();
-      expect(App.tooltip.calledOnce).to.be.true;
+    });
+
+    afterEach(function () {
       App.tooltip.restore();
+    });
+
+    it('App.tooltip is called on�e', function () {
+      expect(App.tooltip.calledOnce).to.be.true;
     });
   });
 
   describe('#willInsertElement()', function () {
+
     beforeEach(function () {
       sinon.stub(view, 'adjustFlowView', Em.K);
       sinon.stub(view, 'keepInfoBarAtTop', Em.K);
     });
+
     afterEach(function () {
       view.adjustFlowView.restore();
       view.keepInfoBarAtTop.restore();
     });
-    it('Only current version is present', function () {
-      view.set('serviceVersions', [Em.Object.create({isCurrent: true})]);
 
-      view.willInsertElement();
-      expect(view.adjustFlowView.calledOnce).to.be.true;
-      expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
-      expect(view.get('startIndex')).to.equal(0);
-      expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true]);
-    });
-    it('Five service versions are present', function () {
-      view.set('serviceVersions', [
-        Em.Object.create({isCurrent: true}),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create()
-      ]);
+    describe('Only current version is present', function () {
 
-      view.willInsertElement();
-      expect(view.adjustFlowView.calledOnce).to.be.true;
-      expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
-      expect(view.get('startIndex')).to.equal(0);
-      expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false]);
-    });
-    it('Six service versions are present', function () {
-      view.set('serviceVersions', [
-        Em.Object.create({isCurrent: true}),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create()
-      ]);
+      beforeEach(function () {
+        view.set('serviceVersions', [Em.Object.create({isCurrent: true})]);
+        view.willInsertElement();
+      });
 
-      view.willInsertElement();
-      expect(view.adjustFlowView.calledOnce).to.be.true;
-      expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
-      expect(view.get('startIndex')).to.equal(1);
-      expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false, false]);
+      it('adjustFlowView is called once', function () {
+        expect(view.adjustFlowView.calledOnce).to.be.true;
+      });
+      it('keepInfoBarAtTop is called once', function () {
+        expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
+      });
+      it('startIndex = 0', function () {
+        expect(view.get('startIndex')).to.equal(0);
+      });
+      it('serviceVersions.@each.isDisplayed = [true]', function () {
+        expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true]);
+      });
     });
+
+    describe('Five service versions are present', function () {
+
+      beforeEach(function () {
+        view.set('serviceVersions', [
+          Em.Object.create({isCurrent: true}),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create()
+        ]);
+        view.willInsertElement();
+      });
+      it('adjustFlowView is called once', function () {
+        expect(view.adjustFlowView.calledOnce).to.be.true;
+      });
+      it('keepInfoBarAtTop is called once', function () {
+        expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
+      });
+      it('startIndex = 0', function () {
+        expect(view.get('startIndex')).to.equal(0);
+      });
+      it('serviceVersions.@each.isDisplayed = [true, false, false, false, false]', function () {
+        expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false]);
+      });
+    });
+
+    describe('Six service versions are present', function () {
+      beforeEach(function () {
+        view.set('serviceVersions', [
+          Em.Object.create({isCurrent: true}),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create()
+        ]);
+        view.willInsertElement();
+      });
+
+      it('adjustFlowView is called once', function () {
+        expect(view.adjustFlowView.calledOnce).to.be.true;
+      });
+      it('keepInfoBarAtTop is called once', function () {
+        expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
+      });
+      it('startIndex is 1', function () {
+        expect(view.get('startIndex')).to.equal(1);
+      });
+      it('serviceVersions.@each.isDisplayed = [true, false, false, false, false, false]', function () {
+        expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false, false]);
+      });
+    });
+
   });
 
   describe('#setInfoBarPosition()', function () {
@@ -363,12 +339,19 @@ describe.skip('App.ConfigHistoryFlowView', function () {
     var infoBar = {
       css: Em.K
     };
+
+    beforeEach(function () {
+      sinon.spy(infoBar, 'css');
+    });
+
+    afterEach(function () {
+      infoBar.css.restore();
+    });
+
     testCases.forEach(function (test) {
       it('scroll top - ' + test.params.scrollTop + ', default top - ' + test.params.defaultTop, function () {
-        sinon.spy(infoBar, 'css');
         view.setInfoBarPosition(infoBar, test.params.defaultTop, test.params.scrollTop);
         expect(infoBar.css.calledWith('top', test.result)).to.be.true;
-        infoBar.css.restore();
       });
     });
   });
@@ -559,12 +542,14 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#sendRevertCall()', function () {
-    it('', function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-      view.sendRevertCall(Em.Object.create());
 
-      expect(App.ajax.send.calledOnce).to.be.true;
-      App.ajax.send.restore();
+    beforeEach(function () {
+      view.sendRevertCall(Em.Object.create());
+    });
+
+    it('request is sent', function () {
+      var args = testHelpers.findAjaxRequest('name', 'service.serviceConfigVersion.revert');
+      expect(args).exists;
     });
   });
 
@@ -572,34 +557,42 @@ describe.skip('App.ConfigHistoryFlowView', function () {
     beforeEach(function () {
       sinon.spy(view.get('controller'), 'loadStep');
       sinon.stub(App.router.get('updateController'), 'updateComponentConfig', Em.K);
+      view.sendRevertCallSuccess();
     });
     afterEach(function () {
       view.get('controller').loadStep.restore();
       App.router.get('updateController').updateComponentConfig.restore();
     });
-    it('', function () {
-      view.sendRevertCallSuccess();
 
+    it('loadStep is called', function () {
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
+    });
+
+    it('updateComponentConfig is called', function () {
       expect(App.router.get('updateController').updateComponentConfig.calledOnce).to.be.true;
     });
   });
 
   describe('#save()', function () {
-    it('modal popup should be displayed', function () {
-      sinon.stub(App.ModalPopup, 'show', Em.K);
-      view.save();
 
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+      sinon.stub(App.ServiceConfigVersion, 'find').returns([
+        { serviceName: 'service'}
+      ]);
+    });
+
+    afterEach(function () {
       App.ModalPopup.show.restore();
+      App.ServiceConfigVersion.find.restore();
+    });
+
+    it('modal popup should be displayed', function () {
+      view.save();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
 
     it('controller properties should be modified on save', function () {
-      sinon.stub(App.ServiceConfigVersion, 'find').returns([
-        {
-          serviceName: 'service'
-        }
-      ]);
       view.setProperties({
         'serviceName': 'service',
         'controller.saveConfigsFlag': false,
@@ -627,28 +620,46 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#shiftBack()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(view, 'decrementProperty', Em.K);
       sinon.stub(view, 'adjustFlowView', Em.K);
       view.shiftBack();
+    });
 
-      expect(view.decrementProperty.calledWith('startIndex')).to.be.true;
-      expect(view.adjustFlowView.calledOnce).to.be.true;
+    afterEach(function () {
       view.adjustFlowView.restore();
       view.decrementProperty.restore();
+    });
+
+    it('decrementProperty is called with correct data', function () {
+      expect(view.decrementProperty.calledWith('startIndex')).to.be.true;
+    });
+
+    it('adjustFlowView is called once', function () {
+      expect(view.adjustFlowView.calledOnce).to.be.true;
     });
   });
 
   describe('#shiftForward()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(view, 'incrementProperty', Em.K);
       sinon.stub(view, 'adjustFlowView', Em.K);
       view.shiftForward();
+    });
 
-      expect(view.incrementProperty.calledWith('startIndex')).to.be.true;
-      expect(view.adjustFlowView.calledOnce).to.be.true;
+    afterEach(function () {
       view.adjustFlowView.restore();
       view.incrementProperty.restore();
+    });
+
+    it('startIndex++', function () {
+      expect(view.incrementProperty.calledWith('startIndex')).to.be.true;
+    });
+
+    it('adjustFlowView is called once', function () {
+      expect(view.adjustFlowView.calledOnce).to.be.true;
     });
   });
 
@@ -711,17 +722,35 @@ describe.skip('App.ConfigHistoryFlowView', function () {
       }
     ];
 
+    beforeEach(function () {
+      sinon.stub(view, 'adjustFlowView', Em.K);
+    });
+
+    afterEach(function () {
+      view.adjustFlowView.restore();
+    });
+
     testCases.forEach(function (test) {
       it('start index - ' + test.params.startIndex + ', serviceVersions length - ' + test.params.serviceVersions.length + ', versionIndex - ' + test.params.versionIndex, function () {
-        sinon.stub(view, 'adjustFlowView', Em.K);
         view.set('serviceVersions', test.params.serviceVersions);
         view.set('startIndex', test.params.startIndex);
         view.shiftFlowOnSwitch(test.params.versionIndex);
 
         expect(view.get('startIndex')).to.eql(test.result.startIndex);
         expect(view.adjustFlowView.calledOnce).to.eql(test.result.adjustFlowViewCall);
-        view.adjustFlowView.restore();
       });
     });
   });
+});
+
+function getView() {
+  return App.ConfigsServiceVersionBoxView.create();
+}
+
+describe('App.ConfigsServiceVersionBoxView', function () {
+
+  App.TestAliases.testAsComputedAlias(getView(), 'disabledActionAttr', 'serviceVersion.disabledActionAttr', 'object');
+
+  App.TestAliases.testAsComputedAlias(getView(), 'disabledActionMessages', 'serviceVersion.disabledActionMessages', 'object');
+
 });

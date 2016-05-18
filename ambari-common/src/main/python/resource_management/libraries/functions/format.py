@@ -39,15 +39,20 @@ class ConfigurationFormatter(Formatter):
   !p - password flag, !p=!s+!e. Has both !e, !h effect
   """
   def format(self, format_string, *args, **kwargs):
-    env = Environment.get_instance()
     variables = kwargs
-    params = env.config.params
-
-    # don't use checked_unite for this as it would interfere with reload(module)
-    # for things like params and status_params; instead, start out copying
-    # the environment parameters and add in any locally declared variables to
-    # override existing env parameters
-    all_params = params.copy()
+    
+    if Environment.has_instance():
+      env = Environment.get_instance()
+      params = env.config.params
+  
+      # don't use checked_unite for this as it would interfere with reload(module)
+      # for things like params and status_params; instead, start out copying
+      # the environment parameters and add in any locally declared variables to
+      # override existing env parameters
+      all_params = params.copy()
+    else:
+      all_params = {}
+      
     all_params.update(variables)
 
     self.convert_field = self.convert_field_protected

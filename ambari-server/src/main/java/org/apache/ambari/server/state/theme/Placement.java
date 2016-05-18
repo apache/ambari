@@ -24,7 +24,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +67,7 @@ public class Placement{
   }
 
   private List<ConfigPlacement> mergeConfigs(List<ConfigPlacement> parentConfigs, List<ConfigPlacement> childConfigs) {
-    Map<String, ConfigPlacement> mergedConfigPlacements = new HashMap<String, ConfigPlacement>();
+    Map<String, ConfigPlacement> mergedConfigPlacements = new LinkedHashMap<String, ConfigPlacement>();
     for (ConfigPlacement parentConfigPlacement : parentConfigs) {
       mergedConfigPlacements.put(parentConfigPlacement.getConfig(), parentConfigPlacement);
     }

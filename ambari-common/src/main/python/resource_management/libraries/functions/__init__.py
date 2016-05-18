@@ -38,15 +38,18 @@ from resource_management.libraries.functions.hive_check import *
 from resource_management.libraries.functions.version import *
 from resource_management.libraries.functions.format_jvm_option import *
 from resource_management.libraries.functions.constants import *
-from resource_management.libraries.functions.get_hdp_version import *
+from resource_management.libraries.functions.get_stack_version import *
 from resource_management.libraries.functions.get_lzo_packages import *
 from resource_management.libraries.functions.setup_ranger_plugin import *
 from resource_management.libraries.functions.curl_krb_request import *
 from resource_management.libraries.functions.get_bare_principal import *
+from resource_management.libraries.functions.get_path_from_url import *
+from resource_management.libraries.functions.show_logs import *
+
 IS_WINDOWS = platform.system() == "Windows"
 
 if IS_WINDOWS:
   from resource_management.libraries.functions.windows_service_utils import *
-  from resource_management.libraries.functions.install_hdp_msi import *
+  from resource_management.libraries.functions.install_stack_msi import *
   from resource_management.libraries.functions.install_jdbc_driver import *
   from resource_management.libraries.functions.reload_windows_env import *

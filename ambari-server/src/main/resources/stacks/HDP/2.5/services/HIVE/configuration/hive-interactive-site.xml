@@ -1,0 +1,561 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<configuration supports_final="true">
+
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10500</value>
+    <display-name>HiveServer2 Port</display-name>
+    <description>
+      TCP port number to listen on, default 10500.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>int</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.thrift.http.port</name>
+    <value>10501</value>
+    <description>Port number of HiveServer2 Thrift interface when hive.server2.transport.mode is 'http'.</description>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.per.default.queue</name>
+    <value>1</value>
+    <description>
+      The maximum number of queries the Hive Interactive cluster will be able to handle concurrently.
+    </description>
+    <display-name>Maximum Total Concurrent Queries</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>llap_queue_capacity</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.metastore.uris</name>
+    <value></value>
+    <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>false</value>
+    <description>
+      Setting this property to true will have HiveServer2 execute
+      Hive operations as the user making the calls to it.
+    </description>
+    <display-name>Run as end user instead of Hive user</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <!-- This is different for Hive batch and interactive -->
+    <name>hive.prewarm.enabled</name>
+    <value>false</value>
+    <description>Enables container prewarm for Tez (Hadoop 2 only)</description>
+    <display-name>Hold Containers to Reduce Latency</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.tez.java.opts</name>
+    <value></value>
+    <description>Java command line options for Tez. The -Xmx parameter value is generally 80% of hive.tez.container.size.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.reduce.enabled</name>
+    <value>true</value>
+    <description>
+      This flag should be set to true to enable vectorized mode of the reduce-side of
+      query execution.
+    </description>
+    <display-name>Enable Reduce Vectorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.default.queues</name>
+    <display-name>Default query queues</display-name>
+    <value>default</value>
+    <description>
+      A list of comma separated values corresponding to YARN queues of the same name.
+      When HiveServer2 is launched in Tez mode, this configuration needs to be set
+      for multiple Tez sessions to run in parallel on the cluster.
+    </description>
+    <value-attributes>
+      <type>combo</type>
+      <entries>
+        <entry>
+          <value>default</value>
+          <label>Default</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1+</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.initialize.default.sessions</name>
+    <value>true</value>
+    <description>
+      This flag is used in HiveServer2 to enable a user to use HiveServer2 without
+      turning on Tez for HiveServer2. The user could potentially want to run queries
+      over Tez without the pool of sessions.
+    </description>
+    <display-name>Start Tez session at Initialization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.driver.parallel.compilation</name>
+    <value>true</value>
+    <description>
+      This flag allows HiveServer2 to compile queries in parallel.
+    </description>
+    <display-name>Compile queries in parallel</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.webui.port</name>
+    <value>10502</value>
+    <description>Web UI port address</description>
+  </property>
+
+  <property>
+    <name>hive.server2.zookeeper.namespace</name>
+    <value>hiveserver2-hive2</value>
+    <description>The parent node in ZooKeeper used by HiveServer2 when supporting dynamic service discovery.</description>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.queue.name</name>
+    <value>default</value>
+    <description>Choose the YARN queue in this cluster that is dedicated to interactive query.</description>
+    <display-name>Interactive Query Queue</display-name>
+    <value-attributes>
+      <type>combo</type>
+      <entries>
+        <entry>
+          <value>default</value>
+          <label>Default</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.yarn.shuffle.port</name>
+    <value>15551</value>
+  </property>
+
+  <property>
+    <name>hive.execution.mode</name>
+    <value>llap</value>
+  </property>
+
+  <property>
+    <name>hive.llap.execution.mode</name>
+    <value>all</value>
+  </property>
+
+  <property>
+    <name>hive.llap.io.enabled</name>
+    <value>true</value>
+    <depends-on>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.io.memory.size</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.llap.io.use.lrfu</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.auto.allow.uber</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.llap.object.cache.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.tez.input.generate.consistent.splits</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.client.consistent.splits</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.task.scheduler.locality.delay</name>
+    <value>-1</value>
+  </property>
+
+  <property>
+    <name>hive.exec.orc.split.strategy</name>
+    <value>HYBRID</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.service.hosts</name>
+    <value>@llap0</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.allow.permanent.fns</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.llap.io.memory.size</name>
+    <display-name>In-Memory Cache per Daemon</display-name>
+    <description>The amount of memory reserved for Hive's optimized in-memory cache.</description>
+    <value>0</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>64</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>llap_queue_capacity</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.num.executors</name>
+    <display-name>Maximum CPUs per Daemon</display-name>
+    <description>The maximum number of CPUs a single LLAP daemon will use. Usually this should be equal to the number of available CPUs.</description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>llap_queue_capacity</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.memory.per.instance.mb</name>
+    <value>250</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.vcpus.per.instance</name>
+    <value>${hive.llap.daemon.num.executors}</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.yarn.container.mb</name>
+    <display-name>YARN Memory per Daemon</display-name>
+    <description>The total YARN memory per node to be used by Hive LLAP daemons. This includes memory for cache as well as for memory for query processing.</description>
+    <value>341</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>4096</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>llap_queue_capacity</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>llap.shuffle.connection-keep-alive.enable</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>llap.shuffle.connection-keep-alive.timeout</name>
+    <value>60</value>
+  </property>
+
+  <property>
+    <name>hive.llap.io.threadpool.size</name>
+    <value>4</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.rpc.port</name>
+    <value>15001</value>
+  </property>
+  <property>
+    <name>hive.llap.management.rpc.port</name>
+    <value>15004</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.task.scheduler.enable.preemption</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.tez.exec.print.summary</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.mapjoin.native.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.mapjoin.minmax.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.vectorized.execution.mapjoin.native.fast.hashtable.enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.mapjoin.hybridgrace.hashtable</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hive.tez.bucket.pruning</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.optimize.dynamic.partition.hashjoin</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hive.llap.daemon.work.dirs</name>
+    <value>${yarn.nodemanager.local-dirs}</value>
+  </property>
+
+  <property>
+    <name>hive.llap.zk.sm.connectionString</name>
+    <value>localhost:2181</value>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>hive.llap.io.memory.mode</name>
+    <value>none</value>
+  </property>
+
+</configuration>

@@ -31,8 +31,8 @@ origin_exists = os.path.exists
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
 
-@patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-@patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.0.0.0-1234"))
+@patch.object(Script, "is_stack_greater_or_equal", new = MagicMock(return_value=False))
+@patch.object(functions, "get_stack_version", new = MagicMock(return_value="2.0.0.0-1234"))
 class TestResourceManager(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -42,7 +42,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -53,7 +53,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -79,7 +79,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -93,7 +93,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="configure",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -103,7 +103,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -130,7 +130,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -144,7 +144,7 @@ class TestResourceManager(RMFTestCase):
                        classname = "Resourcemanager",
                        command = "decommission",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
@@ -163,7 +163,7 @@ class TestResourceManager(RMFTestCase):
                        classname = "Resourcemanager",
                        command = "decommission",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
@@ -183,48 +183,49 @@ class TestResourceManager(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
-      recursive = True,
+      group = 'hadoop',
+      create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
     )
@@ -301,7 +302,7 @@ class TestResourceManager(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access="a"
     )
@@ -346,48 +347,49 @@ class TestResourceManager(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
-      recursive = True,
+      group = 'hadoop',
+      create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
     )
@@ -464,7 +466,7 @@ class TestResourceManager(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access="a"
     )
@@ -545,7 +547,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -568,7 +570,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
           )
     except:
@@ -585,7 +587,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -604,7 +606,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -614,7 +616,7 @@ class TestResourceManager(RMFTestCase):
                        classname="Resourcemanager",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -631,7 +633,7 @@ class TestResourceManager(RMFTestCase):
                        classname = "Resourcemanager",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

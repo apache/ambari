@@ -23,8 +23,7 @@ App.WidgetWizardStep1View = Em.View.extend({
   templateName: require('templates/main/service/widgets/create/step1'),
 
   didInsertElement: function () {
-    var controller = this.get('controller');
-    controller.loadStep();
+    this.get('controller').loadStep();
     Em.run.later(this, function () {
       App.tooltip($("[rel='selectable-tooltip']"));
     }, 300);

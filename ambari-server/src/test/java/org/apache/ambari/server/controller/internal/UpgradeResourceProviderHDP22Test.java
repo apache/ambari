@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -210,7 +211,7 @@ public class UpgradeResourceProviderHDP22Test {
     Cluster cluster = clusters.getCluster("c1");
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");
@@ -307,7 +308,7 @@ public class UpgradeResourceProviderHDP22Test {
     group = upgrade.getUpgradeGroups().get(0);
     assertEquals(2, group.getItems().size());
     UpgradeItemEntity item = group.getItems().get(1);
-    assertEquals("Value is set for the source stack upgrade pack", "Goo", item.getText());
+    assertEquals("Value is set for the source stack upgrade pack", "[{\"message\":\"Goo\"}]", item.getText());
 
     assertTrue(cluster.getDesiredConfigs().containsKey("hive-site"));
 
@@ -367,7 +368,8 @@ public class UpgradeResourceProviderHDP22Test {
         assertEquals(1, tags.size());
         assertEquals("*", tags.get(0));
 
-        ExecutionCommandWrapper executionCommandWrapper = new ExecutionCommandWrapper(executionCommandJson);
+        ExecutionCommandWrapperFactory ecwFactory = injector.getInstance(ExecutionCommandWrapperFactory.class);
+        ExecutionCommandWrapper executionCommandWrapper = ecwFactory.createFromJson(executionCommandJson); 
         ExecutionCommand executionCommand = executionCommandWrapper.getExecutionCommand();
         Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
         assertEquals(configTagVersion2, configurationTags.get("hive-site").get("tag"));

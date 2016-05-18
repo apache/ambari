@@ -27,32 +27,38 @@ from ambari_commons.os_check import OSCheck
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import get_unique_id_and_date
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
-
-from resource_management.libraries.functions.substitute_vars import substitute_vars
+from resource_management.libraries.functions.expect import expect
 
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
-stack_name = default("/hostLevelParams/stack_name", None)
+stack_name = status_params.stack_name
+agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
+agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
+
 version = default("/commandParams/version", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_unformatted = status_params.stack_version_unformatted
+stack_version_formatted = status_params.stack_version_formatted
+stack_root = status_params.stack_root
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 
 # hadoop default parameters
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
@@ -60,19 +66,19 @@ region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
 hbase_max_direct_memory_size = None
 
-# hadoop parameters for 2.2+
-if Script.is_hdp_stack_greater_or_equal("2.2"):
-  daemon_script = format('/usr/hdp/current/hbase-client/bin/hbase-daemon.sh')
-  region_mover = format('/usr/hdp/current/hbase-client/bin/region_mover.rb')
-  region_drainer = format('/usr/hdp/current/hbase-client/bin/draining_servers.rb')
-  hbase_cmd = format('/usr/hdp/current/hbase-client/bin/hbase')
+# hadoop parameters for stacks supporting rolling_upgrade
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+  daemon_script = format('{stack_root}/current/hbase-client/bin/hbase-daemon.sh')
+  region_mover = format('{stack_root}/current/hbase-client/bin/region_mover.rb')
+  region_drainer = format('{stack_root}/current/hbase-client/bin/draining_servers.rb')
+  hbase_cmd = format('{stack_root}/current/hbase-client/bin/hbase')
 
   hbase_max_direct_memory_size  = default('configurations/hbase-env/hbase_max_direct_memory_size', None)
 
-  daemon_script=format("/usr/hdp/current/{component_directory}/bin/hbase-daemon.sh")
-  region_mover = format("/usr/hdp/current/{component_directory}/bin/region_mover.rb")
-  region_drainer = format("/usr/hdp/current/{component_directory}/bin/draining_servers.rb")
-  hbase_cmd = format("/usr/hdp/current/{component_directory}/bin/hbase")
+  daemon_script=format("{stack_root}/current/{component_directory}/bin/hbase-daemon.sh")
+  region_mover = format("{stack_root}/current/{component_directory}/bin/region_mover.rb")
+  region_drainer = format("{stack_root}/current/{component_directory}/bin/draining_servers.rb")
+  hbase_cmd = format("{stack_root}/current/{component_directory}/bin/hbase")
 
 
 hbase_conf_dir = status_params.hbase_conf_dir
@@ -82,7 +88,7 @@ hbase_user_nofile_limit = default("/configurations/hbase-env/hbase_user_nofile_l
 hbase_user_nproc_limit = default("/configurations/hbase-env/hbase_user_nproc_limit", "16000")
 
 # no symlink for phoenix-server at this point
-phx_daemon_script = '/usr/hdp/current/phoenix-server/bin/queryserver.py'
+phx_daemon_script = format('{stack_root}/current/phoenix-server/bin/queryserver.py')
 
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = default("/commandParams/mark_draining_only",False)
@@ -99,7 +105,7 @@ metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
 java_io_tmpdir = config['configurations']['hbase-env']['hbase_java_io_tmpdir']
@@ -107,18 +113,13 @@ master_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['
 
 regionserver_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_regionserver_heapsize'])
 regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver_xmn_max']
-regionserver_xmn_percent = config['configurations']['hbase-env']['hbase_regionserver_xmn_ratio']
+regionserver_xmn_percent = expect("/configurations/hbase-env/hbase_regionserver_xmn_ratio", float)
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
 
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
 has_phoenix = len(phoenix_hosts) > 0
-
-if not has_phoenix and not phoenix_enabled:
-  exclude_packages = ['phoenix*']
-else:
-  exclude_packages = []
 
 underscored_version = stack_version_unformatted.replace('.', '_')
 dashed_version = stack_version_unformatted.replace('.', '-')
@@ -130,6 +131,7 @@ elif OSCheck.is_ubuntu_family():
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 local_dir = config['configurations']['hbase-site']['hbase.local.dir']
+ioengine_param = default('/configurations/hbase-site/hbase.bucketcache.ioengine', None)
 
 client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
 master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
@@ -151,14 +153,22 @@ if has_metric_collector:
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
       metric_collector_port = '6188'
+  if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
+    metric_collector_protocol = 'https'
+  else:
+    metric_collector_protocol = 'http'
+  metric_truststore_path= default("/configurations/ams-ssl-client/ssl.client.truststore.location", "")
+  metric_truststore_type= default("/configurations/ams-ssl-client/ssl.client.truststore.type", "")
+  metric_truststore_password= default("/configurations/ams-ssl-client/ssl.client.truststore.password", "")
+
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
-metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
+metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 
 # if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
@@ -189,9 +199,11 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
   kinit_cmd_master = format("{kinit_path_local} -kt {master_keytab_path} {master_jaas_princ};")
+  master_security_config = format("-Djava.security.auth.login.config={hbase_conf_dir}/hbase_master_jaas.conf")
 else:
   kinit_cmd = ""
   kinit_cmd_master = ""
+  master_security_config = ""
 
 #log4j.properties
 if (('hbase-log4j' in config['configurations']) and ('content' in config['configurations']['hbase-log4j'])):
@@ -222,6 +234,7 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
+  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -230,10 +243,12 @@ HdfsResource = functools.partial(
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
   default_fs = default_fs,
+  immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
 )
 
 # ranger host
+stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
@@ -241,7 +256,6 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 # ranger hbase properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
 xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
 xa_db_host = config['configurations']['admin-properties']['db_host']
@@ -267,43 +281,40 @@ java_share_dir = '/usr/share/java'
 enable_ranger_hbase = False
 if has_ranger_admin:
   enable_ranger_hbase = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
   repo_config_password = unicode(config['configurations']['ranger-hbase-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 
-  if xa_audit_db_flavor == 'mysql':
-    jdbc_symlink_name = "mysql-jdbc-driver.jar"
-    jdbc_jar_name = "mysql-connector-java.jar"
-    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "com.mysql.jdbc.Driver"
-  elif xa_audit_db_flavor == 'oracle':
-    jdbc_jar_name = "ojdbc6.jar"
-    jdbc_symlink_name = "oracle-jdbc-driver.jar"
-    colon_count = xa_db_host.count(':')
-    if colon_count == 2 or colon_count == 0:
-      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
-    else:
-      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
-    jdbc_driver = "oracle.jdbc.OracleDriver"
-  elif xa_audit_db_flavor == 'postgres':
-    jdbc_jar_name = "postgresql.jar"
-    jdbc_symlink_name = "postgres-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
-    jdbc_driver = "org.postgresql.Driver"
-  elif xa_audit_db_flavor == 'mssql':
-    jdbc_jar_name = "sqljdbc4.jar"
-    jdbc_symlink_name = "mssql-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
-    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-  elif xa_audit_db_flavor == 'sqla':
-    jdbc_jar_name = "sajdbc4.jar"
-    jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
-    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
-    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+  if stack_supports_ranger_audit_db:
+    if xa_audit_db_flavor == 'mysql':
+      jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "com.mysql.jdbc.Driver"
+    elif xa_audit_db_flavor == 'oracle':
+      jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      colon_count = xa_db_host.count(':')
+      if colon_count == 2 or colon_count == 0:
+        audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+      else:
+        audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
+      jdbc_driver = "oracle.jdbc.OracleDriver"
+    elif xa_audit_db_flavor == 'postgres':
+      jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+      jdbc_driver = "org.postgresql.Driver"
+    elif xa_audit_db_flavor == 'mssql':
+      jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+      jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+    elif xa_audit_db_flavor == 'sqla':
+      jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+      jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
-  downloaded_custom_connector = format("{exec_tmp_dir}/{jdbc_jar_name}")
-  driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-  driver_curl_target = format("/usr/hdp/current/{component_directory}/lib/{jdbc_jar_name}")
+  downloaded_custom_connector = format("{exec_tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  driver_curl_target = format("{stack_root}/current/{component_directory}/lib/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  sql_connector_jar = ''
 
   hbase_ranger_plugin_config = {
     'username': repo_config_username,
@@ -326,8 +337,35 @@ if has_ranger_admin:
     'assetType': '2'
   }
 
+  if stack_supports_ranger_kerberos and security_enabled:
+    hbase_ranger_plugin_config['policy.download.auth.users'] = hbase_user
+    hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
+    hbase_ranger_plugin_config['policy.grant.revoke.auth.users'] = hbase_user
+
+  if stack_supports_ranger_kerberos:
+    hbase_ranger_plugin_config['ambari.service.check.user'] = policy_user
+
+    hbase_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': hbase_ranger_plugin_config,
+      'description': 'hbase repo',
+      'name': repo_name,
+      'type': 'hbase'
+    }
+
+  ranger_hbase_principal = None
+  ranger_hbase_keytab = None
+  if stack_supports_ranger_kerberos and security_enabled and 'hbase-master' in component_directory.lower():
+    ranger_hbase_principal = master_jaas_princ
+    ranger_hbase_keytab = master_keytab_path
+  elif  stack_supports_ranger_kerberos and security_enabled and 'hbase-regionserver' in component_directory.lower():
+    ranger_hbase_principal = regionserver_jaas_princ
+    ranger_hbase_keytab = regionserver_keytab_path
+
+  xa_audit_db_is_enabled = False
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
-  xa_audit_db_is_enabled = config['configurations']['ranger-hbase-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
+  if xml_configurations_supported and stack_supports_ranger_audit_db:
+    xa_audit_db_is_enabled = config['configurations']['ranger-hbase-audit']['xasecure.audit.destination.db']
   xa_audit_hdfs_is_enabled = config['configurations']['ranger-hbase-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
   ssl_keystore_password = unicode(config['configurations']['ranger-hbase-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
   ssl_truststore_password = unicode(config['configurations']['ranger-hbase-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
@@ -336,19 +374,3 @@ if has_ranger_admin:
   #For SQLA explicitly disable audit to DB for Ranger
   if xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
-
-# Used to dynamically set the hbase-site props that are referenced during Kerberization
-if security_enabled:
-  if not enable_ranger_hbase: # Default props, no ranger plugin
-    hbase_coprocessor_master_classes = "org.apache.hadoop.hbase.security.access.AccessController"
-    hbase_coprocessor_regionserver_classes = "org.apache.hadoop.hbase.security.access.AccessController"
-    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController"
-  elif xml_configurations_supported: # HDP stack 2.3+ ranger plugin enabled
-    hbase_coprocessor_master_classes = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor "
-    hbase_coprocessor_regionserver_classes = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
-    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
-  else: # HDP Stack 2.2 and less / ranger plugin enabled
-    hbase_coprocessor_master_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-    hbase_coprocessor_regionserver_classes = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-    hbase_coprocessor_region_classes = "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-

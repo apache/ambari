@@ -63,7 +63,7 @@ public class ServicesTest extends EasyMockSupport {
   @Test
   public void shouldReturnATSUrlConfiguredInCustomMode() throws Exception {
     Map<String, String> map = new HashMap<>();
-    map.put("yarn.timeline-server.url", HTTP_RM_URL1);
+    map.put("yarn.ats.url", HTTP_RM_URL1);
     ViewContext viewContext = getViewContext(map);
 
     AmbariApi ambariApi = createNiceMock(AmbariApi.class);
@@ -78,7 +78,7 @@ public class ServicesTest extends EasyMockSupport {
   @Test(expected = AmbariApiException.class)
   public void shouldThrowExceptionIfNoProtocolInCustomMode() {
     Map<String, String> map = new HashMap<>();
-    map.put("yarn.timeline-server.url", RM_URL1_HOST_PORT);
+    map.put("yarn.ats.url", RM_URL1_HOST_PORT);
     ViewContext viewContext = getViewContext(map);
 
     AmbariApi ambariApi = createNiceMock(AmbariApi.class);
@@ -100,7 +100,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectation(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
     replayAll();
 
     assertEquals(HTTP_RM_URL1, services.getTimelineServerUrl());
@@ -255,7 +255,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectation(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
 
     replayAll();
 
@@ -283,7 +283,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectationWithEmptyWebappConfig(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
 
     Services services = new Services(ambariApi, viewContext);
 
@@ -307,7 +307,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectationInHAWithEmptyWebappConfig(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
 
     Services services = new Services(ambariApi, viewContext);
 
@@ -342,7 +342,7 @@ public class ServicesTest extends EasyMockSupport {
 
     expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
     setClusterExpectationInHA(cluster, "HTTP_ONLY");
-    expect(ambariApi.getCluster()).andReturn(cluster).anyTimes();
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
     expect(viewContext.getURLStreamProvider()).andReturn(urlStreamProvider).anyTimes();
     expect(urlStreamProvider.readFrom(eq(HTTP_RM_URL1 + RM_INFO_API_ENDPOINT), eq("GET"), anyString(), EasyMock.<Map<String, String>>anyObject())).andReturn(inputStream);
 
@@ -375,6 +375,22 @@ public class ServicesTest extends EasyMockSupport {
     replay(cluster, urlStreamProvider);
 
     assertEquals(HTTPS_RM_URL2, services.getRMUrl());
+  }
+
+  @Test
+  public void basicGetYARNProtocol() throws Exception {
+    ViewContext viewContext = getViewContext(new HashMap<String, String>());
+    AmbariApi ambariApi = createNiceMock(AmbariApi.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    expect(ambariApi.isClusterAssociated()).andReturn(true).anyTimes();
+    setClusterExpectationWithEmptyWebappConfig(cluster, "HTTP_ONLY");
+    expect(viewContext.getCluster()).andReturn(cluster).anyTimes();
+
+    Services services = new Services(ambariApi, viewContext);
+
+    replayAll();
+    assertEquals("http", services.getYARNProtocol());
   }
 
   private void setClusterExpectation(Cluster cluster, String httpPolicy) {

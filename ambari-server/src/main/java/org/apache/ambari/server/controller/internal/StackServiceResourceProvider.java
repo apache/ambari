@@ -48,9 +48,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
   protected static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "service_name");
-  
+
   protected static final String SERVICE_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId(
-		  "StackServices", "service_type"); 
+		  "StackServices", "service_type");
 
   public static final String STACK_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "stack_name");
@@ -72,7 +72,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
   private static final String CONFIG_TYPES = PropertyHelper.getPropertyId(
       "StackServices", "config_types");
-  
+
   private static final String REQUIRED_SERVICES_ID = PropertyHelper.getPropertyId(
       "StackServices", "required_services");
 
@@ -144,9 +144,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
           response.getServiceName(), requestedIds);
-      
+
       setResourceProperty(resource, SERVICE_TYPE_PROPERTY_ID,
-    		  response.getServiceType(), requestedIds);
+		  response.getServiceType(), requestedIds);
 
     setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
         response.getStackVersion(), requestedIds);

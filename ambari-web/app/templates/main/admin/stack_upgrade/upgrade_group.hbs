@@ -44,7 +44,7 @@
     {{#if item.isVisible}}
       <div class="row-fluid">
         <div {{bindAttr class="item.isActive::not-active-link :span8 :upgrade-item-text"}}>
-          {{statusIcon item.status}}
+          {{statusIcon item.upgradeItemStatus}}
           <a href="#" {{action toggleExpanded item view.content.upgradeItems target="view"}}>{{item.context}}</a>
         </div>
         {{#if item.isRunning}}
@@ -69,7 +69,7 @@
             {{/each}}
           </div>
         {{else}}
-          <div class="spinner"></div>
+          {{view App.SpinnerView}}
         {{/if}}
       {{/if}}
 

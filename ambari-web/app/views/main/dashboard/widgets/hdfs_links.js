@@ -39,13 +39,9 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
 
   isHAEnabled: Em.computed.not('model.snameNode'),
 
-  isActiveNNValid: function () {
-    return this.get('model.activeNameNode') != null;
-  }.property('model.activeNameNode'),
+  isActiveNNValid: Em.computed.bool('model.activeNameNode'),
 
-  isStandbyNNValid: function () {
-    return this.get('model.standbyNameNode') != null;
-  }.property('model.standbyNameNode'),
+  isStandbyNNValid: Em.computed.bool('model.standbyNameNode'),
 
   isTwoStandbyNN: Em.computed.and('isActiveNNValid', 'isStandbyNNValid'),
 

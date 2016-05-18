@@ -95,7 +95,7 @@ public class GangliaReportPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    String expected = (configuration.isGangliaSSL() ? "https" : "http") + "://domU-12-31-39-0E-34-E1.compute-1.internal/ganglia/graph.php?g=load_report&json=1";
+    String expected = (configuration.isHttpsEnabled() ? "https" : "http") + "://domU-12-31-39-0E-34-E1.compute-1.internal/ganglia/graph.php?g=load_report&json=1";
     Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(2, PropertyHelper.getProperties(resource).size());

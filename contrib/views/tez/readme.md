@@ -81,7 +81,7 @@ From the Ambari Administration interface, create a TEZ view instance.
 | Details: Instance Name | TEZUI |
 | Details: Display Name | TEZ |
 | Details: Description | A web interface for TEZ |
-| Properties: yarn.timeline-server.url | http://yarn.timeline-service.hostname:8188 |
+| Properties: yarn.ats.url | http://yarn.timeline-service.hostname:8188 |
 | Properties: yarn.resourcemanager.url | http://yarn.resourcemanager.hostname:8088 |
 
 Login to Ambari as **"admin"** and browse to the view instance.

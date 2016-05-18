@@ -21,29 +21,46 @@ var App = require('app');
 App.MainServiceInfoMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs", "background-text"],
-  content:function(){
+  content: function () {
     var menuItems = [
-      { label: Em.I18n.t('services.service.info.menu.summary'), id: 'summary-service-tab',routing:'summary', active:"active"}
-      //{ label:'Audit', routing:'audit'}
+      {
+        label: Em.I18n.t('services.service.info.menu.summary'),
+        id: 'summary-service-tab',
+        routing: 'summary',
+        active: "active"
+      }
     ];
 
-    if(this.get('heatmapTab')) menuItems.push({ label: Em.I18n.t('services.service.info.menu.heatmaps'), id: 'heatmap-service-tab', routing:'heatmaps'});
-    if(this.get('configTab')) menuItems.push({ label: Em.I18n.t('services.service.info.menu.configs'), id: 'configs-service-tab', routing:'configs'});
+    if (this.get('heatmapTab')) {
+      menuItems.push({
+        label: Em.I18n.t('services.service.info.menu.heatmaps'),
+        id: 'heatmap-service-tab',
+        routing: 'heatmaps'
+      });
+    }
+    if (this.get('configTab')) {
+      menuItems.push({
+        label: Em.I18n.t('services.service.info.menu.configs'),
+        id: 'configs-service-tab',
+        routing: 'configs'
+      });
+    }
     return menuItems;
   }.property(),
 
-  init: function(){ this._super(); this.activateView(); },
+  init: function () {
+    this._super();
+    this.activateView();
+  },
 
-  activateView:function () {
-    $.each(this._childViews, function () {
-      this.set('active', (document.URL.endsWith(this.get('content.routing')) ? "active" : ""));
-    });
+  activateView: function () {
+    this.get('_childViews').forEach(function(view) {
+      view.set('active', (document.URL.endsWith(view.get('content.routing')) ? "active" : ""));
+    }, this);
   }.observes('App.router.location.lastSetURL'),
 
-  deactivateChildViews: function() {
-    $.each(this._childViews, function(){
-      this.set('active', "");
-    });
+  deactivateChildViews: function () {
+    this.get('_childViews').setEach('active', '');
   },
 
   itemViewClass: Em.View.extend({

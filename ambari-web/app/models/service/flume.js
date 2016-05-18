@@ -41,35 +41,21 @@ App.FlumeAgent = DS.Model.extend({
   sourcesCount: DS.attr('number'),
   sinksCount: DS.attr('number'),
 
-  healthClass : function() {
-    switch (this.get('status')) {
-    case 'RUNNING':
-      return App.healthIconClassGreen;
-      break;
-    case 'NOT_RUNNING':
-      return App.healthIconClassRed;
-      break;
-    case 'UNKNOWN':
-    default:
-      return App.healthIconClassYellow;
-      break;
-    }
-  }.property('status'),
+  healthClass: Em.computed.getByKey('healthClassMap', 'status', App.healthIconClassYellow),
 
-  displayStatus : function() {
-    switch (this.get('status')) {
-      case 'RUNNING':
-        return Em.I18n.t('common.running');
-        break;
-      case 'NOT_RUNNING':
-        return Em.I18n.t('common.stopped');
-        break;
-      case 'UNKNOWN':
-      default:
-        return Em.I18n.t('common.unknown');
-        break;
-    }
-  }.property('status')
+  healthClassMap: {
+    RUNNING: App.healthIconClassGreen,
+    NOT_RUNNING: App.healthIconClassRed,
+    UNKNOWN: App.healthIconClassYellow
+  },
+
+  displayStatus: Em.computed.getByKey('displayStatusMap', 'status', Em.I18n.t('common.unknown')),
+
+  displayStatusMap: {
+    RUNNING: Em.I18n.t('common.running'),
+    NOT_RUNNING: Em.I18n.t('common.stopped'),
+    UNKNOWN: Em.I18n.t('common.unknown')
+  }
 
 });
 

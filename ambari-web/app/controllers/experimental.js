@@ -20,14 +20,12 @@ var App = require('app');
 App.ExperimentalController = Em.Controller.extend(App.UserPref, {
   name: 'experimentalController',
   supports: function () {
-    var supports = [];
-    Em.keys(App.get('supports')).forEach(function (sup) {
-      supports.push(Ember.Object.create({
+    return Em.keys(App.get('supports')).map(function (sup) {
+      return Ember.Object.create({
         name: sup,
         selected: App.get('supports')[sup]
-      }));
+      });
     });
-    return supports;
   }.property('App.supports'),
 
 
@@ -55,5 +53,25 @@ App.ExperimentalController = Em.Controller.extend(App.UserPref, {
 
   doCancel: function () {
     App.router.transitionTo('root.index');
+  },
+
+  doResetUIStates: function () {
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('reset.ui.states'),
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('reset.ui.states.body'))
+      }),
+      primary: Em.I18n.t('yes'),
+      onPrimary: function () {
+        var router = App.router;
+        App.db.cleanUp();
+        router.clearAllSteps();
+        App.cache.clear();
+        App.clusterStatus.setClusterStatus({});
+        this.hide();
+        router.transitionTo('root.index');
+      }
+    });
   }
 });

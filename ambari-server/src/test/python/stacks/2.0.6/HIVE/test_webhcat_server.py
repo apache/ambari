@@ -20,6 +20,7 @@ limitations under the License.
 import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.core.exceptions import Fail
 
 @patch("os.path.isfile", new = MagicMock(return_value=True))
 @patch("glob.glob", new = MagicMock(return_value=["one", "two"]))
@@ -32,7 +33,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -43,7 +44,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -60,7 +61,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -70,7 +71,8 @@ class TestWebHCatServer(RMFTestCase):
                               )
 
     self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
-                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )"
+                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )",
+                              ignore_failures = True
     )
 
     self.assertResourceCalled('Execute', "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1)",
@@ -88,19 +90,50 @@ class TestWebHCatServer(RMFTestCase):
                          classname = "WebHCatServer",
                          command = "configure",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
 
       self.assert_configure_secured()
       self.assertNoMoreResources()
 
+  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Fail))
+  def test_stop_graceful_stop_failed(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
+                       classname = "WebHCatServer",
+                       command = "stop",
+                       config_file="default.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+
+    self.assertResourceCalled('Execute', "find /var/log/webhcat -maxdepth 1 -type f -name '*' -exec echo '==> {} <==' \\; -exec tail -n 40 {} \\;",
+        logoutput = True,
+        ignore_failures = True,
+        user = 'hcat',
+    )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
+                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )",
+                              ignore_failures = True
+                              )
+
+    self.assertResourceCalled('Execute', "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1)",
+                              tries=20,
+                              try_sleep=3,
+                              )
+
+    self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
+                              action = ['delete'],
+                              )
+    self.assertNoMoreResources()
+
   def test_start_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "start",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -117,7 +150,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "stop",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -127,7 +160,8 @@ class TestWebHCatServer(RMFTestCase):
                               )
 
     self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
-                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )"
+                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )",
+                              ignore_failures = True
     )
 
     self.assertResourceCalled('Execute', "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1)",
@@ -139,23 +173,53 @@ class TestWebHCatServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch("webhcat_service.graceful_stop", new = MagicMock(side_effect=Fail))
+  def test_stop_secured_graceful_stop_failed(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
+                       classname = "WebHCatServer",
+                       command = "stop",
+                       config_file="secured.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+
+    self.assertResourceCalled('Execute', "find /var/log/webhcat -maxdepth 1 -type f -name '*' -exec echo '==> {} <==' \\; -exec tail -n 40 {} \\;",
+        logoutput = True,
+        ignore_failures = True,
+        user = 'hcat',
+    )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
+                              not_if = "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) || ( sleep 10 && ! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1) )",
+                              ignore_failures = True
+                              )
+
+    self.assertResourceCalled('Execute', "! (ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid'` >/dev/null 2>&1)",
+                              tries=20,
+                              try_sleep=3,
+                              )
+    self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
+                              action = ['delete'],
+                              )
+    self.assertNoMoreResources()
+
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/run/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a'
                               )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
@@ -172,7 +236,7 @@ class TestWebHCatServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
         cd_access = 'a',
-        recursive=True
+        create_parents = True
     )
     self.assertResourceCalled('File', '/etc/hive-webhcat/conf/webhcat-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -185,19 +249,19 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a'
                               )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
@@ -218,7 +282,7 @@ class TestWebHCatServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
         cd_access = 'a',
-        recursive=True
+        create_parents = True
     )
     self.assertResourceCalled('File', '/etc/hive-webhcat/conf/webhcat-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -266,7 +330,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -291,7 +355,7 @@ class TestWebHCatServer(RMFTestCase):
                          classname = "WebHCatServer",
                          command = "security_status",
                          config_file="../../2.1/configs/secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -308,7 +372,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
@@ -327,7 +391,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -337,7 +401,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "security_status",
                        config_file="../../2.1/configs/default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -353,7 +417,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
@@ -375,7 +439,7 @@ class TestWebHCatServer(RMFTestCase):
                        classname = "WebHCatServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
@@ -419,7 +483,7 @@ class TestWebHCatServer(RMFTestCase):
       classname = "WebHCatServer",
       command = "configure",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None), (0, None)],
       mocks_dict = mocks_dict)
@@ -428,19 +492,19 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755)
 
     self.assertResourceCalled('Directory', '/var/log/webhcat',
       owner = 'hcat',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755)
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
       owner = 'hcat',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',)
 
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
@@ -476,7 +540,7 @@ class TestWebHCatServer(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/etc/webhcat',
       cd_access = 'a',
-      recursive=True)
+      create_parents = True)
 
     self.assertResourceCalled('File', '/usr/hdp/current/hive-webhcat/etc/webhcat/webhcat-log4j.properties',
                               content = 'log4jproperties\nline2',

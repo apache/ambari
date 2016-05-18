@@ -26,7 +26,7 @@
       <components>
         <component>
           <name>SLIDER</name>
-          <displayName>Slider</displayName>
+          <displayName>Slider Client</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>

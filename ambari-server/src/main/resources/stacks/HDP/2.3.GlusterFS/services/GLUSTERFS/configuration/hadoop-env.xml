@@ -87,6 +87,9 @@
     <display-name>Proxy User Group</display-name>
     <value>users</value>
     <description>Proxy user group.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
   <property>
     <name>hdfs_user</name>

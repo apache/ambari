@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.MainServiceController = Em.ArrayController.extend({
 
@@ -29,7 +30,7 @@ App.MainServiceController = Em.ArrayController.extend({
     if (!App.router.get('clusterController.isLoaded')) {
       return [];
     }
-    return App.Service.find();
+    return misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), App.Service.find().toArray());
   }.property('App.router.clusterController.isLoaded').volatile(),
 
   /**
@@ -49,10 +50,10 @@ App.MainServiceController = Em.ArrayController.extend({
    * @type {bool}
    */
   isAllServicesInstalled: function () {
-    if (!this.get('content.content')) return false;
+    if (!this.get('content')) return false;
     var availableServices = App.StackService.find().mapProperty('serviceName');
-    return this.get('content.content').length == availableServices.length;
-  }.property('content.content.@each', 'content.content.length'),
+    return this.get('content').length == availableServices.length;
+  }.property('content.@each', 'content.length'),
 
   /**
    * Should "Start All"-button be disabled
@@ -191,7 +192,7 @@ App.MainServiceController = Em.ArrayController.extend({
   isStopAllServicesFailed: function() {
     var workStatuses = App.Service.find().mapProperty('workStatus');
     for (var i = 0; i < workStatuses.length; i++) {
-      if (workStatuses[i] != 'INSTALLED' && workStatuses[i] != 'STOPPING') {
+      if (workStatuses[i] !== 'INSTALLED' && workStatuses[i] !== 'STOPPING') {
         return true;
       }
     }
@@ -209,7 +210,7 @@ App.MainServiceController = Em.ArrayController.extend({
         App.router.get('backgroundOperationsController').showPopup();
       }
 
-      Ember.run.later(function () {
+      Em.run.later(function () {
         self.set('shouldStart', true);
       }, App.bgOperationsUpdateInterval);
     });
@@ -299,37 +300,28 @@ App.MainServiceController = Em.ArrayController.extend({
    */
   restartAllRequired: function () {
     var self = this;
-    var servicesList = [];
-    var hostComponentsToRestart = [];
-    App.HostComponent.find().filterProperty('staleConfigs').forEach(function (hostComponent) {
-      hostComponentsToRestart.push({
-        component_name: hostComponent.get('componentName'),
-        service_name: hostComponent.get('service.serviceName'),
-        hosts: hostComponent.get('hostName')
-      });
-      servicesList.push(hostComponent.get('service.displayName'));
-    });
-    return App.showConfirmationPopup(function () {
-      self.restartHostComponents(hostComponentsToRestart);
-    }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(servicesList.uniq().join(', ')), null, null, Em.I18n.t('services.service.restartAll.confirmButton'));
+    if (!this.get('isRestartAllRequiredDisabled')) {
+      return App.showConfirmationPopup(function () {
+            self.restartHostComponents();
+          }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(
+              App.HostComponent.find().filterProperty('staleConfigs').mapProperty('service.displayName').uniq().join(', ')),
+          null,
+          null,
+          Em.I18n.t('services.service.restartAll.confirmButton')
+      );
+    } else {
+      return null;
+    }
   },
 
   /**
    * Send request restart host components from hostComponentsToRestart
    * @returns {$.ajax}
    */
-  restartHostComponents: function (hostComponentsToRestart) {
+  restartHostComponents: function () {
     App.ajax.send({
-      name: 'restart.hostComponents',
+      name: 'restart.staleConfigs',
       sender: this,
-      data: {
-        context: 'Restart all required services',
-        resource_filters: hostComponentsToRestart,
-        operation_level: {
-          level: "CLUSTER",
-          cluster_name: App.get('clusterName')
-        }
-      },
       success: 'restartAllRequiredSuccessCallback'
     });
   },

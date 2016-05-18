@@ -21,24 +21,57 @@ var App = require('app');
 App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
   configCategories: [],
-  configs: null,
+  configCategoriesMap: function() {
+    var categoriesMap = {};
+    this.get('configCategories').forEach(function(c) {
+      if (!categoriesMap[c.get('name')]) categoriesMap[c.get('name')] = c;
+    });
+    return categoriesMap;
+  }.property('configCategories.[]'),
+  configs: [],
   restartRequired: false,
   restartRequiredMessage: '',
   restartRequiredHostsAndComponents: {},
   configGroups: [],
   dependentServiceNames: [],
   initConfigsLength: 0, // configs length after initialization in order to watch changes
-  errorCount: function () {
-    var overrideErrors = 0,
-      masterErrors = 0,
-      slaveErrors = 0,
-      configs = this.get('configs'),
-      configCategories = this.get('configCategories'),
-      enhancedConfigsErrors = 0;
-    configCategories.forEach(function (_category) {
-      slaveErrors += _category.get('slaveErrorCount');
-      _category.set('nonSlaveErrorCount', 0);
+
+  errorCount: Em.computed.alias('configsWithErrors.length'),
+
+  /**
+   * Properties for which some aggregations should be calculated
+   * like <code>configsWithErrors<code>, <code>changedConfigProperties<code> etc.
+   *
+   * @type {Object[]}
+   */
+  activeProperties: function() {
+    return this.get('configs').filter(function(c) {
+      return c.get('isVisible') && !c.get('hiddenBySection') && c.get('isRequiredByAgent');
     });
+  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection', 'configs.@each.isRequiredByAgent'),
+
+  configsWithErrors: function() {
+    return this.get('activeProperties').filter(function(c) {
+      return !c.get('isValid') || !c.get('isValidOverride');
+    });
+  }.property('activeProperties.@each.isValid', 'activeProperties.@each.isValidOverride'),
+
+  observeErrors: function() {
+    this.get('configCategories').setEach('errorCount', 0);
+    this.get('configsWithErrors').forEach(function(c) {
+      if (this.get('configCategoriesMap')[c.get('category')]) {
+        this.get('configCategoriesMap')[c.get('category')].incrementProperty('errorCount');
+      }
+    }, this);
+  }.observes('configsWithErrors'),
+
+  configTypes: function() {
+    return App.StackService.find(this.get('serviceName')).get('configTypeList') || [];
+  }.property('serviceName'),
+
+  observeForeignKeys: function() {
+    //TODO refactor or move this logic to other place
+    var configs = this.get('configs');
     configs.forEach(function (item) {
       if (item.get('isVisible')) {
         var options = item.get('options');
@@ -55,85 +88,47 @@ App.ServiceConfig = Ember.Object.extend({
         }
       }
     });
-    configs.forEach(function (item) {
-      var category = configCategories.findProperty('name', item.get('category'));
-      if (category && !item.get('isValid') && item.get('isVisible') && !item.get('widgetType')) {
-        category.incrementProperty('nonSlaveErrorCount');
-        masterErrors++;
-      }
-      if (!item.get('isValid') && item.get('widgetType') && item.get('isVisible') && !item.get('hiddenBySection')) {
-        enhancedConfigsErrors++;
-      }
-      if (item.get('overrides')) {
-        item.get('overrides').forEach(function (e) {
-          if (e.error) {
-            if (category && !Em.get(e, 'parentSCP.widget')) {
-              category.incrementProperty('nonSlaveErrorCount');
-            }
-            overrideErrors++;
-          }
-        });
-      }
-    });
-    return masterErrors + slaveErrors + overrideErrors + enhancedConfigsErrors;
-  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
+  }.observes('configs.@each.isVisible'),
 
   /**
-   * checks if for example for kdc_type, the value isn't just the pretty version of the saved value, for example mit-kdc
-   * and Existing MIT KDC are the same value, but they are interpreted as being changed. This function fixes that
-   * @param configs
-   * @returns {boolean} - checks
+   * Collection of properties that were changed:
+   * for saved properties use - <code>isNotDefaultValue<code>
+   * for not saved properties (on wizards, for new services) use
+   *    - <code>isNotInitialValue<code>
+   * for added properties use - <code>isNotSaved<code>
+   * @type {Object[]}
    */
-  checkDefaultValues: function (configs) {
-    var kdcType = configs.findProperty('name', 'kdc_type');
+  changedConfigProperties: function() {
+    return this.get('activeProperties').filter(function(c) {
+      return c.get('isNotDefaultValue') || c.get('isNotSaved') || c.get('isNotInitialValue');
+    }, this);
+  }.property('activeProperties.@each.isNotDefaultValue', 'activeProperties.@each.isNotSaved', 'activeProperties.@each.isNotInitialValue'),
 
-    if (!kdcType) {
-      return configs.someProperty('isNotDefaultValue')
-    }
+  /**
+   * Config with overrides that has values that differs from saved
+   *
+   * @type {Object[]}
+   */
+  configsWithChangedOverrides: Em.computed.filterBy('activeProperties', 'isOverrideChanged', true),
 
-    // if there is only one value changed and that value is for kdc_type, check if the value has really changed or just
-    // the string shown to the user is different
-    if (configs.filterProperty('isNotDefaultValue').length === 1) {
-      if (configs.findProperty('isNotDefaultValue', true) === kdcType) {
-        return App.router.get('mainAdminKerberosController.kdcTypesValues')[kdcType.get('savedValue')] !== kdcType.get('value');
-      }
-    }
+  /**
+   * Defines if some configs were added/removed
+   * @type {boolean}
+   */
+  configsLengthWasChanged: Em.computed.notEqualProperties('configs.length', 'initConfigsLength'),
 
-    return configs.someProperty('isNotDefaultValue');
-  },
-
-  isPropertiesChanged: function() {
-    var requiredByAgent = this.get('configs').filterProperty('isRequiredByAgent');
-    var isNotSaved = requiredByAgent.someProperty('isNotSaved');
-    var isNotDefaultValue = this.checkDefaultValues(requiredByAgent);
-    var isOverrideChanged = requiredByAgent.someProperty('isOverrideChanged');
-    var differentConfigLengths = this.get('configs.length') !== this.get('initConfigsLength');
-
-    return  isNotSaved || isNotDefaultValue || isOverrideChanged || differentConfigLengths;
-  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length', 'configs.@each.isNotSaved', 'initConfigsLength'),
+  /**
+   * @type {boolean}
+   */
+  isPropertiesChanged: Em.computed.or(
+    'configsLengthWasChanged',
+    'changedConfigProperties.length',
+    'configsWithChangedOverrides.length'),
 
   init: function() {
     this._super();
     this.set('dependentServiceNames', App.StackService.find(this.get('serviceName')).get('dependentServiceNames') || []);
   }
-});
-
-App.SlaveConfigs = Ember.Object.extend({
-  componentName: null,
-  displayName: null,
-  hosts: null,
-  groups: null
-});
-
-App.Group = Ember.Object.extend({
-  name: null,
-  hostNames: null,
-  properties: null,
-  errorCount: function () {
-    if (this.get('properties')) {
-      return this.get('properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-    }
-  }.property('properties.@each.isValid', 'properties.@each.isVisible')
 });
 
 App.ConfigSiteTag = Ember.Object.extend({

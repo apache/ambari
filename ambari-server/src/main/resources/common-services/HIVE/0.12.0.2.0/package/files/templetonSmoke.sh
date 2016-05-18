@@ -28,6 +28,7 @@ export smoke_user_keytab=$5
 export security_enabled=$6
 export kinit_path_local=$7
 export smokeuser_principal=$8
+export tmp_dir=$9
 export ttonurl="http://${ttonhost}:${templeton_port}/templeton/v1"
 
 if [[ $security_enabled == "true" ]]; then
@@ -54,11 +55,10 @@ if [[ "$httpExitCode" -ne "200" ]] ; then
   exit 1
 fi
 
-exit 0
-
 #try hcat ddl command
-echo "user.name=${smoke_test_user}&exec=show databases;" /tmp/show_db.post.txt
-cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  \@${destdir}/show_db.post.txt  $ttonurl/ddl 2>&1"
+echo "user.name=${smoke_test_user}&exec=show databases;" > ${tmp_dir}/show_db.post.txt
+/var/lib/ambari-agent/ambari-sudo.sh chown ${smoke_test_user} ${tmp_dir}/show_db.post.txt
+cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  @${tmp_dir}/show_db.post.txt  $ttonurl/ddl 2>&1"
 retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 
@@ -75,13 +75,13 @@ if [[ $security_enabled == "true" ]]; then
 fi
 
 #try pig query
-ttonTestScript="idtest.${outname}.pig"
 
 #create, copy post args file
-echo -n "user.name=${smoke_test_user}&file=/tmp/$ttonTestScript" > /tmp/pig_post.txt
+echo -n "user.name=${smoke_test_user}&file=/tmp/$ttonTestScript" > ${tmp_dir}/pig_post.txt
+/var/lib/ambari-agent/ambari-sudo.sh chown ${smoke_test_user} ${tmp_dir}/pig_post.txt
 
 #submit pig query
-cmd="curl -s -w 'http_code <%{http_code}>' -d  \@${destdir}/pig_post.txt  $ttonurl/pig 2>&1"
+cmd="curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  @${tmp_dir}/pig_post.txt  $ttonurl/pig 2>&1"
 retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 if [[ "$httpExitCode" -ne "200" ]] ; then

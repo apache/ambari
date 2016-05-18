@@ -32,10 +32,19 @@ public class Utils {
   static final String HIVE_SERVER2_RETRY_TRUE = "true";
   static final String HIVE_SERVER2_RETRY_FALSE = "false";
 
+  static final String HIVE_COMPILE_ERROR_MSG = "Error while compiling statement:";
+
   static void verifySuccess(TStatus status, String comment) throws HiveClientException {
     if (status.getStatusCode() != TStatusCode.SUCCESS_STATUS &&
         status.getStatusCode() != TStatusCode.SUCCESS_WITH_INFO_STATUS) {
       String message = (status.getErrorMessage() != null) ? status.getErrorMessage() : "";
+
+      // For schemantic exception Error code is between 10000-19999
+      // https://issues.apache.org/jira/browse/HIVE-3001
+      // https://issues.apache.org/jira/browse/HIVE-12867
+      if((status.getErrorCode() >= 10000 && status.getErrorCode() <= 19999)|| message.contains(HIVE_COMPILE_ERROR_MSG)){
+        throw new HiveInvalidQueryException(status.getStatusCode(),message);
+      }
       throw new HiveErrorStatusException(status.getStatusCode(), comment + ". " + message);
     }
   }
@@ -68,7 +77,7 @@ public class Utils {
     List<String> nonEmptyStrings = new ArrayList<>();
     for(String str : strs) {
       if (!(str == null || str.trim().isEmpty())) {
-        nonEmptyStrings.add(str);
+        nonEmptyStrings.add(str.trim());
       }
     }
     return nonEmptyStrings.toArray(new String[] {});

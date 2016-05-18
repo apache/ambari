@@ -37,8 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TimelineMetricStoreWatcher implements Runnable {
 
-  private static final Log LOG = LogFactory
-    .getLog(TimelineMetricStoreWatcher.class);
+  private static final Log LOG = LogFactory.getLog(TimelineMetricStoreWatcher.class);
   private static final String FAKE_METRIC_NAME = "TimelineMetricStoreWatcher.FakeMetric";
   private static final String FAKE_HOSTNAME = "fakehostname";
   private static final String FAKE_APP_ID = "timeline_metric_store_watcher";
@@ -60,16 +59,13 @@ public class TimelineMetricStoreWatcher implements Runnable {
 
   @Override
   public void run() {
-
     if (checkMetricStore()) {
       failures = 0;
       if (LOG.isDebugEnabled()) {
         LOG.debug("Successfully got metrics from TimelineMetricStore");
       }
     } else {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Failed to get metrics from TimelineMetricStore");
-      }
+      LOG.info("Failed to get metrics from TimelineMetricStore, attempt = " + failures);
       failures++;
     }
 
@@ -106,10 +102,11 @@ public class TimelineMetricStoreWatcher implements Runnable {
     Callable<TimelineMetric> task = new Callable<TimelineMetric>() {
       public TimelineMetric call() throws Exception {
         timelineMetricStore.putMetrics(metrics);
-        return timelineMetricStore.getTimelineMetric(
-          FAKE_METRIC_NAME, Collections.singletonList(FAKE_HOSTNAME),
+        TimelineMetrics timelineMetrics = timelineMetricStore.getTimelineMetrics(
+          Collections.singletonList(FAKE_METRIC_NAME), Collections.singletonList(FAKE_HOSTNAME),
           FAKE_APP_ID, null, startTime - delay * 2 * 1000,
-          startTime + delay * 2 * 1000, Precision.SECONDS, 1);
+          startTime + delay * 2 * 1000, Precision.SECONDS, 1, true, null);
+        return timelineMetrics.getMetrics().get(0);
       }
     };
 

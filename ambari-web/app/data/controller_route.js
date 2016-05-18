@@ -50,6 +50,18 @@ module.exports = [
     route: 'main.services.enableRMHighAvailability'
   },
   {
+    wizardControllerName: App.router.get('addHawqStandbyWizardController.name'),
+    route: 'main.services.addHawqStandby'
+  },
+  {
+    wizardControllerName: App.router.get('removeHawqStandbyWizardController.name'),
+    route: 'main.services.removeHawqStandby'
+  },
+  {
+    wizardControllerName: App.router.get('activateHawqStandbyWizardController.name'),
+    route: 'main.services.activateHawqStandby'
+  },
+  {
     wizardControllerName: App.router.get('rAHighAvailabilityWizardController.name'),
     route: 'main.services.enableRAHighAvailability'
   },

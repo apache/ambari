@@ -19,34 +19,18 @@
 var App = require('app');
 
 var manageAlertGroupsController;
+
+function getController() {
+  return App.ManageAlertGroupsController.create({});
+}
+
 describe('App.ManageAlertGroupsController', function () {
 
   beforeEach(function () {
-    manageAlertGroupsController = App.ManageAlertGroupsController.create({});
+    manageAlertGroupsController = getController();
   });
 
-  describe('#addAlertGroup', function () {
-
-    beforeEach(function () {
-      manageAlertGroupsController.addAlertGroup();
-    });
-
-    describe("#validate", function () {
-      it("should display no warning if user inputs valid characters into group name", function () {
-
-        manageAlertGroupsController.addGroupPopup.set('alertGroupName', 'test');
-
-        expect(manageAlertGroupsController.addGroupPopup.warningMessage).to.be.empty;
-      });
-
-      it("should display warning if user inputs invalid characters into group name", function () {
-        manageAlertGroupsController.addGroupPopup.set('alertGroupName', '/{"!@#$%');
-
-        expect(manageAlertGroupsController.addGroupPopup.warningMessage).to.equal('Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.');
-      });
-
-    });
-  });
+  App.TestAliases.testAsComputedFilterBy(getController(), 'alertGlobalNotifications', 'alertNotifications', 'global', true);
 
   describe('#duplicateAlertGroup', function () {
     beforeEach(function () {
@@ -63,31 +47,6 @@ describe('App.ManageAlertGroupsController', function () {
         manageAlertGroupsController.addGroupPopup.set('alertGroupName', 'test Copy');
 
         expect(manageAlertGroupsController.addGroupPopup.warningMessage).to.be.empty;
-      });
-    });
-  });
-
-  describe('#renameAlertGroup', function () {
-    beforeEach(function () {
-      var group = Ember.Object.create({
-        name: 'test'
-      });
-
-      manageAlertGroupsController.set('selectedAlertGroup', group);
-      manageAlertGroupsController.renameAlertGroup();
-    });
-
-    describe("#validate", function () {
-      it("should display no warning if user inputs valid characters into group name", function () {
-        manageAlertGroupsController.renameGroupPopup.set('alertGroupName', 'hello');
-
-        expect(manageAlertGroupsController.renameGroupPopup.warningMessage).to.be.empty;
-      });
-
-      it("should display warning if user inputs invalid characters into group name", function () {
-        manageAlertGroupsController.renameGroupPopup.set('alertGroupName', '/{"!@#$%');
-
-        expect(manageAlertGroupsController.renameGroupPopup.warningMessage).to.equal('Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.');
       });
     });
   });

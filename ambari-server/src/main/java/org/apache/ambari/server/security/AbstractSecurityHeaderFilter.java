@@ -18,11 +18,7 @@
 
 package org.apache.ambari.server.security;
 
-import com.google.inject.Inject;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -31,7 +27,13 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 /**
  * AbstractSecurityHeaderFilter is an abstract class used to help add security-related headers to
@@ -56,6 +58,11 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
    * The logger.
    */
   private final static Logger LOG = LoggerFactory.getLogger(AbstractSecurityHeaderFilter.class);
+
+  /**
+   * Signals whether subsequent filters are allowed to override security headers
+   */
+  protected final static String DENY_HEADER_OVERRIDES_FLAG = "deny.header.overrides.flag";
   /**
    * The Configuration object used to determine how Ambari is configured
    */
@@ -95,27 +102,20 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
-    if (servletResponse instanceof HttpServletResponse) {
-      HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-      // Conditionally set the Strict-Transport-Security HTTP response header if SSL is enabled and
-      // a value is supplied
-      if (sslEnabled && !StringUtils.isEmpty(strictTransportSecurity)) {
-        httpServletResponse.setHeader(STRICT_TRANSPORT_HEADER, strictTransportSecurity);
-      }
-
-      // Conditionally set the X-Frame-Options HTTP response header if a value is supplied
-      if (!StringUtils.isEmpty(xFrameOptionsHeader)) {
-        httpServletResponse.setHeader(X_FRAME_OPTIONS_HEADER, xFrameOptionsHeader);
-      }
-
-      // Conditionally set the X-XSS-Protection HTTP response header if a value is supplied
-      if (!StringUtils.isEmpty(xXSSProtectionHeader)) {
-        httpServletResponse.setHeader(X_XSS_PROTECTION_HEADER, xXSSProtectionHeader);
-      }
+    if (checkPrerequisites(servletRequest)) {
+      doFilterInternal(servletRequest, servletResponse);
     }
 
     filterChain.doFilter(servletRequest, servletResponse);
   }
+
+  /**
+   * Checks whether the security headers need to be set, if so signals it in a request parameter.
+   *
+   * @param servletRequest the incoming request
+   * @return true if headers need to be set, false otherwise
+   */
+  protected abstract boolean checkPrerequisites(ServletRequest servletRequest);
 
   @Override
   public void destroy() {
@@ -140,4 +140,26 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
   protected void setxXSSProtectionHeader(String xXSSProtectionHeader) {
     this.xXSSProtectionHeader = xXSSProtectionHeader;
   }
+
+  private void doFilterInternal(ServletRequest servletRequest, ServletResponse servletResponse) {
+    if (servletResponse instanceof HttpServletResponse) {
+      HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+      // Conditionally set the Strict-Transport-Security HTTP response header if SSL is enabled and
+      // a value is supplied
+      if (sslEnabled && !StringUtils.isEmpty(strictTransportSecurity)) {
+        httpServletResponse.setHeader(STRICT_TRANSPORT_HEADER, strictTransportSecurity);
+      }
+
+      if (!StringUtils.isEmpty(xFrameOptionsHeader)) {
+        // perform filter specific logic related to the X-Frame-Options HTTP response header
+        httpServletResponse.setHeader(X_FRAME_OPTIONS_HEADER, xFrameOptionsHeader);
+      }
+
+      // Conditionally set the X-XSS-Protection HTTP response header if a value is supplied
+      if (!StringUtils.isEmpty(xXSSProtectionHeader)) {
+        httpServletResponse.setHeader(X_XSS_PROTECTION_HEADER, xXSSProtectionHeader);
+      }
+    }
+  }
+
 }

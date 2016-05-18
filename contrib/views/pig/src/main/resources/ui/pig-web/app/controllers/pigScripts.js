@@ -28,7 +28,7 @@ App.PigScriptsController = Em.ArrayController.extend(App.Pagination,{
     },
     confirmcreate:function (script,filePath) {
       if (filePath) {
-        return Em.RSVP.Promise.all([Em.RSVP.resolve(script), this.getOrCreateFile(filePath)])
+        return Em.RSVP.Promise.all([Em.RSVP.resolve(script), this.getOrCreateFile(filePath,script)])
           .then(this.setFileAndSave.bind(this), Em.run.bind(this,'createScriptError', script));
       } else {
         script.save().then(this.createScriptSuccess.bind(this), Em.run.bind(this,'createScriptError',script));
@@ -42,16 +42,23 @@ App.PigScriptsController = Em.ArrayController.extend(App.Pagination,{
     }
   },
 
-  getOrCreateFile: function (path) {
+  getOrCreateFile: function (path,script) {
     var store = this.get('store');
-
+    var createNewFilePath = function(path,title){
+       var cleanedTitle = title.replace("[^a-zA-Z0-9 ]+", "").replace(" ", "_").toLowerCase();
+       var formattedDate = moment().format("YYYY-MM-DD_hh-mm-ss_SSSS");
+       var finalScriptName = cleanedTitle + "-" + formattedDate + ".pig";
+      return path + "/" + finalScriptName;
+    };
     return new Em.RSVP.Promise(function (resolve, reject) {
       store.find('file',path).then(function (file) {
           resolve(file);
         }, function (error) {
           if (error.status === 404) {
+            store.recordForId('file', path).unloadRecord();
+            var newPath = createNewFilePath(path,script.get('title'));
             var newFile = store.createRecord('file',{
-              id:path,
+              id:newPath,
               fileContent:''
             });
 
@@ -66,6 +73,8 @@ App.PigScriptsController = Em.ArrayController.extend(App.Pagination,{
         });
     });
   },
+
+
 
   setFileAndSave: function (data) {
     var script = data.objectAt(0),

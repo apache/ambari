@@ -377,7 +377,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
   },
 
   onSingleRequestError: function (jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
     this.set('status', 'FAILED');
     this.set('isLoaded', true);
     this.set('showRetry', true);
@@ -405,27 +405,34 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
   },
 
   /**
-   * make server call to stop all services, except <code>excludedServices</code>
-   * @param excludedServices
+   * make server call to stop services
+   * if stopListedServicesFlag == false; stop all services excluding the services passed as parameters
+   * if stopListedServicesFlag == true; stop only services passed as parameters
+   * if no parameters are passed; stop all services
+   * @param services, stopListedServicesFlag
    * @returns {$.ajax}
    */
-  stopServices: function (excludedServices) {
+  stopServices: function (services, stopListedServicesFlag) {
+    var stopListedServicesFlag = stopListedServicesFlag || false;
     var data = {
       'ServiceInfo': {
         'state': 'INSTALLED'
       }
     };
-
-    if (excludedServices && excludedServices.length) {
-      var servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
-        return !excludedServices.contains(s)
-      }).join(',');
+    if (services && services.length) {
+      var servicesList;
+      if (stopListedServicesFlag) {
+        servicesList = services.join(',');
+        } else {
+        servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
+          return !services.contains(s)
+        }).join(',');
+      }
       data.context = "Stop required services";
       data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     } else {
       data.context = "Stop all services";
     }
-
     return App.ajax.send({
       name: 'common.services.update',
       sender: this,
@@ -435,25 +442,34 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     });
   },
 
-  /**
-   * make server call to start all services, except <code>excludedServices</code>
-   * and run smoke tests if <code>runSmokeTest</code> is true
+  /*tep4
+   * make server call to start services
+   * if startListedServicesFlag == false; start all services excluding the services passed as parameters
+   * if startListedServicesFlag == true; start only services passed as parameters
+   * if no parameters are passed; start all services
+   * and run smoke tests if runSmokeTest is true
    * @param runSmokeTest
-   * @param excludedServices
+   * @param services
+   * @param startListedServicesFlag
    * @returns {$.ajax}
    */
-  startServices: function (runSmokeTest, excludedServices) {
+  startServices: function (runSmokeTest, services, startListedServicesFlag) {
+    var startListedServicesFlag = startListedServicesFlag || false;
     var skipServiceCheck = App.router.get('clusterController.ambariProperties')['skip.service.checks'] === "true";
     var data = {
       'ServiceInfo': {
         'state': 'STARTED'
       }
     };
-
-    if (excludedServices && excludedServices.length) {
-      var servicesList = App.Service.find().mapProperty("serviceName").filter(function (s) {
-        return !excludedServices.contains(s)
-      }).join(',');
+    var servicesList;
+    if (services && services.length) {
+      if (startListedServicesFlag) {
+        servicesList = services.join(',');
+      } else {
+        servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
+          return !services.contains(s)
+        }).join(',');
+      }
       data.context = "Start required services";
       data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
     } else {
@@ -582,7 +598,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
           state: state
         },
         query: 'HostRoles/component_name=' + componentName + '&HostRoles/host_name.in(' + hostName.join(',') + ')&HostRoles/maintenance_state=OFF',
-        context: context + " " + App.format.role(componentName),
+        context: context + " " + App.format.role(componentName, false),
         hostName: hostName,
         taskNum: taskNum || 1,
         componentName: componentName,
@@ -591,6 +607,32 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       success: 'startPolling',
       error: 'onTaskError'
     });
+  },
+
+  /**
+   * Update state for array of components of different services and on different hosts
+   *
+   * @param {Array} components - array of components object with fields serviceName, hostName and componentName
+   * @param {String} state - new state to update
+   */
+  updateComponentsState: function (components, state) {
+    components.forEach(function (component) {
+      App.ajax.send({
+        name: 'common.host.host_component.update',
+        sender: this,
+        data: {
+          hostName: component.hostName,
+          serviceName: component.serviceName,
+          componentName: component.componentName,
+          HostRoles: {
+            state: state
+          },
+          taskNum: components.length
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      });
+    }, this)
   },
 
   startPolling: function (data) {
@@ -679,6 +721,50 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('back');
     }
-  }
+  },
 
+  /**
+   * Delete component on single hosts.
+   *
+   * @method deleteComponent
+   * @param {string} componentName - name of the component
+   * @param {string} hostName - host from where components should be deleted
+   */
+  deleteComponent: function (componentName, hostName) {
+    App.ajax.send({
+      name: 'common.delete.host_component',
+      sender: this,
+      data: {
+        componentName: componentName,
+        hostName: hostName
+      },
+      success: 'onTaskCompleted',
+      error: 'onDeleteHostComponentsError'
+    });
+  },
+
+  onDeleteHostComponentsError: function (error) {
+    // If the component does not exist on the host, NoSuchResourceException is thrown.
+    // If NoSuchResourceException is thrown, there is no action required and operation should continue.
+    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.NoSuchResourceException') !== -1) {
+      this.onTaskCompleted();
+    } else {
+      this.onTaskError();
+    }
+  },
+
+  /**
+   * Same as <code>createComponent</code> but with kdc session check and status changes
+   * when KDC auth dialog dissmised.
+   *
+   * @see createComponent
+   */
+  createInstallComponentTask: function(componentName, hostName, serviceName, options) {
+    var self = this;
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+      self.createComponent(componentName, hostName, serviceName);
+    }, function() {
+      self.onTaskError();
+    });
+  }
 });

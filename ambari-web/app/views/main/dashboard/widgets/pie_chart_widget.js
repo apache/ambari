@@ -55,15 +55,15 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
   },
 
   calcIsPieExists: function() {
-    return (this.get('model').get(this.get('modelFieldMax')) > 0);
+    return this.get('model').get(this.get('modelFieldMax')) > 0;
   },
 
   calcDataForPieChart: function() {
     var used = this.getUsed();
     var total = this.getMax();
-    var percent = total > 0 ? ((used)*100 / total).toFixed() : 0;
-    var percent_precise = total > 0 ? ((used)*100 / total).toFixed(1) : 0;
-    return [percent, percent_precise];
+    var percent = total > 0 ? (used * 100 / total).toFixed() : 0;
+    var percentPrecise = total > 0 ? (used * 100 / total).toFixed(1) : 0;
+    return [percent, percentPrecise];
   },
 
   calc: function() {
@@ -97,8 +97,8 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
     }),
 
     data: function() {
-      var ori_data = this.get('parentView.dataForPieChart');
-      return [ ori_data[0], 100 - ori_data[0]];
+      var oriData = this.get('parentView.dataForPieChart');
+      return [oriData[0], 100 - oriData[0]];
     }.property(),
 
     setData: function() {
@@ -109,33 +109,30 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
       var used = parseFloat(this.get('parentView.dataForPieChart')[1]);
       var thresh1 = parseFloat(this.get('thresh1'));
       var thresh2 = parseFloat(this.get('thresh2'));
-      var color_green = App.healthStatusGreen;
-      var color_red = App.healthStatusRed;
-      var color_orange = App.healthStatusOrange;
       if (used <= thresh1) {
         this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_green  ].reverse()
+          scheme: ['#FFFFFF', App.healthStatusGreen].reverse()
         }));
-        return color_green;
-      } else if (used <= thresh2) {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_orange  ].reverse()
-        }));
-        return color_orange;
-      } else {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_red  ].reverse()
-        }));
-        return color_red;
+        return App.healthStatusGreen;
       }
+      if (used <= thresh2) {
+        this.set('palette', new Rickshaw.Color.Palette({
+          scheme: ['#FFFFFF', App.healthStatusOrange].reverse()
+        }));
+        return App.healthStatusOrange;
+      }
+      this.set('palette', new Rickshaw.Color.Palette({
+        scheme: ['#FFFFFF', App.healthStatusRed].reverse()
+      }));
+      return App.healthStatusRed;
     }.property('data', 'thresh1', 'thresh2'),
 
     // refresh text and color when data in model changed
     refreshSvg: function () {
       // remove old svg
-      var old_svg =  $("#" + this.get('id'));
-      if(old_svg){
-        old_svg.remove();
+      var oldSvg = $("#" + this.get('id'));
+      if(oldSvg){
+        oldSvg.remove();
       }
 
       // draw new svg

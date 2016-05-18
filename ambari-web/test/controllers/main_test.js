@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 describe('App.MainController', function () {
   var mainController = App.MainController.create();
@@ -56,29 +56,9 @@ describe('App.MainController', function () {
     });
   });
 
-  describe('#isClusterDataLoaded', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns(true);
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isClusterDataLoaded')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedAlias(mainController, 'isClusterDataLoaded', 'App.router.clusterController.isLoaded', 'boolean');
 
-  describe('#clusterDataLoadedPercent', function() {
-    beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('router.clusterController.clusterDataLoadedPercent').returns(16);
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-    it ('Should return 16', function() {
-      expect(mainController.get('clusterDataLoadedPercent')).to.be.equal(16);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(mainController, 'clusterDataLoadedPercent', 'App.router.clusterController.clusterDataLoadedPercent', 'string');
 
   describe('#initialize', function() {
     var initialize = false;
@@ -99,31 +79,38 @@ describe('App.MainController', function () {
   });
 
   describe('#dataLoading', function() {
+
+    beforeEach(function () {
+      this.stub = sinon.stub(App.router, 'get');
+    });
+
+    afterEach(function () {
+      this.stub.restore();
+    });
+
     it ('Should resolve promise', function() {
-      sinon.stub(App.router, 'get').returns(true);
+      this.stub.returns(true);
       var deffer = mainController.dataLoading();
-      App.router.get.restore();
       deffer.then(function(val){
         expect(val).to.be.undefined;
       });
     });
-    it ('Should resolve promise', function() {
-      sinon.stub(App.router, 'get').returns(false);
+    it ('Should resolve promise (2)', function(done) {
+      this.stub.returns(false);
       
       setTimeout(function() {
         mainController.set('isClusterDataLoaded', true);
       },150);
 
       var deffer = mainController.dataLoading();
-      App.router.get.restore();
       deffer.then(function(val){
         expect(val).to.be.undefined;
+        done();
       });
     });
   });
 
   describe('#checkServerClientVersion', function() {
-    var initialize = false;
     beforeEach(function () {
       sinon.stub(mainController, 'getServerVersion').returns({
         done: function(func) {
@@ -145,172 +132,30 @@ describe('App.MainController', function () {
   });
 
   describe('#getServerVersion', function() {
-    var res;
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function(data) {
-        res = JSON.parse(JSON.stringify(data));
-      });
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it ('Should send data', function() {
       mainController.getServerVersion();
-      expect(res).to.be.eql({
-        "name": "ambari.service",
-        "sender": {},
-        "data": {
-          "fields": "?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true"
-        },
-        "success": "getServerVersionSuccessCallback",
-        "error": "getServerVersionErrorCallback"
-      });
-    });
-  });
-
-  describe('#stopAllService', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        stopAllService: function(func) {
-          if (func) {
-            func();
-          }
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should call event', function() {
-      var done = false;
-      var event = function() {
-        done = true;
-      };
-      mainController.stopAllService(event);
-      expect(done).to.be.true;
-    });
-  });
-
-  describe('#startAllService', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        startAllService: function(func) {
-          if (func) {
-            func();
-          }
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should call event', function() {
-      var done = false;
-      var event = function() {
-        done = true;
-      };
-      mainController.startAllService(event);
-      expect(done).to.be.true;
-    });
-  });
-
-  describe('#isStopAllDisabled', function() {
-    beforeEach(function () {
-      sinon.stub(mainController, 'scRequest').returns(true);
-    });
-    afterEach(function () {
-      mainController.scRequest.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isStopAllDisabled')).to.be.true;
-    });
-  });
-
-  describe('#gotoAddService', function() {
-    var done = false;
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        gotoAddService: function() {
-          done = true;
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should call router', function() {
-      mainController.gotoAddService();
-      expect(done).to.be.true;
-    });
-  });
-
-  describe('#isStartAllDisabled', function() {
-    beforeEach(function () {
-      sinon.stub(mainController, 'scRequest').returns(true);
-    });
-    afterEach(function () {
-      mainController.scRequest.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isStartAllDisabled')).to.be.true;
-    });
-  });
-
-  describe('#isAllServicesInstalled', function() {
-    beforeEach(function () {
-      sinon.stub(mainController, 'scRequest').returns(true);
-    });
-    afterEach(function () {
-      mainController.scRequest.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isAllServicesInstalled')).to.be.true;
-    });
-  });
-
-  describe('#scRequest', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        get: function(request) {
-          if (request) {
-            request();
-          }
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should return true', function() {
-      var done = false;
-      var event = function() {
-        done = true;
-      };
-      mainController.scRequest(event);
-      expect(done).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(mainController);
+      expect(args[0].data.fields).to.be.equal('?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true');
     });
   });
 
   describe('#updateTitle', function() {
     beforeEach(function () {
-      sinon.stub(App.router, 'get', function(message){
-        if (message == 'clusterController.clusterName') {
-          return 'c1';
-        } else if (message == 'clusterInstallCompleted') {
-          return true;
-        } else if (message == 'clusterController') {
-          return {
-            get: function() {
-              return true;
-            }
-          };
-        }
-      });
+      sinon.stub(App.router, 'get').withArgs('clusterController.clusterName').returns('c1')
+        .withArgs('clusterInstallCompleted').returns(true)
+        .withArgs('clusterController').returns({
+          get: function() {
+            return true;
+          }
+        });
     });
     afterEach(function () {
       App.router.get.restore();
     });
-    it ('Should update title', function() {
+    it('Should update title', function() {
       $('body').append('<title id="title-id">text</title>');
       mainController.updateTitle();
       expect($('title').text()).to.be.equal('Ambari - c1');

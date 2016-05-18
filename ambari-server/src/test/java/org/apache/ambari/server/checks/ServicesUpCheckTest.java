@@ -30,6 +30,8 @@ import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
@@ -93,10 +95,22 @@ public class ServicesUpCheckTest {
     };
 
 
+    Host host1 = Mockito.mock(Host.class);
+    Host host2 = Mockito.mock(Host.class);
+    Host host3 = Mockito.mock(Host.class);
+
+    Mockito.when(host1.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.OFF);
+    Mockito.when(host2.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.OFF);
+    Mockito.when(host3.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.OFF);
+
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
+
+    Mockito.when(clusters.getHostById(Long.valueOf(1))).thenReturn(host1);
+    Mockito.when(clusters.getHostById(Long.valueOf(2))).thenReturn(host2);
+    Mockito.when(clusters.getHostById(Long.valueOf(3))).thenReturn(host3);
 
     final Service hdfsService = Mockito.mock(Service.class);
     final Service tezService = Mockito.mock(Service.class);
@@ -199,6 +213,16 @@ public class ServicesUpCheckTest {
     final HostComponentSummary hcsMetricsCollector = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsMetricsMonitor = Mockito.mock(HostComponentSummary.class);
 
+    // set hosts for the summaries
+    Mockito.when(hcsNameNode.getHostId()).thenReturn(Long.valueOf(1));
+    Mockito.when(hcsDataNode1.getHostId()).thenReturn(Long.valueOf(1));
+    Mockito.when(hcsDataNode2.getHostId()).thenReturn(Long.valueOf(2));
+    Mockito.when(hcsDataNode3.getHostId()).thenReturn(Long.valueOf(3));
+    Mockito.when(hcsZKFC.getHostId()).thenReturn(Long.valueOf(1));
+    Mockito.when(hcsTezClient.getHostId()).thenReturn(Long.valueOf(2));
+    Mockito.when(hcsMetricsCollector.getHostId()).thenReturn(Long.valueOf(1));
+    Mockito.when(hcsMetricsMonitor.getHostId()).thenReturn(Long.valueOf(1));
+
     List<HostComponentSummary> allHostComponentSummaries = new ArrayList<HostComponentSummary>();
     allHostComponentSummaries.add(hcsNameNode);
     allHostComponentSummaries.add(hcsDataNode1);
@@ -266,5 +290,29 @@ public class ServicesUpCheckTest {
     servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(check.getFailReason().indexOf("50%") > -1);
+
+    // place the DN slaves into MM which will allow them to be skipped
+    Mockito.when(host1.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.ON);
+    Mockito.when(host3.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.ON);
+    check = new PrerequisiteCheck(null, null);
+    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    // put everything back to normal, then fail NN
+    Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.INSTALLED);
+    Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.STARTED);
+    Mockito.when(hcsDataNode2.getCurrentState()).thenReturn(State.STARTED);
+    Mockito.when(host1.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.OFF);
+    Mockito.when(host3.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.OFF);
+
+    check = new PrerequisiteCheck(null, null);
+    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+
+    // put NN into MM; should still fail since it's a master
+    Mockito.when(host1.getMaintenanceState(Mockito.anyLong())).thenReturn(MaintenanceState.ON);
+    check = new PrerequisiteCheck(null, null);
+    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 }

@@ -41,6 +41,7 @@ export default Ember.Controller.extend({
       }
       // Introducing a common function
       var getVisualExplainJson = function(){
+        self.set('showSpinner', undefined);
         self.set('rerender');
         self.get('index')._executeQuery(constants.jobReferrer.visualExplain, true, true).then(function (json) {
           //this condition should be changed once we change the way of retrieving this json
@@ -56,16 +57,7 @@ export default Ember.Controller.extend({
         self.toggleProperty('shouldChangeGraph');
       }
 
-      if(this.get('json') == undefined) {
-        getVisualExplainJson();
-
-      } else if (this.get('shouldChangeGraph')){
-        getVisualExplainJson();
-
-      } else {
-        this.set('rerender', true);
-        return;
-      }
+      getVisualExplainJson();
 
     }
   }

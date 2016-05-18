@@ -28,18 +28,22 @@ describe('BulkOperationsController', function () {
       hostController = App.BulkOperationsController.create({});
       sinon.stub(hostController, 'bulkOperationForHostsRestart', Em.K);
       sinon.stub(hostController, 'bulkOperationForHosts', Em.K);
+      sinon.stub(hostController, 'bulkOperationForHostsReinstall', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponentsRestart', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponentsDecommission', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostComponents', Em.K);
+      sinon.stub(hostController, 'bulkOperationForHostComponentsAdd', Em.K);
       sinon.stub(hostController, 'bulkOperationForHostsPassiveState', Em.K);
     });
 
     afterEach(function() {
       hostController.bulkOperationForHosts.restore();
       hostController.bulkOperationForHostsRestart.restore();
+      hostController.bulkOperationForHostsReinstall.restore();
       hostController.bulkOperationForHostComponentsRestart.restore();
       hostController.bulkOperationForHostComponentsDecommission.restore();
       hostController.bulkOperationForHostComponents.restore();
+      hostController.bulkOperationForHostComponentsAdd.restore();
       hostController.bulkOperationForHostsPassiveState.restore();
 
     });
@@ -66,6 +70,14 @@ describe('BulkOperationsController', function () {
       };
       hostController.bulkOperation(operationData, []);
       expect(hostController.bulkOperationForHosts.calledOnce).to.equal(true);
+    });
+
+    it('REINSTALL for hosts', function() {
+      var operationData = {
+        action: 'REINSTALL'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostsReinstall.calledOnce).to.equal(true);
     });
 
     it('PASSIVE_STATE for hosts', function() {
@@ -101,6 +113,15 @@ describe('BulkOperationsController', function () {
       };
       hostController.bulkOperation(operationData, []);
       expect(hostController.bulkOperationForHostComponents.calledOnce).to.equal(true);
+    });
+
+    it('ADD for hostComponents', function() {
+      var operationData = {
+        action: 'ADD',
+        componentNameFormatted: 'DataNodes'
+      };
+      hostController.bulkOperation(operationData, []);
+      expect(hostController.bulkOperationForHostComponentsAdd.calledOnce).to.equal(true);
     });
 
     it('DECOMMISSION for hostComponents', function() {

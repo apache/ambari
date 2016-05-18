@@ -19,6 +19,7 @@ package org.apache.ambari.server.api.rest;
 
 import static org.apache.ambari.server.KdcServerConnectionVerification.ConnectionProtocol.TCP;
 import static org.apache.ambari.server.KdcServerConnectionVerification.ConnectionProtocol.UDP;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -34,8 +35,10 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.directory.kerberos.client.KdcConfig;
 import org.apache.directory.kerberos.client.KdcConnection;
 import org.apache.directory.kerberos.client.TgTicket;
+import org.apache.directory.shared.kerberos.KerberosMessageType;
 import org.apache.directory.shared.kerberos.exceptions.ErrorType;
 import org.apache.directory.shared.kerberos.exceptions.KerberosException;
+import org.apache.directory.shared.kerberos.messages.KrbError;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -107,11 +110,17 @@ public class KdcServerConnectionVerificationTest  {
 
   @Test
   public void testValidateTCP__Successful2() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+    KrbError error = createNiceMock(KrbError.class);
+    expect(error.getErrorCode()).andReturn(ErrorType.KDC_ERR_C_PRINCIPAL_UNKNOWN).once();
+    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new KerberosException(ErrorType.KDC_ERR_C_PRINCIPAL_UNKNOWN));
-    replay(connection);
+    KerberosException exception = createNiceMock(KerberosException.class);
+    expect(exception.getError()).andReturn(error).once();
+
+    KdcConnection connection = createStrictMock(KdcConnection.class);
+    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
+
+    replay(connection, exception, error);
 
     TestKdcServerConnectionVerification kdcConnVerifier =
         new TestKdcServerConnectionVerification(configuration, connection);
@@ -125,7 +134,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection);
+    verify(connection, exception);
   }
 
   @Test
@@ -196,11 +205,17 @@ public class KdcServerConnectionVerificationTest  {
 
   @Test
   public void testValidateTCP__Fail_GeneralErrorCode_NotTimeout() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+    KrbError error = createNiceMock(KrbError.class);
+    expect(error.getErrorCode()).andReturn(ErrorType.KRB_ERR_GENERIC).once();
+    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new KerberosException(ErrorType.KRB_ERR_GENERIC, "foo"));
-    replay(connection);
+    KerberosException exception = createNiceMock(KerberosException.class);
+    expect(exception.getError()).andReturn(error).once();
+
+    KdcConnection connection = createStrictMock(KdcConnection.class);
+    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
+
+    replay(connection, exception, error);
 
     TestKdcServerConnectionVerification kdcConnVerifier =
         new TestKdcServerConnectionVerification(configuration, connection);
@@ -214,7 +229,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection);
+    verify(connection, exception);
   }
 
   @Test
@@ -241,11 +256,17 @@ public class KdcServerConnectionVerificationTest  {
 
   @Test
   public void testValidateUDP__Successful2() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+    KrbError error = createNiceMock(KrbError.class);
+    expect(error.getErrorCode()).andReturn(ErrorType.KDC_ERR_C_PRINCIPAL_UNKNOWN).once();
+    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new KerberosException(ErrorType.KDC_ERR_C_PRINCIPAL_UNKNOWN));
-    replay(connection);
+    KerberosException exception = createNiceMock(KerberosException.class);
+    expect(exception.getError()).andReturn(error).once();
+
+    KdcConnection connection = createStrictMock(KdcConnection.class);
+    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
+
+    replay(connection, exception, error);
 
     TestKdcServerConnectionVerification kdcConnVerifier =
         new TestKdcServerConnectionVerification(configuration, connection);
@@ -259,7 +280,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection);
+    verify(connection, exception);
   }
 
   @Test
@@ -330,11 +351,17 @@ public class KdcServerConnectionVerificationTest  {
 
   @Test
   public void testValidateUDP__Fail_GeneralErrorCode_NotTimeout() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+    KrbError error = createNiceMock(KrbError.class);
+    expect(error.getErrorCode()).andReturn(ErrorType.KRB_ERR_GENERIC).once();
+    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new KerberosException(ErrorType.KRB_ERR_GENERIC, "foo"));
-    replay(connection);
+    KerberosException exception = createNiceMock(KerberosException.class);
+    expect(exception.getError()).andReturn(error).once();
+
+    KdcConnection connection = createStrictMock(KdcConnection.class);
+    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
+
+    replay(connection, exception, error);
 
     TestKdcServerConnectionVerification kdcConnVerifier =
         new TestKdcServerConnectionVerification(configuration, connection);
@@ -348,7 +375,7 @@ public class KdcServerConnectionVerificationTest  {
     assertEquals(11111, kdcConfig.getKdcPort());
     assertEquals(10 * 1000, kdcConfig.getTimeout());
 
-    verify(connection);
+    verify(connection, exception);
   }
 
   @Test

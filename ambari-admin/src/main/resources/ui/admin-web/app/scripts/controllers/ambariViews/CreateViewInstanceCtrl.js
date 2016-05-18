@@ -18,8 +18,12 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('CreateViewInstanceCtrl',['$scope', 'View', 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', function($scope, View, Alert, Cluster, $routeParams, $location, UnsavedDialog) {
+.controller('CreateViewInstanceCtrl',['$scope', 'View','RemoteCluster' , 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate', function($scope, View, RemoteCluster, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate) {
+  var $t = $translate.instant;
   $scope.form = {};
+  $scope.constants = {
+    props: $t('views.properties')
+  };
   var targetUrl = '';
 
   function loadMeta(){
@@ -38,7 +42,7 @@ angular.module('ambariAdminConsole')
       });
 
       $scope.clusterConfigurable = viewVersion.ViewVersionInfo.cluster_configurable;
-      $scope.clusterConfigurableErrorMsg = $scope.clusterConfigurable ? "" : "This view cannot use this option";
+      $scope.clusterConfigurableErrorMsg = $scope.clusterConfigurable ? "" : $t('views.alerts.cannotUseOption');
 
       $scope.instance = {
         view_name: viewVersion.ViewVersionInfo.view_name,
@@ -50,9 +54,10 @@ angular.module('ambariAdminConsole')
         icon64_path: '',
         properties: parameters,
         description: '',
-        isLocalCluster: false
+        clusterType: 'NONE'
       };
       loadClusters();
+      loadRemoteClusters();
     });
   }
 
@@ -72,7 +77,7 @@ angular.module('ambariAdminConsole')
           $scope.form.instanceCreateForm[key].validationError = false;
           $scope.form.instanceCreateForm[key].validationMessage = '';
         } catch (e) {
-          console.log('Unable to reset error message for prop:', key);
+          console.log($t('views.alerts.unableToResetErrorMessage', {key: key}));
         }
       });
       $scope.errorKeys = [];
@@ -87,25 +92,45 @@ angular.module('ambariAdminConsole')
   $scope.clusterConfigurable = false;
   $scope.clusterConfigurableErrorMsg = "";
   $scope.clusters = [];
-  $scope.noClusterAvailible = true;
+  $scope.remoteClusters = [];
+  $scope.noLocalClusterAvailible = true;
+  $scope.noRemoteClusterAvailible = true;
   $scope.cluster = null;
+  $scope.data = {};
+  $scope.data.remoteCluster = null;
   $scope.numberOfClusterConfigs = 0;
   $scope.numberOfSettingConfigs = 0;
 
-  function loadClusters () {
-    Cluster.getAllClusters().then(function (clusters) {
-      if(clusters.length >0){
-        clusters.forEach(function(cluster) {
-          $scope.clusters.push(cluster.Clusters.cluster_name)
-        });
-        $scope.noClusterAvailible = false;
-        $scope.instance.isLocalCluster = $scope.clusterConfigurable;
-      }else{
-        $scope.clusters.push("No Clusters");
-      }
-      $scope.cluster = $scope.clusters[0];
-    });
+  function loadClusters() {
+       Cluster.getAllClusters().then(function (clusters) {
+         if(clusters.length >0){
+           clusters.forEach(function(cluster) {
+             $scope.clusters.push(cluster.Clusters.cluster_name)
+           });
+           $scope.noLocalClusterAvailible = false;
+           if($scope.clusterConfigurable){
+             $scope.instance.clusterType = "LOCAL_AMBARI";
+           }
+         }else{
+           $scope.clusters.push($t('common.noClusters'));
+         }
+         $scope.cluster = $scope.clusters[0];
+       });
   }
+
+   function loadRemoteClusters() {
+         RemoteCluster.listAll().then(function (clusters) {
+           if(clusters.length >0){
+             clusters.forEach(function(cluster) {
+               $scope.remoteClusters.push(cluster.ClusterInfo.name)
+             });
+             $scope.noRemoteClusterAvailible = false;
+           }else{
+             $scope.remoteClusters.push($t('common.noClusters'));
+           }
+           $scope.data.remoteCluster = $scope.remoteClusters[0];
+         });
+   }
 
 
   $scope.versions = [];
@@ -124,10 +149,23 @@ angular.module('ambariAdminConsole')
     $scope.form.instanceCreateForm.submitted = true;
     if($scope.form.instanceCreateForm.$valid){
       $scope.form.instanceCreateForm.isSaving = true;
-      $scope.instance.clusterName = $scope.cluster;
+
+      switch($scope.instance.clusterType) {
+        case 'LOCAL_AMBARI':
+          console.log($scope.cluster);
+          $scope.instance.clusterName = $scope.cluster;
+          break;
+        case 'REMOTE_AMBARI':
+          console.log($scope.data.remoteCluster);
+          $scope.instance.clusterName = $scope.data.remoteCluster;
+          break;
+        default:
+          $scope.instance.clusterName = null;
+      }
+      console.log($scope.instance.clusterName);
       View.createInstance($scope.instance)
         .then(function(data) {
-          Alert.success('Created View Instance ' + $scope.instance.instance_name);
+          Alert.success($t('views.alerts.instanceCreated', {instanceName: $scope.instance.instance_name}));
           $scope.form.instanceCreateForm.$setPristine();
           if( targetUrl ){
             $location.path(targetUrl);
@@ -141,7 +179,7 @@ angular.module('ambariAdminConsole')
           var errorMessage = data.message;
           var showGeneralError = true;
 
-          if (data.status >= 400 && !$scope.instance.isLocalCluster) {
+          if (data.status >= 400 && $scope.instance.clusterType == 'NONE') {
             try {
               var errorObject = JSON.parse(errorMessage);
               errorMessage = errorObject.detail;
@@ -158,10 +196,10 @@ angular.module('ambariAdminConsole')
                 $scope.form.instanceCreateForm.generalValidationError = errorMessage;
               }
             } catch (e) {
-              console.error('Unable to parse error message:', data.message);
+              console.error($t('views.alerts.unableToParseError', {message: data.message}));
             }
           }
-          Alert.error('Cannot create instance', errorMessage);
+          Alert.error($t('views.alerts.cannotCreateInstance'), errorMessage);
           $scope.form.instanceCreateForm.isSaving = false;
         });
       }
@@ -193,5 +231,10 @@ angular.module('ambariAdminConsole')
       event.preventDefault();
     }
   });
+
+
+
+
+
 
 }]);

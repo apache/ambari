@@ -22,158 +22,8 @@ require('utils/configs_collection');
 require('utils/config');
 require('models/service/hdfs');
 var setups = require('test/init_model_test');
-var modelSetup = setups.configs;
 
 describe('App.config', function () {
-
-  describe('#fileConfigsIntoTextarea', function () {
-    var filename = 'capacity-scheduler.xml';
-    var configs = [
-      {
-        name: 'config1',
-        value: 'value1',
-        recommendedValue: 'value1',
-        filename: 'capacity-scheduler.xml'
-      },
-      {
-        name: 'config2',
-        value: 'value2',
-        recommendedValue: 'value2',
-        filename: 'capacity-scheduler.xml'
-      }
-    ];
-    it('two configs into textarea', function () {
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('config1=value1\nconfig2=value2\n');
-      expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
-    });
-    it('three config into textarea', function () {
-      configs.push({
-        name: 'config3',
-        value: 'value3',
-        recommendedValue: 'value3',
-        filename: 'capacity-scheduler.xml'
-      });
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
-      expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
-    });
-    it('one of three configs has different filename', function () {
-      configs[1].filename = 'another filename';
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      //result contains two configs: one with different filename and one textarea config
-      expect(result.length).to.equal(2);
-      expect(result[1].value).to.equal('config1=value1\nconfig3=value3\n');
-      expect(result[1].recommendedValue).to.equal('config1=value1\nconfig3=value3\n');
-    });
-    it('none configs into empty textarea', function () {
-      filename = 'capacity-scheduler.xml';
-      configs.clear();
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('');
-      expect(Em.isNone(result[0].recommendedValue)).to.be.true;
-      expect(Em.isNone(result[0].savedValue)).to.be.true;
-    });
-    it("filename has configs that shouldn't be included in textarea", function () {
-      var configs = [
-        {
-          name: 'config1',
-          value: 'value1',
-          recommendedValue: 'value1',
-          filename: filename
-        },
-        {
-          name: 'config2',
-          value: 'value2',
-          recommendedValue: 'value2',
-          filename: filename
-        }
-      ];
-      var cfg = {
-        name: 'config3',
-        value: 'value3',
-        recommendedValue: 'value3',
-        filename: filename
-      };
-      configs.push(cfg);
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename, [cfg]);
-      expect(result.length).to.equal(2);
-      expect(result[1].value).to.equal('config1=value1\nconfig2=value2\n');
-      expect(result[1].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
-      expect(configs.findProperty('name', 'config3')).to.eql(cfg);
-    });
-  });
-
-  describe('#textareaIntoFileConfigs', function () {
-    var filename = 'capacity-scheduler.xml';
-    var testData = [
-      {
-        configs: [Em.Object.create({
-          "name": "capacity-scheduler",
-          "value": "config1=value1",
-          "filename": "capacity-scheduler.xml",
-          "isRequiredByAgent": true
-        })]
-      },
-      {
-        configs: [Em.Object.create({
-          "name": "capacity-scheduler",
-          "value": "config1=value1\nconfig2=value2\n",
-          "filename": "capacity-scheduler.xml",
-          "isRequiredByAgent": false
-        })]
-      },
-      {
-        configs: [Em.Object.create({
-          "name": "capacity-scheduler",
-          "value": "config1=value1,value2\n",
-          "filename": "capacity-scheduler.xml",
-          "isRequiredByAgent": true
-        })]
-      },
-      {
-        configs: [Em.Object.create({
-          "name": "capacity-scheduler",
-          "value": "config1=value1 config2=value2\n",
-          "filename": "capacity-scheduler.xml",
-          "isRequiredByAgent": false
-        })]
-      }
-    ];
-
-    it('config1=value1 to one config', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[0].configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('value1');
-      expect(result[0].name).to.equal('config1');
-      expect(result[0].isRequiredByAgent).to.be.true;
-    });
-    it('config1=value1\\nconfig2=value2\\n to two configs', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[1].configs, filename);
-      expect(result.length).to.equal(2);
-      expect(result[0].value).to.equal('value1');
-      expect(result[0].name).to.equal('config1');
-      expect(result[1].value).to.equal('value2');
-      expect(result[1].name).to.equal('config2');
-      expect(result[0].isRequiredByAgent).to.be.false;
-      expect(result[1].isRequiredByAgent).to.be.false;
-    });
-    it('config1=value1,value2\n to one config', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[2].configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('value1,value2');
-      expect(result[0].name).to.equal('config1');
-      expect(result[0].isRequiredByAgent).to.be.true;
-    });
-    it('config1=value1 config2=value2 to two configs', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[3].configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].isRequiredByAgent).to.be.false;
-    });
-  });
 
   describe('#trimProperty',function() {
     var testMessage = 'displayType `{0}`, value `{1}`{3} should return `{2}`';
@@ -575,105 +425,93 @@ describe('App.config', function () {
 
     var configProperty = App.ServiceConfigProperty.create(template);
 
-    var group = Em.Object.create({name: "group1"});
+    var group = Em.Object.create({name: "group1", properties: []});
 
-    it('creates override with save properties as original config', function() {
-      var override = App.config.createOverride(configProperty, {}, group);
-      for (var key in template) {
-        expect(override.get(key)).to.eql(template[key]);
-      }
+    Object.keys(template).forEach(function (key) {
+      it(key, function () {
+        var override = App.config.createOverride(configProperty, {}, group);
+        if (['savedValue', 'savedIsFinal'].contains(key)) {
+          expect(override.get(key)).to.equal(null);
+        } else {
+          expect(override.get(key)).to.equal(template[key]);
+        }
+      });
     });
 
-    it('overrides some values that should be different for override', function() {
-      var override = App.config.createOverride(configProperty, {}, group);
-      expect(override.get('isOriginalSCP')).to.be.false;
-      expect(override.get('overrides')).to.be.null;
-      expect(override.get('group')).to.eql(group);
-      expect(override.get('parentSCP')).to.eql(configProperty);
+    describe('overrides some values that should be different for override', function() {
+      var override;
+      beforeEach(function () {
+        override = App.config.createOverride(configProperty, {}, group);
+      });
+      it('isOriginalSCP is false', function () {
+        expect(override.get('isOriginalSCP')).to.be.false;
+      });
+      it('overrides is null', function () {
+        expect(override.get('overrides')).to.be.null;
+      });
+      it('group is valid', function () {
+        expect(override.get('group')).to.eql(group);
+      });
+      it('parentSCP is valid', function () {
+        expect(override.get('parentSCP')).to.eql(configProperty);
+      });
     });
 
-    it('overrides some specific values', function() {
-      var overridenTemplate = {
-        value: "v2",
-        recommendedValue: "rv2",
-        savedValue: "sv2",
-        isFinal: true,
-        recommendedIsFinal: false,
-        savedIsFinal: true
-      };
+    var overriddenTemplate = {
+      value: "v2",
+      recommendedValue: "rv2",
+      savedValue: "sv2",
+      isFinal: true,
+      recommendedIsFinal: false,
+      savedIsFinal: true
+    };
 
-      var override = App.config.createOverride(configProperty, overridenTemplate, group);
-      for (var key in overridenTemplate) {
-        expect(override.get(key)).to.eql(overridenTemplate[key]);
-      }
+    Object.keys(overriddenTemplate).forEach(function (key) {
+      it('overrides some specific values `' + key + '`', function () {
+        var override = App.config.createOverride(configProperty, overriddenTemplate, group);
+        expect(override.get(key)).to.equal(overriddenTemplate[key]);
+      });
     });
 
     it('throws error due to undefined configGroup', function() {
-      expect(App.config.createOverride.bind(App.config, configProperty, {}, null)).to.throw(Error, 'configGroup can\' be null');
+      expect(App.config.createOverride.bind(App.config, configProperty, {}, null)).to.throw(App.EmberObjectTypeError);
     });
 
     it('throws error due to undefined originalSCP', function() {
-      expect(App.config.createOverride.bind(App.config, null, {}, group)).to.throw(Error, 'serviceConfigProperty can\' be null');
+      expect(App.config.createOverride.bind(App.config, null, {}, group)).to.throw(App.ObjectTypeError);
     });
 
-    it('updates originalSCP object ', function() {
-      configProperty.set('overrides', null);
-      configProperty.set('overrideValues', []);
-      configProperty.set('overrideIsFinalValues', []);
+    describe('updates originalSCP object ', function() {
 
-      var overridenTemplate2 = {
-        value: "v12",
-        recommendedValue: "rv12",
-        savedValue: "sv12",
-        isFinal: true,
-        recommendedIsFinal: false,
-        savedIsFinal: false
-      };
+      var overridenTemplate2;
+      var override;
 
-      var override = App.config.createOverride(configProperty, overridenTemplate2, group);
-
-      expect(configProperty.get('overrides')[0]).to.be.eql(override);
-      expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.value]);
-      expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.isFinal]);
-    });
-  });
-
-  describe('#getIsEditable', function() {
-    [{
-        isDefaultGroup: true,
-        isReconfigurable: true,
-        canEdit: true,
-        res: true,
-        m: "isEditable is true"
-      },
-      {
-        isDefaultGroup: false,
-        isReconfigurable: true,
-        canEdit: true,
-        res: false,
-        m: "isEditable is false; config group is not default"
-      },
-      {
-        isDefaultGroup: true,
-        isReconfigurable: false,
-        canEdit: true,
-        res: false,
-        m: "isEditable is true; config is not reconfigurable"
-      },
-      {
-        isDefaultGroup: true,
-        isReconfigurable: true,
-        canEdit: false,
-        res: false,
-        m: "isEditable is true; edition restricted by controller state"
-    }].forEach(function(t) {
-        it(t.m, function() {
-          var configProperty = Ember.Object.create({isReconfigurable: t.isReconfigurable});
-          var configGroup = Ember.Object.create({isDefault: t.isDefaultGroup});
-          var isEditable = App.config.getIsEditable(configProperty, configGroup, t.canEdit);
-          expect(isEditable).to.equal(t.res);
-        })
+      beforeEach(function () {
+        configProperty.set('overrides', null);
+        configProperty.set('overrideValues', []);
+        configProperty.set('overrideIsFinalValues', []);
+        overridenTemplate2 = {
+          value: "v12",
+          recommendedValue: "rv12",
+          savedValue: "sv12",
+          isFinal: true,
+          recommendedIsFinal: false,
+          savedIsFinal: false
+        };
+        override = App.config.createOverride(configProperty, overridenTemplate2, group);
       });
+
+      it('overrides.0 is valid', function () {
+        expect(configProperty.get('overrides')[0]).to.be.eql(override);
+      });
+      it('overrideValues is valid', function () {
+        expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.savedValue]);
+      });
+      it('overrideIsFinalValues is valid', function () {
+        expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.savedIsFinal]);
+      });
+
+    });
   });
 
   describe('#getIsSecure', function() {
@@ -820,6 +658,12 @@ describe('App.config', function () {
       sinon.stub(App.config, 'shouldSupportFinal', function() {
         return true;
       });
+      sinon.stub(App.config, 'get', function(param) {
+        if (param === 'serviceByConfigTypeMap') {
+          return { 'pFileName': Em.Object.create({serviceName: 'pServiceName' }) };
+        }
+        return Em.get(App.config, param);
+      });
     });
 
     after(function() {
@@ -827,13 +671,14 @@ describe('App.config', function () {
       App.config.getDefaultCategory.restore();
       App.config.getIsSecure.restore();
       App.config.shouldSupportFinal.restore();
+      App.config.get.restore();
     });
 
     var res = {
       /** core properties **/
-      id: "pName__pFileName",
+      id: 'pName__pFileName',
       name: 'pName',
-      filename: 'pFileName',
+      filename: 'pFileName.xml',
       value: '',
       savedValue: null,
       isFinal: false,
@@ -866,12 +711,18 @@ describe('App.config', function () {
       widgetType: null
     };
     it('create default config object', function () {
-      expect(App.config.createDefaultConfig('pName', 'pServiceName', 'pFileName', true)).to.eql(res);
+      expect(App.config.createDefaultConfig('pName', 'pFileName', true)).to.eql(res);
     });
-    it('runs proper methods', function() {
+    it('getDefaultDisplayType is called', function() {
       expect(App.config.getDefaultDisplayType.called).to.be.true;
+    });
+    it('getDefaultCategory is called with correct arguments', function() {
       expect(App.config.getDefaultCategory.calledWith(true, 'pFileName')).to.be.true;
+    });
+    it('getIsSecure is called with correct arguments', function() {
       expect(App.config.getIsSecure.calledWith('pName')).to.be.true;
+    });
+    it('shouldSupportFinal is called with correct arguments', function() {
       expect(App.config.shouldSupportFinal.calledWith('pServiceName', 'pFileName')).to.be.true;
     });
   });
@@ -1012,60 +863,56 @@ describe('App.config', function () {
     });
   });
 
-  describe("#restrictSecureProperties()", function() {
-    var testCases = [
-      {
-        input: {
-          isSecureConfig: true,
-          isKerberosEnabled: true
-        },
-        expected: {
-          isReconfigurable: false,
-          isOverridable: false
-        }
-      },
-      {
-        input: {
-          isSecureConfig: false,
-          isKerberosEnabled: true
-        },
-        expected: {
-          isReconfigurable: true,
-          isOverridable: true
-        }
-      },
-      {
-        input: {
-          isSecureConfig: true,
-          isKerberosEnabled: false
-        },
-        expected: {
-          isReconfigurable: true,
-          isOverridable: true
-        }
-      },
-      {
-        input: {
-          isSecureConfig: false,
-          isKerberosEnabled: false
-        },
-        expected: {
-          isReconfigurable: true,
-          isOverridable: true
-        }
-      }
-    ];
+  describe("#truncateGroupName()", function() {
 
-    testCases.forEach(function(test) {
-      it("isSecureConfig = " + test.input.isSecureConfig + "; isKerberosEnabled = " + test.input.isKerberosEnabled, function() {
-        var config = {
-          isSecureConfig: test.input.isSecureConfig
-        };
-        App.set('isKerberosEnabled', test.input.isKerberosEnabled);
-        App.config.restrictSecureProperties(config);
-        expect(config.isReconfigurable).to.equal(test.expected.isReconfigurable);
-        expect(config.isOverridable).to.equal(test.expected.isOverridable);
+    it("name is empty", function() {
+      expect(App.config.truncateGroupName('')).to.be.empty;
+    });
+
+    it("name has less than max chars", function() {
+      expect(App.config.truncateGroupName('group1')).to.equal('group1');
+    });
+
+    it("name has more than max chars", function() {
+      expect(App.config.truncateGroupName('group_has_more_than_max_characters')).to.equal('group_has...haracters');
+    });
+  });
+
+  describe('#getComponentName', function () {
+    [
+      { configName: 'somename_host', componentName: 'SOMENAME' },
+      { configName: 'somename_hosts', componentName: 'SOMENAME' },
+      { configName: 'somenamehost', componentName: '' },
+      { configName: 'somenamehosts', componentName: '' }
+    ].forEach(function (t) {
+      it('format config name ' + t.configName + ' to component ', function() {
+        expect(App.config.getComponentName(t.configName)).to.equal(t.componentName);
       });
     });
+  });
+
+  describe('#getDescription', function () {
+
+    it('should add extra-message to the description for `password`-configs', function () {
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      expect(App.config.getDescription('', 'password')).to.contain(extraMessage);
+    });
+
+    it('should not add extra-message to the description if it already contains it', function () {
+
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      var res = App.config.getDescription(extraMessage, 'password');
+      expect(res).to.contain(extraMessage);
+      expect(res).to.contain(extraMessage);
+      var subd = res.replace(extraMessage, '');
+      expect(subd).to.not.contain(extraMessage);
+    });
+
+    it('should add extra-message to the description if description is not defined', function () {
+
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      expect(App.config.getDescription(undefined, 'password')).to.contain(extraMessage);
+    });
+
   });
 });

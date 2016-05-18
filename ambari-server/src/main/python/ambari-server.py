@@ -36,18 +36,25 @@ from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
 from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack, set_current
 from ambari_server.setupHttps import setup_https, setup_truststore
+from ambari_server.setupMpacks import install_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
+  SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 from ambari_server.setupSso import setup_sso
+from ambari_server.dbCleanup import db_cleanup
 from ambari_server.hostUpdate import update_host_names
+from ambari_server.checkDatabase import check_database
 from ambari_server.enableStack import enable_stack_version
 
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
-  REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, SETUP_ACTION, SETUP_SECURITY_ACTION, \
-  START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, \
-  SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION
+  REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
+  SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, \
+  SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
+  UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
+  DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
 from ambari_server.userInput import get_validated_string_input
 
 from ambari_server_main import server_process_main
+from ambari_server.ambariPath import AmbariPath
 
 
 class UserActionPossibleArgs(object):
@@ -197,49 +204,55 @@ def refresh_stack_hash_action():
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def create_setup_security_actions(args):
   action_list = [
-      ['Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
-      ['Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas)],
-      ['Setup truststore.', UserActionRestart(setup_truststore)],
-      ['Import certificate to truststore.', UserActionRestart(setup_truststore, True)],
+      ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
+      ['encrypt-passwords', 'Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
+      ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
+      ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
+      ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, True, args)],
     ]
   return action_list
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def create_setup_security_actions(args):
   action_list = [
-      ['Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
-      ['Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
-      ['Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas)],
-      ['Setup truststore.', UserActionRestart(setup_truststore)],
-      ['Import certificate to truststore.', UserActionRestart(setup_truststore, True)],
+      ['setup-https', 'Enable HTTPS for Ambari server.', UserActionRestart(setup_https, args)],
+      ['encrypt-passwords', 'Encrypt passwords stored in ambari.properties file.', UserAction(setup_master_key, args)],
+      ['setup-kerberos-jaas', 'Setup Ambari kerberos JAAS configuration.', UserAction(setup_ambari_krb5_jaas, args)],
+      ['setup-truststore', 'Setup truststore.', UserActionRestart(setup_truststore, args)],
+      ['import-certificate', 'Import certificate to truststore.', UserActionRestart(setup_truststore, args, True)],
     ]
   return action_list
 
 def setup_security(args):
   actions = create_setup_security_actions(args)
+  choice = None
+  if args.security_option is not None:
+    optionCounter = 0
+    for actionDesc in actions:
+      optionCounter += 1
+      if actionDesc[0] == args.security_option:
+        choice = optionCounter
+  if choice is None:
+    # Print menu options
+    print '=' * 75
+    print 'Choose one of the following options: '
+    iAction = 0
+    for actionDesc in actions:
+      iAction += 1
+      print '  [{0}] {1}'.format(iAction, actionDesc[1])
+    print '=' * 75
 
-  #Print menu options
-  print '=' * 75
-  print 'Choose one of the following options: '
-
-  iAction = 0
-  for actionDesc in actions:
-    iAction += 1
-    print '  [{0}] {1}'.format(iAction, actionDesc[0])
-  print '=' * 75
-
-  choice_prompt = 'Enter choice, (1-{0}): '.format(iAction)
-  choice_re = '[1-{0}]'.format(iAction)
-  choice = get_validated_string_input(choice_prompt, '0', choice_re,
-                                      'Invalid choice', False, False)
+    choice_prompt = 'Enter choice, (1-{0}): '.format(iAction)
+    choice_re = '[1-{0}]'.format(iAction)
+    choice = get_validated_string_input(choice_prompt, '0', choice_re,
+                                        'Invalid choice', False, False)
 
   try:
     actionDesc = actions[int(choice) - 1]
   except IndexError:
     raise FatalException(1, 'Unknown option for setup-security command.')
 
-  action = actionDesc[1]
+  action = actionDesc[2]
   action.execute()
 
   return action.need_restart
@@ -316,26 +329,36 @@ def init_parser_options(parser):
                     help="Database user password")
   parser.add_option('--jdbc-driver', default=None, dest="jdbc_driver",
                     help="Specifies the path to the JDBC driver JAR file")
+  parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
+  parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
+  parser.add_option('--mpack', default=None,
+                    help="Specified the path for management pack to be installed/upgraded",
+                    dest="mpack_path")
+  parser.add_option('--purge', action="store_true", default=False,
+                    help="Purge existing resources specified in purge-list",
+                    dest="purge")
+  purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  parser.add_option('--purge-list', default=default_purge_resources,
+                    help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
+                    dest="purge_list")
+  parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
   # -b and -i the remaining available short options
   # -h reserved for help
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_parser_options(parser):
-  parser.add_option('-f', '--init-script-file',
-                    default='/var/lib/ambari-server/'
-                            'resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql',
+  parser.add_option('-f', '--init-script-file', default=None,
                     help="File with setup script")
-  parser.add_option('-r', '--drop-script-file', default="/var/lib/"
-                                                        "ambari-server/resources/"
-                                                        "Ambari-DDL-Postgres-EMBEDDED-DROP.sql",
+  parser.add_option('-r', '--drop-script-file', default=None,
                     help="File with drop script")
-  parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
+  parser.add_option('-u', '--upgrade-script-file', default=AmbariPath.get("/var/lib/"
                                                            "ambari-server/resources/upgrade/ddl/"
-                                                           "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql",
+                                                           "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql"),
                     help="File with upgrade script")
-  parser.add_option('-t', '--upgrade-stack-script-file', default="/var/lib/"
+  parser.add_option('-t', '--upgrade-stack-script-file', default=AmbariPath.get("/var/lib/"
                                                                  "ambari-server/resources/upgrade/dml/"
-                                                                 "Ambari-DML-Postgres-UPGRADE_STACK.sql",
+                                                                 "Ambari-DML-Postgres-UPGRADE_STACK.sql"),
                     help="File with stack upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                     help="Use specified java_home.  Must be valid on all hosts")
@@ -380,11 +403,63 @@ def init_parser_options(parser):
                     dest="jdbc_db")
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
   parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
+  parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
+  parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
   parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
   parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
                     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
   parser.add_option('--stack', dest="stack_name", default=None, type="string",
                     help="Specify stack name for the stack versions that needs to be enabled")
+  parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
+  parser.add_option('--mpack', default=None,
+                    help="Specified the path for management pack to be installed/upgraded",
+                    dest="mpack_path")
+  parser.add_option('--purge', action="store_true", default=False,
+                    help="Purge existing resources specified in purge-list",
+                    dest="purge")
+  purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  parser.add_option('--purge-list', default=default_purge_resources,
+                    help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
+                    dest="purge_list")
+  parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
+
+  parser.add_option('--ldap-url', default=None, help="Primary url for LDAP", dest="ldap_url")
+  parser.add_option('--ldap-secondary-url', default=None, help="Secondary url for LDAP", dest="ldap_secondary_url")
+  parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
+  parser.add_option('--ldap-user-class', default=None, help="User Attribute Object Class for LDAP", dest="ldap_user_class")
+  parser.add_option('--ldap-user-attr', default=None, help="User Attribute Name for LDAP", dest="ldap_user_attr")
+  parser.add_option('--ldap-group-class', default=None, help="Group Attribute Object Class for LDAP", dest="ldap_group_class")
+  parser.add_option('--ldap-group-attr', default=None, help="Group Attribute Name for LDAP", dest="ldap_group_attr")
+  parser.add_option('--ldap-member-attr', default=None, help="Group Membership Attribute Name for LDAP", dest="ldap_member_attr")
+  parser.add_option('--ldap-dn', default=None, help="Distinguished name attribute for LDAP", dest="ldap_dn")
+  parser.add_option('--ldap-base-dn', default=None, help="Base DN for LDAP", dest="ldap_base_dn")
+  parser.add_option('--ldap-manager-dn', default=None, help="Manager DN for LDAP", dest="ldap_manager_dn")
+  parser.add_option('--ldap-manager-password', default=None, help="Manager Password For LDAP", dest="ldap_manager_password")
+  parser.add_option('--ldap-save-settings', action="store_true", default=None, help="Save without review for LDAP", dest="ldap_save_settings")
+  parser.add_option('--ldap-referral', default=None, help="Referral method [follow/ignore] for LDAP", dest="ldap_referral")
+  parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
+  parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
+  parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
+
+  parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
+  parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
+  parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
+  parser.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
+
+  parser.add_option('--security-option', default=None,
+                    help="Setup security option (setup-https|encrypt-password|setup-kerberos-jaas|setup-truststore|import-certificate)",
+                    dest="security_option")
+  parser.add_option('--api-ssl', default=None, help="Enable SSL for Ambari API [true/false]", dest="api_ssl")
+  parser.add_option('--api-ssl-port', default=None, help="Client API SSL port", dest="api_ssl_port")
+  parser.add_option('--import-cert-path', default=None, help="Path to Certificate (import)", dest="import_cert_path")
+  parser.add_option('--import-cert-alias', default=None, help="Alias for the imported certificate", dest="import_cert_alias")
+  parser.add_option('--import-key-path', default=None, help="Path to Private Key (import)", dest="import_key_path")
+  parser.add_option('--pem-password', default=None, help="Password for Private Key", dest="pem_password")
+  parser.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
+  parser.add_option('--master-key-persist', default=None, help="Persist master key [true/false]", dest="master_key_persist")
+  parser.add_option('--jaas-principal', default=None, help="Kerberos principal for ambari server", dest="jaas_principal")
+  parser.add_option('--jaas-keytab', default=None, help="Keytab path for Kerberos principal", dest="jaas_keytab")
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_blank(options):
@@ -511,10 +586,12 @@ def create_user_action_map(args, options):
     RESET_ACTION: UserAction(reset, options),
     STATUS_ACTION: UserAction(status, options),
     UPGRADE_ACTION: UserAction(upgrade, options),
-    LDAP_SETUP_ACTION: UserAction(setup_ldap),
+    LDAP_SETUP_ACTION: UserAction(setup_ldap, options),
     SETUP_SECURITY_ACTION: UserActionRestart(setup_security, options),
     REFRESH_STACK_HASH_ACTION: UserAction(refresh_stack_hash_action),
-    SETUP_SSO_ACTION: UserActionRestart(setup_sso, options)
+    SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
+    INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
+    UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
   }
   return action_map
 
@@ -529,7 +606,7 @@ def create_user_action_map(args, options):
         STATUS_ACTION: UserAction(status, options),
         UPGRADE_ACTION: UserAction(upgrade, options),
         UPGRADE_STACK_ACTION: UserActionPossibleArgs(upgrade_stack, [2, 4], args),
-        LDAP_SETUP_ACTION: UserAction(setup_ldap),
+        LDAP_SETUP_ACTION: UserAction(setup_ldap, options),
         LDAP_SYNC_ACTION: UserAction(sync_ldap, options),
         SET_CURRENT_ACTION: UserAction(set_current, options),
         SETUP_SECURITY_ACTION: UserActionRestart(setup_security, options),
@@ -537,8 +614,12 @@ def create_user_action_map(args, options):
         BACKUP_ACTION: UserActionPossibleArgs(backup, [1, 2], args),
         RESTORE_ACTION: UserActionPossibleArgs(restore, [1, 2], args),
         UPDATE_HOST_NAMES_ACTION: UserActionPossibleArgs(update_host_names, [2], args, options),
+        CHECK_DATABASE_ACTION: UserAction(check_database, options),
         ENABLE_STACK_ACTION: UserAction(enable_stack, options, args),
-        SETUP_SSO_ACTION: UserActionRestart(setup_sso, options)
+        SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
+        DB_CLEANUP_ACTION: UserAction(db_cleanup, options),
+        INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
+        UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
       }
   return action_map
 

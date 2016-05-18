@@ -31,16 +31,6 @@ describe('App.MainDashboardServiceRangerView', function () {
 
   describe('#didInsertElement', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.updater, 'run', Em.K);
-      sinon.stub(App.updater, 'immediateRun', Em.K);
-    });
-
-    afterEach(function () {
-      App.updater.run.restore();
-      App.updater.immediateRun.restore();
-    });
-
     it('should run updater', function () {
       view.didInsertElement();
       expect(App.updater.run.calledOnce).to.be.true;
@@ -52,6 +42,28 @@ describe('App.MainDashboardServiceRangerView', function () {
     it('should not run updater if not on Ranger summary page', function () {
       view.willDestroyElement();
       expect(view.get('controller.isRangerUpdateWorking')).to.be.false;
+    });
+  });
+
+  describe("#isRangerTagsyncInStack", function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.StackServiceComponent, 'find');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("no RANGER_TAGSYNC component", function() {
+      this.mock.returns([]);
+      view.propertyDidChange('isRangerTagsyncInStack');
+      expect(view.get('isRangerTagsyncInStack')).to.be.false;
+    });
+
+    it("NFS_GATEWAY component present", function() {
+      this.mock.returns([{componentName: 'RANGER_TAGSYNC'}]);
+      view.propertyDidChange('isRangerTagsyncInStack');
+      expect(view.get('isRangerTagsyncInStack')).to.be.true;
     });
   });
 

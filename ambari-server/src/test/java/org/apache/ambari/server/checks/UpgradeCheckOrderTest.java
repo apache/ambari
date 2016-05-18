@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.junit.Assert;
@@ -53,7 +54,7 @@ public class UpgradeCheckOrderTest {
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sourceResourceDirectory);
 
-    Injector injector = Guice.createInjector(new ControllerModule(properties));
+    Injector injector = Guice.createInjector(new ControllerModule(properties), new AuditLoggerModule());
     UpgradeCheckRegistry registry = injector.getInstance(UpgradeCheckRegistry.class);
     UpgradeCheckRegistry registry2 = injector.getInstance(UpgradeCheckRegistry.class);
 
@@ -76,28 +77,20 @@ public class UpgradeCheckOrderTest {
     for (AbstractCheckDescriptor check : checks) {
       UpgradeCheckGroup group = UpgradeCheckGroup.DEFAULT;
       UpgradeCheckGroup lastGroup = UpgradeCheckGroup.DEFAULT;
-      Float order = 1.0f;
-      Float lastOrder = 1.0f;
 
-      if (null == lastCheck) {
-        lastCheck = check;
+      if (null != lastCheck) {
+
+        UpgradeCheck annotation = check.getClass().getAnnotation(UpgradeCheck.class);
+        UpgradeCheck lastAnnotation = lastCheck.getClass().getAnnotation(UpgradeCheck.class);
+
+        if (null != annotation && null != lastAnnotation) {
+          group = annotation.group();
+          lastGroup = lastAnnotation.group();
+          Assert.assertTrue(lastGroup.getOrder().compareTo(group.getOrder()) <= 0);
+        }
       }
 
-      UpgradeCheck annotation = check.getClass().getAnnotation(UpgradeCheck.class);
-      UpgradeCheck lastAnnotation = lastCheck.getClass().getAnnotation(UpgradeCheck.class);
-
-      if (null != annotation) {
-        group = annotation.group();
-        order = annotation.order();
-      }
-
-      if (null != lastAnnotation) {
-        lastGroup = lastAnnotation.group();
-        lastOrder = lastAnnotation.order();
-      }
-
-      Assert.assertTrue(lastGroup.getOrder().compareTo(group.getOrder()) <= 0);
-      Assert.assertTrue(lastOrder.compareTo(order) <= 0);
+      lastCheck = check;
     }
   }
 }

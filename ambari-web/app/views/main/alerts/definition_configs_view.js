@@ -32,10 +32,15 @@ App.AlertDefinitionConfigsView = Em.View.extend({
   canEdit: true,
 
   /**
+   * @type {string}
+   */
+  alertDefinitionType: '',
+
+  /**
    * List of classes applied to all inputs
    * @type {String}
    */
-  basicClass: 'span9',
+  basicClass: 'span11',
 
   init: function () {
     this.set('controller.canEdit', this.get('canEdit'));
@@ -87,4 +92,22 @@ App.AlertConfigRadioButtonView = Em.Checkbox.extend({
   },
 
   classNameBindings: ['property.classNames']
+});
+
+App.AlertConfigParameterView = Em.View.extend({
+
+  templateName: require('templates/main/alerts/configs/alert_config_parameter'),
+
+  bigInput: Em.computed.equal('property.type', 'STRING'),
+
+  classNameBindings: ['property.classNames', 'parentView.basicClass'],
+
+  didInsertElement: function () {
+    App.tooltip($("[rel='parameter-tooltip']"));
+  },
+
+  willDestroyElement: function () {
+    $("[rel='parameter-tooltip']").tooltip('destroy');
+  }
+
 });

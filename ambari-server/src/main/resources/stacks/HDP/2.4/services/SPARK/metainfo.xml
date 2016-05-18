@@ -23,31 +23,8 @@
     <services>
         <service>
           <name>SPARK</name>
-          <version>1.3.1.2.4</version>
-          <osSpecifics>
-            <osSpecific>
-              <osFamily>redhat7,redhat6,suse11</osFamily>
-              <packages>
-                <package>
-                  <name>spark_2_4_*</name>
-                </package>
-                <package>
-                  <name>spark_2_4_*-python</name>
-                </package>
-              </packages>
-            </osSpecific>
-            <osSpecific>
-              <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-              <packages>
-                <package>
-                  <name>spark-2-4-.*</name>
-                </package>
-                <package>
-                  <name>spark-2-4-.*-python</name>
-                </package>
-              </packages>
-            </osSpecific>
-          </osSpecifics>
+          <extends>common-services/SPARK/1.6.0</extends>
+          <version>1.6.x.2.4</version>
         </service>
     </services>
 </metainfo>

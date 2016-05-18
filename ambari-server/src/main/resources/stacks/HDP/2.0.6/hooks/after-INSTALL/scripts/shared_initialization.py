@@ -17,35 +17,49 @@ limitations under the License.
 
 """
 import os
-import shutil
 
 import ambari_simplejson as json
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
-from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
 
-def setup_hdp_install_directory():
-  # This is a name of marker file.
-  SELECT_ALL_PERFORMED_MARKER = "/var/lib/ambari-agent/data/hdp-select-set-all.performed"
+def setup_stack_symlinks():
+  """
+  Invokes <stack-selector-tool> set all against a calculated fully-qualified, "normalized" version based on a
+  stack version, such as "2.3". This should always be called after a component has been
+  installed to ensure that all HDP pointers are correct. The stack upgrade logic does not
+  interact with this since it's done via a custom command and will not trigger this hook.
+  :return:
+  """
   import params
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-    Execute(format('{sudo} /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{stack_version_unformatted} | tail -1`') + ' && ' +
-            as_sudo(['touch', SELECT_ALL_PERFORMED_MARKER]),
-            only_if=format('ls -d /usr/hdp/{stack_version_unformatted}*'),   # If any HDP version is installed
-            not_if=format("test -f {SELECT_ALL_PERFORMED_MARKER}")           # Do that only once (otherwise we break stack upgrade logic)
-    )
+  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
+    # try using the exact version first, falling back in just the stack if it's not defined
+    # which would only be during an intial cluster installation
+    version = params.current_version if params.current_version is not None else params.stack_version_unformatted
+
+    if not params.upgrade_suspended:
+      # On parallel command execution this should be executed by a single process at a time.
+      with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+        stack_select.select_all(version)
 
 def setup_config():
   import params
   stackversion = params.stack_version_unformatted
   Logger.info("FS Type: {0}".format(params.dfs_type))
-  if params.has_namenode or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS':
+
+  is_hadoop_conf_dir_present = False
+  if hasattr(params, "hadoop_conf_dir") and params.hadoop_conf_dir is not None and os.path.exists(params.hadoop_conf_dir):
+    is_hadoop_conf_dir_present = True
+  else:
+    Logger.warning("Parameter hadoop_conf_dir is missing or directory does not exist. This is expected if this host does not have any Hadoop components.")
+
+  if is_hadoop_conf_dir_present and (params.has_namenode or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS'):
     # create core-site only if the hadoop config diretory exists
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
@@ -76,8 +90,9 @@ def link_configs(struct_out_file):
   """
   Links configs, only on a fresh install of HDP-2.3 and higher
   """
+  import params
 
-  if not Script.is_hdp_stack_greater_or_equal("2.3"):
+  if not Script.is_stack_greater_or_equal("2.3"):
     Logger.info("Can only link configs for HDP-2.3 and higher.")
     return
 
@@ -87,5 +102,7 @@ def link_configs(struct_out_file):
     Logger.info("Could not load 'version' from {0}".format(struct_out_file))
     return
 
-  for k, v in conf_select.PACKAGE_DIRS.iteritems():
-    conf_select.convert_conf_directories_to_symlinks(k, json_version, v)
+  # On parallel command execution this should be executed by a single process at a time.
+  with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+    for k, v in conf_select.get_package_dirs().iteritems():
+      conf_select.convert_conf_directories_to_symlinks(k, json_version, v)

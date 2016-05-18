@@ -16,31 +16,61 @@
    limitations under the License.
 -->
 <configuration supports_adding_forbidden="true">
-    <property>
-        <display-name>soft nofile</display-name>
-        <name>soft_nofile</name>
-        <value>2900000</value>
-        <description>Soft limit for the number of file handles or open files for user gpadmin. Value is set in file /etc/security/limits.d/gpadmin.conf</description>
-    </property>
 
-    <property>
-        <display-name>hard nofile</display-name>
-        <name>hard_nofile</name>
-        <value>2900000</value>
-        <description>Hard limit for the number of file handles or open files for user gpadmin. Value is set in /etc/security/limits.d/gpadmin.conf</description>
-    </property>
+  <property>
+    <display-name>soft nofile</display-name>
+    <name>soft_nofile</name>
+    <value>2900000</value>
+    <description>
+      Soft limit integer value for the maximum number of file handles or open files allowed for user gpadmin.
+      The default is 2900000. This value is set in the file /etc/security/limits.d/gpadmin.conf.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+  </property>
 
-    <property>
-        <display-name>soft nproc</display-name>
-        <name>soft_nproc</name>
-        <value>131072</value>
-        <description>Soft limit for the maximum number of processes for user gpadmin. Value is set in /etc/security/limits.d/gpadmin.conf</description>
-    </property>
+  <property>
+    <display-name>hard nofile</display-name>
+    <name>hard_nofile</name>
+    <value>2900000</value>
+    <description>
+      Hard limit integer value for the maximum number of file handles or open files allowed for user gpadmin.
+      The default is 2900000. This value is set in the file /etc/security/limits.d/gpadmin.conf.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+  </property>
 
-    <property>
-        <display-name>hard nproc</display-name>
-        <name>hard_nproc</name>
-        <value>131072</value>
-        <description>Hard limit for the maximum number of processes for user gpadmin. Value is set in /etc/security/limits.d/gpadmin.conf</description>
-    </property>
+  <property>
+    <display-name>soft nproc</display-name>
+    <name>soft_nproc</name>
+    <value>131072</value>
+    <description>
+      Soft limit integer value for the maximum number of processes allowed for user gpadmin.
+      The default is 131072. This value is set in the file /etc/security/limits.d/gpadmin.conf
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+  </property>
+
+  <property>
+    <display-name>hard nproc</display-name>
+    <name>hard_nproc</name>
+    <value>131072</value>
+    <description>
+      Hard limit integer value for the maximum number of processes allowed for user gpadmin.
+      The default is 131072. This value is set in the file /etc/security/limits.d/gpadmin.conf
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+  </property>
+
 </configuration>

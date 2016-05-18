@@ -3,6 +3,8 @@
     "clusterName": "c1", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agentCacheDir": "/var/lib/ambari-agent/cache",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
@@ -529,6 +531,7 @@
             "xml_configurations_supported" : "false"
         },
       "cluster-env": {
+          "managed_hdfs_resource_property_names": "",
           "security_enabled": "false",
           "hdfs_user_principal" : "",
           "hdfs_user_keytab" : "",
@@ -811,6 +814,9 @@
         "ams-hbase-log4j": {
             "content": "\n"
         },
+        "ams-ssl-server": {
+            "content": "\n"
+        },
         "ams-site": {
             "timeline.metrics.host.aggregator.minute.ttl": "604800",
             "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier": "1",
@@ -828,7 +834,7 @@
             "timeline.metrics.host.aggregator.ttl": "86400",
             "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2",
             "timeline.metrics.service.cluster.aggregator.appIds": "datanode,nodemanager,hbase",
-            "timeline.metrics.service.webapp.address": "0.0.0.0:6188",
+            "timeline.metrics.service.webapp.address": "localhost:6188",
             "timeline.metrics.cluster.aggregator.hourly.disabled": "false",
             "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint",
             "timeline.metrics.hbase.data.block.encoding": "FAST_DIFF",
@@ -859,6 +865,7 @@
         "ams-hbase-site": {},
         "ams-hbase-policy": {},
         "ams-hbase-log4j": {},
+        "ams-ssl-server": {},
         "ams-site": {},
         "yarn-site": {
         "final": {
@@ -939,6 +946,9 @@
             "tag": "version1"
         },
         "ams-site": {
+            "tag": "version1"
+        },
+        "ams-ssl-server": {
             "tag": "version1"
         },
         "ams-hbase-policy": {

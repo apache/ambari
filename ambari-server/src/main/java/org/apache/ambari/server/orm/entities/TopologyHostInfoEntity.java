@@ -24,6 +24,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -41,6 +42,10 @@ public class TopologyHostInfoEntity {
   @Column(name = "fqdn", length = 255)
   private String fqdn;
 
+  @OneToOne
+  @JoinColumn(name="host_id")
+  private HostEntity hostEntity;
+
   @Column(name = "host_count", length = 10)
   private Integer hostCount;
 
@@ -50,6 +55,9 @@ public class TopologyHostInfoEntity {
   @ManyToOne
   @JoinColumn(name = "group_id", referencedColumnName = "id", nullable = false)
   private TopologyHostGroupEntity topologyHostGroupEntity;
+
+  @Column(name = "rack_info", length = 255)
+  private String rackInfo;
 
   public Long getId() {
     return id;
@@ -93,6 +101,22 @@ public class TopologyHostInfoEntity {
 
   public void setTopologyHostGroupEntity(TopologyHostGroupEntity topologyHostGroupEntity) {
     this.topologyHostGroupEntity = topologyHostGroupEntity;
+  }
+
+  public String getRackInfo() {
+    return rackInfo;
+  }
+
+  public void setRackInfo(String rackInfo) {
+    this.rackInfo = rackInfo;
+  }
+
+  public HostEntity getHostEntity() {
+    return hostEntity;
+  }
+
+  public void setHostEntity(HostEntity hostEntity) {
+    this.hostEntity = hostEntity;
   }
 
   @Override

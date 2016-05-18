@@ -20,9 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -35,7 +33,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,7 +46,6 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
@@ -62,8 +58,12 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -76,19 +76,46 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.inject.Injector;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Tests for the component resource provider.
  */
 public class ComponentResourceProviderTest {
+
+  private static final long CLUSTER_ID = 100;
+  private static final String CLUSTER_NAME = "Cluster100";
+  private static final String SERVICE_NAME = "Service100";
+
+  @Before
+  public void clearAuthentication() {
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Component;
 
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
@@ -101,6 +128,7 @@ public class ComponentResourceProviderTest {
     ServiceComponentFactory serviceComponentFactory = createNiceMock(ServiceComponentFactory.class);
     ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
     StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     expect(managementController.getClusters()).andReturn(clusters);
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
@@ -108,6 +136,7 @@ public class ComponentResourceProviderTest {
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     expect(service.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(service.getName()).andReturn("Service100").anyTimes();
@@ -117,11 +146,16 @@ public class ComponentResourceProviderTest {
 
     expect(ambariMetaInfo.isValidServiceComponent("HDP", "99", "Service100", "Component100")).andReturn(true).anyTimes();
 
+    expect(componentInfo.isRecoveryEnabled()).andReturn(true).anyTimes();
+    expect(ambariMetaInfo.getComponent("HDP", "99", "Service100", "Component100")).andReturn(componentInfo).anyTimes();
+
     expect(serviceComponentFactory.createNew(service, "Component100")).andReturn(serviceComponent);
 
     // replay
     replay(managementController, response, clusters, cluster, service, stackId, ambariMetaInfo,
         serviceComponentFactory, serviceComponent);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = new ComponentResourceProvider(PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -151,7 +185,21 @@ public class ComponentResourceProviderTest {
   }
 
   @Test
-  public void testGetResources() throws Exception {
+  public void testGetResourcesAsAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesAsClusterAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesAsServiceAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testGetResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Component;
 
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
@@ -183,11 +231,14 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", 1, 1, 0));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", 1, 1, 0,
+              true /* recovery enabled */, "Component100 Client"));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 1, 0));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 1, 0,
+              false /* recovery not enabled */, "Component101 Client"));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0,
+              true /* recovery enabled */, "Component102 Client"));
 
     expect(ambariMetaInfo.getComponent((String) anyObject(),
         (String) anyObject(), (String) anyObject(), (String) anyObject()))
@@ -200,6 +251,8 @@ public class ComponentResourceProviderTest {
     replay(managementController, clusters, cluster, ambariMetaInfo, service,
       serviceComponent1, serviceComponent2, serviceComponent3, stackId,
       componentInfo1, componentInfo2);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
@@ -214,6 +267,7 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
 
     Predicate predicate = new PredicateBuilder()
       .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
@@ -238,6 +292,8 @@ public class ComponentResourceProviderTest {
         ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID));
       Assert.assertEquals(0, resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID));
+      Assert.assertEquals(String.valueOf(true), resource.getPropertyValue(
+        ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID));
     }
 
     // verify
@@ -247,7 +303,21 @@ public class ComponentResourceProviderTest {
   }
 
   @Test
-  public void testUpdateResources() throws Exception {
+  public void testUpdateResourcesAsAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testUpdateResourcesAsClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testUpdateResourcesAsServiceAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testUpdateResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Component;
 
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
@@ -276,7 +346,7 @@ public class ComponentResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getEffectiveMaintenanceState(
-        capture(new Capture<ServiceComponentHost>()))).andReturn(MaintenanceState.OFF).anyTimes();
+        capture(EasyMock.<ServiceComponentHost>newCapture()))).andReturn(MaintenanceState.OFF).anyTimes();
 
     expect(stackId.getStackName()).andReturn("stackName").anyTimes();
     expect(stackId.getStackVersion()).andReturn("1").anyTimes();
@@ -294,6 +364,7 @@ public class ComponentResourceProviderTest {
     expect(serviceComponent3.getName()).andReturn("Component103").anyTimes();
 
     expect(cluster.getServices()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
@@ -305,11 +376,14 @@ public class ComponentResourceProviderTest {
     expect(component3Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1,
+              false /* recovery not enabled */, "Component101 Client"));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 0, 1));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 0, 1,
+              false /* recovery not enabled */, "Component102 Client"));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", 1, 0, 1));
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", 1, 0, 1,
+              false /* recovery not enabled */, "Component103 Client"));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent3.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -324,13 +398,13 @@ public class ComponentResourceProviderTest {
 
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
 
-    Capture<Map<String, String>> requestPropertiesCapture = new Capture<Map<String, String>>();
-    Capture<Map<State, List<Service>>> changedServicesCapture = new Capture<Map<State, List<Service>>>();
-    Capture<Map<State, List<ServiceComponent>>> changedCompsCapture = new Capture<Map<State, List<ServiceComponent>>>();
-    Capture<Map<String, Map<State, List<ServiceComponentHost>>>> changedScHostsCapture = new Capture<Map<String, Map<State, List<ServiceComponentHost>>>>();
-    Capture<Map<String, String>> requestParametersCapture = new Capture<Map<String, String>>();
-    Capture<Collection<ServiceComponentHost>> ignoredScHostsCapture = new Capture<Collection<ServiceComponentHost>>();
-    Capture<Cluster> clusterCapture = new Capture<Cluster>();
+    Capture<Map<String, String>> requestPropertiesCapture = EasyMock.newCapture();
+    Capture<Map<State, List<Service>>> changedServicesCapture = EasyMock.newCapture();
+    Capture<Map<State, List<ServiceComponent>>> changedCompsCapture = EasyMock.newCapture();
+    Capture<Map<String, Map<State, List<ServiceComponentHost>>>> changedScHostsCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> requestParametersCapture = EasyMock.newCapture();
+    Capture<Collection<ServiceComponentHost>> ignoredScHostsCapture = EasyMock.newCapture();
+    Capture<Cluster> clusterCapture = EasyMock.newCapture();
 
     expect(managementController.createAndPersistStages(capture(clusterCapture), capture(requestPropertiesCapture), capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture), capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
     )).andReturn(requestStatusResponse);
@@ -344,6 +418,8 @@ public class ComponentResourceProviderTest {
         component2Info, component3Info, serviceComponent1, serviceComponent2, serviceComponent3,
         serviceComponentHost, requestStatusResponse, stackId, maintenanceStateHelper);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     ResourceProvider provider = new ComponentResourceProvider(
         PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
@@ -351,6 +427,7 @@ public class ComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
+    properties.put(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(true) /* recovery enabled */);
     properties.put(ComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID, "STARTED");
     properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
 
@@ -368,7 +445,28 @@ public class ComponentResourceProviderTest {
         serviceComponentHost, requestStatusResponse, stackId, maintenanceStateHelper);
   }
 
-  public void testSuccessDeleteResources() throws Exception {
+  @Test
+  public void testSuccessDeleteResourcesAsAdministrator() throws Exception {
+    testSuccessDeleteResources(TestAuthenticationFactory.createAdministrator(), State.INSTALLED);
+  }
+
+  @Test
+  public void testSuccessDeleteResourcesAsClusterAdministrator() throws Exception {
+    testSuccessDeleteResources(TestAuthenticationFactory.createClusterAdministrator(), State.INSTALLED);
+  }
+
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsServiceAdministrator() throws Exception {
+    testSuccessDeleteResources(TestAuthenticationFactory.createServiceAdministrator(), State.INSTALLED);
+  }
+
+  @Test(expected = SystemException.class)
+  public void testDeleteResourcesWithStartedHostComponentState() throws Exception {
+    testSuccessDeleteResources(TestAuthenticationFactory.createAdministrator(), State.STARTED);
+  }
+
+  private void testSuccessDeleteResources(Authentication authentication, State hostComponentState) throws Exception {
     Resource.Type type = Resource.Type.Component;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -382,21 +480,22 @@ public class ComponentResourceProviderTest {
     ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
     StackId stackId = createNiceMock(StackId.class);
 
-    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<>();
     serviceComponentHosts.put("", serviceComponentHost);
 
     expect(managementController.getClusters()).andReturn(clusters);
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
 
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
-    expect(cluster.getService("Service100")).andReturn(service);
+    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster);
+    expect(cluster.getService(SERVICE_NAME)).andReturn(service);
+    expect(cluster.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
 
     expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
 
-    expect(serviceComponent.getDesiredState()).andReturn(State.INSTALLED);
-    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
+    expect(serviceComponent.getDesiredState()).andReturn(State.STARTED);
+    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts).anyTimes();
 
-    expect(serviceComponentHost.getDesiredState()).andReturn(State.INSTALLED);
+    expect(serviceComponentHost.getDesiredState()).andReturn(hostComponentState);
 
 
     service.deleteServiceComponent("Component100");
@@ -405,6 +504,8 @@ public class ComponentResourceProviderTest {
 
     replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
            serviceComponent, serviceComponentHost, maintenanceStateHelper);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = new ComponentResourceProvider(
                 PropertyHelper.getPropertyIds(type),
@@ -426,14 +527,28 @@ public class ComponentResourceProviderTest {
                 .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
                 .equals("Component100").toPredicate();
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     // verify
     verify(managementController, service);
   }
 
   @Test
-  public void testDeleteResourcesWithEmptyClusterComponentNames() throws Exception {
+  public void testDeleteResourcesWithEmptyClusterComponentNamesAsAdministrator() throws Exception {
+    testDeleteResourcesWithEmptyClusterComponentNames(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testDeleteResourcesWithEmptyClusterComponentNamesAsClusterAdministrator() throws Exception {
+    testDeleteResourcesWithEmptyClusterComponentNames(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesWithEmptyClusterComponentNamesAsServiceAdministrator() throws Exception {
+    testDeleteResourcesWithEmptyClusterComponentNames(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testDeleteResourcesWithEmptyClusterComponentNames(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Component;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -446,6 +561,8 @@ public class ComponentResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     replay(managementController, clusters, ambariMetaInfo, maintenanceStateHelper);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = new ComponentResourceProvider(
                 PropertyHelper.getPropertyIds(type),
@@ -464,7 +581,7 @@ public class ComponentResourceProviderTest {
                 .equals("Component100").toPredicate();
 
     try {
-      provider.deleteResources(predicate1);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate1);
       Assert.fail("Expected IllegalArgumentException exception.");
     } catch (IllegalArgumentException e) {
       //expected
@@ -479,7 +596,7 @@ public class ComponentResourceProviderTest {
                 .and().toPredicate();
 
     try {
-      provider.deleteResources(predicate2);
+      provider.deleteResources(new RequestImpl(null, null, null, null), predicate2);
       Assert.fail("Expected IllegalArgumentException exception.");
     } catch (IllegalArgumentException e) {
       //expected
@@ -490,137 +607,135 @@ public class ComponentResourceProviderTest {
   }
 
   @Test
-  public void testDeleteResourcesWithServiceComponentStarted() throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
-    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
-    StackId stackId = createNiceMock(StackId.class);
-
-    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
-    serviceComponentHosts.put("", serviceComponentHost);
-
-    expect(managementController.getClusters()).andReturn(clusters);
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
-
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
-    expect(cluster.getService("Service100")).andReturn(service);
-
-    expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
-
-    expect(serviceComponent.getDesiredState()).andReturn(State.STARTED);
-    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
-
-    expect(serviceComponentHost.getDesiredState()).andReturn(State.INSTALLED);
-
-
-    // replay
-    replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
-           serviceComponent, serviceComponentHost, maintenanceStateHelper);
-
-    ResourceProvider provider = new ComponentResourceProvider(
-                PropertyHelper.getPropertyIds(type),
-                PropertyHelper.getKeyPropertyIds(type),
-                managementController, maintenanceStateHelper);
-
-    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    Predicate predicate = new PredicateBuilder()
-                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
-                .equals("Cluster100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
-                .equals("Service100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-                .equals("Component100").toPredicate();
-
-    try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected exception.");
-    } catch(Exception e) {
-      //expected
-    }
-
-    // verify
-    verify(managementController);
+  public void testUpdateAutoStartAsAdministrator() throws Exception {
+    testUpdateAutoStart(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test
-  public void testDeleteResourcesWithServiceComponentHostStarted() throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
-    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
-    StackId stackId = createNiceMock(StackId.class);
-
-    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
-    serviceComponentHosts.put("", serviceComponentHost);
-
-    expect(managementController.getClusters()).andReturn(clusters);
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
-
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
-    expect(cluster.getService("Service100")).andReturn(service);
-
-    expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
-
-    expect(serviceComponent.getDesiredState()).andReturn(State.INSTALLED);
-    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
-
-    expect(serviceComponentHost.getDesiredState()).andReturn(State.STARTED);
-
-
-    // replay
-    replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
-           serviceComponent, serviceComponentHost, maintenanceStateHelper);
-
-    ResourceProvider provider = new ComponentResourceProvider(
-                PropertyHelper.getPropertyIds(type),
-                PropertyHelper.getKeyPropertyIds(type),
-                managementController,maintenanceStateHelper);
-
-    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    Predicate predicate = new PredicateBuilder()
-                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
-                .equals("Cluster100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
-                .equals("Service100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-                .equals("Component100").toPredicate();
-
-    try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected exception.");
-    } catch(Exception e) {
-      //expected
-    }
-
-    // verify
-    verify(managementController);
+  public void testUpdateAutoStartAsClusterAdministrator() throws Exception {
+    testUpdateAutoStart(TestAuthenticationFactory.createClusterAdministrator());
   }
 
+  @Test
+  public void testUpdateAutoStartAsServiceAdministrator() throws Exception {
+    testUpdateAutoStart(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateAutoStartAsClusterUser() throws Exception {
+    testUpdateAutoStart(TestAuthenticationFactory.createClusterUser());
+  }
+
+  /**
+   * Perform steps to test updating the Auto-Start property (ServiceComponentInfo/recovery_enabled)
+   * of a service.
+   *
+   * @param authentication the authentication and authorization details of the acting user
+   * @throws Exception
+   */
+  private void testUpdateAutoStart(Authentication authentication) throws Exception {
+    Resource.Type type = Resource.Type.Component;
+
+    MaintenanceStateHelper maintenanceStateHelper = createMock(MaintenanceStateHelper.class);
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createMock(AmbariMetaInfo.class);
+    Service service = createMock(Service.class);
+    ComponentInfo component1Info = createMock(ComponentInfo.class);
+
+    ServiceComponent serviceComponent1 = createMock(ServiceComponent.class);
+    ServiceComponentHost serviceComponentHost = createMock(ServiceComponentHost.class);
+    RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
+    StackId stackId = createMock(StackId.class);
+
+    Map<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
+    serviceComponentMap.put("Component101", serviceComponent1);
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getEffectiveMaintenanceState(
+        capture(EasyMock.<ServiceComponentHost>newCapture()))).andReturn(MaintenanceState.OFF).anyTimes();
+
+    expect(stackId.getStackName()).andReturn("stackName").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("1").anyTimes();
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(cluster.getResourceId()).andReturn(4l).atLeastOnce();
+    expect(cluster.getServices()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    expect(cluster.getService("Service100")).andReturn(service).anyTimes();
+    expect(service.getName()).andReturn("Service100").anyTimes();
+    expect(service.getServiceComponent("Component101")).andReturn(serviceComponent1).anyTimes();
+
+    expect(serviceComponent1.getName()).andReturn("Component101").atLeastOnce();
+    expect(serviceComponent1.isRecoveryEnabled()).andReturn(false).atLeastOnce();
+    serviceComponent1.setRecoveryEnabled(true);
+    expectLastCall().once();
+
+    expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
+
+    expect(ambariMetaInfo.getComponent("stackName", "1", "Service100", "Component101")).andReturn(component1Info).atLeastOnce();
+    expect(component1Info.getCategory()).andReturn(null);
+
+    expect(serviceComponent1.convertToResponse()).andReturn(
+        new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1,
+            false /* recovery not enabled */, "Component101 Client"));
+    expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
+
+    expect(serviceComponentHost.getState()).andReturn(State.INSTALLED).anyTimes();
+
+    Map<String, ServiceComponentHost> serviceComponentHosts = Collections.singletonMap("Host100", serviceComponentHost);
+
+    expect(serviceComponent1.getServiceComponentHosts()).andReturn(serviceComponentHosts).anyTimes();
+
+    expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
+
+    Capture<Map<String, String>> requestPropertiesCapture = EasyMock.newCapture();
+    Capture<Map<State, List<Service>>> changedServicesCapture = EasyMock.newCapture();
+    Capture<Map<State, List<ServiceComponent>>> changedCompsCapture = EasyMock.newCapture();
+    Capture<Map<String, Map<State, List<ServiceComponentHost>>>> changedScHostsCapture = EasyMock.newCapture();
+    Capture<Map<String, String>> requestParametersCapture = EasyMock.newCapture();
+    Capture<Collection<ServiceComponentHost>> ignoredScHostsCapture = EasyMock.newCapture();
+    Capture<Cluster> clusterCapture = EasyMock.newCapture();
+
+    expect(managementController.createAndPersistStages(capture(clusterCapture), capture(requestPropertiesCapture), capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture), capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
+    )).andReturn(requestStatusResponse);
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, service, component1Info,
+        serviceComponent1, serviceComponentHost, requestStatusResponse, stackId, maintenanceStateHelper);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    ResourceProvider provider = new ComponentResourceProvider(
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController, maintenanceStateHelper);
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(true) /* recovery enabled */);
+
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    // update the cluster named Cluster100
+    Predicate predicate = new PredicateBuilder().property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).
+        equals("Cluster100").toPredicate();
+    provider.updateResources(request, predicate);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, service, component1Info,
+        serviceComponent1, serviceComponentHost, requestStatusResponse, stackId, maintenanceStateHelper);
+  }
 
   @Test
   public void testGetComponents() throws Exception {
@@ -638,7 +753,7 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
@@ -680,7 +795,7 @@ public class ComponentResourceProviderTest {
    * case when an OR predicate is provided in the query.
    */
   @Test
-  public void testGetComponents___OR_Predicate_ServiceComponentNotFoundException() throws Exception {
+  public void testGetComponents_OR_Predicate_ServiceComponentNotFoundException() throws Exception {
     // member state mocks
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -698,14 +813,15 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
     ServiceComponentRequest request2 = new ServiceComponentRequest("cluster1", "service1", "component2",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
     ServiceComponentRequest request3 = new ServiceComponentRequest("cluster1", "service1", "component3",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
     ServiceComponentRequest request4 = new ServiceComponentRequest("cluster1", "service1", "component4",
-        null);
-    ServiceComponentRequest request5 = new ServiceComponentRequest("cluster1", "service2", null, null);
+        null, String.valueOf(true /* recovery enabled */));
+    ServiceComponentRequest request5 = new ServiceComponentRequest("cluster1", "service2", null, null,
+              String.valueOf(true /* recovery enabled */));
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
@@ -778,10 +894,10 @@ public class ComponentResourceProviderTest {
    * Ensure that ServiceComponentNotFoundException is propagated in case where there is a single request.
    */
   @Test
-  public void testGetComponents___ServiceComponentNotFoundException() throws Exception {
+  public void testGetComponents_ServiceComponentNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
     Clusters clusters = createNiceMock(Clusters.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -789,7 +905,7 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        null);
+        null, String.valueOf(true /* recovery enabled */));
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
@@ -823,8 +939,9 @@ public class ComponentResourceProviderTest {
     assertSame(controller, controllerCapture.getValue());
     verify(injector, clusters, cluster, service);
   }
-  
-  public static void createComponents(AmbariManagementController controller, Set<ServiceComponentRequest> requests) throws AmbariException {
+
+  public static void createComponents(AmbariManagementController controller, Set<ServiceComponentRequest> requests)
+      throws AmbariException, AuthorizationException {
     ComponentResourceProvider provider = getComponentResourceProvider(controller);
     provider.createComponents(requests);
   }
@@ -837,8 +954,8 @@ public class ComponentResourceProviderTest {
 
   public static RequestStatusResponse updateComponents(AmbariManagementController controller,
                                                      Set<ServiceComponentRequest> requests,
-                                                     Map<String, String> requestProperties, boolean runSmokeTest) throws AmbariException
-  {
+                                                     Map<String, String> requestProperties, boolean runSmokeTest)
+      throws AmbariException, AuthorizationException {
     ComponentResourceProvider provider = getComponentResourceProvider(controller);
     return provider.updateComponents(requests, requestProperties, runSmokeTest);
   }

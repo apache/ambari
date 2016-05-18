@@ -69,6 +69,16 @@ public enum UpgradeCheckGroup {
    */
   CONFIGURATION_WARNING(8.0f),
 
+  /***
+   * Checks the component version on the hosts.
+   */
+  COMPONENT_VERSION(9.0f),
+
+  /**
+   * A general group for related to Kerberos checks
+   */
+  KERBEROS(10.0f),
+
   /**
    * All other checks.
    */

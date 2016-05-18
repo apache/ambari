@@ -61,7 +61,10 @@ def nfsgateway(action=None, format=False):
     prepare_rpcbind()
 
   if action == "configure":
-    return
+    Directory(params.nfs_file_dump_dir,
+              owner = params.hdfs_user,
+              group = params.user_group,
+    )
   elif action == "start" or action == "stop":
     service(
       action=action,

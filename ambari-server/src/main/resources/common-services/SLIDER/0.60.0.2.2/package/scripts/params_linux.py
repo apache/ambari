@@ -18,24 +18,31 @@ limitations under the License.
 """
 from resource_management.libraries.resources import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 
 # server configurations
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
-slider_home_dir = '/usr/hdp/current/slider-client'
+slider_home_dir = format('{stack_root}/current/slider-client')
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 #hadoop params
 slider_bin_dir = "/usr/lib/slider/bin"
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
     slider_bin_dir = format('{slider_home_dir}/bin')
 
 slider_conf_dir = format("{slider_home_dir}/conf")
-storm_slider_conf_dir = '/usr/hdp/current/storm-slider-client/conf'
+storm_slider_conf_dir = format('{stack_root}/current/storm-slider-client/conf')
 
 slider_lib_dir = format('{slider_home_dir}/lib')
 slider_tar_gz = format('{slider_lib_dir}/slider.tar.gz')
@@ -52,7 +59,7 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
-hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 hdfs_site = config['configurations']['hdfs-site']
@@ -64,6 +71,7 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
+  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -71,5 +79,6 @@ HdfsResource = functools.partial(
   hadoop_conf_dir = hadoop_conf_dir,
   principal_name = hdfs_principal_name,
   hdfs_site = hdfs_site,
-  default_fs = default_fs
+  default_fs = default_fs,
+  immutable_paths = get_not_managed_resources()
 )

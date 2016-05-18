@@ -20,6 +20,7 @@ var App = require('app');
 
 require('controllers/main/service/reassign/step1_controller');
 require('models/host_component');
+var testHelpers = require('test/helpers');
 
 describe('App.ReassignMasterWizardStep1Controller', function () {
 
@@ -34,61 +35,45 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
 
   describe('#loadConfigTags', function() {
     beforeEach(function() {
-      sinon.stub(App.ajax, 'send', Em.K);
+      this.stub = sinon.stub(App.router, 'get');
     });
 
     afterEach(function() {
-      App.ajax.send.restore();
+      this.stub.restore();
     });
 
     it('tests loadConfigTags', function() {
       controller.loadConfigsTags();
-
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args).exists;
     });
 
     it('tests saveDatabaseType with type', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveDatabaseType: Em.K};
-      });
+      this.stub.returns({ saveDatabaseType: Em.K});
 
       controller.saveDatabaseType(true);
       expect(App.router.get.calledOnce).to.be.true;
-
-      App.router.get.restore();
     });
 
     it('tests saveDatabaseType without type', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveDatabaseType: Em.K};
-      });
+      this.stub.returns({ saveDatabaseType: Em.K});
 
       controller.saveDatabaseType(false);
       expect(App.router.get.called).to.be.false;
-
-      App.router.get.restore();
     });
 
-    it('tests saveServiceProperties with propertie', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveServiceProperties: Em.K};
-      });
+    it('tests saveServiceProperties with properties', function() {
+      this.stub.returns({ saveServiceProperties: Em.K});
 
       controller.saveServiceProperties(true);
       expect(App.router.get.calledOnce).to.be.true;
-
-      App.router.get.restore();
     });
 
     it('tests saveServiceProperties without properties', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveServiceProperties: Em.K};
-      });
+      this.stub.returns({ saveServiceProperties: Em.K});
 
       controller.saveServiceProperties(false);
       expect(App.router.get.called).to.be.false;
-
-      App.router.get.restore();
     });
 
     it('tests getDatabaseHost', function() {
@@ -106,7 +91,6 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
 
   describe('#onLoadConfigs', function() {
 
-    var controller;
     var reassignCtrl;
 
     beforeEach(function() {
@@ -218,29 +202,25 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
   describe("#onLoadConfigsTags()", function () {
     beforeEach(function () {
       this.mock = sinon.stub(controller, 'getConfigUrlParams');
-      sinon.stub(App.ajax, 'send');
     });
     afterEach(function () {
       this.mock.restore();
-      App.ajax.send.restore();
     });
     it("empty params", function () {
       this.mock.returns([]);
       controller.onLoadConfigsTags();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
+      expect(args).not.exists;
     });
     it("correct params", function () {
       this.mock.returns(['p1', 'p2']);
       controller.onLoadConfigsTags();
-      expect(App.ajax.send.calledWith({
-        name: 'reassign.load_configs',
-        sender: controller,
-        data: {
-          urlParams: 'p1|p2'
-        },
-        success: 'onLoadConfigs',
-        error: ''
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: 'p1|p2'
+      });
     });
   });
 });

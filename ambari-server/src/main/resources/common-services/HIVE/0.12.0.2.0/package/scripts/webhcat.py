@@ -22,9 +22,11 @@ import sys
 import os.path
 from resource_management import *
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def webhcat():
@@ -50,16 +52,16 @@ def webhcat():
             owner=params.webhcat_user,
             mode=0755,
             group=params.user_group,
-            recursive=True)
+            create_parents = True)
 
   Directory(params.templeton_log_dir,
             owner=params.webhcat_user,
             mode=0755,
             group=params.user_group,
-            recursive=True)
+            create_parents = True)
 
   Directory(params.config_dir,
-            recursive=True,
+            create_parents = True,
             owner=params.webhcat_user,
             group=params.user_group,
             cd_access="a")
@@ -90,9 +92,10 @@ def webhcat():
             )
 
   # if we're in an upgrade of a secure cluster, make sure hive-site and yarn-site are created
-  if Script.is_hdp_stack_greater_or_equal("2.3") and params.version:
+  if params.stack_version_formatted_major  and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.stack_version_formatted_major) and \
+       params.version and params.stack_root:
     XmlConfig("hive-site.xml",
-      conf_dir = format("/usr/hdp/{version}/hive/conf"),
+      conf_dir = format("{stack_root}/{version}/hive/conf"),
       configurations = params.config['configurations']['hive-site'],
       configuration_attributes = params.config['configuration_attributes']['hive-site'],
       owner = params.hive_user,
@@ -100,7 +103,7 @@ def webhcat():
       )
 
     XmlConfig("yarn-site.xml",
-      conf_dir = format("/usr/hdp/{version}/hadoop/conf"),
+      conf_dir = format("{stack_root}/{version}/hadoop/conf"),
       configurations = params.config['configurations']['yarn-site'],
       configuration_attributes = params.config['configuration_attributes']['yarn-site'],
       owner = params.yarn_user,
@@ -116,7 +119,7 @@ def webhcat():
   
   Directory(params.webhcat_conf_dir,
        cd_access='a',
-       recursive=True
+       create_parents = True
   )
 
   log4j_webhcat_filename = 'webhcat-log4j.properties'

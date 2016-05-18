@@ -21,23 +21,25 @@
     <div class="navbar navbar-static-top">
       <div class="navbar-inner">
         <div class="container main-container">
-          {{#if isExistingClusterDataLoaded}}
+          {{#if enableLinks}}
             <a {{translateAttr href="topnav.logo.href"}} class="logo"><img src="/img/logo-white.png" alt="Apache Ambari"
                                                                            title="Apache Ambari"></a>
             <a class="brand" {{translateAttr href="topnav.logo.href"}} title="Apache Ambari">{{t app.name}}</a>
             <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
-              <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
-              {{#with App.router.backgroundOperationsController}}
-                {{#if allOperationsCount}}
-                  <i class="icon-caret-left ops-count"></i><span id="span-bg-operation-count"
-                                                                 class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
-                    {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
-                {{else}}
-                  <i class="icon-caret-left"></i><span id="span-bg-operation-count"
-                                                       class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
-                    {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
-                {{/if}}
-              {{/with}}
+              {{#unless App.isClusterUser}}
+                <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
+                {{#with App.router.backgroundOperationsController}}
+                  {{#if allOperationsCount}}
+                    <i class="icon-caret-left ops-count"></i><span id="span-bg-operation-count"
+                                                                   class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                      {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
+                  {{else}}
+                    <i class="icon-caret-left"></i><span id="span-bg-operation-count"
+                                                         class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                      {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
+                  {{/if}}
+                {{/with}}
+              {{/unless}}
             {{#if App.router.clusterController.isAlertsLoaded}}
               {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
                 <span {{bindAttr class=":label App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertInstancesController"}}>
@@ -57,13 +59,13 @@
           {{#if App.router.loggedIn}}
             <div class="top-nav-user btn-group">
               <button class="btn dropdown-toggle" data-toggle="dropdown">
-                <i class="icon-user"></i>&nbsp;{{App.router.loginName}}&nbsp;<span class="caret"></span>
+                <i class="icon-user"></i>&nbsp;{{App.router.displayLoginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
                 <li><a href="" id="about" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
                 {{#if App.router.clusterInstallCompleted}}
                   {{#if isClusterDataLoaded}}
-                    {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+                    {{#isAuthorized "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER, AMBARI.SET_SERVICE_USERS_GROUPS"}}
                       <li><a href=""
                              id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
                       </li>
@@ -71,14 +73,14 @@
                   {{/if}}
                 {{else}}
                   {{#if App.isPermissionDataLoaded}}
-                    {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+                    {{#isAuthorized "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER, AMBARI.SET_SERVICE_USERS_GROUPS"}}
                       <li><a href=""
                              id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
                       </li>
                     {{/isAuthorized}}
                   {{/if}}
                 {{/if}}
-                {{#if isClusterDataLoaded}}
+                {{#if isExistingClusterDataLoaded}}
                   {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
                     <li><a href="" {{action showSettingsPopup target="App.router.userSettingsController"}}>{{t app.settings}}</a></li>
                   {{/isAuthorized}}
@@ -133,21 +135,16 @@
                           <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
                     {{/if}}
                   {{/if}}
-                  {{#if App.upgradeAborted}}
+                  {{#if App.upgradeSuspended}}
                     {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                      <span
-                              class="label upgrade-aborted" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                          <i class="icon-remove"></i>&nbsp;{{t admin.stackVersions.version.downgrade.aborted}}</span>
-                    {{else}}
-                      <span
-                              class="label upgrade-aborted" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                          <i class="icon-remove"></i>&nbsp;{{t admin.stackVersions.version.upgrade.aborted}}</span>
-                    {{/if}}
-                  {{/if}}
-                  {{#if App.router.mainAdminStackAndUpgradeController.isSuspended}}
                       <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                          <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.suspended}}
+                        <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.suspended}}
                       </span>
+                    {{else}}
+                      <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                        <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.suspended}}
+                      </span>
+                    {{/if}}
                   {{/if}}
                 </a>
                 </p>

@@ -24,43 +24,7 @@
         <service>
           <name>SPARK</name>
           <version>1.5.2.2.3</version>
-          <extends>common-services/SPARK/1.4.1.2.3</extends>
-          <osSpecifics>
-            <osSpecific>
-              <osFamily>redhat7,redhat6,suse11</osFamily>
-              <packages>
-                <package>
-                  <name>spark_2_3_*</name>
-                </package>
-                <package>
-                  <name>spark_2_3_*-python</name>
-                </package>
-              </packages>
-            </osSpecific>
-            <osSpecific>
-              <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-              <packages>
-                <package>
-                  <name>spark-2-3-.*</name>
-                </package>
-                <package>
-                  <name>spark-2-3-.*-python</name>
-                </package>
-              </packages>
-            </osSpecific>
-          </osSpecifics>
-          <requiredServices>
-            <service>YARN</service>
-          </requiredServices>
-          <!-- No new components compared to 1.4.1 -->
-          <configuration-dependencies>
-            <config-type>spark-defaults</config-type>
-            <config-type>spark-env</config-type>
-            <config-type>spark-log4j-properties</config-type>
-            <config-type>spark-metrics-properties</config-type>
-            <config-type>spark-thrift-sparkconf</config-type>
-            <config-type>spark-hive-site-override</config-type>
-          </configuration-dependencies>
+          <extends>common-services/SPARK/1.5.2</extends>
         </service>
     </services>
 </metainfo>

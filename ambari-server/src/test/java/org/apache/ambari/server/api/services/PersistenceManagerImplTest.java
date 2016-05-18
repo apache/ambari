@@ -19,31 +19,97 @@
 package org.apache.ambari.server.api.services;
 
 
-import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.api.query.Query;
-import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.persistence.PersistenceManagerImpl;
+import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestStatusImpl;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.junit.After;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 
 /**
  * PersistenceManagerImpl unit tests.
  */
 public class PersistenceManagerImplTest {
 
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @Test
+  public void testPersistenceManagerImplAsClusterAdministrator() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("ClusterAdmin", 2L));
+    testCreate();
+    testCreate___NoBodyProps();
+    testCreate__MultipleResources();
+    testUpdate();
+    testDelete();
+  }
+
+  @Test
+  public void testPersistenceManagerImplAsServiceAdministrator() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createServiceAdministrator("ServiceAdmin", 2L));
+    testCreate();
+    testCreate___NoBodyProps();
+    testCreate__MultipleResources();
+    testUpdate();
+    testDelete();
+  }
+
+  @Test
+  public void testPersistenceManagerImplAsServiceOperator() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createServiceOperator("ServiceOperator", 2L));
+    testCreate();
+    testCreate___NoBodyProps();
+    testCreate__MultipleResources();
+    testUpdate();
+    testDelete();
+  }
+
+  @Test
+  public void testPersistenceManagerImplAsClusterUser() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterUser("ClusterUser", 2L));
+    testCreate();
+    testCreate___NoBodyProps();
+    testCreate__MultipleResources();
+    testUpdate();
+    testDelete();
+  }
+
+  @Test (expected = AuthorizationException.class)
+  public void testPersistenceManagerImplAsViewUser() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser("ViewUser", 2L));
+    testCreate();
+    testCreate___NoBodyProps();
+    testCreate__MultipleResources();
+    testUpdate();
+    testDelete();
+  }
+
   public void testCreate() throws Exception {
     ResourceInstance resource = createMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
@@ -87,7 +153,6 @@ public class PersistenceManagerImplTest {
     verify(resource, resourceDefinition, controller, schema, serverRequest);
   }
 
-  @Test
   public void testCreate___NoBodyProps() throws Exception {
     ResourceInstance resource = createMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
@@ -123,13 +188,11 @@ public class PersistenceManagerImplTest {
     expect(controller.createResources(Resource.Type.Component, serverRequest)).andReturn(new RequestStatusImpl(null));
 
     replay(resource, resourceDefinition, controller, schema, serverRequest);
-
     new TestPersistenceManager(controller, setExpected, serverRequest).create(resource, body);
 
     verify(resource, resourceDefinition, controller, schema, serverRequest);
   }
 
-  @Test
   public void testCreate__MultipleResources() throws Exception {
     ResourceInstance resource = createMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
@@ -180,13 +243,11 @@ public class PersistenceManagerImplTest {
     expect(controller.createResources(Resource.Type.Component, serverRequest)).andReturn(new RequestStatusImpl(null));
 
     replay(resource, resourceDefinition, controller, schema, serverRequest);
-
     new TestPersistenceManager(controller, setExpected, serverRequest).create(resource, body);
 
     verify(resource, resourceDefinition, controller, schema, serverRequest);
   }
 
-  @Test
   public void testUpdate() throws Exception {
     ResourceInstance resource = createMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
@@ -233,7 +294,6 @@ public class PersistenceManagerImplTest {
     verify(resource, resourceDefinition, controller, schema, serverRequest, query, predicate);
   }
 
-  @Test
   public void testDelete() throws Exception {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
@@ -248,11 +308,11 @@ public class PersistenceManagerImplTest {
     expect(resource.getQuery()).andReturn(query).anyTimes();
     expect(query.getPredicate()).andReturn(predicate).anyTimes();
 
-    expect(controller.deleteResources(Resource.Type.Component, predicate)).andReturn(new RequestStatusImpl(null));
+    expect(controller.deleteResources(Resource.Type.Component, new RequestImpl(null, null, null, null), predicate)).andReturn(new RequestStatusImpl(null));
 
     replay(resource, resourceDefinition, controller, query, predicate);
 
-    new TestPersistenceManager(controller, null, null).delete(resource, body);
+    new PersistenceManagerImpl(controller).delete(resource, body);
 
     verify(resource, resourceDefinition, controller, query, predicate);
   }

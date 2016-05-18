@@ -30,9 +30,11 @@ from resource_management.core.resources.system import File
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.show_logs import show_logs
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from setup_atlas_falcon import setup_atlas_falcon
 
 @OsFamilyFuncImpl(os_family = OsFamilyImpl.DEFAULT)
 def falcon(type, action = None, upgrade_type=None):
@@ -41,33 +43,33 @@ def falcon(type, action = None, upgrade_type=None):
   if action == 'config':
     Directory(params.falcon_pid_dir,
       owner = params.falcon_user,
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = "a",
     )
 
     Directory(params.falcon_log_dir,
       owner = params.falcon_user,
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = "a",
     )
 
     Directory(params.falcon_webapp_dir,
       owner = params.falcon_user,
-      recursive = True)
+      create_parents = True)
 
     Directory(params.falcon_home,
       owner = params.falcon_user,
-      recursive = True)
+      create_parents = True)
 
     Directory(params.etc_prefix_dir,
       mode = 0755,
-      recursive = True)
+      create_parents = True)
 
     Directory(params.falcon_conf_dir,
       owner = params.falcon_user,
-      recursive = True)
+      create_parents = True)
 
     File(params.falcon_conf_dir + '/falcon-env.sh',
       content = InlineTemplate(params.falcon_env_sh_template),
@@ -95,7 +97,7 @@ def falcon(type, action = None, upgrade_type=None):
         owner = params.falcon_user,
         group = params.user_group,
         mode = 0775,
-        recursive = True,
+        create_parents = True,
         cd_access = "a")
 
     if params.falcon_graph_serialize_path:
@@ -103,8 +105,10 @@ def falcon(type, action = None, upgrade_type=None):
         owner = params.falcon_user,
         group = params.user_group,
         mode = 0775,
-        recursive = True,
+        create_parents = True,
         cd_access = "a")
+
+    setup_atlas_falcon()
 
   if type == 'server':
     if action == 'config':
@@ -117,10 +121,10 @@ def falcon(type, action = None, upgrade_type=None):
       elif params.store_uri[0:4] == "file":
         Directory(params.store_uri[7:],
           owner = params.falcon_user,
-          recursive = True)
+          create_parents = True)
 
       # TODO change to proper mode
-      params.HdfsResource(params.flacon_apps_dir,
+      params.HdfsResource(params.falcon_apps_dir,
         type = "directory",
         action = "create_on_execute",
         owner = params.falcon_user,
@@ -135,7 +139,7 @@ def falcon(type, action = None, upgrade_type=None):
       elif params.falcon_store_uri[0:4] == "file":
         Directory(params.falcon_store_uri[7:],
           owner = params.falcon_user,
-          recursive = True)
+          create_parents = True)
 
       if params.supports_hive_dr:
         params.HdfsResource(params.dfs_data_mirroring_dir,
@@ -151,18 +155,18 @@ def falcon(type, action = None, upgrade_type=None):
       params.HdfsResource(None, action = "execute")
       Directory(params.falcon_local_dir,
         owner = params.falcon_user,
-        recursive = True,
+        create_parents = True,
         cd_access = "a")
 
       if params.falcon_embeddedmq_enabled == True:
         Directory(
           os.path.abspath(os.path.join(params.falcon_embeddedmq_data, "..")),
           owner = params.falcon_user,
-          recursive = True)
+          create_parents = True)
 
         Directory(params.falcon_embeddedmq_data,
           owner = params.falcon_user,
-          recursive = True)
+          create_parents = True)
 
     # although Falcon's falcon-config.sh will use 'which hadoop' to figure
     # this out, in an upgraded cluster, it's possible that 'which hadoop'
@@ -171,17 +175,25 @@ def falcon(type, action = None, upgrade_type=None):
     environment_dictionary = { "HADOOP_HOME" : params.hadoop_home_dir }
 
     if action == 'start':
-      Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
-        user = params.falcon_user,
-        path = params.hadoop_bin_dir,
-        environment=environment_dictionary)
+      try:
+        Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
+          user = params.falcon_user,
+          path = params.hadoop_bin_dir,
+          environment=environment_dictionary)
+      except:
+        show_logs(params.falcon_log_dir, params.falcon_user)
+        raise
 
     if action == 'stop':
-      Execute(format('{falcon_home}/bin/falcon-stop'),
-        user = params.falcon_user,
-        path = params.hadoop_bin_dir,
-        environment=environment_dictionary)
-
+      try:
+        Execute(format('{falcon_home}/bin/falcon-stop'),
+          user = params.falcon_user,
+          path = params.hadoop_bin_dir,
+          environment=environment_dictionary)
+      except:
+        show_logs(params.falcon_log_dir, params.falcon_user)
+        raise
+      
       File(params.server_pid_file, action = 'delete')
 
 

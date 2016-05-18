@@ -29,7 +29,7 @@
       <components>
         <component>
           <name>SQOOP</name>
-          <displayName>Sqoop</displayName>
+          <displayName>Sqoop Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
@@ -55,6 +55,11 @@
           </commandScript>
           <configFiles>
             <configFile>
+              <type>xml</type>
+              <fileName>squoop-site.xml</fileName>
+              <dictionaryName>squoop-site</dictionaryName>
+            </configFile>
+            <configFile>
               <type>env</type>
               <fileName>sqoop-env.sh</fileName>
               <dictionaryName>sqoop-env</dictionaryName>
@@ -72,6 +77,7 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysl_connector</condition>
             </package>
           </packages>
         </osSpecific>
@@ -88,6 +94,7 @@
       
       <configuration-dependencies>
         <config-type>sqoop-env</config-type>
+        <config-type>sqoop-site</config-type>
       </configuration-dependencies>
     </service>
   </services>

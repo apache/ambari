@@ -33,7 +33,7 @@ import java.util.Map;
  * Checks that namenode high availability is enabled.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 1.1f)
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 16.2f)
 public class ServicesNamenodeTruncateCheck extends AbstractCheckDescriptor {
 
   /**

@@ -82,7 +82,7 @@ def change_permission():
 
   Directory(params.dwoo_path,
             mode=0755,
-            recursive=True
+            create_parents = True
   )
   Execute(format("chown -R {web_user} {dwoo_path}"))
 
@@ -91,7 +91,7 @@ def server_files():
 
   rrd_py_path = params.rrd_py_path
   Directory(rrd_py_path,
-            recursive=True
+            create_parents = True
   )
   rrd_py_file_path = path.join(rrd_py_path, "rrd.py")
   TemplateConfig(rrd_py_file_path,
@@ -105,7 +105,7 @@ def server_files():
             owner=rrd_file_owner,
             group=rrd_file_owner,
             mode=0755,
-            recursive=True
+            create_parents = True
   )
   
   if System.get_instance().os_family in ["ubuntu","suse"]:

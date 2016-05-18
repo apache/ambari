@@ -18,6 +18,8 @@
 
 var App = require('app');
 
+var validator = require('utils/validator');
+
 App.WidgetWizardStep3Controller = Em.Controller.extend({
   name: "widgetWizardStep3Controller",
 
@@ -29,9 +31,24 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   widgetName: '',
 
   /**
+   * @type {boolean}
+   */
+  isNameInvalid: false,
+
+  /**
    * @type {string}
    */
   widgetAuthor: '',
+
+  /**
+   * @type {string}
+   */
+  widgetNameErrorMessage: '',
+
+  /**
+   * @type {string}
+   */
+  descriptionErrorMessage: '',
 
   /**
    * @type {boolean}
@@ -52,6 +69,11 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
    * @type {string}
    */
   widgetDescription: '',
+
+  /**
+   * @type {boolean}
+   */
+  isDescriptionInvalid: false,
 
   /**
    * actual values of properties in API format
@@ -82,14 +104,42 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   isSubmitDisabled: Em.computed.or('widgetNameEmpty', 'isNameInvalid', 'isDescriptionInvalid'),
 
   /**
-   * @type {boolean}
+   * validates the name on 3rd step
    */
-  isNameInvalid: Em.computed.gte('widgetName.length', 129),
+  validateName: function(){
+    var errorMessage='';
+    var widgetName = this.get('widgetName');
+    this.set("isNameInvalid",false);
+    if(widgetName && widgetName.length > 128){
+      errorMessage = Em.I18n.t("widget.create.wizard.step3.name.invalid.msg");
+      this.set("isNameInvalid",true);
+    }
+
+    if(widgetName && !validator.isValidWidgetName(widgetName)){
+      errorMessage = Em.I18n.t("widget.create.wizard.step3.name.invalidCharacter.msg");
+      this.set("isNameInvalid",true);
+    }
+    this.set('widgetNameErrorMessage',errorMessage);
+  }.observes('widgetName'),
 
   /**
-   * @type {boolean}
+   * validates the description on 3rd step
    */
-  isDescriptionInvalid: Em.computed.gte('widgetDescription.length', 2049),
+  validateDescription: function(){
+    var errorMessage='';
+    var widgetDescription = this.get('widgetDescription');
+    this.set("isDescriptionInvalid",false);
+    if(widgetDescription && widgetDescription.length > 2048){
+      errorMessage = Em.I18n.t("widget.create.wizard.step3.description.invalid.msg");
+      this.set("isDescriptionInvalid",true);
+    }
+
+    if(widgetDescription && !validator.isValidWidgetDescription(widgetDescription)){
+      errorMessage = Em.I18n.t("widget.create.wizard.step3.description.invalidCharacter.msg");
+      this.set("isDescriptionInvalid",true);
+    }
+    this.set('descriptionErrorMessage',errorMessage);
+  }.observes('widgetDescription'),
 
   /**
    * restore widget data set on 2nd step

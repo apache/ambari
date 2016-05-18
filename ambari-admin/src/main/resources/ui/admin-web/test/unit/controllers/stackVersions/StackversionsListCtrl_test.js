@@ -18,21 +18,27 @@
 
 describe('#Cluster', function () {
   describe('StackVersionsListCtrl', function() {
-    var scope, ctrl;
+    var scope, ctrl, $httpBackend;
 
     beforeEach(module('ambariAdminConsole', function($provide) {
 
     }));
 
-    beforeEach(inject(function($rootScope, $controller) {
+    beforeEach(inject(function($rootScope, $controller, _$httpBackend_) {
       scope = $rootScope.$new();
       ctrl = $controller('StackVersionsListCtrl', {$scope: scope});
+      $httpBackend = _$httpBackend_;
     }));
 
-    it('saves list of stacks', function() {
-      scope.fetchRepos().then(function() {
-        expect(Array.isArray(scope.repos)).toBe(true);
+    describe('#fetchRepos()', function () {
+
+      it('saves list of stacks', function() {
+        scope.fetchRepos().then(function() {
+          expect(Array.isArray(scope.repos)).toBe(true);
+        });
       });
+
     });
+
   });
 });

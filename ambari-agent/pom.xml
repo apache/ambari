@@ -43,17 +43,14 @@
     <jinja.install.dir>/usr/lib/ambari-agent/lib/ambari_jinja2</jinja.install.dir>
     <simplejson.install.dir>/usr/lib/ambari-agent/lib/ambari_simplejson</simplejson.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
-    <python.ver>python &gt;= 2.6</python.ver>
-    <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
-    <deb.dependency.list>openssl, zlibc, ${deb.python.ver}</deb.dependency.list>
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
-    <init.d.dir>/etc/rc.d/init.d</init.d.dir>
     <resourceManagementSrcLocation>${project.basedir}/../ambari-common/src/main/python/resource_management</resourceManagementSrcLocation>
     <resourcesFolder>${ambari.server.module}/src/main/resources</resourcesFolder>
     <customActionsLocation>${target.cache.dir}/custom_actions</customActionsLocation>
+    <empty.dir>src/packages/tarball</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
   </properties>
   <build>
     <plugins>
@@ -89,24 +86,6 @@
         <version>3.0</version>
       </plugin>
       <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <tarLongFileMode>gnu</tarLongFileMode>
-          <descriptors>
-            <descriptor>src/packages/tarball/all.xml</descriptor>
-          </descriptors>
-        </configuration>
-        <executions>
-          <execution>
-            <id>build-tarball</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
@@ -137,26 +116,6 @@
             </goals>
           </execution>
           <execution>
-            <!-- TODO: Looks like section is unused, maybe remove? -->
-            <configuration>
-              <executable>${executable.python}</executable>
-              <workingDirectory>target${dirsep}ambari-agent-${project.version}</workingDirectory>
-              <arguments>
-                <argument>${project.basedir}${dirsep}src${dirsep}main${dirsep}python${dirsep}setup.py</argument>
-                <argument>clean</argument>
-                <argument>bdist_dumb</argument>
-              </arguments>
-              <environmentVariables>
-                <PYTHONPATH>target${dirsep}ambari-agent-${project.version}${pathsep}$PYTHONPATH</PYTHONPATH>
-              </environmentVariables>
-            </configuration>
-            <id>python-package</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-          <execution>
             <configuration>
               <executable>${executable.python}</executable>
               <workingDirectory>${basedir}</workingDirectory>
@@ -178,8 +137,25 @@
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${basedir}/src/main/package/dependencies.properties</file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.0.1</version>
+        <version>2.1.4</version>
         <executions>
           <execution>
             <!-- unbinds rpm creation from maven lifecycle -->
@@ -190,14 +166,12 @@
           </execution>
         </executions>
         <configuration>
+
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
           <requires>
-            <require>openssl</require>
-            <require>rpm-python</require>
-            <require>zlib</require>
-            <require>${python.ver}</require>
+            <require>${rpm.dependency.list}</require>
           </requires>
           <postinstallScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
@@ -220,247 +194,76 @@
           <autoRequires>false</autoRequires>
           <mappings>
             <mapping>
-              <directory>${agent.install.dir}</directory>
+              <directory>/etc</directory>
               <username>root</username>
               <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded> <!-- avoid managing /etc/init.d -->
               <sources>
                 <source>
-                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}${dirsep}ambari_agent</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/etc</location>
                 </source>
               </sources>
             </mapping>
-            <mapping>
-              <directory>/var/lib/ambari-agent/</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded>
-              <sources>
-                <source>
-                  <location>../ambari-common/src/main/unix/ambari-python-wrap</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/ambari-agent/</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded>
-              <sources>
-                <source>
-                  <location>conf/unix/ambari-sudo.sh</location>
-                </source>
-              </sources>
-            </mapping>         
-            <mapping>
-              <directory>${ambari_commons.install.dir}</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${project.basedir}/../ambari-common/src/main/python/ambari_commons</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>${resource_management.install.dir}</directory>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${resourceManagementSrcLocation}</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>${jinja.install.dir}</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2</location>
-                  <excludes>
-                    <exclude>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2/testsuite</exclude>
-                  </excludes>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>${simplejson.install.dir}</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${project.basedir}/../ambari-common/src/main/python/ambari_simplejson/</location>
-                </source>
-              </sources>
-            </mapping>
-             <mapping>
-              <directory>${lib.dir}/examples</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>src/examples</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/etc/ambari-agent/conf</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>conf/unix/ambari-agent.ini</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/etc/ambari-agent/conf</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>conf/unix/logging.conf.sample</location>
-                </source>
-              </sources>
-            </mapping>              
-            <mapping>
+           <mapping>
               <directory>/usr/sbin</directory>
-              <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>
-              <directoryIncluded>false</directoryIncluded>
+              <directoryIncluded>false</directoryIncluded> <!-- avoid managing /usr/sbin -->
               <sources>
                 <source>
-                  <location>conf/unix/ambari-agent</location>
-                  <filter>true</filter>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/sbin</location>
+                </source>
+              </sources>
+            </mapping>
+           <mapping>
+              <directory>/usr/lib/ambari-agent</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/lib/ambari-agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/lib/python2.6/site-packages</directory>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/lib/python2.6/site-packages</location>
                 </source>
               </sources>
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-agent</directory>
-              <configuration>true</configuration>
-              <filemode>700</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>conf/unix/ambari-env.sh</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent</location>
                 </source>
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-agent</directory>
-              <filemode>700</filemode>
+              <directory>/var/log/ambari-agent</directory>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>conf/unix/install-helper.sh</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/log/ambari-agent</location>
                 </source>
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-agent</directory>
-              <filemode>700</filemode>
+              <directory>/var/run/ambari-agent</directory>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
                 <source>
-                  <location>conf/unix/upgrade_agent_configs.py</location>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/run/ambari-agent</location>
                 </source>
               </sources>
-            </mapping>
-            <mapping>
-              <directory>${package.pid.dir}</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/${project.artifactId}/data</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/${project.artifactId}/tmp</directory>
-              <filemode>777</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/${project.artifactId}/keys</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>${package.log.dir}</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>${init.d.dir}</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>etc/init.d/ambari-agent</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/${project.artifactId}/data</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>../version</location>
-                  <filter>true</filter>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/ambari-agent/cache</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${target.cache.dir}</location>
-                  <excludes>
-                    <exclude>custom_actions/scripts/*</exclude>
-                  </excludes>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/ambari-agent/cache/custom_actions</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>${customActionsLocation}</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/var/lib/ambari-agent/lib</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
             </mapping>
           </mappings>
         </configuration>
@@ -468,7 +271,7 @@
       <plugin>
         <groupId>org.vafer</groupId>
         <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
+        <version>1.4</version>
         <executions>
           <execution>
             <phase>none</phase>
@@ -479,230 +282,39 @@
         </executions>
         <configuration>
           <controlDir>${basedir}/src/main/package/deb/control</controlDir>
-          <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+          <deb>${basedir}/target/${project.artifactId}_${package-version}-${package-release}.deb</deb>
+          <skip>false</skip>
+          <skipPOMs>false</skipPOMs>
           <dataSet>
             <data>
-              <src>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</src>
-              <type>directory</type>
+              <src>${project.build.directory}${dirsep}${project.artifactId}-${project.version}.tar.gz</src>
+              <type>archive</type>
               <mapper>
                 <type>perm</type>
-                <prefix>${agent.install.dir}</prefix>
-                <user>root</user>
-                <group>root</group>
-              </mapper>
-            </data>
-            <data>
-              <src>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2</src>
-              <excludes>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2/testsuite</excludes>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${jinja.install.dir}</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${project.basedir}/../ambari-common/src/main/python/ambari_simplejson</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${simplejson.install.dir}</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>src/examples</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${lib.dir}/examples</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/ambari-agent.ini</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/etc/ambari-agent/conf</prefix>
-                  <user>root</user>
-                  <group>root</group>
-                  <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/logging.conf.sample</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/etc/ambari-agent/conf</prefix>
-                  <user>root</user>
-                  <group>root</group>
-                  <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${basedir}/target/src/ambari-agent</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/usr/sbin</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/ambari-env.sh</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>700</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/install-helper.sh</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>700</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/upgrade_agent_configs.py</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>700</filemode>
-              </mapper>
-            </data>
-            <data>
-              <type>template</type>
-              <paths>
-                <path>${package.pid.dir}</path>
-                <path>/var/lib/${project.artifactId}/data</path>
-                <path>/var/lib/${project.artifactId}/tmp</path>
-                <path>/var/lib/${project.artifactId}/keys</path>
-                <path>${package.log.dir}</path>
-                <path>/var/lib/${project.artifactId}/lib</path>
-              </paths>
-              <mapper>
-                <type>perm</type>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>etc/init.d/ambari-agent</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/etc/init.d</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${basedir}/target/src/version</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/${project.artifactId}/data</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>../ambari-common/src/main/unix/ambari-python-wrap</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/ambari-sudo.sh</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${target.cache.dir}</src>
-              <type>directory</type>
-              <excludes>custom_actions/scripts/*</excludes>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent/cache</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>${customActionsLocation}</src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent/cache/custom_actions</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>755</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>
-                ${project.basedir}/../ambari-common/src/main/python/ambari_commons
-              </src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${ambari_commons.install.dir}</prefix>
-                <filemode>755</filemode>
-                <user>root</user>
-                <group>root</group>
-              </mapper>
-            </data>
-            <data>
-              <src>
-                ${resourceManagementSrcLocation}
-              </src>
-              <type>directory</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>${resource_management.install.dir}</prefix>
-                <filemode>755</filemode>
                 <user>root</user>
                 <group>root</group>
               </mapper>
             </data>
           </dataSet>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <tarLongFileMode>gnu</tarLongFileMode>
+          <descriptors>
+            <descriptor>src/packages/tarball/all.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>build-tarball</id>
+            <phase>${assemblyPhase}</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
@@ -751,7 +363,7 @@
           </execution>
            <execution>
             <id>copy-resources-filter</id>
-            <phase>prepare-package</phase>
+            <phase>generate-resources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -773,6 +385,61 @@
                   <filtering>true</filtering>
                 </resource>
               </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-repo-resources</id>
+            <phase>${assemblyPhase}</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/repo</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/../ambari-common/src/main/repo</directory>
+                </resource>
+                <resource>
+                  <directory>${project.build.directory}</directory>
+                  <includes>
+                    <include>${project.artifactId}-${project.version}.tar.gz</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/src/main/package/deb/control</directory>
+                </resource>
+                <resource>
+                  <directory>${basedir}/src/main/package</directory>
+                  <includes>
+                    <include>dependencies.properties</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${project.basedir}/../ambari-common/src/main/python/ambari_commons</directory>
+                  <includes>
+                    <include>os_check.py</include>
+                    <include>resources/os_family.json</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <id>rename-file</id>
+            <phase>${assemblyPhase}</phase>
+            <goals>
+              <goal>rename</goal>
+            </goals>
+            <configuration>
+              <sourceFile>${basedir}/target/repo/${project.artifactId}-${project.version}.tar.gz</sourceFile>
+              <destinationFile>${basedir}/target/repo/${project.artifactId}.tar.gz</destinationFile>
             </configuration>
           </execution>
         </executions>
@@ -890,7 +557,7 @@
             <executions>
               <execution>
                 <id>build-windows-zip</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>single</goal>
                 </goals>
@@ -939,12 +606,6 @@
             <!-- end choco package creation -->
         </plugins>
       </build>
-    </profile>
-    <profile>
-      <id>suse11</id>
-      <properties>
-        <init.d.dir>/etc/init.d</init.d.dir>
-      </properties>
     </profile>
     <profile>
       <id>pluggable-stack-definition</id>

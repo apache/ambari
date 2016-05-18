@@ -37,8 +37,9 @@ import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generates shared connections. Clients with same tag will get the same connection.
@@ -54,7 +55,7 @@ public class SharedObjectsFactory implements IStorageFactory {
   private final ATSParserFactory atsParserFactory;
   private final RMParserFactory rmParserFactory;
 
-  private static final Map<Class, Map<String, Object>> localObjects = new HashMap<Class, Map<String, Object>>();
+  private static final Map<Class, Map<String, Object>> localObjects = new ConcurrentHashMap<Class, Map<String, Object>>();
 
   public SharedObjectsFactory(ViewContext context) {
     this.context = context;
@@ -64,13 +65,13 @@ public class SharedObjectsFactory implements IStorageFactory {
 
     synchronized (localObjects) {
       if (localObjects.size() == 0) {
-        localObjects.put(OperationHandleControllerFactory.class, new HashMap<String, Object>());
-        localObjects.put(Storage.class, new HashMap<String, Object>());
-        localObjects.put(IJobControllerFactory.class, new HashMap<String, Object>());
-        localObjects.put(ATSParser.class, new HashMap<String, Object>());
-        localObjects.put(SavedQueryResourceManager.class, new HashMap<String, Object>());
-        localObjects.put(HdfsApi.class, new HashMap<String, Object>());
-        localObjects.put(RMParser.class, new HashMap<String, Object>());
+        localObjects.put(OperationHandleControllerFactory.class, new ConcurrentHashMap<String, Object>());
+        localObjects.put(Storage.class, new ConcurrentHashMap<String, Object>());
+        localObjects.put(IJobControllerFactory.class, new ConcurrentHashMap<String, Object>());
+        localObjects.put(ATSParser.class, new ConcurrentHashMap<String, Object>());
+        localObjects.put(SavedQueryResourceManager.class, new ConcurrentHashMap<String, Object>());
+        localObjects.put(HdfsApi.class, new ConcurrentHashMap<String, Object>());
+        localObjects.put(RMParser.class, new ConcurrentHashMap<String, Object>());
       }
     }
   }
@@ -164,6 +165,23 @@ public class SharedObjectsFactory implements IStorageFactory {
   public void clear() {
     for(Map<String, Object> map : localObjects.values()) {
       map.clear();
+    }
+  }
+
+  /**
+   *
+   * Drops all objects for give instance name.
+   *
+   * @param instanceName
+   */
+  public static void dropInstanceCache(String instanceName){
+    for(Map<String,Object> cache : localObjects.values()){
+      for(Iterator<Map.Entry<String, Object>> it = cache.entrySet().iterator(); it.hasNext();){
+        Map.Entry<String, Object> entry = it.next();
+        if(entry.getKey().startsWith(instanceName+":")){
+          it.remove();
+        }
+      }
     }
   }
 }

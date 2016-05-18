@@ -29,6 +29,8 @@ public class ServiceComponentResponse {
 
   private String componentName;
 
+  private String displayName;
+
   private String desiredStackVersion;
 
   private String desiredState;
@@ -41,6 +43,8 @@ public class ServiceComponentResponse {
 
   private int installedCount;
 
+  private boolean recoveryEnabled;
+
   public ServiceComponentResponse(Long clusterId, String clusterName,
                                   String serviceName,
                                   String componentName,
@@ -48,17 +52,21 @@ public class ServiceComponentResponse {
                                   String desiredState,
                                   int totalCount,
                                   int startedCount,
-                                  int installedCount) {
+                                  int installedCount,
+                                  boolean recoveryEnabled,
+                                  String displayName) {
     super();
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
+    this.displayName = displayName;
     this.desiredStackVersion = desiredStackVersion;
     this.desiredState = desiredState;
     this.totalCount = totalCount;
     this.startedCount = startedCount;
     this.installedCount = installedCount;
+    this.recoveryEnabled = recoveryEnabled;
   }
 
   /**
@@ -87,6 +95,13 @@ public class ServiceComponentResponse {
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  /**
+   * @return the displayName
+   */
+  public String getDisplayName() {
+    return displayName;
   }
 
   /**
@@ -209,6 +224,22 @@ public class ServiceComponentResponse {
    */
   public void setTotalCount(int totalCount) {
     this.totalCount = totalCount;
+  }
+
+  /**
+   * Get a true or false value indicating if the service component is auto start enabled
+   * @return true or false
+   */
+  public boolean isRecoveryEnabled() {
+    return recoveryEnabled;
+  }
+
+  /**
+   * Set a true or false value indicating whether the service component is auto start enabled
+   * @param recoveryEnabled
+   */
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    this.recoveryEnabled = recoveryEnabled;
   }
 
   @Override

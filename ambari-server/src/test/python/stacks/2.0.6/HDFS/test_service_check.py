@@ -25,13 +25,14 @@ from mock.mock import MagicMock, call, patch
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_service_check_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname = "HdfsServiceCheck",
                        command = "service_check",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -43,7 +44,7 @@ class TestServiceCheck(RMFTestCase):
                        classname = "HdfsServiceCheck",
                        command = "service_check",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -60,6 +61,7 @@ class TestServiceCheck(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -69,12 +71,13 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/tmp/',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -84,11 +87,12 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['delete_on_execute'],
+        action = ['delete_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
     self.assertResourceCalled('HdfsResource', '/tmp/',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -99,11 +103,12 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -113,7 +118,7 @@ class TestServiceCheck(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()

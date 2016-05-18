@@ -20,12 +20,20 @@ limitations under the License.
 import glob
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import os
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.exceptions import Fail
+from resource_management.core.shell import as_user, as_sudo
+from resource_management.core.source import Template, InlineTemplate
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.functions.flume_agent_helper import is_flume_process_live
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import await_flume_process_termination
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.show_logs import show_logs
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def flume(action = None):
@@ -93,13 +101,16 @@ def flume(action = None):
       )
       
     Directory(params.flume_run_dir,
+              group=params.user_group,
+              owner=params.flume_user,
     )
 
     Directory(params.flume_conf_dir,
-              recursive=True,
+              create_parents = True,
               owner=params.flume_user,
               )
-    Directory(params.flume_log_dir, 
+    Directory(params.flume_log_dir,
+              group=params.user_group,
               owner=params.flume_user,
               cd_access="a",
               mode=0755,
@@ -184,10 +195,15 @@ def flume(action = None):
         # sometimes startup spawns a couple of threads - so only the first line may count
         pid_cmd = as_sudo(('pgrep', '-o', '-u', params.flume_user, '-f', format('^{java_home}.*{agent}.*'))) + \
         " | " + as_sudo(('tee', flume_agent_pid_file)) + "  && test ${PIPESTATUS[0]} -eq 0"
-        Execute(pid_cmd,
-                logoutput=True,
-                tries=20,
-                try_sleep=10)
+        
+        try:
+          Execute(pid_cmd,
+                  logoutput=True,
+                  tries=20,
+                  try_sleep=10)
+        except:
+          show_logs(params.flume_log_dir, None)
+          raise
 
     pass
   elif action == 'stop':
@@ -211,6 +227,7 @@ def flume(action = None):
         Execute(("kill", "-15", pid), sudo=True)    # kill command has to be a tuple
       
       if not await_flume_process_termination(pid_file):
+        show_logs(params.flume_log_dir, None)
         raise Fail("Can't stop flume agent: {0}".format(agent))
         
       File(pid_file, action = 'delete')

@@ -18,13 +18,15 @@ limitations under the License.
 
 """
 import os
-from resource_management import Script
-from resource_management.libraries.functions import  get_kinit_path, format
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import  get_kinit_path
 from resource_management.libraries.functions.default import default
 
 
 config = Script.get_config()
 
+conf_file = config['configurations']['atlas-env']['metadata_conf_file']
 conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
 pid_dir = config['configurations']['atlas-env']['metadata_pid_dir']
 pid_file = format("{pid_dir}/atlas.pid")
@@ -35,3 +37,5 @@ hostname = config['hostname']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()
+
+stack_name = default("/hostLevelParams/stack_name", None)

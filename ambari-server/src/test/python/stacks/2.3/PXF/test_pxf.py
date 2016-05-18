@@ -42,6 +42,12 @@ class TestPxf(RMFTestCase):
     self.assertResourceCalled('File', '/etc/pxf/conf/pxf-env.sh',
                 content=Template('pxf-env.j2'))
 
+    self.assertResourceCalled('File', '/etc/pxf/conf/pxf-public.classpath',
+                content = self.getConfig()['configurations']['pxf-public-classpath']['content'].lstrip())
+
+    self.assertResourceCalled('File', '/etc/pxf/conf/pxf-profiles.xml',
+                content = self.getConfig()['configurations']['pxf-profiles']['content'].lstrip())
+
     self.assertResourceCalled('XmlConfig', 'pxf-site.xml',
                               conf_dir='/etc/pxf/conf',
                               configurations=self.getConfig()['configurations']['pxf-site'],
@@ -57,15 +63,25 @@ class TestPxf(RMFTestCase):
                        classname="Pxf",
                        command="install",
                        config_file="pxf_default.json",
-                       hdp_stack_version=self.STACK_VERSION,
+                       stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True)
 
-    self.assertResourceCalled('Package', 'pxf-service',)
-    self.assertResourceCalled('Package', 'apache-tomcat',)
-    self.assertResourceCalled('Package', 'pxf-hive',)
-    self.assertResourceCalled('Package', 'pxf-hdfs',)
-    self.assertResourceCalled('Package', 'pxf-hbase',)
+    self.assertResourceCalled('Package', 'pxf-service',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'apache-tomcat',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'pxf-hive',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'pxf-hdfs',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'pxf-hbase',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
 
     self.assert_configure_default()
 
@@ -75,7 +91,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="configure",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 
@@ -87,7 +103,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="start",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 
@@ -96,7 +112,7 @@ class TestPxf(RMFTestCase):
       self.assertResourceCalled('Directory', '/var/pxf',
               owner=self.PXF_USER,
               group=self.PXF_GROUP,
-              recursive=True)
+              create_parents = True)
 
       self.assertResourceCalled('Execute', 'service pxf-service restart',
                           timeout=self.DEFAULT_TIMEOUT,
@@ -107,7 +123,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="stop",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 
@@ -120,7 +136,7 @@ class TestPxf(RMFTestCase):
                    classname="Pxf",
                    command="status",
                    config_file="pxf_default.json",
-                   hdp_stack_version=self.STACK_VERSION,
+                   stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
 

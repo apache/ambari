@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +48,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -60,12 +65,13 @@ import org.apache.ambari.server.state.State;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 /**
  * Resource provider for component resources.
  */
 public class ComponentResourceProvider extends AbstractControllerResourceProvider {
-
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -73,18 +79,21 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_CLUSTER_NAME_PROPERTY_ID    = "ServiceComponentInfo/cluster_name";
   protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID    = "ServiceComponentInfo/service_name";
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID  = "ServiceComponentInfo/component_name";
+  protected static final String COMPONENT_DISPLAY_NAME_PROPERTY_ID    = "ServiceComponentInfo/display_name";
   protected static final String COMPONENT_STATE_PROPERTY_ID           = "ServiceComponentInfo/state";
   protected static final String COMPONENT_CATEGORY_PROPERTY_ID        = "ServiceComponentInfo/category";
   protected static final String COMPONENT_TOTAL_COUNT_PROPERTY_ID     = "ServiceComponentInfo/total_count";
   protected static final String COMPONENT_STARTED_COUNT_PROPERTY_ID   = "ServiceComponentInfo/started_count";
   protected static final String COMPONENT_INSTALLED_COUNT_PROPERTY_ID = "ServiceComponentInfo/installed_count";
+  protected static final String COMPONENT_RECOVERY_ENABLED_ID         = "ServiceComponentInfo/recovery_enabled";
+
+  private static final String TRUE = "true";
 
   //Parameters from the predicate
-  private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
-      "params/run_smoke_test";
+  private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
+      new HashSet<>(Arrays.asList(new String[]{
           COMPONENT_CLUSTER_NAME_PROPERTY_ID,
           COMPONENT_SERVICE_NAME_PROPERTY_ID,
           COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
@@ -94,7 +103,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   // ----- Constructors ----------------------------------------------------
 
   /**
-   * Create a  new resource provider for the given management controller.
+   * Create a new resource provider for the given management controller.
    *
    * @param propertyIds           the property ids
    * @param keyPropertyIds        the key property ids
@@ -107,26 +116,29 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                             MaintenanceStateHelper maintenanceStateHelper) {
     super(propertyIds, keyPropertyIds, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
+
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
+    setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
+    setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
+    setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
   }
 
 
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
-      throws SystemException,
-             UnsupportedPropertyException,
-             ResourceAlreadyExistsException,
-             NoSuchParentResourceException {
+  protected RequestStatus createResourcesAuthorized(Request request)
+      throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
-    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+    final Set<ServiceComponentRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
 
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         createComponents(requests);
         return null;
       }
@@ -142,7 +154,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+    final Set<ServiceComponentRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
@@ -155,20 +167,21 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       }
     });
 
-    Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<String> requestedIds = getRequestPropertyIds(request, predicate);
+    Set<Resource> resources = new HashSet<>();
 
     for (ServiceComponentResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Component);
       setResourceProperty(resource, COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
       setResourceProperty(resource, COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
       setResourceProperty(resource, COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
-      setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID,
-          response.getDesiredState(), requestedIds);
+      setResourceProperty(resource, COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName(), requestedIds);
+      setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
       setResourceProperty(resource, COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory(), requestedIds);
       setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getTotalCount(), requestedIds);
       setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getStartedCount(), requestedIds);
       setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getInstalledCount(), requestedIds);
+      setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
 
       resources.add(resource);
     }
@@ -179,19 +192,17 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   public RequestStatus updateResources(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
+    final Set<ServiceComponentRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
-      ServiceComponentRequest compRequest = getRequest(propertyMap);
-
-      requests.add(compRequest);
+      requests.add(getRequest(propertyMap));
     }
 
     Object queryParameterValue = getQueryParameterValue(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate);
-    final boolean runSmokeTest = queryParameterValue != null && queryParameterValue.equals("true");
+    final boolean runSmokeTest = TRUE.equals(queryParameterValue);
 
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
         return updateComponents(requests, request.getRequestInfoProperties(), runSmokeTest);
       }
     });
@@ -202,16 +213,16 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
-      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-        requests.add(getRequest(propertyMap));
-      }
+    final Set<ServiceComponentRequest> requests = new HashSet<>();
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+      requests.add(getRequest(propertyMap));
+    }
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
         return deleteComponents(requests);
       }
     });
@@ -244,12 +255,13 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_STATE_PROPERTY_ID),
+        (String) properties.get(COMPONENT_RECOVERY_ENABLED_ID),
         (String) properties.get(COMPONENT_CATEGORY_PROPERTY_ID));
   }
 
   // Create the components for the given requests.
-  public synchronized void createComponents(
-      Set<ServiceComponentRequest> requests) throws AmbariException {
+  public synchronized void createComponents(Set<ServiceComponentRequest> requests)
+      throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -261,102 +273,45 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     ServiceComponentFactory serviceComponentFactory = getManagementController().getServiceComponentFactory();
 
     // do all validation checks
-    Map<String, Map<String, Set<String>>> componentNames =
-        new HashMap<String, Map<String, Set<String>>>();
-    Set<String> duplicates = new HashSet<String>();
+    Map<String, Map<String, Set<String>>> componentNames = new HashMap<>();
+    Set<String> duplicates = new HashSet<>();
 
     for (ServiceComponentRequest request : requests) {
-      if (request.getClusterName() == null
-          || request.getClusterName().isEmpty()
-          || request.getComponentName() == null
-          || request.getComponentName().isEmpty()) {
-        throw new IllegalArgumentException("Invalid arguments"
-            + ", clustername and componentname should be"
-            + " non-null and non-empty when trying to create a"
-            + " component");
-      }
+      Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
+      Cluster cluster = getClusterForRequest(request, clusters);
 
-      Cluster cluster;
-      try {
-        cluster = clusters.getCluster(request.getClusterName());
-      } catch (ClusterNotFoundException e) {
-        throw new ParentObjectNotFoundException(
-            "Attempted to add a component to a cluster which doesn't exist:", e);
-      }
+      isAuthorized(cluster, RoleAuthorization.SERVICE_ADD_DELETE_SERVICES);
 
-      if (request.getServiceName() == null
-          || request.getServiceName().isEmpty()) {
-        StackId stackId = cluster.getDesiredStackVersion();
-        String serviceName =
-            ambariMetaInfo.getComponentToService(stackId.getStackName(),
-                stackId.getStackVersion(), request.getComponentName());
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Looking up service name for component"
-              + ", componentName=" + request.getComponentName()
-              + ", serviceName=" + serviceName);
-        }
-
-        if (serviceName == null
-            || serviceName.isEmpty()) {
-          throw new AmbariException("Could not find service for component"
-              + ", componentName=" + request.getComponentName()
-              + ", clusterName=" + cluster.getClusterName()
-              + ", stackInfo=" + stackId.getStackId());
-        }
-        request.setServiceName(serviceName);
-      }
-
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createComponent request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", request=" + request);
-      }
+      setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
+      debug("Received a createComponent request: {}", request);
 
       if (!componentNames.containsKey(request.getClusterName())) {
-        componentNames.put(request.getClusterName(),
-            new HashMap<String, Set<String>>());
+        componentNames.put(request.getClusterName(), new HashMap<String, Set<String>>());
       }
-      if (!componentNames.get(request.getClusterName())
-          .containsKey(request.getServiceName())) {
-        componentNames.get(request.getClusterName()).put(
-            request.getServiceName(), new HashSet<String>());
+      Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
+      if (!serviceComponents.containsKey(request.getServiceName())) {
+        serviceComponents.put(request.getServiceName(), new HashSet<String>());
       }
-      if (componentNames.get(request.getClusterName())
-          .get(request.getServiceName()).contains(request.getComponentName())) {
+
+      if (serviceComponents.get(request.getServiceName()).contains(request.getComponentName())) {
         // throw error later for dup
-        duplicates.add("[clusterName=" + request.getClusterName() + ", serviceName=" + request.getServiceName() +
-            ", componentName=" + request.getComponentName() + "]");
+        duplicates.add(request.toString());
         continue;
       }
-      componentNames.get(request.getClusterName())
-          .get(request.getServiceName()).add(request.getComponentName());
+      serviceComponents.get(request.getServiceName()).add(request.getComponentName());
 
-      if (request.getDesiredState() != null
-          && !request.getDesiredState().isEmpty()) {
-        State state = State.valueOf(request.getDesiredState());
-        if (!state.isValidDesiredState()
-            || state != State.INIT) {
-          throw new IllegalArgumentException("Invalid desired state"
-              + " only INIT state allowed during creation"
-              + ", providedDesiredState=" + request.getDesiredState());
-        }
+      if (StringUtils.isNotEmpty(request.getDesiredState())) {
+        Validate.isTrue(State.INIT == State.valueOf(request.getDesiredState()),
+            "Invalid desired state only INIT state allowed during creation, providedDesiredState=" + request.getDesiredState());
       }
 
-      Service s;
-      try {
-        s = cluster.getService(request.getServiceName());
-      } catch (ServiceNotFoundException e) {
-        throw new ParentObjectNotFoundException(
-            "Attempted to add a component to a service which doesn't exist:", e);
-      }
+      Service s = getServiceFromCluster(request, cluster);
+
       try {
         ServiceComponent sc = s.getServiceComponent(request.getComponentName());
         if (sc != null) {
           // throw error later for dup
-          duplicates.add("[clusterName=" + request.getClusterName() + ", serviceName=" + request.getServiceName() +
-              ", componentName=" + request.getComponentName() + "]");
+          duplicates.add(request.toString());
           continue;
         }
       } catch (AmbariException e) {
@@ -367,54 +322,52 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       if (!ambariMetaInfo.isValidServiceComponent(stackId.getStackName(),
           stackId.getStackVersion(), s.getName(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
-            + " in stack"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", stackInfo=" + stackId.getStackId());
+            + " in stack stackInfo=" + stackId.getStackId()
+            + " request=" + request.toString());
       }
     }
 
     // ensure only a single cluster update
-    if (componentNames.size() != 1) {
-      throw new IllegalArgumentException("Invalid arguments, updates allowed"
-          + "on only one cluster at a time");
-    }
+    Validate.isTrue(componentNames.size() == 1,
+        "Invalid arguments, updates allowed on only one cluster at a time");
 
     // Validate dups
     if (!duplicates.isEmpty()) {
-      StringBuilder names = new StringBuilder();
-      boolean first = true;
-      for (String cName : duplicates) {
-        if (!first) {
-          names.append(",");
-        }
-        first = false;
-        names.append(cName);
-      }
-      String msg;
-      if (duplicates.size() == 1) {
-        msg = "Attempted to create a component which already exists: ";
-      } else {
-        msg = "Attempted to create components which already exist: ";
-      }
-      throw new DuplicateResourceException(msg + names.toString());
+      //Java8 has StringJoiner library but ambari is not on Java8 yet.
+      throw new DuplicateResourceException("Attempted to create one or more components which already exist:"
+                            + StringUtils.join(duplicates, ","));
     }
 
     // now doing actual work
     for (ServiceComponentRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
-      ServiceComponent sc = serviceComponentFactory.createNew(s,
-          request.getComponentName());
+      ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName());
       sc.setDesiredStackVersion(s.getDesiredStackVersion());
 
-      if (request.getDesiredState() != null
-          && !request.getDesiredState().isEmpty()) {
+      if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());
         sc.setDesiredState(state);
       } else {
         sc.setDesiredState(s.getDesiredState());
+      }
+
+      /**
+       * If request does not have recovery_enabled field,
+       * then get the default from the stack definition.
+       */
+      if (StringUtils.isNotEmpty(request.getRecoveryEnabled())) {
+        boolean recoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
+        sc.setRecoveryEnabled(recoveryEnabled);
+      } else {
+        StackId stackId = s.getDesiredStackVersion();
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                stackId.getStackVersion(), s.getName(), request.getComponentName());
+        if (componentInfo == null) {
+            throw new AmbariException("Could not get component information from stack definition: Stack=" +
+                stackId.toString() + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
+        }
+        sc.setRecoveryEnabled(componentInfo.isRecoveryEnabled());
       }
 
       s.addServiceComponent(sc);
@@ -423,10 +376,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Get the components for the given requests.
-  protected Set<ServiceComponentResponse> getComponents(
-      Set<ServiceComponentRequest> requests) throws AmbariException {
-
-    Set<ServiceComponentResponse> response = new HashSet<ServiceComponentResponse>();
+  protected Set<ServiceComponentResponse> getComponents(Set<ServiceComponentRequest> requests) throws AmbariException {
+    Set<ServiceComponentResponse> response = new HashSet<>();
     for (ServiceComponentRequest request : requests) {
       try {
         response.addAll(getComponents(request));
@@ -442,57 +393,21 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Get the components for the given request.
-  private Set<ServiceComponentResponse> getComponents(
-      ServiceComponentRequest request) throws AmbariException {
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()) {
-      throw new IllegalArgumentException("Invalid arguments, cluster name"
-          + " should be non-null");
-    }
+  private Set<ServiceComponentResponse> getComponents(ServiceComponentRequest request) throws AmbariException {
 
-    Clusters clusters = getManagementController().getClusters();
-    AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
+    final AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
+    final Clusters clusters = getManagementController().getClusters();
+    final Cluster cluster = getCluster(request, clusters);
 
-    final Cluster cluster;
-    try {
-      cluster = clusters.getCluster(request.getClusterName());
-    } catch (ObjectNotFoundException e) {
-      throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
-    }
-
-    Set<ServiceComponentResponse> response =
-        new HashSet<ServiceComponentResponse>();
+    Set<ServiceComponentResponse> response = new HashSet<>();
     String category = null;
 
     StackId stackId = cluster.getDesiredStackVersion();
 
     if (request.getComponentName() != null) {
-      if (request.getServiceName() == null) {
-        String serviceName =
-            ambariMetaInfo.getComponentToService(stackId.getStackName(),
-                stackId.getStackVersion(), request.getComponentName());
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Looking up service name for component"
-              + ", componentName=" + request.getComponentName()
-              + ", serviceName=" + serviceName);
-        }
-        if (serviceName == null
-            || serviceName.isEmpty()) {
-          throw new ObjectNotFoundException("Could not find service for component"
-              + ", componentName=" + request.getComponentName()
-              + ", clusterName=" + cluster.getClusterName()
-              + ", stackInfo=" + stackId.getStackId());
-        }
-        request.setServiceName(serviceName);
-      }
+      setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
 
-      final Service s;
-      try {
-        s = cluster.getService(request.getServiceName());
-      } catch (ObjectNotFoundException e) {
-        throw new ParentObjectNotFoundException("Parent Service resource doesn't exist", e);
-      }
-
+      final Service s = getServiceFromCluster(request, cluster);
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
 
@@ -511,35 +426,18 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       return response;
     }
 
-    boolean checkDesiredState = false;
-    State desiredStateToCheck = null;
-    if (request.getDesiredState() != null
-        && !request.getDesiredState().isEmpty()) {
-      desiredStateToCheck = State.valueOf(request.getDesiredState());
-      if (!desiredStateToCheck.isValidDesiredState()) {
-        throw new IllegalArgumentException("Invalid arguments, invalid desired"
-            + " state, desiredState=" + desiredStateToCheck);
-      }
-      checkDesiredState = true;
-    }
-
-    Set<Service> services = new HashSet<Service>();
-    if (request.getServiceName() != null
-        && !request.getServiceName().isEmpty()) {
-      try {
-        services.add(cluster.getService(request.getServiceName()));
-      } catch (ObjectNotFoundException e) {
-        throw new ParentObjectNotFoundException("Could not find service", e);
-      }
+    Set<Service> services = new HashSet<>();
+    if (StringUtils.isNotEmpty(request.getServiceName())) {
+      services.add(getServiceFromCluster(request, cluster));
     } else {
       services.addAll(cluster.getServices().values());
     }
 
+    final State desiredStateToCheck = getValidDesiredState(request);
     for (Service s : services) {
       // filter on request.getDesiredState()
       for (ServiceComponent sc : s.getServiceComponents().values()) {
-        if (checkDesiredState
-            && (desiredStateToCheck != sc.getDesiredState())) {
+        if (desiredStateToCheck != null && desiredStateToCheck != sc.getDesiredState()) {
           // skip non matching state
           continue;
         }
@@ -556,8 +454,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           // component doesn't exist, nothing to do
         }
         String requestedCategory = request.getComponentCategory();
-        if (requestedCategory != null && !requestedCategory.isEmpty() &&
-            category != null && !requestedCategory.equalsIgnoreCase(category)) {
+        if (StringUtils.isNotEmpty(requestedCategory) && !requestedCategory.equalsIgnoreCase(category)) {
           continue;
         }
 
@@ -569,29 +466,28 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   // Update the components for the given requests.
   protected synchronized RequestStatusResponse updateComponents(Set<ServiceComponentRequest> requests,
-                                                             Map<String, String> requestProperties, boolean runSmokeTest)
-      throws AmbariException {
+                                                                Map<String, String> requestProperties,
+                                                                boolean runSmokeTest)
+      throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
       return null;
     }
 
-    AmbariManagementController controller = getManagementController();
-    Clusters clusters = controller.getClusters();
-    AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+    Clusters clusters = getManagementController().getClusters();
+    AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
 
-    Map<State, List<ServiceComponent>> changedComps =
-        new HashMap<State, List<ServiceComponent>>();
-    Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
-        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
-    Collection<ServiceComponentHost> ignoredScHosts =
-        new ArrayList<ServiceComponentHost>();
+    Map<State, List<ServiceComponent>> changedComps = new HashMap<>();
+    Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts = new HashMap<>();
+    Collection<ServiceComponentHost> ignoredScHosts = new ArrayList<>();
 
-    Set<String> clusterNames = new HashSet<String>();
-    Map<String, Map<String, Set<String>>> componentNames =
-        new HashMap<String, Map<String,Set<String>>>();
-    Set<State> seenNewStates = new HashSet<State>();
+    Set<String> clusterNames = new HashSet<>();
+    Map<String, Map<String, Set<String>>> componentNames = new HashMap<>();
+    Set<State> seenNewStates = new HashSet<>();
+
+    Collection<ServiceComponent> recoveryEnabledComponents = new ArrayList<>();
+    Collection<ServiceComponent> recoveryDisabledComponents = new ArrayList<>();
 
     // Determine operation level
     Resource.Type reqOpLvl;
@@ -599,101 +495,42 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       RequestOperationLevel operationLevel = new RequestOperationLevel(requestProperties);
       reqOpLvl = operationLevel.getLevel();
     } else {
-      String message = "Can not determine request operation level. " +
-              "Operation level property should " +
-              "be specified for this request.";
-      LOG.warn(message);
+      LOG.warn("Can not determine request operation level. Operation level property should be specified for this request.");
       reqOpLvl = Resource.Type.Cluster;
     }
 
     for (ServiceComponentRequest request : requests) {
+      Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
+      final Cluster cluster = getClusterForRequest(request, clusters);
       final String clusterName = request.getClusterName();
-      String componentName = request.getComponentName();
-      if (clusterName == null
-          || clusterName.isEmpty()
-          || componentName == null
-          || componentName.isEmpty()) {
-        throw new IllegalArgumentException("Invalid arguments, cluster name"
-            + ", service name and component name should be provided to"
-            + " update components");
-      }
+      final String componentName = request.getComponentName();
 
-      String serviceName = request.getServiceName();
-      LOG.info("Received a updateComponent request"
-          + ", clusterName=" + clusterName
-          + ", serviceName=" + serviceName
-          + ", componentName=" + componentName
-          + ", request=" + request.toString());
+      LOG.info("Received a updateComponent request: {}", request);
 
-      Cluster cluster = clusters.getCluster(clusterName);
+      setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
+      final String serviceName = request.getServiceName();
 
-      if (serviceName == null
-          || serviceName.isEmpty()) {
-        StackId stackId = cluster.getDesiredStackVersion();
-        String alternativeServiceName =
-            ambariMetaInfo.getComponentToService(stackId.getStackName(),
-                stackId.getStackVersion(), componentName);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Looking up service name for component"
-              + ", componentName=" + componentName
-              + ", serviceName=" + alternativeServiceName);
-        }
-
-        if (alternativeServiceName == null
-            || alternativeServiceName.isEmpty()) {
-          throw new AmbariException("Could not find service for component"
-              + ", componentName=" + componentName
-              + ", clusterName=" + cluster.getClusterName()
-              + ", stackInfo=" + stackId.getStackId());
-        }
-        request.setServiceName(alternativeServiceName);
-        serviceName = alternativeServiceName;
-      }
-
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a updateComponent request"
-                + ", clusterName=" + clusterName
-                + ", serviceName=" + serviceName
-                + ", componentName=" + componentName
-                + ", request=" + request);
-      }
+      debug("Received a updateComponent request: {}", request);
 
       clusterNames.add(clusterName);
 
-      if (clusterNames.size() > 1) {
-        // FIXME throw correct error
-        throw new IllegalArgumentException("Updates to multiple clusters is not"
-            + " supported");
-      }
+      Validate.isTrue(clusterNames.size() == 1, "Updates to multiple clusters is not supported");
 
       if (!componentNames.containsKey(clusterName)) {
-        componentNames.put(clusterName,
-            new HashMap<String, Set<String>>());
+        componentNames.put(clusterName, new HashMap<String, Set<String>>());
       }
-      if (!componentNames.get(clusterName)
-          .containsKey(serviceName)) {
-        componentNames.get(clusterName).put(
-                serviceName, new HashSet<String>());
+      if (!componentNames.get(clusterName).containsKey(serviceName)) {
+        componentNames.get(clusterName).put(serviceName, new HashSet<String>());
       }
-      if (componentNames.get(clusterName)
-          .get(serviceName).contains(componentName)){
+      if (componentNames.get(clusterName).get(serviceName).contains(componentName)){
         // throw error later for dup
-        throw new IllegalArgumentException("Invalid request contains duplicate"
-            + " service components");
+        throw new IllegalArgumentException("Invalid request contains duplicate service components");
       }
-      componentNames.get(clusterName)
-          .get(serviceName).add(componentName);
+      componentNames.get(clusterName).get(serviceName).add(componentName);
 
       Service s = cluster.getService(serviceName);
       ServiceComponent sc = s.getServiceComponent(componentName);
-      State newState = null;
-      if (request.getDesiredState() != null) {
-        newState = State.valueOf(request.getDesiredState());
-        if (!newState.isValidDesiredState()) {
-          throw new IllegalArgumentException("Invalid arguments, invalid"
-              + " desired state, desiredState=" + newState.toString());
-        }
-      }
+      State newState = getValidDesiredState(request);
 
       if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, s)) {
         LOG.info("Operations cannot be applied to component " + componentName
@@ -702,27 +539,42 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         continue;
       }
 
-      if (newState == null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Nothing to do for new updateServiceComponent request"
-              + ", clusterName=" + clusterName
-              + ", serviceName=" + serviceName
-              + ", componentName=" + componentName
-              + ", newDesiredState=null");
+      // Gather the components affected by the change in
+      // auto start state
+      if (!StringUtils.isEmpty(request.getRecoveryEnabled())) {
+        // Verify that the authenticated user has authorization to change auto-start states for services
+        AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, getClusterResourceId(clusterName),
+            EnumSet.of(RoleAuthorization.SERVICE_START_STOP));
+
+        boolean newRecoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
+        boolean oldRecoveryEnabled = sc.isRecoveryEnabled();
+        if (newRecoveryEnabled != oldRecoveryEnabled) {
+          if (newRecoveryEnabled) {
+            recoveryEnabledComponents.add(sc);
+          } else {
+            recoveryDisabledComponents.add(sc);
+          }
         }
+      }
+
+      if (newState == null) {
+        debug("Nothing to do for new updateServiceComponent request, request ={}, newDesiredState=null" + request);
         continue;
       }
 
-      if (sc.isClientComponent() &&
-          !newState.isValidClientComponentState()) {
-        throw new AmbariException("Invalid desired state for a client"
-            + " component");
+      if (sc.isClientComponent() && !newState.isValidClientComponentState()) {
+        throw new AmbariException("Invalid desired state for a client component");
       }
 
       seenNewStates.add(newState);
 
       State oldScState = sc.getDesiredState();
       if (newState != oldScState) {
+        // The if user is trying to start or stop the component, ensure authorization
+        if (((newState == State.INSTALLED) || (newState == State.STARTED))) {
+          isAuthorized(cluster, RoleAuthorization.SERVICE_START_STOP);
+        }
+
         if (!State.isValidDesiredStateTransition(oldScState, newState)) {
           // FIXME throw correct error
           throw new AmbariException("Invalid transition for"
@@ -731,62 +583,62 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + sc.getServiceName()
               + ", componentName=" + sc.getName()
+              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
         }
+
         if (!changedComps.containsKey(newState)) {
           changedComps.put(newState, new ArrayList<ServiceComponent>());
         }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Handling update to ServiceComponent"
+        debug("Handling update to ServiceComponent"
               + ", clusterName=" + clusterName
               + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
+              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", currentDesiredState=" + oldScState
               + ", newDesiredState=" + newState);
-        }
+
         changedComps.get(newState).add(sc);
       }
 
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
         State oldSchState = sch.getState();
         if (oldSchState == State.DISABLED || oldSchState == State.UNKNOWN) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Ignoring ServiceComponentHost"
+          debug("Ignoring ServiceComponentHost"
                 + ", clusterName=" + clusterName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
+                + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
                 + ", newDesiredState=" + newState);
-          }
           continue;
         }
 
         if (newState == oldSchState) {
           ignoredScHosts.add(sch);
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Ignoring ServiceComponentHost"
+          debug("Ignoring ServiceComponentHost"
                 + ", clusterName=" + clusterName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
+                + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName()
                 + ", currentState=" + oldSchState
                 + ", newDesiredState=" + newState);
-          }
           continue;
         }
 
         // do not update or alter any HC that is not active
         if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, sch)) {
           ignoredScHosts.add(sch);
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Ignoring ServiceComponentHost in maintenance state"
+          debug("Ignoring ServiceComponentHost in maintenance state"
                 + ", clusterName=" + clusterName
                 + ", serviceName=" + serviceName
                 + ", componentName=" + sc.getName()
+                + ", recoveryEnabled=" + sc.isRecoveryEnabled()
                 + ", hostname=" + sch.getHostName());
-          }
+
           continue;
         }
 
@@ -798,38 +650,45 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               + ", clusterId=" + cluster.getClusterId()
               + ", serviceName=" + sch.getServiceName()
               + ", componentName=" + sch.getServiceComponentName()
+              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState);
         }
         if (!changedScHosts.containsKey(sc.getName())) {
-          changedScHosts.put(sc.getName(),
-              new HashMap<State, List<ServiceComponentHost>>());
+          changedScHosts.put(sc.getName(), new HashMap<State, List<ServiceComponentHost>>());
         }
         if (!changedScHosts.get(sc.getName()).containsKey(newState)) {
-          changedScHosts.get(sc.getName()).put(newState,
-              new ArrayList<ServiceComponentHost>());
+          changedScHosts.get(sc.getName()).put(newState, new ArrayList<ServiceComponentHost>());
         }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Handling update to ServiceComponentHost"
+
+        debug("Handling update to ServiceComponentHost"
               + ", clusterName=" + clusterName
               + ", serviceName=" + serviceName
               + ", componentName=" + sc.getName()
+              + ", recoveryEnabled=" + sc.isRecoveryEnabled()
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState);
-        }
+
         changedScHosts.get(sc.getName()).get(newState).add(sch);
       }
     }
 
-    if (seenNewStates.size() > 1) {
-      // FIXME should we handle this scenario
-      throw new IllegalArgumentException("Cannot handle different desired"
-          + " state changes for a set of service components at the same time");
-    }
+    Validate.isTrue(seenNewStates.size() <= 1,
+        "Cannot handle different desired state changes for a set of service components at the same time");
 
     // TODO additional validation?
+
+    // Validations completed. Update the affected service components now.
+
+    for (ServiceComponent sc : recoveryEnabledComponents) {
+      sc.setRecoveryEnabled(true);
+    }
+
+    for (ServiceComponent sc : recoveryDisabledComponents) {
+      sc.setRecoveryEnabled(false);
+    }
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
@@ -837,84 +696,113 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ignoredScHosts, runSmokeTest, false);
   }
 
-  protected RequestStatusResponse deleteComponents(Set<ServiceComponentRequest> requests) throws AmbariException {
-    AmbariManagementController controller = getManagementController();
-    Clusters clusters = controller.getClusters();
-    AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+  protected RequestStatusResponse deleteComponents(Set<ServiceComponentRequest> requests) throws AmbariException, AuthorizationException {
+    Clusters clusters = getManagementController().getClusters();
+    AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
 
     for (ServiceComponentRequest request : requests) {
+      Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
+      Cluster cluster = getClusterForRequest(request, clusters);
 
-      if (request.getClusterName() == null || request.getClusterName().isEmpty()
-          || request.getComponentName() == null || request.getComponentName().isEmpty()) {
-          throw new IllegalArgumentException("Invalid arguments"
-          + ", clustername and componentname should be"
-          + " non-null and non-empty when trying to create a"
-          + " component");
-      }
+      setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
 
-      Cluster cluster;
-      try {
-        cluster = clusters.getCluster(request.getClusterName());
-      } catch (ClusterNotFoundException e) {
-        throw new ParentObjectNotFoundException(
-              "Attempted to add a component to a cluster which doesn't exist:", e);
-      }
-
-      if (request.getServiceName() == null || request.getServiceName().isEmpty()) {
-        StackId stackId = cluster.getDesiredStackVersion();
-        String serviceName = ambariMetaInfo.getComponentToService(stackId.getStackName(),
-                                                                stackId.getStackVersion(), request.getComponentName());
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Looking up service name for component"
-                    + ", componentName=" + request.getComponentName()
-                    + ", serviceName=" + serviceName);
-        }
-
-        if (serviceName == null || serviceName.isEmpty()) {
-            throw new AmbariException("Could not find service for component"
-                         + ", componentName=" + request.getComponentName()
-                         + ", clusterName=" + cluster.getClusterName()
-                         + ", stackInfo=" + stackId.getStackId());
-        }
-        request.setServiceName(serviceName);
-        }
-
-      Service s;
-      try {
-        s = cluster.getService(request.getServiceName());
-      } catch (ServiceNotFoundException e) {
-        throw new ParentObjectNotFoundException(
-                    "Attempted to add a component to a service which doesn't exist:", e);
-      }
+      Service s = getServiceFromCluster(request, cluster);
 
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
+
       if (sc != null) {
-        if (!sc.getDesiredState().isRemovableState()) {
-          throw new AmbariException("Could not delete service component from cluster. To remove service component," +
-                 " it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN/UNINSTALLED/INSTALLING state."
-                 + ", clusterName=" + request.getClusterName()
-                 + ", serviceName=" + request.getServiceName()
-                 + ", componentName=" + request.getComponentName()
-                 + ", current state=" + sc.getDesiredState() + ".");
-          }
-
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          if (!sch.getDesiredState().isRemovableState()) {
-            throw new AmbariException("Found non removable host component when trying to delete service component." +
-                      " To remove host component, it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN" +
-                      "/UNINSTALLED/INSTALLING state."
-                      + ", clusterName=" + request.getClusterName()
-                      + ", serviceName=" + request.getServiceName()
-                      + ", componentName=" + request.getComponentName()
-                      + ", current state=" + sc.getDesiredState() + ".");
-
-          }
-        }
-
+        deleteHostComponentsForServiceComponent(sc, request);
+        sc.setDesiredState(State.DISABLED);
         s.deleteServiceComponent(request.getComponentName());
       }
     }
     return null;
   }
 
+  private void deleteHostComponentsForServiceComponent(ServiceComponent sc, ServiceComponentRequest request) throws AmbariException {
+    for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+      if (!sch.getDesiredState().isRemovableState()) {
+        throw new AmbariException("Found non removable host component when trying to delete service component." +
+            " To remove host component, it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN" +
+            "/UNINSTALLED/INSTALLING state."
+            + ", request=" + request.toString()
+            + ", current state=" + sc.getDesiredState() + ".");
+
+      }
+    }
+
+    for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+      sch.delete();
+    }
+  }
+  private Cluster getClusterForRequest(final ServiceComponentRequest request, final Clusters clusters) throws AmbariException {
+    Validate.notEmpty(request.getClusterName(), "cluster name should be non-empty");
+    try {
+      return clusters.getCluster(request.getClusterName());
+    } catch (ClusterNotFoundException e) {
+      throw new ParentObjectNotFoundException("Attempted to add a component to a cluster which doesn't exist:", e);
+    }
+  }
+
+  private Service getServiceFromCluster(final ServiceComponentRequest request, final Cluster cluster) throws AmbariException {
+    try {
+      return cluster.getService(request.getServiceName());
+    } catch (ServiceNotFoundException e) {
+      throw new ParentObjectNotFoundException("Parent Service resource doesn't exist.", e);
+    }
+  }
+
+  private Cluster getCluster(final ServiceComponentRequest request, final Clusters clusters) throws AmbariException {
+    Validate.notEmpty(request.getClusterName(), "cluster name should be non-empty");
+
+    try {
+      return clusters.getCluster(request.getClusterName());
+    } catch (ObjectNotFoundException e) {
+      throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
+    }
+
+  }
+
+  private void isAuthorized(final Cluster cluster, final RoleAuthorization roleAuthorization) throws AuthorizationException {
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), roleAuthorization)) {
+      throw new AuthorizationException("The user is not authorized to for role " + roleAuthorization.name());
+    }
+  }
+
+  private void setServiceNameIfAbsent(final ServiceComponentRequest request,
+                                      final Cluster cluster,
+                                      final AmbariMetaInfo ambariMetaInfo) throws AmbariException {
+    if (StringUtils.isEmpty(request.getServiceName())) {
+      StackId stackId = cluster.getDesiredStackVersion();
+      String componentName = request.getComponentName();
+      String serviceName = ambariMetaInfo.getComponentToService(stackId.getStackName(),
+              stackId.getStackVersion(), componentName);
+      debug("Looking up service name for component, componentName={}, serviceName={}", componentName, serviceName);
+
+      if (StringUtils.isEmpty(serviceName)) {
+        throw new AmbariException("Could not find service for component"
+                + ", componentName=" + request.getComponentName()
+                + ", clusterName=" + cluster.getClusterName()
+                + ", stackInfo=" + stackId.getStackId());
+      }
+      request.setServiceName(serviceName);
+    }
+  }
+
+  private State getValidDesiredState(ServiceComponentRequest request) {
+
+    if (StringUtils.isEmpty(request.getDesiredState())) {
+      return null;
+    }
+    final State desiredStateToCheck = State.valueOf(request.getDesiredState());
+    Validate.isTrue(desiredStateToCheck.isValidDesiredState(),
+          "Invalid arguments, invalid desired state, desiredState=" + desiredStateToCheck);
+    return desiredStateToCheck;
+  }
+
+  private void debug(String format, Object... arguments) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(format, arguments);
+    }
+  }
 }

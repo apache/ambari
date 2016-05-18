@@ -55,7 +55,7 @@
 
   <property>
     <name>SQL_CONNECTOR_JAR</name>
-    <value>/usr/share/java/mysql-connector-java.jar</value>
+    <value>{{driver_curl_target}}</value>
     <display-name>Location of Sql Connector Jar</display-name>
     <description>Location of DB client library (please check the location of the jar file)</description>
     <value-attributes>

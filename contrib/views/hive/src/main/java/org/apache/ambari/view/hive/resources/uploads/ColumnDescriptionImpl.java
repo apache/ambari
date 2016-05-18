@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,15 +22,44 @@ import org.apache.ambari.view.hive.client.ColumnDescription;
 
 import java.io.Serializable;
 
+/**
+ * implementation of ColumnDescription which also includes scale and precision.
+ */
 public class ColumnDescriptionImpl implements ColumnDescription, Serializable {
   private String name;
   private String type;
   private int position;
+  /**
+   * can be null
+   */
+  private Integer precision;
+  /**
+   * can be null
+   */
+  private Integer scale;
+
+  public ColumnDescriptionImpl() {
+  }
 
   public ColumnDescriptionImpl(String name, String type, int position) {
     this.name = name;
     this.type = type;
     this.position = position;
+  }
+
+  public ColumnDescriptionImpl(String name, String type, int position, int precision) {
+    this.name = name;
+    this.type = type;
+    this.position = position;
+    this.precision = precision;
+  }
+
+  public ColumnDescriptionImpl(String name, String type, int position, int precision, int scale) {
+    this.name = name;
+    this.type = type;
+    this.position = position;
+    this.precision = precision;
+    this.scale = scale;
   }
 
   @Override
@@ -63,6 +92,22 @@ public class ColumnDescriptionImpl implements ColumnDescription, Serializable {
     this.position = position;
   }
 
+  public Integer getPrecision() {
+    return precision;
+  }
+
+  public Integer getScale() {
+    return scale;
+  }
+
+  public void setPrecision(Integer precision) {
+    this.precision = precision;
+  }
+
+  public void setScale(Integer scale) {
+    this.scale = scale;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -88,8 +133,10 @@ public class ColumnDescriptionImpl implements ColumnDescription, Serializable {
   public String toString() {
     return new StringBuilder().append("ColumnDescriptionImpl[")
             .append("name : ").append(name)
-            .append("type : " + type)
-            .append("position : " + position)
+            .append(", type : " + type)
+            .append(", position : " + position)
+            .append(", precision : " + precision)
+            .append(", scale : " + scale)
             .append("]").toString();
   }
 }

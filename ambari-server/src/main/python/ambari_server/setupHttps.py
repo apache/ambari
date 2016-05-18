@@ -82,7 +82,7 @@ SRVR_ONE_WAY_SSL_PORT = "8440"
 GANGLIA_HTTPS = 'ganglia.https'
 
 
-def get_truststore_path(properties):
+def get_and_persist_truststore_path(properties, options):
   truststore_path = properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
   if not truststore_path:
     SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
@@ -90,39 +90,37 @@ def get_truststore_path(properties):
     while not truststore_path:
       truststore_path = get_validated_string_input(
           "Path to TrustStore file {0}:".format(get_prompt_default(SSL_TRUSTSTORE_PATH_DEFAULT)),
-          SSL_TRUSTSTORE_PATH_DEFAULT,
-          ".*", False, False)
+          SSL_TRUSTSTORE_PATH_DEFAULT, ".*", False, False, answer = options.trust_store_path)
 
     if truststore_path:
       properties.process_pair(SSL_TRUSTSTORE_PATH_PROPERTY, truststore_path)
 
   return truststore_path
 
-def get_truststore_type(properties):
+def get_and_persist_truststore_type(properties, options):
   truststore_type = properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
   if not truststore_type:
     SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
-
     truststore_type = get_validated_string_input(
         "TrustStore type [jks/jceks/pkcs12] {0}:".format(get_prompt_default(SSL_TRUSTSTORE_TYPE_DEFAULT)),
-        SSL_TRUSTSTORE_TYPE_DEFAULT,
-        "^(jks|jceks|pkcs12)?$", "Wrong type", False)
+        SSL_TRUSTSTORE_TYPE_DEFAULT, "^(jks|jceks|pkcs12)?$", "Wrong type", False, answer = options.trust_store_type)
 
     if truststore_type:
         properties.process_pair(SSL_TRUSTSTORE_TYPE_PROPERTY, truststore_type)
 
   return truststore_type
 
-def get_truststore_password(properties):
+def get_and_persist_truststore_password(properties, options):
   truststore_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   isSecure = get_is_secure(properties)
   if truststore_password:
     if isSecure:
-      truststore_password = decrypt_password_for_alias(properties, SSL_TRUSTSTORE_PASSWORD_ALIAS)
+      truststore_password = decrypt_password_for_alias(properties, SSL_TRUSTSTORE_PASSWORD_ALIAS, options)
   else:
-    truststore_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
+    truststore_password = read_password("", ".*", "Password for TrustStore:",
+                                        "Invalid characters in password", options.trust_store_password)
     if truststore_password:
-      encrypted_password = get_encrypted_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, truststore_password, properties)
+      encrypted_password = get_encrypted_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, truststore_password, properties, options)
       properties.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, encrypted_password)
 
   return truststore_password
@@ -143,13 +141,13 @@ def get_delete_cert_command(jdk_path, alias, truststore_path, truststore_passwor
     return cmd
 
 
-def import_cert_and_key(security_server_keys_dir):
+def import_cert_and_key(security_server_keys_dir, options):
   import_cert_path = get_validated_filepath_input( \
-      "Enter path to Certificate: ", \
-      "Certificate not found")
-  import_key_path  =  get_validated_filepath_input( \
-      "Enter path to Private Key: ", "Private Key not found")
-  pem_password = get_validated_string_input("Please enter password for Private Key: ", "", None, None, True)
+      "Enter path to Certificate: ", "Certificate not found", answer = options.import_cert_path)
+  import_key_path  = get_validated_filepath_input( \
+      "Enter path to Private Key: ", "Private Key not found", answer = options.import_key_path)
+  pem_password = get_validated_string_input("Please enter password for Private Key: ", "",
+                                            None, None, True, answer = options.pem_password)
 
   certInfoDict = get_cert_info(import_cert_path)
 
@@ -378,8 +376,8 @@ def is_valid_https_port(port):
   return True
 
 
-def import_cert_and_key_action(security_server_keys_dir, properties):
-  if import_cert_and_key(security_server_keys_dir):
+def import_cert_and_key_action(security_server_keys_dir, properties, options):
+  if import_cert_and_key(security_server_keys_dir, options):
     properties.process_pair(SSL_SERVER_CERT_NAME, SSL_CERT_FILE_NAME)
     properties.process_pair(SSL_SERVER_KEY_NAME, SSL_KEY_FILE_NAME)
     properties.process_pair(SSL_API, "true")
@@ -395,12 +393,12 @@ def run_component_https_cmd(cmd):
     raise FatalException(1, err)
 
 
-def setup_https(args):
+def setup_https(options):
   if not is_root():
-        err = 'ambari-server setup-https should be run with ' \
-              'root-level privileges'
-        raise FatalException(4, err)
-  args.exit_message = None
+    warn = 'ambari-server setup-https is run as ' \
+          'non-root user, some sudo privileges might be required'
+    print warn
+  options.exit_message = None
   if not get_silent():
     properties = get_ambari_properties()
     try:
@@ -408,10 +406,17 @@ def setup_https(args):
       client_api_ssl_port = DEFAULT_SSL_API_PORT if properties.get_property(SSL_API_PORT) in ("") \
             else properties.get_property(SSL_API_PORT)
       api_ssl = properties.get_property(SSL_API) in ['true']
+      client_api_ssl_port_old_value = properties.get_property(SSL_API_PORT)
+      api_ssl_old_value = properties.get_property(SSL_API)
       cert_was_imported = False
       cert_must_import = True
+
+      disable_https = options.api_ssl in ['false'] if options.api_ssl is not None else None
+      configure_https = options.api_ssl in ['true'] if options.api_ssl is not None else None
+
       if api_ssl:
-        if get_YN_input("Do you want to disable HTTPS [y/n] (n)? ", False):
+        disable_https = disable_https if disable_https is not None else get_YN_input("Do you want to disable HTTPS [y/n] (n)? ", False)
+        if disable_https:
           properties.process_pair(SSL_API, "false")
           cert_must_import=False
         else:
@@ -419,14 +424,17 @@ def setup_https(args):
                                   get_validated_string_input( \
                                       "SSL port ["+str(client_api_ssl_port)+"] ? ", \
                                       str(client_api_ssl_port), \
-                                      "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
-          cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
+                                      "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port, \
+                                      answer = options.api_ssl_port))
+          cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties, options)
       else:
-        if get_YN_input("Do you want to configure HTTPS [y/n] (y)? ", True):
+        if get_YN_input("Do you want to configure HTTPS [y/n] (y)? ", True, configure_https):
           properties.process_pair(SSL_API_PORT, \
                                   get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ", \
-                                                               str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
-          cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
+                                                             str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.",
+                                                             False, validatorFunction = is_valid_https_port,
+                                                             answer = options.api_ssl_port))
+          cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties, options)
         else:
           return False
 
@@ -437,6 +445,11 @@ def setup_https(args):
       conf_file = find_properties_file()
       f = open(conf_file, 'w')
       properties.store(f, "Changed by 'ambari-server setup-https' command")
+
+      if api_ssl_old_value != properties.get_property(SSL_API) \
+          or client_api_ssl_port_old_value != properties.get_property(SSL_API_PORT):
+        print "Ambari server URL changed. To make use of the Tez View in Ambari " \
+              "please update the property tez.tez-ui.history-url.base in tez-site"
 
       ambari_user = read_ambari_user()
       if ambari_user:
@@ -450,7 +463,7 @@ def setup_https(args):
     raise NonFatalException(warning)
 
 
-def setup_truststore(import_cert=False):
+def setup_truststore(options, import_cert=False):
   if not get_silent():
     jdk_path = find_jdk()
     if jdk_path is None:
@@ -461,22 +474,37 @@ def setup_truststore(import_cert=False):
 
     properties = get_ambari_properties()
 
-    if get_YN_input("Do you want to configure a truststore [y/n] (y)? ", True):
-      truststore_type = get_truststore_type(properties)
-      truststore_path = get_truststore_path(properties)
-      truststore_password = get_truststore_password(properties)
+    truststore_confirm = True if options.trust_store_path is not None and options.trust_store_path else False
+    truststore_reconfigure = True if options.trust_store_reconfigure is not None else False
+
+    if truststore_confirm or get_YN_input("Do you want to configure a truststore [y/n] (y)? ", True):
+
+      #Re-configuration enabled only for option "Setup truststore"
+      if not import_cert and properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)\
+        and (truststore_reconfigure or get_YN_input(
+            "The truststore is already configured. Do you want to re-configure "
+            "the truststore [y/n] (y)? ", True)):
+        properties.removeProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
+        properties.removeProp(SSL_TRUSTSTORE_PATH_PROPERTY)
+        properties.removeProp(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+
+      truststore_type = get_and_persist_truststore_type(properties, options)
+      truststore_path = get_and_persist_truststore_path(properties, options)
+      truststore_password = get_and_persist_truststore_password(properties, options)
 
       if import_cert:
 
-        if get_YN_input("Do you want to import a certificate [y/n] (y)? ", True):
-
-          alias = get_validated_string_input("Please enter an alias for the certificate: ", "", None, None, False, False)
+        import_cert_confirm = True if options.import_cert_path is not None else get_YN_input("Do you want to import a certificate [y/n] (y)? ", True)
+        if import_cert_confirm:
+          aliasOption = options.import_cert_alias if options.import_cert_alias is not None and options.import_cert_alias else None
+          alias = aliasOption if aliasOption is not None \
+            else get_validated_string_input("Please enter an alias for the certificate: ", "", None, None, False, False)
 
           run_os_command(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
 
-          import_cert_path = get_validated_filepath_input( \
-              "Enter path to certificate: ", \
-              "Certificate not found")
+          import_cert_path = get_validated_filepath_input("Enter path to certificate: ",
+                                                          "Certificate not found",
+                                                          answer=options.import_cert_path)
 
           run_component_https_cmd(get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password))
 

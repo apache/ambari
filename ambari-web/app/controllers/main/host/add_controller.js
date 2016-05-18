@@ -63,6 +63,56 @@ App.AddHostController = App.WizardController.extend({
   }),
 
   /**
+   * Load data for all steps until <code>current step</code>
+   */
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('hosts');
+          this.load('installOptions');
+          this.load('cluster');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadServices();
+        }
+      }
+    ],
+    '3': [
+      {
+        type: 'async',
+        callback: function () {
+          var self = this,
+            dfd = $.Deferred();
+          this.loadClients();
+          this.loadServices();
+          this.loadMasterComponentHosts().done(function () {
+            self.loadSlaveComponentHosts();
+            self.load('hosts');
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    '5': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadServiceConfigProperties();
+          this.getServiceConfigGroups();
+        }
+      }
+    ]
+  },
+
+  /**
    * save info about wizard progress, particularly current step of wizard
    * @param currentStep
    * @param completed
@@ -347,32 +397,6 @@ App.AddHostController = App.WizardController.extend({
       serviceConfigProperties = App.db.get('Installer', 'serviceConfigProperties');
     }
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-  },
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '7':
-      case '6':
-      case '5':
-        this.loadServiceConfigProperties();
-        this.getServiceConfigGroups();
-      case '4':
-      case '3':
-        this.loadClients();
-        this.loadServices();
-        this.loadMasterComponentHosts();
-        this.loadSlaveComponentHosts();
-        this.load('hosts');
-      case '2':
-        this.loadServices();
-      case '1':
-        this.load('hosts');
-        this.load('installOptions');
-        this.load('cluster');
-    }
   },
 
   /**

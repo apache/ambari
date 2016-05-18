@@ -263,7 +263,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate) throws
+  public RequestStatus deleteResources(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
 

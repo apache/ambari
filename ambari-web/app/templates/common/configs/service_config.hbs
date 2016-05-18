@@ -67,11 +67,13 @@
           {{/each}}
         </ul>
       {{else}}
-        <div class="pull-left spinner"></div>
+        {{view App.SpinnerView classNames="pull-left"}}
       {{/if}}
 		</span>
       {{#if controller.isHostsConfigsPage}}
-        &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
+        {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
+          &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
+        {{/isAuthorized}}
       {{else}}
         {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
             <a href="#" class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
@@ -88,13 +90,13 @@
   {{#if allVersionsLoaded}}
     {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
   {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   {{/if}}
 {{/if}}
 
 {{#if versionLoaded}}
   {{#unless hideDependenciesInfoBar}}
-    <div {{bindAttr class="hasChangedDependencies:show:hide :dependencies-info"}}>
+    <div {{bindAttr class="hasChangedDependencies:show:hide"}}>
       <div class="dependencies-info-bar-wrapper">
         <div class="alert alert-warning">
           <span>{{dependenciesMessage}}</span> <a
@@ -109,7 +111,7 @@
     </div>
   {{/unless}}
   {{#if view.supportsConfigLayout}}
-    <ul class="nav nav-tabs mbm config-tabs background-text">
+    <ul class="nav nav-tabs mbm background-text">
       {{#each tab in view.tabs}}
         <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
           <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
@@ -142,7 +144,7 @@
                 </div>
               {{/each}}
             {{else}}
-              <div class="spinner"></div>
+              {{view App.SpinnerView}}
             {{/if}}
           {{else}}
               {{! Render Enhanced Config Section }}
@@ -168,5 +170,5 @@
     </div>
   {{/if}}
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}

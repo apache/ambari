@@ -18,17 +18,31 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.agent.AgentEnv;
+import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -41,6 +55,7 @@ import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -53,35 +68,32 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.HostRequest;
+import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.topology.TopologyTask;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.Maps;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.fail;
+import junit.framework.Assert;
 
 public class ClustersTest {
 
   private Clusters clusters;
   private Injector injector;
-  @Inject
-  private AmbariMetaInfo metaInfo;
   @Inject
   private OrmTestHelper helper;
   @Inject
@@ -260,12 +272,12 @@ public class ClustersTest {
     cluster1.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
     cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
 
@@ -354,12 +366,12 @@ public class ClustersTest {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
     cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
     clusters.addHost(h1);
@@ -394,7 +406,7 @@ public class ClustersTest {
     cluster.setCurrentStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.UPGRADING);
+        RepositoryVersionState.INSTALLING);
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
 
@@ -565,5 +577,144 @@ public class ClustersTest {
     Assert.assertTrue(clusters.getCluster(c1).getCurrentStackVersion().getStackName().equals(stackId.getStackName()));
     Assert.assertTrue(
         clusters.getCluster(c1).getCurrentStackVersion().getStackVersion().equals(stackId.getStackVersion()));
+  }
+
+
+  @Test
+  public void testNullHostNamesInTopologyRequests() throws AmbariException {
+    final String hostName = "myhost";
+    final String clusterName = "mycluster";
+
+    Cluster cluster = createCluster(clusterName);
+    addHostToCluster(hostName, clusterName);
+    addHostToCluster(hostName + "2", clusterName);
+    addHostToCluster(hostName + "3", clusterName);
+
+    createTopologyRequest(cluster, hostName);
+    clusters.deleteHost(hostName);
+    for(Host h : cluster.getHosts()) {
+      if(hostName.equals(h.getHostName())) {
+        Assert.fail("Host is expected to be deleted");
+      }
+    }
+  }
+
+  /**
+   * Tests that {@link HostRegisteredEvent} properly updates the
+   * {@link Clusters} in-memory mapping of hostIds to hosts.
+   *
+   * @throws AmbariException
+   */
+  @Test
+  public void testHostRegistrationPopulatesIdMapping() throws Exception {
+    String clusterName = UUID.randomUUID().toString();
+    String hostName = UUID.randomUUID().toString();
+
+    // required so that the event which does the work is executed synchornously
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
+    Cluster cluster = createCluster(clusterName);
+    Assert.assertNotNull(cluster);
+
+    addHostToCluster(hostName, clusterName);
+    Host host = clusters.getHost(hostName);
+    Assert.assertNotNull(host);
+
+    HostRegistrationRequestEvent registrationEvent = new HostRegistrationRequestEvent(
+        host.getHostName(),
+        new AgentVersion(""), System.currentTimeMillis(), new HostInfo(), new AgentEnv());
+
+    host.handleEvent(registrationEvent);
+
+    Long hostId = host.getHostId();
+    Assert.assertNotNull(hostId);
+
+    host = clusters.getHostById(hostId);
+    Assert.assertNotNull(host);
+  }
+
+  private void createTopologyRequest(Cluster cluster, String hostName) {
+    final String groupName = "MyHostGroup";
+
+    // add topology request
+    Blueprint bp = createNiceMock(Blueprint.class);
+    expect(bp.getName()).andReturn("TestBluePrint").anyTimes();
+
+    Configuration clusterConfig = new Configuration(
+      Maps.<String, Map<String, String>>newHashMap(),
+      Maps.<String, Map<String, Map<String, String>>>newHashMap()
+    );
+
+    Map<String, HostGroupInfo> hostGroups = new HashMap<>();
+    HostGroupInfo hostGroupInfo = new HostGroupInfo(groupName);
+    hostGroupInfo.setConfiguration(clusterConfig);
+    hostGroupInfo.addHost(hostName);
+    hostGroupInfo.addHost(hostName + "2");
+    hostGroupInfo.addHost(hostName + "3");
+    hostGroups.put(groupName, hostGroupInfo);
+
+    TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
+    expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
+    expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
+    expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
+    expect(topologyRequest.getConfiguration()).andReturn(clusterConfig).anyTimes();
+    expect(topologyRequest.getDescription()).andReturn("Test description").anyTimes();
+    expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroups).anyTimes();
+
+    replay(bp, topologyRequest);
+
+    persistedState.persistTopologyRequest(topologyRequest);
+
+    createTopologyLogicalRequest(cluster, hostName);
+  }
+
+  private HostRequest createHostRequest(long hrId, String hostName) {
+    HostRequest hr = createNiceMock(HostRequest.class);
+    expect(hr.getId()).andReturn(hrId).anyTimes();
+    expect(hr.getHostgroupName()).andReturn("MyHostGroup").anyTimes();
+    expect(hr.getHostName()).andReturn(hostName).anyTimes();
+    expect(hr.getStageId()).andReturn(1L);
+    expect(hr.getTopologyTasks()).andReturn(Collections.<TopologyTask>emptyList());
+
+    replay(hr);
+    return hr;
+  }
+
+  private void createTopologyLogicalRequest(Cluster cluster, String hostName) {
+    Collection<HostRequest> hostRequests = new ArrayList<>();
+    hostRequests.add(createHostRequest(1L, null));
+    hostRequests.add(createHostRequest(2L, hostName));
+    hostRequests.add(createHostRequest(3L, null));
+    hostRequests.add(createHostRequest(4L, hostName + "2"));
+    hostRequests.add(createHostRequest(5L, null));
+    hostRequests.add(createHostRequest(6L, hostName + "3"));
+
+    Long requestId = topologyRequestDAO.findByClusterId(cluster.getClusterId()).get(0).getId();
+    LogicalRequest logicalRequest = createNiceMock(LogicalRequest.class);
+    expect(logicalRequest.getHostRequests()).andReturn(hostRequests).anyTimes();
+    expect(logicalRequest.getRequestContext()).andReturn("Description").anyTimes();
+    expect(logicalRequest.getRequestId()).andReturn(1L).anyTimes();
+    replay(logicalRequest);
+
+    persistedState.persistLogicalRequest(logicalRequest, requestId);
+  }
+
+  private void addHostToCluster(String hostName, String clusterName) throws AmbariException {
+    clusters.addHost(hostName);
+
+    Host host = clusters.getHost(hostName);
+    setOsFamily(clusters.getHost(hostName), "centos", "5.9");
+    host.persist();
+
+    Set<String> hostnames = new HashSet<>();
+    hostnames.add(hostName);
+    clusters.mapHostsToCluster(hostnames, clusterName);
+  }
+
+  private Cluster createCluster(String clusterName) throws AmbariException {
+    StackId stackId = new StackId("HDP-0.1");
+    clusters.addCluster(clusterName, stackId);
+
+    return clusters.getCluster(clusterName);
   }
 }

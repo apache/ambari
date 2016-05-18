@@ -75,12 +75,18 @@ App.TableView = Em.View.extend(App.UserPref, {
   willInsertElement: function () {
     var self = this;
     var name = this.get('controller.name');
-    if (!this.get('displayLength') && this.get('state') !== "inBuffer") {
-      if (App.db.getDisplayLength(name)) {
-        self.set('displayLength', App.db.getDisplayLength(name));
-        Em.run.next(function () {
+    if (!this.get('displayLength')) {
+      var displayLength = App.db.getDisplayLength(name);
+      if (displayLength) {
+        if (this.get('state') !== "inBuffer") {
+          self.set('displayLength', displayLength);
           self.initFilters();
-        });
+        } else {
+          Em.run.next(function () {
+            self.set('displayLength', displayLength);
+            self.initFilters();
+          });
+        }
       } else {
         if (!$.mocho) {
           this.getUserPref(this.displayLengthKey()).complete(function () {
@@ -121,6 +127,8 @@ App.TableView = Em.View.extend(App.UserPref, {
               self.set('tableFilteringComplete', true);
             }
           });
+        } else {
+          self.set('tableFilteringComplete', true);
         }
       });
     } else {
@@ -359,9 +367,23 @@ App.TableView = Em.View.extend(App.UserPref, {
       };
       this.get('filterConditions').push(filterCondition);
     }
+
+    this.saveAllFilterConditions();
+  },
+
+  /**
+   * Save not empty <code>filterConditions</code> to the localStorage
+   *
+   * @method saveAllFilterConditions
+   */
+  saveAllFilterConditions: function () {
+    var filterConditions = this.get('filterConditions');
     // remove empty entries
-    this.set('filterConditions', this.get('filterConditions').filter(function(item){ return !Em.isEmpty(item.value); }));
-    App.db.setFilterConditions(this.get('controller.name'), this.get('filterConditions'));
+    filterConditions = filterConditions.filter(function(item) {
+      return !Em.isEmpty(item.value);
+    });
+    this.set('filterConditions', filterConditions);
+    App.db.setFilterConditions(this.get('controller.name'), filterConditions);
   },
 
   saveDisplayLength: function() {
@@ -381,6 +403,11 @@ App.TableView = Em.View.extend(App.UserPref, {
     var currentFCs = App.db.getFilterConditions(this.get('controller.name'));
     if (currentFCs != null) {
       App.db.setFilterConditions(this.get('controller.name'), null);
+      result = true;
+    }
+    var query = App.db.getComboSearchQuery(this.get('controller.name'));
+    if (query != null) {
+      App.db.setComboSearchQuery(this.get('controller.name'), null);
       result = true;
     }
     return result;
@@ -458,26 +485,6 @@ App.TableView = Em.View.extend(App.UserPref, {
   }.observes('content.length'),
 
   /**
-   * sort content by active sort column
-   */
-  sortContent: function() {
-    var activeSort = App.db.getSortingStatuses(this.get('controller.name')).find(function (sort) {
-      return (sort.status === 'sorting_asc' || sort.status === 'sorting_desc');
-    });
-    var sortIndexes = {
-      'sorting_asc': 1,
-      'sorting_desc': -1
-    };
-
-    this.get('content').sort(function (a, b) {
-      if (a.get(activeSort.name) > b.get(activeSort.name)) return sortIndexes[activeSort.status];
-      if (a.get(activeSort.name) < b.get(activeSort.name)) return -(sortIndexes[activeSort.status]);
-      return 0;
-    });
-    this.filter();
-  },
-
-  /**
    * Does any filter is used on the page
    * @type {Boolean}
    */
@@ -507,10 +514,8 @@ App.TableView = Em.View.extend(App.UserPref, {
    */
   clearFilters: function() {
     this.set('filterConditions', []);
-    this.get('_childViews').forEach(function(childView) {
-      if (childView['clearFilter']) {
-        childView.clearFilter();
-      }
+    this.get('childViews').forEach(function(childView) {
+      Em.tryInvoke(childView, 'clearFilter');
     });
   }
 

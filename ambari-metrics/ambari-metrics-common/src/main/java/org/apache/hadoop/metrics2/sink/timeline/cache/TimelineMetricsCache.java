@@ -22,11 +22,15 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
@@ -38,11 +42,18 @@ public class TimelineMetricsCache {
   public static final int MAX_EVICTION_TIME_MILLIS = 59000; // ~ 1 min
   private final int maxRecsPerName;
   private final int maxEvictionTimeInMillis;
+  private boolean skipCounterTransform = true;
   private final Map<String, Double> counterMetricLastValue = new HashMap<String, Double>();
 
   public TimelineMetricsCache(int maxRecsPerName, int maxEvictionTimeInMillis) {
+    this(maxRecsPerName, maxEvictionTimeInMillis, false);
+  }
+
+  public TimelineMetricsCache(int maxRecsPerName, int maxEvictionTimeInMillis,
+                              boolean skipCounterTransform) {
     this.maxRecsPerName = maxRecsPerName;
     this.maxEvictionTimeInMillis = maxEvictionTimeInMillis;
+    this.skipCounterTransform = skipCounterTransform;
   }
 
   class TimelineMetricWrapper {
@@ -63,37 +74,45 @@ public class TimelineMetricsCache {
       }
     }
 
-    public void putMetric(TimelineMetric metric) {
+    public synchronized void putMetric(TimelineMetric metric) {
+      TreeMap<Long, Double> metricValues = this.timelineMetric.getMetricValues();
+      if (metricValues.size() > maxRecsPerName) {
+        // remove values for eldest maxEvictionTimeInMillis
+        long newEldestTimestamp = oldestTimestamp + maxEvictionTimeInMillis;
+        TreeMap<Long, Double> metricsSubSet =
+          new TreeMap<>(metricValues.tailMap(newEldestTimestamp));
+        if (metricsSubSet.isEmpty()) {
+          oldestTimestamp = metric.getStartTime();
+          this.timelineMetric.setStartTime(metric.getStartTime());
+        } else {
+          Long newStartTime = metricsSubSet.firstKey();
+          oldestTimestamp = newStartTime;
+          this.timelineMetric.setStartTime(newStartTime);
+        }
+        this.timelineMetric.setMetricValues(metricsSubSet);
+        LOG.warn("Metrics cache overflow. Values for metric " +
+          metric.getMetricName() + " older than " + newEldestTimestamp +
+          " were removed to clean up the cache.");
+      }
       this.timelineMetric.addMetricValues(metric.getMetricValues());
       updateTimeDiff(metric.getStartTime());
     }
 
-    public long getTimeDiff() {
+    public synchronized long getTimeDiff() {
       return timeDiff;
     }
 
-    public TimelineMetric getTimelineMetric() {
+    public synchronized TimelineMetric getTimelineMetric() {
       return timelineMetric;
     }
   }
 
-  // TODO: Change to ConcurentHashMap with weighted eviction
-  class TimelineMetricHolder extends LinkedHashMap<String, TimelineMetricWrapper> {//
-    private static final long serialVersionUID = 1L;
-    private boolean gotOverflow = false;
+  // TODO: Add weighted eviction
+  class TimelineMetricHolder extends ConcurrentSkipListMap<String, TimelineMetricWrapper> {
+    private static final long serialVersionUID = 2L;
     // To avoid duplication at the end of the buffer and beginning of the next
     // segment of values
     private Map<String, Long> endOfBufferTimestamps = new HashMap<String, Long>();
-
-    @Override
-    protected boolean removeEldestEntry(Map.Entry<String, TimelineMetricWrapper> eldest) {
-      boolean overflow = size() > maxRecsPerName;
-      if (overflow && !gotOverflow) {
-        LOG.warn("Metrics cache overflow at "+ size() +" for "+ eldest);
-        gotOverflow = true;
-      }
-      return overflow;
-    }
 
     public TimelineMetric evict(String metricName) {
       TimelineMetricWrapper metricWrapper = this.get(metricName);
@@ -107,6 +126,23 @@ public class TimelineMetricsCache {
       this.remove(metricName);
 
       return timelineMetric;
+    }
+
+    public TimelineMetrics evictAll() {
+      List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
+
+      for (Iterator<Map.Entry<String, TimelineMetricWrapper>> it = this.entrySet().iterator(); it.hasNext();) {
+        Map.Entry<String, TimelineMetricWrapper> cacheEntry = it.next();
+        TimelineMetricWrapper metricWrapper = cacheEntry.getValue();
+        if (metricWrapper != null) {
+          TimelineMetric timelineMetric = cacheEntry.getValue().getTimelineMetric();
+          metricList.add(timelineMetric);
+        }
+        it.remove();
+      }
+      TimelineMetrics timelineMetrics = new TimelineMetrics();
+      timelineMetrics.setMetrics(metricList);
+      return timelineMetrics;
     }
 
     public void put(String metricName, TimelineMetric timelineMetric) {
@@ -142,6 +178,10 @@ public class TimelineMetricsCache {
     return null;
   }
 
+  public TimelineMetrics getAllMetrics() {
+    return timelineMetricCache.evictAll();
+  }
+
   /**
    * Getter method to help testing eviction
    * @return @int
@@ -171,7 +211,7 @@ public class TimelineMetricsCache {
   }
 
   public void putTimelineMetric(TimelineMetric timelineMetric, boolean isCounter) {
-    if (isCounter) {
+    if (isCounter && !skipCounterTransform) {
       transformMetricValuesToDerivative(timelineMetric);
     }
     putTimelineMetric(timelineMetric);

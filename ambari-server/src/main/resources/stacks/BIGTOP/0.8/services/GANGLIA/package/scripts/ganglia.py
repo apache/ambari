@@ -35,7 +35,7 @@ def config():
   Directory(shell_cmds_dir,
             owner="root",
             group="root",
-            recursive=True
+            create_parents = True
   )
   init_file("gmetad")
   init_file("gmond")

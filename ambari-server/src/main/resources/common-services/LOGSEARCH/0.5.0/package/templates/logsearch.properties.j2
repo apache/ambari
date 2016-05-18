@@ -1,0 +1,57 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#solr.url=http://solr_host:{{logsearch_solr_port}}/solr
+solr.zkhosts={{zookeeper_quorum}}{{logsearch_solr_znode}}
+
+# Service Logs
+solr.core.logs={{logsearch_solr_collection_service_logs}}
+
+solr.service_logs.split_interval_mins={{service_logs_collection_splits_interval_mins}}
+solr.service_logs.shards={{logsearch_service_logs_numshards}}
+solr.service_logs.replication_factor={{logsearch_service_logs_repfactor}}
+
+solr.servicelogs.fields={{logsearch_service_logs_fields}}
+
+# Audit logs
+auditlog.solr.zkhosts={{solr_audit_logs_zk_quorum}}{{solr_audit_logs_zk_node}}
+auditlog.solr.core.logs={{logsearch_solr_collection_audit_logs}}
+auditlog.solr.url={{solr_audit_logs_url}}
+
+solr.audit_logs.split_interval_mins={{audit_logs_collection_splits_interval_mins}}
+solr.audit_logs.shards={{logsearch_audit_logs_numshards}}
+solr.audit_logs.replication_factor={{logsearch_audit_logs_repfactor}}
+
+# History logs
+solr.core.history=history
+solr.history.config_name=history
+solr.history.replication_factor=1
+
+# Metrics
+metrics.collector.hosts={{logsearch_solr_metrics_collector_hosts}}
+solr.jmx.port={{logsearch_solr_jmx_port}}
+
+# Logfeeder Settings
+
+logfeeder.include.default.level={{logsearch_logfeeder_log_level_include}}
+
+# logsearch-admin.json
+logsearch.login.credentials.file={{logsearch_admin_credential_file}}
+
+# Custom properties
+{% for key, value in logsearch_custom_properties.items() %}
+{{key}}={{value}}
+{% endfor %}
+

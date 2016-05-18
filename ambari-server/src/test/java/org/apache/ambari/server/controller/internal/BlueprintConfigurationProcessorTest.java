@@ -18,30 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.apache.ambari.server.state.PropertyDependencyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ValueAttributesInfo;
-import org.apache.ambari.server.topology.AdvisedConfiguration;
-import org.apache.ambari.server.topology.AmbariContext;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.Cardinality;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ClusterTopologyImpl;
-import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
-import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.HostGroupImpl;
-import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.utils.CollectionPresentationUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +28,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.topology.AdvisedConfiguration;
+import org.apache.ambari.server.topology.AmbariContext;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.Cardinality;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ClusterTopologyImpl;
+import org.apache.ambari.server.topology.Component;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.HostGroupImpl;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
@@ -59,7 +67,6 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -69,16 +76,23 @@ import static org.easymock.EasyMock.reset;
  */
 public class BlueprintConfigurationProcessorTest {
 
-  private static final String CLUSTER_NAME = "test-cluster";
-  private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
-
+  private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(), Collections.<String, Map<String, Map<String, String>>>emptyMap());
   private final Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
 
-  private final Blueprint bp = createNiceMock(Blueprint.class);
-  private final ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-  private final Stack stack = createNiceMock(Stack.class);
-  private final AmbariContext ambariConext = createNiceMock(AmbariContext.class);
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.NICE)
+  private AmbariContext ambariConext;
+
+  @Mock(type = MockType.NICE)
+  private Blueprint bp;
+
+  @Mock(type = MockType.NICE)
+  private ServiceInfo serviceInfo;
+
+  @Mock(type = MockType.NICE)
+  private Stack stack;
 
   @Before
   public void init() throws Exception {
@@ -173,6 +187,9 @@ public class BlueprintConfigurationProcessorTest {
     }
 
     expect(stack.getCardinality("MYSQL_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
   }
 
   @After
@@ -219,7 +236,7 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> kerberosEnvProps = new HashMap<String, String>();
     kerberosEnvProps.put("admin_server_host", "test");
-    kerberosEnvProps.put("kdc_host", "test");
+    kerberosEnvProps.put("kdc_hosts", "test");
     kerberosEnvProps.put("realm", "test");
     kerberosEnvProps.put("kdc_type", "test");
     kerberosEnvProps.put("ldap-url", "test");
@@ -686,14 +703,21 @@ public class BlueprintConfigurationProcessorTest {
     typeProps.put("test.ssl.password", "test-password-five");
     typeProps.put("test.password.should.be.included", "test-another-pwd");
 
+    //Checking functionality for fields marked as SECRET
+    Map<String, String> secretProps = new HashMap<String, String>();
+    secretProps.put("knox_master_secret", "test-secret-one");
+    secretProps.put("test.secret.should.be.included", "test-another-secret");
     // create a custom config type, to verify that the filters can
     // be applied across all config types
     Map<String, String> customProps = new HashMap<String, String>();
     customProps.put("my_test_PASSWORD", "should be excluded");
     customProps.put("PASSWORD_mytest", "should be included");
 
+    customProps.put("my_test_SECRET", "should be excluded");
+    customProps.put("SECRET_mytest", "should be included");
     properties.put("ranger-yarn-plugin-properties", typeProps);
     properties.put("custom-test-properties", customProps);
+    properties.put("secret-test-properties", secretProps);
 
     Configuration clusterConfig = new Configuration(properties,
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -718,10 +742,12 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForBlueprintExport();
 
 
-    assertEquals("Exported properties map was not of the expected size", 1,
+    assertEquals("Exported properties map was not of the expected size", 2,
       properties.get("custom-test-properties").size());
     assertEquals("ranger-yarn-plugin-properties config type was not properly exported", 1,
       properties.get("ranger-yarn-plugin-properties").size());
+    assertEquals("Exported secret properties map was not of the expected size", 1,
+      properties.get("secret-test-properties").size());
 
     // verify that the following password properties matching the "*_PASSWORD" rule have been excluded
     assertFalse("Password property should have been excluded",
@@ -740,9 +766,15 @@ public class BlueprintConfigurationProcessorTest {
     assertTrue("Expected password property not found",
       properties.get("ranger-yarn-plugin-properties").containsKey("test.password.should.be.included"));
 
+    // verify that the following password properties matching the "*_SECRET" rule have been excluded
+    assertFalse("Secret property should have been excluded",
+	      properties.get("secret-test-properties").containsKey("knox_master_secret"));
+    // verify that the property that does not match the "*_SECRET" rule is still included
+    assertTrue("Expected secret property not found",
+	      properties.get("secret-test-properties").containsKey("test.secret.should.be.included"));
     // verify the custom properties map has been modified by the filters
     assertEquals("custom-test-properties type was not properly exported",
-      1, properties.get("custom-test-properties").size());
+      2, properties.get("custom-test-properties").size());
 
     // verify that the following password properties matching the "*_PASSWORD" rule have been excluded
     assertFalse("Password property should have been excluded",
@@ -859,7 +891,7 @@ public class BlueprintConfigurationProcessorTest {
     // simulate the case of a Kerberized cluster, including config
     // added by the Kerberos service
     kerberosEnvProperties.put("admin_server_host", expectedHostName);
-    kerberosEnvProperties.put("kdc_host", expectedHostName);
+    kerberosEnvProperties.put("kdc_hosts", expectedHostName);
     coreSiteProperties.put("hadoop.proxyuser.yarn.hosts", expectedHostName);
 
     Configuration clusterConfig = new Configuration(configProperties,
@@ -886,8 +918,8 @@ public class BlueprintConfigurationProcessorTest {
     // verify that these properties are filtered out of the exported configuration
     assertFalse("admin_server_host should not be present in exported blueprint in kerberos-env",
       kerberosEnvProperties.containsKey("admin_server_host"));
-    assertFalse("kdc_host should not be present in exported blueprint in kerberos-env",
-      kerberosEnvProperties.containsKey("kdc_host"));
+    assertFalse("kdc_hosts should not be present in exported blueprint in kerberos-env",
+      kerberosEnvProperties.containsKey("kdc_hosts"));
     assertEquals("hadoop.proxyuser.yarn.hosts was not exported correctly",
       createExportedHostName("host_group_1"), coreSiteProperties.get("hadoop.proxyuser.yarn.hosts"));
   }
@@ -911,6 +943,7 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("hbase-site", hbaseSiteProperties);
 
     // setup hdfs config for test
+    hdfsSiteProperties.put("dfs.internal.nameservices", expectedNameService);
     hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
     hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
 
@@ -1056,6 +1089,7 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("hdfs-site", hdfsSiteProperties);
 
     // setup hdfs config for test
+    hdfsSiteProperties.put("dfs.internal.nameservices", expectedNameServiceOne + "," + expectedNameServiceTwo);
     hdfsSiteProperties.put("dfs.nameservices", expectedNameServiceOne + "," + expectedNameServiceTwo);
     hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceOne, expectedNodeOne + ", " + expectedNodeTwo);
     hdfsSiteProperties.put("dfs.ha.namenodes." + expectedNameServiceTwo, expectedNodeOne + ", " + expectedNodeTwo);
@@ -1364,7 +1398,6 @@ public class BlueprintConfigurationProcessorTest {
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
-    hiveEnvProperties.put("hive_hostname", expectedHostName);
 
     webHCatSiteProperties.put("templeton.hive.properties", expectedHostName + "," + expectedHostNameTwo);
     webHCatSiteProperties.put("templeton.kerberos.principal", expectedHostName);
@@ -1407,9 +1440,6 @@ public class BlueprintConfigurationProcessorTest {
         "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("hive.metastore.uris"));
     assertEquals("hive property not properly exported",
         createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("javax.jdo.option.ConnectionURL"));
-    assertEquals("hive property not properly exported",
-        createExportedHostName(expectedHostGroupName), hiveEnvProperties.get("hive_hostname"));
-
     assertEquals("hive property not properly exported",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
         webHCatSiteProperties.get("templeton.hive.properties"));
@@ -1465,7 +1495,6 @@ public class BlueprintConfigurationProcessorTest {
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
-    hiveEnvProperties.put("hive_hostname", expectedHostName);
 
     webHCatSiteProperties.put("templeton.hive.properties", expectedHostName + "," + expectedHostNameTwo);
     webHCatSiteProperties.put("templeton.kerberos.principal", expectedHostName);
@@ -1507,9 +1536,6 @@ public class BlueprintConfigurationProcessorTest {
       "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo), hiveSiteProperties.get("hive.metastore.uris"));
     assertEquals("hive property not properly exported",
         createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("javax.jdo.option.ConnectionURL"));
-    assertEquals("hive property not properly exported",
-        createExportedHostName(expectedHostGroupName), hiveEnvProperties.get("hive_hostname"));
-
     assertEquals("hive property not properly exported",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
         webHCatSiteProperties.get("templeton.hive.properties"));
@@ -1557,7 +1583,6 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.service.HadoopAccessorService.kerberos.principal", expectedHostName);
     oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedExternalHost + "/ooziedb");
 
-    oozieEnvProperties.put("oozie_hostname", expectedHostName);
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
     oozieEnvProperties.put("oozie_heapsize", "1024m");
     oozieEnvProperties.put("oozie_permsize", "2048m");
@@ -1600,8 +1625,6 @@ public class BlueprintConfigurationProcessorTest {
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not exported correctly",
         createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
-    assertEquals("oozie property not exported correctly",
-        createExportedHostName(expectedHostGroupName), oozieEnvProperties.get("oozie_hostname"));
     assertEquals("oozie property not exported correctly",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
 
@@ -2130,6 +2153,47 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__MultipleAppTimelineServer() throws Exception {
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+
+    typeProps.put("yarn.timeline-service.address", "testhost:10200");
+    typeProps.put("yarn.timeline-service.webapp.address", "testhost:8188");
+    typeProps.put("yarn.timeline-service.webapp.https.address", "testhost:8190");
+    properties.put("yarn-site", typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> group1Components = new HashSet<String>();
+    group1Components.add("NAMENODE");
+    group1Components.add("SECONDARY_NAMENODE");
+    group1Components.add("RESOURCEMANAGER");
+    group1Components.add("APP_TIMELINE_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
+
+    Collection<String> group2Components = new HashSet<String>();
+    group2Components.add("DATANODE");
+    group2Components.add("HDFS_CLIENT");
+    group2Components.add("APP_TIMELINE_SERVER");
+    TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+    String updatedVal = topology.getConfiguration().getFullProperties().get("yarn-site").get("yarn.timeline-service.address");
+    assertEquals("Timeline Server config property should not have been updated", "testhost:10200", updatedVal);
+  }
+
+  @Test
   public void testDoUpdateForClusterCreate_SingleHostProperty__MissingOptionalComponent() throws Exception {
     final String expectedHostName = "localhost";
 
@@ -2311,6 +2375,116 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testMultipleHostTopologyUpdater__localhost__singleHost() throws Exception {
+
+    final String typeName = "hbase-site";
+    final String propertyName = "hbase.zookeeper.quorum";
+    final String originalValue = "localhost";
+    final String component1 = "ZOOKEEPER_SERVER";
+    final String component2 = "ZOOKEEPER_CLIENT";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add(component1);
+    Set<String> hosts1 = new HashSet<String>();
+    hosts1.add("testhost1a");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, hosts1);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add(component2);
+    Set<String> hosts2 = new HashSet<String>();
+    hosts2.add("testhost2");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, hosts2);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    assertEquals("testhost1a", newValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdater__localhost__singleHostGroup() throws Exception {
+
+    final String typeName = "hbase-site";
+    final String propertyName = "hbase.zookeeper.quorum";
+    final String originalValue = "localhost";
+    final String component1 = "ZOOKEEPER_SERVER";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add(component1);
+    Set<String> hosts1 = new HashSet<String>();
+    hosts1.add("testhost1a");
+    hosts1.add("testhost1b");
+    hosts1.add("testhost1c");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, hosts1);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    List<String> hostArray = Arrays.asList(newValue.split(","));
+    Assert.assertTrue(hostArray.containsAll(hosts1) && hosts1.containsAll(hostArray));
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdater__hostgroup__singleHostGroup() throws Exception {
+
+    final String typeName = "hbase-site";
+    final String propertyName = "hbase.zookeeper.quorum";
+    final String originalValue = "%HOSTGROUP::group1%";
+    final String component1 = "ZOOKEEPER_SERVER";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put(propertyName, originalValue);
+    properties.put(typeName, typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add(component1);
+    Set<String> hosts1 = new HashSet<String>();
+    hosts1.add("testhost1a");
+    hosts1.add("testhost1b");
+    hosts1.add("testhost1c");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, hosts1);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component1);
+    String newValue = mhtu.updateForClusterCreate(propertyName, originalValue, properties, topology);
+
+    List<String> hostArray = Arrays.asList(newValue.split(","));
+    Assert.assertTrue(hostArray.containsAll(hosts1) && hosts1.containsAll(hostArray));
+  }
+
+  @Test
   public void testDoUpdateForClusterVerifyRetrySettingsDefault() throws Exception {
     Map<String, Map<String, String>> configProperties =
       new HashMap<String, Map<String, String>>();
@@ -2387,7 +2561,7 @@ public class BlueprintConfigurationProcessorTest {
   public void testDoUpdateForClusterWithNameNodeHAEnabledSpecifyingHostNamesDirectly() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
-    final String expectedHostNameTwo = "serverTwo";
+    final String expectedHostNameTwo = "server-two";
     final String expectedPortNum = "808080";
     final String expectedNodeOne = "nn1";
     final String expectedNodeTwo = "nn2";
@@ -2452,6 +2626,9 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
+
+    // verify that dfs.internal.nameservices was added
+    assertEquals("dfs.internal.nameservices wasn't added", expectedNameService, hdfsSiteProperties.get("dfs.internal.nameservices"));
 
     // verify that the expected hostname was substituted for the host group name in the config
     assertEquals("HTTPS address HA property not properly exported",
@@ -2534,9 +2711,6 @@ public class BlueprintConfigurationProcessorTest {
   public void testHiveConfigClusterUpdateSpecifyingHostNamesHiveServer2HA() throws Exception {
     final String expectedHostGroupName = "host_group_1";
 
-    final String expectedPropertyValue =
-        "c6401.ambari.apache.org";
-
     final String expectedMetaStoreURIs = "thrift://c6401.ambari.apache.org:9083,thrift://c6402.ambari.apache.org:9083";
 
     Map<String, Map<String, String>> configProperties =
@@ -2549,10 +2723,6 @@ public class BlueprintConfigurationProcessorTest {
 
     configProperties.put("hive-env", hiveEnvProperties);
     configProperties.put("hive-site", hiveSiteProperties);
-
-    // setup properties that include host information
-    hiveEnvProperties.put("hive_hostname",
-        expectedPropertyValue);
 
     // simulate HA mode, since this property must be present in HiveServer2 HA
     hiveSiteProperties.put("hive.server2.support.dynamic.service.discovery", "true");
@@ -2580,10 +2750,6 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
-
-    assertEquals("Unexpected config update for hive_hostname",
-      expectedPropertyValue,
-      hiveEnvProperties.get("hive_hostname"));
 
     assertEquals("Unexpected config update for hive.metastore.uris",
         expectedMetaStoreURIs,
@@ -2620,10 +2786,6 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("hive-env", hiveEnvProperties);
     configProperties.put("hive-site", hiveSiteProperties);
 
-    // setup properties that include host information
-    hiveEnvProperties.put("hive_hostname",
-        expectedHostNameOne);
-
     // simulate HA mode, since this property must be present in HiveServer2 HA
     hiveSiteProperties.put("hive.server2.support.dynamic.service.discovery", "true");
 
@@ -2652,10 +2814,6 @@ public class BlueprintConfigurationProcessorTest {
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
-
-    assertEquals("Unexpected config update for hive_hostname",
-        expectedHostNameOne,
-        hiveEnvProperties.get("hive_hostname"));
 
     assertEquals("Unexpected config update for hive.metastore.uris",
         expectedMetaStoreURIs,
@@ -2742,8 +2900,6 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.services.ext",
         "org.apache.oozie.service.ZKLocksService,org.apache.oozie.service.ZKXLogStreamingService,org.apache.oozie.service.ZKJobsConcurrencyService,org.apache.oozie.service.ZKUUIDService");
 
-
-    oozieEnvProperties.put("oozie_hostname", expectedHostName);
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
@@ -2773,8 +2929,6 @@ public class BlueprintConfigurationProcessorTest {
         expectedHostName, oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not updated correctly",
         expectedHostName, oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
-    assertEquals("oozie property not updated correctly",
-        expectedHostName, oozieEnvProperties.get("oozie_hostname"));
     assertEquals("oozie property not updated correctly",
         expectedHostName + "," + expectedHostNameTwo, coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
   }
@@ -2810,7 +2964,6 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.zookeeper.connection.string", createHostAddress(expectedHostName, "2181") + "," + createHostAddress(expectedHostNameTwo, "2181"));
 
 
-    oozieEnvProperties.put("oozie_hostname", expectedHostName);
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
 
     coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
@@ -2842,8 +2995,6 @@ public class BlueprintConfigurationProcessorTest {
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
-    assertEquals("oozie property not updated correctly",
-      createExportedHostName(expectedHostGroupName), oozieEnvProperties.get("oozie_hostname"));
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
     assertEquals("oozie property not updated correctly",
@@ -3810,6 +3961,123 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testExcludedPropertiesShouldBeAddedWhenServiceIsInBlueprint() throws Exception {
+    reset(stack);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site"));
+    expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.<String>emptySet());
+    expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
+    expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("FALCON_SERVER");
+    hgComponents.add("FALCON_CLIENT");
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("OOZIE_CLIENT");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("c6401.apache.ambari.org");
+    hosts.add("serverTwo");
+    TestHostGroup group1 = new TestHostGroup("host_group_1", hgComponents, hosts);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals("Falcon Broker URL property not properly exported",
+      "testValue", clusterConfig.getPropertyValue("oozie-site", "oozie.service.ELService.ext.functions.coord-job-submit-instances"));
+  }
+
+  @Test
+  public void testExcludedPropertiesShouldBeIgnoredWhenServiceIsNotInBlueprint() throws Exception {
+    reset(stack);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site")).anyTimes();
+    expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
+    expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("FALCON_SERVER");
+    hgComponents.add("FALCON_CLIENT");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("c6401.apache.ambari.org");
+    hosts.add("serverTwo");
+    TestHostGroup group1 = new TestHostGroup("host_group_1", hgComponents, hosts);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    Assert.assertNull("Excluded properties shouldn't be added in this setup!", clusterConfig.getPropertyValue("oozie-site", "oozie.service.ELService.ext.functions.coord-job-submit-instances"));
+  }
+
+  @Test
+  public void testAddExcludedPropertiesAreOverwrittenByBlueprintConfigs() throws Exception {
+    reset(stack);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata(anyObject(String.class), anyObject(String.class))).andReturn(Collections.<String, Stack.ConfigProperty>emptyMap()).anyTimes();
+
+    // customized stack calls for this test only
+    expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.singleton("oozie-site")).anyTimes();
+    expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("oozie.service.ELService.ext.functions.coord-job-submit-instances", "overridedValue");
+    properties.put("oozie-site", typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("FALCON_SERVER");
+    hgComponents.add("FALCON_CLIENT");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("c6401.apache.ambari.org");
+    hosts.add("serverTwo");
+    TestHostGroup group1 = new TestHostGroup("host_group_1", hgComponents, hosts);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals("Falcon Broker URL property not properly exported",
+      "overridedValue", clusterConfig.getPropertyValue("oozie-site", "oozie.service.ELService.ext.functions.coord-job-submit-instances"));
+  }
+
+  @Test
   public void testFalconConfigClusterUpdate() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedPortNum = "808080";
@@ -3832,7 +4100,7 @@ public class BlueprintConfigurationProcessorTest {
     hgComponents.add("FALCON_CLIENT");
     List<String> hosts = new ArrayList<String>();
     hosts.add("c6401.apache.ambari.org");
-    hosts.add("serverTwo");
+    hosts.add("server-two");
     TestHostGroup group1 = new TestHostGroup("host_group_1", hgComponents, hosts);
 
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
@@ -3878,7 +4146,7 @@ public class BlueprintConfigurationProcessorTest {
     hgComponents.add("FALCON_CLIENT");
     List<String> hosts = new ArrayList<String>();
     hosts.add(expectedHostName);
-    hosts.add("serverTwo");
+    hosts.add("server-two");
     TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, hosts);
 
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
@@ -3983,6 +4251,8 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
     // customized stack calls for this test only
     expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
@@ -4058,6 +4328,8 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
     // customized stack calls for this test only
     // simulate the case of the stack object throwing a RuntimeException, to indicate a config error
@@ -4135,6 +4407,8 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
     // customized stack calls for this test only
     expect(stack.getServiceForConfigType("hive-site")).andReturn("HIVE").atLeastOnce();
@@ -4221,7 +4495,10 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getVersion()).andReturn("1").anyTimes();
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
 
-    // customized stack calls for this test only
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
+
+      // customized stack calls for this test only
     expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
     expect(stack.getConfigurationPropertiesWithMetadata("HBASE", "hbase-site")).andReturn(mapOfMetadata).atLeastOnce();
 
@@ -4286,6 +4563,8 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getName()).andReturn("testStack").anyTimes();
     expect(stack.getVersion()).andReturn("1").anyTimes();
     expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
 
     // customized stack calls for this test only
     expect(stack.getServiceForConfigType("hbase-site")).andReturn("HBASE").atLeastOnce();
@@ -4495,7 +4774,7 @@ public class BlueprintConfigurationProcessorTest {
   public void testDoUpdateForClusterWithNameNodeHAEnabled() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
-    final String expectedHostNameTwo = "serverTwo";
+    final String expectedHostNameTwo = "server-two";
     final String expectedPortNum = "808080";
     final String expectedNodeOne = "nn1";
     final String expectedNodeTwo = "nn2";
@@ -4570,6 +4849,9 @@ public class BlueprintConfigurationProcessorTest {
 
     Set<String> updatedConfigTypes =
       updater.doUpdateForClusterCreate();
+
+    // verify that dfs.internal.nameservices was added
+    assertEquals("dfs.internal.nameservices wasn't added", expectedNameService, hdfsSiteProperties.get("dfs.internal.nameservices"));
 
     // verify that the expected hostname was substituted for the host group name in the config
     assertEquals("HTTPS address HA property not properly exported",
@@ -4707,8 +4989,8 @@ public class BlueprintConfigurationProcessorTest {
   @Test
   public void testDoUpdateForClusterWithNameNodeHAEnabledAndActiveNodeSet() throws Exception {
     final String expectedNameService = "mynameservice";
-    final String expectedHostName = "serverThree";
-    final String expectedHostNameTwo = "serverFour";
+    final String expectedHostName = "server-three";
+    final String expectedHostNameTwo = "server-four";
     final String expectedPortNum = "808080";
     final String expectedNodeOne = "nn1";
     final String expectedNodeTwo = "nn2";
@@ -4792,7 +5074,7 @@ public class BlueprintConfigurationProcessorTest {
       new HashMap<String, String>();
     hdfsSiteConfigMap.put("dfs.nameservices", "serviceOne");
 
-    // verify that a single service is parsed correctly
+    // verify that a dfs.internal.nameservices parsing falls back to dfs.nameservices
     String[] result = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
 
     assertNotNull("Resulting array was null",
@@ -4802,8 +5084,20 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("Incorrect value for returned name service",
       "serviceOne", result[0]);
 
+    hdfsSiteConfigMap.put("dfs.internal.nameservices", "serviceTwo");
+
+    // verify that a single service is parsed correctly
+    result = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
+
+    assertNotNull("Resulting array was null",
+      result);
+    assertEquals("Incorrect array size",
+      1, result.length);
+    assertEquals("Incorrect value for returned name service",
+      "serviceTwo", result[0]);
+
     // verify that multiple services are parsed correctly
-    hdfsSiteConfigMap.put("dfs.nameservices", " serviceTwo, serviceThree, serviceFour");
+    hdfsSiteConfigMap.put("dfs.internal.nameservices", " serviceTwo, serviceThree, serviceFour");
 
     String[] resultTwo = BlueprintConfigurationProcessor.parseNameServices(hdfsSiteConfigMap);
 
@@ -5227,6 +5521,38 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testHiveWithoutAtlas() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hiveProperties = new HashMap<String, String>();
+    hiveProperties.put("hive.exec.post.hooks", "");
+    hiveProperties.put("atlas.cluster.name", "primary");
+    hiveProperties.put("atlas.rest.address", "http://localhost:21000");
+    properties.put("hive-site", hiveProperties);
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("HIVE_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("http://localhost:21000", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
+  }
+  
+  @Test
   public void testAtlasHiveProperties() throws Exception {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> atlasProperties = new HashMap<String, String>();
@@ -5454,6 +5780,10 @@ public class BlueprintConfigurationProcessorTest {
     coreSiteMap.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
     coreSiteMap.put("fs.stackDefault.key2", "dummyValue");
 
+    Map<String, String> dummySiteMap = new HashMap<String, String>();
+    properties.put("dummy-site", dummySiteMap);
+    dummySiteMap.put("dummy.prop", "dummyValue2");
+
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
 
     Collection<String> hgComponents = new HashSet<String>();
@@ -5483,11 +5813,71 @@ public class BlueprintConfigurationProcessorTest {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     reset(stack);
     expect(stack.getConfiguration(bp.getServices())).andReturn(createStackDefaults()).anyTimes();
+
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
+
+    replay(stack);
+    // WHEN
+    Set<String> configTypeUpdated = configProcessor.doUpdateForClusterCreate();
+    // THEN
+    assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site", "fs.default.name"));
+    assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
+    // verify that fs.stackDefault.key2 is removed
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
+    // verify that fs.notStackDefault is filtered out
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
+    assertTrue(configTypeUpdated.contains("dummy-site"));
+  }
+
+  @Test
+  public void testRecommendConfiguration_EmptyConfiguration_applyStackDefaultsOnly() throws Exception {
+    // GIVEN
+    //final String expectedHostName = "c6401.apache.ambari.org";
+    //final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    //Map<String, String> coreSiteMap = new HashMap<String, String>();
+    //properties.put("core-site", coreSiteMap);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton(expectedHostGroupName));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+
+    Configuration parentConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentConfig);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
+    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    reset(stack);
+    expect(stack.getConfiguration(bp.getServices())).andReturn(createStackDefaults()).anyTimes();
+
+    Set<String> emptySet = Collections.emptySet();
+    expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
+
     replay(stack);
     // WHEN
     configProcessor.doUpdateForClusterCreate();
     // THEN
-    assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site", "fs.default.name"));
     assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
     // verify that fs.stackDefault.key2 is removed
     assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
@@ -5508,6 +5898,10 @@ public class BlueprintConfigurationProcessorTest {
     coreSiteMap.put("fs.default.name", expectedHostName + ":" + expectedPortNum);
     coreSiteMap.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
     coreSiteMap.put("fs.stackDefault.key2", "dummyValue");
+
+    Map<String, String> dummySiteMap = new HashMap<String, String>();
+    properties.put("dummy-site", dummySiteMap);
+    dummySiteMap.put("dummy.prop", "dummyValue");
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
 
@@ -5537,7 +5931,7 @@ public class BlueprintConfigurationProcessorTest {
     topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ALWAYS_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     // WHEN
-    configProcessor.doUpdateForClusterCreate();
+    Set<String> configTypes = configProcessor.doUpdateForClusterCreate();
     // THEN
     assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site","fs.default.name"));
     assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
@@ -5545,7 +5939,8 @@ public class BlueprintConfigurationProcessorTest {
     assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
     // verify that fs.notStackDefault is not filtered out
     assertNotNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
-    assertEquals(1, topology.getAdvisedConfigurations().size());
+    assertEquals(2, topology.getAdvisedConfigurations().size());
+    assertFalse(configTypes.contains("dummy-site"));
   }
 
   @Test
@@ -5713,6 +6108,340 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testRangerEnv_defaults() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://localhost:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://nn_host:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+
+  @Test
+  public void testRangerEnv() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://%HOSTGROUP::group2%:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://nn_host:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+
+  @Test
+  public void testRangerEnvWithHdfsHA() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://my_name_service:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+    // DFS name service
+    final String hdfsSiteConfigType = "hdfs-site";
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    clusterConfigProperties.put(hdfsSiteConfigType, hdfsSiteProperties);
+    hdfsSiteProperties.put("dfs.nameservices", "my_name_service");
+    hdfsSiteProperties.put("dfs.ha.namenodes.my_name_service", "nn1,nn2");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.addAll(hdfsComponents);
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://my_name_service:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+
+  @Test
+  public void testRangerEnvBlueprintExport() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://nn_host:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("nn_host"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForBlueprintExport();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://%HOSTGROUP::group2%:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+  @Test
+  public void testRangerEnvExportBlueprintWithHdfsHA() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://my_name_service:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+    // DFS name service
+    final String hdfsSiteConfigType = "hdfs-site";
+    Map<String, String> hdfsSiteProperties = new HashMap<>();
+    clusterConfigProperties.put(hdfsSiteConfigType, hdfsSiteProperties);
+    hdfsSiteProperties.put("dfs.nameservices", "my_name_service");
+    hdfsSiteProperties.put("dfs.ha.namenodes.my_name_service", "nn1,nn2");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.addAll(hdfsComponents);
+
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
+
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForBlueprintExport();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://my_name_service:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
+  @Test
   public void testRangerKmsServerProperties() throws Exception {
     // Given
 
@@ -5834,8 +6563,16 @@ public class BlueprintConfigurationProcessorTest {
     // When
     configProcessor.doUpdateForClusterCreate();
 
+    String updatedVal = clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri");
+    Assert.assertTrue(updatedVal.startsWith("kms://http@"));
+    Assert.assertTrue(updatedVal.endsWith(":9292/kms"));
+    String hostsString = updatedVal.substring(11,updatedVal.length()-9);
+
+    List<String> hostArray = Arrays.asList(hostsString.split(";"));
+    List<String> expected = Arrays.asList("host1","host2");
+
     // Then
-    assertEquals("kms://http@host1;host2:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
+    Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
   }
 
 
@@ -5929,6 +6666,162 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
   }
 
+  @Test
+  public void testHdfsWithRangerKmsServer__multiple_hosts__localhost() throws Exception {
+    // Given
+    final String configType = "hdfs-site";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> configProperties = new HashMap<String, String>();
+
+    properties.put(configType, configProperties);
+    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@localhost:9292/kms");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> kmsServerComponents = new HashSet<String>();
+    kmsServerComponents.add("RANGER_KMS_SERVER");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    Collection<String> hosts = new HashSet<String>();
+    hosts.add("host1");
+    hosts.add("host2");
+
+    TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, hosts);
+    group1.components.add("DATANODE");
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host3"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    String updatedVal = clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri");
+    Assert.assertTrue(updatedVal.startsWith("kms://http@"));
+    Assert.assertTrue(updatedVal.endsWith(":9292/kms"));
+    String hostsString = updatedVal.substring(11,updatedVal.length()-9);
+
+    List<String> hostArray = Arrays.asList(hostsString.split(";"));
+    List<String> expected = Arrays.asList("host1","host2");
+
+    // Then
+    Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
+  }
+
+  @Test
+  public void testHdfsWithRangerKmsServer__multiple_hosts__hostgroup() throws Exception {
+    // Given
+    final String configType = "hdfs-site";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> configProperties = new HashMap<String, String>();
+
+    properties.put(configType, configProperties);
+    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@%HOSTGROUP::group1%:9292/kms");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> kmsServerComponents = new HashSet<String>();
+    kmsServerComponents.add("RANGER_KMS_SERVER");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+    hdfsComponents.add("DATANODE");
+
+    Collection<String> hosts = new HashSet<String>();
+    hosts.add("host1");
+    hosts.add("host2");
+
+    TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, hosts);
+    group1.components.add("DATANODE");
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host3"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    String updatedVal = clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri");
+    Assert.assertTrue(updatedVal.startsWith("kms://http@"));
+    Assert.assertTrue(updatedVal.endsWith(":9292/kms"));
+    String hostsString = updatedVal.substring(11,updatedVal.length()-9);
+
+    List<String> hostArray = Arrays.asList(hostsString.split(";"));
+    List<String> expected = Arrays.asList("host1","host2");
+
+    // Then
+    Assert.assertTrue(hostArray.containsAll(expected) && expected.containsAll(hostArray));
+  }
+
+
+  @Test
+  public void testResolutionOfDRPCServerAndNN() throws Exception {
+    // Given
+    final String stormConfigType = "storm-site";
+    final String mrConfigType = "mapred-site";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> stormConfigProperties = new HashMap<String, String>();
+    Map<String, String> mrConfigProperties = new HashMap<String, String>();
+
+    properties.put(stormConfigType, stormConfigProperties);
+    properties.put(mrConfigType, mrConfigProperties);
+    stormConfigProperties.put("drpc.servers", "['%HOSTGROUP::group1%']");
+    mrConfigProperties.put("mapreduce.job.hdfs-servers", "['%HOSTGROUP::group2%']");
+
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+                                                          Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+                                                    Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+
+    Collection<String> stormComponents = new HashSet<String>();
+    stormComponents.add("NIMBUS");
+    stormComponents.add("DRPC_SERVER");
+
+    Collection<String> hdfsComponents = new HashSet<String>();
+    hdfsComponents.add("NAMENODE");
+
+
+    TestHostGroup group1 = new TestHostGroup("group1", stormComponents, Collections.singleton("host1"));
+    group1.components.add("DATANODE");
+
+    TestHostGroup group2 = new TestHostGroup("group2", hdfsComponents, Collections.singleton("host2"));
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    assertEquals("['host1']", clusterConfig.getPropertyValue(stormConfigType, "drpc.servers"));
+    assertEquals("['host2']", clusterConfig.getPropertyValue(mrConfigType, "mapreduce.job.hdfs-servers"));
+  }
 
   @Test
   public void testHadoopWithRangerKmsServer() throws Exception {
@@ -6063,6 +6956,427 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "hadoop.security.key.provider.path"));
   }
 
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatSingleValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "test_value";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatSingleValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "test_value";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatMultiValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "test_value1,test_value2";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value1','test_value2']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatMultiValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "test_value1,test_value2";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value1,test_value2]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatSingleValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "['test_value']";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value']";
+    assertEquals(expectedValue, newValue);
+  }
+
+
+  @Test
+  public void testYamlMultiValueFormatWithPlainFlowStyleSingleValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "[test_value]";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value]";
+    assertEquals(expectedValue, newValue);
+  }
+
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatMultiValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "['test_value1','test_value2']";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value1','test_value2']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatMultiValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "[test_value1,test_value2]";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value1,test_value2]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithYamlPropertySingleHostValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue1 = "['%HOSTGROUP::group_1%']";
+    String propertyOriginalValue2 = "[%HOSTGROUP::group_1%]";
+
+    // When
+    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, ImmutableList.<String>of("host1:100"));
+    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, ImmutableList.<String>of("host1:100"));
+
+    // Then
+    assertEquals("host1:100", updatedValue1);
+
+    assertEquals("host1:100", updatedValue2);
+  }
+
+
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithYamlPropertyMultiHostValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue1 = "['%HOSTGROUP::group_1%', '%HOSTGROUP::group_2%']";
+    String propertyOriginalValue2 = "[%HOSTGROUP::group_1%, %HOSTGROUP::group_2%]";
+
+    // When
+    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, ImmutableList.<String>of("host1:100", "host2:200"));
+    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, ImmutableList.<String>of("host1:100", "host2:200"));
+
+    // Then
+    assertEquals("host1:100,host2:200", updatedValue1);
+
+    assertEquals("host1:100,host2:200", updatedValue2);
+  }
+
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithSingleHostWithSuffixValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue = "http://%HOSTGROUP::group_1%#";
+
+    // When
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, ImmutableList.<String>of("host1:100"));
+
+    // Then
+    assertEquals("http://host1:100#", updatedValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithMultiHostWithSuffixValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue = "http://%HOSTGROUP::group_1,HOSTGROUP::group_2%/resource";
+
+    // When
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, ImmutableList.<String>of("host1:100", "host2:200"));
+
+    // Then
+    assertEquals("http://host1:100,host2:200/resource", updatedValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithMultiHostValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue = "%HOSTGROUP::group_1%:11,%HOSTGROUP::group_2%:11";
+
+    // When
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, ImmutableList.<String>of("host1:100", "host2:200"));
+
+    // Then
+    assertEquals("host1:100,host2:200", updatedValue);
+  }
+
+  @Test
+  public void testHawqConfigClusterUpdate() throws Exception {
+    final String expectedHostNameHawqMaster = "c6401.apache.ambari.org";
+    final String expectedHostNameHawqStandby = "c6402.apache.ambari.org";
+    final String expectedHostNameNamenode = "c6403.apache.ambari.org";
+    final String expectedPortNamenode = "8020";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hawqSite = new HashMap<String, String>();
+    properties.put("hawq-site", hawqSite);
+
+    // setup properties that include host information
+    hawqSite.put("hawq_master_address_host", "localhost");
+    hawqSite.put("hawq_standby_address_host", "localhost");
+    hawqSite.put("hawq_dfs_url", createHostAddress("localhost", expectedPortNamenode) + "/hawq_default");
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    //Host group which has NAMENODE
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton(expectedHostNameNamenode));
+
+    //Host group which has HAWQMASTER
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("HAWQMASTER");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton(expectedHostNameHawqMaster));
+
+    //Host group which has HAWQSTANDBY
+    Collection<String> hgComponents3 = new HashSet<String>();
+    hgComponents3.add("HAWQSTANDBY");
+    TestHostGroup group3 = new TestHostGroup("group3", hgComponents3, Collections.singleton(expectedHostNameHawqStandby));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals(expectedHostNameHawqMaster, hawqSite.get("hawq_master_address_host"));
+    assertEquals(expectedHostNameHawqStandby, hawqSite.get("hawq_standby_address_host"));
+    assertEquals(createHostAddress(expectedHostNameNamenode, expectedPortNamenode) + "/hawq_default", hawqSite.get("hawq_dfs_url"));
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_NonTopologyProperty__AtlasClusterName() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("ATLAS_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    Long clusterId = topology.getClusterId();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("atlas.cluster.name", String.valueOf(clusterId));
+    properties.put("hive-site", typeProps);
+
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    String updatedVal = properties.get("hive-site").get("atlas.cluster.name");
+    assertEquals("primary", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_NonTopologyProperty() throws Exception {
+    String someString = "String.To.Represent.A.String.Value";
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("ATLAS_SERVER");
+    hgComponents.add("HIVE_SERVER");
+    hgComponents.add("KAFKA_BROKER");
+    hgComponents.add("NIMBUS");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    Long clusterId = topology.getClusterId();
+
+    Map<String, String> hiveSiteProps = new HashMap<String, String>();
+    hiveSiteProps.put("atlas.cluster.name", String.valueOf(clusterId));
+    hiveSiteProps.put("hive.exec.post.hooks", someString);
+    properties.put("hive-site", hiveSiteProps);
+
+    Map<String, String> kafkaBrokerProps = new HashMap<String, String>();
+    kafkaBrokerProps.put("kafka.metrics.reporters", someString);
+    properties.put("kafka-broker", kafkaBrokerProps);
+
+    Map<String, String> stormSiteProps = new HashMap<String, String>();
+    stormSiteProps.put("metrics.reporter.register", someString);
+    properties.put("storm-site", stormSiteProps);
+
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    String atlasClusterName = properties.get("hive-site").get("atlas.cluster.name");
+    String hiveExecPostHooks = properties.get("hive-site").get("hive.exec.post.hooks");
+    String kafkaMetricsReporters = properties.get("kafka-broker").get("kafka.metrics.reporters");
+    String metricsReporterRegister = properties.get("storm-site").get("metrics.reporter.register");
+    assertEquals("primary", atlasClusterName);
+    assertEquals(someString, hiveExecPostHooks);
+    assertEquals(someString, kafkaMetricsReporters);
+    assertEquals(someString, metricsReporterRegister);
+  }
+
+
+  @Test
+  public void testAmsPropertiesDefault() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> amsSite = new HashMap<String, String>();
+    //default
+    amsSite.put("timeline.metrics.service.webapp.address", "localhost:6188");
+    properties.put("ams-site", amsSite);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("METRICS_COLLECTOR");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("host1:6188",
+      clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
+  }
+
+  @Test
+  public void testAmsPropertiesSpecialAddress() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> amsSite = new HashMap<String, String>();
+    //default
+    amsSite.put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
+    properties.put("ams-site", amsSite);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("METRICS_COLLECTOR");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("host1:6188",
+      clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
+  }
+  @Test
+  public void testStackPasswordPropertyFilter() throws Exception{
+	Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+	Map<String, String> rangerAdminSiteProps = new HashMap<String, String>();
+	rangerAdminSiteProps.put("ranger.service.https.attrib.keystore.pass", "SECRET:admin-prp:1:ranger.service.pass");
+	properties.put("ranger-admin-site", rangerAdminSiteProps);
+	Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+	Configuration parentClusterConfig = new Configuration(parentProperties,
+	Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+	Configuration clusterConfig = new Configuration(properties,
+	Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+	Collection<String> hgComponents = new HashSet<String>();
+	hgComponents.add("NAMENODE");
+        hgComponents.add("SECONDARY_NAMENODE");
+	hgComponents.add("RESOURCEMANAGER");
+	TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+	Collection<String> hgComponents2 = new HashSet<String>();
+	hgComponents2.add("DATANODE");
+	hgComponents2.add("HDFS_CLIENT");
+	TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("testhost2"));
+	Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+	hostGroups.add(group1);
+	hostGroups.add(group2);
+
+	expect(stack.isPasswordProperty((String) anyObject(),(String) anyObject(),(String) anyObject())).andReturn(true).once();
+	ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+	BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+	configProcessor.doUpdateForBlueprintExport();
+
+	assertFalse(properties.get("ranger-admin-site").containsKey("ranger.service.https.attrib.keystore.pass"));
+  }
 
   private Map<String, AdvisedConfiguration> createAdvisedConfigMap() {
     Map<String, AdvisedConfiguration> advMap = new HashMap<String, AdvisedConfiguration>();
@@ -6070,10 +7384,19 @@ public class BlueprintConfigurationProcessorTest {
     confProp.put("fs.stackDefault.key1", "stackDefaultUpgraded");
     confProp.put("fs.notStackDefault", "notStackDefault");
     Map<String, ValueAttributesInfo> valueAttributesInfoMap = new HashMap<String, ValueAttributesInfo>();
-    ValueAttributesInfo vaInfo = new ValueAttributesInfo();
-    vaInfo.setDelete("true");
-    valueAttributesInfoMap.put("fs.stackDefault.key2", vaInfo);
+    ValueAttributesInfo vaInfo1 = new ValueAttributesInfo();
+    vaInfo1.setDelete("true");
+    ValueAttributesInfo vaInfo2 = new ValueAttributesInfo();
+    vaInfo2.setMaximum("150");
+    ValueAttributesInfo vaInfo3 = new ValueAttributesInfo();
+    vaInfo3.setMinimum("100");
+    valueAttributesInfoMap.put("fs.stackDefault.key2", vaInfo1);
+    valueAttributesInfoMap.put("fs.notStackDefault", vaInfo2);
+    valueAttributesInfoMap.put("fs.stackDefault.key3", vaInfo3);
     advMap.put("core-site", new AdvisedConfiguration(confProp, valueAttributesInfoMap));
+    Map<String, String> dummyConfProp = new HashMap<String, String>();
+    dummyConfProp.put("dummy.prop", "dummyValue");
+    advMap.put("dummy-site", new AdvisedConfiguration(dummyConfProp, new HashMap<String, ValueAttributesInfo>()));
     return advMap;
   }
 
@@ -6103,6 +7426,11 @@ public class BlueprintConfigurationProcessorTest {
     coreSiteDefault.put("fs.stackDefault.key2", "stackDefaultValue2");
     stackDefaultProps.put("core-site", coreSiteDefault);
 
+    Map<String, String> dummySiteDefaults =
+      new HashMap<String, String>();
+    dummySiteDefaults.put("dummy.prop", "dummyValue");
+    stackDefaultProps.put("dummy-site", dummySiteDefaults);
+
     Map<String, Map<String, Map<String, String>>> stackDefaultAttributes =
       new HashMap<String, Map<String, Map<String, String>>>();
     return new Configuration(stackDefaultProps, stackDefaultAttributes);
@@ -6125,9 +7453,14 @@ public class BlueprintConfigurationProcessorTest {
       //todo: HG configs
       groupInfo.setConfiguration(hostGroup.configuration);
 
+      List<Component> componentList = new ArrayList<Component>();
+      for (String componentName : hostGroup.components) {
+        componentList.add(new Component(componentName));
+      }
+
       //create host group which is set on topology
       allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, "test-bp", stack,
-          hostGroup.components, EMPTY_CONFIG, "1"));
+          componentList, EMPTY_CONFIG, "1"));
 
       hostGroupInfo.put(hostGroup.name, groupInfo);
 

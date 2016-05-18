@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -146,6 +145,35 @@ class BSRunner extends Thread {
     FileUtils.writeStringToFile(passwordFile, data);
   }
 
+  /**
+   * Waits until the process has terminated or waiting time elapses.
+   * @param timeout time to wait in miliseconds
+   * @return true if process has exited, false otherwise
+   */
+  private boolean waitForProcessTermination(Process process, long timeout) throws InterruptedException {
+    long startTime = System.currentTimeMillis();
+    do {
+      try {
+        process.exitValue();
+        return true;
+      } catch (IllegalThreadStateException e) {}
+      // Check if process has terminated once per second
+      Thread.sleep(1000);
+    } while (System.currentTimeMillis() - startTime < timeout);
+    return false;
+  }
+
+  /**
+   * Calculates bootstrap timeout as a function of number of hosts.
+   * @return timeout in milliseconds
+   */
+  private long calculateBSTimeout(int hostCount) {
+    final int PARALLEL_BS_COUNT = 20; // bootstrap.py bootstraps 20 hosts in parallel
+    final long HOST_BS_TIMEOUT = 300000L; // 5 minutes timeout for a host (average). Same as in bootstrap.py
+
+    return Math.max(HOST_BS_TIMEOUT, HOST_BS_TIMEOUT * hostCount / PARALLEL_BS_COUNT);
+  }
+
   public synchronized void finished() {
     this.finished = true;
   }
@@ -153,6 +181,7 @@ class BSRunner extends Thread {
   @Override
   public void run() {
     String hostString = createHostString(sshHostInfo.getHosts());
+    long bootstrapTimeout = calculateBSTimeout(sshHostInfo.getHosts().size());
     // Startup a scheduled executor service to look through the logs
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     BSStatusCollector statusCollector = new BSStatusCollector();
@@ -228,18 +257,12 @@ class BSRunner extends Thread {
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " sshPort=" + sshPort + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
-          " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs=" + userRunAs);
+          " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs=" + userRunAs +
+          " timeout=" + bootstrapTimeout / 1000);
 
       envVariables.put("AMBARI_PASSPHRASE", agentSetupPassword);
       if (this.verbose)
         envVariables.put("BS_VERBOSE", "\"-vvv\"");
-
-      String[] env = new String[envVariables.size()];
-      int iVar = 0;
-      for(Map.Entry<String, String> pair : envVariables.entrySet())
-      {
-        env[iVar++] = pair.getKey() + "=" + pair.getValue();
-      }
 
       if (LOG.isDebugEnabled()) {
         LOG.debug(Arrays.toString(command));
@@ -248,29 +271,29 @@ class BSRunner extends Thread {
       String bootStrapOutputFilePath = requestIdDir + File.separator + "bootstrap.out";
       String bootStrapErrorFilePath = requestIdDir + File.separator + "bootstrap.err";
 
-      Process process = Runtime.getRuntime().exec(command, env);
-      
-      PrintWriter stdOutWriter = null;
-      PrintWriter stdErrWriter = null;
-      
-      try {
-        stdOutWriter = new PrintWriter(bootStrapOutputFilePath);
-        stdErrWriter = new PrintWriter(bootStrapErrorFilePath);
-        IOUtils.copy(process.getInputStream(), stdOutWriter);
-        IOUtils.copy(process.getErrorStream(), stdErrWriter);
-      } finally {
-        if(stdOutWriter != null)
-          stdOutWriter.close();
-        
-        if(stdErrWriter != null)
-          stdErrWriter.close();
-      }
+      ProcessBuilder pb = new ProcessBuilder(command);
+      pb.redirectOutput(new File(bootStrapOutputFilePath));
+      pb.redirectError(new File(bootStrapErrorFilePath));
+      Map<String, String> env = pb.environment();
+      env.putAll(envVariables);
+
+      Process process = pb.start();
 
       try {
         String logInfoMessage = "Bootstrap output, log="
               + bootStrapErrorFilePath + " " + bootStrapOutputFilePath + " at " + this.ambariHostname;
         LOG.info(logInfoMessage);
-        int exitCode = process.waitFor();
+
+        int exitCode = 1;
+        boolean timedOut = false;
+        if (waitForProcessTermination(process, bootstrapTimeout)){
+          exitCode = process.exitValue();
+        } else {
+          LOG.warn("Bootstrap process timed out. It will be destroyed.");
+          process.destroy();
+          timedOut = true;
+        }
+
         String outMesg = "";
         String errMesg = "";       
         try {
@@ -280,6 +303,9 @@ class BSRunner extends Thread {
           LOG.info("Error in reading files ", io);
         }
         scriptlog = outMesg + "\n\n" + errMesg;
+        if (timedOut) {
+          scriptlog += "\n\n Bootstrap process timed out. It was destroyed.";
+        }
         LOG.info("Script log Mesg " + scriptlog);
         if (exitCode != 0) {
           stat = BSStat.ERROR;
@@ -358,10 +384,13 @@ class BSRunner extends Thread {
       } else {
         stat = BSStat.ERROR;
       }
-      tmpStatus.setLog(scriptlog);
-      tmpStatus.setStatus(stat);
-      bsImpl.updateStatus(requestId, tmpStatus);
-      bsImpl.reset();
+
+      // creating new status instance to avoid modifying exposed object
+      BootStrapStatus newStat = new BootStrapStatus();
+      newStat.setHostsStatus(hostStatusList);
+      newStat.setLog(scriptlog);
+      newStat.setStatus(stat);
+
       // Remove private ssh key after bootstrap is complete
       try {
         FileUtils.forceDelete(sshKeyFile);
@@ -376,24 +405,35 @@ class BSRunner extends Thread {
           LOG.warn(io.getMessage());
         }
       }
+
+      bsImpl.updateStatus(requestId, newStat);
+      bsImpl.reset();
+
       finished();
     }
   }
 
   public synchronized void interuptSetupAgent(int exitCode, String errMesg){
     PrintWriter setupAgentDoneWriter = null;
-    PrintWriter setupAgentLogWriter  = null; 
+    PrintWriter setupAgentLogWriter  = null;
     try {
- 
-        for (String host : sshHostInfo.getHosts()) {
-          setupAgentDoneWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.doneFileFilter));
-          setupAgentLogWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.logFileFilter));
-          setupAgentLogWriter.print("Error while bootstrapping:\n" + errMesg);
+      for (String host : sshHostInfo.getHosts()) {
+        File doneFile = new File(requestIdDir, host + BSHostStatusCollector.doneFileFilter);
+
+        // Do not rewrite finished host statuses
+        if (!doneFile.exists()) {
+          setupAgentDoneWriter = new PrintWriter(doneFile);
           setupAgentDoneWriter.print(exitCode);
           setupAgentDoneWriter.close();
-          setupAgentLogWriter.close();
         }
 
+        File logFile = new File(requestIdDir, host + BSHostStatusCollector.logFileFilter);
+        if (!logFile.exists()) {
+          setupAgentLogWriter = new PrintWriter(logFile);
+          setupAgentLogWriter.print("Error while bootstrapping:\n" + errMesg);
+          setupAgentLogWriter.close();
+        }
+      }
     } catch (FileNotFoundException ex) {
       LOG.error(ex);
     } finally {

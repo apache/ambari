@@ -419,7 +419,7 @@ public class WidgetResourceProviderTest {
     expectLastCall();
     replay(dao);
 
-    provider.deleteResources(predicate);
+    provider.deleteResources(request, predicate);
 
     WidgetEntity entity1 = entityCapture.getValue();
     Assert.assertEquals(Long.valueOf(1), entity1.getId());

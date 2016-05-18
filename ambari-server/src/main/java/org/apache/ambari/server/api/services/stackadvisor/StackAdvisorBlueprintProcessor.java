@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.services.stackadvisor;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -36,8 +37,13 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse.BlueprintConfigurations;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
+import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
+import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.slf4j.Logger;
@@ -63,12 +69,13 @@ public class StackAdvisorBlueprintProcessor {
   /**
    * Recommend configurations by the stack advisor, then store the results in cluster topology.
    * @param clusterTopology cluster topology instance
+   * @param existingConfigurations Existing configurations of cluster
    */
-  public void adviseConfiguration(ClusterTopology clusterTopology) throws ConfigurationTopologyException {
+  public void adviseConfiguration(ClusterTopology clusterTopology, Map<String, Map<String, String>> existingConfigurations) throws ConfigurationTopologyException {
     StackAdvisorRequest request = createStackAdvisorRequest(clusterTopology, StackAdvisorRequestType.CONFIGURATIONS);
     try {
       RecommendationResponse response = stackAdvisorHelper.recommend(request);
-      addAdvisedConfigurationsToTopology(response, clusterTopology);
+      addAdvisedConfigurationsToTopology(response, clusterTopology, existingConfigurations);
     } catch (StackAdvisorException e) {
       throw new ConfigurationTopologyException(RECOMMENDATION_FAILED, e);
     } catch (IllegalArgumentException e) {
@@ -105,7 +112,7 @@ public class StackAdvisorBlueprintProcessor {
   private Map<String, Set<String>> gatherHostGroupComponents(ClusterTopology clusterTopology) {
     Map<String, Set<String>> hgComponentsMap = Maps.newHashMap();
     for (Map.Entry<String, HostGroup> hgEnrty: clusterTopology.getBlueprint().getHostGroups().entrySet()) {
-      hgComponentsMap.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getComponents()));
+      hgComponentsMap.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getComponentNames()));
     }
     return hgComponentsMap;
   }
@@ -153,7 +160,7 @@ public class StackAdvisorBlueprintProcessor {
   }
 
   private void addAdvisedConfigurationsToTopology(RecommendationResponse response,
-                                                  ClusterTopology topology) {
+                                                  ClusterTopology topology, Map<String, Map<String, String>> existingConfigurations) {
     Preconditions.checkArgument(response.getRecommendations() != null,
       "Recommendation response is empty.");
     Preconditions.checkArgument(response.getRecommendations().getBlueprint() != null,
@@ -161,13 +168,72 @@ public class StackAdvisorBlueprintProcessor {
     Preconditions.checkArgument(response.getRecommendations().getBlueprint().getConfigurations() != null,
       "Configurations are missing from the recommendation blueprint response.");
 
+    Map<String, Map<String, String>> userProvidedProperties = getUserProvidedProperties(topology, existingConfigurations);
     Map<String, BlueprintConfigurations> recommendedConfigurations =
       response.getRecommendations().getBlueprint().getConfigurations();
     for (Map.Entry<String, BlueprintConfigurations> configEntry : recommendedConfigurations.entrySet()) {
       String configType = configEntry.getKey();
-      BlueprintConfigurations blueprintConfig = configEntry.getValue();
+      BlueprintConfigurations blueprintConfig = filterBlueprintConfig(configType, configEntry.getValue(),
+        userProvidedProperties, topology);
       topology.getAdvisedConfigurations().put(configType, new AdvisedConfiguration(
         blueprintConfig.getProperties(), blueprintConfig.getPropertyAttributes()));
     }
+  }
+
+  /**
+   * Gather user defined properties. (keep that only which is not included in the stack defaults or it overrides the stack default value)
+   */
+  private Map<String, Map<String, String>> getUserProvidedProperties(ClusterTopology topology, Map<String, Map<String, String>> existingConfigurations) {
+    Map<String, Map<String, String>> userProvidedProperties = Maps.newHashMap();
+    Blueprint blueprint = topology.getBlueprint();
+    Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
+    Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
+
+    for (Map.Entry<String, Map<String, String>> configGroup : existingConfigurations.entrySet()) {
+      String configType = configGroup.getKey();
+      Map<String, String> configsToAdd = Maps.newHashMap();
+      for (Map.Entry<String, String> configProp : configGroup.getValue().entrySet()) {
+        if (stackDefaultProps.containsKey(configType) && stackDefaultProps.get(configType).containsKey(configProp.getKey())) {
+          String originalValue = stackDefaultProps.get(configType).get(configProp.getKey());
+          if (originalValue != null && !originalValue.equals(configProp.getValue())) {
+            configsToAdd.put(configProp.getKey(), configProp.getValue());
+          }
+        } else {
+          configsToAdd.put(configProp.getKey(), configProp.getValue());
+        }
+      }
+      if (!configsToAdd.isEmpty()) {
+        userProvidedProperties.put(configGroup.getKey(), configsToAdd);
+      }
+    }
+
+    return userProvidedProperties;
+  }
+
+  /**
+   * Remove user defined properties from stack advisor output in case of ONLY_STACK_DEFAULTS_APPLY or
+   * ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES.
+   */
+  private BlueprintConfigurations filterBlueprintConfig(String configType, BlueprintConfigurations config,
+                                                        Map<String, Map<String, String>> userProvidedProperties,
+                                                        ClusterTopology topology) {
+    if (topology.getConfigRecommendationStrategy() == ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY ||
+      topology.getConfigRecommendationStrategy() == ConfigRecommendationStrategy
+        .ALWAYS_APPLY_DONT_OVERRIDE_CUSTOM_VALUES) {
+      if (userProvidedProperties.containsKey(configType)) {
+        BlueprintConfigurations newConfig = new BlueprintConfigurations();
+        Map<String, String> filteredProps = Maps.filterKeys(config.getProperties(),
+          Predicates.not(Predicates.in(userProvidedProperties.get(configType).keySet())));
+        newConfig.setProperties(Maps.newHashMap(filteredProps));
+
+        if (config.getPropertyAttributes() != null) {
+          Map<String, ValueAttributesInfo> filteredAttributes = Maps.filterKeys(config.getPropertyAttributes(),
+            Predicates.not(Predicates.in(userProvidedProperties.get(configType).keySet())));
+          newConfig.setPropertyAttributes(Maps.newHashMap(filteredAttributes));
+        }
+        return newConfig;
+      }
+    }
+    return config;
   }
 }

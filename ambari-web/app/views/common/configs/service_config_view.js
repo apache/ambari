@@ -34,7 +34,7 @@ App.ServiceConfigView = Em.View.extend({
    * Determines that active tab is set during view initialize.
    * @type {boolean}
    */
-  initalActiveTabIsSet: false,
+  initialActiveTabIsSet: false,
 
   /**
    * Bound from parent view in the template
@@ -108,9 +108,6 @@ App.ServiceConfigView = Em.View.extend({
    */
   supportsConfigLayout: function() {
     var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController', 'mainHostServiceConfigsController'];
-    if (!App.get('isClusterSupportsEnhancedConfigs')) {
-      return false;
-    }
     if (App.Tab.find().someProperty('serviceName', this.get('controller.selectedService.serviceName')) && supportedControllers.contains(this.get('controller.name'))) {
       return !Em.isEmpty(App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).filterProperty('isAdvanced', false));
     } else {
@@ -136,10 +133,6 @@ App.ServiceConfigView = Em.View.extend({
     this.checkCanEdit();
   },
 
-  willDestroyElement: function() {
-    this.get('tabs').setEach('isActive', false);
-  },
-
   /**
    * Check if we should show Custom Property category
    * @method checkCanEdit
@@ -161,7 +154,7 @@ App.ServiceConfigView = Em.View.extend({
 
   setActiveTab: function (event) {
     if (event.context.get('isHiddenByFilter')) return false;
-    this.set('initalActiveTabIsSet', true);
+    this.set('initialActiveTabIsSet', true);
     this.get('tabs').forEach(function (tab) {
       tab.set('isActive', false);
     });
@@ -176,28 +169,23 @@ App.ServiceConfigView = Em.View.extend({
    * @returns {Ember.A}
    */
   tabs: function() {
-    if (!App.get('isClusterSupportsEnhancedConfigs')) {
-      return Em.A([]);
-    }
     var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
-    tabs.setEach('isActive', false);
     var advancedTab = tabs.findProperty('isAdvanced', true);
     if (advancedTab) {
-      advancedTab.set('isRendered', false);
+      advancedTab.set('isRendered', advancedTab.get('isActive'));
     }
     this.processTabs(tabs);
     return tabs;
-  }.property('controller.selectedServiceNameTrigger'),
+  }.property('controller.selectedService.serviceName'),
 
   /**
    * Set active tab when view attached and configs are linked to tabs.
    */
   initialActiveTabObserver: function() {
     var tabs = this.get('tabs').filterProperty('isAdvanced', false);
-    if (tabs.everyProperty('isConfigsPrepared', true) && !this.get('initalActiveTabIsSet')) {
-      this.get('tabs').setEach('isActive', false);
+    if (tabs.everyProperty('isConfigsPrepared', true) && !this.get('initialActiveTabIsSet')) {
       this.pickActiveTab(this.get('tabs'));
-      this.set('initalActiveTabIsSet', true);
+      this.set('initialActiveTabIsSet', true);
     }
   }.observes('tabs.@each.isConfigsPrepared'),
 

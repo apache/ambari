@@ -36,12 +36,12 @@ if OSCheck.is_windows_family():
 else:
   hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
   hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-  hdp_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
-  datanode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-datanode.pid")
-  namenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-namenode.pid")
-  snamenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid")
-  journalnode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
-  zkfc_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
+  hadoop_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
+  datanode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-datanode.pid")
+  namenode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-namenode.pid")
+  snamenode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid")
+  journalnode_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
+  zkfc_pid_file = format("{hadoop_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
   nfsgateway_pid_file = format("{hadoop_pid_dir_prefix}/root/hadoop_privileged_nfs3.pid")
 
   # Security related/required params
@@ -54,3 +54,5 @@ else:
 
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
+
+stack_name = default("/hostLevelParams/stack_name", None)

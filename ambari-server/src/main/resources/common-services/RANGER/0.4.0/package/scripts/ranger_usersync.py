@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
@@ -30,9 +30,22 @@ class RangerUsersync(Script):
   
   def install(self, env):
     self.install_packages(env)
+    import params
+    env.set_params(params)
+
+    if params.stack_supports_usersync_passwd:
+      from setup_ranger_xml import ranger_credential_helper
+      ranger_credential_helper(params.ugsync_cred_lib, params.ugsync_policymgr_alias, 'rangerusersync', params.ugsync_policymgr_keystore)
+
+      File(params.ugsync_policymgr_keystore,
+        owner = params.unix_user,
+        group = params.unix_group,
+        mode = 0640
+      )
+
     self.configure(env)
     
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -41,13 +54,13 @@ class RangerUsersync(Script):
     else:
       from setup_ranger import ranger    
     
-    ranger('ranger_usersync')
+    ranger('ranger_usersync', upgrade_type=upgrade_type)
     
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
-    self.configure(env)
+    self.configure(env, upgrade_type=upgrade_type)
     ranger_service('ranger_usersync')
     
   def stop(self, env, upgrade_type=None):
@@ -70,13 +83,16 @@ class RangerUsersync(Script):
     env.set_params(params)
     upgrade.prestart(env, "ranger-usersync")
 
-    if params.xml_configurations_supported:
-      from setup_ranger_xml import ranger
-      ranger('ranger_usersync', upgrade_type=upgrade_type)
+  def get_component_name(self):
+    return "ranger-usersync"
 
-  def get_stack_to_component(self):
-    return {"HDP": "ranger-usersync"}
-
+  def get_log_folder(self):
+    import params
+    return params.usersync_log_dir
+  
+  def get_user(self):
+    import params
+    return params.unix_user
 
 if __name__ == "__main__":
   RangerUsersync().execute()

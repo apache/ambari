@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+
+  <property>
+    <name>logfeeder.config.files</name>
+    <value>{default_config_files}</value>
+    <description>Comma separated config files in grok format</description>
+    <display-name>Logfeeder config files</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder.checkpoint.folder</name>
+    <value>/etc/ambari-logsearch-logfeeder/conf/checkpoints</value>
+    <description>Checkpoint folder for logfeeder</description>
+    <display-name>Logfeeder checkpoint dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logfeeder.metrics.collector.hosts</name>
+    <value>{metrics_collector_hosts}</value>
+    <description>Metrics collector hosts for pushing metrics by Logfeeder</description>
+    <display-name>Metrics collector hosts</display-name>
+  </property>
+
+  <property>
+    <name>logfeeder.log.filter.enable</name>
+    <value>true</value>
+    <description>Enable Log filtering based on log level (INFO,ERROR,WARN etc.)</description>
+    <display-name>Log Filter enable</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logfeeder.solr.config.interval</name>
+    <value>5</value>
+    <description>Interval to fetch filter config from Solr in sec</description>
+    <display-name>Fetch Solr config interval</display-name>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+
+</configuration>

@@ -20,13 +20,14 @@ package org.apache.ambari.server.orm.dao;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -38,9 +39,22 @@ public class ServiceComponentDesiredStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  /**
+   * DAO utilities for dealing mostly with {@link TypedQuery} results.
+   */
+  @Inject
+  private DaoUtils daoUtils;
+
+  /**
+   * Gets a {@link ServiceComponentDesiredStateEntity} by its PK ID.
+   *
+   * @param id
+   *          the ID.
+   * @return the entity or {@code null} if it does not exist.
+   */
   @RequiresSession
-  public ServiceComponentDesiredStateEntity findByPK(ServiceComponentDesiredStateEntityPK primaryKey) {
-    return entityManagerProvider.get().find(ServiceComponentDesiredStateEntity.class, primaryKey);
+  public ServiceComponentDesiredStateEntity findById(long id) {
+    return entityManagerProvider.get().find(ServiceComponentDesiredStateEntity.class, id);
   }
 
   @RequiresSession
@@ -53,6 +67,37 @@ public class ServiceComponentDesiredStateDAO {
     } catch (NoResultException ignored) {
     }
     return null;
+  }
+
+  /**
+   * Finds a {@link ServiceComponentDesiredStateEntity} by a combination of
+   * cluster, service, and component.
+   *
+   * @param clusterId
+   *          the cluster ID
+   * @param serviceName
+   *          the service name (not {@code null})
+   * @param componentName
+   *          the component name (not {@code null})
+   */
+  @RequiresSession
+  public ServiceComponentDesiredStateEntity findByName(long clusterId, String serviceName,
+      String componentName) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<ServiceComponentDesiredStateEntity> query = entityManager.createNamedQuery(
+        "ServiceComponentDesiredStateEntity.findByName", ServiceComponentDesiredStateEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+
+    ServiceComponentDesiredStateEntity entity = null;
+    List<ServiceComponentDesiredStateEntity> entities = daoUtils.selectList(query);
+    if (null != entities && !entities.isEmpty()) {
+      entity = entities.get(0);
+    }
+
+    return entity;
   }
 
   @Transactional
@@ -76,8 +121,61 @@ public class ServiceComponentDesiredStateDAO {
   }
 
   @Transactional
-  public void removeByPK(ServiceComponentDesiredStateEntityPK primaryKey) {
-    ServiceComponentDesiredStateEntity entity = findByPK(primaryKey);
-    entityManagerProvider.get().remove(entity);
+  public void removeByName(long clusterId, String serviceName, String componentName) {
+    ServiceComponentDesiredStateEntity entity = findByName(clusterId, serviceName, componentName);
+    if (null != entity) {
+      entityManagerProvider.get().remove(entity);
+    }
+  }
+
+  /**
+   * Creates a service component upgrade/downgrade historical event.
+   *
+   * @param serviceComponentHistoryEntity
+   */
+  @Transactional
+  public void create(ServiceComponentHistoryEntity serviceComponentHistoryEntity) {
+    entityManagerProvider.get().persist(serviceComponentHistoryEntity);
+  }
+
+  /**
+   * Merges a service component upgrade/downgrade historical event, creating it
+   * in the process if it does not already exist. The associated
+   * {@link ServiceComponentDesiredStateEntity} is automatically merged via its
+   * {@link CascadeType}.
+   *
+   * @param serviceComponentHistoryEntity
+   * @return
+   */
+  @Transactional
+  public ServiceComponentHistoryEntity merge(
+      ServiceComponentHistoryEntity serviceComponentHistoryEntity) {
+    return entityManagerProvider.get().merge(serviceComponentHistoryEntity);
+  }
+
+  /**
+   * Gets the history for a component.
+   *
+   * @param clusterId
+   *          the component's cluster.
+   * @param serviceName
+   *          the component's service (not {@code null}).
+   * @param componentName
+   *          the component's name (not {@code null}).
+   * @return
+   */
+  @RequiresSession
+  public List<ServiceComponentHistoryEntity> findHistory(long clusterId, String serviceName,
+      String componentName) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<ServiceComponentHistoryEntity> query = entityManager.createNamedQuery(
+        "ServiceComponentHistoryEntity.findByComponent", ServiceComponentHistoryEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+
+    ServiceComponentDesiredStateEntity entity = null;
+    return daoUtils.selectList(query);
   }
 }

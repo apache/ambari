@@ -32,36 +32,36 @@ class TestFalconClient(RMFTestCase):
                        classname="FalconClient",
                        command="configure",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon',
                               mode = 0755,
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),
@@ -92,7 +92,7 @@ class TestFalconClient(RMFTestCase):
                        classname="FalconClient",
                        command="security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -103,7 +103,7 @@ class TestFalconClient(RMFTestCase):
                        classname="FalconClient",
                        command="security_status",
                        config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -119,7 +119,7 @@ class TestFalconClient(RMFTestCase):
                        classname = "FalconClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-client', version), sudo=True,)
@@ -138,7 +138,7 @@ class TestFalconClient(RMFTestCase):
                        classname = "FalconClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

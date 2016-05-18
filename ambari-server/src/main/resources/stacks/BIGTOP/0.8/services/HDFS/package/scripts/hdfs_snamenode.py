@@ -27,7 +27,7 @@ def snamenode(action=None, format=False):
 
   if action == "configure":
     Directory(params.fs_checkpoint_dir,
-              recursive=True,
+              create_parents = True,
               mode=0755,
               owner=params.hdfs_user,
               group=params.user_group)

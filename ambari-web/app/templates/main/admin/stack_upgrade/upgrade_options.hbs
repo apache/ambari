@@ -32,7 +32,7 @@
             {{#unless view.isInUpgradeWizard}}
               {{#if method.isCheckRequestInProgress}}
                 <div class="method-precheck-message checking">
-                  <div class="spinner">{{t admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking}}</div>
+                  {{view App.SpinnerView message="admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking"}}
                 </div>
               {{else}}
                 <div {{bindAttr class=":method-precheck-message method.precheckResultsMessageClass"}}>
@@ -41,6 +41,9 @@
                   <a {{action runAction method target="view"}}>
                     {{method.precheckResultsMessage}}
                   </a>
+                  {{#if method.bypassedFailures}}
+                    <div class="alert-danger">{{t admin.stackVersions.version.upgrade.upgradeOptions.errors_bypassed}}</div>
+                  {{/if}}
                 </div>
               {{/if}}
             {{/unless}}
@@ -56,4 +59,5 @@
     <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipComponentFailures"}}
       {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1}}</label>
   </div>
+  <div class="alert alert-warning">{{t admin.stackVersions.version.upgrade.alertsWarning}}</div>
 </div>

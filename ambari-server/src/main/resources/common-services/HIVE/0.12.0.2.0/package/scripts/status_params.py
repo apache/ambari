@@ -21,25 +21,38 @@ limitations under the License.
 from ambari_commons import OSCheck
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 
+
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'HIVE_METASTORE' : 'hive-metastore',
   'HIVE_SERVER' : 'hive-server2',
   'WEBHCAT_SERVER' : 'hive-webhcat',
   'HIVE_CLIENT' : 'hive-client',
-  'HCAT' : 'hive-client'
+  'HCAT' : 'hive-client',
+  'HIVE_SERVER_INTERACTIVE' : 'hive-server2-hive2'
 }
 
+
+# Either HIVE_METASTORE, HIVE_SERVER, WEBHCAT_SERVER, HIVE_CLIENT, HCAT, HIVE_SERVER_INTERACTIVE
+role = default("/role", None)
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "HIVE_CLIENT")
+component_directory_interactive = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "HIVE_SERVER_INTERACTIVE")
 
 config = Script.get_config()
+
+stack_root = Script.get_stack_root()
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 
 if OSCheck.is_windows_family():
   hive_metastore_win_service_name = "metastore"
@@ -49,7 +62,7 @@ if OSCheck.is_windows_family():
 else:
   hive_pid_dir = config['configurations']['hive-env']['hive_pid_dir']
   hive_pid = 'hive-server.pid'
-
+  hive_interactive_pid = 'hive-interactive.pid'
   hive_metastore_pid = 'hive.pid'
 
   hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_dir
@@ -72,31 +85,37 @@ else:
 
   # default configuration directories
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-  hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
+  hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
   webhcat_conf_dir = '/etc/hive-webhcat/conf'
   hive_etc_dir_prefix = "/etc/hive"
+  hive_interactive_etc_dir_prefix = "/etc/hive2"
   hive_conf_dir = "/etc/hive/conf"
   hive_client_conf_dir = "/etc/hive/conf"
 
-  # !!! required by ranger to be at this location unless HDP 2.3+
   hive_server_conf_dir = "/etc/hive/conf.server"
+  hive_server_interactive_conf_dir = "/etc/hive2/conf.server"
 
-  # HDP 2.2+
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
-    webhcat_conf_dir = '/usr/hdp/current/hive-webhcat/conf'
-    hive_conf_dir = format("/usr/hdp/current/{component_directory}/conf")
-    hive_client_conf_dir = format("/usr/hdp/current/{component_directory}/conf")
+  if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
+    webhcat_conf_dir = format("{stack_root}/current/hive-webhcat/conf")
+    hive_conf_dir = format("{stack_root}/current/{component_directory}/conf")
+    hive_client_conf_dir = format("{stack_root}/current/{component_directory}/conf")
 
-  # HDP 2.3+
-  if Script.is_hdp_stack_greater_or_equal("2.3"):
-    # ranger is only compatible with this location on HDP 2.3+, not HDP 2.2
-    hive_server_conf_dir = format("/usr/hdp/current/{component_directory}/conf/conf.server")
-
-    # this is NOT a typo.  HDP-2.3 configs for hcatalog/webhcat point to a
-    # specific directory which is NOT called 'conf'
-    webhcat_conf_dir = '/usr/hdp/current/hive-webhcat/etc/webhcat'
+  if stack_version_formatted_major and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted_major):
+    hive_server_conf_dir = format("{stack_root}/current/{component_directory}/conf/conf.server")
     hive_conf_dir = hive_server_conf_dir
 
+  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, stack_version_formatted_major):
+    # this is NOT a typo. Configs for hcatalog/webhcat point to a
+    # specific directory which is NOT called 'conf'
+    webhcat_conf_dir = format("{stack_root}/current/hive-webhcat/etc/webhcat")
+
+  # if stack version supports hive serve interactive
+  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_formatted_major):
+    hive_server_interactive_conf_dir = format("{stack_root}/current/{component_directory_interactive}/conf/conf.server")
+
   hive_config_dir = hive_client_conf_dir
-  if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
+
+  if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE", "HIVE_SERVER_INTERACTIVE"]:
     hive_config_dir = hive_server_conf_dir
+    
+stack_name = default("/hostLevelParams/stack_name", None)

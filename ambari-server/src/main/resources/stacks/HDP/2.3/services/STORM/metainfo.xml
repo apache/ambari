@@ -21,48 +21,8 @@
   <services>
     <service>
       <name>STORM</name>
-      <version>0.10.0</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>storm_2_3_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>storm-2-3-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-      <components>
-        <component>
-          <name>NIMBUS</name>
-          <displayName>Nimbus</displayName>
-          <category>MASTER</category>
-          <cardinality>1+</cardinality>
-          <versionAdvertised>true</versionAdvertised>
-          <dependencies>
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-          <commandScript>
-            <script>scripts/nimbus.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
-          </commandScript>
-        </component>
-      </components>
+      <extends>common-services/STORM/0.10.0</extends>
+      <version>0.10.0.2.3</version>
     </service>
   </services>
 </metainfo>

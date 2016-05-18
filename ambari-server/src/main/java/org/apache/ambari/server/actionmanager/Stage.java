@@ -95,6 +95,9 @@ public class Stage {
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
 
+  @Inject
+  private ExecutionCommandWrapperFactory ecwFactory;
+
   @AssistedInject
   public Stage(@Assisted long requestId,
       @Assisted("logDir") String logDir,
@@ -104,7 +107,7 @@ public class Stage {
       @Assisted("clusterHostInfo") String clusterHostInfo,
       @Assisted("commandParamsStage") String commandParamsStage,
       @Assisted("hostParamsStage") String hostParamsStage,
-      HostRoleCommandFactory hostRoleCommandFactory) {
+      HostRoleCommandFactory hostRoleCommandFactory, ExecutionCommandWrapperFactory ecwFactory) {
     wrappersLoaded = true;
     this.requestId = requestId;
     this.logDir = logDir;
@@ -119,12 +122,15 @@ public class Stage {
     supportsAutoSkipOnFailure = false;
 
     this.hostRoleCommandFactory = hostRoleCommandFactory;
+    this.ecwFactory = ecwFactory;
   }
 
   @AssistedInject
   public Stage(@Assisted StageEntity stageEntity, HostRoleCommandDAO hostRoleCommandDAO,
-               ActionDBAccessor dbAccessor, Clusters clusters, HostRoleCommandFactory hostRoleCommandFactory) {
+      ActionDBAccessor dbAccessor, Clusters clusters, HostRoleCommandFactory hostRoleCommandFactory,
+      ExecutionCommandWrapperFactory ecwFactory) {
     this.hostRoleCommandFactory = hostRoleCommandFactory;
+    this.ecwFactory = ecwFactory;
 
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
@@ -307,7 +313,7 @@ public class Stage {
   //TODO refactor method to use Host object (host_id support)
   private ExecutionCommandWrapper addGenericExecutionCommand(String clusterName, String hostName, Role role, RoleCommand command, ServiceComponentHostEvent event, HostRoleCommand hrc) {
     ExecutionCommand cmd = new ExecutionCommand();
-    ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
+    ExecutionCommandWrapper wrapper = ecwFactory.createFromCommand(cmd);
     hrc.setExecutionCommandWrapper(wrapper);
     cmd.setHostname(hostName);
     cmd.setClusterName(clusterName);
@@ -319,7 +325,7 @@ public class Stage {
 
     Map<String, HostRoleCommand> hrcMap = hostRoleCommands.get(hostName);
     if (hrcMap == null) {
-      hrcMap = new LinkedHashMap<String, HostRoleCommand>();
+      hrcMap = new LinkedHashMap<>();
       hostRoleCommands.put(hostName, hrcMap);
     }
     if (hrcMap.get(role.toString()) != null) {
@@ -330,7 +336,7 @@ public class Stage {
     hrcMap.put(role.toString(), hrc);
     List<ExecutionCommandWrapper> execCmdList = commandsToSend.get(hostName);
     if (execCmdList == null) {
-      execCmdList = new ArrayList<ExecutionCommandWrapper>();
+      execCmdList = new ArrayList<>();
       commandsToSend.put(hostName, execCmdList);
     }
 

@@ -34,7 +34,8 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 class HbaseRegionServer(Script):
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
+    env.set_params(params)
+    self.install_packages(env)
 
   def configure(self, env):
     import params
@@ -67,8 +68,8 @@ class HbaseRegionServerWindows(HbaseRegionServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseRegionServerDefault(HbaseRegionServer):
-  def get_stack_to_component(self):
-    return {"HDP": "hbase-regionserver"}
+  def get_component_name(self):
+    return "hbase-regionserver"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -152,6 +153,13 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.hbase_user
 
 if __name__ == "__main__":
   HbaseRegionServer().execute()

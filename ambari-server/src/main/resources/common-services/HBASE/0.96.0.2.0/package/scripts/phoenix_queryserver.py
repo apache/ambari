@@ -18,21 +18,24 @@ limitations under the License.
 """
 
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
 from phoenix_service import phoenix_service
 from hbase import hbase
 
-# Note: Phoenix Query Server is only applicable to HDP-2.3 and above.
+# Note: Phoenix Query Server is only applicable to stack version supporting Phoenix.
 class PhoenixQueryServer(Script):
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
+    env.set_params(params)
+    self.install_packages(env)
 
 
-  def get_stack_to_component(self):
-    return {"HDP": "phoenix-server"}
+  def get_component_name(self):
+    return "phoenix-server"
 
 
   def configure(self, env):
@@ -58,10 +61,10 @@ class PhoenixQueryServer(Script):
     import params
     env.set_params(params)
 
-    if Script.is_hdp_stack_greater_or_equal("2.3"):
+    if params.stack_version_formatted and check_stack_feature(StackFeature.PHOENIX, params.stack_version_formatted):     
       # phoenix uses hbase configs
       conf_select.select(params.stack_name, "hbase", params.version)
-      hdp_select.select("phoenix-server", params.version)
+      stack_select.select("phoenix-server", params.version)
 
 
   def status(self, env):
@@ -72,6 +75,14 @@ class PhoenixQueryServer(Script):
 
   def security_status(self, env):
     self.put_structured_out({"securityState": "UNSECURED"})
+    
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.hbase_user
 
 if __name__ == "__main__":
   PhoenixQueryServer().execute()

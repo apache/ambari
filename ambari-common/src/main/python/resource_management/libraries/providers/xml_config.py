@@ -58,11 +58,10 @@ class XmlConfigProvider(Provider):
     xml_config_dest_file_path = os.path.join(xml_config_provider_config_dir, filename)
     Logger.info("Generating config: {0}".format(xml_config_dest_file_path))
 
-    with Environment.get_instance_copy() as env:
-      File (xml_config_dest_file_path,
-        content = config_content,
-        owner = self.resource.owner,
-        group = self.resource.group,
-        mode = self.resource.mode,
-        encoding = self.resource.encoding
-      )
+    File (xml_config_dest_file_path,
+      content = config_content,
+      owner = self.resource.owner,
+      group = self.resource.group,
+      mode = self.resource.mode,
+      encoding = self.resource.encoding
+    )

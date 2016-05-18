@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -15,27 +15,71 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <metainfo>
   <schemaVersion>2.0</schemaVersion>
   <services>
+
     <service>
+
       <name>HAWQ</name>
       <displayName>HAWQ</displayName>
-      <comment>Apache HAWQ - Apache Hadoop Native SQL</comment>
+      <comment>Apache HAWQ - Hadoop Native SQL for High-Performance Advanced Analytics</comment>
       <version>2.0.0</version>
-      <components>
 
+      <components>
         <component>
           <name>HAWQMASTER</name>
           <displayName>HAWQ Master</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <timelineAppid>HAWQ</timelineAppid>
           <commandScript>
             <script>scripts/hawqmaster.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>IMMEDIATE_STOP_HAWQ_SERVICE</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>HAWQ_CLEAR_CACHE</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>RUN_HAWQ_CHECK</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>REMOVE_HAWQ_STANDBY</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>RESYNC_HAWQ_STANDBY</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <dependencies>
             <dependency>
               <name>HDFS/NAMENODE</name>
@@ -48,63 +92,79 @@
               <name>HDFS/HDFS_CLIENT</name>
               <scope>host</scope>
               <auto-deploy>
-                  <enabled>true</enabled>
+                <enabled>true</enabled>
               </auto-deploy>
             </dependency>
           </dependencies>
         </component>
 
-      <component>
+        <component>
           <name>HAWQSTANDBY</name>
           <displayName>HAWQ Standby Master</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
+          <timelineAppid>HAWQ</timelineAppid>
           <commandScript>
-              <script>scripts/hawqstandby.py</script>
-              <scriptType>PYTHON</scriptType>
-              <timeout>600</timeout>
+            <script>scripts/hawqstandby.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>ACTIVATE_HAWQ_STANDBY</name>
+              <commandScript>
+                <script>scripts/hawqstandby.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <dependencies>
             <dependency>
-                <name>HDFS/HDFS_CLIENT</name>
-                <scope>host</scope>
-                <auto-deploy>
-                    <enabled>true</enabled>
-                </auto-deploy>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
             </dependency>
           </dependencies>
-      </component>
+        </component>
 
         <component>
           <name>HAWQSEGMENT</name>
           <displayName>HAWQ Segment</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>HAWQ</timelineAppid>
           <commandScript>
             <script>scripts/hawqsegment.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
-           <dependencies>
-            <dependency>
-              <name>HDFS/DATANODE</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>false</enabled>
-                <co-locate>HDFS/DATANODE</co-locate>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
+          <customCommands>
+            <customCommand>
+              <name>IMMEDIATE_STOP_HAWQ_SEGMENT</name>
+              <commandScript>
+                <script>scripts/hawqsegment.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+          <bulkCommands>
+            <displayName>HAWQ Segments</displayName>
+          </bulkCommands>
         </component>
-      </components> 
+      </components>
+
       <requiredServices>
-          <service>HDFS</service>
+        <service>HDFS</service>
       </requiredServices>
 
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
-           <packages>
+          <packages>
             <package>
               <name>hawq</name>
             </package>
@@ -119,11 +179,24 @@
       </commandScript>
 
       <configuration-dependencies>
+        <config-type>hawq-env</config-type>
         <config-type>hawq-site</config-type>
-        <config-type>gpcheck-env</config-type>
+        <config-type>hawq-check-env</config-type>
+        <config-type>hdfs-client</config-type>
+        <config-type>yarn-client</config-type>
+        <config-type>hawq-limits-env</config-type>
+        <config-type>hawq-sysctl-env</config-type>
+        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
     </service>
 
   </services>
 </metainfo>
-

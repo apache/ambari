@@ -58,8 +58,8 @@ App.stackVersionMapper = App.QuickDataMapper.create({
          * <code>OUT_OF_SYNC<code>
          */
         stack.host_states.NOT_INSTALLED = item.ClusterStackVersions.host_states.INSTALLING
-          .concat(item.ClusterStackVersions.host_states.INSTALL_FAILED)
-          .concat(item.ClusterStackVersions.host_states.OUT_OF_SYNC);
+          .concat(item.ClusterStackVersions.host_states.INSTALL_FAILED || [])
+          .concat(item.ClusterStackVersions.host_states.OUT_OF_SYNC || []);
 
         /**
          * this property contains array of hosts on which repoversion was installed
@@ -71,9 +71,9 @@ App.stackVersionMapper = App.QuickDataMapper.create({
          * <code>UPGRADE_FAILED<code>
          */
         stack.host_states.INSTALLED = item.ClusterStackVersions.host_states.INSTALLED
-          .concat(item.ClusterStackVersions.host_states.UPGRADING)
-          .concat(item.ClusterStackVersions.host_states.UPGRADED)
-          .concat(item.ClusterStackVersions.host_states.UPGRADE_FAILED);
+          .concat(item.ClusterStackVersions.host_states.UPGRADING || [])
+          .concat(item.ClusterStackVersions.host_states.UPGRADED || [])
+          .concat(item.ClusterStackVersions.host_states.UPGRADE_FAILED || []);
 
         if (item.repository_versions && item.repository_versions[0]) {
           item.repository_versions[0].RepositoryVersions.stackVersionId = item.ClusterStackVersions.id;

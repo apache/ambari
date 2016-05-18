@@ -23,6 +23,7 @@ from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.core.shell import as_user
+from resource_management.libraries.functions.show_logs import show_logs
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def service(componentName, action='start', serviceName='yarn'):
@@ -44,6 +45,7 @@ def service(componentName, action='start', serviceName='yarn'):
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")
     pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-{componentName}.pid")
     usr = params.mapred_user
+    log_dir = params.mapred_log_dir
   else:
     # !!! yarn-daemon.sh deletes the PID for us; if we remove it the script
     # may not work correctly when stopping the service
@@ -51,6 +53,7 @@ def service(componentName, action='start', serviceName='yarn'):
     daemon = format("{yarn_bin}/yarn-daemon.sh")
     pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-{componentName}.pid")
     usr = params.yarn_user
+    log_dir = params.yarn_log_dir
 
   cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {daemon} --config {hadoop_conf_dir}")
 
@@ -69,19 +72,27 @@ def service(componentName, action='start', serviceName='yarn'):
          ignore_failures = True
       )
 
-    # Attempt to start the process. Internally, this is skipped if the process is already running.
-    Execute(daemon_cmd, user = usr, not_if = check_process)
-
-    # Ensure that the process with the expected PID exists.
-    Execute(check_process,
-            not_if = check_process,
-            tries=5,
-            try_sleep=1,
-    )
+    try:
+      # Attempt to start the process. Internally, this is skipped if the process is already running.
+      Execute(daemon_cmd, user = usr, not_if = check_process)
+  
+      # Ensure that the process with the expected PID exists.
+      Execute(check_process,
+              not_if = check_process,
+              tries=5,
+              try_sleep=1,
+      )
+    except:
+      show_logs(log_dir, usr)
+      raise
 
   elif action == 'stop':
     daemon_cmd = format("{cmd} stop {componentName}")
-    Execute(daemon_cmd, user=usr)
+    try:
+      Execute(daemon_cmd, user=usr)
+    except:
+      show_logs(log_dir, usr)
+      raise
 
     # !!! yarn-daemon doesn't need us to delete PIDs
     if delete_pid_file is True:

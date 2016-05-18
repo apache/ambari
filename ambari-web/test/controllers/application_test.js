@@ -19,10 +19,23 @@
 
 var App = require('app');
 require('models/cluster');
+var testHelpers = require('test/helpers');
+
+function getController() {
+  return App.ApplicationController.create();
+}
 
 describe('App.ApplicationController', function () {
 
-  var applicationController = App.ApplicationController.create();
+  var applicationController = getController();
+
+  App.TestAliases.testAsComputedTruncate(getController(), 'clusterDisplayName', 'clusterName', 13, 10);
+
+  App.TestAliases.testAsComputedAnd(getController(), 'isClusterDataLoaded', ['App.router.clusterController.isLoaded','App.router.loggedIn']);
+
+  App.TestAliases.testAsComputedAnd(getController(), 'isExistingClusterDataLoaded', ['App.router.clusterInstallCompleted','isClusterDataLoaded']);
+
+  App.TestAliases.testAsComputedAnd(getController(), 'enableLinks', ['isExistingClusterDataLoaded','!App.isOnlyViewUser']);
 
   describe('#showAboutPopup', function() {
     var dataToShowRes = {};
@@ -82,51 +95,15 @@ describe('App.ApplicationController', function () {
   });
 
   describe('#getStack', function() {
-    var res;
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function(data) {
-        res = data;
-      });
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it ('Should return send value', function() {
       var callback = {
         'callback': true
       };
       applicationController.getStack(callback);
-      res = JSON.parse(JSON.stringify(res));
-      expect(res).to.be.eql({
-        "name": "router.login.clusters",
-        "sender": {
-          "isPollerRunning": true
-        },
-        "callback": {
-          "callback": true
-        }
-      });
-    });
-  });
-
-  describe('#clusterDisplayName', function() {
-    it ('Should return cluster display name', function() {
-      applicationController.set('clusterName', '');
-      expect(applicationController.get('clusterDisplayName')).to.equal('mycluster');
-    });
-  });
-
-  describe('#isClusterDataLoaded', function() {
-    beforeEach(function () {
-      var stub = sinon.stub(App, 'get');
-      stub.withArgs('router.clusterController.isLoaded').returns(true);
-      stub.withArgs('router.loggedIn').returns(true);
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-    it ('Should return true, when data loaded', function() {
-      expect(applicationController.get('isClusterDataLoaded')).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'router.login.clusters');
+      expect(args[0]).to.exists;
+      expect(args[0].callback.callback).to.be.true;
     });
   });
 

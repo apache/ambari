@@ -1,5 +1,5 @@
 {
-  "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/?ServiceComponentInfo/category=MASTER&fields=ServiceComponentInfo/MasterActiveTime,host_components/metrics/jvm/memHeapUsedM,host_components/metrics/jvm/memHeapCommittedM,host_components/metrics/mapred/jobtracker/trackers_decommissioned,host_components/metrics/cpu/cpu_wio,host_components/metrics/rpc/RpcQueueTime_avg_time,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/CapacityUsed,host_components/metrics/dfs/FSNamesystem/CapacityTotal,host_components/metrics/dfs/FSNamesystem/CapacityRemaining,host_components/metrics/dfs/FSNamesystem/BlocksTotal,host_components/metrics/dfs/FSNamesystem/CorruptBlocks,host_components/metrics/dfs/FSNamesystem/MissingBlocks,host_components/metrics/dfs/FSNamesystem/UnderReplicatedBlocks,host_components/metrics/dfs/namenode/Version,host_components/metrics/dfs/namenode/LiveNodes,host_components/metrics/dfs/namenode/DeadNodes,host_components/metrics/dfs/namenode/DecomNodes,host_components/metrics/dfs/namenode/TotalFiles,host_components/metrics/dfs/namenode/UpgradeFinalized,host_components/metrics/dfs/namenode/Safemode,host_components/metrics/runtime/StartTime,host_components/metrics/flume/flume,host_components/metrics/yarn/Queue,host_components/metrics/hbase/master/IsActiveMaster,host_components/HostRoles/state",
+  "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/?ServiceComponentInfo/category=MASTER&fields=ServiceComponentInfo/MasterActiveTime,host_components/metrics/jvm/memHeapUsedM,host_components/metrics/jvm/memHeapCommittedM,host_components/metrics/mapred/jobtracker/trackers_decommissioned,host_components/metrics/cpu/cpu_wio,host_components/metrics/rpc/client/RpcQueueTime_avg_time,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/dfs/FSNamesystem/CapacityUsed,host_components/metrics/dfs/FSNamesystem/CapacityTotal,host_components/metrics/dfs/FSNamesystem/CapacityRemaining,host_components/metrics/dfs/FSNamesystem/BlocksTotal,host_components/metrics/dfs/FSNamesystem/CorruptBlocks,host_components/metrics/dfs/FSNamesystem/MissingBlocks,host_components/metrics/dfs/FSNamesystem/UnderReplicatedBlocks,host_components/metrics/dfs/namenode/Version,host_components/metrics/dfs/namenode/LiveNodes,host_components/metrics/dfs/namenode/DeadNodes,host_components/metrics/dfs/namenode/DecomNodes,host_components/metrics/dfs/namenode/TotalFiles,host_components/metrics/dfs/namenode/UpgradeFinalized,host_components/metrics/dfs/namenode/Safemode,host_components/metrics/runtime/StartTime,host_components/metrics/flume/flume,host_components/metrics/yarn/Queue,host_components/metrics/hbase/master/IsActiveMaster,host_components/HostRoles/state",
   "items" : [
     {
       "ServiceComponentInfo" : {
@@ -164,7 +164,9 @@
               "memHeapUsedM" : 106.43069
             },
             "rpc" : {
-              "RpcQueueTime_avg_time" : 0.0
+              "client": {
+                "RpcQueueTime_avg_time" : 0.0
+              }
             },
             "runtime" : {
               "StartTime" : 1383649085429

@@ -55,9 +55,10 @@ public class ConfigMergeHelper {
     Cluster cluster = m_clusters.get().getCluster(clusterName);
     StackId oldStack = cluster.getCurrentStackVersion();
 
-    Map<String, Map<String, String>> oldMap = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> newMap = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> oldMap = new HashMap<>();
+    Map<String, Map<String, String>> newMap = new HashMap<>();
 
+    // Collect service-level properties for old and new stack
     for (String serviceName : cluster.getServices().keySet()) {
       Set<PropertyInfo> oldStackProperties = m_ambariMetaInfo.get().getServiceProperties(
           oldStack.getStackName(), oldStack.getStackVersion(), serviceName);
@@ -68,6 +69,7 @@ public class ConfigMergeHelper {
       addToMap(newMap, newStackProperties);
     }
 
+    // Collect stack-level properties defined for old and new stack
     Set<PropertyInfo> set = m_ambariMetaInfo.get().getStackProperties(
         oldStack.getStackName(), oldStack.getStackVersion());
     addToMap(oldMap, set);
@@ -76,9 +78,11 @@ public class ConfigMergeHelper {
         targetStack.getStackName(), targetStack.getStackVersion());
     addToMap(newMap, set);
 
+    // Final result after merging.
     Map<String, Map<String, ThreeWayValue>> result =
         new HashMap<String, Map<String, ThreeWayValue>>();
 
+    // For every property of every config type, see if it is going to be merged:
     for (Entry<String, Map<String, String>> entry : oldMap.entrySet()) {
       if (!newMap.containsKey(entry.getKey())) {
         LOG.info("Stack {} does not have an equivalent config type {} in {}",
@@ -91,12 +95,17 @@ public class ConfigMergeHelper {
       Collection<String> customValueKeys = null;
 
       Config config = cluster.getDesiredConfigByType(entry.getKey());
+
+      // The conflict occurs, if current property is not defined at stack
+      // metainfo, but is present in current cluster configs,
+      // and a new value is different from current value
       if (null != config) {
         Set<String> valueKeys = config.getProperties().keySet();
 
         customValueKeys = CollectionUtils.subtract(valueKeys, oldPairs.keySet());
       }
 
+      // Keep properties with custom values (i.e., changed from default value in old stack)
       if (null != customValueKeys) {
         for (String prop : customValueKeys) {
           String newVal = newPairs.get(prop);
@@ -116,6 +125,13 @@ public class ConfigMergeHelper {
         }
       }
 
+      // Also, conflict occurs if all four coditions are met:
+      // a) property is defined both in old and in new stack
+      // b) property value in new stack differs from current
+      // the property value
+      // c) current property value is not the same as in new stack
+      // d) current property value is not the same as in old stack
+
       Collection<String> common = CollectionUtils.intersection(newPairs.keySet(),
           oldPairs.keySet());
 
@@ -127,10 +143,7 @@ public class ConfigMergeHelper {
           savedVal = config.getProperties().get(prop);
         }
 
-        // If values are not defined in stack (null), we skip them
-        // Or if values in old stack and in new stack are the same, and value
-        // in current config is different, skip it
-        if (!(newStackVal == null && oldStackVal == null)
+        if (!(newStackVal == null || oldStackVal == null)
                 && !newStackVal.equals(savedVal) &&
             (!oldStackVal.equals(newStackVal) || !oldStackVal.equals(savedVal))) {
           ThreeWayValue twv = new ThreeWayValue();
@@ -161,6 +174,7 @@ public class ConfigMergeHelper {
     }
 
   }
+
   /**
    * Represents the three different config values for merging.
    */
@@ -179,7 +193,15 @@ public class ConfigMergeHelper {
     public String savedValue;
   }
 
-  private static String normalizeValue(String templateValue, String newRawValue) {
+  /**
+   * If template looks like Java heap size, then format raw value to comply
+   * with size unit specified in template
+   * @param templateValue
+   * @param newRawValue
+   * @return raw value formatted like template (if template looks like Java
+   * heap size), raw value as is otherwise.
+   */
+  static String normalizeValue(String templateValue, String newRawValue) {
     if (null == templateValue) {
       return newRawValue;
     }

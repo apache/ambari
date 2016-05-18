@@ -35,13 +35,16 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Server Action Executor used to execute server-side actions (or tasks)
@@ -55,7 +58,7 @@ import com.google.inject.Injector;
 public class ServerActionExecutor {
 
   private final static Logger LOG = LoggerFactory.getLogger(ServerActionExecutor.class);
-  private final static Long EXECUTION_TIMEOUT_MS = 1000L * 60 * 5;
+  private final static Long DEFAULT_EXECUTION_TIMEOUT_MS = 1000L * 60 * 5;
   private final static Long POLLING_TIMEOUT_MS = 1000L * 5;
 
   /**
@@ -63,6 +66,13 @@ public class ServerActionExecutor {
    */
   @Inject
   private static Injector injector;
+
+  /**
+   * The Ambari configuration used to obtain configured details such as the default server-side action
+   * timeout.
+   */
+  @Inject
+  private static Configuration configuration;
 
   /**
    * Maps request IDs to "blackboards" of shared data.
@@ -352,13 +362,24 @@ public class ServerActionExecutor {
     try {
       timeout = (paramsTimeout == null)
           ? null
-          : (Long.parseLong(paramsTimeout) * 1000); // Convert seconds to milliseconds
+          : (Long.parseLong(paramsTimeout) * 1000L); // Convert seconds to milliseconds
     } catch (NumberFormatException e) {
       timeout = null;
     }
 
+    // If a configured timeout value is not set for the command, attempt to get the configured
+    // default
+    if (timeout == null) {
+      Integer defaultTimeoutSeconds = configuration.getDefaultServerTaskTimeout();
+      if (defaultTimeoutSeconds != null) {
+        timeout = defaultTimeoutSeconds * 1000L; // convert seconds to milliseconds
+      }
+    }
+
+    // If a timeout value was not determined, return the hard-coded timeout value, else return the
+    // determined timeout value.
     return (timeout == null)
-        ? EXECUTION_TIMEOUT_MS
+        ? DEFAULT_EXECUTION_TIMEOUT_MS
         : ((timeout < 0) ? 0 : timeout);
   }
 
@@ -371,17 +392,8 @@ public class ServerActionExecutor {
    * @throws InterruptedException
    */
   public void doWork() throws InterruptedException {
-    List<HostRoleCommand> tasks = db.getTasksByHostRoleAndStatus(serverHostName,
-        Role.AMBARI_SERVER_ACTION.toString(), HostRoleStatus.QUEUED);
-
-    if (null == tasks || tasks.isEmpty()) {
-      // !!! if the server is not a part of the cluster,
-      // !!! just look for anything designated AMBARI_SERVER_ACTION.
-      // !!! do we even need to worry about servername in the first place?  We're
-      // !!! _on_ the ambari server!
-      tasks = db.getTasksByRoleAndStatus(Role.AMBARI_SERVER_ACTION.name(),
-          HostRoleStatus.QUEUED);
-    }
+    List<HostRoleCommand> tasks = db.getTasksByRoleAndStatus(Role.AMBARI_SERVER_ACTION.name(),
+      HostRoleStatus.QUEUED);
 
     if ((tasks != null) && !tasks.isEmpty()) {
       for (HostRoleCommand task : tasks) {
@@ -470,6 +482,12 @@ public class ServerActionExecutor {
     public void run() {
       try {
         LOG.debug("Executing task #{}", taskId);
+
+        // Set an internal administrator user to be the authenticated user in the event an
+        // authorization check is needed while performing a server-side action.
+        InternalAuthenticationToken authentication = new InternalAuthenticationToken("server_action_executor");
+        authentication.setAuthenticated(true);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         commandReport = execute(hostRoleCommand, executionCommand);
 

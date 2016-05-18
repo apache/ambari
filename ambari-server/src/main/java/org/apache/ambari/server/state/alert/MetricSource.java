@@ -148,10 +148,6 @@ public class MetricSource extends Source {
       List<String> list1 = new ArrayList<String>(propertyList);
       List<String> list2 = new ArrayList<String>(other.propertyList);
 
-      if ((null == list1 && null != list2) || (null != list1 && null == list2)) {
-        return false;
-      }
-
       // !!! even if out of order, this is enough to fail
       return list1.equals(list2);
 

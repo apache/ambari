@@ -34,6 +34,8 @@ class TestFileSystem(TestCase):
     SINGLE_ROOT = 1
     MULT_DRIVE_CONFLICT = 2
     MULT_DRIVE_DISTINCT = 3
+    ONE_SEGMENT_MOUNT = 4
+    SAME_PREFIX_MOUNTS = 5
 
   def _get_mount(self, type):
     """
@@ -64,6 +66,13 @@ class TestFileSystem(TestCase):
       out += os.linesep + \
              "/dev/sda1 on /hadoop/hdfs/data/1 type ext4 (rw)" + os.linesep + \
              "/dev/sda2 on /hadoop/hdfs/data/2 type ext4 (rw)"
+    elif type == self.MOUNT_TYPE.ONE_SEGMENT_MOUNT:
+      out += os.linesep + \
+             "/dev/sda1 on /hadoop type ext4 (rw)"
+    elif type == self.MOUNT_TYPE.SAME_PREFIX_MOUNTS:
+      out += os.linesep + \
+             "/dev/sda1 on /hadoop/hdfs/data type ext4 (rw)" + os.linesep + \
+             "/dev/sda2 on /hadoop/hdfs/data1 type ext4 (rw)"
 
     out_array = [x.split(' ') for x in out.strip().split('\n')]
     mount_val = []
@@ -103,6 +112,9 @@ class TestFileSystem(TestCase):
     """
     mounted_mock.return_value = self._get_mount(self.MOUNT_TYPE.SINGLE_ROOT)
 
+    # refresh cached mounts
+    file_system.get_and_cache_mount_points(True)
+
     mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data")
     self.assertEqual(mount_point, "/")
 
@@ -115,8 +127,41 @@ class TestFileSystem(TestCase):
     """
     mounted_mock.return_value = self._get_mount(self.MOUNT_TYPE.MULT_DRIVE_DISTINCT)
 
+    # refresh cached mounts
+    file_system.get_and_cache_mount_points(True)
+
     mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data/1")
     self.assertEqual(mount_point, "/hadoop/hdfs/data/1")
 
     mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data/2")
     self.assertEqual(mount_point, "/hadoop/hdfs/data/2")
+
+  @patch.object(Logger, "info")
+  @patch.object(Logger, "error")
+  @patch('resource_management.core.providers.mount.get_mounted')
+  def test_one_segment_mount(self, mounted_mock, log_error, log_info):
+    """
+    Testing when the path has one segment.
+    """
+    mounted_mock.return_value = self._get_mount(self.MOUNT_TYPE.ONE_SEGMENT_MOUNT)
+
+    # refresh cached mounts
+    file_system.get_and_cache_mount_points(True)
+
+    mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data/1")
+    self.assertEqual(mount_point, "/hadoop")
+
+  @patch.object(Logger, "info")
+  @patch.object(Logger, "error")
+  @patch('resource_management.core.providers.mount.get_mounted')
+  def test_same_prefix(self, mounted_mock, log_error, log_info):
+    """
+    Testing when two mount points have the same prefix.
+    """
+    mounted_mock.return_value = self._get_mount(self.MOUNT_TYPE.SAME_PREFIX_MOUNTS)
+
+    # refresh cached mounts
+    file_system.get_and_cache_mount_points(True)
+
+    mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data1")
+    self.assertEqual(mount_point, "/hadoop/hdfs/data1")

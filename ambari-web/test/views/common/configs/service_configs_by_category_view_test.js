@@ -26,8 +26,6 @@ describe('App.ServiceConfigsByCategoryView', function () {
     serviceConfigs: []
   });
 
-  var result = [1, 2, 3, 4];
-
   var testData = [
     {
       title: 'four configs in correct order',
@@ -94,7 +92,10 @@ describe('App.ServiceConfigsByCategoryView', function () {
     }
   ];
 
+  App.TestAliases.testAsComputedIfThenElse(view, 'isCategoryBodyVisible', 'category.isCollapsed', 'display: none;', 'display: block;');
+
   describe('#sortByIndex', function () {
+    var result = [1, 2, 3, 4];
     testData.forEach(function(_test){
       it(_test.title, function () {
         expect(view.sortByIndex(_test.configs).mapProperty('resultId')).to.deep.equal(result);
@@ -178,17 +179,26 @@ describe('App.ServiceConfigsByCategoryView', function () {
       }
     ];
 
+    beforeEach(function () {
+      this._view = App.ServiceConfigsByCategoryView.create({
+        serviceConfigs: Em.A([])
+      });
+      sinon.stub(this._view, 'filteredCategoryConfigs', Em.K);
+    });
+
+    afterEach(function () {
+      this._view.filteredCategoryConfigs.restore();
+      this._view.destroy();
+    });
+
     tests.forEach(function(test) {
       it(test.m, function() {
-        var _view = App.ServiceConfigsByCategoryView.create({
-          serviceConfigs: Em.A([]),
+        this._view.reopen({
           category: test.category,
           categoryConfigs: test.categoryConfigs
         });
-        sinon.stub(_view, 'filteredCategoryConfigs', Em.K);
-        _view.filteredCategoryConfigs.restore();
-        expect(_view.get('isShowBlock')).to.be.eql(test.e);
-        _view.destroy();
+        expect(this._view.get('isShowBlock')).to.be.eql(test.e);
+
       });
     });
   });
@@ -243,107 +253,9 @@ describe('App.ServiceConfigsByCategoryView', function () {
 
   });
 
-  describe('#createProperty', function () {
-
-    var cases = [
-      {
-        propertyObj: {
-          name: 'n0',
-          displayName: 'd0',
-          value: 'v0',
-          filename: 'f0',
-          categoryName: 'c0',
-          serviceName: 's0'
-        },
-        isDefaultConfigGroup: true,
-        result: {
-          name: 'n0',
-          displayName: 'd0',
-          value: 'v0',
-          displayType: 'string',
-          isSecureConfig: true,
-          category: 'c0',
-          serviceName: 's0',
-          savedValue: null,
-          supportsFinal: true,
-          filename: 'f0',
-          isUserProperty: true,
-          isNotSaved: true,
-          isRequired: false,
-          group: null,
-          isOverridable: true
-        },
-        title: 'single line value, secure config, final attribute supported, default config group'
-      },
-      {
-        propertyObj: {
-          name: 'n1',
-          value: 'v\n1',
-          filename: '',
-          categoryName: 'c1',
-          serviceName: 's1'
-        },
-        isDefaultConfigGroup: false,
-        result: {
-          name: 'n1',
-          displayName: 'n1',
-          value: 'v\n1',
-          displayType: 'multiLine',
-          isSecureConfig: false,
-          category: 'c1',
-          serviceName: 's1',
-          savedValue: null,
-          supportsFinal: false,
-          filename: '',
-          isUserProperty: true,
-          isNotSaved: true,
-          isRequired: false,
-          group: Em.Object.create({
-            isDefault: false
-          }),
-          isOverridable: false
-        },
-        title: 'multiline value, non-secure config, no display name and filename, final attribute not supported, custom config group'
-      }
-    ];
-
-    before(function () {
-      view.get('serviceConfigs').clear();
-      sinon.stub(view, 'isSecureConfig').withArgs('n0', 'f0').returns(true).withArgs('n1', '').returns(false);
-      sinon.stub(App.config, 'shouldSupportFinal').withArgs('s0', 'f0').returns(true).withArgs('s1', '').returns(false);
-    });
-
-    after(function () {
-      view.get('serviceConfigs').clear();
-      view.isSecureConfig.restore();
-      App.config.shouldSupportFinal.restore();
-    });
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        view.reopen({
-          filteredCategoryConfigs: [],
-          controller: {
-            selectedConfigGroup: Em.Object.create({
-              isDefault: item.isDefaultConfigGroup
-            })
-          }
-        });
-        view.createProperty(item.propertyObj);
-        expect(view.get('serviceConfigs').filterProperty('name', item.propertyObj.name)).to.have.length(1);
-        expect(view.get('serviceConfigs').findProperty('name', item.propertyObj.name).getProperties([
-          'name', 'displayName', 'value', 'displayType', 'isSecureConfig', 'category', 'serviceName', 'savedValue',
-          'supportsFinal', 'filename', 'isUserProperty', 'isNotSaved', 'isRequired', 'group', 'isOverridable'
-        ])).to.eql(item.result);
-      });
-    });
-
-  });
-
   describe('#categoryConfigs', function () {
-    var view,
-      result = [1,2,3,4,5],
-      cases = [
+    var result = [1, 2, 3, 4, 5];
+    var cases = [
         {
           categoryNname: 'TestCategory',
           serviceConfigs: [
@@ -402,4 +314,5 @@ describe('App.ServiceConfigsByCategoryView', function () {
       });
     });
   });
+
 });

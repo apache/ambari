@@ -116,7 +116,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
       Map<String, Map<String, String>> operationalConfiguration = new HashMap<String, Map<String, String>>(clusterConfigurations);
 
       operationalConfiguration.putAll(hostGroup.getConfiguration().getProperties());
-      for (String component : hostGroup.getComponents()) {
+      for (String component : hostGroup.getComponentNames()) {
         //check that MYSQL_SERVER component is not available while hive is using existing db
         if (component.equals("MYSQL_SERVER")) {
           Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
@@ -228,7 +228,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         new HashMap<String, Collection<DependencyInfo>>();
 
     Collection<String> blueprintServices = blueprint.getServices();
-    Collection<String> groupComponents = group.getComponents();
+    Collection<String> groupComponents = group.getComponentNames();
     for (String component : new HashSet<String>(groupComponents)) {
       Collection<DependencyInfo> dependenciesForComponent = stack.getDependenciesForComponent(component);
       for (DependencyInfo dependency : dependenciesForComponent) {

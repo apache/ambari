@@ -22,18 +22,51 @@ require('controllers/main/admin/kerberos/step4_controller');
 
 App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   name: 'mainAdminKerberosController',
+
+  /**
+   * @type {boolean}
+   * @deafult false
+   */
   securityEnabled: false,
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   defaultKerberosLoaded: false,
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   dataIsLoaded: false,
+
+  /**
+   * @type {boolean}
+   * @default true
+   */
   isRecommendedLoaded: true,
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   isEditMode: false,
+
+  /**
+   * @type {string}
+   */
   kdc_type: '',
 
   kdcTypesValues: {
     'mit-kdc': Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
     'active-directory': Em.I18n.t('admin.kerberos.wizard.step1.option.ad'),
+    'ipa': Em.I18n.t('admin.kerberos.wizard.step1.option.ipa'),
     'none': Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
   },
+
+  // use cluster descriptor instead of stack
+  loadStackDescriptorConfigs: Em.alias('loadClusterDescriptorConfigs'),
 
   getAddSecurityWizardStatus: function () {
     return App.db.getSecurityWizardStatus();
@@ -491,6 +524,10 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     this.makeConfigsUneditable(true);
   },
 
+  /**
+   * @method makeConfigsUneditable
+   * @param configsUpdated
+   */
   makeConfigsUneditable: function (configsUpdated) {
     this.set('isEditMode', false);
     this.get('stepConfigs').forEach(function (_stepConfig) {
@@ -499,7 +536,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
           _config.set('savedValue', _config.get('value'));
           _config.set('defaultValue', _config.get('value'));
         } else {
-          _config.set('value', _config.get('savedValue'));
+          _config.set('value', _config.get('savedValue') || _config.get('defaultValue'));
         }
         _config.set('isEditable', false);
       });
@@ -591,6 +628,16 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
   showManageKDCCredentialsPopup: function() {
     return App.showManageCredentialsPopup();
+  },
+  
+  loadStep: function() {
+    var self = this;
+    this.clearStep();
+    this.getDescriptor().then(function (properties) {
+      self.setStepConfigs(self.createServicesStackDescriptorConfigs(properties));
+    }).always(function() {
+      self.set('isRecommendedLoaded', true);
+    });
   }
 
 });

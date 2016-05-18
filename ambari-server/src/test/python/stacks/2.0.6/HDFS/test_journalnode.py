@@ -33,7 +33,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "configure",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -44,7 +44,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "start",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -55,11 +55,13 @@ class TestJournalnode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
         action = ['delete'],
@@ -76,7 +78,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "stop",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop journalnode'",
@@ -91,7 +93,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "configure",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -102,7 +104,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "start",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -113,11 +115,13 @@ class TestJournalnode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
         action = ['delete'],
@@ -134,7 +138,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "stop",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop journalnode'",
@@ -148,14 +152,14 @@ class TestJournalnode(RMFTestCase):
     self.assertResourceCalled('Directory', '/grid/0/hdfs/journal',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -166,7 +170,7 @@ class TestJournalnode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -199,14 +203,14 @@ class TestJournalnode(RMFTestCase):
     self.assertResourceCalled('Directory', '/grid/0/hdfs/journal',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -217,7 +221,7 @@ class TestJournalnode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -286,7 +290,7 @@ class TestJournalnode(RMFTestCase):
            classname = "JournalNode", command = "post_upgrade_restart",
            config_file = "journalnode-upgrade.json",
            checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
-           hdp_stack_version = self.UPGRADE_STACK_VERSION,
+           stack_version = self.UPGRADE_STACK_VERSION,
            target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     # ensure that the mock was called with the http-style version of the URL
@@ -305,7 +309,7 @@ class TestJournalnode(RMFTestCase):
            classname = "JournalNode", command = "post_upgrade_restart",
            config_file = "journalnode-upgrade-hdfs-secure.json",
            checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
-           hdp_stack_version = self.UPGRADE_STACK_VERSION,
+           stack_version = self.UPGRADE_STACK_VERSION,
            target = RMFTestCase.TARGET_COMMON_SERVICES )
 
     # ensure that the mock was called with the http-style version of the URL
@@ -327,7 +331,7 @@ class TestJournalnode(RMFTestCase):
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
         classname = "JournalNode", command = "post_upgrade_restart",
         config_file = "journalnode-upgrade.json",
-        hdp_stack_version = self.UPGRADE_STACK_VERSION,
+        stack_version = self.UPGRADE_STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES )
 
       self.fail("Expected a failure since the JMX JSON for JournalTransactionInfo was missing")
@@ -365,7 +369,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -385,7 +389,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -401,7 +405,7 @@ class TestJournalnode(RMFTestCase):
                          classname = "JournalNode",
                          command = "security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -422,7 +426,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -442,7 +446,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -458,7 +462,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-journalnode', version), sudo=True,)
     self.assertNoMoreResources()
@@ -476,7 +480,7 @@ class TestJournalnode(RMFTestCase):
                        classname = "JournalNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

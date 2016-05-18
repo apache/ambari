@@ -51,7 +51,7 @@ class TestListAmbariManagedRepos(TestCase):
       ],
       []
     ]
-    res = list_ambari_managed_repos()
+    res = list_ambari_managed_repos('HDP')
     self.assertEquals(glob_mock.call_args_list[0][0][0], "/etc/apt/sources.list.d/HDP*")
     self.assertEquals(res, ['HDP-1.1.1', 'HDP-1.1.2', 'HDP-1.1.3', 'HDP-UTILS-1.1.3'])
     self.assertTrue(glob_mock.call_count > 1)
@@ -78,7 +78,7 @@ class TestListAmbariManagedRepos(TestCase):
           ],
         []
       ]
-    res = list_ambari_managed_repos()
+    res = list_ambari_managed_repos('HDP')
     self.assertEquals(glob_mock.call_args_list[0][0][0], "/etc/yum.repos.d/HDP*")
     self.assertEquals(res, ['HDP-1.1.1', 'HDP-1.1.2', 'HDP-1.1.3', 'HDP-UTILS-1.1.3'])
     self.assertTrue(glob_mock.call_count > 1)
@@ -106,7 +106,7 @@ class TestListAmbariManagedRepos(TestCase):
           ],
         []
       ]
-    res = list_ambari_managed_repos()
+    res = list_ambari_managed_repos('HDP')
     self.assertEquals(glob_mock.call_args_list[0][0][0], "/etc/zypp/repos.d/HDP*")
     self.assertEquals(res, ['HDP-1.1.1', 'HDP-1.1.2', 'HDP-1.1.3', 'HDP-UTILS-1.1.3'])
     self.assertTrue(glob_mock.call_count > 1)
@@ -121,7 +121,7 @@ class TestListAmbariManagedRepos(TestCase):
     is_redhat_family_mock.return_value = False
     is_suse_family_mock.return_value = False
     try:
-      list_ambari_managed_repos()
+      list_ambari_managed_repos('HDP')
       self.fail("Should throw a Fail")
     except Fail:
       pass  # Expected

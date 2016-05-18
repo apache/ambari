@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm;
 import javax.activation.DataSource;
 
 import org.eclipse.persistence.config.SessionCustomizer;
+import org.eclipse.persistence.sessions.DatabaseLogin;
 import org.eclipse.persistence.sessions.JNDIConnector;
 import org.eclipse.persistence.sessions.Session;
 
@@ -49,10 +50,12 @@ public class EclipseLinkSessionCustomizer implements SessionCustomizer {
   /**
    * {@inheritDoc}
    * <p/>
-   * Currently a NOOP, this class exists for quick customization purposes.
+   * This class exists for quick customization purposes.
    */
   @Override
   public void customize(Session session) throws Exception {
-    // NOOP
+    // ensure db behavior is same as shared cache
+    DatabaseLogin databaseLogin = (DatabaseLogin) session.getDatasourceLogin();
+    databaseLogin.setTransactionIsolation(DatabaseLogin.TRANSACTION_READ_COMMITTED);
   }
 }

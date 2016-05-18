@@ -23,13 +23,14 @@ import nodemanager_upgrade
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from yarn import yarn
+from yarn import yarn, create_hive_llap_work_dir
 from service import service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -64,17 +65,17 @@ class NodemanagerWindows(Nodemanager):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class NodemanagerDefault(Nodemanager):
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-yarn-nodemanager"}
+  def get_component_name(self):
+    return "hadoop-yarn-nodemanager"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing NodeManager Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-yarn-nodemanager", params.version)
+      stack_select.select("hadoop-yarn-nodemanager", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing NodeManager Stack Upgrade post-restart")
@@ -87,6 +88,16 @@ class NodemanagerDefault(Nodemanager):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.nodemanager_pid_file)
+
+  def create_yarn_directories(self, env):
+    """
+    Custom command to Create Directories, e.g., needed by YARN Apps on Slider
+    """
+    Logger.info("Custom Command to Create Directories")
+    import params
+    env.set_params(params)
+    create_hive_llap_work_dir(params)
+
 
   def security_status(self, env):
     import status_params
@@ -148,6 +159,13 @@ class NodemanagerDefault(Nodemanager):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+  def get_log_folder(self):
+    import params
+    return params.yarn_log_dir
+  
+  def get_user(self):
+    import params
+    return params.yarn_user
 
 if __name__ == "__main__":
   Nodemanager().execute()

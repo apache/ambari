@@ -39,8 +39,8 @@ if os.environ.has_key("HADOOP_NODE_INSTALL_ROOT"):
   hadoop_install_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
 
 
-hdp_log_dir = "c:\\hadoop\\logs"
-hdp_data_dir = "c:\\hadoop"
+stack_log_dir = "c:\\hadoop\\logs"
+stack_data_dir = "c:\\hadoop"
 db_flavor = "MSSQL"
 db_hostname = "localhost"
 db_port = "1433"

@@ -167,6 +167,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     },
 
     willDestroyElement: function() {
+      $(this.get('element')).tooltip('destroy');
       this.removeObserver('issuedConfig.warnMessage', this, this.errorLevelObserver);
       this.removeObserver('issuedConfig.errorMessage', this, this.errorLevelObserver);
       this.removeObserver('parentView.isPropertyUndefined', this, this.errorLevelObserver);
@@ -354,6 +355,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   }.property('controller.selectedConfigGroup.name', 'controller.selectedConfigGroup.isDefault'),
 
   didInsertElement: function () {
+    App.tooltip(this.$('[data-toggle=tooltip]'), {placement: 'top'});
     App.tooltip($(this.get('element')).find('span'));
     var self = this;
     var element = this.$();
@@ -369,24 +371,35 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
   willInsertElement: function() {
     var configConditions = this.get('config.configConditions');
+    var configAction = this.get('config.configAction');
     if (configConditions && configConditions.length) {
-      this.configValueObserver();
+      this.configValueObserverForAttributes();
 
       //Add Observer to configCondition that depends on another config value
       var isConditionConfigDependent =  configConditions.filterProperty('resource', 'config').length;
       if (isConditionConfigDependent) {
-        this.addObserver('config.value', this, this.configValueObserver);
+        this.addObserver('config.value', this, this.configValueObserverForAttributes);
+      }
+
+      if (configAction) {
+        this.addObserver('config.value', this, this.configValueObserverForAction);
       }
     }
+
   },
 
   willDestroyElement: function() {
+    this.$('[data-toggle=tooltip]').tooltip('destroy');
+    $(this.get('element')).find('span').tooltip('destroy');
     if (this.get('config.configConditions')) {
-      this.removeObserver('config.value', this, this.configValueObserver);
+      this.removeObserver('config.value', this, this.configValueObserverForAttributes);
+    }
+    if (this.get('config.configAction')) {
+      this.removeObserver('config.value', this, this.configValueObserverForAction);
     }
   },
 
-  configValueObserver: function() {
+  configValueObserverForAttributes: function() {
     var configConditions = this.get('config.configConditions');
     var serviceName = this.get('config.serviceName');
     var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
@@ -394,7 +407,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     configConditions.forEach(function(configCondition){
       var ifStatement =  configCondition.get("if");
       if (configCondition.get("resource") === 'config') {
-        isConditionTrue = App.config.calculateConfigCondition(ifStatement, serviceConfigs);
+        isConditionTrue = App.configTheme.calculateConfigCondition(ifStatement, serviceConfigs);
         if (configCondition.get("type") === 'subsection' || configCondition.get("type") === 'subsectionTab') {
           this.changeSubsectionAttribute(configCondition, isConditionTrue);
         } else {
@@ -413,6 +426,56 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         this.changeConfigAttribute(configCondition, isConditionTrue);
       }
     }, this);
+  },
+
+  /**
+   * This is an observer that is fired when a value of a config that is suppose to add/delete a component is changed
+   * @private
+   * @method {configValueObserverForAction}
+   */
+  configValueObserverForAction: function() {
+    var assignMasterOnStep7Controller =  App.router.get('assignMasterOnStep7Controller');
+    var configAction = this.get('config.configAction');
+    var serviceName = this.get('config.serviceName');
+    var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName', serviceName).get('configs');
+
+    this.set('config.configActionComponent', null);
+    var hostComponent = {
+      componentName:configAction.get('componentName'),
+      isClient: '',
+      hostName: '',
+      action: ''
+    };
+
+    var hostComponentObj = App.HostComponent.find().findProperty('componentName', hostComponent.componentName);
+    var stackComponentObj = App.StackServiceComponent.find(configAction.get('componentName'));
+
+    if (stackComponentObj) {
+      hostComponent.isClient = stackComponentObj.get('isClient');
+    }
+
+    if (hostComponentObj) {
+      hostComponent.hostName = hostComponentObj.get('hostName');
+    }
+
+    var isConditionTrue = App.configTheme.calculateConfigCondition(configAction.get("if"), serviceConfigs);
+    var action = isConditionTrue ? configAction.get("then") : configAction.get("else");
+    hostComponent.action = action;
+    switch (action) {
+      case 'add':
+        // Disable save button until a host is selected
+        var isComponentToBeInstalled = !App.HostComponent.find().someProperty('componentName', hostComponent.componentName);
+        if (isComponentToBeInstalled) {
+          this.set('controller.saveInProgress', true);
+          assignMasterOnStep7Controller.execute(this, 'ADD', hostComponent);
+        } else {
+          assignMasterOnStep7Controller.clearComponentsToBeDeleted(hostComponent.componentName);
+        }
+        break;
+      case 'delete':
+        assignMasterOnStep7Controller.execute(this, 'DELETE', hostComponent);
+        break;
+    }
   },
 
 

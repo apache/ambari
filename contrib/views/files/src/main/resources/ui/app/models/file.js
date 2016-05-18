@@ -16,36 +16,36 @@
  * limitations under the License.
  */
 
-var App = require('app');
+import DS from 'ember-data';
+import Ember from 'ember';
 
-var dsa = DS.attr;
+export default DS.Model.extend({
 
-App.File = DS.Model.extend({
+  isDirectory                       : DS.attr('boolean'),
+  readAccess                        : DS.attr('boolean'),
+  writeAccess                       : DS.attr('boolean'),
+  executeAccess                     : DS.attr('boolean'),
+  len                               : DS.attr('number'),
+  owner                             : DS.attr('string'),
+  group                             : DS.attr('string'),
+  permission                        : DS.attr('string'),
+  accessTime                        : DS.attr('iso-date'),
+  modificationTime                  : DS.attr('iso-date'),
+  blockSize                         : DS.attr('number'),
+  replication                       : DS.attr('number'),
+  size                              : Ember.computed.alias('len'),
+
   path: function() {
     return this.get('id');
   }.property('id'),
-  basedir:function () {
-    var path = this.get('id');
-    return path.substring(0,path.lastIndexOf('/'))||'/';
-  }.property('id'),
-  isDirectory: dsa('boolean'),
-  readAccess: dsa('boolean'),
-  writeAccess: dsa('boolean'),
-  executeAccess: dsa('boolean'),
-  len: dsa('number'),
-  owner: dsa('string'),
-  group: dsa('string'),
-  permission: dsa('string'),
-  accessTime: dsa('isodate'),
-  modificationTime: dsa('isodate'),
-  blockSize: dsa('number'),
-  replication: dsa('number'),
-  name:function () {
-    var splitpath = this.get('path').split('/');
-    return splitpath.get(splitpath.length-1);
+
+  name: function() {
+    var splitPath = this.get('path').split('/');
+    return splitPath.get(splitPath.length - 1);
   }.property('path'),
-  date:function () {
+
+  date: function() {
     return parseInt(moment(this.get('modificationTime')).format('X'));
-  }.property('modificationTime'),
-  size: Em.computed.alias('len')
+  }.property('modificationTime')
+
 });

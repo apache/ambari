@@ -17,96 +17,47 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+import re
 import fnmatch
+import math
 import socket
 
+DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
+
 class HDP23StackAdvisor(HDP22StackAdvisor):
-
-  def createComponentLayoutRecommendations(self, services, hosts):
-    parentComponentLayoutRecommendations = super(HDP23StackAdvisor, self).createComponentLayoutRecommendations(services, hosts)
-
-    # remove HAWQSTANDBY on a single node
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    if len(hostsList) == 1:
-      servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-      if "HAWQ" in servicesList:
-        components = parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"]
-        components = [ component for component in components if component["name"] != 'HAWQSTANDBY' ]
-        parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"] = components
-
-    return parentComponentLayoutRecommendations
 
   def getComponentLayoutValidations(self, services, hosts):
     parentItems = super(HDP23StackAdvisor, self).getComponentLayoutValidations(services, hosts)
 
-    hiveExists = "HIVE" in [service["StackServices"]["service_name"] for service in services["services"]]
-    sparkExists = "SPARK" in [service["StackServices"]["service_name"] for service in services["services"]]
-
-    if not "HAWQ" in [service["StackServices"]["service_name"] for service in services["services"]] and not sparkExists:
-      return parentItems
-
-    childItems = []
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    hostsCount = len(hostsList)
-
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     componentsListList = [service["components"] for service in services["services"]]
-    componentsList = [item for sublist in componentsListList for item in sublist]
-    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
-    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+    childItems = []
 
-    # single node case is not analyzed because HAWQ Standby Master will not be present in single node topology due to logic in createComponentLayoutRecommendations()
-    if len(hawqMasterHosts) > 0 and len(hawqStandbyHosts) > 0:
-      commonHosts = [host for host in hawqMasterHosts[0] if host in hawqStandbyHosts[0]]
-      for host in commonHosts:
-        message = "HAWQ Standby Master and HAWQ Master should not be deployed on the same host."
-        childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": host } )
+    if "SPARK" in servicesList:
+      if "SPARK_THRIFTSERVER" in servicesList:
+        if not "HIVE_SERVER" in servicesList:
+          message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
+          childItems.append( {"type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER'} )
 
-    if len(hawqMasterHosts) > 0 and hostsCount > 1:
-      ambariServerHosts = [host for host in hawqMasterHosts[0] if self.isLocalHost(host)]
-      for host in ambariServerHosts:
-        message = "HAWQ Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
-                  "to a value different from the port number used by Ambari Server database."
-        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": host } )
+      hmsHosts = self.__getHosts(componentsList, "HIVE_METASTORE") if "HIVE" in servicesList else []
+      sparkTsHosts = self.__getHosts(componentsList, "SPARK_THRIFTSERVER") if "SPARK" in servicesList else []
 
-    if len(hawqStandbyHosts) > 0 and hostsCount > 1:
-      ambariServerHosts = [host for host in hawqStandbyHosts[0] if self.isLocalHost(host)]
-      for host in ambariServerHosts:
-        message = "HAWQ Standby Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
-                  "to a value different from the port number used by Ambari Server database."
-        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": host } )
-
-    if "SPARK_THRIFTSERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
-      if not "HIVE_SERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
-        message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
-        childItems.append( {"type": 'host-component', "level": 'ERROR', "message": messge, "component-name": 'SPARK_THRIFTSERVER'} )
-
-    hmsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"][0] if hiveExists else []
-    sparkTsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"][0] if sparkExists else []
-
-    # if Spark Thrift Server is deployed but no Hive Server is deployed
-    if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
-      message = "SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed."
-      childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER' } )
+      # if Spark Thrift Server is deployed but no Hive Server is deployed
+      if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
+        message = "SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed."
+        childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER' } )
 
     parentItems.extend(childItems)
     return parentItems
 
-  def getNotPreferableOnServerComponents(self):
-    parentComponents = super(HDP23StackAdvisor, self).getNotPreferableOnServerComponents()
-    parentComponents.extend(['HAWQMASTER', 'HAWQSTANDBY'])
-    return parentComponents
-
-  def getComponentLayoutSchemes(self):
-    parentSchemes = super(HDP23StackAdvisor, self).getComponentLayoutSchemes()
-    # key is max number of cluster hosts + 1, value is index in host list where to put the component
-    childSchemes = {
-        'HAWQMASTER' : {6: 2, 31: 1, "else": 5},
-        'HAWQSTANDBY': {6: 1, 31: 2, "else": 3}
-    }
-    parentSchemes.update(childSchemes)
-    return parentSchemes
+  def __getHosts(self, componentsList, componentName):
+    host_lists = [component["hostnames"] for component in componentsList if
+                  component["component_name"] == componentName]
+    if host_lists and len(host_lists) > 0:
+      return host_lists[0]
+    else:
+      return []
 
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(HDP23StackAdvisor, self).getServiceConfigurationRecommenderDict()
@@ -117,7 +68,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HIVE": self.recommendHIVEConfigurations,
       "HBASE": self.recommendHBASEConfigurations,
       "KAFKA": self.recommendKAFKAConfigurations,
-      "RANGER": self.recommendRangerConfigurations
+      "RANGER": self.recommendRangerConfigurations,
+      "RANGER_KMS": self.recommendRangerKMSConfigurations,
+      "FALCON": self.recommendFalconConfigurations,
+      "STORM": self.recommendStormConfigurations,
+      "SQOOP": self.recommendSqoopConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -126,6 +81,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)
 
     putTezProperty = self.putProperty(configurations, "tez-site")
+    if "hive-site" in services["configurations"] and "hive.tez.container.size" in services["configurations"]["hive-site"]["properties"]:
+      putTezProperty("tez.task.resource.memory.mb", services["configurations"]["hive-site"]["properties"]["hive.tez.container.size"])
     # remove 2gb limit for tez.runtime.io.sort.mb
     # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
     taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
@@ -134,7 +91,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
         putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
-        putTezAttribute("tez.runtime.io.sort.mb", "maximum", 2047)
+        putTezAttribute("tez.runtime.io.sort.mb", "maximum", 1800)
     pass
 
     serverProperties = services["ambari-server-properties"]
@@ -293,8 +250,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
     if include_atlas and atlas_server_host_info:
-      cluster_name = 'default'
-      putHiveSiteProperty('atlas.cluster.name', cluster_name)
       atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
       scheme = "http"
       metadata_port = "21000"
@@ -314,6 +269,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "HAWQ" in servicesList:
+      # Set dfs.allow.truncate to true
+      putHdfsSiteProperty('dfs.allow.truncate', 'true')
 
     if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
       rangerPluginEnabled = ''
@@ -408,6 +368,66 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     elif not security_enabled:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
+  def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putRangerKmsDbksProperty = self.putProperty(configurations, "dbks-site", services)
+    putRangerKmsProperty = self.putProperty(configurations, "kms-properties", services)
+    kmsEnvProperties = getSiteProperties(services['configurations'], 'kms-env')
+    putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
+    putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
+
+    if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
+
+      rangerKmsDbFlavor = services['configurations']["kms-properties"]["properties"]["DB_FLAVOR"]
+
+      if ('db_host' in services['configurations']['kms-properties']['properties']) and ('db_name' in services['configurations']['kms-properties']['properties']):
+
+        rangerKmsDbHost =   services['configurations']["kms-properties"]["properties"]["db_host"]
+        rangerKmsDbName =   services['configurations']["kms-properties"]["properties"]["db_name"]
+
+        ranger_kms_db_url_dict = {
+          'MYSQL': {'ranger.ks.jpa.jdbc.driver': 'com.mysql.jdbc.Driver',
+                    'ranger.ks.jpa.jdbc.url': 'jdbc:mysql://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + '/' + rangerKmsDbName},
+          'ORACLE': {'ranger.ks.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver',
+                     'ranger.ks.jpa.jdbc.url': 'jdbc:oracle:thin:@//' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + '/' + rangerKmsDbName},
+          'POSTGRES': {'ranger.ks.jpa.jdbc.driver': 'org.postgresql.Driver',
+                       'ranger.ks.jpa.jdbc.url': 'jdbc:postgresql://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + '/' + rangerKmsDbName},
+          'MSSQL': {'ranger.ks.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+                    'ranger.ks.jpa.jdbc.url': 'jdbc:sqlserver://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + ';databaseName=' + rangerKmsDbName},
+          'SQLA': {'ranger.ks.jpa.jdbc.driver': 'sap.jdbc4.sqlanywhere.IDriver',
+                   'ranger.ks.jpa.jdbc.url': 'jdbc:sqlanywhere:host=' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + ';database=' + rangerKmsDbName}
+        }
+
+        rangerKmsDbProperties = ranger_kms_db_url_dict.get(rangerKmsDbFlavor, ranger_kms_db_url_dict['MYSQL'])
+        for key in rangerKmsDbProperties:
+          putRangerKmsDbksProperty(key, rangerKmsDbProperties.get(key))
+
+    if kmsEnvProperties and self.checkSiteProperties(kmsEnvProperties, 'kms_user') and 'KERBEROS' in servicesList:
+      kmsUser = kmsEnvProperties['kms_user']
+      kmsUserOld = getOldValue(self, services, 'kms-env', 'kms_user')
+      putCoreSiteProperty('hadoop.proxyuser.{0}.groups'.format(kmsUser), '*')
+      if kmsUserOld is not None and kmsUser != kmsUserOld:
+        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(kmsUserOld), 'delete', 'true')
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(kmsUserOld)})
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(kmsUser)})
+
+
+  def getDBConnectionHostPort(self, db_type, db_host):
+    connection_string = ""
+    if db_type is None or db_type == "":
+      return connection_string
+    else:
+      colon_count = db_host.count(':')
+      if colon_count == 0:
+        if DB_TYPE_DEFAULT_PORT_MAP.has_key(db_type):
+          connection_string = db_host + ":" + DB_TYPE_DEFAULT_PORT_MAP[db_type]
+        else:
+          connection_string = db_host
+      elif colon_count == 1:
+        connection_string = db_host
+
+    return connection_string
+
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
@@ -423,11 +443,16 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       rangerDbHost =   services['configurations']["admin-properties"]["properties"]["db_host"]
       rangerDbName =   services['configurations']["admin-properties"]["properties"]["db_name"]
       ranger_db_url_dict = {
-        'MYSQL': {'ranger.jpa.jdbc.driver': 'com.mysql.jdbc.Driver', 'ranger.jpa.jdbc.url': 'jdbc:mysql://' + rangerDbHost + '/' + rangerDbName},
-        'ORACLE': {'ranger.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver', 'ranger.jpa.jdbc.url': 'jdbc:oracle:thin:@//' + rangerDbHost + ':1521/' + rangerDbName},
-        'POSTGRES': {'ranger.jpa.jdbc.driver': 'org.postgresql.Driver', 'ranger.jpa.jdbc.url': 'jdbc:postgresql://' + rangerDbHost + ':5432/' + rangerDbName},
-        'MSSQL': {'ranger.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver', 'ranger.jpa.jdbc.url': 'jdbc:sqlserver://' + rangerDbHost + ';databaseName=' + rangerDbName},
-        'SQLA': {'ranger.jpa.jdbc.driver': 'sap.jdbc4.sqlanywhere.IDriver', 'ranger.jpa.jdbc.url': 'jdbc:sqlanywhere:host=' + rangerDbHost + ';database=' + rangerDbName}
+        'MYSQL': {'ranger.jpa.jdbc.driver': 'com.mysql.jdbc.Driver',
+                  'ranger.jpa.jdbc.url': 'jdbc:mysql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/' + rangerDbName},
+        'ORACLE': {'ranger.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver',
+                   'ranger.jpa.jdbc.url': 'jdbc:oracle:thin:@//' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/' + rangerDbName},
+        'POSTGRES': {'ranger.jpa.jdbc.driver': 'org.postgresql.Driver',
+                     'ranger.jpa.jdbc.url': 'jdbc:postgresql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/' + rangerDbName},
+        'MSSQL': {'ranger.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+                  'ranger.jpa.jdbc.url': 'jdbc:sqlserver://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + ';databaseName=' + rangerDbName},
+        'SQLA': {'ranger.jpa.jdbc.driver': 'sap.jdbc4.sqlanywhere.IDriver',
+                 'ranger.jpa.jdbc.url': 'jdbc:sqlanywhere:host=' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + ';database=' + rangerDbName}
       }
       rangerDbProperties = ranger_db_url_dict.get(rangerDbFlavor, ranger_db_url_dict['MYSQL'])
       for key in rangerDbProperties:
@@ -439,11 +464,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerDbFlavor = services['configurations']["admin-properties"]["properties"]["DB_FLAVOR"]
         rangerDbHost =   services['configurations']["admin-properties"]["properties"]["db_host"]
         ranger_db_privelege_url_dict = {
-          'MYSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:mysql://' + rangerDbHost},
-          'ORACLE': {'ranger_privelege_user_jdbc_url': 'jdbc:oracle:thin:@//' + rangerDbHost + ':1521'},
-          'POSTGRES': {'ranger_privelege_user_jdbc_url': 'jdbc:postgresql://' + rangerDbHost + ':5432/postgres'},
-          'MSSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlserver://' + rangerDbHost + ';'},
-          'SQLA': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlanywhere:host=' + rangerDbHost + ';'}
+          'MYSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:mysql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost)},
+          'ORACLE': {'ranger_privelege_user_jdbc_url': 'jdbc:oracle:thin:@//' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost)},
+          'POSTGRES': {'ranger_privelege_user_jdbc_url': 'jdbc:postgresql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/postgres'},
+          'MSSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlserver://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + ';'},
+          'SQLA': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlanywhere:host=' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + ';'}
         }
         rangerPrivelegeDbProperties = ranger_db_privelege_url_dict.get(rangerDbFlavor, ranger_db_privelege_url_dict['MYSQL'])
         for key in rangerPrivelegeDbProperties:
@@ -496,12 +521,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     if isSolrCloudEnabled:
       zookeeper_host_port = self.getZKHostPortString(services)
+      ranger_audit_zk_port = ''
       if zookeeper_host_port:
-        ranger_audit_zk_port = []
-        zk_hosts = zookeeper_host_port.split(',')
-        for zk_host in zk_hosts:
-          ranger_audit_zk_port.append('{0}/{1}'.format(zk_host,'ranger_audits'))
-        ranger_audit_zk_port = ','.join(ranger_audit_zk_port)
+        ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'ranger_audits')
         putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     else:
       putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
@@ -546,6 +568,17 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                 rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
               putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
 
+    audit_solr_flag = 'false'
+    audit_db_flag = 'false'
+    ranger_audit_source_type = 'solr'
+    if 'ranger-env' in services['configurations'] and 'xasecure.audit.destination.solr' in services['configurations']["ranger-env"]["properties"]:
+      audit_solr_flag = services['configurations']["ranger-env"]["properties"]['xasecure.audit.destination.solr']
+    if 'ranger-env' in services['configurations'] and 'xasecure.audit.destination.db' in services['configurations']["ranger-env"]["properties"]:
+      audit_db_flag = services['configurations']["ranger-env"]["properties"]['xasecure.audit.destination.db']
+
+    if audit_db_flag == 'true' and audit_solr_flag == 'false':
+      ranger_audit_source_type = 'db'
+    putRangerAdminProperty('ranger.audit.source.type',ranger_audit_source_type)
 
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
@@ -580,21 +613,91 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if 'yarn-site' in services["configurations"] and 'yarn.resourcemanager.proxy-user-privileges.enabled' in services["configurations"]["yarn-site"]["properties"]:
         putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
 
+
+  def recommendSqoopConfigurations(self, configurations, clusterData, services, hosts):
+    putSqoopSiteProperty = self.putProperty(configurations, "sqoop-site", services)
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "ATLAS" in servicesList:
+      putSqoopSiteProperty('sqoop.job.data.publish.class', 'org.apache.atlas.sqoop.hook.SqoopHook')
+
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    putStormStartupProperty = self.putProperty(configurations, "storm-site", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if "storm-site" in services["configurations"]:
+      # atlas
+      notifier_plugin_property = "storm.topology.submission.notifier.plugin.class"
+      if notifier_plugin_property in services["configurations"]["storm-site"]["properties"]:
+        notifier_plugin_value = services["configurations"]["storm-site"]["properties"][notifier_plugin_property]
+        if notifier_plugin_value is None:
+          notifier_plugin_value = " "
+      else:
+        notifier_plugin_value = " "
+
+      include_atlas = "ATLAS" in servicesList
+      atlas_hook_class = "org.apache.atlas.storm.hook.StormAtlasHook"
+      if include_atlas and atlas_hook_class not in notifier_plugin_value:
+        if notifier_plugin_value == " ":
+          notifier_plugin_value = atlas_hook_class
+        else:
+          notifier_plugin_value = notifier_plugin_value + "," + atlas_hook_class
+      if not include_atlas and atlas_hook_class in notifier_plugin_value:
+        application_classes = []
+        for application_class in notifier_plugin_value.split(","):
+          if application_class != atlas_hook_class and application_class != " ":
+            application_classes.append(application_class)
+        if application_classes:
+          notifier_plugin_value = ",".join(application_classes)
+        else:
+          notifier_plugin_value = " "
+      putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
+
+  def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
+
+    putFalconStartupProperty = self.putProperty(configurations, "falcon-startup.properties", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    # atlas
+    application_services_property = "*.application.services"
+    if "falcon-startup.properties" in services["configurations"] and application_services_property in services["configurations"]["falcon-startup.properties"]["properties"]:
+      application_services_value = services["configurations"]["falcon-startup.properties"]["properties"][application_services_property]
+    else:
+      application_services_value = " "
+
+    include_atlas = "ATLAS" in servicesList
+    atlas_application_class = "org.apache.falcon.atlas.service.AtlasService"
+    if include_atlas and atlas_application_class not in application_services_value:
+      if application_services_value == " ":
+        application_services_value = atlas_application_class
+      else:
+        application_services_value = application_services_value + "," + atlas_application_class
+    if not include_atlas and atlas_application_class in application_services_value:
+      application_classes = []
+      for application_class in application_services_value.split(","):
+        if application_class != atlas_application_class and application_class != " ":
+          application_classes.append(application_class)
+      if application_classes:
+        application_services_value = ",".join(application_classes)
+      else:
+        application_services_value = " "
+    putFalconStartupProperty(application_services_property, application_services_value)
+
   def getServiceConfigurationValidators(self):
-      parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
-      childValidators = {
-        "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
-        "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
-                 "hive-site": self.validateHiveConfigurations},
-        "HBASE": {"hbase-site": self.validateHBASEConfigurations},
-        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
-        "YARN": {"yarn-site": self.validateYARNConfigurations}
-      }
-      self.mergeValidators(parentValidators, childValidators)
-      return parentValidators
+    parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
+    childValidators = {
+      "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
+      "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
+               "hive-site": self.validateHiveConfigurations},
+      "HBASE": {"hbase-site": self.validateHBASEConfigurations},
+      "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
+      "YARN": {"yarn-site": self.validateYARNConfigurations}
+    }
+    self.mergeValidators(parentValidators, childValidators)
+    return parentValidators
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP23StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(HDP23StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
 
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
@@ -609,7 +712,17 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
                                     "item": self.getWarnItem(
                                       "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})
-    return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+
+    # Check if dfs.allow.truncate is true
+    if "HAWQ" in servicesList and \
+        not ("dfs.allow.truncate" in services["configurations"]["hdfs-site"]["properties"] and \
+        services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"].lower() == 'true'):
+        validationItems.append({"config-name": "dfs.allow.truncate",
+                                "item": self.getWarnItem("HAWQ requires dfs.allow.truncate in hdfs-site.xml set to True.")})
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):

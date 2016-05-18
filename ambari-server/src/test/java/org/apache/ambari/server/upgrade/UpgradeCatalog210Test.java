@@ -18,16 +18,46 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -46,12 +76,12 @@ import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
@@ -60,41 +90,22 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
-import javax.persistence.EntityManager;
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -377,6 +388,163 @@ public class UpgradeCatalog210Test {
   }
 
   @Test
+  public void TestRangerSitePropertyConversion() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final String clusterName = "c1";
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createStrictMock(Cluster.class);
+    final Config config = easyMockSupport.createNiceMock(Config.class);
+    final Map<String,Cluster> clusters = new HashMap<String,Cluster>(){{
+      put(clusterName, cluster);
+    }};
+    final Map<String,String> properties = new HashMap<String, String>() {{
+      put("HTTPS_CLIENT_AUTH", "test123");
+      put("HTTPS_KEYSTORE_FILE", "test123");
+      put("HTTPS_KEYSTORE_PASS", "test123");
+      put("HTTPS_KEY_ALIAS", "test123");
+      put("HTTPS_SERVICE_PORT", "test123");
+      put("HTTP_ENABLED", "test123");
+      put("HTTP_SERVICE_PORT", "test123");
+    }};
+
+    final Map<String, String> expectedPropertyMap = new HashMap<String, String>() {{
+      put("HTTPS_CLIENT_AUTH", "https.attrib.clientAuth");
+      put("HTTPS_KEYSTORE_FILE", "https.attrib.keystoreFile");
+      put("HTTPS_KEYSTORE_PASS", "https.attrib.keystorePass");
+      put("HTTPS_KEY_ALIAS", "https.attrib.keyAlias");
+      put("HTTP_SERVICE_PORT", "http.service.port");
+      put("HTTPS_SERVICE_PORT", "https.service.port");
+      put("HTTP_ENABLED", "http.enabled");
+    }};
+
+    final Map<String,String> convertedProperties = new HashMap<>();
+    final Set<String> removedProperties = new HashSet<>();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    UpgradeCatalog210 upgradeCatalog210 = new UpgradeCatalog210(mockInjector) {
+
+      @Override
+      protected void updateConfigurationPropertiesForCluster(Cluster cluster, String configType,
+        Map<String, String> properties, boolean updateIfExists, boolean createNewConfigType) throws AmbariException {
+        convertedProperties.putAll(properties);
+      }
+
+      @Override
+      protected void removeConfigurationPropertiesFromCluster(Cluster cluster, String configType, Set<String> removePropertiesList)
+        throws AmbariException {
+        removedProperties.addAll(removePropertiesList);
+      }
+    };
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).atLeastOnce();
+    expect(mockClusters.getClusters()).andReturn(clusters).atLeastOnce();
+    expect(config.getProperties()).andReturn(properties).atLeastOnce();
+    expect(cluster.getDesiredConfigByType("ranger-site")).andReturn(config).atLeastOnce();
+
+    replay(mockAmbariManagementController, mockClusters, cluster, config);
+
+    upgradeCatalog210.updateRangerSiteConfigs();
+
+
+    for (Map.Entry<String,String> propertyEntry: expectedPropertyMap.entrySet()){
+      String oldKey = propertyEntry.getKey();
+      String newKey = propertyEntry.getValue();
+      assertTrue(String.format("Old property %s doesn't migrated to new name %s", oldKey, newKey), convertedProperties.containsKey(newKey));
+      assertTrue(String.format("Property value %s doesn't preserved after renaming: %s",properties.get(oldKey), convertedProperties.get(newKey)),
+        convertedProperties.get(newKey).equals(properties.get(oldKey)));
+      assertTrue(String.format("Old property %s doesn't removed after renaming", oldKey), removedProperties.contains(oldKey));
+    }
+  }
+
+  @Test
+  public void testUpdateHiveConfigsWithKerberos() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveServerSite = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
+      put("hive.server2.authentication", "kerberos");
+    }};
+    final Map<String, String> propertiesExpectedHiveServerSite = new HashMap<String, String>() {{
+    }};
+    final Map<String, Service> servicesExpected = new HashMap<String, Service>(){{
+      put("KERBEROS", null);
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+      }
+    });
+
+    final UpgradeCatalog210 upgradeCatalog210 =  mockInjector.getInstance(UpgradeCatalog210.class);
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    Capture<Map<String,String>> configCreation = Capture.newInstance(CaptureType.ALL);
+
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hiveserver2-site")).andReturn(mockHiveServerSite).atLeastOnce();
+    expect(mockHiveEnv.getProperties()).andReturn(propertiesExpectedHiveEnv).anyTimes();
+    expect(mockHiveServerSite.getProperties()).andReturn(propertiesExpectedHiveServerSite).anyTimes();
+
+    expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
+    expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
+    expect(mockClusterExpected.getServices()).andReturn(servicesExpected).atLeastOnce();
+    expect(mockAmbariManagementController.createConfig((Cluster)anyObject(),
+      anyString(),
+      capture(configCreation),
+      anyString(),
+      (Map<String, Map<String, String>>)anyObject())).andReturn(null).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    upgradeCatalog210.updateHiveConfigs();
+    easyMockSupport.verifyAll();
+
+    Assert.assertEquals(2, configCreation.getValues().size());
+
+    boolean hiveSecFound = false;
+
+    for (Map<String, String> cfg: configCreation.getValues()){
+      if (cfg.containsKey("hive_security_authorization")) {
+        hiveSecFound = true;
+        Assert.assertTrue("sqlstdauth".equalsIgnoreCase(cfg.get("hive_security_authorization")));
+        break;
+      }
+    }
+
+    Assert.assertTrue(hiveSecFound);
+  }
+
+  @Test
   public void TestUpdateHiveEnvContent() {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
@@ -601,14 +769,15 @@ public class UpgradeCatalog210Test {
 
     Assert.assertEquals(HostComponentAdminState.INSERVICE.name(), entity.getAdminState().name());
 
+    // ensure the desired state exists
+    Assert.assertNotNull(componentDesiredStateDAO.findByName(clusterEntity.getClusterId(), "STORM",
+        "STORM_REST_API"));
+
     UpgradeCatalog210 upgradeCatalog210 = injector.getInstance(UpgradeCatalog210.class);
     upgradeCatalog210.removeStormRestApiServiceComponent();
 
-    ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
-    entityPK.setClusterId(clusterEntity.getClusterId());
-    entityPK.setServiceName("STORM");
-    entityPK.setComponentName("STORM_REST_API");
-    Assert.assertNull(componentDesiredStateDAO.findByPK(entityPK));
+    Assert.assertNull(componentDesiredStateDAO.findByName(clusterEntity.getClusterId(), "STORM",
+        "STORM_REST_API"));
   }
 
 

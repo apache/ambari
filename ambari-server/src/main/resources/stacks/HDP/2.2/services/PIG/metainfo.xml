@@ -24,10 +24,10 @@
       <version>0.14.0.2.2</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>pig_2_2_*</name>
+              <name>pig_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -35,7 +35,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>pig-2-2-.*</name>
+              <name>pig-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

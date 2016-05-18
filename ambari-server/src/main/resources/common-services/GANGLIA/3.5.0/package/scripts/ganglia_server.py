@@ -19,7 +19,11 @@ limitations under the License.
 import sys
 import os
 from os import path
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import Template
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.functions.format import format
 from ganglia import generate_daemon
 import ganglia
 import functions
@@ -83,14 +87,13 @@ def change_permission():
 
   Directory(os.path.abspath(os.path.join(params.ganglia_runtime_dir, "..")),
             mode=0755,
-            recursive=True
+            create_parents = True
   )
   Directory(params.dwoo_path,
             mode=0755,
-            recursive=True
-  )
-  Execute(('chown', '-R', params.web_user, params.dwoo_path),
-          sudo = True,
+            create_parents = True,
+            owner = params.web_user,
+            recursive_ownership = True,
   )
 
 def server_files():
@@ -98,7 +101,7 @@ def server_files():
 
   rrd_py_path = params.rrd_py_path
   Directory(rrd_py_path,
-            recursive=True
+            create_parents = True
   )
   rrd_py_file_path = path.join(rrd_py_path, "rrd.py")
   TemplateConfig(rrd_py_file_path,
@@ -112,7 +115,7 @@ def server_files():
             owner=rrd_file_owner,
             group=rrd_file_owner,
             mode=0755,
-            recursive=True
+            create_parents = True
   )
   
   if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():

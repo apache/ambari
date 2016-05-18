@@ -114,4 +114,18 @@ public class AbstractControllerResourceProviderTest {
 
     assertEquals(UserAuthorizationResourceProvider.class, provider.getClass());
   }
+
+  @Test
+  public void testGetClusterKerberosDescriptorResourceProvider() {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    replay(managementController);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.ClusterKerberosDescriptor, null, null, managementController);
+
+    verify(managementController);
+
+    assertEquals(ClusterKerberosDescriptorResourceProvider.class, provider.getClass());
+  }
 }

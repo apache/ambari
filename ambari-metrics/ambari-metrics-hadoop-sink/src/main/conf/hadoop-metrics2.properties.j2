@@ -42,16 +42,16 @@
 
 
 # Hook up to the server
-datanode.sink.timeline.collector={{timeline_server_hosts}}:8188
-namenode.sink.timeline.collector={{timeline_server_hosts}}:8188
-resourcemanager.sink.timeline.collector={{timeline_server_hosts}}:8188
-nodemanager.sink.timeline.collector={{timeline_server_hosts}}:8188
-historyserver.sink.timeline.collector={{timeline_server_hosts}}:8188
-journalnode.sink.timeline.collector={{timeline_server_hosts}}:8188
-nimbus.sink.timeline.collector={{timeline_server_hosts}}:8188
-supervisor.sink.timeline.collector={{timeline_server_hosts}}:8188
-maptask.sink.timeline.collector={{timeline_server_hosts}}:8188
-reducetask.sink.timeline.collector={{timeline_server_hosts}}:8188
+datanode.sink.timeline.collector=http://localhost:6188
+namenode.sink.timeline.collector=http://localhost:6188
+resourcemanager.sink.timeline.collector=http://localhost:6188
+nodemanager.sink.timeline.collector=http://localhost:6188
+historyserver.sink.timeline.collector=http://localhost:6188
+journalnode.sink.timeline.collector=http://localhost:6188
+nimbus.sink.timeline.collector=http://localhost:6188
+supervisor.sink.timeline.collector=http://localhost:6188
+maptask.sink.timeline.collector=http://localhost:6188
+reducetask.sink.timeline.collector=http://localhost:6188
 
 resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 

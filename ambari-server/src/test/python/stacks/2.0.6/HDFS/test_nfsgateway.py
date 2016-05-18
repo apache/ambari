@@ -37,7 +37,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "configure",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -50,7 +50,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "start",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -61,7 +61,8 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',
                               owner = 'root',
@@ -86,7 +87,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "stop",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3',
@@ -104,7 +105,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "configure",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -117,7 +118,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "start",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -128,7 +129,8 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',
                               owner = 'root',
@@ -153,7 +155,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "stop",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3',
@@ -168,10 +170,10 @@ class TestNFSGateway(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -182,7 +184,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -209,14 +211,18 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'hdfs',
                               )
+    self.assertResourceCalled('Directory', '/tmp/.hdfs-nfs',
+        owner = 'hdfs',
+        group = 'hadoop',
+    )
 
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -227,7 +233,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -254,6 +260,10 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'root',
                               )
+    self.assertResourceCalled('Directory', '/tmp/.hdfs-nfs',
+        owner = 'hdfs',
+        group = 'hadoop',
+    )
 
 
 
@@ -288,7 +298,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -308,7 +318,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -324,7 +334,7 @@ class TestNFSGateway(RMFTestCase):
                          classname = "NFSGateway",
                          command = "security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -345,7 +355,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -365,7 +375,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -385,7 +395,7 @@ class TestNFSGateway(RMFTestCase):
                        classname = "NFSGateway",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None), (0, None), (0, None)])
     self.assertResourceCalled('Link', ('/etc/hadoop/conf'), to='/usr/hdp/current/hadoop-client/conf')

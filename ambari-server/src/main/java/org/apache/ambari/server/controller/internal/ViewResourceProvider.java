@@ -28,9 +28,11 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,7 +41,7 @@ import java.util.Set;
 /**
  * Resource provider for view instances.
  */
-public class ViewResourceProvider extends AbstractResourceProvider {
+public class ViewResourceProvider extends AbstractAuthorizedResourceProvider {
 
   /**
    * View property id constants.
@@ -71,13 +73,18 @@ public class ViewResourceProvider extends AbstractResourceProvider {
    */
   public ViewResourceProvider() {
     super(propertyIds, keyPropertyIds);
+
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_VIEWS);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
   }
 
 
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException, UnsupportedPropertyException,
              ResourceAlreadyExistsException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not yet supported.");
@@ -112,17 +119,18 @@ public class ViewResourceProvider extends AbstractResourceProvider {
         }
       }
     }
+
     return resources;
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not yet supported.");
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException("Not yet supported.");
   }

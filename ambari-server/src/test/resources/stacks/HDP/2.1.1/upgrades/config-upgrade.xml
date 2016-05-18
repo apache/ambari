@@ -40,6 +40,12 @@
             <type>hdfs-site</type>
             <set key="myproperty" value="mynewvalue"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_2_0_nn_pre_upgrade">
+            <type>hdfs-site</type>
+            <set key="myproperty" value="mynewvalue"/>
+          </definition>
+
           <definition xsi:type="configure" id="hdp_2_1_1_nn_test">
             <type>hdfs-site</type>
             <key>myproperty</key>
@@ -111,19 +117,108 @@
             <transfer operation="copy" from-key="copy-key" to-key="copy-key-to" />
             <transfer operation="move" from-key="move-key" to-key="move-key-to" />
             <transfer operation="delete" delete-key="delete-key" />
-            <transfer operation="delete" delete-key="delete-http" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="http" />
-            <transfer operation="delete" delete-key="delete-https-fail" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="https" />
-            <transfer operation="delete" delete-key="delete-prop-fail" if-key="non.existent" if-type="hive-site" if-value="https" />
-            <transfer operation="delete" delete-key="delete-type-fail" if-key="non.existent" if-type="non.existent" if-value="" />
-            <transfer operation="delete" delete-key="delete-null-if-value" if-key="non.existent" if-type="non.existent" />
-            <transfer operation="delete" delete-key="delete-blank-if-key" if-key="" if-type="non.existent" />
-            <transfer operation="delete" delete-key="delete-blank-if-type" if-key="non.existent" if-type="" />
-            <transfer operation="delete" delete-key="delete-thrift" if-key="hive.server2.thrift.port" if-type="hive-site" if-value="10001" />
+            <transfer operation="delete" delete-key="delete-http-1" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="http" />
+            <transfer operation="delete" delete-key="delete-http-2" if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="present" />
+            <transfer operation="delete" delete-key="delete-http-3" if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="absent" />
 
-            <transfer operation="delete" delete-key="delete-if-key-present" if-key="condition" if-type="hive-site" if-key-state="present"/>
-            <transfer operation="delete" delete-key="delete-if-key-absent" if-key="condition1" if-type="hive-site" if-key-state="absent"/>
-            <transfer operation="delete" delete-key="not-executed-transfer" if-key="non-existed-key" if-type="hive-site" if-key-state="present"/>
+            <!-- None of the following should pass the if attribute validation -->
+            <transfer operation="delete" delete-key="delete-blank-if-key" if-key="" if-type="type" />
+            <transfer operation="delete" delete-key="delete-blank-if-type" if-key="key" if-type="" />
+            <transfer operation="delete" delete-key="delete-null-if-value" if-key="key" if-type="type" />
+            <transfer operation="delete" delete-key="delete-blank-if-type-if-key-1" if-value="value" />
+            <transfer operation="delete" delete-key="delete-blank-if-type-if-key-2" if-key-state="present" />
+            <transfer operation="delete" delete-key="delete-blank-if-type-if-key-3" if-key-state="absent" />
 
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_1_1_hive_server_conditions">
+              <type>hive-site</type>
+              <!-- set -->
+              <set key="setKeyOne" value="1" />
+              <set key="setKeyTwo" value="2"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="present"/>
+              <set key="setKeyThree" value="3"
+              if-key="foo.bar" if-type="hive-site" if-key-state="absent"/>
+              <set key="setKeyFour" value="4"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-value="binary"/>
+
+              <!-- transfer operation Copy -->
+              <transfer operation="copy" from-type="hive-site" from-key="copy-key-one" to-key="copy-to-key-one" default-value="1" />
+              <transfer operation="copy" from-type="hive-site" from-key="copy-key-two" to-key="copy-to-key-two" default-value="1"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="present"/>
+              <transfer operation="copy" from-type="hive-site" from-key="copy-key-three" to-key="copy-to-key-three" default-value="1"
+              if-key="foo.bar" if-type="hive-site" if-key-state="absent"/>
+              <transfer operation="copy" from-type="hive-site" from-key="copy-key-four" to-key="copy-to-key-four" default-value="1"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-value="binary"/>
+
+              <!-- transfer operation move -->
+              <transfer operation="move" from-type="hive-site" from-key="move-key-one" to-key="move-to-key-one" default-value="1" />
+              <transfer operation="move" from-type="hive-site" from-key="move-key-two" to-key="move-to-key-two" default-value="1"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="present"/>
+              <transfer operation="move" from-type="hive-site" from-key="move-key-three" to-key="move-to-key-three" default-value="1"
+              if-key="foo.bar" if-type="hive-site" if-key-state="absent"/>
+              <transfer operation="move" from-type="hive-site" from-key="move-key-four" to-key="move-to-key-four" default-value="1"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-value="binary"/>
+
+              <!-- transfer operation delete -->
+              <transfer operation="delete" delete-key="delete-key-one" />
+              <transfer operation="delete" delete-key="delete-key-two" if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="present"/>
+              <transfer operation="delete" delete-key="delete-key-three" if-key="foo.bar" if-type="hive-site" if-key-state="absent"/>
+              <transfer operation="delete" delete-key="delete-key-four" if-key="hive.server2.transport.mode" if-type="hive-site" if-value="binary"/>
+
+              <!-- replace -->
+              <replace key="replace-key-one" find="abc" replace-with="abc-replaced" />
+              <replace key="replace-key-two" find="efg" replace-with="efg-replaced"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="present"/>
+              <replace key="replace-key-three" find="ijk" replace-with="ijk-replaced"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="absent"/>
+              <replace key="replace-key-four" find="lmn" replace-with="lmn-replaced"
+              if-key="hive.server2.transport.mode" if-type="hive-site" if-value="binary"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_1_1_hive_server_conditions_skip">
+             <type>hive-site</type>
+             <!-- set -->
+             <set key="setKeyOne" value="1" if-key="hive.server2.transport.mode" if-type="" if-value="skip"/>
+             <set key="setKeyTwo" value="2" if-key="" if-type="hive-site" if-key-state="absent"/>
+             <set key="setKeyThree" value="3" if-key="foo.bar" if-type="hive-site" if-key-state="abcd"/>
+             <set key="setKeyThree" value="3" if-key="foo.bar" if-type="hive-site" />
+
+             <!-- transfer operation Copy -->
+             <transfer operation="copy" from-type="hive-site" from-key="copy-key-one" to-key="copy-to-key-two" default-value="1"
+             if-key="hive.server2.transport.mode" if-type="" if-key-state="absent"/>
+             <transfer operation="copy" from-type="hive-site" from-key="copy-key-two" to-key="copy-to-key-three" default-value="1"
+             if-key="" if-type="hive-site" if-key-state="present"/>
+             <transfer operation="copy" from-type="hive-site" from-key="copy-key-three" to-key="copy-to-key-four" default-value="1"
+             if-key="hive.server2.transport.mode" if-type="hive-site" />
+             <transfer operation="copy" from-type="hive-site" from-key="copy-key-four" to-key="copy-to-key-four" default-value="1"
+             if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="abcd"/>
+
+             <!-- transfer operation move -->
+             <transfer operation="move" from-type="hive-site" from-key="move-key-one" to-key="move-to-key-four" default-value="1"
+             if-key="hive.server2.transport.mode" if-type="" if-value="skip"/>
+             <transfer operation="move" from-type="hive-site" from-key="move-key-two" to-key="move-to-key-two" default-value="1"
+             if-key="" if-type="hive-site" if-key-state="absent"/>
+             <transfer operation="move" from-type="hive-site" from-key="move-key-three" to-key="move-to-key-three" default-value="1"
+             if-key="hive.server2.transport.mode" if-type="hive-site" if-key-state="abcd"/>
+             <transfer operation="move" from-type="hive-site" from-key="move-key-four" to-key="move-to-key-four" default-value="1"
+             if-key="hive.server2.transport.mode" if-type="hive-site"/>
+
+             <!-- transfer operation delete -->
+             <transfer operation="delete" delete-key="delete-key-one" if-key="hive.server2.transport.mode" if-type="" if-key-state="absent"/>
+             <transfer operation="delete" delete-key="delete-key-two" if-key="" if-type="hive-site" if-key-state="absent"/>
+             <transfer operation="delete" delete-key="delete-key-three" if-key="foo.bar" if-type="hive-site" if-key-state="abcd"/>
+             <transfer operation="delete" delete-key="delete-key-four" if-key="hive.server2.transport.mode" if-type="hive-site" />
+
+             <!-- replacement -->
+             <replace key="replace-key-one" find="abc" replace-with="abc-replaced"
+             if-key="hive.server2.transport.mode" if-type="" if-value="skip"/>
+             <replace key="replace-key-two" find="efg" replace-with="efg-replaced"
+             if-key="" if-type="hive-site" if-key-state="absent"/>
+             <replace key="replace-key-three" find="ijk" replace-with="ijk-replaced"
+             if-key="foo.bar" if-type="hive-site" if-key-state="abcd"/>
+             <replace key="replace-key-three" find="ijk" replace-with="ijk-replaced"
+             if-key="foo.bar" if-type="hive-site"/>
           </definition>
         </changes>
       </component>

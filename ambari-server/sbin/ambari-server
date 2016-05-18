@@ -35,15 +35,24 @@ case "$1" in
         ;;
 esac
 
-export PATH=/usr/lib/ambari-server/*:$PATH:/sbin/:/usr/sbin
-export AMBARI_CONF_DIR=/etc/ambari-server/conf
-PYTHON_WRAP=/var/lib/ambari-server/ambari-python-wrap
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export ROOT=`dirname $(dirname $SCRIPT_DIR)`
+ROOT=`echo $ROOT | sed 's/\/$//'`
 
-# fills $PYTHON
-. $PYTHON_WRAP -V 2>/dev/null
+export PATH=$ROOT/usr/lib/ambari-server/*:$PATH:/sbin/:/usr/sbin
+export AMBARI_CONF_DIR=$ROOT/etc/ambari-server/conf
 
-if [ -a /var/lib/ambari-server/ambari-env.sh ]; then
-  . /var/lib/ambari-server/ambari-env.sh
+PYTHON_WRAP="$ROOT/usr/bin/ambari-python-wrap"
+AMBARI_ENV="$ROOT/var/lib/ambari-server/ambari-env.sh"
+AMBARI_PYTHON_EXECUTABLE="$ROOT/usr/sbin/ambari-server.py"
+AMBARI_EXECUTABLE="$ROOT/usr/sbin/ambari-server"
+
+if [ -z "$PYTHON" ] ; then
+  export PYTHON=`readlink $PYTHON_WRAP`
+fi
+
+if [ -a "$AMBARI_ENV" ]; then
+  . "$AMBARI_ENV"
 fi
 
 if [ -z "$AMBARI_PASSPHRASE" ]; then
@@ -70,15 +79,15 @@ ret=0
 case "$1" in
   start)
         echo -e "Starting ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   stop)
         echo -e "Stopping ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   reset)
         echo -e "Resetting ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   restart)
         echo -e "Restarting ambari-server"
@@ -87,68 +96,84 @@ case "$1" in
         ;;
   upgrade)
         echo -e "Upgrading ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   status)
         echo -e "Ambari-server status"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   upgradestack)
         echo -e "Upgrading stack of ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   setup)
         echo -e "Setup ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   setup-jce)
         echo -e "Updating jce policy"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   setup-ldap)
         echo -e "Setting up LDAP properties..."
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   sync-ldap)
         echo -e "Syncing with LDAP..."
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   set-current)
         echo -e "Setting current version..."
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   setup-security)
         echo -e "Security setup options..."
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   refresh-stack-hash)
         echo -e "Refreshing stack hashes..."
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   backup)
         echo -e "Backing up Ambari File System state... *this will not backup the server database*"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   restore)
         echo -e "Restoring Ambari File System state"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   update-host-names)
         echo -e "Updating host names"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
+  check-database)
+        echo -e "Checking database"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   enable-stack)
         echo -e "Enabling stack(s)..."
-        $PYTHON /usr/sbin/ambari-server.py $@
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   setup-sso)
         echo -e "Setting up SSO authentication properties..."
-                $PYTHON /usr/sbin/ambari-server.py $@
-                ;;
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
+  db-cleanup)
+        echo -e "Cleanup database..."
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
+  install-mpack)
+        echo -e "Installing management pack"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
+  upgrade-mpack)
+        echo -e "Upgrading management pack"
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
+        ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server
-        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|enable-stack} [options]
-        Use usr/sbin/ambari-server <action> --help to get details on options available.
+        echo "Usage: $AMBARI_PYTHON_EXECUTABLE
+        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|enable-stack|check-database|db-cleanup} [options]
+        Use $AMBARI_PYTHON_EXECUTABLE <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
 esac

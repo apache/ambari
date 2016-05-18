@@ -23,6 +23,10 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,9 +51,22 @@ public class ComponentInfo {
   private boolean versionAdvertised = false;
 
   /**
+   * Used to determine if decommission is allowed
+   * */
+  @XmlElements(@XmlElement(name = "decommissionAllowed"))
+  private String decommissionAllowed;
+
+  /**
   * Added at schema ver 2
   */
   private CommandScriptDefinition commandScript;
+
+  /**
+   * List of the logs that the component writes
+   */
+  @XmlElementWrapper(name = "logs")
+  @XmlElements(@XmlElement(name = "log"))
+  private List<LogDefinition> logs;
 
   /**
    * List of clients which configs are updated with master component.
@@ -76,11 +93,21 @@ public class ComponentInfo {
   private List<CustomCommandDefinition> customCommands;
 
   /**
+   * bulk commands shown in the Hosts actions
+   * */
+  @XmlElement(name="bulkCommands")
+  private BulkCommandDefinition bulkCommandDefinition;
+
+  /**
    * Component dependencies to other components.
    */
   @XmlElementWrapper(name="dependencies")
   @XmlElements(@XmlElement(name="dependency"))
   private List<DependencyInfo> dependencies = new ArrayList<DependencyInfo>();
+
+  @XmlElementWrapper(name="configuration-dependencies")
+  @XmlElements(@XmlElement(name="config-type"))
+  private List<String> configDependencies;
 
   /**
    * Auto-deployment information.
@@ -89,6 +116,15 @@ public class ComponentInfo {
    */
   @XmlElement(name="auto-deploy")
   private AutoDeployInfo autoDeploy;
+
+  @XmlElements(@XmlElement(name = "recovery_enabled"))
+  private boolean recoveryEnabled = false;
+
+  /**
+   * Used to determine if reassign is allowed
+   * */
+  @XmlElements(@XmlElement(name = "reassignAllowed"))
+  private String reassignAllowed;
 
   private String timelineAppid;
 
@@ -104,14 +140,18 @@ public class ComponentInfo {
     deleted = prototype.deleted;
     cardinality = prototype.cardinality;
     versionAdvertised = prototype.versionAdvertised;
+    decommissionAllowed = prototype.decommissionAllowed;
     clientsToUpdateConfigs = prototype.clientsToUpdateConfigs;
     commandScript = prototype.commandScript;
+    logs = prototype.logs;
     customCommands = prototype.customCommands;
+    bulkCommandDefinition = prototype.bulkCommandDefinition;
     dependencies = prototype.dependencies;
     autoDeploy = prototype.autoDeploy;
     configDependencies = prototype.configDependencies;
     clientConfigFiles = prototype.clientConfigFiles;
     timelineAppid = prototype.timelineAppid;
+    reassignAllowed = prototype.reassignAllowed;
   }
 
   public String getName() {
@@ -146,6 +186,10 @@ public class ComponentInfo {
     return "MASTER".equals(category);
   }
 
+  public boolean isSlave() {
+    return "SLAVE".equals(category);
+  }
+
   public boolean isDeleted() {
     return deleted;
   }
@@ -160,6 +204,28 @@ public class ComponentInfo {
 
   public void setCommandScript(CommandScriptDefinition commandScript) {
     this.commandScript = commandScript;
+  }
+
+  public List<LogDefinition> getLogs() {
+    if (logs == null) {
+      logs = new ArrayList<LogDefinition>();
+    }
+    
+    return logs;
+  }
+
+  public LogDefinition getPrimaryLog() {
+    for (LogDefinition log : getLogs()) {
+      if (log.isPrimary()) {
+        return log;
+      }
+    }
+    
+    return null;
+  }
+
+  public void setLogs(List<LogDefinition> logs) {
+    this.logs = logs;
   }
 
   public List<ClientConfigFileDefinition> getClientConfigFiles() {
@@ -200,13 +266,17 @@ public class ComponentInfo {
     return null;
   }
 
+  public BulkCommandDefinition getBulkCommandDefinition() {
+    return bulkCommandDefinition;
+  }
+
+  public void setBulkCommands(BulkCommandDefinition bulkCommandDefinition) {
+    this.bulkCommandDefinition = bulkCommandDefinition;
+  }
+
   public List<DependencyInfo> getDependencies() {
     return dependencies;
   }
-  @XmlElementWrapper(name="configuration-dependencies")
-  @XmlElements(@XmlElement(name="config-type"))
-  private List<String> configDependencies;
-  
 
   public List<String> getConfigDependencies() {
     return configDependencies;
@@ -247,6 +317,22 @@ public class ComponentInfo {
     return versionAdvertised;
   }
 
+  public String getDecommissionAllowed() {
+    return decommissionAllowed;
+  }
+
+  public void setDecommissionAllowed(String decommissionAllowed) {
+    this.decommissionAllowed = decommissionAllowed;
+  }
+
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    this.recoveryEnabled = recoveryEnabled;
+  }
+
+  public boolean isRecoveryEnabled() {
+    return recoveryEnabled;
+  }
+
   public List<String> getClientsToUpdateConfigs() {
     return clientsToUpdateConfigs;
   }
@@ -263,6 +349,14 @@ public class ComponentInfo {
     this.timelineAppid = timelineAppid;
   }
 
+  public String getReassignAllowed() {
+    return reassignAllowed;
+  }
+
+  public void setReassignAllowed(String reassignAllowed) {
+    this.reassignAllowed = reassignAllowed;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -274,13 +368,18 @@ public class ComponentInfo {
     if (autoDeploy != null ? !autoDeploy.equals(that.autoDeploy) : that.autoDeploy != null) return false;
     if (cardinality != null ? !cardinality.equals(that.cardinality) : that.cardinality != null) return false;
     if (versionAdvertised != that.versionAdvertised) return false;
+    if (decommissionAllowed != null ? !decommissionAllowed.equals(that.decommissionAllowed) : that.decommissionAllowed != null) return false;
+    if (reassignAllowed != null ? !reassignAllowed.equals(that.reassignAllowed) : that.reassignAllowed != null) return false;
     if (category != null ? !category.equals(that.category) : that.category != null) return false;
     if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) : that.clientConfigFiles != null)
       return false;
     if (commandScript != null ? !commandScript.equals(that.commandScript) : that.commandScript != null) return false;
+    if (logs != null ? !logs.equals(that.logs) : that.logs != null) return false;
     if (configDependencies != null ? !configDependencies.equals(that.configDependencies) : that.configDependencies != null)
       return false;
     if (customCommands != null ? !customCommands.equals(that.customCommands) : that.customCommands != null)
+      return false;
+    if (bulkCommandDefinition != null ? !bulkCommandDefinition.equals(that.bulkCommandDefinition) : that.bulkCommandDefinition != null)
       return false;
     if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) return false;
     if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
@@ -299,13 +398,22 @@ public class ComponentInfo {
     result = 31 * result + (deleted ? 1 : 0);
     result = 31 * result + (cardinality != null ? cardinality.hashCode() : 0);
     result = 31 * result + (versionAdvertised ? 1 : 0);
+    result = 31 * result + (decommissionAllowed != null ? decommissionAllowed.hashCode() : 0);
+    result = 31 * result + (reassignAllowed != null ? reassignAllowed.hashCode() : 0);
     result = 31 * result + (commandScript != null ? commandScript.hashCode() : 0);
+    result = 31 * result + (logs != null ? logs.hashCode() : 0);
     result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);
     result = 31 * result + (customCommands != null ? customCommands.hashCode() : 0);
+    result = 31 * result + (bulkCommandDefinition != null ? bulkCommandDefinition.hashCode(): 0);
     result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
     result = 31 * result + (autoDeploy != null ? autoDeploy.hashCode() : 0);
     result = 31 * result + (configDependencies != null ? configDependencies.hashCode() : 0);
     result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
   }
 }

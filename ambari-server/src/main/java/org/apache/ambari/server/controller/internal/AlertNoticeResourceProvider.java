@@ -25,8 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -46,12 +48,13 @@ import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * ResourceProvider for Alert History
  */
 @StaticallyInject
-public class AlertNoticeResourceProvider extends AbstractResourceProvider implements ExtendedResourceProvider {
+public class AlertNoticeResourceProvider extends AbstractControllerResourceProvider implements ExtendedResourceProvider {
 
   public static final String ALERT_NOTICE_ID = "AlertNotice/id";
   public static final String ALERT_NOTICE_STATE = "AlertNotice/notification_state";
@@ -101,8 +104,8 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider implem
   /**
    * Constructor.
    */
-  AlertNoticeResourceProvider() {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS);
+  AlertNoticeResourceProvider(AmbariManagementController managementController) {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   /**
@@ -137,7 +140,7 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider implem
    * {@inheritDoc}
    */
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException();
@@ -150,6 +153,26 @@ public class AlertNoticeResourceProvider extends AbstractResourceProvider implem
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
+
+    // Verify authorization to retrieve the requested data
+    Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
+    for (Map<String, Object> propertyMap : propertyMaps) {
+      try {
+        String clusterName = (String) propertyMap.get(ALERT_NOTICE_CLUSTER_NAME);
+        Long clusterResourceId = (StringUtils.isEmpty(clusterName)) ? null : getClusterResourceId(clusterName);
+        String serviceName = (String) propertyMap.get(ALERT_NOTICE_SERVICE_NAME);
+
+        if (clusterResourceId == null) {
+          // Make sure the user had administrative access by using -1 as the cluster id
+          clusterResourceId = -1L;
+        }
+
+        // Make sure the user had access to the alert
+        AlertResourceProviderUtils.verifyViewAuthorization(serviceName, clusterResourceId);
+      } catch (AmbariException e) {
+        throw new SystemException(e.getMessage(), e);
+      }
+    }
 
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
     Set<Resource> results = new LinkedHashSet<Resource>();

@@ -18,13 +18,20 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', 'View', '$modal', 'Alert', 'ConfirmationModal', '$location', function($scope, View, $modal, Alert, ConfirmationModal, $location) {
-  var deferredList = [];
+.controller('ViewsListCtrl',['$scope', 'View','$modal', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, View, $modal, Alert, ConfirmationModal, $location, $translate) {
+  var deferredList = [],
+    $t = $translate.instant;
+  $scope.constants = {
+    unable: $t('views.alerts.unableToCreate'),
+    views: $t('common.views').toLowerCase()
+  };
   $scope.$on('$locationChangeStart', function() {
     deferredList.forEach(function(def) {
       def.reject();
     })
   });
+
+  $scope.createUrlDisabled = false;
 
   function checkViewVersionStatus(view, versionObj, versionNumber){
     var deferred = View.checkViewVersionStatus(view.view_name, versionNumber);
@@ -59,7 +66,7 @@ angular.module('ambariAdminConsole')
         });
       })
     }).catch(function(data) {
-      Alert.error('Cannot load views', data.data.message);
+      Alert.error($t('views.alerts.cannotLoadViews'), data.data.message);
     });
   }
 
@@ -120,4 +127,137 @@ angular.module('ambariAdminConsole')
       $location.path('/views/'+viewName+'/new');
     }
   };
+
+  $scope.reloadViews = function () {
+    loadViews();
+  };
+
+  /**
+   * Url listing
+   */
+
+  $scope.loadedUrls = [];
+  $scope.urlsPerPage = 10;
+  $scope.currentPage = 1;
+  $scope.totalUrls = 1;
+  $scope.urlNameFilter = '';
+  $scope.urlSuffixfilter = '';
+  $scope.maxVisiblePages=20;
+  $scope.tableInfo = {
+    total: 0,
+    showed: 0
+  };
+
+  $scope.isNotEmptyFilter = true;
+
+
+  $scope.pageChanged = function() {
+    $scope.listViewUrls();
+  };
+
+  $scope.urlsPerPageChanged = function() {
+    $scope.resetPagination();
+  };
+
+
+  $scope.resetPagination = function() {
+    $scope.currentPage = 1;
+    $scope.listViewUrls();
+  };
+
+
+  $scope.getVersions = function(instances) {
+    var names = [];
+
+    instances.map(function(view){
+      var name = view.view_name;
+      names.push(name);
+    });
+
+    var output = [],
+        keys = [];
+
+    angular.forEach(names, function(item) {
+      var key = item;
+      if(keys.indexOf(key) === -1) {
+        keys.push(key);
+        output.push(item);
+      }
+    });
+    return output;
+    };
+
+
+
+  $scope.clearFilters = function () {
+    $scope.urlNameFilter = '';
+    $scope.urlSuffixfilter = '';
+    $scope.instanceTypeFilter = $scope.typeFilterOptions[0];
+    $scope.resetPagination();
+  };
+
+
+
+  $scope.$watch(
+      function (scope) {
+        return Boolean(scope.urlNameFilter || scope.urlSuffixfilter || (scope.instanceTypeFilter && scope.instanceTypeFilter.value !== '*'));
+      },
+      function (newValue, oldValue, scope) {
+        scope.isNotEmptyFilter = newValue;
+      }
+  );
+
+
+
+
+  $scope.listViewUrls = function(){
+    View.allUrls({
+      currentPage: $scope.currentPage,
+      urlsPerPage: $scope.urlsPerPage,
+      searchString: $scope.urlNameFilter,
+      suffixSearch: $scope.urlSuffixfilter,
+      instanceType: $scope.instanceTypeFilter?$scope.instanceTypeFilter.value:'*'
+    }).then(function(urls) {
+      $scope.urls = urls;
+      $scope.ViewNameFilterOptions = urls.items.map(function(url){
+        return url.ViewUrlInfo.view_instance_common_name;
+      });
+
+      $scope.totalUrls = urls.itemTotal;
+      $scope.tableInfo.showed = urls.items.length;
+      $scope.tableInfo.total = urls.itemTotal;
+
+      // get all view instances to enable/disable creation if empty
+
+    }).catch(function(data) {
+      Alert.error($t('views.alerts.cannotLoadViewUrls'), data.message);
+    });
+  };
+
+
+  $scope.initViewUrls = function(){
+    $scope.listViewUrls();
+    View.getAllVisibleInstance().then(function(instances){
+      // if no instances then disable the create button
+      if(!instances.length){
+        $scope.createUrlDisabled = true;
+      } else {
+        $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
+            .concat($scope.getVersions(instances).map(function(key) {
+              return {
+                label: key,
+                value: key
+              };
+            }));
+
+        $scope.instanceTypeFilter = $scope.typeFilterOptions[0];
+      }
+
+    }).catch(function(data) {
+      // Make the create button enabled, and swallow the error
+      $scope.createUrlDisabled = false;
+    });
+
+  };
+
 }]);

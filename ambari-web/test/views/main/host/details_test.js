@@ -132,8 +132,11 @@ describe('App.MainHostDetailsView', function () {
       App.set('services', Em.K);
     });
 
-    it('should get only clients with configs', function() {
+    it('should get only clients with configs (1)', function() {
       expect(view.get('clientsWithConfigs')).to.have.length(1);
+    });
+
+    it('should get only clients with configs (2)', function() {
       view.get('content.hostComponents').pushObject(Em.Object.create({
         isClient: true,
         service: Em.Object.create({
@@ -141,6 +144,9 @@ describe('App.MainHostDetailsView', function () {
         })
       }));
       expect(view.get('clientsWithConfigs')).to.have.length(1);
+    });
+
+    it('should get only clients with configs (3)', function() {
       view.get('content.hostComponents').pushObject(Em.Object.create({
         isClient: true,
         service: Em.Object.create({

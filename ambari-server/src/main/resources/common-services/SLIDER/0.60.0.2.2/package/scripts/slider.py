@@ -21,6 +21,8 @@ Ambari Agent
 import os
 from resource_management import *
 from ambari_commons import OSConst
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -47,14 +49,15 @@ def slider():
   import params
 
   Directory(params.slider_conf_dir,
-            recursive=True
+            create_parents = True
   )
 
   slider_client_config = params.config['configurations']['slider-client'] if 'configurations' in params.config and 'slider-client' in params.config['configurations'] else {}
 
   XmlConfig("slider-client.xml",
             conf_dir=params.slider_conf_dir,
-            configurations=slider_client_config
+            configurations=slider_client_config,
+            mode=0644
   )
 
   File(format("{slider_conf_dir}/slider-env.sh"),
@@ -63,7 +66,7 @@ def slider():
   )
 
   Directory(params.storm_slider_conf_dir,
-            recursive=True
+            create_parents = True
   )
 
   File(format("{storm_slider_conf_dir}/storm-slider-env.sh"),
@@ -80,7 +83,7 @@ def slider():
     File(format("{params.slider_conf_dir}/log4j.properties"),
          mode=0644
     )
-  if Script.is_hdp_stack_greater_or_equal("2.2"): 
+  if params.stack_version_formatted and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted):
     File(params.slider_tar_gz,
          owner=params.hdfs_user,
          group=params.user_group,

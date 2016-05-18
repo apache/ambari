@@ -31,6 +31,11 @@ App.MainAdminStackVersionsView = Em.View.extend({
   updateTimer: null,
 
   /**
+   * @type {Array}
+   */
+  services: App.Service.find(),
+
+  /**
    * Not Installed = the version is not installed or out of sync
    * Upgrade Ready = the version is installed and ready for upgrade
    * Current = the version currently being used
@@ -199,12 +204,8 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * stop polling upgrade state
    */
   willDestroyElement: function () {
-    var runningCheckRequests = this.get('controller.runningCheckRequests');
     window.clearTimeout(this.get('updateTimer'));
-    runningCheckRequests.forEach(function (request) {
-      request.abort();
-    });
-    runningCheckRequests.clear();
+    App.ajax.abortRequests(this.get('controller.runningCheckRequests'));
   },
 
   /**

@@ -23,84 +23,16 @@ require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widgets/node_managers_live');
 
+function getView() {
+  return App.NodeManagersLiveView.create({
+    parentView: Em.Object.create()
+  });
+}
+
 describe('App.NodeManagersLiveView', function() {
 
-  beforeEach(function () {
-    sinon.stub(App, 'get').withArgs('router.clusterController.isComponentsStateLoaded').returns(true);
-  });
+  App.TestAliases.testAsComputedAnd(getView(), 'isDataAvailable', ['!model.metricsNotAvailable', 'App.router.clusterController.isComponentsStateLoaded']);
 
-  afterEach(function () {
-    App.get.restore();
-  });
-
-  var tests = [
-    {
-      model: {
-        nodeManagersTotal: 3,
-        nodeManagerLiveNodes: 2
-      },
-      e: {
-        isRed: false,
-        isOrange: true,
-        isGreen: false,
-        isNA: false,
-        content: '2/3',
-        data: 67
-      }
-    },
-    {
-      model: {
-        nodeManagersTotal: 2,
-        nodeManagerLiveNodes: 2
-      },
-      e: {
-        isRed: false,
-        isOrange: false,
-        isGreen: true,
-        isNA: false,
-        content: '2/2',
-        data: 100
-      }
-    },
-    {
-      model: {
-        nodeManagersTotal: 2,
-        nodeManagerLiveNodes: 0
-      },
-      e: {
-        isRed: true,
-        isOrange: false,
-        isGreen: false,
-        isNA: false,
-        content: '0/2',
-        data: 0.00
-      }
-    }
-  ];
-
-  tests.forEach(function(test) {
-    describe('nodeManagersTotal length - ' + test.model.nodeManagersTotal + ' | nodeManagerLiveNodes length - ' + test.model.nodeManagerLiveNodes, function() {
-      var AppNodeManagersLiveView = App.NodeManagersLiveView.extend({nodeManagersLive: test.model.nodeManagerLiveNodes});
-      var nodeManagersLiveView = AppNodeManagersLiveView.create({model_type:null, model: test.model});
-      it('content', function() {
-        expect(nodeManagersLiveView.get('content')).to.equal(test.e.content);
-      });
-      it('data', function() {
-        expect(nodeManagersLiveView.get('data')).to.equal(test.e.data);
-      });
-      it('isRed', function() {
-        expect(nodeManagersLiveView.get('isRed')).to.equal(test.e.isRed);
-      });
-      it('isOrange', function() {
-        expect(nodeManagersLiveView.get('isOrange')).to.equal(test.e.isOrange);
-      });
-      it('isGreen', function() {
-        expect(nodeManagersLiveView.get('isGreen')).to.equal(test.e.isGreen);
-      });
-      it('isNA', function() {
-        expect(nodeManagersLiveView.get('isNA')).to.equal(test.e.isNA);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedAlias(getView(), 'nodeManagersLive', 'model.nodeManagersCountActive');
 
 });

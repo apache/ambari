@@ -215,9 +215,10 @@ module.exports = Em.Object.create({
         var formattedOffset = Em.get(groupedByRegionZones[region], 'firstObject.formattedOffset');
         var utcOffset = Em.get(groupedByRegionZones[region], 'firstObject.utcOffset');
         var value = Em.get(groupedByRegionZones[region], 'firstObject.groupByKey') + '|' + region;
+        var abbr = moment.tz(Em.get(groupedByRegionZones[region], 'firstObject.value')).format('z');
         newZones.pushObject({
           utcOffset: utcOffset,
-          label: '(UTC' + formattedOffset + ') ' + region + (cities ? ' / ' + cities : ''),
+          label: '(UTC' + formattedOffset + ' ' + abbr + ') ' + region + (cities ? ' / ' + cities : ''),
           value: value,
           zones: groupedByRegionZones[region]
         });

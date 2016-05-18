@@ -22,35 +22,24 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Storm Monitoring</title>
+        <title>Apache Storm</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
-        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-        <link rel="stylesheet" href="libs/bower/backgrid/css/backgrid.min.css">
-        <link rel="stylesheet" href="libs/bower/bootstrap/css/bootstrap.min.css">
-        <link rel="stylesheet" href="libs/bower/font-awesome/css/font-awesome.min.css">
-        <link rel="stylesheet" href="libs/bower/jquery-ui/css/jquery-ui.min.css">
-        <link rel="stylesheet" href="styles/default.css">
+        <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,300italic,300,700,700italic' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" href="libs/Bootstrap/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="libs/Bootstrap/css/bootstrap-switch.min.css">
+        <link rel="stylesheet" type="text/css" href="libs/Bootstrap/css/bootstrap-editable.css">
+        <link rel="stylesheet" type="text/css" href="libs/Bootstrap/css/bootstrap-slider.min.css">
+        <link rel="stylesheet" type="text/css" href="libs/Font-Awesome/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="styles/style.css">
     </head>
 
     <body>
-    <div class="loading"></div>
-        <div class='container-fluid'>
-            <div class="row">
-                <div class="col-md-12">
-                 <section id="header"></section>
-                 <section id="content">
-                    <div class="notifications top-right"></div>
-                    <div class="tab-content">
-                        <div role="sv_tabpanel" class="tab-pane active" id="topology"></div>
-                        <div role="sv_tabpanel" class="tab-pane" id="cluster"></div>
-                    </div>
-                 </section>
-                </div>
-            </div>
+        <div class="loader"></div>
+        <div class="container-fluid">
+            <section id="container"></section>
+            <footer id="footer"></footer>    
         </div>
-        <!-- build:js scripts/main.js -->
-        <script data-main="scripts/main" src="libs/bower/requirejs/js/require.js"></script>
-        <!-- endbuild -->
+        <script data-main="scripts/main" src="libs/require-js/js/require.min.js"></script>
     </body>
 </html>

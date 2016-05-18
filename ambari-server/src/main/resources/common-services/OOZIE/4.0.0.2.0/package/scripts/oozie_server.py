@@ -20,10 +20,12 @@ limitations under the License.
 
 from resource_management.core import Logger
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
-from resource_management.libraries.functions import format_hdp_stack_version
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import default
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -33,17 +35,19 @@ from resource_management.libraries.functions.security_commons import FILE_TYPE_X
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 
 from oozie import oozie
 from oozie_service import oozie_service
 from oozie_server_upgrade import OozieUpgrade
 
 from check_oozie_server_status import check_oozie_server_status
-         
+
+
 class OozieServer(Script):
 
-  def get_stack_to_component(self):
-    return {"HDP": "oozie-server"}
+  def get_component_name(self):
+    return "oozie-server"
 
   def install(self, env):
     self.install_packages(env)
@@ -51,19 +55,30 @@ class OozieServer(Script):
   def configure(self, env, upgrade_type=None):
     import params
 
-    if upgrade_type == "nonrolling" and params.upgrade_direction == Direction.UPGRADE and \
-            params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "oozie", params.version)
-      # In order for the "/usr/hdp/current/oozie-<client/server>" point to the new version of
-      # oozie, we need to create the symlinks both for server and client.
-      # This is required as both need to be pointing to new installed oozie version.
+    # The configure command doesn't actually receive the upgrade_type from Script.py, so get it from the config dictionary
+    if upgrade_type is None:
+      restart_type = default("/commandParams/restart_type", "")
+      if restart_type.lower() == "rolling_upgrade":
+        upgrade_type = UPGRADE_TYPE_ROLLING
+      elif restart_type.lower() == "nonrolling_upgrade":
+        upgrade_type = UPGRADE_TYPE_NON_ROLLING
 
-      # Sets the symlink : eg: /usr/hdp/current/oozie-client -> /usr/hdp/2.3.x.y-<version>/oozie
-      hdp_select.select("oozie-client", params.version)
-      # Sets the symlink : eg: /usr/hdp/current/oozie-server -> /usr/hdp/2.3.x.y-<version>/oozie
-      hdp_select.select("oozie-server", params.version)
+    if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and params.version is not None:
+      Logger.info(format("Configuring Oozie during upgrade type: {upgrade_type}, direction: {params.upgrade_direction}, and version {params.version}"))
+      if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+        # In order for the "<stack-root>/current/oozie-<client/server>" point to the new version of
+        # oozie, we need to create the symlinks both for server and client.
+        # This is required as both need to be pointing to new installed oozie version.
+
+        # Sets the symlink : eg: <stack-root>/current/oozie-client -> <stack-root>/a.b.c.d-<version>/oozie
+        stack_select.select("oozie-client", params.version)
+        # Sets the symlink : eg: <stack-root>/current/oozie-server -> <stack-root>/a.b.c.d-<version>/oozie
+        stack_select.select("oozie-server", params.version)
+
+      if params.version and check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
+        conf_select.select(params.stack_name, "oozie", params.version)
+
     env.set_params(params)
-
     oozie(is_server=True)
 
   def start(self, env, upgrade_type=None):
@@ -161,7 +176,7 @@ class OozieServerDefault(OozieServer):
     """
     Performs the tasks that should be done before an upgrade of oozie. This includes:
       - backing up configurations
-      - running hdp-select and conf-select
+      - running <stack-selector-tool> and <conf-selector-tool>
       - restoring configurations
       - preparing the libext directory
     :param env:
@@ -171,20 +186,28 @@ class OozieServerDefault(OozieServer):
     env.set_params(params)
 
     # this function should not execute if the version can't be determined or
-    # is not at least HDP 2.2.0.0
-    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+    # the stack does not support rolling upgrade
+    if not (params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)):
       return
 
     Logger.info("Executing Oozie Server Stack Upgrade pre-restart")
 
     OozieUpgrade.backup_configuration()
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       conf_select.select(params.stack_name, "oozie", params.version)
-      hdp_select.select("oozie-server", params.version)
+      stack_select.select("oozie-server", params.version)
 
     OozieUpgrade.restore_configuration()
     OozieUpgrade.prepare_libext_directory()
+    
+  def get_log_folder(self):
+    import params
+    return params.oozie_log_dir
+  
+  def get_user(self):
+    import params
+    return params.oozie_user
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

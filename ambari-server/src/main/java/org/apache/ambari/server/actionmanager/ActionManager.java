@@ -223,7 +223,9 @@ public class ActionManager {
     for (Request logicalRequest : topologyManager.getRequests(Collections.<Long>emptySet())) {
       //todo: Request.getStatus() returns HostRoleStatus and we are comparing to RequestStatus
       //todo: for now just compare the names as RequestStatus names are a subset of HostRoleStatus names
-      if (status == null || logicalRequest.getStatus().name().equals(status.name())) {
+      HostRoleStatus logicalRequestStatus = logicalRequest.getStatus();
+      if (status == null || (logicalRequestStatus != null
+          && logicalRequest.getStatus().name().equals(status.name()))) {
         requests.add(logicalRequest.getRequestId());
       }
     }

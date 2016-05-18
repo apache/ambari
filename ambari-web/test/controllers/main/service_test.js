@@ -19,7 +19,12 @@
 var App = require('app');
 require('controllers/main/service');
 
+var testHelpers = require('test/helpers');
 var mainServiceController;
+
+function getController() {
+  return App.MainServiceController.create({});
+}
 
 describe('App.MainServiceController', function () {
 
@@ -74,10 +79,15 @@ describe('App.MainServiceController', function () {
     }
 
   ]);
-
   beforeEach(function() {
-    mainServiceController = App.MainServiceController.create();
+    mainServiceController = getController();
   });
+
+  afterEach(function () {
+    mainServiceController.destroy();
+  });
+
+  App.TestAliases.testAsComputedNotEqual(getController(), 'isStartStopAllClicked', 'App.router.backgroundOperationsController.allOperationsCount', 0);
 
   describe('#isStartAllDisabled', function () {
     tests.forEach(function (test) {
@@ -103,25 +113,45 @@ describe('App.MainServiceController', function () {
     });
   });
 
-  describe('#isStartStopAllClicked', function () {
+  describe("#isAllServicesInstalled", function() {
 
-    beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('router.backgroundOperationsController.allOperationsCount').returns(1);
+    beforeEach(function() {
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({serviceName: 'S1'})
+      ]);
+    });
+    afterEach(function() {
+      App.StackService.find.restore();
     });
 
-    afterEach(function () {
-      App.get.restore();
+    it("content is null", function() {
+      mainServiceController.reopen({
+        'content': null
+      });
+      mainServiceController.propertyDidChange('isAllServicesInstalled');
+      expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
 
-    it('should be based on BG ops count', function () {
-      expect(mainServiceController.get('isStartStopAllClicked')).to.be.true;
+    it("content is empty", function() {
+      mainServiceController.reopen({
+        'content': []
+      });
+      mainServiceController.propertyDidChange('isAllServicesInstalled');
+      expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
 
+    it("content match stack services", function() {
+      mainServiceController.reopen({
+        'content': [Em.Object.create({serviceName: 'S1'})]
+      });
+      mainServiceController.propertyDidChange('isAllServicesInstalled');
+      expect(mainServiceController.get('isAllServicesInstalled')).to.be.true;
+    });
   });
 
   describe('#cluster', function() {
 
-    var tests = Em.A([
+    Em.A([
       {
         isLoaded: true,
         cluster: [],
@@ -135,18 +165,28 @@ describe('App.MainServiceController', function () {
         e: null
       }
     ]).forEach(function(test) {
-        it(test.m, function() {
-          sinon.stub(App.router, 'get', function(k) {
-            if ('clusterController.isClusterDataLoaded' === k) return test.isLoaded;
-            return Em.get(App.router, k);
+        describe(test.m, function() {
+
+          beforeEach(function () {
+            sinon.stub(App.router, 'get', function(k) {
+              if ('clusterController.isClusterDataLoaded' === k) return test.isLoaded;
+              return Em.get(App.router, k);
+            });
+            sinon.stub(App.Cluster, 'find', function() {
+              return [test.e];
+            });
           });
-          sinon.stub(App.Cluster, 'find', function() {
-            return [test.e];
+
+          afterEach(function () {
+            App.router.get.restore();
+            App.Cluster.find.restore();
           });
-          var c = mainServiceController.get('cluster');
-          App.router.get.restore();
-          App.Cluster.find.restore();
-          expect(c).to.eql(test.e);
+
+          it('cluster is valid', function () {
+            var c = mainServiceController.get('cluster');
+            expect(c).to.eql(test.e);
+          });
+
         });
       });
 
@@ -174,12 +214,6 @@ describe('App.MainServiceController', function () {
       expect(r).to.be.null;
     });
 
-    it('nothing disabled', function() {
-      var event = {target: {}}, query = 'query';
-      mainServiceController.startAllService(event).onPrimary(query);
-      expect(mainServiceController.allServicesCall.calledWith('STARTED', query));
-    });
-
   });
 
   describe('#stopAllService', function() {
@@ -204,12 +238,6 @@ describe('App.MainServiceController', function () {
       expect(r).to.be.null;
     });
 
-    it('nothing disabled', function() {
-      var event = {target: {}}, query = 'query';
-      mainServiceController.stopAllService(event).onPrimary(query);
-      expect(mainServiceController.allServicesCall.calledWith('STARTED', query));
-    });
-
   });
 
   describe('#startStopAllService', function() {
@@ -231,28 +259,38 @@ describe('App.MainServiceController', function () {
       expect(Em.I18n.t.calledWith('services.service.stop.confirmButton')).to.be.ok;
     });
 
-    it ("should check last checkpoint for NN before confirming stop", function() {
-      var mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
-        return true;
+    describe("should check last checkpoint for NN before confirming stop", function() {
+      var mainServiceItemController;
+      beforeEach(function() {
+        mainServiceItemController = App.MainServiceItemController.create({});
+        sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+          return true;
+        });
+        sinon.stub(App.router, 'get', function(k) {
+          if ('mainServiceItemController' === k) {
+            return mainServiceItemController;
+          }
+          return Em.get(App.router, k);
+        });
+        sinon.stub(App.Service, 'find', function() {
+          return [{
+            serviceName: "HDFS",
+            workStatus: "STARTED"
+          }];
+        });
       });
-      sinon.stub(App.router, 'get', function(k) {
-        if ('mainServiceItemController' === k) {
-          return mainServiceItemController;
-        }
-        return Em.get(App.router, k);
+
+      afterEach(function () {
+        mainServiceItemController.checkNnLastCheckpointTime.restore();
+        App.router.get.restore();
+        App.Service.find.restore();
       });
-      sinon.stub(App.Service, 'find', function() {
-        return [{
-          serviceName: "HDFS",
-          workStatus: "STARTED"
-        }];
+
+      it('checkNnLastCheckpointTime is called once', function () {
+        mainServiceController.startStopAllService(event, "INSTALLED");
+        expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
       });
-      mainServiceController.startStopAllService(event, "INSTALLED");
-      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
-      mainServiceItemController.checkNnLastCheckpointTime.restore();
-      App.router.get.restore();
-      App.Service.find.restore();
+
     });
 
     it ("should confirm start if state is not INSTALLED", function() {
@@ -264,30 +302,32 @@ describe('App.MainServiceController', function () {
 
   describe('#allServicesCall', function() {
 
+    var state = 'STARTED',
+      query = 'some query';
+
     beforeEach(function() {
-      sinon.stub($, 'ajax', Em.K);
       sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
         if ('clusterName' === k) return 'tdk';
         return Em.get(App, k);
       });
+      mainServiceController.allServicesCall(state, query);
+      var args = testHelpers.findAjaxRequest('name', 'common.services.update');
+      this.params = App.ajax.fakeGetUrl('common.services.update').format(args[0].data);
+      this.data = JSON.parse(this.params.data);
     });
 
     afterEach(function() {
-      $.ajax.restore();
       App.get.restore();
     });
 
-    it('should do ajax-request', function() {
-      var state = 'STARTED',
-        query = 'some query';
-      mainServiceController.allServicesCall(state, query);
-      var params = $.ajax.args[0][0];
-      expect(params.type).to.equal('PUT');
-      expect(params.url.contains('/clusters/tdk/services?')).to.be.true;
-      var data = JSON.parse(params.data);
-      expect(data.Body.ServiceInfo.state).to.equal(state);
-      expect(data.RequestInfo.context).to.equal(App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES);
+    it('PUT request is sent', function() {
+      expect(this.params.type).to.equal('PUT');
+    });
+    it('Body.ServiceInfo.state is ' + state, function() {
+      expect(this.data.Body.ServiceInfo.state).to.equal(state);
+    });
+    it('RequestInfo.context is ' + query, function() {
+      expect(this.data.RequestInfo.context).to.equal(App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES);
     });
 
   });
@@ -326,27 +366,7 @@ describe('App.MainServiceController', function () {
 
   });
 
-  describe('#isRestartAllRequiredDisabled', function () {
-
-    it('should be false if there is at least one service with isRestartRequired=true', function () {
-      mainServiceController.reopen({
-        content: [
-          {isRestartRequired: false}, {isRestartRequired: false}, {isRestartRequired: true}
-        ]
-      });
-      expect(mainServiceController.get('isRestartAllRequiredDisabled')).to.be.false;
-    });
-
-    it('should be true if there is no services with isRestartRequired=true', function () {
-      mainServiceController.reopen({
-        content: [
-          {isRestartRequired: false}, {isRestartRequired: false}, {isRestartRequired: false}
-        ]
-      });
-      expect(mainServiceController.get('isRestartAllRequiredDisabled')).to.be.true;
-    });
-
-  });
+  App.TestAliases.testAsComputedEveryBy(getController(), 'isRestartAllRequiredDisabled', 'content', 'isRestartRequired', false);
 
   describe('#restartAllRequired', function () {
 
@@ -393,40 +413,278 @@ describe('App.MainServiceController', function () {
     });
 
     it('should show confirmation popup with list of services and call restartHostComponents after confirmation', function () {
-      var popup = mainServiceController.restartAllRequired();
+      var popup;
+      mainServiceController.reopen({
+        isRestartAllRequiredDisabled: false
+      });
+      popup = mainServiceController.restartAllRequired();
       popup.onPrimary();
       expect(App.showConfirmationPopup.args[0][1]).to.equal(Em.I18n.t('services.service.refreshAll.confirmMsg').format('displayName1, displayName2'));
-      expect(mainServiceController.restartHostComponents.calledWith([
-        {
-          component_name: 'componentName1',
-          service_name: 'serviceName1',
-          hosts: 'hostName1'
-        },
-        {
-          component_name: 'componentName2',
-          service_name: 'serviceName2',
-          hosts: 'hostName2'
-        }
-      ])).to.be.true;
+      expect(mainServiceController.restartHostComponents.calledOnce).to.be.true;
+    });
+
+    it('should not open popup if isRestartAllRequiredDisabled is true', function(){
+      mainServiceController.reopen({
+        isRestartAllRequiredDisabled: true
+      });
+      expect(mainServiceController.restartAllRequired()).to.be.null;
     });
 
   });
 
-  describe('#restartHostComponents', function () {
+  describe("#restartAllServices()", function() {
+
+    beforeEach(function() {
+      sinon.stub(mainServiceController, 'silentStopAllServices');
+    });
+    afterEach(function() {
+      mainServiceController.silentStopAllServices.restore();
+    });
+
+    it("silentStopAllServices should be called", function() {
+      mainServiceController.restartAllServices();
+      expect(mainServiceController.silentStopAllServices.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#silentStopAllServices()", function() {
+
+    it("App.ajax.send should be called", function() {
+      mainServiceController.silentStopAllServices();
+      var args = testHelpers.filterAjaxRequests('name', 'common.services.update');
+      expect(args[0][0]).to.eql({
+        name: 'common.services.update',
+        sender: mainServiceController,
+        data: {
+          context: App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES,
+          ServiceInfo: {
+            state: 'INSTALLED'
+          }
+        },
+        success: 'silentStopSuccess'
+      });
+    });
+  });
+
+  describe("#isStopAllServicesFailed()", function() {
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.Service, 'find');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("one INSTALLED service", function() {
+      this.mock.returns([
+        Em.Object.create({workStatus: 'INSTALLED'})
+      ]);
+      expect(mainServiceController.isStopAllServicesFailed()).to.be.false;
+    });
+
+    it("one STOPPING service", function() {
+      this.mock.returns([
+        Em.Object.create({workStatus: 'STOPPING'})
+      ]);
+      expect(mainServiceController.isStopAllServicesFailed()).to.be.false;
+    });
+
+    it("one STARTED service and one INSTALLED", function() {
+      this.mock.returns([
+        Em.Object.create({workStatus: 'STARTED'}),
+        Em.Object.create({workStatus: 'INSTALLED'})
+      ]);
+      expect(mainServiceController.isStopAllServicesFailed()).to.be.true;
+    });
+
+    it("one STARTED service", function() {
+      this.mock.returns([
+        Em.Object.create({workStatus: 'STARTED'})
+      ]);
+      expect(mainServiceController.isStopAllServicesFailed()).to.be.true;
+    });
+  });
+
+  describe("#silentStopSuccess()", function() {
+    var mock = {
+      dataLoading: function() {
+        return {
+          done: function(callback) {
+            callback(true);
+          }
+        }
+      },
+      showPopup: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.stub(Em.run, 'later', Em.clb);
+      sinon.spy(mock, 'showPopup');
+      sinon.stub(mainServiceController, 'silentStartAllServices');
+      mainServiceController.silentStopSuccess();
+    });
+    afterEach(function() {
+      App.router.get.restore();
+      Em.run.later.restore();
+      mock.showPopup.restore();
+      mainServiceController.silentStartAllServices.restore();
+    });
+
+    it("showPopup should be called", function() {
+      expect(mock.showPopup.calledOnce).to.be.true;
+    });
+
+    it("Em.run.later should be called", function() {
+      expect(Em.run.later.calledOnce).to.be.true;
+      expect(mainServiceController.get('shouldStart')).to.be.true;
+    });
+  });
+
+  describe("#silentStartAllServices()", function() {
+
+    beforeEach(function() {
+      this.mockRouter = sinon.stub(App.router, 'get');
+      this.mock = sinon.stub(mainServiceController, 'isStopAllServicesFailed');
+      mainServiceController.removeObserver('shouldStart', mainServiceController, 'silentStartAllServices');
+    });
+    afterEach(function() {
+      this.mockRouter.restore();
+      this.mock.restore();
+    });
+
+    it("allOperationsCount is 1", function() {
+      this.mockRouter.returns(Em.Object.create({
+        allOperationsCount: 1
+      }));
+      mainServiceController.silentStartAllServices();
+      expect(testHelpers.findAjaxRequest('name', 'common.services.update')).to.be.undefined;
+    });
+
+    it("shouldStart is false", function() {
+      this.mockRouter.returns(Em.Object.create({
+        allOperationsCount: 0
+      }));
+      mainServiceController.set('shouldStart', false);
+      mainServiceController.silentStartAllServices();
+      expect(testHelpers.findAjaxRequest('name', 'common.services.update')).to.be.undefined;
+    });
+
+    it("isStopAllServicesFailed returns true", function() {
+      this.mockRouter.returns(Em.Object.create({
+        allOperationsCount: 0
+      }));
+      mainServiceController.set('shouldStart', true);
+      this.mock.returns(true);
+      mainServiceController.silentStartAllServices();
+      expect(testHelpers.findAjaxRequest('name', 'common.services.update')).to.be.undefined;
+    });
+
+    it("App.ajax.send should be called", function() {
+      this.mockRouter.returns(Em.Object.create({
+        allOperationsCount: 0
+      }));
+      mainServiceController.set('shouldStart', true);
+      this.mock.returns(false);
+      mainServiceController.silentStartAllServices();
+      var args = testHelpers.filterAjaxRequests('name', 'common.services.update');
+      expect(args[0][0]).to.be.eql({
+        name: 'common.services.update',
+        sender: mainServiceController,
+        data: {
+          context: App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES,
+          ServiceInfo: {
+            state: 'STARTED'
+          }
+        },
+        success: 'silentCallSuccessCallback'
+      });
+      expect(mainServiceController.get('shouldStart')).to.be.false;
+    });
+  });
+
+  describe("#silentCallSuccessCallback()", function () {
+    var mock = {
+      dataLoading: function () {
+        return {
+          done: function (callback) {
+            callback(true);
+          }
+        }
+      },
+      showPopup: Em.K
+    };
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'showPopup');
     });
-
     afterEach(function () {
-      App.ajax.send.restore();
+      App.router.get.restore();
+      mock.showPopup.restore();
     });
 
-    it('should send ajax request', function () {
-      mainServiceController.restartHostComponents();
-      expect(App.ajax.send.calledOnce).to.be.true;
+    it("showPopup should be called", function () {
+      mainServiceController.silentCallSuccessCallback();
+      expect(mock.showPopup.calledOnce).to.be.true;
     });
-
   });
 
+  describe("#allServicesCallSuccessCallback()", function () {
+    var mock = {
+      dataLoading: function () {
+        return {
+          done: function (callback) {
+            callback(true);
+          }
+        }
+      },
+      showPopup: Em.K
+    };
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'showPopup');
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      mock.showPopup.restore();
+    });
+
+    it("showPopup should be called", function () {
+      var params = {
+        query: Em.Object.create()
+      };
+      mainServiceController.allServicesCallSuccessCallback({}, {}, params);
+      expect(mock.showPopup.calledOnce).to.be.true;
+      expect(params.query.get('status')).to.be.equal('SUCCESS');
+    });
+  });
+
+  describe("#restartAllRequiredSuccessCallback()", function () {
+    var mock = {
+      dataLoading: function () {
+        return {
+          done: function (callback) {
+            callback(true);
+          }
+        }
+      },
+      showPopup: Em.K
+    };
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'showPopup');
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      mock.showPopup.restore();
+    });
+
+    it("showPopup should be called", function () {
+      mainServiceController.restartAllRequiredSuccessCallback();
+      expect(mock.showPopup.calledOnce).to.be.true;
+    });
+  });
 });

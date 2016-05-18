@@ -30,11 +30,12 @@
   <name>Ambari Metrics Assembly</name>
   <packaging>pom</packaging>
   <version>2.0.0.0-SNAPSHOT</version>
-  <description>Ambari Metrics</description>
+  <description>Ambari Metrics Assembly</description>
 
   <properties>
     <collector.dir>${project.basedir}/../ambari-metrics-timelineservice</collector.dir>
     <monitor.dir>${project.basedir}/../ambari-metrics-host-monitoring</monitor.dir>
+    <grafana.dir>${project.basedir}/../ambari-metrics-grafana</grafana.dir>
     <hadoop-sink.dir>${project.basedir}/../ambari-metrics-hadoop-sink</hadoop-sink.dir>
     <storm-sink.dir>${project.basedir}/../ambari-metrics-storm-sink</storm-sink.dir>
     <flume-sink.dir>${project.basedir}/../ambari-metrics-flume-sink</flume-sink.dir>
@@ -88,7 +89,7 @@
         <executions>
           <execution>
             <id>collector</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -104,7 +105,7 @@
           </execution>
           <execution>
             <id>monitor</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -119,8 +120,24 @@
             </configuration>
           </execution>
           <execution>
+            <id>grafana</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>false</attach>
+              <finalName>ambari-metrics-grafana-${project.version}</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>${assemblydescriptor.grafana}</descriptor>
+              </descriptors>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+          </execution>
+          <execution>
             <id>hadoop-sink</id>
-            <phase>package</phase>
+            <phase>prepare-package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -158,7 +175,7 @@
             <executions>
               <execution>
                 <id>copy-resources</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>copy-resources</goal>
                 </goals>
@@ -191,102 +208,6 @@
               <defaultGroupname>root</defaultGroupname>
             </configuration>
             <executions>
-              <!--ambari-metrics-monitor-->
-              <execution>
-                <id>ambari-metrics-monitor</id>
-                <!-- unbinds rpm creation from maven lifecycle -->
-                <phase>package</phase>
-                <goals>
-                  <goal>rpm</goal>
-                </goals>
-                <configuration>
-                  <name>ambari-metrics-monitor</name>
-                  <group>Development</group>
-                  <needarch>x86_64</needarch>
-                  <autoRequires>false</autoRequires>
-                  <requires>
-                    <require>${python.ver}</require>
-                    <require>gcc</require>
-                    <require>${python.devel}</require>
-                  </requires>
-                  <preremoveScriptlet>
-                    <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
-                    <fileEncoding>utf-8</fileEncoding>
-                  </preremoveScriptlet>
-                  <mappings>
-                    <mapping>
-                      <directory>${resmonitor.install.dir}</directory>
-                      <username>root</username>
-                      <groupname>root</groupname>
-                      <sources>
-                        <source>
-                          <location>
-                            ${monitor.dir}/src/main/python/__init__.py
-                          </location>
-                        </source>
-                        <source>
-                          <location>
-                            ${monitor.dir}/src/main/python/main.py
-                          </location>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>${resmonitor.install.dir}/core</directory>
-                      <sources>
-                        <source>
-                          <location>
-                            ${monitor.dir}/src/main/python/core
-                          </location>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>${resmonitor.install.dir}/psutil</directory>
-                      <sources>
-                        <source>
-                          <location>
-                            ${monitor.dir}/src/main/python/psutil
-                          </location>
-                          <excludes>
-                            <exclude>build/**</exclude>
-                            <exclude>build/*</exclude>
-                          </excludes>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>${resmonitor.install.dir}/ambari_commons</directory>
-                      <sources>
-                        <source>
-                          <location>
-                            ${project.basedir}/../../ambari-common/src/main/python/ambari_commons
-                          </location>
-                        </source>
-                      </sources>
-                    </mapping>
-                    <mapping>
-                      <directory>/etc/ambari-metrics-monitor/conf</directory>
-                      <configuration>true</configuration>
-                    </mapping>
-                    <mapping>
-                      <directory>/usr/sbin</directory>
-                      <filemode>755</filemode>
-                      <username>root</username>
-                      <groupname>root</groupname>
-                      <directoryIncluded>false</directoryIncluded>
-                      <sources>
-                        <source>
-                          <location>
-                            ${monitor.dir}/conf/unix/ambari-metrics-monitor
-                          </location>
-                          <filter>true</filter>
-                        </source>
-                      </sources>
-                    </mapping>
-                  </mappings>
-                </configuration>
-              </execution>
 
               <!--ambari-metrics-collector-->
               <execution>
@@ -477,7 +398,7 @@
                         </source>
                       </sources>
                     </mapping>
-                     <mapping>
+                    <mapping>
                       <directory>/usr/lib/ambari-metrics-kafka-sink/lib</directory>
                       <sources>
                         <source>
@@ -487,8 +408,185 @@
                     </mapping>
                   </mappings>
                 </configuration>
-
               </execution>
+
+              <!--ambari-metrics-grafana-->
+              <execution>
+                <id>ambari-metrics-grafana</id>
+                <!-- unbinds rpm creation from maven lifecycle -->
+                <phase>package</phase>
+                <goals>
+                  <goal>rpm</goal>
+                </goals>
+                <configuration>
+                  <name>ambari-metrics-grafana</name>
+                  <group>Development</group>
+                  <needarch>x86_64</needarch>
+                  <autoRequires>false</autoRequires>
+                  <mappings>
+                    <mapping>
+                      <!--grafana-->
+                      <directory>/usr/lib/ambari-metrics-grafana/</directory>
+                      <sources>
+                        <source>
+                          <location>${grafana.dir}/target/grafana/${grafana.folder}</location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/usr/lib/ambari-metrics-grafana/bin</directory>
+                      <filemode>755</filemode>
+                      <sources>
+                        <source>
+                          <location>${grafana.dir}/target/grafana/${grafana.folder}/bin</location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/usr/sbin</directory>
+                      <filemode>755</filemode>
+                      <username>root</username>
+                      <groupname>root</groupname>
+                      <directoryIncluded>false</directoryIncluded>
+                      <sources>
+                        <source>
+                          <location>${grafana.dir}/conf/unix/ambari-metrics-grafana</location>
+                          <filter>false</filter>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/etc/ambari-metrics-grafana/conf</directory>
+                      <filemode>755</filemode>
+                      <username>root</username>
+                      <groupname>root</groupname>
+                      <directoryIncluded>false</directoryIncluded>
+                      <sources>
+                        <source>
+                          <location>${grafana.dir}/conf/unix/ams-grafana-env.sh</location>
+                          <filter>false</filter>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/etc/ambari-metrics-grafana/conf</directory>
+                      <configuration>true</configuration>
+                      <sources>
+                        <source>
+                          <location>${grafana.dir}/conf/unix/ams-grafana.ini</location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/var/run/ambari-metrics-grafana</directory>
+                    </mapping>
+                    <mapping>
+                      <directory>/var/lib/ambari-metrics-grafana</directory>
+                    </mapping>
+                    <mapping>
+                      <directory>/var/log/ambari-metrics-grafana</directory>
+                    </mapping>
+                  </mappings>
+                </configuration>
+              </execution>
+
+              <!--ambari-metrics-monitor-->
+              <execution>
+                <id>ambari-metrics-monitor</id>
+                <!-- unbinds rpm creation from maven lifecycle -->
+                <phase>package</phase>
+                <goals>
+                  <goal>rpm</goal>
+                </goals>
+                <configuration>
+                  <name>ambari-metrics-monitor</name>
+                  <group>Development</group>
+                  <needarch>x86_64</needarch>
+                  <autoRequires>false</autoRequires>
+                  <requires>
+                    <require>${python.ver}</require>
+                    <require>gcc</require>
+                    <require>${python.devel}</require>
+                  </requires>
+                  <preremoveScriptlet>
+                    <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
+                    <fileEncoding>utf-8</fileEncoding>
+                  </preremoveScriptlet>
+                  <mappings>
+                    <mapping>
+                      <directory>${resmonitor.install.dir}</directory>
+                      <username>root</username>
+                      <groupname>root</groupname>
+                      <sources>
+                        <source>
+                          <location>
+                            ${monitor.dir}/src/main/python/__init__.py
+                          </location>
+                        </source>
+                        <source>
+                          <location>
+                            ${monitor.dir}/src/main/python/main.py
+                          </location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>${resmonitor.install.dir}/core</directory>
+                      <sources>
+                        <source>
+                          <location>
+                            ${monitor.dir}/src/main/python/core
+                          </location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>${resmonitor.install.dir}/psutil</directory>
+                      <sources>
+                        <source>
+                          <location>
+                            ${monitor.dir}/src/main/python/psutil
+                          </location>
+                          <excludes>
+                            <exclude>build/**</exclude>
+                            <exclude>build/*</exclude>
+                          </excludes>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>${resmonitor.install.dir}/ambari_commons</directory>
+                      <sources>
+                        <source>
+                          <location>
+                            ${project.basedir}/../../ambari-common/src/main/python/ambari_commons
+                          </location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/etc/ambari-metrics-monitor/conf</directory>
+                      <configuration>true</configuration>
+                    </mapping>
+                    <mapping>
+                      <directory>/usr/sbin</directory>
+                      <filemode>755</filemode>
+                      <username>root</username>
+                      <groupname>root</groupname>
+                      <directoryIncluded>false</directoryIncluded>
+                      <sources>
+                        <source>
+                          <location>
+                            ${monitor.dir}/conf/unix/ambari-metrics-monitor
+                          </location>
+                          <filter>true</filter>
+                        </source>
+                      </sources>
+                    </mapping>
+                  </mappings>
+                </configuration>
+              </execution>
+
 
             </executions>
           </plugin>
@@ -513,7 +611,7 @@
             <executions>
               <execution>
                 <id>copy-resources</id>
-                <phase>prepare-package</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>copy-resources</goal>
                 </goals>
@@ -553,7 +651,7 @@
             </executions>
             <configuration>
               <controlDir>${project.build.directory}/resources/deb/control</controlDir>
-              <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+              <deb>${basedir}/target/${project.artifactId}_${package-version}-${package-release}.deb</deb>
               <dataSet>
                 <data>
                   <type>file</type>
@@ -605,11 +703,14 @@
                   <type>template</type>
                   <paths>
                     <path>/etc/ambari-metrics-monitor/conf</path>
-                    <path>/usr/lib/ambari-metrics-collector</path>
                     <path>/etc/ambari-metrics-collector/conf</path>
+                    <path>/etc/ambari-metrics-grafana/conf</path>
                     <path>/etc/ams-hbase/conf</path>
                     <path>/var/run/ams-hbase</path>
+                    <path>/var/run/ambari-metrics-grafana</path>
+                    <path>/var/log/ambari-metrics-grafana</path>
                     <path>/var/lib/ambari-metrics-collector</path>
+                    <path>/var/lib/ambari-metrics-grafana</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink/lib</path>
@@ -759,6 +860,54 @@
                   </mapper>
                 </data>
 
+                <!-- Metric Grafana -->
+
+                <data>
+                  <src>${grafana.dir}/target/grafana/${grafana.folder}</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/usr/lib/ambari-metrics-grafana</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${grafana.dir}/target/grafana/${grafana.folder}/bin</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/usr/lib/ambari-metrics-grafana/bin</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${grafana.dir}/conf/unix/ambari-metrics-grafana</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/usr/sbin</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${grafana.dir}/conf/unix/ams-grafana-env.sh</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/etc/ambari-metrics-grafana/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${grafana.dir}/conf/unix/ams-grafana.ini</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/etc/ambari-metrics-grafana/conf</prefix>
+                  </mapper>
+                </data>
+
                 <!-- hadoop sink -->
 
                 <data>
@@ -844,6 +993,7 @@
         <assemblydescriptor.collector>src/main/assembly/collector.xml</assemblydescriptor.collector>
         <assemblydescriptor.monitor>src/main/assembly/monitor.xml</assemblydescriptor.monitor>
         <assemblydescriptor.sink>src/main/assembly/sink.xml</assemblydescriptor.sink>
+        <assemblydescriptor.grafana>src/main/assembly/grafana.xml</assemblydescriptor.grafana>
         <packagingFormat>jar</packagingFormat>
       </properties>
       <build>

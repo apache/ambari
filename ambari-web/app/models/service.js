@@ -22,7 +22,7 @@ require('utils/config');
 
 App.Service = DS.Model.extend({
   serviceName: DS.attr('string'),
-  displayName: Em.computed.formatRole('serviceName'),
+  displayName: Em.computed.formatRole('serviceName', true),
   passiveState: DS.attr('string'),
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),
@@ -41,6 +41,19 @@ App.Service = DS.Model.extend({
   masterComponents: DS.hasMany('App.MasterComponent'),
 
   /**
+   * Check master/slave component state of service
+   * and general services state to define if it can be removed
+   *
+   * @type {boolean}
+   */
+  allowToDelete: function() {
+    var workStatus = this.get('workStatus');
+    return App.Service.allowUninstallStates.contains(workStatus)
+      && this.get('slaveComponents').everyProperty('allowToDelete')
+      && this.get('masterComponents').everyProperty('allowToDelete');
+  }.property('slaveComponents.@each.allowToDelete', 'masterComponents.@each.allowToDelete', 'workStatus'),
+
+  /**
    * @type {bool}
    */
   isInPassive: Em.computed.equal('passiveState', 'ON'),
@@ -52,30 +65,28 @@ App.Service = DS.Model.extend({
     return clientComponents.concat(slaveComponents).concat(masterComponents);
   }.property('clientComponents.@each', 'slaveComponents.@each','masterComponents.@each'),
 
-  // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
-  // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated
-  // only once after the run loop.  This is because Ember invokes the computed property every time
-  // a property that it depends on changes.  For example, App.statusMapper's map function would invoke
-  // the computed property too many times and freezes the UI without this hack.
-  // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
-  healthStatus: function(){
-    switch(this.get('workStatus')){
-      case 'STARTED':
-        return 'green';
-      case 'STARTING':
-        return 'green-blinking';
-      case 'INSTALLED':
-        return 'red';
-      case 'STOPPING':
-        return 'red-blinking';
-      case 'UNKNOWN':
-      default:
-        return 'yellow';
-    }
-  }.property('workStatus'),
+  healthStatus: Em.computed.getByKey('healthStatusMap', 'workStatus', 'yellow'),
+
+  healthStatusMap: {
+    STARTED: 'green',
+    STARTING: 'green-blinking',
+    INSTALLED: 'red',
+    STOPPING: 'red-blinking',
+    UNKNOWN: 'yellow'
+  },
+
   isStopped: Em.computed.equal('workStatus', 'INSTALLED'),
 
   isStarted: Em.computed.equal('workStatus', 'STARTED'),
+
+  /**
+   * Indicates when service deleting is in progress
+   * Used to stop update service's data and topology
+   *
+   * @type {boolean}
+   * @default false
+   */
+  deleteInProgress: false,
 
   /**
    * Service Tagging by their type.
@@ -86,7 +97,8 @@ App.Service = DS.Model.extend({
       GANGLIA: ['MONITORING'],
       HDFS: ['HA_MODE'],
       YARN: ['HA_MODE'],
-      RANGER: ['HA_MODE']
+      RANGER: ['HA_MODE'],
+      HAWQ: ['HA_MODE']
     };
     return typeServiceMap[this.get('serviceName')] || [];
   }.property('serviceName'),
@@ -157,6 +169,49 @@ App.Service = DS.Model.extend({
 
 });
 
+/**
+ * Map of all service states
+ *
+ * @type {Object}
+ */
+App.Service.statesMap = {
+  init: 'INIT',
+  installing: 'INSTALLING',
+  install_failed: 'INSTALL_FAILED',
+  stopped: 'INSTALLED',
+  starting: 'STARTING',
+  started: 'STARTED',
+  stopping: 'STOPPING',
+  uninstalling: 'UNINSTALLING',
+  uninstalled: 'UNINSTALLED',
+  wiping_out: 'WIPING_OUT',
+  upgrading: 'UPGRADING',
+  maintenance: 'MAINTENANCE',
+  unknown: 'UNKNOWN'
+};
+
+/**
+ * @type {String[]}
+ */
+App.Service.inProgressStates = [
+  App.Service.statesMap.installing,
+  App.Service.statesMap.starting,
+  App.Service.statesMap.stopping,
+  App.Service.statesMap.uninstalling,
+  App.Service.statesMap.upgrading,
+  App.Service.statesMap.wiping_out
+];
+
+/**
+ * @type {String[]}
+ */
+App.Service.allowUninstallStates = [
+  App.Service.statesMap.init,
+  App.Service.statesMap.install_failed,
+  App.Service.statesMap.stopped,
+  App.Service.statesMap.unknown
+];
+
 App.Service.Health = {
   live: "LIVE",
   dead: "DEAD-RED",
@@ -185,12 +240,13 @@ App.Service.Health = {
  * association between service and extended model name
  * @type {Object}
  */
-  App.Service.extendedModel = {
+App.Service.extendedModel = {
   'HDFS': 'HDFSService',
   'HBASE': 'HBaseService',
   'YARN': 'YARNService',
   'MAPREDUCE2': 'MapReduce2Service',
   'STORM': 'StormService',
+  'RANGER': 'RangerService',
   'FLUME': 'FlumeService'
 };
 

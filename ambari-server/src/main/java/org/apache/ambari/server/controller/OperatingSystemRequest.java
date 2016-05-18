@@ -22,6 +22,7 @@ public class OperatingSystemRequest extends StackVersionRequest {
 
   private String osType;
   private Long repositoryVersionId;
+  private String versionDefinitionId;
 
   public OperatingSystemRequest(String stackName, String stackVersion, String osType) {
     super(stackName, stackVersion);
@@ -42,6 +43,19 @@ public class OperatingSystemRequest extends StackVersionRequest {
 
   public void setRepositoryVersionId(Long repositoryVersionId) {
     this.repositoryVersionId = repositoryVersionId;
+  }
+
+  /**
+   * @param id the version definition id string
+   */
+  public void setVersionDefinitionId(String id) {
+    versionDefinitionId = id;
+  }
+  /**
+   * @return the version definition id string
+   */
+  public String getVersionDefinitionId() {
+    return versionDefinitionId;
   }
 
 }

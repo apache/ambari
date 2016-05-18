@@ -47,6 +47,8 @@ public interface RequestStatus {
    */
   public Status getStatus();
 
+  RequestStatusMetaData getStatusMetadata();
+
   /**
    * Request status.
    */

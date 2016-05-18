@@ -35,8 +35,12 @@ module.exports = Em.Application.create({
   }),
   isAdmin: false,
   isOperator: false,
+  isClusterUser: false,
   isPermissionDataLoaded: false,
   auth: null,
+  isOnlyViewUser: function() {
+    return App.auth && (App.auth.length == 0 || (App.isAuthorized('VIEW.USE') && App.auth.length == 1));
+  }.property('auth'),
 
   /**
    * @type {boolean}
@@ -52,6 +56,9 @@ module.exports = Em.Application.create({
    *  - IN_PROGRESS
    *  - HOLDING
    *  - COMPLETED
+   *  - ABORTED
+   *  - HOLDING_FAILED
+   *  - HOLDING_TIMEDOUT
    * @type {String}
    */
   upgradeState: 'INIT',
@@ -68,16 +75,25 @@ module.exports = Em.Application.create({
    * @returns {boolean}
    */
   upgradeHolding: function() {
-    return this.get('upgradeState').contains("HOLDING");
-  }.property('upgradeState'),
+    return this.get('upgradeState').contains("HOLDING") || this.get('upgradeAborted');
+  }.property('upgradeState', 'upgradeAborted'),
 
   /**
    * flag is true when upgrade process is aborted
+   * SHOULD behave similar to HOLDING_FAILED state
    * @returns {boolean}
    */
   upgradeAborted: function () {
     return this.get('upgradeState') === "ABORTED" && !App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
+  }.property('upgradeState', 'App.router.mainAdminStackAndUpgradeController.isSuspended'),
+
+  /**
+   * flag is true when upgrade process is suspended
+   * @returns {boolean}
+   */
+  upgradeSuspended: function () {
+    return this.get('upgradeState') === "ABORTED" && App.router.get('mainAdminStackAndUpgradeController.isSuspended');
+  }.property('upgradeState', 'App.router.mainAdminStackAndUpgradeController.isSuspended'),
 
   /**
    * RU is running
@@ -86,29 +102,37 @@ module.exports = Em.Application.create({
   upgradeIsRunning: Em.computed.or('upgradeInProgress', 'upgradeHolding'),
 
   /**
-   * flag is true when upgrade process is running or aborted
+   * flag is true when upgrade process is running or suspended
    * or wizard used by another user
    * @returns {boolean}
    */
   wizardIsNotFinished: function () {
     return this.get('upgradeIsRunning') ||
-           this.get('upgradeAborted') ||
-           App.router.get('wizardWatcherController.isNonWizardUser') ||
-           App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser', 'router.mainAdminStackAndUpgradeController.isSuspended'),
+           this.get('upgradeSuspended') ||
+           App.router.get('wizardWatcherController.isNonWizardUser');
+  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser', 'upgradeSuspended'),
 
+  /**
+   * Options:
+   *  - ignoreWizard: ignore when some wizard is running by another user (default `false`)
+   *
+   * @param {string} authRoles
+   * @param {object} options
+   * @returns {boolean}
+   */
   isAuthorized: function(authRoles, options) {
+    options = $.extend({ignoreWizard: false}, options);
     var result = false;
     authRoles = $.map(authRoles.split(","), $.trim);
 
-    if (!App.router.get('mainAdminStackAndUpgradeController.isSuspended') &&
+    if (!this.get('upgradeSuspended') &&
         !App.get('supports.opsDuringRollingUpgrade') &&
         !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) ||
         !App.auth){
       return false;
     }
 
-    if (App.router.get('wizardWatcherController.isNonWizardUser')) {
+    if (!options.ignoreWizard && App.router.get('wizardWatcherController.isNonWizardUser')) {
       return false;
     }
 
@@ -164,6 +188,21 @@ module.exports = Em.Application.create({
 
   allHostNames: [],
 
+  /**
+   * This object is populated to keep track of uninstalled components to be included in the layout for recommendation/validation call
+   * @type {object}
+   * keys = componentName, hostName
+   */
+  componentToBeAdded: {},
+
+
+  /**
+   * This object is populated to keep track of installed components to be excluded in the layout for recommendation/validation call
+   * @type {object}
+   * keys = componentName, hostName
+   */
+  componentToBeDeleted: {},
+
   uiOnlyConfigDerivedFromTheme: [],
 
   currentStackVersionNumber: function () {
@@ -175,27 +214,7 @@ module.exports = Em.Application.create({
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.3") > -1);
   }.property('currentStackVersionNumber'),
 
-  isHadoop22Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.2") > -1);
-  }.property('currentStackVersionNumber'),
-
-  /**
-   * Determines if current stack is 2.0.*
-   * @type {boolean}
-   */
-  isHadoop20Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") == -1 && stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1);
-  }.property('currentStackVersionNumber'),
-
   isHadoopWindowsStack: Em.computed.equal('currentStackName', 'HDPWIN'),
-
-  /**
-   * when working with enhanced configs we should rely on stack version
-   * as version that is below 2.2 doesn't supports it
-   * even if flag <code>supports.enhancedConfigs<code> is true
-   * @type {boolean}
-   */
-  isClusterSupportsEnhancedConfigs: Em.computed.and('isHadoop22Stack', 'supports.enhancedConfigs'),
 
   /**
    * If NameNode High Availability is enabled
@@ -341,6 +360,10 @@ module.exports = Em.Application.create({
 
     clients: function () {
       return App.StackServiceComponent.find().filterProperty('isClient').mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    nonHDP: function () {
+      return App.StackServiceComponent.find().filterProperty('isNonHDPComponent').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded')
   })
 });

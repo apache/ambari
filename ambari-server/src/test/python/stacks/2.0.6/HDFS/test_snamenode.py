@@ -30,7 +30,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "configure",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -46,7 +46,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "start",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -62,11 +62,13 @@ class TestSNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid',
         action = ['delete'],
@@ -83,7 +85,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "stop",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode'",
@@ -98,7 +100,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "configure",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -114,7 +116,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "start",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -130,11 +132,13 @@ class TestSNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-secondarynamenode.pid',
         action = ['delete'],
@@ -151,7 +155,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "stop",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop secondarynamenode'",
@@ -163,10 +167,10 @@ class TestSNamenode(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -177,7 +181,7 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -209,23 +213,23 @@ class TestSNamenode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary2',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
     )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -236,7 +240,7 @@ class TestSNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -268,7 +272,7 @@ class TestSNamenode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
 
@@ -305,7 +309,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -325,7 +329,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -341,7 +345,7 @@ class TestSNamenode(RMFTestCase):
                          classname = "SNameNode",
                          command = "security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -362,7 +366,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -382,7 +386,7 @@ class TestSNamenode(RMFTestCase):
                        classname = "SNameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

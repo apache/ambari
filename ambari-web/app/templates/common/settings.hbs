@@ -40,12 +40,12 @@
     </label>
   </div>
   <div>
-    {{#unless view.isAdmin}}
+    {{#unless view.hidePrivileges}}
       <table class="table">
         <thead>
         <tr>
-          <th>Cluster</th>
-          <th>Cluster Role</th>
+          <th>{{t common.cluster}}</th>
+          <th>{{t app.settings.clusterRole}}</th>
         </tr>
         </thead>
         <tbody>
@@ -62,14 +62,19 @@
             </td>
           </tr>
         {{/each}}
+        {{#if noClusterPriv}}
+          <tr>
+              <td>{{t app.settings.no.cluster.privileges}}</td>
+          </tr>
+        {{/if}}
         </tbody>
         <thead class="view-permission-header">
         <tr>
-          <th>View</th>
-          <th>View Permissions</th>
+          <th>{{t common.view}}</th>
+          <th>{{t app.settings.viewPermissions}}</th>
         </tr>
         </thead>
-        <tbody ng-hide="user.admin">
+        <tbody>
         {{#each v in view.privileges.views}}
           <tr>
             <td>
@@ -83,14 +88,19 @@
             </td>
           </tr>
         {{/each}}
+        {{#if noViewPriv}}
+            <tr>
+                <td>{{t app.settings.no.view.privileges}}</td>
+            </tr>
+        {{/if}}
         </tbody>
       </table>
     {{/unless}}
     {{#if view.isAdmin}}
-      <div class="alert alert-info">This user is an Ambari Admin and has all privileges.</div>
+      <div class="alert alert-info">{{t app.settings.admin.all.privileges}}</div>
     {{else}}
       {{#unless view.privileges}}
-        <div class="alert alert-info">This user does not have any privileges.</div>
+        <div class="alert alert-info">{{t app.settings.no.privileges}}</div>
       {{/unless}}
     {{/if}}
   </div>

@@ -55,7 +55,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    * If its length is greater, it will cut to current value and ' ...' will be added to the end
    * @type {number}
    */
-  maxDisplayValLength: 45,
+  maxDisplayValLength: 30,
 
   /**
    * <code>options</code> where <code>isSelected</code> is true
@@ -149,6 +149,24 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * Update options list by recommendations
+   * @method updateList
+   */
+  updateList: function() {
+    this.removeObserver('options.@each.isSelected', this, this.calculateVal);
+    this.removeObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
+    /**
+     * This method should update options only. Observes should be removed
+     * until new options will be applies, to avoid changing of config value.
+     */
+    this.calculateOptions();
+
+    this.addObserver('options.@each.isSelected', this, this.calculateVal);
+    this.addObserver('options.@each.isSelected', this, this.checkSelectedItemsCount);
+    this.set('config.showAsTextBox', !this.isValueCompatibleWithWidget());
+  }.observes('config.stackConfigProperty.valueAttributes.entries.[]', 'controller.forceUpdateBoundaries'),
+
+  /**
    * Get initial value for <code>val</code> using calculated earlier <code>options</code>
    * Used on <code>willInsertElement</code> and when user click on "Undo"-button (to restore default value)
    * @method calculateInitVal
@@ -201,8 +219,11 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
       currentlySelected = this.get('options').filterProperty('isSelected').length,
       selectionDisabled = allowedToSelect <= currentlySelected;
     this.get('options').filterProperty('isSelected', false).setEach('isDisabled', selectionDisabled);
-    this.set('config.errorMessage', currentlySelected < neededToSelect ? 'You should select at least ' + neededToSelect + ' item(s)' : '');
-    this.get('config').validate();
+    if (currentlySelected < neededToSelect) {
+      this.set('config.errorMessage', 'You should select at least ' + neededToSelect + ' item(s)');
+    } else {
+      this.get('config').validate();
+    }
   },
 
   /**
@@ -272,9 +293,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     } else {
       this.calculateInitVal();
     }
-    if (!this.isValueCompatibleWithWidget() && !this.get('config.showAsTextBox')) {
-      this.set('config.showAsTextBox', true);
-    }
+    this.set('config.showAsTextBox', !this.isValueCompatibleWithWidget());
   },
 
   isValueCompatibleWithWidget: function() {
@@ -288,16 +307,15 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   isOptionExist: function(value) {
-    var isExist = false;
-    if (value !== null && value !== undefined) {
+    var isExist = true;
+    if (Em.isNone(value)) {
+      return !isExist;
+    } else {
       value = Em.typeOf(value) == 'string' ? value.split(',') : value;
       value.forEach(function(item) {
-        isExist = this.get('options').mapProperty('value').contains(item);
+        isExist = isExist && this.get('options').mapProperty('value').contains(item);
       }, this);
       return isExist;
-    } else {
-      return false;
     }
   }
-
 });

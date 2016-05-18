@@ -21,6 +21,7 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources import Execute
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import format
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
@@ -32,8 +33,8 @@ class SqoopServiceCheck(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class SqoopServiceCheckDefault(SqoopServiceCheck):
 
-  def get_stack_to_component(self):
-    return {"HDP": "sqoop-server"}
+  def get_component_name(self):
+    return "sqoop-server"
 
   def service_check(self, env):
     import params
@@ -53,7 +54,7 @@ class SqoopServiceCheckWindows(SqoopServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)
-    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    smoke_cmd = os.path.join(params.stack_root,"Run-SmokeTests.cmd")
     service = "SQOOP"
     Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
 

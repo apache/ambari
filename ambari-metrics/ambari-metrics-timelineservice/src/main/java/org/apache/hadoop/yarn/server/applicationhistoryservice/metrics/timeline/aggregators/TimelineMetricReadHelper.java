@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
+import org.apache.hadoop.metrics2.sink.timeline.SingleValuedTimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 
@@ -40,9 +41,47 @@ public class TimelineMetricReadHelper {
   public TimelineMetric getTimelineMetricFromResultSet(ResultSet rs)
       throws SQLException, IOException {
     TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
-    TreeMap<Long, Double> sortedByTimeMetrics = new TreeMap<Long, Double>(
-        PhoenixHBaseAccessor.readMetricFromJSON(rs.getString("METRICS")));
+    TreeMap<Long, Double> sortedByTimeMetrics =
+      PhoenixHBaseAccessor.readMetricFromJSON(rs.getString("METRICS"));
     metric.setMetricValues(sortedByTimeMetrics);
+    return metric;
+  }
+
+  public SingleValuedTimelineMetric getAggregatedTimelineMetricFromResultSet(ResultSet rs,
+      Function f) throws SQLException, IOException {
+
+    Function function = (f != null) ? f : Function.DEFAULT_VALUE_FUNCTION;
+    SingleValuedTimelineMetric metric = new SingleValuedTimelineMetric(
+      rs.getString("METRIC_NAME") + function.getSuffix(),
+      rs.getString("APP_ID"),
+      rs.getString("INSTANCE_ID"),
+      rs.getString("HOSTNAME"),
+      rs.getLong("SERVER_TIME"),
+      rs.getLong("SERVER_TIME"),
+      rs.getString("UNITS")
+    );
+
+    double value;
+    switch(function.getReadFunction()){
+      case AVG:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+      case MIN:
+        value = rs.getDouble("METRIC_MIN");
+        break;
+      case MAX:
+        value = rs.getDouble("METRIC_MAX");
+        break;
+      case SUM:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+      default:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+    }
+
+    metric.setSingleTimeseriesValue(rs.getLong("SERVER_TIME"), value);
+
     return metric;
   }
 

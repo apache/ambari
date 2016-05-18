@@ -18,17 +18,24 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.spi.Predicate;
-
-import java.util.Collection;
-import java.util.HashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Host Group information specific to a cluster instance.
  */
 public class HostGroupInfo {
+
+  private final static Logger LOG = LoggerFactory.getLogger(HostGroupInfo.class);
+
   /**
    * predicate compiler
    */
@@ -42,6 +49,12 @@ public class HostGroupInfo {
    * hosts contained associated with the host group
    */
   private final Collection<String> hostNames = new HashSet<String>();
+
+  /**
+   * maps host names to rack information
+   * todo maintain a single structure for hostnames and rack information
+   */
+  private final Map<String, String> hostRackInfo = new HashMap<>();
 
   /**
    * explicitly specified host count
@@ -117,7 +130,11 @@ public class HostGroupInfo {
    */
   public void addHost(String hostName) {
     synchronized(hostNames) {
-      hostNames.add(hostName);
+      String lowerHostName = hostName.toLowerCase();
+      if (!hostName.equals(lowerHostName)) {
+        LOG.warn("Host name {} contains upper case letters, will be converted to lowercase!", hostName );
+      }
+      hostNames.add(lowerHostName);
     }
   }
 
@@ -191,4 +208,38 @@ public class HostGroupInfo {
   public String getPredicateString() {
     return predicateString;
   }
+
+  /**
+   * Registers host rack information.
+   *
+   * @param host     the name of the host
+   * @param rackInfo the rack information
+   */
+  public void addHostRackInfo(String host, String rackInfo) {
+    synchronized (hostRackInfo) {
+      hostRackInfo.put(host, rackInfo);
+    }
+  }
+
+  /**
+   * Returns a map with host names mapped to rack information.
+   *
+   * @return a copy of the current instance' rack information map
+   */
+  public Map<String, String> getHostRackInfo() {
+    synchronized (hostRackInfo) {
+      return new HashMap<>(hostRackInfo);
+    }
+  }
+
+  /**
+   * Removes hostname from group
+   * @param hostname
+   */
+  public void removeHost(String hostname) {
+    synchronized (hostNames) {
+      hostNames.remove(hostname);
+    }
+  }
+
 }

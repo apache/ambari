@@ -204,6 +204,10 @@
         }
       }
     }
+    .input-resource-calc {
+       width: 85%;
+       display: inline-block;
+    }
   }
 }
 
@@ -256,6 +260,13 @@
           line-height: 1em;
           //opacity: 0.9;
           text-shadow: 0px -1px 3px #111;
+        }
+      }
+      .del-default-q {
+        .tooltip {
+          .tooltip-inner {
+            max-width: 350px;
+          }
         }
       }
 
@@ -707,6 +718,10 @@
               opacity: 0.4;
             }
           }
+          .hz-divider {
+            border-bottom: 1px solid #ddd;
+            margin: 15px 5px 15px 5px;
+          }
         }
       }
 
@@ -864,4 +879,289 @@
 
 .tooltip-label span:first-child {
   cursor: help;
+}
+
+.panel-queue-mapping {
+  .queue-mapping-options {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-left: -15px;
+    margin-right: -15px;
+    .row {
+      margin: 0px;
+    }
+  }
+  .list-group {
+    .list-group-item {
+      margin-bottom: 3px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      padding: 5px 15px;
+    }
+  }
+  .remove-mapping-icon {
+    cursor: pointer;
+    &:hover {
+      color: #d9534f;
+    }
+  }
+}
+
+.scheduler-panel {
+  .input-control {
+    width: 75%;
+    display: inline-block;
+  }
+  .input-resource-percent {
+    width: 75%;
+    float: left;
+  }
+  .rollback-resource-percent {
+    margin: 4px;
+  }
+  .resource-calc-control {
+    width: 88%;
+    display: inline-block;
+  }
+}
+
+.queue-config-container {
+  .queue-actions-wrapper {
+    .btn {
+      padding: 1px 5px;
+    }
+  }
+  .add-newqueuename-wrapper {
+    padding-top: 30px;
+    .new-queue-name {
+      width: 100%;
+      display: inline-block;
+    }
+  }
+  hr {
+    margin-top: 5px;
+    margin-bottom: 10px;
+  }
+  .queue-hierarchy.list-group {
+    margin-bottom: 5px;
+    .list-group-item {
+      border: 1px solid #efefef;
+      padding: 5px 10px;
+      &.first {
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+      }
+      &.last {
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+      }
+      .badge {
+        background-color: #fff;
+        padding: 2px 3px;
+      }
+    }
+  }
+}
+
+.queue-resources-container {
+  .input-width-control {
+    width: 75%;
+    display: inline-block;
+  }
+  .input-percent-wrap {
+    .input-percent {
+      width: 75%;
+      float: left;
+    }
+    .btn-group.btn-group-xs {
+      margin: 4px;
+    }
+  }
+  .input-toggle-wrap {
+    .btn-group.btn-group-sm {
+      width: 20px;
+      .btn.btn-default {
+        width: 20px;
+        padding: 0;
+        border: none;
+        margin: 0;
+        &:hover, &:active, &:focus {
+          background-color: #fff;
+        }
+        .fa {
+          font-size: 18px
+        }
+        .fa-square-o {
+          margin-left: -6px;
+        }
+        .fa-check-square-o {
+          margin-left: -4px;
+        }
+      }
+    }
+  }
+  .inherited-value {
+    margin: 4px 0px 4px -40px;
+  }
+}
+
+.queue-acl-container {
+  .user-group-input {
+    .col-sm-4 {
+      padding: 15px;
+    }
+    .col-sm-8 {
+      width: 35%;
+      padding: 10px;
+    }
+    .fa-user,.fa-users {
+      top: 8px;
+      right: 7px;
+      opacity: 0.4;
+    }
+    .help-block {
+      float: left !important;
+    }
+  }
+}
+
+.capsched-container {
+  .nav-tabs {
+    border-bottom: none;
+  }
+  .panel-heading {
+    padding: 4px 14px;
+    .panel-title {
+      font-size: 14px;
+    }
+  }
+  .input-group-addon {
+    padding: 7px 6px;
+    width: 26px;
+  }
+}
+
+.queue-summary {
+  .panel-default {
+    border-color: #f5f5f5;
+  }
+}
+
+.queue-capacity-container {
+  .form-inline {
+    margin-bottom: 20px;
+    .queue-name {
+      margin-top: 5px;
+    }
+    .capacity-input-percent {
+      width: 30%;
+      float: left;
+      display: inline-block;
+      input {
+        width: 60%;
+      }
+    }
+    .capacity-input-slider {
+      width: 60%;
+      display: inline-block;
+    }
+  }
+  .progress {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 0;
+    .progress-bar {
+      color: #000;
+    }
+  }
+  .total-capacity-progress {
+    width: 100%;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background-color: #fefefe;
+    &:focus {
+      outline: none;
+    }
+    &::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 2px;
+      cursor: pointer;
+      background: #555;
+      border-radius: 1.3px;
+      border: 0.2px solid #010101;
+      &:focus {
+        background: #555;
+      }
+    }
+    &::-webkit-slider-thumb {
+      border: 1.8px solid #00001e;
+      height: 15px;
+      width: 20px;
+      border-radius: 15px;
+      background: #ffffff;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -7px;
+    }
+    &::-moz-range-track {
+      width: 100%;
+      height: 2px;
+      cursor: pointer;
+      background: #555;
+      border-radius: 1.3px;
+      border: 0.2px solid #010101;
+    }
+    &::-moz-range-thumb {
+      border: 1.8px solid #00001e;
+      height: 15px;
+      width: 20px;
+      border-radius: 15px;
+      background: #ffffff;
+      cursor: pointer;
+    }
+    &::-ms-track {
+      width: 100%;
+      height: 2px;
+      cursor: pointer;
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+    }
+    &::-ms-thumb {
+      border: 1.8px solid #00001e;
+      width: 20px;
+      border-radius: 15px;
+      background: #ffffff;
+      cursor: pointer;
+      height: 11.4px;
+    }
+    &::-ms-fill-lower {
+      background: rgba(42, 100, 149, 0.78);
+      border: 0.2px solid #010101;
+      border-radius: 2.6px;
+      &:focus {
+        background: #555;
+      }
+    }
+    &::-ms-fill-upper {
+      background: #555;
+      border: 0.2px solid #010101;
+      border-radius: 2.6px;
+      &:focus {
+        background: #555;
+      }
+    }
+  }
+}
+
+.edit-queuename-wrapper {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  .input-queue-name {
+    width: 69%;
+    display: inline-block;
+  }
 }

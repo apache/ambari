@@ -64,9 +64,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -607,24 +605,16 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     List<ClusterEntity> clusterEntities = clusterDAO.findAll();
     for (final ClusterEntity clusterEntity : clusterEntities) {
-      ServiceComponentDesiredStateEntityPK pkHS = new ServiceComponentDesiredStateEntityPK();
-      pkHS.setComponentName("HISTORYSERVER");
-      pkHS.setClusterId(clusterEntity.getClusterId());
-      pkHS.setServiceName("MAPREDUCE");
-
-      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityHS = serviceComponentDesiredStateDAO.findByPK(pkHS);
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityHS = serviceComponentDesiredStateDAO.findByName(
+          clusterEntity.getClusterId(), "MAPREDUCE", "HISTORYSERVER");
 
       // already have historyserver
       if(serviceComponentDesiredStateEntityHS != null) {
         continue;
       }
 
-      ServiceComponentDesiredStateEntityPK pkJT = new ServiceComponentDesiredStateEntityPK();
-      pkJT.setComponentName("JOBTRACKER");
-      pkJT.setClusterId(clusterEntity.getClusterId());
-      pkJT.setServiceName("MAPREDUCE");
-
-      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityJT = serviceComponentDesiredStateDAO.findByPK(pkJT);
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityJT = serviceComponentDesiredStateDAO.findByName(
+          clusterEntity.getClusterId(), "MAPREDUCE", "JOBTRACKER");
 
       // no jobtracker present probably mapreduce is not installed
       if(serviceComponentDesiredStateEntityJT == null) {

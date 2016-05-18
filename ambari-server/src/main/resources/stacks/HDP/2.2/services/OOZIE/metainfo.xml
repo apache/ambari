@@ -65,29 +65,34 @@
               <name>zip</name>
             </package>
             <package>
+              <name>mysql-connector-java</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysl_connector</condition>
+            </package>
+            <package>
               <name>extjs</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat5,amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>oozie_2_2_*</name>
+              <name>oozie_${stack_version}</name>
             </package>
             <package>
-              <name>falcon_2_2_*</name>
+              <name>falcon_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>oozie-2-2-.*</name>
+              <name>oozie-${stack_version}</name>
             </package>
             <package>
-              <name>falcon-2-2-.*</name>
+              <name>falcon-${stack_version}</name>
             </package>
             <package>
               <name>extjs</name>

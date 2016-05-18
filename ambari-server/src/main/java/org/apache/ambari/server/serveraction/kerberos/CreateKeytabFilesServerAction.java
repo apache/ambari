@@ -22,12 +22,15 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.audit.event.kerberos.CreateKeyTabKerberosAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
+import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.slf4j.Logger;
@@ -146,56 +149,66 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                                           Map<String, String> kerberosConfiguration,
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
+
+
+    CreateKeyTabKerberosAuditEvent.CreateKeyTabKerberosAuditEventBuilder auditEventBuilder = CreateKeyTabKerberosAuditEvent.builder();
+    auditEventBuilder.withTimestamp(System.currentTimeMillis());
+    // in case this is called directly from TopologyManager there's no HostRoleCommand
+    auditEventBuilder.withRequestId(getHostRoleCommand() != null ? getHostRoleCommand().getRequestId() : -1);
+    auditEventBuilder.withTaskId(getHostRoleCommand() != null ? getHostRoleCommand().getTaskId() : -1);
+
     CommandReport commandReport = null;
+    String message = null;
+    try {
+      if (identityRecord != null) {
+        String dataDirectory = getDataDirectoryPath();
 
-    if (identityRecord != null) {
-      String message;
-      String dataDirectory = getDataDirectoryPath();
+        if (operationHandler == null) {
+          message = String.format("Failed to create keytab file for %s, missing KerberosOperationHandler", evaluatedPrincipal);
+          actionLog.writeStdErr(message);
+          LOG.error(message);
+          commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+        } else if (dataDirectory == null) {
+          message = "The data directory has not been set. Generated keytab files can not be stored.";
+          LOG.error(message);
+          commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+        } else {
+          Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
+          Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
 
-      if (operationHandler == null) {
-        message = String.format("Failed to create keytab file for %s, missing KerberosOperationHandler", evaluatedPrincipal);
-        actionLog.writeStdErr(message);
-        LOG.error(message);
-        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-      } else if (dataDirectory == null) {
-        message = "The data directory has not been set. Generated keytab files can not be stored.";
-        LOG.error(message);
-        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-      }
-      else {
-        Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
-        Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
+          String hostName = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
+          String keytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
 
-        String hostName = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
-        String keytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
+          if ((hostName != null) && !hostName.isEmpty() && (keytabFilePath != null) && !keytabFilePath.isEmpty()) {
+            Set<String> visitedPrincipalKeys = visitedIdentities.get(evaluatedPrincipal);
+            String visitationKey = String.format("%s|%s", hostName, keytabFilePath);
 
-        if ((hostName != null) && !hostName.isEmpty() && (keytabFilePath != null) && !keytabFilePath.isEmpty()) {
-          Set<String> visitedPrincipalKeys = visitedIdentities.get(evaluatedPrincipal);
-          String visitationKey = String.format("%s|%s", hostName, keytabFilePath);
+            if ((visitedPrincipalKeys == null) || !visitedPrincipalKeys.contains(visitationKey)) {
+              // Look up the current evaluatedPrincipal's password.
+              // If found create the keytab file, else try to find it in the cache.
+              String password = principalPasswordMap.get(evaluatedPrincipal);
+              Integer keyNumber = principalKeyNumberMap.get(evaluatedPrincipal);
 
-          if ((visitedPrincipalKeys == null) || !visitedPrincipalKeys.contains(visitationKey)) {
-            // Look up the current evaluatedPrincipal's password.
-            // If found create the keytab file, else try to find it in the cache.
-            String password = principalPasswordMap.get(evaluatedPrincipal);
+              message = String.format("Creating keytab file for %s on host %s", evaluatedPrincipal, hostName);
+              LOG.info(message);
+              actionLog.writeStdOut(message);
+              auditEventBuilder.withPrincipal(evaluatedPrincipal).withHostName(hostName).withKeyTabFilePath(keytabFilePath);
 
-            message = String.format("Creating keytab file for %s on host %s", evaluatedPrincipal, hostName);
-            LOG.info(message);
-            actionLog.writeStdOut(message);
+              // Determine where to store the keytab file.  It should go into a host-specific
+              // directory under the previously determined data directory.
+              File hostDirectory = new File(dataDirectory, hostName);
 
-            // Determine where to store the keytab file.  It should go into a host-specific
-            // directory under the previously determined data directory.
-            File hostDirectory = new File(dataDirectory, hostName);
-
-            // Ensure the host directory exists...
-            if (!hostDirectory.exists() && hostDirectory.mkdirs()) {
-              // Make sure only Ambari has access to this directory.
-              ensureAmbariOnlyAccess(hostDirectory);
-            }
+              // Ensure the host directory exists...
+              if (!hostDirectory.exists() && hostDirectory.mkdirs()) {
+                // Make sure only Ambari has access to this directory.
+                ensureAmbariOnlyAccess(hostDirectory);
+              }
 
             if (hostDirectory.exists()) {
               File destinationKeytabFile = new File(hostDirectory, DigestUtils.sha1Hex(keytabFilePath));
               HostEntity hostEntity = hostDAO.findByName(hostName);
-              if (hostEntity == null) {
+              // in case of ambari-server identity there's no host entity for ambari_server host
+              if (hostEntity == null && !hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
                 message = "Failed to find HostEntity for hostname = " + hostName;
                 actionLog.writeStdErr(message);
                 LOG.error(message);
@@ -204,7 +217,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
               }
 
               if (password == null) {
-                if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal, hostEntity.getHostId())) {
+                if (hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME) || kerberosPrincipalHostDAO
+                  .exists(evaluatedPrincipal, hostEntity.getHostId())) {
                   // There is nothing to do for this since it must already exist and we don't want to
                   // regenerate the keytab
                   message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);
@@ -213,129 +227,161 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                   KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
                   String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
 
-                  if (cachedKeytabPath == null) {
-                    message = String.format("Failed to create keytab for %s, missing cached file", evaluatedPrincipal);
-                    actionLog.writeStdErr(message);
-                    LOG.error(message);
-                    commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-                  } else {
+                    if (cachedKeytabPath == null) {
+                      message = String.format("Failed to create keytab for %s, missing cached file", evaluatedPrincipal);
+                      actionLog.writeStdErr(message);
+                      LOG.error(message);
+                      commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+                    } else {
+                      try {
+                        operationHandler.createKeytabFile(new File(cachedKeytabPath), destinationKeytabFile);
+                      } catch (KerberosOperationException e) {
+                        message = String.format("Failed to create keytab file for %s - %s", evaluatedPrincipal, e.getMessage());
+                        actionLog.writeStdErr(message);
+                        LOG.error(message, e);
+                        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+                      }
+                    }
+                  }
+                } else {
+                  boolean canCache = ("true".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_IS_CACHABLE)));
+
+                  Keytab keytab = createKeytab(evaluatedPrincipal, password, keyNumber, operationHandler, visitedPrincipalKeys != null, canCache, actionLog);
+
+                  if (keytab != null) {
                     try {
-                      operationHandler.createKeytabFile(new File(cachedKeytabPath), destinationKeytabFile);
+                      if (operationHandler.createKeytabFile(keytab, destinationKeytabFile)) {
+                        ensureAmbariOnlyAccess(destinationKeytabFile);
+
+                        message = String.format("Successfully created keytab file for %s at %s", evaluatedPrincipal, destinationKeytabFile.getAbsolutePath());
+                        LOG.debug(message);
+                        auditEventBuilder.withPrincipal(evaluatedPrincipal).withHostName(hostName).withKeyTabFilePath(destinationKeytabFile.getAbsolutePath());
+                      } else {
+                        message = String.format("Failed to create keytab file for %s at %s", evaluatedPrincipal, destinationKeytabFile.getAbsolutePath());
+                        actionLog.writeStdErr(message);
+                        LOG.error(message);
+                        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+                      }
                     } catch (KerberosOperationException e) {
                       message = String.format("Failed to create keytab file for %s - %s", evaluatedPrincipal, e.getMessage());
                       actionLog.writeStdErr(message);
                       LOG.error(message, e);
                       commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
                     }
+                  } else {
+                    commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
                   }
+
+                  if (visitedPrincipalKeys == null) {
+                    visitedPrincipalKeys = new HashSet<String>();
+                    visitedIdentities.put(evaluatedPrincipal, visitedPrincipalKeys);
+                  }
+
+                  visitedPrincipalKeys.add(visitationKey);
                 }
               } else {
-                Keytab keytab = null;
-
-                // Possibly get the keytab from the cache
-                if (visitedPrincipalKeys != null) {
-                  // Since we have visited this principal before, attempt to pull the keytab from the
-                  // cache...
-                  KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
-                  String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
-
-                  if (cachedKeytabPath != null) {
-                    try {
-                      keytab = Keytab.read(new File(cachedKeytabPath));
-                    } catch (IOException e) {
-                      message = String.format("Failed to read the cached keytab for %s, recreating if possible - %s",
-                          evaluatedPrincipal, e.getMessage());
-
-                      if (LOG.isDebugEnabled()) {
-                        LOG.warn(message, e);
-                      } else {
-                        LOG.warn(message, e);
-                      }
-                    }
-                  }
-                }
-
-                // If the keytab was not retrieved from the cache... create it.
-                if (keytab == null) {
-                  Integer keyNumber = principalKeyNumberMap.get(evaluatedPrincipal);
-
-                  try {
-                    keytab = operationHandler.createKeytab(evaluatedPrincipal, password, keyNumber);
-
-                    // If the current identity does not represent a service, copy it to a secure location
-                    // and store that location so it can be reused rather than recreate it.
-                    KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
-                    if (principalEntity != null) {
-                      if (!principalEntity.isService() && ("true".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_IS_CACHABLE)))) {
-                        File cachedKeytabFile = cacheKeytab(evaluatedPrincipal, keytab);
-                        String previousCachedFilePath = principalEntity.getCachedKeytabPath();
-                        String cachedKeytabFilePath = ((cachedKeytabFile == null) || !cachedKeytabFile.exists())
-                            ? null
-                            : cachedKeytabFile.getAbsolutePath();
-
-                        principalEntity.setCachedKeytabPath(cachedKeytabFilePath);
-                        kerberosPrincipalDAO.merge(principalEntity);
-
-                        if(previousCachedFilePath != null) {
-                          if(!new File(previousCachedFilePath).delete()) {
-                            LOG.debug(String.format("Failed to remove orphaned cache file %s", previousCachedFilePath));
-                          }
-                        }
-                      }
-                    }
-                  } catch (KerberosOperationException e) {
-                    message = String.format("Failed to create keytab file for %s - %s", evaluatedPrincipal, e.getMessage());
-                    actionLog.writeStdErr(message);
-                    LOG.error(message, e);
-                    commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-                  }
-                }
-
-                if (keytab != null) {
-                  try {
-                    if (operationHandler.createKeytabFile(keytab, destinationKeytabFile)) {
-                      ensureAmbariOnlyAccess(destinationKeytabFile);
-
-                      message = String.format("Successfully created keytab file for %s at %s", evaluatedPrincipal, destinationKeytabFile.getAbsolutePath());
-                      LOG.debug(message);
-                    } else {
-                      message = String.format("Failed to create keytab file for %s at %s", evaluatedPrincipal, destinationKeytabFile.getAbsolutePath());
-                      actionLog.writeStdErr(message);
-                      LOG.error(message);
-                      commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-                    }
-                  } catch (KerberosOperationException e) {
-                    message = String.format("Failed to create keytab file for %s - %s", evaluatedPrincipal, e.getMessage());
-                    actionLog.writeStdErr(message);
-                    LOG.error(message, e);
-                    commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-                  }
-                }
+                message = String.format("Failed to create keytab file for %s, the container directory does not exist: %s",
+                  evaluatedPrincipal, hostDirectory.getAbsolutePath());
+                actionLog.writeStdErr(message);
+                LOG.error(message);
+                commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
               }
             } else {
-              message = String.format("Failed to create keytab file for %s, the container directory does not exist: %s",
-                  evaluatedPrincipal, hostDirectory.getAbsolutePath());
-              actionLog.writeStdErr(message);
-              LOG.error(message);
-              commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+              LOG.debug(String.format("Skipping previously processed keytab for %s on host %s", evaluatedPrincipal, hostName));
             }
-
-            if(visitedPrincipalKeys == null) {
-              visitedPrincipalKeys = new HashSet<String>();
-              visitedIdentities.put(evaluatedPrincipal, visitedPrincipalKeys);
-            }
-
-            visitedPrincipalKeys.add(visitationKey);
           }
-          else {
-            LOG.debug(String.format("Skipping previously processed keytab for %s on host %s", evaluatedPrincipal, hostName));
+        }
+      }
+    } finally {
+      if(commandReport != null && HostRoleStatus.FAILED.toString().equals(commandReport.getStatus())) {
+        auditEventBuilder.withReasonOfFailure(message == null ? "Unknown error" : message);
+      }
+      if(commandReport != null || auditEventBuilder.hasPrincipal()) {
+        auditLog(auditEventBuilder.build());
+      }
+    }
+    return commandReport;
+  }
+
+  /**
+   * Creates the keytab or gets one from the cache for a principal.
+   *
+   * @param principal        the principal name for the Keytab to create
+   * @param password         the password for the Keytab to create
+   * @param keyNumber        the key number for the Keytab to create
+   * @param operationHandler the KerberosOperationHandler for the relevant KDC
+   * @param checkCache       true to check the cache for an existing Keytab; otherwise false
+   * @param canCache         true to cache the resulting keytab (if generated); otherwise false
+   * @param actionLog        the logger (may be null if no logging is desired)
+   * @return a Keytab
+   * @throws AmbariException
+   */
+  public Keytab createKeytab(String principal, String password, Integer keyNumber,
+                             KerberosOperationHandler operationHandler, boolean checkCache,
+                             boolean canCache, ActionLog actionLog) throws AmbariException {
+    LOG.debug("Creating keytab for " + principal + " with kvno " + keyNumber);
+    Keytab keytab = null;
+
+    // Possibly get the keytab from the cache
+    if (checkCache) {
+      // Attempt to pull the keytab from the cache...
+      KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(principal);
+      String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
+
+      if (cachedKeytabPath != null) {
+        try {
+          keytab = Keytab.read(new File(cachedKeytabPath));
+        } catch (IOException e) {
+          String message = String.format("Failed to read the cached keytab for %s, recreating if possible - %s",
+              principal, e.getMessage());
+
+          if (LOG.isDebugEnabled()) {
+            LOG.warn(message, e);
+          } else {
+            LOG.warn(message, e);
           }
         }
       }
     }
 
-    return commandReport;
+    // If the keytab was not retrieved from the cache... create it.
+    if (keytab == null) {
+      try {
+        keytab = operationHandler.createKeytab(principal, password, keyNumber);
+
+        // If the current identity does not represent a service, copy it to a secure location
+        // and store that location so it can be reused rather than recreate it.
+        KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(principal);
+        if (principalEntity != null) {
+          if (!principalEntity.isService() && canCache) {
+            File cachedKeytabFile = cacheKeytab(principal, keytab);
+            String previousCachedFilePath = principalEntity.getCachedKeytabPath();
+            String cachedKeytabFilePath = ((cachedKeytabFile == null) || !cachedKeytabFile.exists())
+                    ? null
+                    : cachedKeytabFile.getAbsolutePath();
+
+            principalEntity.setCachedKeytabPath(cachedKeytabFilePath);
+            kerberosPrincipalDAO.merge(principalEntity);
+
+            if (previousCachedFilePath != null) {
+              if (!new File(previousCachedFilePath).delete()) {
+                LOG.debug(String.format("Failed to remove orphaned cache file %s", previousCachedFilePath));
+              }
+            }
+          }
+        }
+      } catch (KerberosOperationException e) {
+        String message = String.format("Failed to create keytab file for %s - %s", principal, e.getMessage());
+        if (actionLog != null) {
+          actionLog.writeStdErr(message);
+        }
+        LOG.error(message, e);
+      }
+    }
+
+    return keytab;
   }
+
 
   /**
    * Cache a keytab given its relative principal name and the keytab data.

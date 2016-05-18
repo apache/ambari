@@ -57,8 +57,8 @@ def replace_underscores(function_to_decorate):
 class AptProvider(PackageProvider):
 
   @replace_underscores
-  def install_package(self, name, use_repos=[], skip_repos=[]):
-    if use_repos or not self._check_existence(name):
+  def install_package(self, name, use_repos=[], skip_repos=[], is_upgrade=False):
+    if is_upgrade or use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       copied_sources_files = []
       is_tmp_dir_created = False
@@ -78,7 +78,7 @@ class AptProvider(PackageProvider):
 
       cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      code, out = self.call_until_not_locked(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
+      code, out = self.call_with_retries(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
       
       if self.is_locked_output(out):
         err_msg = Logger.filter_text("Execution of '%s' returned %d. %s" % (cmd, code, out))
@@ -88,13 +88,13 @@ class AptProvider(PackageProvider):
       if code:
         Logger.info("Execution of '%s' returned %d. %s" % (cmd, code, out))
         Logger.info("Failed to install package %s. Executing `%s`" % (name, string_cmd_from_args_list(REPO_UPDATE_CMD)))
-        code, out = self.call_until_not_locked(REPO_UPDATE_CMD, sudo=True, logoutput=self.get_logoutput())
+        code, out = self.call_with_retries(REPO_UPDATE_CMD, sudo=True, logoutput=self.get_logoutput())
         
         if code:
           Logger.info("Execution of '%s' returned %d. %s" % (REPO_UPDATE_CMD, code, out))
           
         Logger.info("Retrying to install package %s" % (name))
-        self.checked_call_until_not_locked(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
+        self.checked_call_with_retries(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
 
       if is_tmp_dir_created:
         for temporal_sources_file in copied_sources_files:
@@ -108,16 +108,19 @@ class AptProvider(PackageProvider):
   def is_locked_output(self, out):
     return "Unable to lock the administration directory" in out
 
+  def is_repo_error_output(self, out):
+    return "Failure when receiving data from the peer" in out
+
   @replace_underscores
-  def upgrade_package(self, name, use_repos=[], skip_repos=[]):
-    return self.install_package(name, use_repos, skip_repos)
+  def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):
+    return self.install_package(name, use_repos, skip_repos, is_upgrade)
 
   @replace_underscores
   def remove_package(self, name):
     if self._check_existence(name):
       cmd = REMOVE_CMD[self.get_logoutput()] + [name]
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      self.checked_call_until_not_locked(cmd, sudo=True, logoutput=self.get_logoutput())
+      self.checked_call_with_retries(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping removal of non-existing package %s" % (name))
 

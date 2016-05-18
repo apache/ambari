@@ -95,6 +95,11 @@
   </div>
   <div class="btn-area">
     <a class="btn installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
-    <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action next}}>
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+      {{/if}}
+      {{t common.next}} &rarr;
+    </a>
   </div>
 </div>

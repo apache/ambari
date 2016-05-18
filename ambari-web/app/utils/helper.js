@@ -360,6 +360,17 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
   return new Em.Handlebars.SafeString(property);
 });
 
+/**
+ * Usage:
+ *
+ * <pre>
+ *   {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+ *     {{! some truly code }}
+ *   {{else}}
+ *     {{! some falsy code }}
+ *   {{/isAuthorized}}
+ * </pre>
+ */
 Em.Handlebars.registerHelper('isAuthorized', function (property, options) {
   var permission = Ember.Object.create({
     isAuthorized: function() {
@@ -487,7 +498,9 @@ App.format = {
     'UI': 'UI',
     'ZKFC': 'ZKFailoverController',
     'ZOOKEEPER': 'ZooKeeper',
-    'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'ZK Quorum Service Check'
+    'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'ZK Quorum Service Check',
+    'HAWQ': 'HAWQ',
+    'PXF': 'PXF'
   },
 
   /**
@@ -510,10 +523,16 @@ App.format = {
   },
 
   /**
-   * cached map of service and component names
+   * cached map of service names
    * @type {object}
    */
-  stackRolesMap: {},
+  stackServiceRolesMap: {},
+
+  /**
+   * cached map of component names
+   * @type {object}
+   */
+  stackComponentRolesMap: {},
 
   /**
    * convert role to readable string
@@ -521,23 +540,33 @@ App.format = {
    * @memberof App.format
    * @method role
    * @param {string} role
+   * @param {boolean} isServiceRole
    * return {string}
    */
-  role: function (role) {
-    var models = [App.StackService, App.StackServiceComponent];
+  role: function (role, isServiceRole) {
 
-    if (App.isEmptyObject(this.stackRolesMap)) {
-      models.forEach(function (model) {
-        model.find().forEach(function (item) {
-          this.stackRolesMap[item.get('id')] = item.get('displayName');
-        }, this);
-      }, this);
+    if (isServiceRole) {
+      var model = App.StackService;
+      var map = this.stackServiceRolesMap;
+    } else {
+      var model = App.StackServiceComponent;
+      var map = this.stackComponentRolesMap;
     }
 
-    if (this.stackRolesMap[role]) {
-      return this.stackRolesMap[role];
+    this.initializeStackRolesMap(map, model);
+
+    if (map[role]) {
+      return map[role];
     }
     return this.normalizeName(role);
+  },
+
+  initializeStackRolesMap: function (map, model) {
+    if (App.isEmptyObject(map)) {
+      model.find().forEach(function (item) {
+        map[item.get('id')] = item.get('displayName');
+      });
+    }
   },
 
   /**
@@ -545,7 +574,7 @@ App.format = {
    *
    * @method normalizeNameBySeparator
    * @param name {String} - name to format
-   * @param separator {String} - token use to split the string
+   * @param separators {String} - token use to split the string
    * @return {String}
    */
   normalizeNameBySeparators: function(name, separators) {
@@ -620,7 +649,7 @@ App.format = {
       } else if (self.command[item]) {
         result = result + ' ' + self.command[item];
       } else {
-        result = result + ' ' + self.role(item);
+        result = result + ' ' + self.role(item, false);
       }
     });
 
@@ -647,6 +676,26 @@ App.format = {
     if (result === ' Refreshqueues ResourceManager') {
       result = Em.I18n.t('services.service.actions.run.yarnRefreshQueues.title');
     }
+ // HAWQ custom commands on back Ops page.
+    if (result === ' Resync Hawq Standby HAWQ Standby Master') {
+      result = Em.I18n.t('services.service.actions.run.resyncHawqStandby.label');
+    }
+    if (result === ' Immediate Stop Hawq Service HAWQ Master') {
+      result = Em.I18n.t('services.service.actions.run.immediateStopHawqService.label');
+    }
+    if (result === ' Immediate Stop Hawq Segment HAWQ Segment') {
+      result = Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.label');
+    }
+    if(result === ' Activate Hawq Standby HAWQ Standby Master') {
+      result = Em.I18n.t('admin.activateHawqStandby.button.enable');
+    }
+    if(result === ' Hawq Clear Cache HAWQ Master') {
+      result = Em.I18n.t('services.service.actions.run.clearHawqCache.label');
+    }
+    if(result === ' Run Hawq Check HAWQ Master') {
+      result = Em.I18n.t('services.service.actions.run.runHawqCheck.label');
+    }
+    //<---End HAWQ custom commands--->
     return result;
   },
 
@@ -724,7 +773,7 @@ App.popover = function (self, options) {
  * @param {object} options
  */
 App.tooltip = function (self, options) {
-  if (!self) return;
+  if (!self || !self.tooltip) return;
   self.tooltip(options);
   /* istanbul ignore next */
   self.on("remove", function () {
@@ -758,225 +807,28 @@ App.dateTimeWithTimeZone = function (x) {
   return x || new Date().getTime();
 };
 
-/**
- * Helper function for bound property helper registration
- * @memberof App
- * @method registerBoundHelper
- * @param name {String} name of helper
- * @param view {Em.View} view
- */
-App.registerBoundHelper = function(name, view) {
-  Em.Handlebars.registerHelper(name, function(property, options) {
-    options.hash.contentBinding = property;
-    return Em.Handlebars.helpers.view.call(this, view, options);
-  });
+App.formatDateTimeWithTimeZone = function (timeStamp, format) {
+  var timezone = App.router.get('userSettingsController.userSettings.timezone'),
+    time;
+  if (timezone) {
+    var tz = Em.getWithDefault(timezone, 'zones.0.value', '');
+    time = moment.tz(timeStamp, tz);
+  } else {
+    time = moment(timeStamp);
+  }
+  return moment(time).format(format);
 };
 
-/*
- * Return singular or plural word based on Em.I18n, view|controller context property key.
- *
- *  Example: {{pluralize hostsCount singular="t:host" plural="t:hosts"}}
- *           {{pluralize hostsCount singular="@view.hostName"}}
- */
-App.registerBoundHelper('pluralize', Em.View.extend({
-  tagName: 'span',
-  template: Em.Handlebars.compile('{{view.wordOut}}'),
-
-  wordOut: function() {
-    var count, singular, plural;
-    count = this.get('content');
-    singular = this.get('singular');
-    plural = this.get('plural');
-    return this.getWord(count, singular, plural);
-  }.property('content'),
-  /**
-   * Get computed word.
-   *
-   * @param {Number} count
-   * @param {String} singular
-   * @param {String} [plural]
-   * @return {String}
-   * @method getWord
-   */
-  getWord: function(count, singular, plural) {
-    singular = this.parseValue(singular);
-    // if plural not passed
-    if (!plural) plural = singular + 's';
-    else plural = this.parseValue(plural);
-    if (singular && plural) {
-      if (count == 1) {
-        return singular;
-      } else {
-        return plural;
-      }
-    }
-    return '';
-  },
-  /**
-   * Detect and return value from its instance.
-   *
-   * @param {String} value
-   * @return {*}
-   * @method parseValue
-   **/
-  parseValue: function(value) {
-    switch (value[0]) {
-      case '@':
-        value = this.getViewPropertyValue(value);
-        break;
-      case 't':
-        value = this.tDetect(value);
-        break;
-      default:
-        break;
-    }
-    return value;
-  },
-  /*
-   * Detect for Em.I18n.t reference call
-   * @params word {String}
-   * return {String}
-  */
-  tDetect: function(word) {
-    var splitted = word.split(':');
-    if (splitted.length > 1 && splitted[0] == 't') {
-      return Em.I18n.t(splitted[1]);
-    } else {
-      return splitted[0];
-    }
-  },
-  /**
-   * Get property value from view|controller by its key path.
-   *
-   * @param {String} value - key path
-   * @return {*}
-   * @method getViewPropertyValue
-   **/
-  getViewPropertyValue: function(value) {
-    value = value.substr(1);
-    var keyword = value.split('.')[0]; // return 'controller' or 'view'
-    switch (keyword) {
-      case 'controller':
-        return Em.get(this, value);
-      case 'view':
-        return Em.get(this, value.replace(/^view/, 'parentView'));
-      default:
-        break;
-    }
+App.getTimeStampFromLocalTime = function (time) {
+  var timezone = App.router.get('userSettingsController.userSettings.timezone'),
+    offsetString = '',
+    date = moment(time).format('YYYY-MM-DD HH:mm:ss');
+  if (timezone) {
+    var offset = timezone.utcOffset;
+    offsetString = moment().utcOffset(offset).format('Z');
   }
-  })
-);
-/**
- * Return defined string instead of empty if value is null/undefined
- * by default is `n/a`.
- *
- * @param empty {String} - value instead of empty string (not required)
- *  can be used with Em.I18n pass value started with't:'
- *
- * Examples:
- *
- * default value will be returned
- * {{formatNull service.someValue}}
- *
- * <code>empty<code> will be returned
- * {{formatNull service.someValue empty="I'm empty"}}
- *
- * Em.I18n translation will be returned
- * {{formatNull service.someValue empty="t:my.key.to.translate"
- */
-App.registerBoundHelper('formatNull', Em.View.extend({
-  tagName: 'span',
-  template: Em.Handlebars.compile('{{view.result}}'),
-
-  result: function() {
-    var emptyValue = this.get('empty') ? this.get('empty') : Em.I18n.t('services.service.summary.notAvailable');
-    emptyValue = emptyValue.startsWith('t:') ? Em.I18n.t(emptyValue.substr(2, emptyValue.length)) : emptyValue;
-    return (this.get('content') || this.get('content') == 0) ? this.get('content') : emptyValue;
-  }.property('content')
-}));
-
-/**
- * Return formatted string with inserted <code>wbr</code>-tag after each dot
- *
- * @param {String} content
- *
- * Examples:
- *
- * returns 'apple'
- * {{formatWordBreak 'apple'}}
- *
- * returns 'apple.<wbr />banana'
- * {{formatWordBreak 'apple.banana'}}
- *
- * returns 'apple.<wbr />banana.<wbr />uranium'
- * {{formatWordBreak 'apple.banana.uranium'}}
- */
-App.registerBoundHelper('formatWordBreak', Em.View.extend({
-  attributeBindings: ["data-original-title"],
-  tagName: 'span',
-  template: Em.Handlebars.compile('{{{view.result}}}'),
-
-  /**
-   * @type {string}
-   */
-  result: function() {
-    return this.get('content') && this.get('content').replace(/\./g, '.<wbr />');
-  }.property('content')
-}));
-
-/**
- * Return <i></i> with class that correspond to status
- *
- * @param {string} content - status
- *
- * Examples:
- *
- * {{statusIcon view.status}}
- * returns 'icon-cog'
- *
- */
-App.registerBoundHelper('statusIcon', Em.View.extend({
-  tagName: 'i',
-
-  /**
-   * relation map between status and icon class
-   * @type {object}
-   */
-  statusIconMap: {
-    'COMPLETED': 'icon-ok completed',
-    'WARNING': 'icon-warning-sign',
-    'FAILED': 'icon-exclamation-sign failed',
-    'HOLDING_FAILED': 'icon-exclamation-sign failed',
-    'SKIPPED_FAILED': 'icon-share-alt failed',
-    'PENDING': 'icon-cog pending',
-    'QUEUED': 'icon-cog queued',
-    'IN_PROGRESS': 'icon-cogs in_progress',
-    'HOLDING': 'icon-pause',
-    'SUSPENDED': 'icon-pause',
-    'ABORTED': 'icon-minus aborted',
-    'TIMEDOUT': 'icon-time timedout',
-    'HOLDING_TIMEDOUT': 'icon-time timedout',
-    'SUBITEM_FAILED': 'icon-remove failed'
-  },
-
-  classNameBindings: ['iconClass'],
-  attributeBindings: ['data-original-title'],
-
-  didInsertElement: function () {
-    App.tooltip($(this.get('element')));
-  },
-
-  'data-original-title': function() {
-    return this.get('content').toCapital();
-  }.property('content'),
-
-  /**
-   * @type {string}
-   */
-  iconClass: function () {
-    return this.get('statusIconMap')[this.get('content')] || 'icon-question-sign';
-  }.property('content')
-}));
+  return moment(date + offsetString).toDate().getTime();
+};
 
 /**
  * Ambari overrides the default date transformer.

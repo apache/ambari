@@ -108,7 +108,6 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
@@ -620,11 +619,9 @@ public class UpgradeCatalog170Test {
 
     upgradeCatalog170.moveHcatalogIntoHiveService();
 
-    ServiceComponentDesiredStateEntityPK pkHCATInHive = new ServiceComponentDesiredStateEntityPK();
-    pkHCATInHive.setComponentName("HCAT");
-    pkHCATInHive.setClusterId(clusterEntity.getClusterId());
-    pkHCATInHive.setServiceName("HIVE");
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pkHCATInHive);
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        clusterEntity.getClusterId(), "HIVE", "HCAT");
+
     assertNotNull(serviceComponentDesiredStateEntity);
 
     HostComponentDesiredStateEntityPK hcDesiredStateEntityPk  = new HostComponentDesiredStateEntityPK();

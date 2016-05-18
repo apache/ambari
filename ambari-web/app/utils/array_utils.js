@@ -26,7 +26,7 @@ module.exports = {
   uniqObjectsbyId: function (arr, id) {
     var result = [];
     arr.forEach(function (item) {
-      var isIdPresent = result.someProperty('id', item.id);
+      var isIdPresent = result.someProperty(id, item[id]);
       if (!isIdPresent) {
         result.pushObject(item);
       }

@@ -39,7 +39,7 @@ describe('App.WizardStep7View', function() {
 
     it('should call loadStep', function() {
       view.didInsertElement();
-      expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.true;
+      expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.false;
     });
   });
 });

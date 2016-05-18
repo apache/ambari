@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var date = require('utils/date/date');
 
 App.MainHostDetailsView = Em.View.extend({
   templateName: require('templates/main/host/details'),
@@ -31,31 +30,66 @@ App.MainHostDetailsView = Em.View.extend({
 
   clients: Em.computed.filterBy('content.hostComponents', 'isClient', true),
 
-  clientsWithConfigs: function() {
-    return this.get('content.hostComponents').filterProperty('isClient').filter(function(client) {
+  clientsWithConfigs: function () {
+    return this.get('content.hostComponents').filterProperty('isClient').filter(function (client) {
       return !App.get('services.noConfigTypes').contains(client.get('service.serviceName'));
     });
   }.property('content.hostComponents.@each'),
 
   isActive: Em.computed.equal('controller.content.passiveState', 'OFF'),
 
-  maintenance: function(){
+  maintenance: function () {
     var onOff = this.get('isActive') ? "On" : "Off";
-    var result = [
-      {action: 'startAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-play', 'label': this.t('hosts.host.details.startAllComponents')},
-      {action: 'stopAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-stop', 'label': this.t('hosts.host.details.stopAllComponents')},
-      {action: 'restartAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-repeat', 'label': this.t('hosts.host.details.restartAllComponents')},
-      {action: 'setRackId', liClass:'', cssClass: 'icon-gear', 'label': this.t('hosts.host.details.setRackId')}
-    ];
+    var result = [];
+    if (App.isAuthorized("SERVICE.START_STOP")) {
+      result = result.concat([
+        {
+          action: 'startAllComponents',
+          liClass: this.get('controller.content.isNotHeartBeating') ? 'disabled' : 'enabled',
+          cssClass: 'icon-play',
+          label: this.t('hosts.host.details.startAllComponents')
+        },
+        {
+          action: 'stopAllComponents',
+          liClass: this.get('controller.content.isNotHeartBeating') ? 'disabled' : 'enabled',
+          cssClass: 'icon-stop',
+          label: this.t('hosts.host.details.stopAllComponents')
+        },
+        {
+          action: 'restartAllComponents',
+          liClass: this.get('controller.content.isNotHeartBeating') ? 'disabled' : 'enabled',
+          cssClass: 'icon-repeat',
+          label: this.t('hosts.host.details.restartAllComponents')
+        }
+      ]);
+    }
     if (App.isAuthorized("HOST.TOGGLE_MAINTENANCE")) {
-      result.push({action: 'onOffPassiveModeForHost', liClass:'', cssClass: 'icon-medkit', active:this.get('isActive'), 'label': this.t('passiveState.turn' + onOff)});
+      result.push({
+        action: 'setRackId',
+        liClass: '',
+        cssClass: 'icon-gear',
+        label: this.t('hosts.host.details.setRackId')
+      });
+      result.push({
+        action: 'onOffPassiveModeForHost',
+        liClass: '',
+        cssClass: 'icon-medkit',
+        active: this.get('isActive'),
+        label: this.t('passiveState.turn' + onOff)
+      });
     }
     if (App.isAuthorized("HOST.ADD_DELETE_HOSTS")) {
-      result.push({action: 'deleteHost', liClass:'', cssClass: 'icon-remove', 'label': this.t('hosts.host.details.deleteHost')});
+      result.push({
+        action: 'deleteHost',
+        liClass: '',
+        cssClass: 'icon-remove',
+        label: this.t('hosts.host.details.deleteHost')
+      });
     }
     return result;
-  }.property('controller.content','isActive', 'controller.content.isNotHeartBeating'),
-  didInsertElement: function() {
+  }.property('controller.content', 'isActive', 'controller.content.isNotHeartBeating'),
+
+  didInsertElement: function () {
     var self = this;
     var host = self.get('content');
 
@@ -68,5 +102,10 @@ App.MainHostDetailsView = Em.View.extend({
         App.router.transitionTo('main.hosts.index');
       }
     });
+  },
+
+  willDestroyElement: function () {
+    $("[rel='HealthTooltip']").tooltip('destroy');
   }
+
 });

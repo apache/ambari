@@ -25,78 +25,14 @@ describe('App.UserSettingsController', function () {
     userSettingsController = App.UserSettingsController.create();
   });
 
+  afterEach(function () {
+    userSettingsController.destroy();
+  });
+
   describe('#userSettingsKeys', function () {
     it('should not be empty', function () {
       expect(Object.keys(userSettingsController.get('userSettingsKeys'))).to.have.length.gt(0);
     });
-  });
-
-  describe('#showSettingsPopup', function() {
-    var dataToShowRes = {};
-
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show', function(dataToShow){
-        dataToShowRes = dataToShow;
-      });
-      sinon.stub(App, 'isAccessible').returns(true);
-      var emulatorClass = function() {};
-      emulatorClass.prototype.done = function(func) {
-        if (func) {
-          func();
-        }
-      };
-      var emulator = new emulatorClass();
-      sinon.stub(userSettingsController, 'dataLoading').returns(emulator);
-    });
-    afterEach(function () {
-      App.isAccessible.restore();
-      App.ModalPopup.show.restore();
-      userSettingsController.dataLoading.restore();
-    });
-    it ('Should show settings popup', function() {
-      userSettingsController.showSettingsPopup();
-      dataToShowRes = JSON.parse(JSON.stringify(dataToShowRes));
-      expect(dataToShowRes).to.eql({
-        "header": "User Settings",
-        "primary": "Save"
-      });
-    });
-  });
-
-  describe('#getUserPrefErrorCallback', function() {
-    it ('Should set currentPrefObject', function() {
-      applicationController.getUserPrefErrorCallback({status: 404}, {}, {});
-      expect(applicationController.get('currentPrefObject')).to.be.true;
-    });
-  });
-
-  describe('#getUserPrefSuccessCallback', function() {
-    it ('Should set currentPrefObject', function() {
-      applicationController.getUserPrefSuccessCallback({status: 200}, {}, {});
-      expect(applicationController.get('currentPrefObject')).to.be.eql({status: 200});
-    });
-  });
-
-  describe('#updateUserPrefWithDefaultValues', function () {
-
-    beforeEach(function () {
-      sinon.stub(userSettingsController, 'postUserPref', Em.K);
-    });
-
-    afterEach(function () {
-      userSettingsController.postUserPref.restore();
-    });
-
-    it('should update user pref with default values', function () {
-      userSettingsController.updateUserPrefWithDefaultValues(null, true);
-      expect(userSettingsController.postUserPref.called).to.be.false;
-    });
-
-    it('should not update user pref with default values', function () {
-      userSettingsController.updateUserPrefWithDefaultValues(null, false);
-      expect(userSettingsController.postUserPref.called).to.be.true;
-    });
-
   });
 
 });

@@ -18,6 +18,29 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -38,29 +61,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.isNull;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
 /**
  * TopologyManager unit tests
@@ -142,8 +142,8 @@ public class TopologyManagerTest {
   private HostGroupInfo group2Info = new HostGroupInfo("group2");
   private Map<String, HostGroupInfo> groupInfoMap = new HashMap<String, HostGroupInfo>();
 
-  private Collection<String> group1Components = Arrays.asList("component1", "component2", "component3");
-  private Collection<String> group2Components = Arrays.asList("component3", "component4");
+  private Collection<Component> group1Components = Arrays.asList(new Component("component1"), new Component("component2"), new Component("component3"));
+  private Collection<Component> group2Components = Arrays.asList(new Component("component3"), new Component("component4"));
 
   private Map<String, Collection<String>> group1ServiceComponents = new HashMap<String, Collection<String>>();
   private Map<String, Collection<String>> group2ServiceComponents = new HashMap<String, Collection<String>>();
@@ -228,6 +228,8 @@ public class TopologyManagerTest {
     expect(stack.getComponents()).andReturn(serviceComponents).anyTimes();
     expect(stack.getComponents("service1")).andReturn(serviceComponents.get("service1")).anyTimes();
     expect(stack.getComponents("service2")).andReturn(serviceComponents.get("service2")).anyTimes();
+    expect(stack.getServiceForConfigType("service1-site")).andReturn("service1").anyTimes();
+    expect(stack.getServiceForConfigType("service2-site")).andReturn("service2").anyTimes();
     expect(stack.getConfiguration()).andReturn(stackConfig).anyTimes();
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
@@ -278,7 +280,7 @@ public class TopologyManagerTest {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();

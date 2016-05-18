@@ -37,6 +37,12 @@ App.AssignMasterComponents = Em.Mixin.create({
   mastersToShow: [],
 
   /**
+   * Array of master component names to show on the service config assign master page
+   * @type {Array}
+   */
+  mastersToCreate: [],
+
+  /**
    * Array of master component names to add for install
    * @type {Array}
    */
@@ -93,6 +99,26 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @type {Boolean}
    */
   showInstalledMastersFirst: false,
+
+  /**
+   * Map of component name to list of hostnames for that component
+   * format:
+   * {
+   *   NAMENODE: [
+   *     'c6401.ambari.apache.org'
+   *   ],
+   *   DATANODE: [
+   *     'c6402.ambari.apache.org',
+   *     'c6403.ambari.apache.org',
+   *   ]
+   * }
+   * @type {Object}
+   */
+  recommendedHostsForComponents: {},
+
+  recommendations: null,
+
+  markSavedComponentsAsInstalled: false,
 
   /**
    * Array of <code>servicesMasters</code> objects, that will be shown on the page
@@ -248,6 +274,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   clearRecommendations: function() {
     if (this.get('content.recommendations')) {
       this.set('content.recommendations', null);
+      this.set('recommendations', null);
     }
   },
 
@@ -307,7 +334,7 @@ App.AssignMasterComponents = Em.Mixin.create({
 
   /**
    * Update submit button status
-   * @metohd updateIsSubmitDisabled
+   * @method updateIsSubmitDisabled
    */
   updateIsSubmitDisabled: function () {
 
@@ -430,7 +457,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   },
 
   /**
-   * Composes selected values of comboboxes into master blueprint + merge it with currenlty installed slave blueprint
+   * Composes selected values of comboboxes into master blueprint + merge it with currently installed slave blueprint
    */
   getCurrentBlueprint: function() {
     var self = this;
@@ -500,7 +527,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     self.get('addableComponents').forEach(function (componentName) {
       self.updateComponent(componentName);
     }, self);
-    if (self.thereIsNoMasters()) {
+    if (self.thereIsNoMasters() && !self.get('mastersToCreate').length) {
       App.router.send('next');
     }
   },
@@ -562,6 +589,8 @@ App.AssignMasterComponents = Em.Mixin.create({
           cpu: _host.cpu,
           memory: _host.memory,
           disk_info: _host.disk_info,
+          maintenance_state: _host.maintenance_state,
+          isInstalled: _host.isInstalled,
           host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, numberUtils.bytesToSize(_host.memory, 1, 'parseFloat', 1024), _host.cpu)
         }));
       }
@@ -596,7 +625,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   loadComponentsRecommendationsFromServer: function(callback, includeMasters) {
     var self = this;
 
-    if (this.get('content.recommendations')) {
+    if (this.get('recommendations')) {
       // Don't do AJAX call if recommendations has been already received
       // But if user returns to previous step (selecting services), stored recommendations will be cleared in routers' next handler and AJAX call will be made again
       callback(self.createComponentInstallationObjects(), self);
@@ -643,22 +672,19 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   createComponentInstallationObjects: function() {
     var stackMasterComponentsMap = {},
-        masterHosts = this.get('content.masterComponentHosts'), //saved to local storage info
-        servicesToAdd = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'),
-        recommendations = this.get('content.recommendations'),
+        masterHosts = this.get('content.masterComponentHosts') || this.get('masterComponentHosts'), //saved to local storage info
+        servicesToAdd = (this.get('content.services')|| []).filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName'),
+        recommendations = this.get('recommendations'),
         resultComponents = [],
         multipleComponentHasBeenAdded = {},
         hostGroupsMap = {};
 
     App.StackServiceComponent.find().forEach(function(component) {
-      if (this.get('isInstallerWizard')) {
-        if (component.get('isShownOnInstallerAssignMasterPage')) {
-          stackMasterComponentsMap[component.get('componentName')] = component;
-        }
-      } else {
-        if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName'))) {
-          stackMasterComponentsMap[component.get('componentName')] = component;
-        }
+      var isMasterCreateOnConfig = this.get('mastersToCreate').contains(component.get('componentName'));
+      if (this.get('isInstallerWizard') && (component.get('isShownOnInstallerAssignMasterPage') || isMasterCreateOnConfig) ) {
+        stackMasterComponentsMap[component.get('componentName')] = component;
+      } else if (component.get('isShownOnAddServiceAssignMasterPage') || this.get('mastersToShow').contains(component.get('componentName')) || isMasterCreateOnConfig) {
+        stackMasterComponentsMap[component.get('componentName')] = component;
       }
     }, this);
 
@@ -674,10 +700,11 @@ App.AssignMasterComponents = Em.Mixin.create({
           var willBeDisplayed = true;
           var stackMasterComponent = stackMasterComponentsMap[component.name];
           if (stackMasterComponent) {
+            var isMasterCreateOnConfig = this.get('mastersToCreate').contains(component.name);
             // If service is already installed and not being added as a new service then render on UI only those master components
             // that have already installed hostComponents.
             // NOTE: On upgrade there might be a prior installed service with non-installed newly introduced serviceComponent
-            if (!servicesToAdd.contains(stackMasterComponent.get('serviceName'))) {
+            if (!servicesToAdd.contains(stackMasterComponent.get('serviceName')) && !isMasterCreateOnConfig) {
               willBeDisplayed = masterHosts.someProperty('component', component.name);
             }
 
@@ -692,8 +719,7 @@ App.AssignMasterComponents = Em.Mixin.create({
                     resultComponents.push(this.createComponentInstallationObject(stackMasterComponent, host.fqdn.toLowerCase(), saved));
                   }, this);
                 }
-              }
-              else {
+              } else {
                 var savedComponent = masterHosts.findProperty('component', component.name);
                 resultComponents.push(this.createComponentInstallationObject(stackMasterComponent, host.fqdn.toLowerCase(), savedComponent));
               }
@@ -717,11 +743,11 @@ App.AssignMasterComponents = Em.Mixin.create({
 
     var componentObj = {};
     componentObj.component_name = componentName;
-    componentObj.display_name = App.format.role(fullComponent.get('componentName'));
+    componentObj.display_name = App.format.role(fullComponent.get('componentName'), false);
     componentObj.serviceId = fullComponent.get('serviceName');
     componentObj.isServiceCoHost = App.StackServiceComponent.find().findProperty('componentName', componentName).get('isCoHostedComponent') && !this.get('mastersToMove').contains(componentName);
     componentObj.selectedHost = savedComponent ? savedComponent.hostName : hostName;
-    componentObj.isInstalled = savedComponent ? savedComponent.isInstalled : false;
+    componentObj.isInstalled = savedComponent ? savedComponent.isInstalled || (this.get('markSavedComponentsAsInstalled') && !this.get('mastersToCreate').contains(fullComponent.get('componentName'))) : false;
     return componentObj;
   },
 
@@ -731,7 +757,33 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method loadRecommendationsSuccessCallback
    */
   loadRecommendationsSuccessCallback: function (data) {
-    this.set('content.recommendations', data.resources[0].recommendations);
+    var recommendations = data.resources[0].recommendations;
+    this.set('recommendations', recommendations);
+    if (this.get('content.controllerName')) {
+      this.set('content.recommendations', recommendations);
+    }
+
+    var recommendedHostsForComponent = {};
+    var hostsForHostGroup = {};
+
+    recommendations.blueprint_cluster_binding.host_groups.forEach(function(hostGroup) {
+      hostsForHostGroup[hostGroup.name] = hostGroup.hosts.mapProperty('fqdn');
+    });
+
+    recommendations.blueprint.host_groups.forEach(function (hostGroup) {
+      var components = hostGroup.components.mapProperty('name');
+      components.forEach(function (componentName) {
+        var hostList = recommendedHostsForComponent[componentName] || [];
+        var hostNames = hostsForHostGroup[hostGroup.name] || [];
+        hostList.pushObjects(hostNames);
+        recommendedHostsForComponent[componentName] = hostList;
+      });
+    });
+
+    this.set('recommendedHostsForComponents', recommendedHostsForComponent);
+    if (this.get('content.controllerName')) {
+      this.set('content.recommendedHostsForComponents', recommendedHostsForComponent);
+    }
   },
 
   /**
@@ -743,7 +795,7 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method loadRecommendationsErrorCallback
    */
   loadRecommendationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
   },
 
   /**
@@ -817,6 +869,21 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @returns {*}
    */
   getHostForMaster: function (master, allMasters) {
+    var masterHostList = [];
+
+    allMasters.forEach(function (component) {
+      if (component.component_name === master) {
+        masterHostList.push(component.selectedHost);
+      }
+    });
+
+    var recommendedHostsForMaster = this.get('recommendedHostsForComponents')[master] || [];
+    for (var k = 0; k < recommendedHostsForMaster.length; k++) {
+      if(!masterHostList.contains(recommendedHostsForMaster[k])) {
+        return recommendedHostsForMaster[k];
+      }
+    }
+
     var usedHosts = allMasters.filterProperty('component_name', master).mapProperty('selectedHost');
     var allHosts = this.get('hosts');
     for (var i = 0; i < allHosts.length; i++) {
@@ -824,6 +891,7 @@ App.AssignMasterComponents = Em.Mixin.create({
         return allHosts[i].get('host_name');
       }
     }
+
     return false;
   },
 
@@ -845,8 +913,11 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   sortComponentsByServiceName: function(components) {
     var displayOrder = App.StackService.displayOrder;
+    var componentsOrderForService = App.StackService.componentsOrderForService;
     var indexForUnordered = Math.max(displayOrder.length, components.length);
     return components.sort(function (a, b) {
+      if(a.serviceId === b.serviceId && a.serviceId in componentsOrderForService)
+        return componentsOrderForService[a.serviceId].indexOf(a.component_name) - componentsOrderForService[b.serviceId].indexOf(b.component_name);
       var aValue = displayOrder.indexOf(a.serviceId) != -1 ? displayOrder.indexOf(a.serviceId) : indexForUnordered;
       var bValue = displayOrder.indexOf(b.serviceId) != -1 ? displayOrder.indexOf(b.serviceId) : indexForUnordered;
       return aValue - bValue;
@@ -896,6 +967,7 @@ App.AssignMasterComponents = Em.Mixin.create({
    * <ul>
    *  <li>host name shouldn't be empty</li>
    *  <li>host should exist</li>
+   *  <li>if host installed maintenance state should be 'OFF'</li>
    *  <li>host should have only one component with <code>componentName</code></li>
    * </ul>
    * @param {string} componentName
@@ -905,8 +977,10 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   isHostNameValid: function (componentName, selectedHost) {
     return (selectedHost.trim() !== '') &&
-    this.get('hosts').mapProperty('host_name').contains(selectedHost) &&
-    (this.get('selectedServicesMasters').
+      (this.get('hosts').filter(function(host) {
+        return host.host_name === selectedHost && (!host.isInstalled || host.maintenance_state === 'OFF');
+      }).length > 0) &&
+      (this.get('selectedServicesMasters').
         filterProperty('component_name', componentName).
         mapProperty('selectedHost').
         filter(function (h) {
@@ -928,9 +1002,12 @@ App.AssignMasterComponents = Em.Mixin.create({
     if (componentName) {
       if (serviceComponentId) {
         component = this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("serviceComponentId", serviceComponentId);
-        if (component) component.set("isHostNameValid", flag);
       } else {
-        this.get('selectedServicesMasters').findProperty("component_name", componentName).set("isHostNameValid", flag);
+        component = this.get('selectedServicesMasters').findProperty("component_name", componentName);
+      }
+      if (component) {
+        component.set("isHostNameValid", flag);
+        component.set("errorMessage", flag ? null : Em.I18n.t('installer.step5.error.host.invalid'));
       }
     }
   },
@@ -1059,7 +1136,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     // load recommendations with partial request
     self.loadComponentsRecommendationsFromServer(function() {
       // For validation use latest received recommendations because it contains current master layout and recommended slave/client layout
-      self.validate(self.get('content.recommendations'), function() {
+      self.validate(self.get('recommendations'), function() {
         if (callback) {
           callback();
         }
@@ -1069,18 +1146,24 @@ App.AssignMasterComponents = Em.Mixin.create({
 
   /**
    * Submit button click handler
+   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @method submit
    */
   submit: function () {
     var self = this;
-    if (!this.get('submitButtonClicked')) {
+    if (this.get('submitDisabled')) {
+      return;
+    }
+    if (!this.get('submitButtonClicked') && !App.router.get('nextBtnClickInProgress')) {
       this.set('submitButtonClicked', true);
+      App.router.set('nextBtnClickInProgress', true);
 
       var goNextStepIfValid = function () {
         if (!self.get('submitDisabled')) {
           App.router.send('next');
+        }else{
+          App.router.set('nextBtnClickInProgress', false);
         }
-        self.set('submitButtonClicked', false);
       };
 
       if (this.get('useServerValidation')) {
@@ -1090,6 +1173,7 @@ App.AssignMasterComponents = Em.Mixin.create({
       } else {
         self.updateIsSubmitDisabled();
         goNextStepIfValid();
+        self.set('submitButtonClicked', false);
       }
     }
   },
@@ -1100,18 +1184,31 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   showValidationIssuesAcceptBox: function(callback) {
     var self = this;
-    if (self.get('anyWarning') || self.get('anyError')) {
-      App.ModalPopup.show({
-        primary: Em.I18n.t('common.continueAnyway'),
-        header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
-        body: Em.I18n.t('installer.step5.validationIssuesAttention'),
-        onPrimary: function () {
-          this.hide();
-          callback();
-        }
-      });
-    } else {
+
+    // If there are no warnings and no errors, return
+    if (!self.get('anyWarning') && !self.get('anyError')) {
       callback();
+      self.set('submitButtonClicked', false);
+      return;
     }
+
+    App.ModalPopup.show({
+      primary: Em.I18n.t('common.continueAnyway'),
+      header: Em.I18n.t('installer.step5.validationIssuesAttention.header'),
+      body: Em.I18n.t('installer.step5.validationIssuesAttention'),
+      onPrimary: function () {
+        this._super();
+        callback();
+        self.set('submitButtonClicked', false);
+      },
+      onSecondary: function () {
+        this._super();
+        self.set('submitButtonClicked', false);
+      },
+      onClose: function () {
+        this._super();
+        self.set('submitButtonClicked', false);
+      }
+    });
   }
 });

@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -49,10 +50,13 @@ import org.easymock.Capture;
 import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -79,6 +83,12 @@ public class ConfigGroupResourceProviderTest {
   private Injector injector;
 
   private HostDAO hostDAO = null;
+
+  @BeforeClass
+  public static void setupAuthentication() {
+    // Set authenticated user so that authorization checks will pass
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+  }
 
   @Before
   public void setup() throws Exception {
@@ -687,13 +697,16 @@ public class ConfigGroupResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
 
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(cluster.getConfigGroups()).andReturn(Collections.singletonMap(1L, configGroup));
+
     cluster.deleteConfigGroup(1L);
 
-    replay(managementController, clusters, cluster);
+    replay(managementController, clusters, cluster, configGroup);
 
     ResourceProvider resourceProvider = getConfigGroupResourceProvider
       (managementController);
@@ -707,7 +720,7 @@ public class ConfigGroupResourceProviderTest {
       .equals("Cluster100").and().property(ConfigGroupResourceProvider
         .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).toPredicate();
 
-    resourceProvider.deleteResources(predicate);
+    resourceProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     ResourceProviderEvent lastEvent = observer.getLastEvent();
     Assert.assertNotNull(lastEvent);
@@ -716,7 +729,7 @@ public class ConfigGroupResourceProviderTest {
     Assert.assertEquals(predicate, lastEvent.getPredicate());
     Assert.assertNull(lastEvent.getRequest());
 
-    verify(managementController, clusters, cluster);
+    verify(managementController, clusters, cluster, configGroup);
   }
 
   @Test

@@ -18,6 +18,8 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.ITClusterAggregator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.ITMetricAggregator;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

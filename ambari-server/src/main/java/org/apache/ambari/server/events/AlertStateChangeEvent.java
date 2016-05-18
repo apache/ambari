@@ -20,11 +20,15 @@ package org.apache.ambari.server.events;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 
 /**
  * The {@link AlertStateChangeEvent} is fired when an {@link Alert} instance has
- * its {@link AlertState} changed.
+ * its {@link AlertState} changed or has it's {@link AlertFirmness} changed.
+ * <p/>
+ * An {@link AlertState} change coupled with a {@link AlertFirmness#HARD}
+ * firmness is what would eventually trigger notifications to be created.
  */
 public class AlertStateChangeEvent extends AlertEvent {
 
@@ -32,6 +36,11 @@ public class AlertStateChangeEvent extends AlertEvent {
    * The prior alert state.
    */
   private final AlertState m_fromState;
+
+  /**
+   * The prior alert firmness.
+   */
+  private final AlertFirmness m_fromFirmness;
 
   /**
    * The current alert, including state and history.
@@ -48,14 +57,18 @@ public class AlertStateChangeEvent extends AlertEvent {
    *
    * @param clusterId
    * @param alert
+   * @param currentAlert
+   * @param fromState
+   * @param fromFirmness
    */
   public AlertStateChangeEvent(long clusterId, Alert alert,
-      AlertCurrentEntity currentAlert, AlertState fromState) {
+      AlertCurrentEntity currentAlert, AlertState fromState, AlertFirmness fromFirmness) {
     super(clusterId, alert);
 
     m_currentAlert = currentAlert;
     m_history = currentAlert.getAlertHistory();
     m_fromState = fromState;
+    m_fromFirmness = fromFirmness;
   }
 
   /**
@@ -86,13 +99,23 @@ public class AlertStateChangeEvent extends AlertEvent {
   }
 
   /**
+   * Gets the prior firmness of the alert.
+   *
+   * @return the prior firmness of the alert.
+   */
+  public AlertFirmness getFromFirmness() {
+    return m_fromFirmness;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("AlertStateChangeEvent{ ");
+    StringBuilder buffer = new StringBuilder("AlertStateChangeEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", fromState=").append(m_fromState);
+    buffer.append(", firmness=").append(m_currentAlert.getFirmness());
     buffer.append(", alert=").append(m_alert);
 
     buffer.append("}");

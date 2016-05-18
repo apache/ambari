@@ -16,21 +16,14 @@
    limitations under the License.
 -->
 <configuration>
+
   <property>
     <name>hawq_master_address_host</name>
     <display-name>HAWQ Master</display-name>
     <value>localhost</value>
-    <description>The host name of HAWQ master.</description>
-    <value-attributes>
-      <type>componentHost</type>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>hawq_standby_address_host</name>
-    <display-name>HAWQ Standby Master</display-name>
-    <value>localhost</value>
-    <description>The host name of HAWQ standby.</description>
+    <description>
+      The hostname of HAWQ master.
+    </description>
     <value-attributes>
       <type>componentHost</type>
     </value-attributes>
@@ -40,9 +33,25 @@
     <name>hawq_master_address_port</name>
     <display-name>HAWQ Master Port</display-name>
     <value>5432</value>
-    <description>The port of HAWQ master.</description>
+    <description>
+      The port used by HAWQ masters.
+      The default is 5432.
+    </description>
     <value-attributes>
       <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hawq_standby_address_host</name>
+    <display-name>HAWQ Standby Master</display-name>
+    <value>localhost</value>
+    <description>
+      The hostname of the HAWQ standby master. The standby master and master must reside on different hosts.
+    </description>
+    <value-attributes>
+      <type>componentHost</type>
     </value-attributes>
   </property>
 
@@ -50,9 +59,13 @@
     <name>hawq_segment_address_port</name>
     <display-name>HAWQ Segment Port</display-name>
     <value>40000</value>
-    <description>The port of HAWQ segment.</description>
+    <description>
+      The base port used by HAWQ segments.
+      The default is 40000.
+    </description>
     <value-attributes>
       <type>int</type>
+      <minimum>0</minimum>
     </value-attributes>
   </property>
 
@@ -60,16 +73,28 @@
     <name>hawq_dfs_url</name>
     <display-name>HAWQ DFS URL</display-name>
     <value>localhost:8020/hawq_default</value>
-    <description>URL for accessing HDFS.</description>
+    <description>
+      URL for accessing HDFS.
+    </description>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_master_directory</name>
     <display-name>HAWQ Master Directory</display-name>
     <value>/data/hawq/master</value>
-    <description>The directory of HAWQ master.</description>
+    <description>
+      The base path for the HAWQ master data directory. Multiple directories are not allowed.
+      The default is /data/hawq/master.
+    </description>
     <value-attributes>
       <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
   </property>
 
@@ -77,17 +102,26 @@
     <name>hawq_segment_directory</name>
     <display-name>HAWQ Segment Directory</display-name>
     <value>/data/hawq/segment</value>
-    <description>The directory of HAWQ segment.</description>
+    <description>
+      The base path for the HAWQ segment data directory. Multiple directories are not allowed.
+      The default is /data/hawq/segment.
+    </description>
     <value-attributes>
       <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-  </property> 
+  </property>
 
   <property>
     <name>hawq_master_temp_directory</name>
-    <display-name>HAWQ Master Temp Directory</display-name>
-    <value>/tmp</value>
-    <description>The temporary directory reserved for HAWQ master.</description>
+    <display-name>HAWQ Master Temp Directories</display-name>
+    <value>/tmp/hawq/master</value>
+    <description>
+      Used as temporary filespace to store workfile cache, sort/join temp files etc.
+      The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
+      excluding system disk. Separate multiple entries with commas. The default is /tmp/hawq/master.
+    </description>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -95,9 +129,13 @@
 
   <property>
     <name>hawq_segment_temp_directory</name>
-    <display-name>HAWQ Segment Temp Directory</display-name>
-    <value>/tmp</value>
-    <description>The temporary directory reserved for HAWQ segment.</description>
+    <display-name>HAWQ Segment Temp Directories</display-name>
+    <value>/tmp/hawq/segment</value>
+    <description>
+      Used as temporary filespace to store workfile cache, sort/join temp files etc.
+      The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
+      excluding system disk. Separate multiple entries with commas. The default is /tmp/hawq/segment.
+    </description>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -106,97 +144,173 @@
   <!-- HAWQ resource manager parameters -->
   <property>
     <name>hawq_global_rm_type</name>
+    <display-name>Resource Manager</display-name>
     <value>none</value>
-    <description>The resource manager type to start for allocating resource. 
-      'none' means HAWQ resource manager exclusively uses whole
-      cluster; 'yarn' means HAWQ resource manager contacts YARN
-      resource manager to negotiate resource.
+    <description>
+      HAWQ global resource manager type. Valid values are YARN ('yarn') and Standalone ('none').
+      Standalone('none') indicates that the HAWQ resource manager manages its own resources exclusively for the entire cluster.
+      YARN ('yarn') means that HAWQ will negotiate with YARN's resource manager for resources.
+      The default is Standalone ('none').
     </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>none</value>
+          <label>Standalone</label>
+        </entry>
+        <entry>
+          <value>yarn</value>
+          <label>YARN</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_memory_limit_perseg</name>
+    <display-name>Segment Memory Usage Limit</display-name>
     <value>64GB</value>
-    <description>The limit of memory usage in a HAWQ segment when 
-      hawq_global_rm_type is set 'none'.
+    <description>
+      The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
+      The default is 64GB.
     </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_nvcore_limit_perseg</name>
+    <display-name>Segment Virtual Core Usage Limit</display-name>
     <value>16</value>
-    <description>The limit of virtual core usage in a HAWQ segment when 
-      hawq_global_rm_type is set 'none'.
+    <description>
+      The maximum number of virtual cores that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
+      The default is 16.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>64</maximum>
+      <increment-step>4</increment-step>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_yarn_address</name>
     <value>localhost:8032</value>
-    <description>The address of YARN resource manager server.</description>
+    <description>
+      Server address (host and port) of the YARN Resource Manager server (the value of yarn.resourcemanager.address).
+      You must define this if Resource Manager ('hawq_global_rm_type') is set to YARN ('yarn').
+      The default is localhost:8032.
+    </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.address</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_yarn_scheduler_address</name>
     <value>localhost:8030</value>
-    <description>The address of YARN scheduler server.</description>
+    <description>
+      Server address (host and port) of the YARN resource manager scheduler (the value of yarn.resourcemanager.scheduler.address).
+      User must define this if Resource Manager ('hawq_global_rm_type') is set to YARN ('yarn').
+      The default is localhost:8030.
+    </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.resourcemanager.scheduler.address</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>string</type>
+      <overridable>false</overridable>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_yarn_queue_name</name>
     <value>default</value>
-    <description>The YARN queue name to register HAWQ resource manager.</description>
+    <description>
+      The name of the YARN queue to register with HAWQ's resource manager.
+      The default is 'default'.
+    </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
     <name>hawq_rm_yarn_app_name</name>
     <value>hawq</value>
-    <description>The application name to register HAWQ resource manager in YARN.</description>
+    <description>
+      The name of the YARN application to register with HAWQ's resource manager.
+      The default is 'hawq'.
+    </description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
-    <name>hawq_re_cpu_enable</name>
-    <value>false</value>
+    <name>default_hash_table_bucket_number</name>
+    <display-name>Default buckets for Hash Distributed tables</display-name>
+    <value>6</value>
+    <description>
+      The default number of buckets when creating a hash distributed table, if not defined explicitly when creating the table.
+      When running a query on a hash dist table, the query resource is fixed and equal to the number of buckets.
+      The default set during installation is the number of HAWQ Segments multiplied by 6.
+      Adjust the value when the number of HAWQ Segments changes in the cluster.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10000</maximum>
+      <increment-step>100</increment-step>
+    </value-attributes>
   </property>
 
-  <property>
-    <name>hawq_re_cgroup_mount_point</name>
-    <value>/sys/fs/cgroup</value>
+    <property>
+    <name>hawq_rm_nvseg_perquery_perseg_limit</name>
+    <display-name>Virtual Segments Limit per Query (per Segment Node)</display-name>
+    <value>6</value>
+    <description>
+      The maximum number of virtual segments per query per segment node when querying randomly distributed tables, external tables, and tables with user defined functions.
+      This parameter is used to limit the maximum resource usage on each segment node.
+      The default is 6. Not recommended to change this parameter.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>16</maximum>
+       <increment-step>1</increment-step>
+    </value-attributes>
   </property>
 
-  <property>
-    <name>hawq_re_cgroup_hierarchy_name</name>
-    <value>hadoop-yarn</value>
-  </property>
-
-  <property>
-    <name>hawq_re_cleanup_period</name>
-    <value>180</value>
-  </property>
-
-  <property>
-    <name>hawq_re_cpu_weight</name>
-    <value>1024.0</value>
-  </property>
-
-  <property>
-    <name>hawq_re_vcore_pcore_ratio</name>
-    <value>1.0</value>
-  </property>
-
-  <property>
-    <name>hawq_resourcemanager_master_address_domainsocket_port</name>
-    <value>5436</value>
-  </property>
-
-  <property>
-    <name>hawq_rm_master_port</name>
-    <value>5437</value>
-  </property>
-
-  <property>
-    <name>hawq_rm_segment_port</name>
-    <value>5438</value>
+   <property>
+    <name>hawq_rm_nvseg_perquery_limit</name>
+    <display-name>Virtual Segments Limit per Query (Total)</display-name>
+    <value>512</value>
+    <description>
+      The maximum number of virtual segments per query across the cluster.
+      This parameter is used to limit the maximum resource usage per query across the cluster regardless of the number of HAWQ Segments.
+      The default value is 512. Not recommended to change this parameter.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10000</maximum>
+       <increment-step>100</increment-step>
+    </value-attributes>
   </property>
 
 </configuration>

@@ -22,16 +22,23 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from ambari_commons import OSCheck
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
+
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 if OSCheck.is_windows_family():
   knox_gateway_win_service_name = "gateway"
   knox_ldap_win_service_name = "ldap"
 else:
   knox_conf_dir = '/etc/knox/conf'
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
-    knox_conf_dir = '/usr/hdp/current/knox-server/conf'
+  if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+    knox_conf_dir = format('{stack_root}/current/knox-server/conf')
   knox_pid_dir = config['configurations']['knox-env']['knox_pid_dir']
   knox_pid_file = format("{knox_pid_dir}/gateway.pid")
   ldap_pid_file = format("{knox_pid_dir}/ldap.pid")
@@ -48,3 +55,5 @@ else:
   knox_user = default("/configurations/knox-env/knox_user", "knox")
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   temp_dir = Script.get_tmp_dir()
+  
+stack_name = default("/hostLevelParams/stack_name", None)

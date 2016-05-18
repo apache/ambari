@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
@@ -474,6 +475,7 @@ public class ServiceImpl implements Service {
 
           // publish the service installed event
           StackId stackId = cluster.getDesiredStackVersion();
+          cluster.addService(this);
 
           ServiceInstalledEvent event = new ServiceInstalledEvent(
               getClusterId(), stackId.getStackName(),
@@ -563,10 +565,31 @@ public class ServiceImpl implements Service {
 
   @Transactional
   void deleteAllServiceConfigs() throws AmbariException {
+    ArrayList<String> serviceConfigTypes = new ArrayList<>();
+    ServiceConfigEntity lastServiceConfigEntity = serviceConfigDAO.findMaxVersion(getClusterId(), getName());
+    //ensure service config version exist
+    if (lastServiceConfigEntity != null) {
+      for (ClusterConfigEntity configEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
+        serviceConfigTypes.add(configEntity.getType());
+      }
+
+      LOG.info("Deselecting config mapping for cluster, clusterId={}, configTypes={} ",
+          getClusterId(), serviceConfigTypes);
+
+      List<ClusterConfigMappingEntity> configMappingEntities =
+          clusterDAO.getSelectedConfigMappingByTypes(getClusterId(), serviceConfigTypes);
+
+      for (ClusterConfigMappingEntity configMappingEntity : configMappingEntities) {
+        configMappingEntity.setSelected(0);
+      }
+
+      clusterDAO.mergeConfigMappings(configMappingEntities);
+    }
+
     LOG.info("Deleting all serviceconfigs for service"
-      + ", clusterName=" + cluster.getClusterName()
-      + ", serviceName=" + getName());
-    
+        + ", clusterName=" + cluster.getClusterName()
+        + ", serviceName=" + getName());
+
     List<ServiceConfigEntity> serviceConfigEntities =
       serviceConfigDAO.findByService(cluster.getClusterId(), getName());
 

@@ -62,7 +62,7 @@ public class RepositoryResourceProviderTest {
     allResponse.add(rr);
 
     // set expectations
-    expect(managementController.getRepositories(EasyMock.<Set<RepositoryRequest>>anyObject())).andReturn(allResponse).times(1);
+    expect(managementController.getRepositories(EasyMock.<Set<RepositoryRequest>>anyObject())).andReturn(allResponse).times(2);
 
     // replay
     replay(managementController);
@@ -76,6 +76,7 @@ public class RepositoryResourceProviderTest {
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
 
     Predicate predicate =
         new PredicateBuilder().property(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
@@ -109,6 +110,36 @@ public class RepositoryResourceProviderTest {
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
       Assert.assertEquals(o, VAL_REPO_ID);
 
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
+      Assert.assertNull(o);
+    }
+
+    // !!! check that the stack version id is returned
+    rr.setClusterVersionId(525L);
+    resources = provider.getResources(request, predicate);
+    Assert.assertEquals(allResponse.size(), resources.size());
+
+    for (Resource resource : resources) {
+      Object o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID);
+      Assert.assertEquals(VAL_STACK_NAME, o);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID);
+      Assert.assertEquals(VAL_STACK_VERSION, o);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_REPO_NAME);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_BASE_URL);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_OS);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_REPO_ID);
+
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
+      Assert.assertEquals(525L, o);
     }
 
     // verify

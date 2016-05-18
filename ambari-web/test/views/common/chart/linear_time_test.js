@@ -18,10 +18,62 @@
 
 var App = require('app');
 require('views/common/chart/linear_time');
+var testHelpers = require('test/helpers');
 
 describe('App.ChartLinearTimeView', function () {
+  var chartLinearTimeView;
 
-  var chartLinearTimeView = App.ChartLinearTimeView.create({});
+  beforeEach(function() {
+    chartLinearTimeView = App.ChartLinearTimeView.create();
+  });
+
+  describe("#isRequestRunning", function () {
+
+    it("isPopup true, running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: true,
+        runningPopupRequests: [{
+          ajaxIndex: 'req1'
+        }],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.true;
+    });
+
+    it("isPopup false, running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: false,
+        runningRequests: [{
+          ajaxIndex: 'req1'
+        }],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.true;
+    });
+
+    it("isPopup false, no running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: false,
+        runningRequests: [],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.false;
+    });
+
+    it("isPopup true, no running request", function() {
+      chartLinearTimeView.setProperties({
+        isPopup: true,
+        runningPopupRequests: [],
+        ajaxIndex: 'req1'
+      });
+      chartLinearTimeView.propertyDidChange('isRequestRunning');
+      expect(chartLinearTimeView.get('isRequestRunning')).to.be.false;
+    });
+
+  });
 
   describe('#transformData', function () {
 
@@ -153,6 +205,32 @@ describe('App.ChartLinearTimeView', function () {
       yarnService: [],
       hdfsService: []
     };
+    var rangeCases = [
+      {
+        currentTimeIndex: 0,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        fromSeconds: -3599,
+        toSeconds: 1,
+        title: 'preset time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        fromSeconds: 100,
+        toSeconds: 200,
+        title: 'custom time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: null,
+        customEndTime: null,
+        fromSeconds: -3599,
+        toSeconds: 1,
+        title: 'custom time range, no boundaries set'
+      }
+    ];
     beforeEach(function(){
       sinon.stub(App.HDFSService, 'find', function(){return services.hdfsService});
       sinon.stub(App.YARNService, 'find', function(){return services.yarnService});
@@ -226,41 +304,82 @@ describe('App.ChartLinearTimeView', function () {
       });
       services.yarnService = [];
     });
+    rangeCases.forEach(function (item) {
+      it(item.title, function () {
+        chartLinearTimeView.setProperties({
+          currentTimeIndex: item.currentTimeIndex,
+          customStartTime: item.customStartTime,
+          customEndTime: item.customEndTime,
+          timeUnitSeconds: 3600
+        });
+        var requestData = Em.Object.create(chartLinearTimeView.getDataForAjaxRequest());
+        expect(requestData.getProperties(['fromSeconds', 'toSeconds'])).to.eql({
+          fromSeconds: item.fromSeconds,
+          toSeconds: item.toSeconds
+        });
+      });
+    });
   });
 
   describe('#setCurrentTimeIndexFromParent', function () {
 
     var view,
       cases = [
-      {
-        parent: 1,
-        child: 2,
-        result: 2,
-        title: 'child and parent have currentTimeRangeIndex'
-      },
-      {
-        parent: undefined,
-        child: 2,
-        result: 2,
-        title: 'only child has currentTimeRangeIndex'
-      },
-      {
-        parent: 1,
-        child: undefined,
-        result: 1,
-        title: 'only parent has currentTimeRangeIndex'
-      }
-    ];
+        {
+          parent: 1,
+          child: 2,
+          result: 2,
+          title: 'child and parent have currentTimeRangeIndex'
+        },
+        {
+          parent: undefined,
+          child: 2,
+          result: 2,
+          title: 'only child has currentTimeRangeIndex'
+        },
+        {
+          parent: 1,
+          child: undefined,
+          result: 1,
+          title: 'only parent has currentTimeRangeIndex'
+        }
+      ],
+      isReadyCases = [
+        {
+          inWidget: true,
+          isClusterMetricsWidget: true,
+          parentViewIsLoaded: true,
+          isReady: false,
+          title: 'cluster metrics widget'
+        },
+        {
+          inWidget: true,
+          isClusterMetricsWidget: false,
+          parentViewIsLoaded: false,
+          isReady: true,
+          title: 'enhanced service widget'
+        },
+        {
+          inWidget: false,
+          isClusterMetricsWidget: false,
+          parentViewIsLoaded: true,
+          isReady: false,
+          title: 'non-widget graph'
+        }
+      ];
 
     beforeEach(function () {
       view = App.ChartLinearTimeView.create({
+        isReady: true,
         controller: {},
-        parentView: {
+        parentView: Em.Object.create({
           currentTimeRangeIndex: 1,
-          parentView: {
+          isLoaded: true,
+          parentView: Em.Object.create({
             currentTimeRangeIndex: 2
-          }
-        }
+          })
+        }),
+        timeUnitSecondsSetter: Em.K
       });
     });
 
@@ -271,6 +390,33 @@ describe('App.ChartLinearTimeView', function () {
         view.propertyDidChange('parentView.currentTimeRangeIndex');
         expect(view.get('currentTimeIndex')).to.equal(item.result);
       });
+    });
+
+    isReadyCases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(App.ajax, 'abortRequests', Em.K);
+          view.set('inWidget', item.inWidget);
+          view.set('parentView.isClusterMetricsWidget', item.isClusterMetricsWidget);
+          view.propertyDidChange('parentView.currentTimeRangeIndex');
+        });
+
+        afterEach(function () {
+          App.ajax.abortRequests.restore();
+        });
+
+        it('parentView.isLoaded', function () {
+          expect(view.get('parentView.isLoaded')).to.eql(item.parentViewIsLoaded);
+        });
+
+        it('isReady', function () {
+          expect(view.get('isReady')).to.eql(item.isReady);
+        });
+
+      });
+
     });
 
   });
@@ -337,13 +483,86 @@ describe('App.ChartLinearTimeView', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title || item.displayUnit, function () {
-        view.set('displayUnit', item.displayUnit);
-        view.setYAxisFormatter();
-        view.yAxisFormatter();
-        methodNames.forEach(function (name) {
-          expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name == item.formatter));
+      describe(item.title || item.displayUnit, function () {
+
+        beforeEach(function () {
+          view.set('displayUnit', item.displayUnit);
+          view.setYAxisFormatter();
+          view.yAxisFormatter();
         });
+
+        methodNames.forEach(function (name) {
+          it(name, function () {
+            expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name === item.formatter));
+          });
+        });
+      });
+    });
+
+  });
+
+  describe('#localeTimeUnit', function () {
+
+    var cases = [
+      {
+        timeUnitSeconds: 240,
+        localeTimeUnit: '1 minute'
+      },
+      {
+        timeUnitSeconds: 172788,
+        localeTimeUnit: '719.95 minute'
+      },
+      {
+        timeUnitSeconds: 172800,
+        localeTimeUnit: 'day'
+      },
+      {
+        timeUnitSeconds: 1209599,
+        localeTimeUnit: 'day'
+      },
+      {
+        timeUnitSeconds: 1209600,
+        localeTimeUnit: 'week'
+      },
+      {
+        timeUnitSeconds: 5183999,
+        localeTimeUnit: 'week'
+      },
+      {
+        timeUnitSeconds: 5184000,
+        localeTimeUnit: 'month'
+      },
+      {
+        timeUnitSeconds: 62207999,
+        localeTimeUnit: 'month'
+      },
+      {
+        timeUnitSeconds: 622080000,
+        localeTimeUnit: 'year'
+      },
+      {
+        timeUnitSeconds: 700000000,
+        localeTimeUnit: 'year'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(Rickshaw.Fixtures, 'Time').returns({
+        unit: function (name) {
+          return {
+            name: name
+          };
+        }
+      });
+    });
+
+    afterEach(function () {
+      Rickshaw.Fixtures.Time.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.timeUnitSeconds + 's', function () {
+        expect(chartLinearTimeView.localeTimeUnit(item.timeUnitSeconds).name).to.equal(item.localeTimeUnit);
       });
     });
 
@@ -356,32 +575,9 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
 
   var aggregator = App.ChartLinearTimeView.LoadAggregator;
 
-  describe("#add()", function () {
-    beforeEach(function () {
-      sinon.stub(window, 'setTimeout').returns('timeId');
-    });
-    afterEach(function () {
-      window.setTimeout.restore();
-    });
-    it("timeout started", function () {
-      aggregator.set('timeoutId', 'timeId');
-      aggregator.get('requests').clear();
-      aggregator.add({}, {});
-      expect(aggregator.get('requests')).to.not.be.empty;
-      expect(window.setTimeout.called).to.be.false;
-    });
-    it("timeout started", function () {
-      aggregator.set('timeoutId', null);
-      aggregator.get('requests').clear();
-      aggregator.add({}, {});
-      expect(aggregator.get('requests')).to.not.be.empty;
-      expect(window.setTimeout.calledOnce).to.be.true;
-      expect(aggregator.get('timeoutId')).to.equal('timeId');
-    });
-  });
-
   describe("#groupRequests()", function () {
-    it("", function () {
+    var result;
+    beforeEach(function () {
       var requests = [
         {
           name: 'r1',
@@ -399,12 +595,19 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
           fields: ['f3', 'f4']
         }
       ];
-      var result = aggregator.groupRequests(requests);
-
-      expect(result['r1'].subRequests.length).to.equal(1);
-      expect(result['r1'].fields.length).to.equal(1);
-      expect(result['r2'].subRequests.length).to.equal(2);
-      expect(result['r2'].fields.length).to.equal(3);
+      result = aggregator.groupRequests(requests);
+    });
+    it("result['r1'].subRequests.length", function () {
+      expect(result.r1.subRequests.length).to.equal(1);
+    });
+    it("result['r1'].fields.length", function () {
+      expect(result.r1.fields.length).to.equal(1);
+    });
+    it("result['r2'].subRequests.length", function () {
+      expect(result.r2.subRequests.length).to.equal(2);
+    });
+    it("result['r2'].fields.length", function () {
+      expect(result.r2.fields.length).to.equal(3);
     });
   });
 
@@ -416,20 +619,26 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       sinon.stub(aggregator, 'formatRequestData', function(_request){
         return _request.fields;
       });
+      App.ajax.send.restore();
       sinon.stub(App.ajax, 'send', function(){
         return {
           done: Em.K,
-          fail: Em.K
+          fail: Em.K,
+          always: Em.K
         }
       });
     });
     afterEach(function () {
       aggregator.groupRequests.restore();
-      App.ajax.send.restore();
       aggregator.formatRequestData.restore();
     });
-    it("", function () {
-      var context = Em.Object.create({content: {hostName: 'host1'}});
+    it("valid request is sent", function () {
+      var context = Em.Object.create({
+        content: {
+          hostName: 'host1'
+        },
+        runningRequests: []
+      });
       var requests = {
         'r1': {
           name: 'r1',
@@ -438,34 +647,61 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
         }
       };
       aggregator.runRequests(requests);
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'r1',
-        sender: context,
-        data: {
-          fields: ['f3', 'f4'],
-          hostName: 'host1'
-        }
+      var args = testHelpers.findAjaxRequest('name', 'r1');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(context);
+      expect(args[0].data).to.be.eql({
+        fields: ['f3', 'f4'],
+        hostName: 'host1'
       });
     });
   });
 
   describe("#formatRequestData()", function () {
+    var cases = [
+      {
+        currentTimeIndex: 0,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        result: 'f3[400,4000,15],f4[400,4000,15]',
+        title: 'preset time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        result: 'f3[100,200,15],f4[100,200,15]',
+        title: 'custom time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: null,
+        customEndTime: null,
+        result: 'f3[400,4000,15],f4[400,4000,15]',
+        title: 'custom time range, no boundaries set'
+      }
+    ];
     beforeEach(function () {
       sinon.stub(App, 'dateTime').returns(4000000);
-
     });
     afterEach(function () {
       App.dateTime.restore();
-
     });
-    it("", function () {
-      var context = Em.Object.create({timeUnitSeconds: 3600});
-      var request = {
-        name: 'r1',
-        context: context,
-        fields: ['f3', 'f4']
-      };
-      expect(aggregator.formatRequestData(request)).to.equal('f3[400,4000,15],f4[400,4000,15]');
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        var context = Em.Object.create({
+          timeUnitSeconds: 3600,
+          currentTimeIndex: item.currentTimeIndex,
+          customStartTime: item.customStartTime,
+          customEndTime: item.customEndTime
+        });
+        var request = {
+          name: 'r1',
+          context: context,
+          fields: ['f3', 'f4']
+        };
+        expect(aggregator.formatRequestData(request)).to.equal(item.result);
+      });
     });
   });
 

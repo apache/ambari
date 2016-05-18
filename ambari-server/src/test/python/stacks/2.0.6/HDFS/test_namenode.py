@@ -32,13 +32,14 @@ from resource_management.core.exceptions import Fail
 class TestNamenode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "configure",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -49,7 +50,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "altfs_plus_hdfs.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
@@ -60,7 +61,7 @@ class TestNamenode(RMFTestCase):
                               user = 'hdfs',
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -74,11 +75,13 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -89,14 +92,14 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6405.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if=True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'wasb://abc@c6401.ambari.apache.org',
@@ -108,12 +111,12 @@ class TestNamenode(RMFTestCase):
         dfs_type = '',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if=True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'wasb://abc@c6401.ambari.apache.org',
@@ -125,12 +128,12 @@ class TestNamenode(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if=True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'wasb://abc@c6401.ambari.apache.org',
@@ -139,7 +142,7 @@ class TestNamenode(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -149,7 +152,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "install",
                        config_file = "default_no_install.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True
     )
@@ -162,7 +165,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
@@ -173,7 +176,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -187,11 +190,13 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
+                              group = 'hadoop'
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
+                              group = 'hadoop'
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -202,14 +207,14 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -221,12 +226,12 @@ class TestNamenode(RMFTestCase):
         dfs_type = '',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -238,12 +243,12 @@ class TestNamenode(RMFTestCase):
         dfs_type = '',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -252,7 +257,7 @@ class TestNamenode(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -262,7 +267,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "stop",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode'",
@@ -276,7 +281,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "configure",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -288,7 +293,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
@@ -299,7 +304,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -313,11 +318,13 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -331,12 +338,13 @@ class TestNamenode(RMFTestCase):
                               user='hdfs',
                               )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -346,11 +354,11 @@ class TestNamenode(RMFTestCase):
         dfs_type = '',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
-        mode = 0777,
-        only_if = True
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        mode = 0777
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -360,19 +368,18 @@ class TestNamenode(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
-        mode = 0770,
-        only_if = True
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        mode = 0770
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
-        only_if = True,
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         hadoop_bin_dir = '/usr/bin',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -382,7 +389,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "stop",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop namenode'",
@@ -396,7 +403,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -412,11 +419,13 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -427,14 +436,14 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -446,12 +455,12 @@ class TestNamenode(RMFTestCase):
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -463,12 +472,12 @@ class TestNamenode(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -477,7 +486,7 @@ class TestNamenode(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -492,7 +501,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -509,11 +518,13 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -524,14 +535,14 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -543,12 +554,12 @@ class TestNamenode(RMFTestCase):
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -560,12 +571,12 @@ class TestNamenode(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -574,18 +585,18 @@ class TestNamenode(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
     self.assertTrue(call_mocks.called)
     self.assertEqual(5, call_mocks.call_count)
     calls = [
-        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'"),
-        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'"),
-        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'"),
-        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'"),
-        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'")]
+        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn1 | grep active'"),
+        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn2 | grep active'"),
+        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn1 | grep active'"),
+        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn2 | grep active'"),
+        call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn1 | grep active'")]
     call_mocks.assert_has_calls(calls)
 
   def test_start_ha_secured(self):
@@ -593,7 +604,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file = "ha_secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
@@ -609,11 +620,13 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -627,14 +640,14 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -646,12 +659,12 @@ class TestNamenode(RMFTestCase):
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -663,12 +676,12 @@ class TestNamenode(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -677,7 +690,7 @@ class TestNamenode(RMFTestCase):
         principal_name = 'hdfs',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -689,7 +702,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file="ha_bootstrap_active_node.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -701,7 +714,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -715,11 +728,13 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -730,14 +745,14 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -749,12 +764,12 @@ class TestNamenode(RMFTestCase):
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -766,12 +781,12 @@ class TestNamenode(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -780,7 +795,7 @@ class TestNamenode(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -795,7 +810,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file="ha_bootstrap_standby_node.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -806,6 +821,9 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-bootstrapped/',
+                              create_parents = True
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -817,11 +835,13 @@ class TestNamenode(RMFTestCase):
     # command is run before the namenode launches
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -832,14 +852,14 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=115,
         try_sleep=10,
         user="hdfs",
         logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -851,12 +871,12 @@ class TestNamenode(RMFTestCase):
         owner = 'hdfs',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -868,12 +888,12 @@ class TestNamenode(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0770,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
-        only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://ns1',
@@ -882,7 +902,7 @@ class TestNamenode(RMFTestCase):
         principal_name = None,
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
@@ -890,7 +910,7 @@ class TestNamenode(RMFTestCase):
     self.assertEqual(2, call_mocks.call_count)
     calls = [
       call('hdfs namenode -bootstrapStandby -nonInteractive', logoutput=False, user=u'hdfs'),
-      call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'")]
+      call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn2 | grep active'")]
     call_mocks.assert_has_calls(calls, any_order=False)
 
   # tests namenode start command when NameNode HA is enabled, and
@@ -905,7 +925,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "start",
                        config_file="ha_bootstrap_standby_node_initial_start.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = call_mocks
     )
@@ -916,6 +936,9 @@ class TestNamenode(RMFTestCase):
                               content = Template('exclude_hosts_list.j2'),
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-bootstrapped/',
+                              create_parents = True
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -927,11 +950,13 @@ class TestNamenode(RMFTestCase):
     # command is run before the namenode launches
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              group = 'hadoop',
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
                               action = ['delete'],
@@ -942,14 +967,14 @@ class TestNamenode(RMFTestCase):
                               not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
                               )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-                              tries=180,
+                              tries=115,
                               try_sleep=10,
                               user="hdfs",
                               logoutput=True
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
-                              only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
                               hadoop_bin_dir = '/usr/bin',
                               default_fs = 'hdfs://ns1',
@@ -961,12 +986,12 @@ class TestNamenode(RMFTestCase):
                               owner = 'hdfs',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'],
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0777,
                               )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
-                              only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
                               hadoop_bin_dir = '/usr/bin',
                               default_fs = 'hdfs://ns1',
@@ -978,12 +1003,12 @@ class TestNamenode(RMFTestCase):
                               owner = 'ambari-qa',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
-                              action = ['create_on_execute'],
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               mode = 0770,
                               )
     self.assertResourceCalled('HdfsResource', None,
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
                               security_enabled = False,
-                              only_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
                               keytab = UnknownConfigurationMock(),
                               hadoop_bin_dir = '/usr/bin',
                               default_fs = 'hdfs://ns1',
@@ -992,14 +1017,127 @@ class TestNamenode(RMFTestCase):
                               principal_name = None,
                               user = 'hdfs',
                               dfs_type = '',
-                              action = ['execute'],
+                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertNoMoreResources()
     self.assertTrue(call_mocks.called)
     self.assertEqual(3, call_mocks.call_count)
     calls = [
-      call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'"),
+      call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn2 | grep active'"),
+      call('hdfs namenode -bootstrapStandby -nonInteractive -force', logoutput=False, user=u'hdfs'),
+      call('hdfs namenode -bootstrapStandby -nonInteractive -force', logoutput=False, user=u'hdfs')]
+    call_mocks.assert_has_calls(calls, any_order=True)
+
+  @patch.object(shell, "call")
+  def test_start_ha_bootstrap_standby_from_blueprint_initial_start_dfs_nameservices(self, call_mocks):
+
+    call_mocks = MagicMock()
+    call_mocks.side_effect = [(1, None), (0, None), (0, None)]
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "start",
+                       config_file="ha_bootstrap_standby_node_initial_start_dfs_nameservices.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = call_mocks
+    )
+    self.assert_configure_default()
+
+    self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
+                              owner = 'hdfs',
+                              content = Template('exclude_hosts_list.j2'),
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-bootstrapped/',
+                              create_parents = True
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755
+    )
+
+    # TODO: Using shell.call() to bootstrap standby which is patched to return status code '5' (i.e. already bootstrapped)
+    # Need to update the test case to verify that the standby case is detected, and that the bootstrap
+    # command is run before the namenode launches
+    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              create_parents = True,
+                              )
+    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              create_parents = True,
+                              )
+    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
+                              action = ['delete'],
+                              not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
+                              )
+    self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode'",
+                              environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
+                              not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
+                              )
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
+                              tries=115,
+                              try_sleep=10,
+                              user="hdfs",
+                              logoutput=True
+    )
+    self.assertResourceCalled('HdfsResource', '/tmp',
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              hadoop_bin_dir = '/usr/bin',
+                              default_fs = 'hdfs://ns1',
+                              hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                              kinit_path_local = '/usr/bin/kinit',
+                              principal_name = None,
+                              user = 'hdfs',
+                              dfs_type = '',
+                              owner = 'hdfs',
+                              hadoop_conf_dir = '/etc/hadoop/conf',
+                              type = 'directory',
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              mode = 0777,
+                              )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              hadoop_bin_dir = '/usr/bin',
+                              default_fs = 'hdfs://ns1',
+                              hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                              kinit_path_local = '/usr/bin/kinit',
+                              principal_name = None,
+                              user = 'hdfs',
+                              dfs_type = '',
+                              owner = 'ambari-qa',
+                              hadoop_conf_dir = '/etc/hadoop/conf',
+                              type = 'directory',
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              mode = 0770,
+                              )
+    self.assertResourceCalled('HdfsResource', None,
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              hadoop_bin_dir = '/usr/bin',
+                              default_fs = 'hdfs://ns1',
+                              hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                              kinit_path_local = '/usr/bin/kinit',
+                              principal_name = None,
+                              user = 'hdfs',
+                              dfs_type = '',
+                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hadoop_conf_dir = '/etc/hadoop/conf',
+                              )
+    self.assertNoMoreResources()
+    self.assertTrue(call_mocks.called)
+    self.assertEqual(3, call_mocks.call_count)
+    calls = [
+      call("ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -ns ns1 -getServiceState nn2 | grep active'"),
       call('hdfs namenode -bootstrapStandby -nonInteractive -force', logoutput=False, user=u'hdfs'),
       call('hdfs namenode -bootstrapStandby -nonInteractive -force', logoutput=False, user=u'hdfs')]
     call_mocks.assert_has_calls(calls, any_order=True)
@@ -1009,7 +1147,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1021,8 +1159,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
-                              bin_dir = '/usr/bin',
-                              kinit_override = True)
+                              bin_dir = '/usr/bin')
     self.assertNoMoreResources()
 
   def test_decommission_update_exclude_file_only(self):
@@ -1030,7 +1167,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "default_update_exclude_file_only.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1046,7 +1183,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "ha_default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1058,8 +1195,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
-                              bin_dir = '/usr/bin',
-                              kinit_override = True)
+                              bin_dir = '/usr/bin')
     self.assertNoMoreResources()
 
 
@@ -1068,7 +1204,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "decommission",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -1082,17 +1218,16 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
         bin_dir = '/usr/bin',
         conf_dir = '/etc/hadoop/conf',
-        kinit_override = True,
         user = 'hdfs',
     )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -1103,7 +1238,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -1134,17 +1269,17 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -1155,7 +1290,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -1186,7 +1321,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
@@ -1197,7 +1332,7 @@ class TestNamenode(RMFTestCase):
                          classname = "NameNode",
                          command = "rebalancehdfs",
                          config_file = "rebalancehdfs_default.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
       self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf balancer -threshold -1'",
@@ -1215,7 +1350,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "rebalancehdfs",
                        config_file = "rebalancehdfs_secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks=[(1, "no kinit")]
     )
@@ -1231,6 +1366,9 @@ class TestNamenode(RMFTestCase):
                               logoutput = False,
                               on_new_line = FunctionMock('handle_new_line'),
                               )
+    self.assertResourceCalled('File', ccache_path,
+                              action = ['delete'],
+                              )
     self.assertNoMoreResources()
 
   @patch("os.path.isfile")
@@ -1245,7 +1383,7 @@ class TestNamenode(RMFTestCase):
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
         classname = "NameNode", command = "start", config_file = "ranger-namenode-start.json",
-        hdp_stack_version = self.STACK_VERSION, target = RMFTestCase.TARGET_COMMON_SERVICES )
+        stack_version = self.STACK_VERSION, target = RMFTestCase.TARGET_COMMON_SERVICES )
 
       self.fail("Expected a failure since the ranger install.properties was missing")
     except Fail, failure:
@@ -1285,7 +1423,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -1305,7 +1443,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -1321,7 +1459,7 @@ class TestNamenode(RMFTestCase):
                          classname = "NameNode",
                          command = "security_status",
                          config_file="secured.json",
-                         hdp_stack_version = self.STACK_VERSION,
+                         stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
     except:
@@ -1342,7 +1480,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
@@ -1362,7 +1500,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "security_status",
                        config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
@@ -1382,7 +1520,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "restart",
                        config_file = "nn_ru_lzo.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     unknown_namenodes = active_namenodes
@@ -1392,7 +1530,7 @@ class TestNamenode(RMFTestCase):
                      classname = "NameNode",
                      command = "restart",
                      config_file = "nn_ru_lzo.json",
-                     hdp_stack_version = self.STACK_VERSION,
+                     stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertFalse(0 == len(Script.structuredOut))
@@ -1414,14 +1552,50 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "restart",
                        config_file = "nn_eu_standby.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict=mocks_dict)
-    
+
     calls = mocks_dict['call'].call_args_list
     self.assertTrue(len(calls) >= 1)
     self.assertTrue(calls[0].startsWith("conf-select create-conf-dir --package hadoop --stack-version 2.3.2.0-2844 --conf-version 0"))
+
+
+  @patch("hdfs_namenode.check_is_active_namenode")
+  @patch("resource_management.libraries.functions.setup_ranger_plugin_xml.setup_ranger_plugin")
+  @patch("utils.get_namenode_states")
+  def test_upgrade_restart_eu_with_ranger(self, get_namenode_states_mock, setup_ranger_plugin_mock, is_active_nn_mock):
+    is_active_nn_mock.return_value = True
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/nn_eu.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.4.0-1111'
+    json_content['commandParams']['version'] = version
+
+    active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
+    standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
+    unknown_namenodes = []
+
+    mocks_dict = {}
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "start",
+                       command_args=["nonrolling"],
+                       config_dict = json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None)],
+                       mocks_dict=mocks_dict)
+
+    self.assertTrue(setup_ranger_plugin_mock.called)
+
+    self.assertResourceCalledByIndex(7, 'Execute',
+      ('mv', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh.bak'),
+      only_if='test -f /usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh',
+      sudo=True)
 
   def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
@@ -1433,11 +1607,11 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-namenode', version), sudo=True)
-    self.assertNoMoreResources()
+
 
   @patch("resource_management.core.shell.call")
   def test_pre_upgrade_restart_23(self, call_mock):
@@ -1452,7 +1626,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
@@ -1467,13 +1641,30 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "post_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -report -live',
                               user='hdfs',
                               tries=60,
                               try_sleep=10
                               )
+    self.assertNoMoreResources()
+
+  def test_post_upgrade_ha_restart(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "post_upgrade_restart",
+                       config_dict = json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -report -live',
+                              user='hdfs',
+                              tries=60,
+                              try_sleep=10
+    )
     self.assertNoMoreResources()
 
   def test_prepare_rolling_upgrade__upgrade(self):
@@ -1486,21 +1677,46 @@ class TestNamenode(RMFTestCase):
       classname = "NameNode",
       command = "prepare_rolling_upgrade",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
-    
+
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
       logoutput = True, user = 'hdfs')
-    
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade prepare',
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade prepare',
       logoutput = True, user = 'hdfs')
 
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
       logoutput = True, user = 'hdfs')
-    
+
     self.assertNoMoreResources()
-  
+
+  def test_prepare_rolling_upgrade__upgrade(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_secured.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    json_content['commandParams']['upgrade_direction'] = 'upgrade'
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "prepare_rolling_upgrade",
+                       config_dict = json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
+
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
+                              logoutput = True, user = 'hdfs')
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade prepare',
+                              logoutput = True, user = 'hdfs')
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
+                              logoutput = True, user = 'hdfs')
+
+    self.assertNoMoreResources()
+
 
 
   @patch.object(shell, "call")
@@ -1517,13 +1733,13 @@ class TestNamenode(RMFTestCase):
       classname = "NameNode",
       command = "prepare_rolling_upgrade",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
-    
-    self.assertResourceCalled('Execute', 
+
+    self.assertResourceCalled('Execute',
         '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
         logoutput = True, user = 'hdfs')
-        
+
     self.assertNoMoreResources()
 
 
@@ -1535,18 +1751,43 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "finalize_rolling_upgrade",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
                               logoutput = True,
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade finalize',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade finalize',
                               logoutput = True,
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertNoMoreResources()
+
+  def test_finalize_ha_rolling_upgrade(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "finalize_rolling_upgrade",
+                       config_dict = json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade finalize',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
                               logoutput = True,
                               user = 'hdfs',
                               )
@@ -1565,7 +1806,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
@@ -1584,21 +1825,22 @@ class TestNamenode(RMFTestCase):
     del json_content['commandParams']['version']
     json_content['hostLevelParams']['stack_name'] = 'HDP'
     json_content['hostLevelParams']['stack_version'] = '2.2'
+    json_content['commandParams']['version'] = version
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
     import sys
     self.assertEquals("/usr/hdp/current/hadoop-client/conf", sys.modules["params"].hadoop_conf_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/libexec", sys.modules["params"].hadoop_libexec_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/bin", sys.modules["params"].hadoop_bin_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/sbin", sys.modules["params"].hadoop_bin)
+    self.assertEquals("/usr/hdp/{0}/hadoop/libexec".format(version), sys.modules["params"].hadoop_libexec_dir)
+    self.assertEquals("/usr/hdp/{0}/hadoop/bin".format(version), sys.modules["params"].hadoop_bin_dir)
+    self.assertEquals("/usr/hdp/{0}/hadoop/sbin".format(version), sys.modules["params"].hadoop_bin)
 
   @patch.object(shell, "call")
   def test_pre_upgrade_restart_23_params(self, call_mock):
@@ -1618,7 +1860,7 @@ class TestNamenode(RMFTestCase):
                        classname = "NameNode",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = itertools.cycle([(0, None)]),
                        mocks_dict = mocks_dict)

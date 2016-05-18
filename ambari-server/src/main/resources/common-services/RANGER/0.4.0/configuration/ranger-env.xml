@@ -48,12 +48,22 @@
     <name>ranger_admin_log_dir</name>
     <value>/var/log/ranger/admin</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>
     <name>ranger_usersync_log_dir</name>
     <value>/var/log/ranger/usersync</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
   </property>
 
   <property>
@@ -268,6 +278,7 @@
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Destination HDFS Directory</display-name>
     <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
     <depends-on>

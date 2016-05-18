@@ -18,58 +18,25 @@
 
 var App = require('app');
 
-describe('App.MainHostStackVersionsView', function() {
-  var view = App.MainHostStackVersionsView.create({
+function getView() {
+  return App.MainHostStackVersionsView.create({
     filteredCount: 0,
-    totalCount: 0,
-    host: {
-      id: 1,
-      stackVersions: []
-    }
+    totalCount: 0
+  });
+}
+var view;
+describe('App.MainHostStackVersionsView', function() {
+
+  beforeEach(function () {
+    view = getView();
   });
 
-  describe("#host", function () {
-    before(function () {
-      sinon.stub(App.router, 'get').returns(Em.Object.create({
-        id: 1
-      }));
-      sinon.stub(view, 'filter').returns([Em.Object.create({
-        id: 1
-      })]);
-    });
-    after(function () {
-      App.router.get.restore();
-      view.filter.restore();
-    });
-    it("", function () {
-      view.propertyDidChange('host');
-      expect(view.get('host.id')).to.equal(1);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(getView(), 'host', 'App.router.mainHostDetailsController.content', 'object');
 
-  describe("#content", function () {
-    before(function () {
-      sinon.stub(view, 'get').returns([Em.Object.create({
-        id: 1
-      })]);
-      sinon.stub(view, 'filter').returns([Em.Object.create({
-        id: 1
-      })]);
-    });
-    after(function () {
-      view.get.restore();
-      view.filter.restore();
-    });
-    it("", function () {
-      view.propertyDidChange('content');
-      expect(view.get('content')).to.eql([Em.Object.create({
-        id: 1
-      })]);
-    });
-  });
+  App.TestAliases.testAsComputedFilterBy(getView(), 'content', 'host.stackVersions', 'isVisible', true);
 
   describe("#filteredContentInfo", function () {
-    it("", function () {
+    it("formatted with filteredCount and totalCount", function () {
       view.set('filteredCount', 1);
       view.set('totalCount', 2);
       view.propertyDidChange('filteredContentInfo');

@@ -21,10 +21,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -37,12 +39,20 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * ResourceProvider for Alert instances
@@ -69,11 +79,22 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
   protected static final String ALERT_LABEL = "Alert/label";
   protected static final String ALERT_SCOPE = "Alert/scope";
 
+  protected static final String ALERT_REPEAT_TOLERANCE = "Alert/repeat_tolerance";
+  protected static final String ALERT_OCCURRENCES = "Alert/occurrences";
+  protected static final String ALERT_REPEAT_TOLERANCE_REMAINING = "Alert/repeat_tolerance_remaining";
+  protected static final String ALERT_FIRMNESS = "Alert/firmness";
+
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_ID, ALERT_DEFINITION_NAME));
 
   @Inject
   private static AlertsDAO alertsDAO;
+
+  @Inject
+  private static AlertDefinitionDAO alertDefinitionDAO = null;
+
+  @Inject
+  private static Provider<Clusters> clusters;
 
   /**
    * The property ids for an alert defintion resource.
@@ -102,6 +123,10 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     PROPERTY_IDS.add(ALERT_HOST);
     PROPERTY_IDS.add(ALERT_SERVICE);
     PROPERTY_IDS.add(ALERT_SCOPE);
+    PROPERTY_IDS.add(ALERT_REPEAT_TOLERANCE);
+    PROPERTY_IDS.add(ALERT_OCCURRENCES);
+    PROPERTY_IDS.add(ALERT_REPEAT_TOLERANCE_REMAINING);
+    PROPERTY_IDS.add(ALERT_FIRMNESS);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Alert, ALERT_ID);
@@ -144,7 +169,8 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
 
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
-    Set<Resource> results = new HashSet<Resource>();
+    // use a collection which preserves order since JPA sorts the results
+    Set<Resource> results = new LinkedHashSet<Resource>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
 
@@ -159,17 +185,46 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
         AlertCurrentEntity entity = alertsDAO.findCurrentById(Long.parseLong(id));
 
         if (null != entity) {
+          AlertResourceProviderUtils.verifyViewAuthorization(entity);
           results.add(toResource(false, clusterName, entity, requestPropertyIds));
         }
 
       } else {
-        List<AlertCurrentEntity> entities = null;
-          AlertCurrentRequest alertCurrentRequest = new AlertCurrentRequest();
-          alertCurrentRequest.Predicate = predicate;
-          alertCurrentRequest.Pagination = request.getPageRequest();
-          alertCurrentRequest.Sort = request.getSortRequest();
+        // Verify authorization to retrieve the requested data
+        try {
+          Long clusterId = (StringUtils.isEmpty(clusterName)) ? null : getClusterId(clusterName);
+          String definitionName = (String) propertyMap.get(ALERT_DEFINITION_NAME);
+          String definitionId = (String) propertyMap.get(ALERT_DEFINITION_ID);
 
-          entities = alertsDAO.findAll(alertCurrentRequest);
+          if(clusterId == null)  {
+            // Make sure the user has administrative access by using -1 as the cluster id
+            AlertResourceProviderUtils.verifyViewAuthorization("", -1L);
+          }
+          else if(!StringUtils.isEmpty(definitionName)) {
+            // Make sure the user has access to the alert
+            AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findByName(clusterId, definitionName);
+            AlertResourceProviderUtils.verifyViewAuthorization(alertDefinition);
+          }
+          else if(StringUtils.isNumeric(definitionId)) {
+            // Make sure the user has access to the alert
+            AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findById(Long.valueOf(definitionId));
+            AlertResourceProviderUtils.verifyViewAuthorization(alertDefinition);
+          }
+          else {
+            // Make sure the user has the ability to view cluster-level alerts
+            AlertResourceProviderUtils.verifyViewAuthorization("", getClusterResourceId(clusterName));
+          }
+        } catch (AmbariException e) {
+          throw new SystemException(e.getMessage(), e);
+        }
+
+        List<AlertCurrentEntity> entities = null;
+        AlertCurrentRequest alertCurrentRequest = new AlertCurrentRequest();
+        alertCurrentRequest.Predicate = predicate;
+        alertCurrentRequest.Pagination = request.getPageRequest();
+        alertCurrentRequest.Sort = request.getSortRequest();
+
+        entities = alertsDAO.findAll(alertCurrentRequest);
 
         if (null == entities) {
           entities = Collections.emptyList();
@@ -213,10 +268,25 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     setResourceProperty(resource, ALERT_HOST, history.getHostName(), requestedIds);
     setResourceProperty(resource, ALERT_SERVICE, history.getServiceName(), requestedIds);
 
-
     setResourceProperty(resource, ALERT_DEFINITION_ID, definition.getDefinitionId(),requestedIds);
     setResourceProperty(resource, ALERT_DEFINITION_NAME, definition.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_SCOPE, definition.getScope(), requestedIds);
+
+    // repeat tolerance values
+    int repeatTolerance = getRepeatTolerance(definition, clusterName);
+    long occurrences = entity.getOccurrences();
+    long remaining = (occurrences > repeatTolerance) ? 0 : (repeatTolerance - occurrences);
+
+    // the OK state is special; when received, we ignore tolerance and assume
+    // the alert is HARD
+    if (history.getAlertState() == AlertState.OK) {
+      remaining = 0;
+    }
+
+    setResourceProperty(resource, ALERT_REPEAT_TOLERANCE, repeatTolerance, requestedIds);
+    setResourceProperty(resource, ALERT_OCCURRENCES, occurrences, requestedIds);
+    setResourceProperty(resource, ALERT_REPEAT_TOLERANCE_REMAINING, remaining, requestedIds);
+    setResourceProperty(resource, ALERT_FIRMNESS, entity.getFirmness(), requestedIds);
 
     if (isCollection) {
       // !!! want name/id to be populated as if it were a PK when requesting the
@@ -226,5 +296,38 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider implements
     }
 
     return resource;
+  }
+
+  /**
+   * Gets the repeat tolerance value for the specified definition. This method
+   * will return the override from the definition if
+   * {@link AlertDefinitionEntity#isRepeatToleranceEnabled()} is {@code true}.
+   * Otherwise, it uses {@link ConfigHelper#CLUSTER_ENV_ALERT_REPEAT_TOLERANCE},
+   * defaulting to {@code 1} if not found.
+   *
+   * @param definition
+   *          the definition (not {@code null}).
+   * @param clusterName
+   *          the name of the cluster (not {@code null}).
+   * @return the repeat tolerance for the alert
+   */
+  private int getRepeatTolerance(AlertDefinitionEntity definition, String clusterName ){
+
+    // if the definition overrides the global value, then use that
+    if( definition.isRepeatToleranceEnabled() ){
+      return definition.getRepeatTolerance();
+    }
+
+    int repeatTolerance = 1;
+    try {
+      Cluster cluster = clusters.get().getCluster(clusterName);
+      String value = cluster.getClusterProperty(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1");
+      repeatTolerance = NumberUtils.toInt(value, 1);
+    } catch (AmbariException ambariException) {
+      LOG.warn("Unable to read {}/{} from cluster {}, defaulting to 1", ConfigHelper.CLUSTER_ENV,
+          ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, clusterName, ambariException);
+    }
+
+    return repeatTolerance;
   }
 }

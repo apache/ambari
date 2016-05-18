@@ -41,7 +41,7 @@
         </div>
         <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>{{view.content}}</div>
       {{else}}
-        <div class="spinner"></div>
+        {{view App.SpinnerView}}
       {{/if}}
     </li>
   </ul>

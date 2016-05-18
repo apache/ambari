@@ -24,10 +24,11 @@ from stacks.utils.RMFTestCase import *
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch("resource_management.libraries.functions.get_hdp_version", new=MagicMock(return_value="2.3.2.0-1597"))
+@patch("resource_management.libraries.functions.get_stack_version", new=MagicMock(return_value="2.3.2.0-1597"))
 class TestSparkThriftServer(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
+  COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.1/package"
   STACK_VERSION = "2.3"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_configure_default(self, copy_to_hdfs_mock):
@@ -36,7 +37,7 @@ class TestSparkThriftServer(RMFTestCase):
                    classname = "SparkThriftServer",
                    command = "configure",
                    config_file="spark_default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -49,7 +50,7 @@ class TestSparkThriftServer(RMFTestCase):
                    classname = "SparkThriftServer",
                    command = "start",
                    config_file="spark_default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
@@ -65,7 +66,7 @@ class TestSparkThriftServer(RMFTestCase):
                    classname = "SparkThriftServer",
                    command = "stop",
                    config_file="spark_default.json",
-                   hdp_stack_version = self.STACK_VERSION,
+                   stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/stop-thriftserver.sh',
@@ -81,16 +82,17 @@ class TestSparkThriftServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -102,11 +104,12 @@ class TestSparkThriftServer(RMFTestCase):
         owner = 'spark',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'directory',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         dfs_type = '',
         mode = 0775,
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = UnknownConfigurationMock(),
@@ -115,7 +118,7 @@ class TestSparkThriftServer(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         principal_name = UnknownConfigurationMock(),
         user = 'hdfs',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         dfs_type = '',
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
@@ -129,20 +132,28 @@ class TestSparkThriftServer(RMFTestCase):
         content = InlineTemplate(self.getConfig()['configurations']['spark-env']['content']),
         owner = 'spark',
         group = 'spark',
+        mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/log4j.properties',
         content = '\n# Set everything to be logged to the console\nlog4j.rootCategory=INFO, console\nlog4j.appender.console=org.apache.log4j.ConsoleAppender\nlog4j.appender.console.target=System.err\nlog4j.appender.console.layout=org.apache.log4j.PatternLayout\nlog4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n\n\n# Settings to quiet third party logs that are too verbose\nlog4j.logger.org.eclipse.jetty=WARN\nlog4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR\nlog4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=INFO\nlog4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=INFO',
         owner = 'spark',
         group = 'spark',
+        mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/metrics.properties',
         content = InlineTemplate(self.getConfig()['configurations']['spark-metrics-properties']['content']),
         owner = 'spark',
         group = 'spark',
     )
+    self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
+        owner = 'spark',
+        group = 'spark',
+        mode = 0755,
+    )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf',
         key_value_delimiter = ' ',
         owner = 'hive',
+        group = 'hadoop',
         properties = self.getConfig()['configurations']['spark-thrift-sparkconf']
     )
 
@@ -160,7 +171,7 @@ class TestSparkThriftServer(RMFTestCase):
                        classname = "SparkThriftServer",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

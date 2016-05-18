@@ -24,7 +24,7 @@ from stacks.utils.RMFTestCase import *
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestZookeeperClient(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "ZOOKEEPER/3.4.5.2.0/package"
+  COMMON_SERVICES_PACKAGE_DIR = "ZOOKEEPER/3.4.5/package"
   STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
@@ -32,14 +32,14 @@ class TestZookeeperClient(RMFTestCase):
                        classname = "ZookeeperClient",
                        command = "configure",
                        config_file = "default.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
@@ -61,19 +61,19 @@ class TestZookeeperClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a',
       mode = 0755,
     )
@@ -95,14 +95,14 @@ class TestZookeeperClient(RMFTestCase):
                        classname = "ZookeeperClient",
                        command = "configure",
                        config_file = "secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
@@ -124,19 +124,19 @@ class TestZookeeperClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a',
       mode = 0755
     )
@@ -170,7 +170,7 @@ class TestZookeeperClient(RMFTestCase):
                        classname = "ZookeeperClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'zookeeper-client', version), sudo=True)
@@ -191,7 +191,7 @@ class TestZookeeperClient(RMFTestCase):
                        classname = "ZookeeperClient",
                        command = "pre_upgrade_restart",
                        config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
+                       stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)

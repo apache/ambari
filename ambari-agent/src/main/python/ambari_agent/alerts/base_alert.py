@@ -29,6 +29,9 @@ logger = logging.getLogger()
 AlertUri = namedtuple('AlertUri', 'uri is_ssl_enabled')
 
 class BaseAlert(object):
+  # will force a kinit even if klist says there are valid tickets (4 hour default)
+  _DEFAULT_KINIT_TIMEOUT = 14400000
+
   RESULT_OK = "OK"
   RESULT_WARNING = "WARNING"
   RESULT_CRITICAL = "CRITICAL"
@@ -38,12 +41,12 @@ class BaseAlert(object):
   HA_NAMESERVICE_PARAM = "{{ha-nameservice}}"
   HA_ALIAS_PARAM = "{{alias}}"
 
-  def __init__(self, alert_meta, alert_source_meta):
+  def __init__(self, alert_meta, alert_source_meta, config):
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
     self.cluster_name = ''
     self.host_name = ''
-    
+    self.config = config
     
   def interval(self):
     """ gets the defined interval this check should run """
@@ -109,15 +112,6 @@ class BaseAlert(object):
       res = self._collect()
       result_state = res[0]
       reporting_state = result_state.lower()
-
-      # if the alert reports that it should be SKIPPED, then skip it
-      # this is useful for cases where the alert might run on multiple hosts
-      # but only 1 host should report the data
-      if result_state == BaseAlert.RESULT_SKIPPED:
-        logger.debug('[Alert][{0}] Skipping UUID {1}.'.format(self.get_name(),
-          self.get_uuid()))
-
-        return
 
       # it's possible that the alert definition doesn't have reporting; safely
       # check for it and fallback to default text if it doesn't exist

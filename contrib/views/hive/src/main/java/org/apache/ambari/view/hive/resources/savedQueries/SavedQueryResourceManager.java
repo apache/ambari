@@ -116,6 +116,11 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
     storageFactory.getStorage().store(SavedQuery.class, savedQuery);
   }
 
+  private void emptyShortQueryField(SavedQuery query) {
+    query.setShortQuery("");
+    storageFactory.getStorage().store(SavedQuery.class, query);
+  }
+
   /**
    * Generate short preview of query.
    * Remove SET settings like "set hive.execution.engine=tez;" from beginning
@@ -132,13 +137,22 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
   @Override
   public SavedQuery update(SavedQuery newObject, String id) throws ItemNotFound {
     SavedQuery savedQuery = super.update(newObject, id);
-    fillShortQueryField(savedQuery);
+    // Emptying short query so that in next read, this gets updated with proper value
+    // from the queryFile
+    emptyShortQueryField(savedQuery);
     return savedQuery;
   }
 
   @Override
   public List<SavedQuery> readAll(FilteringStrategy filteringStrategy) {
-    return super.readAll(filteringStrategy);
+    List<SavedQuery> queries = super.readAll(filteringStrategy);
+    for(SavedQuery query : queries) {
+      String shortQuery = query.getShortQuery();
+      if(shortQuery == null || shortQuery.isEmpty()) {
+        fillShortQueryField(query);
+      }
+    }
+    return queries;
   }
 
   @Override

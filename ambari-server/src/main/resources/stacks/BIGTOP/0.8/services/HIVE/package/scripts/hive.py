@@ -113,7 +113,7 @@ def fill_conf_dir(component_conf_dir):
   Directory(component_conf_dir,
             owner=params.hive_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True
   )
 
   XmlConfig("mapred-site.xml",
@@ -165,7 +165,7 @@ def crt_directory(name):
   import params
 
   Directory(name,
-            recursive=True,
+            create_parents = True,
             owner=params.hive_user,
             group=params.user_group,
             mode=0755)

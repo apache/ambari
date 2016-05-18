@@ -17,7 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.core.resources.system import Execute
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -27,7 +29,7 @@ class FlumeServiceCheck(Script):
   def service_check(self, env):
     import params
     env.set_params(params)
-    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    smoke_cmd = os.path.join(params.stack_root,"Run-SmokeTests.cmd")
     service = "FLUME"
     Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.hdfs_user)
 

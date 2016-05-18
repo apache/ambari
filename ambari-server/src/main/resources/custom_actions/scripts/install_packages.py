@@ -28,13 +28,21 @@ import os.path
 import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 from resource_management import *
+import resource_management
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.str_utils import cbool, cint
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions.hdp_select import get_hdp_versions
+from resource_management.libraries.functions import stack_tools
+from resource_management.libraries.functions.stack_select import get_stack_versions
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 from resource_management.core.logger import Logger
 
@@ -48,9 +56,7 @@ class InstallPackages(Script):
   """
 
   UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
-  REPO_FILE_NAME_PREFIX = 'HDP-'
-  STACK_TO_ROOT_FOLDER = {"HDP": "/usr/hdp"}
-  
+
   def actionexecute(self, env):
     num_errors = 0
 
@@ -65,36 +71,40 @@ class InstallPackages(Script):
     signal.signal(signal.SIGTERM, self.abort_handler)
     signal.signal(signal.SIGINT, self.abort_handler)
 
+    self.repository_version_id = None
+
     # Select dict that contains parameters
     try:
       self.repository_version = config['roleParams']['repository_version']
       base_urls = json.loads(config['roleParams']['base_urls'])
       package_list = json.loads(config['roleParams']['package_list'])
       stack_id = config['roleParams']['stack_id']
+      if 'repository_version_id' in config['roleParams']:
+        self.repository_version_id = config['roleParams']['repository_version_id']
     except KeyError:
       # Last try
       self.repository_version = config['commandParams']['repository_version']
       base_urls = json.loads(config['commandParams']['base_urls'])
       package_list = json.loads(config['commandParams']['package_list'])
       stack_id = config['commandParams']['stack_id']
+      if 'repository_version_id' in config['commandParams']:
+        self.repository_version_id = config['commandParams']['repository_version_id']
 
     # current stack information
-    self.current_hdp_stack_version = None
+    self.current_stack_version_formatted = None
     if 'stack_version' in config['hostLevelParams']:
       current_stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-      self.current_hdp_stack_version = format_hdp_stack_version(current_stack_version_unformatted)
+      self.current_stack_version_formatted = format_stack_version(current_stack_version_unformatted)
 
 
-    stack_name = None
-    self.stack_root_folder = None
-    if stack_id and "-" in stack_id:
-      stack_split = stack_id.split("-")
-      if len(stack_split) == 2:
-        stack_name = stack_split[0].upper()
-        if stack_name in self.STACK_TO_ROOT_FOLDER:
-          self.stack_root_folder = self.STACK_TO_ROOT_FOLDER[stack_name]
+    self.stack_name = Script.get_stack_name()
+    if self.stack_name is None:
+      raise Fail("Cannot determine the stack name")
+
+    self.stack_root_folder = Script.get_stack_root()
     if self.stack_root_folder is None:
-      raise Fail("Cannot determine the stack's root directory by parsing the stack_id property, {0}".format(str(stack_id)))
+      raise Fail("Cannot determine the stack's root directory")
+
     if self.repository_version is None:
       raise Fail("Cannot determine the repository version to install")
 
@@ -115,6 +125,10 @@ class InstallPackages(Script):
       self.current_repo_files.add('base')
 
     Logger.info("Will install packages for repository version {0}".format(self.repository_version))
+
+    if 0 == len(base_urls):
+      Logger.info("Repository list is empty. Ambari may not be managing the repositories for {0}.".format(self.repository_version))
+
     try:
       append_to_file = False
       for url_info in base_urls:
@@ -123,7 +137,7 @@ class InstallPackages(Script):
         self.current_repo_files.add(repo_file)
         append_to_file = True
 
-      installed_repositories = list_ambari_managed_repos()
+      installed_repositories = list_ambari_managed_repos(self.stack_name)
     except Exception, err:
       Logger.logger.exception("Cannot distribute repositories. Error: {0}".format(str(err)))
       num_errors += 1
@@ -135,13 +149,17 @@ class InstallPackages(Script):
       'stack_id': stack_id,
       'package_installation_result': 'FAIL'
     }
+
+    if self.repository_version_id is not None:
+      self.structured_output['repository_version_id'] = self.repository_version_id
+
     self.put_structured_out(self.structured_output)
 
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
     # Initial list of versions, used to compute the new version installed
-    self.old_versions = get_hdp_versions(self.stack_root_folder)
+    self.old_versions = get_stack_versions(self.stack_root_folder)
 
     try:
       is_package_install_successful = False
@@ -167,7 +185,7 @@ class InstallPackages(Script):
 
   def _create_config_links_if_necessary(self, stack_id, stack_version):
     """
-    Sets up the required structure for /etc/<component>/conf symlinks and /usr/hdp/current
+    Sets up the required structure for /etc/<component>/conf symlinks and <stack-root>/current
     configuration symlinks IFF the current stack is < HDP 2.3+ and the new stack is >= HDP 2.3
 
     stack_id:  stack id, ie HDP-2.3
@@ -182,22 +200,24 @@ class InstallPackages(Script):
       Logger.info("Unrecognized stack id {0}, cannot create config links".format(stack_id))
       return
 
-    if args[0] != "HDP":
-      Logger.info("Unrecognized stack name {0}, cannot create config links".format(args[0]))
-
-    if version.compare_versions(version.format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
-      Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
+    target_stack_version = args[1]
+    if not (target_stack_version and check_stack_feature(StackFeature.CONFIG_VERSIONING, target_stack_version)):
+      Logger.info("Configuration symlinks are not needed for {0}".format(stack_version))
       return
 
-    # if already on HDP 2.3, then there's nothing to do in terms of linking configs
-    if self.current_hdp_stack_version and compare_versions(self.current_hdp_stack_version, '2.3') >= 0:
-      Logger.info("The current cluster stack of {0} does not require linking configurations".format(stack_version))
-      return
-
-    # link configs for all known packages
-    for package_name, directories in conf_select.PACKAGE_DIRS.iteritems():
-      conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
-        skip_existing_links = False, link_to_conf_install = True)
+    for package_name, directories in conf_select.get_package_dirs().iteritems():
+      # if already on HDP 2.3, then we should skip making conf.backup folders
+      if self.current_stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, self.current_stack_version_formatted):
+        conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
+        Logger.info("The current cluster stack of {0} does not require backing up configurations; "
+                    "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
+        # only link configs for all known packages
+        conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
+      else:
+        # link configs and create conf.backup folders for all known packages
+        # this will also call conf-select select
+        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
+          skip_existing_links = False, link_to = "backup")
 
 
   def compute_actual_version(self):
@@ -220,7 +240,7 @@ class InstallPackages(Script):
     Logger.info("Attempting to determine actual version with build number.")
     Logger.info("Old versions: {0}".format(self.old_versions))
 
-    new_versions = get_hdp_versions(self.stack_root_folder)
+    new_versions = get_stack_versions(self.stack_root_folder)
     Logger.info("New versions: {0}".format(new_versions))
 
     deltas = set(new_versions) - set(self.old_versions)
@@ -262,7 +282,7 @@ class InstallPackages(Script):
     Logger.info("Installation of packages failed. Checking if installation was partially complete")
     Logger.info("Old versions: {0}".format(self.old_versions))
 
-    new_versions = get_hdp_versions(self.stack_root_folder)
+    new_versions = get_stack_versions(self.stack_root_folder)
     Logger.info("New versions: {0}".format(new_versions))
 
     deltas = set(new_versions) - set(self.old_versions)
@@ -328,10 +348,20 @@ class InstallPackages(Script):
     :return: Returns 0 if no errors were found, and 1 otherwise.
     """
     ret_code = 0
+    
+    config = self.get_config()
+    agent_stack_retry_on_unavailability = cbool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
+    agent_stack_retry_count = cint(config['hostLevelParams']['agent_stack_retry_count'])
+
     # Install packages
     packages_were_checked = False
+    stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
     try:
-      Package(self.get_base_packages_to_install())
+      Package(stack_selector_package,
+              action="upgrade",
+              retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+              retry_count=agent_stack_retry_count
+      )
       
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
@@ -339,10 +369,12 @@ class InstallPackages(Script):
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       for package in filtered_package_list:
-        name = self.format_package_name(package['name'], self.repository_version)
+        name = self.format_package_name(package['name'])
         Package(name,
-                use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories,
-                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [])
+          action="upgrade", # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated     
+          retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+          retry_count=agent_stack_retry_count
+        )
     except Exception, err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))
@@ -391,7 +423,7 @@ class InstallPackages(Script):
       repo['mirrorsList'] = url_info['mirrorsList']
 
     ubuntu_components = [url_info['name']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
-    file_name = self.REPO_FILE_NAME_PREFIX + self.repository_version
+    file_name = self.stack_name + "-" + self.repository_version
 
     Repository(repo['repoName'],
       action = "create",
@@ -404,60 +436,22 @@ class InstallPackages(Script):
     )
     return repo['repoName'], file_name
 
-  def format_package_name(self, package_name, repo_id):
-    """
-    This method overcomes problems at SLES SP3. Zypper here behaves differently
-    than at SP1, and refuses to install packages by mask if there is any installed package that
-    matches this mask.
-    So we preppend concrete HDP version to mask under Suse
-    """
-    if OSCheck.is_suse_family() and '*' in package_name:
-      mask_version = re.search(r'((_\d+)*(_)?\*)', package_name).group(0)
-      formatted_version = '_' + repo_id.replace('.', '_').replace('-', '_') + '*'
-      return package_name.replace(mask_version, formatted_version)
-    else:
-      return package_name
-
   def abort_handler(self, signum, frame):
     Logger.error("Caught signal {0}, will handle it gracefully. Compute the actual version if possible before exiting.".format(signum))
     self.check_partial_install()
     
-  def get_base_packages_to_install(self):
-    """
-    HACK: list packages which should be installed without disabling any repos. (This is planned to fix in Ambari-2.2)
-    """
-    base_packages_to_install = ['fuse']
-    
-    if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-      base_packages_to_install.append('libfuse2')
-    else:
-      base_packages_to_install.append('fuse-libs')
-      
-    return base_packages_to_install
-
-    
   def filter_package_list(self, package_list):
     """
     Note: that we have skipUpgrade option in metainfo.xml to filter packages,
+    as well as condition option to filter them conditionally,
     so use this method only if, for some reason the metainfo option cannot be used.
-    
-    Here we filter packages that are managed with custom logic in package
-    scripts. Usually this packages come from system repositories, and either
-     are not available when we restrict repository list, or should not be
-    installed on host at all.
+  
     :param package_list: original list
     :return: filtered package_list
     """
     filtered_package_list = []
     for package in package_list:
-      skip_package = False
-      
-      # skip upgrade for hadooplzo* versioned package, only if lzo is disabled 
-      io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-      if not io_compression_codecs or "com.hadoop.compression.lzo" not in io_compression_codecs:
-        skip_package = package['name'].startswith('hadooplzo')
-
-      if not skip_package:
+      if Script.check_package_condition(package):
         filtered_package_list.append(package)
     return filtered_package_list
 

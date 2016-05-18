@@ -16,12 +16,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from resource_management import Script
-from resource_management.libraries.functions.check_process_status import check_process_status
 
-import master_helper
+from resource_management import Script
+from resource_management.core.logger import Logger
+
 import common
-import constants
+import hawq_constants
+import master_helper
 
 class HawqStandby(Script):
   """
@@ -36,23 +37,31 @@ class HawqStandby(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    env.set_params(constants)
+    env.set_params(hawq_constants)
     master_helper.configure_master()
 
   def start(self, env):
+    import params
     self.configure(env)
     common.validate_configuration()
-    master_helper.start_master()
+    common.start_component(hawq_constants.STANDBY, params.hawq_master_address_port, params.hawq_master_dir)
 
   def stop(self, env):
-    master_helper.stop_master()
+    import params
+    common.stop_component(hawq_constants.STANDBY, hawq_constants.FAST)
 
   def status(self, env):
-    from hawqstatus import get_pid_file
-    check_process_status(get_pid_file())
+    from hawqstatus import assert_component_running
+    assert_component_running(hawq_constants.STANDBY)
 
-  def activatestandby(self, env):
-    pass
+  def activate_hawq_standby(self, env):
+    import utils
+    Logger.info("Activating HAWQ standby...")
+    utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
+
+    # Stop the newly become master as the process might be running with an old port,
+    # which would cause a failure Start HAWQ Service step in Activate HAWQ Standby Master Wizard
+    common.stop_component(hawq_constants.MASTER, hawq_constants.FAST)
 
 if __name__ == "__main__":
-    HawqStandby().execute()
+  HawqStandby().execute()

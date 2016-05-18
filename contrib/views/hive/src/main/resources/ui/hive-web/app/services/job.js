@@ -37,5 +37,20 @@ export default Ember.Service.extend({
          job.reload();
        }
     });
+  },
+
+  fetchJobStatus: function (jobId) {
+    console.log("finding status of job : ", jobId);
+    var self = this;
+    var url = this.container.lookup('adapter:application').buildURL();
+    url +=  "/jobs/" + jobId + "/status";
+
+    return Ember.$.ajax({
+      url: url,
+      type: 'GET',
+      headers: {
+        'X-Requested-By': 'ambari'
+      }
+    });
   }
 });

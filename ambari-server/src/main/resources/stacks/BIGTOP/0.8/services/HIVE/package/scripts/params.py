@@ -30,7 +30,7 @@ tmp_dir = Script.get_tmp_dir()
 rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = config['hostLevelParams']['stack_version']
+stack_version_formatted = config['hostLevelParams']['stack_version']
 
 #hadoop params
 if rpm_version:
@@ -62,7 +62,7 @@ else:
   hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
   sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
 
-  if str(hdp_stack_version).startswith('2.0'):
+  if str(stack_version_formatted).startswith('2.0'):
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
     webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
   # for newer versions
@@ -262,7 +262,7 @@ webhcat_hdfs_user_mode = 0755
 #for create_hdfs_directory
 security_param = "true" if security_enabled else "false"
 
-if str(hdp_stack_version).startswith('2.0') or str(hdp_stack_version).startswith('2.1'):
+if str(stack_version_formatted).startswith('2.0') or str(stack_version_formatted).startswith('2.1'):
   app_dir_files = {tez_local_api_jars:None}
 else:
   app_dir_files = {

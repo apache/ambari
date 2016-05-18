@@ -21,13 +21,17 @@ package org.apache.ambari.server.api.handlers;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 
+import org.apache.ambari.server.api.services.DeleteResultMetadata;
 import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.Result;
+import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
+import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.RequestStatusMetaData;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -72,5 +76,22 @@ public class DeleteHandler extends BaseManagementHandler implements RequestHandl
       }
 
     return result;
+  }
+
+  @Override
+  protected ResultMetadata convert(RequestStatusMetaData requestStatusMetaData) {
+    if (requestStatusMetaData == null) {
+      return null;
+    }
+
+    if (requestStatusMetaData.getClass() != DeleteStatusMetaData.class) {
+      throw new IllegalArgumentException("RequestStatusDetails is not of type DeleteStatusDetails");
+    }
+
+    DeleteStatusMetaData statusDetails = (DeleteStatusMetaData) requestStatusMetaData;
+    DeleteResultMetadata resultDetails = new DeleteResultMetadata();
+    resultDetails.addDeletedKeys(statusDetails.getDeletedKeys());
+    resultDetails.addExceptions(statusDetails.getExceptionForKeys());
+    return resultDetails;
   }
 }

@@ -72,4 +72,15 @@ public class BlueprintEntityTest {
     entity.setConfigurations(configurations);
     assertSame(configurations, entity.getConfigurations());
   }
+
+  /**
+   * Test get and set of Setting object.
+   */
+  @Test
+  public void testSetGetSetting() {
+    BlueprintEntity entity = new BlueprintEntity();
+    Collection<BlueprintSettingEntity> setting = Collections.emptyList();
+    entity.setSettings(setting);
+    assertSame(setting, entity.getSettings());
+  }
 }

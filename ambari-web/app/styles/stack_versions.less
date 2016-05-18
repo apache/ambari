@@ -121,14 +121,48 @@
         margin-right: 8px;
         margin-top: 0;
       }
-      .icon-question-sign {
-        color: @blue;
-      }
+    }
+  }
+}
+.version-box-popup {
+  .modal{
+    max-height: 563px;
+    max-width: 340px;
+    margin: -250px 0 0 -180px;
+    .modal-body {
+      padding: 0px 0px;
+    }
+  }
+  .version-box-in-popup.version-box {
+    padding: 0px 0px;
+    margin: 0px 0px;
+    border: none;
+    .hosts-section {
+      padding-bottom: 16px;
     }
   }
 }
 
-#stack-upgrade-page {
+#stack-upgrade-page,
+.version-box-popup {
+  .versions-slides {
+    overflow-x: scroll;
+    padding-bottom: 25px;
+    margin-left: 0px;
+    margin-top: 5px;
+    .versions-slides-bar {
+      min-width: 1000px;
+      max-width: 20000px;
+    }
+  }
+  .left-menu-table {
+    padding: 10px 0px;
+    margin-top: 124px;
+    td.service-display-name {
+      border-top: 2px solid #e4e4e4;
+      border-bottom: 2px solid #e4e4e4;
+    }
+  }
   div.current-version-box {
     background: none repeat scroll 0 0 #e6f1f6;
     box-shadow: 0 8px 6px -6px black;
@@ -137,7 +171,6 @@
     position: relative;
     background: none repeat scroll 0 0 #fff;
     border: 1px solid #d2d9dd;
-    height: 168px;
     margin: 15px 15px 0 0;
     padding: 5px 0;
     a.not-active:hover {
@@ -210,6 +243,14 @@
       margin: 0 0px -18px 1px;
       padding: 1px;
     }
+    .patch-icon {
+      text-align: center;
+      color: #ff4500;
+      height: 20px;
+      font-size: 14px;
+      margin: 18px 0px -18px 1px;
+      padding: 1px;
+    }
     .hosts-section {
       margin-top: 16px;
       width: 100%;
@@ -225,6 +266,86 @@
     .hosts-section .host-link {
       font-size: 12px;
     }
+  }
+  .version-column {
+    min-height: 500px;
+    width: 115px;
+    margin: 15px 7px 0px 7px;
+    .version-column-display-name {
+      color: #000;
+      text-align: center;
+      font-weight: 500;
+      font-size: 16px;
+      line-height: 18px;
+      padding: 5px 5px;
+      margin-bottom: 0px;
+    }
+    .version-column-show-details {
+      text-align: center;
+      font-size: 13px;
+      padding: 5px 5px;
+      border-bottom: 1px solid #e4e4e4;
+      margin-bottom: 0px;
+      a {
+        cursor: pointer;
+      }
+    }
+    .state {
+      margin: 5px 0px 15px 0px;
+      line-height: 20px;
+      .label-success {
+        line-height: 30px;
+      }
+      .btn.btn-primary:not(.dropdown-toggle) {
+        padding: 4px 5px;
+        min-width: 70px;
+      }
+      .open .dropdown-menu {
+        min-width: 90px;
+      }
+    }
+    .state.installing {
+      padding-bottom: 5px;
+      margin: 10px 0px;
+    }
+    .services-section {
+      width: 100%;
+      text-align: center;
+      padding-bottom: 4px;
+      .service-version-info {
+        margin-bottom: 14px;
+        text-align: center;
+        span.label {
+          padding: 5px 15px;
+          background-color: #a3a3a3;
+          z-index: 100;
+          position: relative;
+        }
+      }
+      .line-separator, .line-separator-bottom{
+        height: 2px;
+        background: #e4e4e4;
+        position: relative;
+        margin: 0px 0px 0px -15px;
+      }
+      .line-separator {
+        top: -7px;
+      }
+      .line-separator-bottom {
+        top: -5px;
+      }
+    }
+  }
+  div.current-version-box.version-column {
+    .services-section{
+      .service-version-info {
+        span.label {
+          background-color: #468847;
+        }
+      }
+    }
+
+
   }
 }
 
@@ -317,7 +438,7 @@
       width: 43.5%;
     }
     .thumbnail {
-      height: 165px;
+
       cursor: pointer;
       border: none;
       width: 99%;
@@ -401,6 +522,9 @@
         width: auto;
         height: @spinner-small-height;
         padding-left: @spinner-small-width + 4px;
+        i {
+          font-size: 1em;
+        }
         background-repeat: no-repeat;
         background-size: contain;
       }
@@ -545,9 +669,13 @@
       margin-right: 8px;
       margin-top: 0;
     }
-    .icon-question-sign {
-      color: @blue;
-    }
+  }
+}
+
+#skip-validation,
+#use-redhat {
+  .icon-question-sign {
+    color: @blue;
   }
 }
 

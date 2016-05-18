@@ -26,24 +26,28 @@
   <property>
     <name>yarn.resourcemanager.hostname</name>
     <value>localhost</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The hostname of the RM.</description>
   </property>
 
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description> The address of ResourceManager. </description>
   </property>
 
   <property>
     <name>yarn.resourcemanager.scheduler.address</name>
     <value>localhost:8030</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The address of the scheduler interface.</description>
   </property>
 
   <property>
     <name>yarn.resourcemanager.address</name>
     <value>localhost:8050</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The address of the applications manager interface in the
       RM.
@@ -53,6 +57,7 @@
   <property>
     <name>yarn.resourcemanager.admin.address</name>
     <value>localhost:8141</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The address of the RM admin interface.</description>
   </property>
 
@@ -287,6 +292,7 @@
     <name>yarn.nodemanager.remote-app-log-dir</name>
     <value>/app-logs</value>
     <description>Location to aggregate logs to. </description>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
   </property>
 
   <property>
@@ -372,6 +378,7 @@
   <property>
     <name>yarn.resourcemanager.webapp.address</name>
     <value>localhost:8088</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The address of the RM web application.
     </description>
@@ -380,6 +387,7 @@
   <property>
     <name>yarn.resourcemanager.webapp.https.address</name>
     <value>localhost:8090</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The https address of the RM web application.
     </description>
@@ -396,6 +404,7 @@
   <property>
     <name>yarn.log.server.url</name>
     <value>http://localhost:19888/jobhistory/logs</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       URI for the HistoryServer's log resource
     </description>

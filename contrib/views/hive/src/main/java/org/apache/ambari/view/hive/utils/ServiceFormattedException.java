@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive.utils;
 
+import org.apache.ambari.view.hive.client.HiveInvalidQueryException;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -63,6 +64,9 @@ public class ServiceFormattedException extends WebApplicationException {
     if (exception instanceof AccessControlException) {
       status = 403;
     }
+    if (exception instanceof HiveInvalidQueryException) {
+      status = 400;
+    }
     return status;
   }
 
@@ -92,8 +96,8 @@ public class ServiceFormattedException extends WebApplicationException {
     response.put("trace", trace);
     response.put("status", status);
 
-    if(message != null) LOG.error(message);
-    if(trace != null) LOG.error(trace);
+    if(message != null && status != 400) LOG.error(message);
+    if(trace != null && status != 400) LOG.error(trace);
 
     Response.ResponseBuilder responseBuilder = Response.status(status).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON);
     if (header != null)

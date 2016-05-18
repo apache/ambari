@@ -22,28 +22,49 @@ require('views/main/service/info/metrics/ambari_metrics/regionserver_base');
 
 describe('App.ChartServiceMetricsAMS_RegionServerBaseView', function () {
 
-  var regionServerView = App.ChartServiceMetricsAMS_RegionServerBaseView.extend({
-    id: "service-metrics-ambari-metrics-region-server-test",
-    title: 'test-title',
-    ajaxIndex: 'service.metrics.ambari_metrics.region_server.regions',
-    displayName: 'test-display-name',
-    regionServerName: 'test'
-  }).create();
-
-  it('#transformData should transform data for regionserver requests', function () {
-    var jsonData = {
-      "metrics": {
-        "hbase": {
-          "regionserver": {
-            "test": [[11.0, 1424948261], [11.0, 1424948306], [11.0, 1424948321]]
-          }
+  var regionServerView;
+  var jsonData = {
+    "metrics": {
+      "hbase": {
+        "regionserver": {
+          "test": [[11.0, 1424948261], [11.0, 1424948306], [11.0, 1424948321]]
         }
       }
-    };
-    var result = regionServerView.transformToSeries(jsonData);
-    expect(result[0].name === regionServerView.displayName).to.be.true;
-    expect(result[0].data.length === jsonData.metrics.hbase.regionserver['test'].length).to.be.true;
-    expect(result[0].data[0]).to.have.property('y').to.equal(11);
-    expect(result[0].data[0]).to.have.property('x').to.equal(1424948261);
+    }
+  };
+
+  beforeEach(function () {
+    regionServerView = App.ChartServiceMetricsAMS_RegionServerBaseView.extend({
+      id: "service-metrics-ambari-metrics-region-server-test",
+      title: 'test-title',
+      ajaxIndex: 'service.metrics.ambari_metrics.region_server.regions',
+      displayName: 'test-display-name',
+      regionServerName: 'test'
+    }).create();
   });
+
+  describe('#transformToSeries', function () {
+
+    beforeEach(function () {
+      this.result = regionServerView.transformToSeries(jsonData);
+    });
+
+    it('displayName', function () {
+      expect(this.result[0].name).to.be.equal(regionServerView.displayName);
+    });
+
+    it('data.length', function () {
+      expect(this.result[0].data.length).to.equal(jsonData.metrics.hbase.regionserver.test.length);
+    });
+
+    it('y-property', function () {
+      expect(this.result[0].data[0]).to.have.property('y').to.equal(11);
+    });
+
+    it('x-property', function () {
+      expect(this.result[0].data[0]).to.have.property('x').to.equal(1424948261);
+    });
+
+  });
+
 });

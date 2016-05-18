@@ -16,30 +16,37 @@
 * limitations under the License.
 }}
 
-<div class="span7 component-label">
-  {{#if view.isUpgradeFailed}}
-    {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
-      <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
-        <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
-      </a>
-    {{/isAuthorized}}
-  {{else}}
-    <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
-  {{/if}}
-  {{#if component.displayNameAdvanced}}
-    {{component.displayNameAdvanced}}
-  {{else}}
-    {{component.displayName}}
-  {{/if}}
-  &nbsp;/&nbsp;
-  <a href="#" {{action routeToService component.service}}>{{component.service.displayName}}</a>
-  &nbsp;
-  {{#if component.staleConfigs}}
-    <span class="text-warning icon-refresh"></span>
-  {{/if}}
-  {{#unless component.isActive}}
-    <span class="icon-medkit"></span>
-  {{/unless}}
+<div class="span7 component-label host-component-block">
+  <div class="health-icon-block">
+    {{#if view.isUpgradeFailed}}
+      {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
+        <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
+          <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
+        </a>
+      {{/isAuthorized}}
+    {{else}}
+      <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
+    {{/if}}
+  </div>
+  <div class="component-name-block">
+    {{#if component.displayNameAdvanced}}
+      <span {{bindAttr title="component.displayNameAdvanced"}}>{{component.getDisplayNameAdvanced}}</span>
+    {{else}}
+      <span {{bindAttr title="component.displayName"}}>{{component.getDisplayName}}</span>
+    {{/if}}
+    &nbsp;/&nbsp;
+    <a href="#" {{action routeToService component.service}} {{bindAttr title="component.service.displayName"}}>{{component.serviceDisplayName}}</a>
+  </div>
+  <div class="refresh-icon-block">
+    {{#if component.staleConfigs}}
+      <span class="text-warning icon-refresh"></span>
+    {{/if}}
+  </div>
+  <div class="medkit-icon-block">
+    {{#unless component.isActive}}
+      <span class="icon-medkit"></span>
+    {{/unless}}
+  </div>
 </div>
 <div class="span5 pull-right">
   {{#isAuthorized "SERVICE.DECOMMISSION_RECOMMISSION"}}
@@ -105,7 +112,8 @@
             {{/isAuthorized}}
           {{/if}}
           {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
-            <li {{bindAttr class="view.noActionAvailable"}}>
+            <li {{bindAttr class="view.noActionAvailable view.content.isImpliedState:disabled :allow-tooltip"}}
+              {{bindAttr data-original-title="view.maintenanceTooltip"}} rel="passiveTooltip" >
             <a href="javascript:void(null)"
                data-toggle="modal" {{action "toggleMaintenanceMode" view.content target="controller"}}>
               {{#if view.isActive}}
@@ -142,7 +150,7 @@
         {{/if}}
 
       {{#each command in view.customCommands}}
-        <li>
+        <li {{bindAttr class="command.disabled:disabled"}}>
           <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
         </li>
       {{/each}}

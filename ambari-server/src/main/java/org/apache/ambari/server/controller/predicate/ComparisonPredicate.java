@@ -18,10 +18,10 @@
 
 package org.apache.ambari.server.controller.predicate;
 
-import org.apache.ambari.server.controller.spi.Resource;
-
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Predicate that compares a given value to a {@link Resource} property.
@@ -84,7 +84,7 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
       else if (propertyValue instanceof String) {
         Double doubleFromString = stringToDouble((String) propertyValue);
         if (doubleFromString != null) {
-          return (int) (doubleValue - doubleFromString);
+          return doubleValue.compareTo(doubleFromString);
         }
       }
     }
@@ -99,6 +99,7 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
     if (stringValue == null || stringValue.isEmpty()) {
       return null;
     }
+
     ParsePosition parsePosition = new ParsePosition(0);
     NumberFormat  numberFormat  = NumberFormat.getInstance();
     Number        parsedNumber  = numberFormat.parse(stringValue, parsePosition);

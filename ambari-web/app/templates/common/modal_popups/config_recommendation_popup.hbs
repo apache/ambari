@@ -16,11 +16,12 @@
 * limitations under the License.
 }}
 
-<p>{{t installer.step7.popup.validation.warning.body}}</p>
+<p>{{view.messageBody}}</p>
 <div id="config-validation-warnings" class="limited-height-2">
   <table class="table no-borders">
     <thead>
     <tr>
+      <th>{{t common.type}}</th>
       <th>{{t common.service}}</th>
       <th>{{t common.property}}</th>
       <th>{{t common.value}}</th>
@@ -32,24 +33,34 @@
         {{#each property in service.configs}}
           {{#if property.isVisible}}
             {{#unless property.hiddenBySection}}
-              {{#if property.warn}}
-                <tr>
-                  <td>{{property.serviceName}}</td>
-                  <td>{{property.name}}</td>
-                  <td>{{property.value}}</td>
-                  <td>
-                    <div class="property-message">{{property.warnMessage}}</div>
-                    <div class="property-description">{{property.description}}</div>
-                  </td>
-                </tr>
-              {{/if}}
               {{#if property.error}}
-                <tr>
+                <tr class="error">
+                  <td>{{t common.error}}</td>
                   <td>{{property.serviceName}}</td>
                   <td>{{property.name}}</td>
                   <td>{{property.value}}</td>
                   <td>
                     <div class="property-message">{{property.errorMessage}}</div>
+                    <div class="property-description">{{property.description}}</div>
+                  </td>
+                </tr>
+              {{/if}}
+            {{/unless}}
+          {{/if}}
+        {{/each}}
+      {{/each}}
+      {{#each service in view.serviceConfigs}}
+        {{#each property in service.configs}}
+          {{#if property.isVisible}}
+            {{#unless property.hiddenBySection}}
+              {{#if property.warn}}
+                <tr class="warning">
+                  <td>{{t common.warning}}</td>
+                  <td>{{property.serviceName}}</td>
+                  <td>{{property.name}}</td>
+                  <td>{{property.value}}</td>
+                  <td>
+                    <div class="property-message">{{property.warnMessage}}</div>
                     <div class="property-description">{{property.description}}</div>
                   </td>
                 </tr>

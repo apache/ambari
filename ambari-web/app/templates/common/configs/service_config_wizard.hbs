@@ -50,7 +50,7 @@
 {{/if}}
 
 {{#if view.supportsConfigLayout}}
-  <ul class="nav nav-tabs mbm config-tabs">
+  <ul class="nav nav-tabs mbm">
     {{#each tab in view.tabs}}
       <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
         <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">

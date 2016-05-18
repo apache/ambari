@@ -650,8 +650,9 @@ public class QueryImplTest {
   public void testExecute__Host_collection_AlertsSummary() throws Exception {
     ResourceDefinition resourceDefinition = new HostResourceDefinition();
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
-    final AtomicInteger pageCallCount = new AtomicInteger(0); 
+    final AtomicInteger pageCallCount = new AtomicInteger(0);
     ClusterControllerImpl clusterControllerImpl = new ClusterControllerImpl(new ClusterControllerImplTest.TestProviderModule()) {
+      @Override
       public PageResponse getPage(Resource.Type type, QueryResponse queryResponse, Request request, Predicate predicate, PageRequest pageRequest,
           SortRequest sortRequest) throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
         pageCallCount.incrementAndGet();
@@ -666,7 +667,7 @@ public class QueryImplTest {
     TreeNode<Resource> tree = result.getResultTree();
     Assert.assertEquals(4, tree.getChildren().size());
     Assert.assertEquals(1, pageCallCount.get());
-    
+
     //test 2: Predicate = (alerts_summary/CRITICAL > 0)
     pageCallCount.set(0);
     PredicateBuilder pb = new PredicateBuilder();
@@ -686,7 +687,7 @@ public class QueryImplTest {
     Assert.assertEquals("host:2", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, hostNode.getObject().getType());
     Assert.assertEquals("1", hostNode.getObject().getPropertyValue(PropertyHelper.getPropertyId("alerts_summary", "CRITICAL")));
-    
+
     // test 3: Predicate = (alerts_summary/WARNING > 0) AND Page = (size=1)
     pageCallCount.set(0);
     pb = new PredicateBuilder();

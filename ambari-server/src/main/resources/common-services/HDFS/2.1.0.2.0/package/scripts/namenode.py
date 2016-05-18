@@ -26,12 +26,13 @@ from datetime import datetime
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 from resource_management import Script
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -47,10 +48,10 @@ from ambari_commons import OSConst
 
 
 import namenode_upgrade
-from hdfs_namenode import namenode
+from hdfs_namenode import namenode, wait_for_safemode_off
 from hdfs import hdfs
 import hdfs_rebalance
-from utils import initiate_safe_zkfc_failover, get_hdfs_binary
+from utils import initiate_safe_zkfc_failover, get_hdfs_binary, get_dfsadmin_base_command
 
 
 
@@ -67,23 +68,20 @@ except ImportError:
 
 class NameNode(Script):
 
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-hdfs-namenode"}
+  def get_component_name(self):
+    return "hadoop-hdfs-namenode"
 
   def get_hdfs_binary(self):
     """
-    Get the name or path to the hdfs binary depending on the stack and version.
+    Get the name or path to the hdfs binary depending on the component name.
     """
-    import params
-    stack_to_comp = self.get_stack_to_component()
-    if params.stack_name in stack_to_comp:
-      return get_hdfs_binary(stack_to_comp[params.stack_name])
-    return "hdfs"
+    component_name = self.get_component_name()
+    return get_hdfs_binary(component_name)
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+    self.install_packages(env)
     #TODO we need this for HA because of manual steps
     self.configure(env)
 
@@ -99,7 +97,14 @@ class NameNode(Script):
     env.set_params(params)
     self.configure(env)
     hdfs_binary = self.get_hdfs_binary()
-    namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type, env=env)
+    namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type,
+      upgrade_suspended=params.upgrade_suspended, env=env)
+
+    # after starting NN in an upgrade, touch the marker file
+    if upgrade_type is not None:
+      # place a file on the system indicating that we've submitting the command that
+      # instructs NN that it is now part of an upgrade
+      namenode_upgrade.create_upgrade_marker()
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -175,42 +180,7 @@ class NameNodeDefault(NameNode):
     namenode_upgrade.prepare_rolling_upgrade(hfds_binary)
 
   def wait_for_safemode_off(self, env):
-    """
-    During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
-    all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
-    If HA is present, then this command will run individually on each NameNode, which checks for its own address.
-    """
-    import params
-
-    Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
-
-    if params.security_enabled:
-      kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
-      Execute(kinit_command, user=params.hdfs_user, logoutput=True)
-
-    try:
-      hdfs_binary = self.get_hdfs_binary()
-      # Note, this fails if namenode_address isn't prefixed with "params."
-
-      is_namenode_safe_mode_off = ""
-      if params.dfs_ha_enabled:
-        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc} -safemode get | grep 'Safe mode is OFF'")
-      else:
-        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode get | grep 'Safe mode is OFF'")
-
-      # Wait up to 30 mins
-      Execute(is_namenode_safe_mode_off,
-              tries=180,
-              try_sleep=10,
-              user=params.hdfs_user,
-              logoutput=True
-      )
-
-      # Wait a bit more since YARN still depends on block reports coming in.
-      # Also saw intermittent errors with HBASE service check if it was done too soon.
-      time.sleep(30)
-    except Fail:
-      Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
+    wait_for_safemode_off(self.get_hdfs_binary(), 30, True)
 
   def finalize_non_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
@@ -225,14 +195,14 @@ class NameNodeDefault(NameNode):
     import params
     env.set_params(params)
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
       # Therefore, we cannot call this code in that scenario.
       call_if = [("rolling", "upgrade"), ("rolling", "downgrade"), ("nonrolling", "upgrade")]
       for e in call_if:
         if (upgrade_type, params.upgrade_direction) == e:
           conf_select.select(params.stack_name, "hadoop", params.version)
-      hdp_select.select("hadoop-hdfs-namenode", params.version)
+      stack_select.select("hadoop-hdfs-namenode", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Stack Upgrade post-restart")
@@ -240,7 +210,9 @@ class NameNodeDefault(NameNode):
     env.set_params(params)
 
     hdfs_binary = self.get_hdfs_binary()
-    Execute(format("{hdfs_binary} dfsadmin -report -live"),
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+    dfsadmin_cmd = dfsadmin_base_command + " -report -live"
+    Execute(dfsadmin_cmd,
             user=params.hdfs_user,
             tries=60,
             try_sleep=10
@@ -370,15 +342,25 @@ class NameNodeDefault(NameNode):
             logoutput = False,
     )
 
-    if params.security_enabled and os.path.exists(ccache_file_path):
+    if params.security_enabled:
       # Delete the kerberos credentials cache (ccache) file
-      os.remove(ccache_file_path)
+      File(ccache_file_path,
+           action = "delete",
+      )
+      
+  def get_log_folder(self):
+    import params
+    return params.hdfs_log_dir
+  
+  def get_user(self):
+    import params
+    return params.hdfs_user
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NameNodeWindows(NameNode):
   def install(self, env):
     import install_params
-    self.install_packages(env, install_params.exclude_packages)
+    self.install_packages(env)
     #TODO we need this for HA because of manual steps
     self.configure(env)
 

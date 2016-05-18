@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import org.easymock.EasyMock;
@@ -53,11 +54,11 @@ public class TimelineMetricStoreWatcherTest {
       .andReturn(new TimelinePutResponse());
 
     // metric found
-    expect(metricStore.getTimelineMetric(anyObject(String.class),
-      EasyMock.<List<String>> anyObject(), anyObject(String.class),
+    expect(metricStore.getTimelineMetrics(EasyMock.<List<String>>anyObject(),
+      EasyMock.<List<String>>anyObject(), anyObject(String.class),
       anyObject(String.class), anyObject(Long.class), anyObject(Long.class),
-      eq(Precision.SECONDS), eq(1)))
-      .andReturn(new TimelineMetric()).anyTimes();
+      eq(Precision.SECONDS), eq(1), eq(true), anyObject(TopNConfig.class)))
+      .andReturn(null).anyTimes();
 
     mockStatic(ExitUtil.class);
 
@@ -80,10 +81,10 @@ public class TimelineMetricStoreWatcherTest {
       .andReturn(new TimelinePutResponse());
 
     // no metrics found
-    expect(metricStore.getTimelineMetric(anyObject(String.class),
-      EasyMock.<List<String>> anyObject(), anyObject(String.class),
+    expect(metricStore.getTimelineMetrics(EasyMock.<List<String>>anyObject(),
+      EasyMock.<List<String>>anyObject(), anyObject(String.class),
       anyObject(String.class), anyObject(Long.class), anyObject(Long.class),
-      eq(Precision.SECONDS), eq(1)))
+      eq(Precision.SECONDS), eq(1), eq(true), anyObject(TopNConfig.class)))
       .andReturn(null).anyTimes();
 
     String msg = "Error getting metrics from TimelineMetricStore. " +

@@ -20,6 +20,8 @@
 var App = require('app');
 require('utils/updater');
 require('controllers/global/update_controller');
+var testHelpers = require('test/helpers');
+var c;
 
 describe('App.UpdateController', function () {
   var controller = App.UpdateController.create({
@@ -28,20 +30,21 @@ describe('App.UpdateController', function () {
     updateServiceMetric: function(){}
   });
 
+  beforeEach(function () {
+    c = App.UpdateController.create();
+  });
+
+  App.TestAliases.testAsComputedAlias(App.UpdateController.create(), 'clusterName', 'App.router.clusterController.clusterName', 'string');
+
+  App.TestAliases.testAsComputedAnd(App.UpdateController.create(), 'updateAlertInstances', ['isWorking', '!App.router.mainAlertInstancesController.isUpdating']);
+
   describe('#getUrl()', function () {
 
-    it('testMode = true', function () {
-      App.set('testMode', true);
-      expect(controller.getUrl('test', '/real')).to.equal('test');
-    });
-
     it('testMode = false', function () {
-      App.set('testMode', false);
       expect(controller.getUrl('test', '/real')).to.equal('/api/v1/clusters//real');
     });
 
-    it('testMode = false', function () {
-      App.set('testMode', false);
+    it('testMode = false (2)', function () {
       controller.set('clusterName', 'mycluster');
       expect(controller.getUrl('test', '/real')).to.equal('/api/v1/clusters/mycluster/real');
     });
@@ -49,12 +52,6 @@ describe('App.UpdateController', function () {
 
   describe('#updateAll()', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.updater, 'run', Em.K);
-    });
-    afterEach(function () {
-      App.updater.run.restore();
-    });
     it('isWorking = false', function () {
       controller.set('isWorking', false);
       expect(App.updater.run.called).to.equal(false);
@@ -62,7 +59,7 @@ describe('App.UpdateController', function () {
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(12);
+      expect(App.updater.run.callCount).to.equal(13);
     });
   });
 
@@ -190,7 +187,7 @@ describe('App.UpdateController', function () {
     });
     testCases.forEach(function (test) {
       it(test.title, function () {
-        App.cache['services'] = test.services;
+        App.cache.services = test.services;
         this.mock.withArgs('router.clusterController.isServiceMetricsLoaded').returns(true);
         expect(controller.getConditionalFields()).to.eql(test.result);
       });
@@ -198,7 +195,7 @@ describe('App.UpdateController', function () {
 
     testCasesByStackVersion.forEach(function (test) {
       it(test.title, function () {
-        App.cache['services'] = test.services;
+        App.cache.services = test.services;
         this.mock.withArgs('currentStackVersionNumber').returns(test.stackVersionNumber);
         this.mock.withArgs('router.clusterController.isServiceMetricsLoaded').returns(true);
         expect(controller.getConditionalFields()).to.eql(test.result);
@@ -206,7 +203,7 @@ describe('App.UpdateController', function () {
     });
 
     it('FLUME service, first load', function () {
-      App.cache['services'] = [
+      App.cache.services = [
         {
           ServiceInfo: {
             service_name: 'FLUME'
@@ -251,7 +248,7 @@ describe('App.UpdateController', function () {
       App.get.restore();
       controller.computeParameters.restore();
     });
-    it("", function () {
+    it("valid params are added", function () {
       expect(controller.addParamsToHostsUrl([], [], 'url')).to.equal('mock/clusters/mockurl&params&params');
     });
   });
@@ -261,23 +258,23 @@ describe('App.UpdateController', function () {
       this.mock = sinon.stub(App.Service, 'find');
       sinon.stub(controller, 'computeParameters');
       sinon.stub(controller, 'addParamsToHostsUrl');
-      sinon.stub(App.ajax, 'send');
     });
     afterEach(function () {
       App.Service.find.restore();
       controller.computeParameters.restore();
       controller.addParamsToHostsUrl.restore();
-      App.ajax.send.restore();
     });
     it("AMBARI_METRICS is not started", function () {
       this.mock.returns(Em.Object.create({isStarted: false}));
       expect(controller.loadHostsMetric([])).to.be.null;
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.metrics.lazy_load');
+      expect(args).to.not.exists;
     });
     it("AMBARI_METRICS is started", function () {
       this.mock.returns(Em.Object.create({isStarted: true}));
       expect(controller.loadHostsMetric([])).to.be.object;
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.metrics.lazy_load');
+      expect(args).to.exists;
     });
   });
 
@@ -288,7 +285,7 @@ describe('App.UpdateController', function () {
     afterEach(function () {
       App.hostsMapper.setMetrics.restore();
     });
-    it("", function () {
+    it("setMetrics called with valid arguments", function () {
       controller.loadHostsMetricSuccessCallback({});
       expect(App.hostsMapper.setMetrics.calledWith({})).to.be.true;
     });
@@ -405,7 +402,6 @@ describe('App.UpdateController', function () {
           };
         }
       },
-      mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController'),
       appGetMock;
 
     beforeEach(function () {
@@ -422,17 +418,123 @@ describe('App.UpdateController', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
-          loadUpgradeData: mock.loadUpgradeData,
-          isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
-        })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished)
-          .withArgs('router.currentState.name').returns(item.currentStateName)
-          .withArgs('router.currentState.parentState.name').returns(item.parentStateName);;
-        controller.updateUpgradeState(mock.callback);
-        expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
-        expect(mock.callback.callCount).to.equal(item.callbackCallCount);
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
+            loadUpgradeData: mock.loadUpgradeData,
+            isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
+          })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished)
+            .withArgs('router.currentState.name').returns(item.currentStateName)
+            .withArgs('router.currentState.parentState.name').returns(item.parentStateName);
+          controller.updateUpgradeState(mock.callback);
+        });
+        it('loadUpgradeData is called ' + item.loadUpgradeDataCallCount + ' times', function () {
+          expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
+        });
+        it('callback is called ' + item.callbackCallCount + ' times', function () {
+          expect(mock.callback.callCount).to.equal(item.callbackCallCount);
+        });
+
       });
+    });
+
+  });
+
+  describe('#computeParameters', function () {
+
+    Em.A([
+      {
+        q: [{
+          type: 'EQUAL',
+          key: 'k',
+          value: [1, 2]
+        }],
+        result: 'k.in(1,2)'
+      },
+      {
+        q: [{
+          type: 'MULTIPLE',
+          key: 'k',
+          value: [1, 2]
+        }],
+        result: 'k.in(1,2)'
+      },
+      {
+        q: [{
+          type: 'EQUAL',
+          key: 'k',
+          value: 1
+        }],
+        result: 'k=1'
+      },
+      {
+        q: [
+          {
+            type: 'LESS',
+            key: 'k',
+            value: '1'
+          }
+        ],
+        result: 'k<1'
+      },
+      {
+        q: [
+          {
+            type: 'MORE',
+            key: 'k',
+            value: '1'
+          }
+        ],
+        result: 'k>1'
+      },
+      {
+        q: [
+          {
+            type: 'SORT',
+            key: 'k',
+            value: 'f'
+          }
+        ],
+        result: 'sortBy=k.f'
+      },
+      {
+        q: [
+          {
+            type: 'MATCH',
+            key: 'k',
+            value: 'abc'
+          }
+        ],
+        result: 'k.matches(abc)'
+      },
+      {
+        q: [
+          {
+            type: 'MATCH',
+            key: 'k',
+            value: ['a', 'b', 'c']
+          }
+        ],
+        result: '(k.matches(a)|k.matches(b)|k.matches(c))'
+      },
+      {
+        q: [
+          {type: 'EQUAL', key: 'k1', value: [1,2]},
+          {type: 'EQUAL', key: 'k2', value: 'abc'},
+          {type: 'LESS', key: 'k3', value: 1},
+          {type: 'MORE', key: 'k4', value: 1},
+          {type: 'MATCH', key: 'k5', value: ['a', 'b', 'c']}
+        ],
+        result: 'k1.in(1,2)&k2=abc&k3<1&k4>1&(k5.matches(a)|k5.matches(b)|k5.matches(c))'
+      }
+    ]).forEach(function (test, index) {
+
+      it('test#' + index, function () {
+        var result = c.computeParameters(test.q);
+        expect(result).to.be.equal(test.result);
+      });
+
     });
 
   });

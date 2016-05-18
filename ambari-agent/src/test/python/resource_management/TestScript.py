@@ -48,21 +48,27 @@ class TestScript(TestCase):
   def test_install_packages(self, package_provider_mock):
     no_packages_config = {
       'hostLevelParams' : {
-        'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
+        'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
+        'agent_stack_retry_count': '5',
+        'agent_stack_retry_on_unavailability': 'false'
       }
     }
     empty_config = {
       'hostLevelParams' : {
         'package_list' : '',
-        'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
+        'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
+        'agent_stack_retry_count': '5',
+        'agent_stack_retry_on_unavailability': 'false'
       }
     }
     dummy_config = {
       'hostLevelParams' : {
-        'package_list' : "[{\"type\":\"rpm\",\"name\":\"hbase\"},"
-                         "{\"type\":\"rpm\",\"name\":\"yet-another-package\"}]",
+        'package_list' : "[{\"type\":\"rpm\",\"name\":\"hbase\", \"condition\": \"\"},"
+                         "{\"type\":\"rpm\",\"name\":\"yet-another-package\", \"condition\": \"\"}]",
         'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
-        'service_repo_info' : "[{\"mirrorsList\":\"abc\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
+        'service_repo_info' : "[{\"mirrorsList\":\"abc\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
+        'agent_stack_retry_count': '5',
+        'agent_stack_retry_on_unavailability': 'false'
       }
     }
 

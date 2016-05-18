@@ -17,68 +17,104 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
 import os
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'RANGER_ADMIN' : 'ranger-admin',
-  'RANGER_USERSYNC' : 'ranger-usersync'
+  'RANGER_USERSYNC' : 'ranger-usersync',
+  'RANGER_TAGSYNC' : 'ranger-tagsync'
 }
 
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "RANGER_ADMIN")
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+stack_root = Script.get_stack_root()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+
+upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
 
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 
 create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
 
-stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
-stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
+stack_supports_rolling_upgrade = stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted)
+stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
+stack_supports_usersync_non_root =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, stack_version_formatted)
+stack_supports_ranger_tagsync =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_TAGSYNC_COMPONENT, stack_version_formatted)
+stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
+stack_supports_ranger_log4j =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, stack_version_formatted)
+stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
+stack_supports_usersync_passwd = stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, stack_version_formatted)
+
+downgrade_from_version = default("/commandParams/downgrade_from_version", None)
+upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 ranger_conf    = '/etc/ranger/admin/conf'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
+ranger_tagsync_home  = format('{stack_root}/current/ranger-tagsync')
+ranger_tagsync_conf = format('{stack_root}/current/ranger-tagsync/conf')
+tagsync_bin = '/usr/bin/ranger-tagsync'
+tagsync_services_file = format('{stack_root}/current/ranger-tagsync/ranger-tagsync-services.sh')
 
-if stack_is_hdp22_or_further:
-  ranger_home    = '/usr/hdp/current/ranger-admin'
+if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.CONFIG_VERSIONING, version):
+  stack_supports_rolling_upgrade = True
+  stack_supports_config_versioning = False
+
+if upgrade_direction == Direction.DOWNGRADE and version and not check_stack_feature(StackFeature.RANGER_USERSYNC_NON_ROOT, version):
+  stack_supports_usersync_non_root = False
+
+if stack_supports_rolling_upgrade:
+  ranger_home    = format('{stack_root}/current/ranger-admin')
   ranger_conf    = '/etc/ranger/admin/conf'
   ranger_stop    = '/usr/bin/ranger-admin-stop'
   ranger_start   = '/usr/bin/ranger-admin-start'
-  usersync_home  = '/usr/hdp/current/ranger-usersync'
+  usersync_home  = format('{stack_root}/current/ranger-usersync')
   usersync_start = '/usr/bin/ranger-usersync-start'
   usersync_stop  = '/usr/bin/ranger-usersync-stop'
   ranger_ugsync_conf = '/etc/ranger/usersync/conf'
 
-if stack_is_hdp23_or_further:
-  ranger_conf = '/usr/hdp/current/ranger-admin/conf'
-  ranger_ugsync_conf = '/usr/hdp/current/ranger-usersync/conf'
+if stack_supports_config_versioning:
+  ranger_conf = format('{stack_root}/current/ranger-admin/conf')
+  ranger_ugsync_conf = format('{stack_root}/current/ranger-usersync/conf')
 
-usersync_services_file = "/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh"
+if stack_supports_ranger_tagsync:
+  ranger_tagsync_home  = format('{stack_root}/current/ranger-tagsync')
+  tagsync_bin = '/usr/bin/ranger-tagsync'
+  ranger_tagsync_conf = format('{stack_root}/current/ranger-tagsync/conf')
+  tagsync_services_file = format('{stack_root}/current/ranger-tagsync/ranger-tagsync-services.sh')
+
+usersync_services_file = format('{stack_root}/current/ranger-usersync/ranger-usersync-services.sh')
 
 java_home = config['hostLevelParams']['java_home']
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
-ranger_pid_dir = config['configurations']['ranger-env']['ranger_pid_dir']
+ranger_pid_dir = default("/configurations/ranger-env/ranger_pid_dir", "/var/run/ranger")
 usersync_log_dir = default("/configurations/ranger-env/ranger_usersync_log_dir", "/var/log/ranger/usersync")
 admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir", "/var/log/ranger/admin")
 ranger_admin_default_file = format('{ranger_conf}/ranger-admin-default-site.xml')
 security_app_context_file = format('{ranger_conf}/security-applicationContext.xml')
 ranger_ugsync_default_file = format('{ranger_ugsync_conf}/ranger-ugsync-default.xml')
 usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.xml')
+if stack_supports_ranger_log4j:
+  usgsync_log4j_file = format('{ranger_ugsync_conf}/log4j.properties')
 cred_validator_file = format('{usersync_home}/native/credValidator.uexe')
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
@@ -109,43 +145,40 @@ oracle_home = default("/configurations/ranger-env/oracle_home", "-")
 jdk_location = config['hostLevelParams']['jdk_location'] 
 java_share_dir = '/usr/share/java'
 if db_flavor.lower() == 'mysql':
-  jdbc_symlink_name = "mysql-jdbc-driver.jar"
-  jdbc_jar_name = "mysql-connector-java.jar"
-  audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}')
+  jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor.lower() == 'oracle':
-  jdbc_jar_name = "ojdbc6.jar"
-  jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
-    audit_jdbc_url = format('jdbc:oracle:thin:@{db_host}')
+    audit_jdbc_url = format('jdbc:oracle:thin:@{db_host}') if stack_supports_ranger_audit_db else None
   else:
-    audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
+    audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}') if stack_supports_ranger_audit_db else None
 elif db_flavor.lower() == 'postgres':
-  jdbc_jar_name = "postgresql.jar"
-  jdbc_symlink_name = "postgres-jdbc-driver.jar"
-  audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}')
+  jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+  audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor.lower() == 'mssql':
-  jdbc_jar_name = "sqljdbc4.jar"
-  jdbc_symlink_name = "mssql-jdbc-driver.jar"
-  audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}')
+  jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+  audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor.lower() == 'sqla':
-  jdbc_jar_name = "sajdbc4.jar"
-  jdbc_symlink_name = "sqlanywhere-jdbc-driver.tar.gz"
-  audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}')
+  jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+  audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
-driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+if stack_supports_config_versioning:
+  driver_curl_target = format("{ranger_home}/ews/lib/{jdbc_jar_name}")
 
 if db_flavor.lower() == 'sqla':
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
-  jar_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/{jdbc_jar_name}")
+  jar_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/sajdbc4.jar")
   libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
   jdbc_libs_dir = format("{ranger_home}/native/lib64")
   ld_lib_path = format("{jdbc_libs_dir}")
@@ -160,10 +193,11 @@ ranger_credential_provider_path = config["configurations"]["ranger-admin-site"][
 ranger_jpa_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.credential.alias"]
 ranger_ambari_db_password = unicode(config["configurations"]["admin-properties"]["db_password"])
 
-ranger_jpa_audit_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.audit.jdbc.credential.alias"]
-ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"])
+ranger_jpa_audit_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.audit.jdbc.credential.alias"] if stack_supports_ranger_audit_db else None
+ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"]) if stack_supports_ranger_audit_db else None
 
 ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.credstore.filename"]
+ugsync_cred_lib = os.path.join(usersync_home,"lib","*")
 cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
 cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
 ranger_audit_source_type = config["configurations"]["ranger-admin-site"]["ranger.audit.source.type"]
@@ -186,3 +220,27 @@ ug_sync_source = config["configurations"]["ranger-ugsync-site"]["ranger.usersync
 current_host = config['hostname']
 if current_host in ranger_admin_hosts:
   ranger_host = current_host
+
+# ranger-tagsync
+ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
+has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
+
+tagsync_enabled = config["configurations"]["ranger-tagsync-site"]['ranger.tagsync.enabled']
+tagsync_log_dir = default("/configurations/ranger-tagsync-site/ranger.tagsync.logdir", "/var/log/ranger/tagsync")
+tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.keystore.filename"]
+tagsync_application_properties = dict(config["configurations"]["tagsync-application-properties"]) if has_ranger_tagsync else None
+tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
+tagsync_cred_lib = os.path.join(ranger_tagsync_home, "lib", "*")
+
+# ranger log4j.properties
+admin_log4j = config['configurations']['admin-log4j']['content']
+usersync_log4j = config['configurations']['usersync-log4j']['content']
+tagsync_log4j = config['configurations']['tagsync-log4j']['content']
+
+# ranger kerberos
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+has_namenode = len(namenode_hosts) > 0
+
+ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.alias"]
+ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.keystore"]

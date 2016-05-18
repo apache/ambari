@@ -18,8 +18,13 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', function ($scope, Cluster, Stack, $routeParams) {
+.controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', '$translate', function ($scope, Cluster, Stack, $routeParams, $translate) {
+  var $t = $translate.instant;
+  $scope.getConstant = function (key) {
+    return $t('common.' + key).toLowerCase();
+  }
   $scope.clusterName = $routeParams.clusterName;
+
   $scope.filter = {
     version: '',
     cluster: {
@@ -29,100 +34,50 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.pagination = {
-    totalRepos: 10,
-    maxVisiblePages: 20,
-    itemsPerPage: 10,
+    totalRepos: 100,
+    maxVisiblePages: 1,
+    itemsPerPage: 100,
     currentPage: 1
   };
+  $scope.allRepos = [];
+  $scope.stackVersions = [];
 
-  $scope.tableInfo = {
-    total: 0,
-    showed: 0,
-    filtered: 0
-  };
-
-  $scope.stacks = [];
-  $scope.dropDownClusters = [];
-  $scope.selectedCluster = $scope.dropDownClusters[0];
-
-  $scope.resetPagination = function () {
-    $scope.pagination.currentPage = 1;
-    $scope.loadAllData();
-  };
-
-  $scope.pageChanged = function () {
-    $scope.loadAllData();
-  };
-
-  $scope.goToCluster = function() {
-    window.location.replace('/#/main/admin/stack/versions');
-  };
-
-  $scope.clearFilters = function () {
-    $scope.filter.version = '';
-    $scope.filter.cluster.current = $scope.filter.cluster.options[0];
-    $scope.resetPagination();
-  };
-
-  $scope.fetchRepoClusterStatus = function () {
-    var clusterName = ($scope.clusters && $scope.clusters.length > 0) ? $scope.clusters[0].Clusters.cluster_name : null; // only support one cluster at the moment
-    if (clusterName) {
-      angular.forEach($scope.repos, function (repo) {
-        Cluster.getRepoVersionStatus(clusterName, repo.id).then(function (response) {
-          repo.status = response.status;
-          repo.totalHosts = response.totalHosts;
-          repo.currentHosts = response.currentHosts;
-          repo.installedHosts = response.installedHosts;
-          repo.stackVersionId = response.stackVersionId;
-          repo.cluster = (repo.status == 'current' || repo.status == 'installed')? clusterName : '';
-        });
-      });
-    }
-  };
-
+  /**
+   *  Formatted object to display all repos:
+   *
+   *  [{ 'name': 'HDP-2.3',
+   *     'repos': ['2.3.6.0-2343', '2.3.4.1', '2.3.4.0-56']
+   *   },
+   *   { 'name': 'HDP-2.2',
+   *     'repos': ['2.2.6.0', '2.2.4.5', '2.2.4.0']
+   *   }
+   *  ]
+   *
+   */
   $scope.fetchRepos = function () {
     return Stack.allRepos($scope.filter, $scope.pagination).then(function (repos) {
-      $scope.pagination.totalRepos = repos.itemTotal;
-      $scope.repos = repos.items;
-      $scope.tableInfo.total = repos.itemTotal;
-      $scope.tableInfo.showed = repos.showed;
-    });
-  };
-
-  $scope.fillClusters = function (clusters) {
-    $scope.dropDownClusters = [].concat(clusters);
-    $scope.selectedCluster = $scope.dropDownClusters[0];
-    angular.forEach(clusters, function (cluster) {
-      var options = [{label: "All", value: ''}];
-      angular.forEach(clusters, function (cluster) {
-        options.push({
-          label: cluster.Clusters.cluster_name,
-          value: cluster.Clusters.cluster_name
-        });
+      $scope.allRepos = repos.items.sort(function(a, b){return a.repository_version < b.repository_version});
+      var existingStackHash = {};
+      var stackVersions = [];
+      angular.forEach($scope.allRepos, function (repo) {
+        var stackVersionName = repo.stack_name + '-' + repo.stack_version;
+        if (!existingStackHash[stackVersionName]) {
+          existingStackHash[stackVersionName] = true;
+          stackVersions.push({
+            'name': stackVersionName,
+            'isOpened': true,
+            'repos': [repo]
+          });
+        } else {
+          if (stackVersions[stackVersions.length -1].repos) {
+            stackVersions[stackVersions.length -1].repos.push(repo);
+          }
+        }
       });
-      $scope.filter.cluster.options = options;
-      $scope.filter.cluster.current = options[0];
+      $scope.stackVersions = stackVersions;
     });
   };
 
-  $scope.fetchClusters = function () {
-    return Cluster.getAllClusters().then(function (clusters) {
-      if (clusters && clusters.length > 0) {
-        $scope.clusters = clusters;
-        $scope.fillClusters(clusters);
-      }
-    });
-  };
+  $scope.fetchRepos();
 
-  $scope.loadAllData = function () {
-    $scope.fetchClusters()
-    .then(function () {
-      return $scope.fetchRepos();
-    })
-    .then(function () {
-      $scope.fetchRepoClusterStatus();
-    });
-  };
-
-  $scope.loadAllData();
 }]);

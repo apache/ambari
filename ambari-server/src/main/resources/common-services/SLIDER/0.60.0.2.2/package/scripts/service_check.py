@@ -21,6 +21,8 @@ limitations under the License.
 from resource_management import *
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from ambari_commons import OSConst
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class SliderServiceCheck(Script):
@@ -29,7 +31,7 @@ class SliderServiceCheck(Script):
   def service_check(self, env):
     import params
     env.set_params(params)
-    smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
+    smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
     service = "SLIDER"
     Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.hdfs_user)
 
@@ -38,7 +40,7 @@ class SliderServiceCheck(Script):
     import params
     env.set_params(params)
     
-    if Script.is_hdp_stack_greater_or_equal("2.2"):
+    if params.stack_version_formatted and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted):
       copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
     
     smokeuser_kinit_cmd = format(

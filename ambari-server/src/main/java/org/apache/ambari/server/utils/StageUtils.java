@@ -152,8 +152,6 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
     componentToClusterInfoKeyMap.put("TASKTRACKER", "mapred_tt_hosts");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
-    componentToClusterInfoKeyMap.put("KERBEROS_SERVER", "kdc_host");
-    componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT", "kerberos_adminclient_host");
     componentToClusterInfoKeyMap.put("ACCUMULO_MASTER", "accumulo_master_hosts");
     componentToClusterInfoKeyMap.put("ACCUMULO_MONITOR", "accumulo_monitor_hosts");
     componentToClusterInfoKeyMap.put("ACCUMULO_GC", "accumulo_gc_hosts");
@@ -277,7 +275,7 @@ public class StageUtils {
     }
 
     // add hosts from topology manager
-    Map<String, Collection<String>> pendingHostComponents = topologyManager.getProjectedTopology();
+    Map<String, Collection<String>> pendingHostComponents = topologyManager.getPendingHostComponents();
     for (String hostname : pendingHostComponents.keySet()) {
       if (!hostsSet.contains(hostname)) {
         hostsSet.add(hostname);
@@ -351,8 +349,6 @@ public class StageUtils {
     }
 
     // add components from topology manager
-
-    Map<String, SortedSet<Integer>> hostRolesInfoFromTopology = new HashMap<String, SortedSet<Integer>>();
     for (Map.Entry<String, Collection<String>> entry : pendingHostComponents.entrySet()) {
       String hostname = entry.getKey();
       Collection<String> hostComponents = entry.getValue();
@@ -376,11 +372,11 @@ public class StageUtils {
         }
 
         if (roleName != null) {
-          SortedSet<Integer> hostsForComponentsHost = hostRolesInfoFromTopology.get(roleName);
+          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
 
           if (hostsForComponentsHost == null) {
             hostsForComponentsHost = new TreeSet<Integer>();
-            hostRolesInfoFromTopology.put(roleName, hostsForComponentsHost);
+            hostRolesInfo.put(roleName, hostsForComponentsHost);
           }
 
           int hostIndex = hostsList.indexOf(hostname);
@@ -395,13 +391,6 @@ public class StageUtils {
             throw new RuntimeException("Unable to get host index for host: " + hostname);
           }
         }
-      }
-    }
-
-    // merge host roles
-    for (Map.Entry<String, SortedSet<Integer>> entry : hostRolesInfoFromTopology.entrySet()) {
-      if (isOverrideHostRoleNeeded(entry, hostRolesInfo, allHosts, pendingHostComponents)) {
-        hostRolesInfo.put(entry.getKey(), entry.getValue());
       }
     }
 
@@ -589,18 +578,5 @@ public class StageUtils {
         endOfRange.toString() :
         startOfRange + separator + endOfRange;
     return rangeItem;
-  }
-
-  /**
-   * It determines to replace host roles if the number of components lower in the cluster than in the blueprint
-   * or when all of the hosts are not available from {@link Cluster} object.
-   */
-  private static boolean isOverrideHostRoleNeeded(Entry<String, SortedSet<Integer>> hostRoleEntry,
-                                                  Map<String, SortedSet<Integer>> hostRolesInfo,
-                                                  Collection<Host> allHosts,
-                                                  Map<String, Collection<String>> pendingHostComponents) {
-    Set<Integer> hostRole = hostRolesInfo.get(hostRoleEntry.getKey());
-    return (allHosts.size() != pendingHostComponents.size() || (hostRole == null ||
-      (!hostRole.isEmpty() && hostRole.size() < hostRoleEntry.getValue().size())));
   }
 }

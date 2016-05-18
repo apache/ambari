@@ -29,6 +29,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_database</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive_database</name>

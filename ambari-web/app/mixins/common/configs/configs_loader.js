@@ -44,6 +44,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * @returns {$.ajax}
    */
   loadServiceConfigVersions: function () {
+    this.set('allVersionsLoaded', false);
     return App.ajax.send({
       name: 'service.serviceConfigVersions.get',
       data: {
@@ -61,7 +62,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
   loadServiceConfigVersionsSuccess: function (data) {
     if (Em.get(data, 'items.length')) {
       App.serviceConfigVersionsMapper.map(data);
-      var currentDefault = data.items.filterProperty('group_id', -1).findProperty('is_current');
+      var currentDefault = data.items.filterProperty('group_name', 'default').findProperty('is_current');
       if (currentDefault) {
         this.set('currentDefaultVersion', currentDefault.service_config_version);
       }

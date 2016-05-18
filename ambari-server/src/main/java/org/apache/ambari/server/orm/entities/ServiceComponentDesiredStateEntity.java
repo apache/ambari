@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.CascadeType;
@@ -25,35 +26,63 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.State;
 
-@javax.persistence.IdClass(ServiceComponentDesiredStateEntityPK.class)
-@javax.persistence.Table(name = "servicecomponentdesiredstate")
 @Entity
+@Table(
+    name = "servicecomponentdesiredstate",
+    uniqueConstraints = @UniqueConstraint(
+        name = "unq_scdesiredstate_name",
+        columnNames = { "component_name", "service_name", "cluster_id" }) )
+@TableGenerator(
+    name = "servicecomponentdesiredstate_id_generator",
+    table = "ambari_sequences",
+    pkColumnName = "sequence_name",
+    valueColumnName = "sequence_value",
+    pkColumnValue = "servicecomponentdesiredstate_id_seq",
+    initialValue = 0)
+@NamedQueries({
+ @NamedQuery(
+    name = "ServiceComponentDesiredStateEntity.findByName",
+    query = "SELECT scds FROM ServiceComponentDesiredStateEntity scds WHERE scds.clusterId = :clusterId AND scds.serviceName = :serviceName AND scds.componentName = :componentName") })
 public class ServiceComponentDesiredStateEntity {
 
-  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   @Id
+  @Column(name = "id", nullable = false, insertable = true, updatable = false)
+  @GeneratedValue(
+      strategy = GenerationType.TABLE,
+      generator = "servicecomponentdesiredstate_id_generator")
+  private Long id;
+
+  @Column(name = "cluster_id", nullable = false, insertable = false, updatable = false, length = 10)
   private Long clusterId;
 
   @Column(name = "service_name", nullable = false, insertable = false, updatable = false)
-  @Id
   private String serviceName;
 
   @Column(name = "component_name", nullable = false, insertable = true, updatable = true)
-  @Id
   private String componentName;
 
   @Column(name = "desired_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(EnumType.STRING)
   private State desiredState = State.INIT;
+
+  @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
+  private Integer recoveryEnabled = 0;
 
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
@@ -61,6 +90,13 @@ public class ServiceComponentDesiredStateEntity {
   @OneToOne
   @JoinColumn(name = "desired_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
   private StackEntity desiredStack;
+
+  /**
+   * Version string that should be followed by instances
+   * of component on hosts. Includes both stack version and build
+   */
+  @Column(name = "desired_version", nullable = false, insertable = true, updatable = true)
+  private String desiredVersion = State.UNKNOWN.toString();
 
   @ManyToOne
   @JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
@@ -71,6 +107,19 @@ public class ServiceComponentDesiredStateEntity {
 
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
+
+  /**
+   * All of the upgrades and downgrades which have occurred for this component.
+   * Can be {@code null} for none.
+   */
+  @OneToMany(
+      mappedBy = "m_serviceComponentDesiredStateEntity",
+      cascade = { CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE })
+  private Collection<ServiceComponentHistoryEntity> serviceComponentHistory;
+
+  public Long getId() {
+    return id;
+  }
 
   public Long getClusterId() {
     return clusterId;
@@ -112,17 +161,66 @@ public class ServiceComponentDesiredStateEntity {
     this.desiredStack = desiredStack;
   }
 
+  public String getDesiredVersion() {
+    return desiredVersion;
+  }
+
+  public void setDesiredVersion(String desiredVersion) {
+    this.desiredVersion = desiredVersion;
+  }
+
+  /**
+   * Adds a historical entry for the version of this service component. New
+   * entries are automatically created when this entities is merged via a
+   * {@link CascadeType#MERGE}.
+   *
+   * @param historicalEntry
+   *          the entry to add.
+   */
+  public void addHistory(ServiceComponentHistoryEntity historicalEntry) {
+    if (null == serviceComponentHistory) {
+      serviceComponentHistory = new ArrayList<>();
+    }
+
+    serviceComponentHistory.add(historicalEntry);
+
+    if (!equals(historicalEntry.getServiceComponentDesiredState())) {
+      historicalEntry.setServiceComponentDesiredState(this);
+    }
+  }
+
+  /**
+   * Gets the history of this component's upgrades and downgrades.
+   *
+   * @return the component history, or {@code null} if none.
+   */
+  public Collection<ServiceComponentHistoryEntity> getHistory() {
+    return serviceComponentHistory;
+  }
+
+  public boolean isRecoveryEnabled() {
+    return recoveryEnabled != 0;
+  }
+
+  public void setRecoveryEnabled(boolean recoveryEnabled) {
+    this.recoveryEnabled = (recoveryEnabled == false) ? 0 : 1;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
+
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
     ServiceComponentDesiredStateEntity that = (ServiceComponentDesiredStateEntity) o;
 
+    if (id != null ? !id.equals(that.id) : that.id != null) {
+      return false;
+    }
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
       return false;
     }
@@ -144,7 +242,8 @@ public class ServiceComponentDesiredStateEntity {
 
   @Override
   public int hashCode() {
-    int result = clusterId != null ? clusterId.intValue() : 0;
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);

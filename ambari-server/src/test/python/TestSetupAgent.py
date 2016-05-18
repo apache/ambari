@@ -26,11 +26,6 @@ from only_for_platform import get_platform, not_for_platform, only_for_platform,
 from mock.mock import MagicMock, patch, ANY, Mock
 
 with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
-#  from ambari_agent import NetUtil, security
-
-#  if get_platform() != PLATFORM_WINDOWS:
-#    from ambari_commons.shell import shellRunnerLinux
-
   setup_agent = __import__('setupAgent')
 
 class TestSetupAgent(TestCase):
@@ -312,7 +307,7 @@ class TestSetupAgent(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(subprocess, 'Popen')
   def test_execOsCommand(self, Popen_mock):
-    self.assertFalse(setup_agent.execOsCommand("hostname -f") == None)
+    self.assertIsNone(setup_agent.execOsCommand("hostname -f"))
 
   @only_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

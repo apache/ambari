@@ -118,17 +118,17 @@ class DBMSConfig(object):
   #
   # Main method. Configures the database according to the options and the existing properties.
   #
-  def configure_database(self, properties):
+  def configure_database(self, properties, options):
     result = self._prompt_db_properties()
     if result:
       #DB setup should be done last after doing any setup.
       if self._is_local_database():
-        self._setup_local_server(properties)
+        self._setup_local_server(properties, options)
         # this issue appears only for Suse. Postgres need /var/run/postgresql dir but do not create it
         if OSCheck.is_suse_family():
           self._create_postgres_lock_directory()
       else:
-        self._setup_remote_server(properties)
+        self._setup_remote_server(properties, options)
     return result
 
   def setup_database(self):
@@ -169,12 +169,12 @@ class DBMSConfig(object):
   #
 
   @staticmethod
-  def _read_password_from_properties(properties):
+  def _read_password_from_properties(properties, options):
     database_password = DEFAULT_PASSWORD
     password_file = get_value_from_properties(properties, JDBC_PASSWORD_PROPERTY, "")
     if password_file:
       if is_alias_string(password_file):
-        database_password = decrypt_password_for_alias(properties, JDBC_RCA_PASSWORD_ALIAS)
+        database_password = decrypt_password_for_alias(properties, JDBC_RCA_PASSWORD_ALIAS, options)
       else:
         if os.path.isabs(password_file) and os.path.exists(password_file):
           with open(password_file, 'r') as file:
@@ -218,7 +218,7 @@ class DBMSConfig(object):
   def _create_postgres_lock_directory(self):
     pass
 
-  def _setup_local_server(self, properties):
+  def _setup_local_server(self, properties, options):
     pass
 
   def _setup_local_database(self):
@@ -227,7 +227,7 @@ class DBMSConfig(object):
   def _reset_local_database(self):
     pass
 
-  def _setup_remote_server(self, properties):
+  def _setup_remote_server(self, properties, options):
     pass
 
   def _setup_remote_database(self):
@@ -349,7 +349,7 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
     self.DBMS_LIST = [
       DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_LOCAL, 'PostgreSQL', 'Embedded', createPGConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[1], STORAGE_TYPE_REMOTE, 'Oracle', '', createOracleConfig),
-      DBMSDesc(self.DBMS_KEYS_LIST[2], STORAGE_TYPE_REMOTE, 'MySQL', '', createMySQLConfig),
+      DBMSDesc(self.DBMS_KEYS_LIST[2], STORAGE_TYPE_REMOTE, 'MySQL / MariaDB', '', createMySQLConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_REMOTE, 'PostgreSQL', '', createPGConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[4], STORAGE_TYPE_REMOTE, 'Microsoft SQL Server', 'Tech Preview', createMSSQLConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[5], STORAGE_TYPE_REMOTE, 'SQL Anywhere', '', createSQLAConfig)

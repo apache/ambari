@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,12 +42,14 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertGroup;
 import org.apache.ambari.server.state.alert.AlertTarget;
@@ -63,17 +65,18 @@ import com.google.inject.Inject;
  */
 @StaticallyInject
 public class AlertTargetResourceProvider extends
- AbstractResourceProvider {
+ AbstractAuthorizedResourceProvider {
 
-  protected static final String ALERT_TARGET = "AlertTarget";
-  protected static final String ALERT_TARGET_ID = "AlertTarget/id";
-  protected static final String ALERT_TARGET_NAME = "AlertTarget/name";
-  protected static final String ALERT_TARGET_DESCRIPTION = "AlertTarget/description";
-  protected static final String ALERT_TARGET_NOTIFICATION_TYPE = "AlertTarget/notification_type";
-  protected static final String ALERT_TARGET_PROPERTIES = "AlertTarget/properties";
-  protected static final String ALERT_TARGET_GROUPS = "AlertTarget/groups";
-  protected static final String ALERT_TARGET_STATES = "AlertTarget/alert_states";
-  protected static final String ALERT_TARGET_GLOBAL = "AlertTarget/global";
+  public static final String ALERT_TARGET = "AlertTarget";
+  public static final String ALERT_TARGET_ID = "AlertTarget/id";
+  public static final String ALERT_TARGET_NAME = "AlertTarget/name";
+  public static final String ALERT_TARGET_DESCRIPTION = "AlertTarget/description";
+  public static final String ALERT_TARGET_NOTIFICATION_TYPE = "AlertTarget/notification_type";
+  public static final String ALERT_TARGET_PROPERTIES = "AlertTarget/properties";
+  public static final String ALERT_TARGET_GROUPS = "AlertTarget/groups";
+  public static final String ALERT_TARGET_STATES = "AlertTarget/alert_states";
+  public static final String ALERT_TARGET_GLOBAL = "AlertTarget/global";
+  public static final String ALERT_TARGET_ENABLED = "AlertTarget/enabled";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(ALERT_TARGET_ID, ALERT_TARGET_NAME));
@@ -98,6 +101,7 @@ public class AlertTargetResourceProvider extends
     PROPERTY_IDS.add(ALERT_TARGET_GROUPS);
     PROPERTY_IDS.add(ALERT_TARGET_STATES);
     PROPERTY_IDS.add(ALERT_TARGET_GLOBAL);
+    PROPERTY_IDS.add(ALERT_TARGET_ENABLED);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.AlertTarget, ALERT_TARGET_ID);
@@ -122,10 +126,18 @@ public class AlertTargetResourceProvider extends
    */
   AlertTargetResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
+
+    // For now only allow an Ambari administrator to create, update, and manage Alert Targets.
+    // If an alert target can associated with a particular cluster, than a cluster administrator
+    // should be able to do this as well.
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_ALERTS);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
   }
 
   @Override
-  public RequestStatus createResources(final Request request)
+  protected RequestStatus createResourcesAuthorized(final Request request)
       throws SystemException,
       UnsupportedPropertyException, ResourceAlreadyExistsException,
       NoSuchParentResourceException {
@@ -173,7 +185,7 @@ public class AlertTargetResourceProvider extends
   }
 
   @Override
-  public RequestStatus updateResources(final Request request,
+  protected RequestStatus updateResourcesAuthorized(final Request request,
       Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
@@ -202,7 +214,7 @@ public class AlertTargetResourceProvider extends
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
@@ -239,6 +251,11 @@ public class AlertTargetResourceProvider extends
     return PK_PROPERTY_IDS;
   }
 
+  @Override
+  protected ResourceType getResourceType(Request request, Predicate predicate) {
+    return ResourceType.AMBARI;
+  }
+
   /**
    * Create and persist {@link AlertTargetEntity} from the map of properties.
    *
@@ -255,6 +272,7 @@ public class AlertTargetResourceProvider extends
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
       Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
       String globalProperty = (String) requestMap.get(ALERT_TARGET_GLOBAL);
+      String enabledProperty = (String) requestMap.get(ALERT_TARGET_ENABLED);
 
       if (StringUtils.isEmpty(name)) {
         throw new IllegalArgumentException(
@@ -289,6 +307,12 @@ public class AlertTargetResourceProvider extends
       boolean isGlobal = false;
       if (null != globalProperty) {
         isGlobal = Boolean.parseBoolean(globalProperty);
+      }
+
+      // enabled not required
+      boolean isEnabled = true;
+      if (null != enabledProperty) {
+        isEnabled = Boolean.parseBoolean(enabledProperty);
       }
 
       // set the states that this alert target cares about
@@ -329,6 +353,7 @@ public class AlertTargetResourceProvider extends
       entity.setTargetName(name);
       entity.setAlertStates(alertStateSet);
       entity.setGlobal(isGlobal);
+      entity.setEnabled(isEnabled);
 
       if (null == entity.getTargetId() || 0 == entity.getTargetId()) {
         s_dao.create(entity);
@@ -341,7 +366,7 @@ public class AlertTargetResourceProvider extends
   /**
    * Updates existing {@link AlertTargetEntity}s with the specified properties.
    *
-   * @param requestMaps
+   * @param requestMap
    *          a set of property maps, one map for each entity.
    * @throws AmbariException
    *           if the entity could not be found.
@@ -365,6 +390,16 @@ public class AlertTargetResourceProvider extends
     String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
     Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
     Collection<Long> groupIds = (Collection<Long>) requestMap.get(ALERT_TARGET_GROUPS);
+    String isGlobal = (String) requestMap.get(ALERT_TARGET_GLOBAL);
+    String isEnabled = (String) requestMap.get(ALERT_TARGET_ENABLED);
+
+    if(null != isGlobal){
+      entity.setGlobal(Boolean.parseBoolean(isGlobal));
+    }
+
+    if (null != isEnabled) {
+      entity.setEnabled(Boolean.parseBoolean(isEnabled));
+    }
 
     if (!StringUtils.isBlank(name)) {
       entity.setTargetName(name);
@@ -410,6 +445,13 @@ public class AlertTargetResourceProvider extends
       }
 
       entity.setAlertGroups(groups);
+    } else if (entity.isGlobal()){
+      Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>(s_dao.findAllGroups());
+      for (AlertGroupEntity group : groups) {
+        group.addAlertTarget(entity);
+        s_dao.merge(group);
+      }
+      entity.setAlertGroups(groups);
     }
 
     s_dao.merge(entity);
@@ -433,6 +475,8 @@ public class AlertTargetResourceProvider extends
     resource.setProperty(ALERT_TARGET_DESCRIPTION, entity.getDescription());
     resource.setProperty(ALERT_TARGET_NOTIFICATION_TYPE,
         entity.getNotificationType());
+
+    resource.setProperty(ALERT_TARGET_ENABLED, entity.isEnabled());
 
     // these are expensive to deserialize; only do it if asked for
     if (requestedIds.contains(ALERT_TARGET_PROPERTIES)) {

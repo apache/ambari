@@ -62,7 +62,8 @@
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
             },
-            "units" : "%"
+            "units" : "%",
+            "type": "PERCENT"
           },
           "jmx": {
             "property_list": [
@@ -160,12 +161,14 @@
             },
             "warning": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.1
+              "value": 10
             },
             "critical": {
               "text": "affected: [{1}], total: [{0}]",
-              "value": 0.3
-            }
+              "value": 30
+            },
+            "units" : "%",
+            "type": "PERCENT"
           }
         }
       }
@@ -297,7 +300,8 @@
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
             },
-            "units" : "%"
+            "units" : "%",
+            "type": "PERCENT"
           },
           "jmx": {
             "property_list": [
@@ -388,8 +392,8 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{yarn-site/yarn.timeline-service.webapp.address}}",
-            "https": "{{yarn-site/yarn.timeline-service.webapp.https.address}}",
+            "http": "{{yarn-site/yarn.timeline-service.webapp.address}}/ws/v1/timeline",
+            "https": "{{yarn-site/yarn.timeline-service.webapp.https.address}}/ws/v1/timeline",
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "kerberos_keytab": "{{yarn-site/yarn.timeline-service.http-authentication.kerberos.keytab}}",

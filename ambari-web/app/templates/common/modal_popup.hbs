@@ -18,33 +18,33 @@
 
 
 <div class="modal-backdrop"></div>
-<div class="modal" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
+<div {{bindAttr class=":modal view.showFooter:with-footer:no-footer"}} id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
   <div class="modal-header">
-    {{#if showCloseButton}}
+    {{#if view.showCloseButton}}
       <a class="close" {{action onClose target="view"}}>x</a>
     {{/if}}
     <h3 id="modal-label">
-      {{#if headerClass}}
-        {{view headerClass}}
+      {{#if view.headerClass}}
+        {{view view.headerClass}}
       {{else}}
-        {{header}}
+        {{view.header}}
       {{/if}}
     </h3>
   </div>
   <div {{bindAttr class=":modal-body view.isHideBodyScroll:hidden-scroll"}}>
-    {{#if bodyClass}}
-      {{view bodyClass}}
+    {{#if view.bodyClass}}
+      {{view view.bodyClass}}
     {{else}}
-      {{#if encodeBody}}
-        {{body}}
+      {{#if view.encodeBody}}
+        {{view.body}}
       {{else}}
-        {{{body}}}
+        {{{view.body}}}
       {{/if}}
     {{/if}}
   </div>
-  {{#if showFooter}}
-    {{#if footerClass}}
-      {{view footerClass}}
+  {{#if view.showFooter}}
+    {{#if view.footerClass}}
+      {{view view.footerClass}}
     {{else}}
       <div class="modal-footer">
         {{#if view.hasFooterCheckbox}}

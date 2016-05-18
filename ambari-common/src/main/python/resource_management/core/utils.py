@@ -23,7 +23,9 @@ Ambari Agent
 import contextlib
 import sys
 import cStringIO
+from functools import wraps
 from resource_management.core.exceptions import Fail
+from itertools import chain, repeat, islice
 
 PASSWORDS_HIDE_STRING = "[PROTECTED]"
 
@@ -133,3 +135,23 @@ class PasswordString(unicode):
   def __repr__(self):
     return PASSWORDS_HIDE_STRING
   
+def lazy_property(undecorated):
+  name = '_' + undecorated.__name__
+
+  @property
+  @wraps(undecorated)
+  def decorated(self):
+    try:
+      return getattr(self, name)
+    except AttributeError:
+      v = undecorated(self)
+      setattr(self, name, v)
+      return v
+
+  return decorated
+
+def pad_infinite(iterable, padding=None):
+  return chain(iterable, repeat(padding))
+
+def pad(iterable, size, padding=None):
+  return islice(pad_infinite(iterable, padding), size)

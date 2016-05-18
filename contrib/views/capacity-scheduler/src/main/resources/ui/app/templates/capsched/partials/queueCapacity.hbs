@@ -1,0 +1,95 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="queue-capacity-container">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="panel-title">
+        Capacity <a id="collapseQueueCapacityPanelBtn" href="#collapsibleQueueCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isCapacityPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isCapacityPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+      </div>
+    </div>
+    <div id="collapsibleQueueCapacityPanel" {{bind-attr class=":panel-collapse :collapse view.isCapacityPanelCollapsed::in"}}>
+      <div class="panel-body">
+        {{#if isOperator}}
+          {{#unless isLeafQ}}
+            <div class="row">
+              <div class="col-md-2 col-sm-2">
+                <label>Children</label>
+              </div>
+              <div class="col-md-5 col-sm-5">
+                {{tooltip-label
+                  label='Capacity'
+                  message= 'The minimum guaranteed capacity as a percentage of total capacity that is allocated to the queue.'
+                }}
+              </div>
+              <div class="col-md-5 col-sm-5">
+                {{tooltip-label
+                  label='Max Capacity'
+                  message= 'The cap (maximum capacity) as a percentage of total capacity that this queue can utilize.'
+                }}
+              </div>
+            </div>
+            {{#each childQ in childrenQueues}}
+              {{render "capsched/partials/editQueueCapacity" childQ}}
+            {{/each}}
+            <div class="row">
+              <div class="col-md-2 col-sm-2">
+                <label>Total Capacity</label>
+              </div>
+              <div class="col-sm-5 col-md-5">
+                <div class="progress total-capacity-progress">
+                  <div role="progressbar" {{bind-attr class=":progress-bar warnInvalidCapacity:progress-bar-danger:progress-bar-success" style="totalCapacityBarWidth"}}>
+                    Used:{{childrenQueuesTotalCapacity}}%
+                  </div>
+                </div>
+              </div>
+          </div>
+          {{else}}
+            <div class="row">
+              <div class="col-md-6 col-md-6">
+                <label>Capacity: </label>
+                <span>{{content.capacity}}%</span>
+              </div>
+              <div class="col-md-5 col-md-5">
+                <label>Maximum Capacity: </label>
+                <span>{{content.maximum_capacity}}%</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-10 col-sm-10">
+                <span>To edit capacity and maximum capacity at parent queue level</span>
+                <span>{{#link-to 'capsched.queuesconf.editqueue' parentQueue}}Click Here{{/link-to}}</span>
+              </div>
+            </div>
+          {{/unless}}
+        {{else}}
+          <div class="row">
+            <div class="col-md-6 col-md-6">
+              <label>Capacity: </label>
+              <span>{{content.capacity}}%</span>
+            </div>
+            <div class="col-md-5 col-sm-5">
+              <label>Maximum Capacity: </label>
+              <span>{{content.maximum_capacity}}%</span>
+            </div>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>

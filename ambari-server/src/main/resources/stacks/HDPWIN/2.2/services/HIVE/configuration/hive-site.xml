@@ -109,7 +109,7 @@ limitations under the License.
     <description>The delegation token store implementation.
       Set to org.apache.hadoop.hive.thrift.ZooKeeperTokenStore for load-balanced cluster.</description>
   </property>
-  
+
   <property>
     <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
     <value>localhost:2181</value>
@@ -125,7 +125,7 @@ limitations under the License.
       in their connection string.
     </description>
   </property>
-  
+
   <property>
     <name>fs.hdfs.impl.disable.cache</name>
     <value>false</value>
@@ -310,6 +310,7 @@ limitations under the License.
     <name>hive.metastore.warehouse.dir</name>
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
+    <property-type>NOT_MANAGED_HDFS_PATH</property-type>
   </property>
 
   <property>
@@ -322,6 +323,7 @@ limitations under the License.
     <name>javax.jdo.option.ConnectionPassword</name>
     <value></value>
     <display-name>Database Password</display-name>
+    <property-type>PASSWORD</property-type>
     <description>password to use against metastore database</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -336,6 +338,16 @@ limitations under the License.
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <name>hive_database</name>
+        <type>hive-env</type>
+      </property>
+      <property>
+        <name>ambari.hive.db.schema.name</name>
+        <type>hive-site</type>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -396,6 +408,12 @@ limitations under the License.
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <name>hive_database</name>
+        <type>hive-env</type>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -772,10 +790,6 @@ limitations under the License.
     </value-attributes>
     <depends-on>
       <property>
-        <type>hive-env</type>
-        <name>cost_based_optimizer</name>
-      </property>
-      <property>
         <type>hive-site</type>
         <name>hive.cbo.enable</name>
        </property>
@@ -806,10 +820,6 @@ limitations under the License.
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
     <depends-on>
-      <property>
-        <type>hive-env</type>
-        <name>cost_based_optimizer</name>
-      </property>
       <property>
         <type>hive-site</type>
         <name>hive.cbo.enable</name>
@@ -1300,6 +1310,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1+</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>capacity-scheduler</type>
+        <name>yarn.scheduler.capacity.root.queues</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -1623,9 +1639,9 @@ limitations under the License.
     <name>hive.exec.orc.encoding.strategy</name>
     <value>SPEED</value>
     <description>
-      Define the encoding strategy to use while writing data. Changing this 
-      will only affect the light weight encoding for integers. This flag will not change 
-      the compression level of higher level compression codec (like ZLIB). Possible 
+      Define the encoding strategy to use while writing data. Changing this
+      will only affect the light weight encoding for integers. This flag will not change
+      the compression level of higher level compression codec (like ZLIB). Possible
       options are SPEED and COMPRESSION.
     </description>
     <display-name>ORC Encoding Strategy</display-name>
@@ -1654,7 +1670,7 @@ limitations under the License.
     <name>hive.exec.orc.compression.strategy</name>
     <value>SPEED</value>
     <description>
-      Define the compression strategy to use while writing data. This changes the 
+      Define the compression strategy to use while writing data. This changes the
       compression level of higher level compression codec (like ZLIB).
     </description>
     <display-name>ORC Compression Strategy</display-name>
@@ -1683,7 +1699,7 @@ limitations under the License.
     <name>hive.vectorized.execution.reduce.enabled</name>
     <value>false</value>
     <description>
-      This flag should be set to true to enable vectorized mode of the reduce-side of 
+      This flag should be set to true to enable vectorized mode of the reduce-side of
       query execution.
     </description>
     <display-name>Enable Reduce Vectorization</display-name>

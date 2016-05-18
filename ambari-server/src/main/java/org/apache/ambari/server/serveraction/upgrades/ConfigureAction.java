@@ -44,7 +44,11 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinitio
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.PropertyKeyState;
+import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -77,6 +81,8 @@ import java.util.concurrent.ConcurrentMap;
  * </ul>
  */
 public class ConfigureAction extends AbstractServerAction {
+
+  private static Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
 
   /**
    * Used to lookup the cluster.
@@ -173,6 +179,7 @@ public class ConfigureAction extends AbstractServerAction {
     }
 
     String clusterName = commandParameters.get("clusterName");
+    Cluster cluster = m_clusters.getCluster(clusterName);
 
     // such as hdfs-site or hbase-env
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
@@ -183,6 +190,7 @@ public class ConfigureAction extends AbstractServerAction {
     if (null != keyValuePairJson) {
       keyValuePairs = m_gson.fromJson(
           keyValuePairJson, new TypeToken<List<ConfigurationKeyValue>>(){}.getType());
+      keyValuePairs = getAllowedSets(cluster, configType, keyValuePairs);
     }
 
     // extract transfers
@@ -191,6 +199,7 @@ public class ConfigureAction extends AbstractServerAction {
     if (null != transferJson) {
       transfers = m_gson.fromJson(
         transferJson, new TypeToken<List<Transfer>>(){}.getType());
+      transfers = getAllowedTransfers(cluster, configType, transfers);
     }
 
     // extract replacements
@@ -199,6 +208,7 @@ public class ConfigureAction extends AbstractServerAction {
     if (null != replaceJson) {
       replacements = m_gson.fromJson(
           replaceJson, new TypeToken<List<Replace>>(){}.getType());
+      replacements = getAllowedReplacements(cluster, configType, replacements);
     }
 
     // if there is nothing to do, then skip the task
@@ -223,8 +233,6 @@ public class ConfigureAction extends AbstractServerAction {
       message = MessageFormat.format(message, clusterName, configType, transfers, replacements, keyValuePairs);
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "", message);
     }
-
-    Cluster cluster = m_clusters.getCluster(clusterName);
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
@@ -550,4 +558,135 @@ public class ConfigureAction extends AbstractServerAction {
     return value;
   }
 
+  private List<Replace> getAllowedReplacements(Cluster cluster, String configType, List<Replace> replacements){
+    List<Replace> allowedReplacements= new ArrayList<>();
+
+    for(Replace replacement: replacements){
+      if(isOperationAllowed(cluster, configType, replacement.key,
+          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState))
+        allowedReplacements.add(replacement);
+    }
+
+    return allowedReplacements;
+  }
+
+  private List<ConfigurationKeyValue> getAllowedSets(Cluster cluster, String configType, List<ConfigurationKeyValue> sets){
+    List<ConfigurationKeyValue> allowedSets = new ArrayList<>();
+
+    for(ConfigurationKeyValue configurationKeyValue: sets){
+      if(isOperationAllowed(cluster, configType, configurationKeyValue.key,
+          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState))
+        allowedSets.add(configurationKeyValue);
+    }
+
+    return allowedSets;
+  }
+
+  private List<Transfer> getAllowedTransfers(Cluster cluster, String configType, List<Transfer> transfers){
+    List<Transfer> allowedTransfers = new ArrayList<>();
+    for (Transfer transfer : transfers) {
+      String key = "";
+      if(transfer.operation == TransferOperation.DELETE)
+        key = transfer.deleteKey;
+      else
+        key = transfer.fromKey;
+
+      if(isOperationAllowed(cluster, configType, key,
+          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState))
+        allowedTransfers.add(transfer);
+    }
+
+    return allowedTransfers;
+  }
+
+  private boolean isOperationAllowed(Cluster cluster, String configType, String targetPropertyKey,
+      String ifKey, String ifType, String ifValue, PropertyKeyState ifKeyState){
+    boolean isAllowed = true;
+
+    boolean ifKeyIsNotBlank = StringUtils.isNotBlank(ifKey);
+    boolean ifTypeIsNotBlank = StringUtils.isNotBlank(ifType);
+
+    if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifKeyState == PropertyKeyState.ABSENT) {
+      boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
+      if (keyPresent) {
+        LOG.info("Skipping property operation for {}/{} as the key {} for {} is present",
+          configType, targetPropertyKey, ifKey, ifType);
+        isAllowed = false;
+      }
+    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValue == null &&
+      ifKeyState == PropertyKeyState.PRESENT) {
+      boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, ifType, ifKey);
+      if (!keyPresent) {
+        LOG.info("Skipping property operation for {}/{} as the key {} for {} is not present",
+          configType, targetPropertyKey, ifKey, ifType);
+        isAllowed = false;
+      }
+    } else if (ifKeyIsNotBlank && ifTypeIsNotBlank && ifValue != null) {
+
+      String ifConfigType = ifType;
+      String checkValue = getDesiredConfigurationValue(cluster, ifConfigType, ifKey);
+      if (!ifValue.toLowerCase().equals(StringUtils.lowerCase(checkValue))) {
+        // skip adding
+        LOG.info("Skipping property operation for {}/{} as the value {} for {}/{} is not equal to {}",
+                 configType, targetPropertyKey, checkValue, ifConfigType, ifKey, ifValue);
+        isAllowed = false;
+      }
+    }
+
+    return isAllowed;
+  }
+
+  /**
+   * Gets the property presence state
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param configType
+   *          the configuration type (ie hdfs-site) (not {@code null}).
+   * @param propertyKey
+   *          the key to retrieve (not {@code null}).
+   * @return {@code true} if property key exists or {@code false} if not.
+   */
+  private boolean getDesiredConfigurationKeyPresence(Cluster cluster,
+      String configType, String propertyKey) {
+
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    DesiredConfig desiredConfig = desiredConfigs.get(configType);
+    if (null == desiredConfig) {
+      return false;
+    }
+
+    Config config = cluster.getConfig(configType, desiredConfig.getTag());
+    if (null == config) {
+      return false;
+    }
+    return config.getProperties().containsKey(propertyKey);
+  }
+
+  /**
+   * Gets the value of the specified cluster property.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param configType
+   *          the configuration type (ie hdfs-site) (not {@code null}).
+   * @param propertyKey
+   *          the key to retrieve (not {@code null}).
+   * @return the value or {@code null} if it does not exist.
+   */
+  private String getDesiredConfigurationValue(Cluster cluster,
+      String configType, String propertyKey) {
+
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    DesiredConfig desiredConfig = desiredConfigs.get(configType);
+    if (null == desiredConfig) {
+      return null;
+    }
+
+    Config config = cluster.getConfig(configType, desiredConfig.getTag());
+    if (null == config) {
+      return null;
+    }
+
+    return config.getProperties().get(propertyKey);
+  }
 }

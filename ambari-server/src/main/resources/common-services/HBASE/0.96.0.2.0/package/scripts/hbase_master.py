@@ -40,7 +40,8 @@ class HbaseMaster(Script):
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
+    env.set_params(params)
+    self.install_packages(env)
 
   def decommission(self, env):
     import params
@@ -69,8 +70,8 @@ class HbaseMasterWindows(HbaseMaster):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseMasterDefault(HbaseMaster):
-  def get_stack_to_component(self):
-    return {"HDP": "hbase-master"}
+  def get_component_name(self):
+    return "hbase-master"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -143,7 +144,14 @@ class HbaseMasterDefault(HbaseMaster):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
-
+      
+  def get_log_folder(self):
+    import params
+    return params.log_dir
+  
+  def get_user(self):
+    import params
+    return params.hbase_user
 
 if __name__ == "__main__":
   HbaseMaster().execute()

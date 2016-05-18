@@ -19,10 +19,10 @@
 <div class="users-pane">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li class="active">Users</li>
+      <li class="active">{{'common.users' | translate}}</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <link-to route="users.create" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> Create Local User</link-to>
+      <link-to route="users.create" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> {{'users.create' | translate}}</link-to>
     </div>
   </div>
   <hr>
@@ -33,18 +33,18 @@
           <span class="bottom-margin admin-filter glyphicon glyphicon-flash" 
             ng-class="{'no-filter' : !adminFilter}" 
             ng-click="toggleAdminFilter()"
-            tooltip="{{adminFilter ? 'Show all users' : 'Show only admin users'}}"
+            tooltip="{{'users.' + (adminFilter ? 'showAll' : 'showAdmin') | translate}}"
           ></span>
         </th>
         <th>
           <div class="search-container">
-            <label for="">Username</label>
-            <input type="text" class="form-control namefilter" placeholder="Any" ng-model="currentNameFilter" ng-change="resetPagination()">
-            <button type="button" class="close clearfilter" ng-show="currentNameFilter" ng-click="currentNameFilter=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <label for="">{{'users.username' | translate}}</label>
+            <input type="text" class="form-control namefilter" placeholder="{{'common.any' | translate}}" ng-model="currentNameFilter" ng-change="resetPagination()">
+            <button type="button" class="close clearfilter" ng-show="currentNameFilter" ng-click="currentNameFilter=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
           </div>
         </th>
         <th>
-          <label for="">Type</label>
+          <label for="">{{'common.type' | translate}}</label>
           <select class="form-control typefilter"
             ng-model="currentTypeFilter"
             ng-options="item.label for item in typeFilterOptions"
@@ -53,10 +53,10 @@
 
         </th>
         <th>
-          <label for="">Status</label>
+          <label for="">{{'users.status' | translate}}</label>
           <select class="form-control statusfilter" 
             ng-model="currentActiveFilter"
-            ng-options="item.label for item in actvieFilterOptions"
+            ng-options="item.label for item in activeFilterOptions"
             ng-change="resetPagination()">
           </select>
         </th>
@@ -65,17 +65,24 @@
     <tbody>
       <tr ng-repeat="user in users">
         <td>
-          <span class="glyphicon" tooltip="{{user.Users.admin ? 'Ambari Admin' : ''}}" ng-class="{'glyphicon-flash' : user.Users.admin}"></span>
+          <span class="glyphicon" tooltip="{{user.Users.admin ? constants.admin : ''}}" ng-class="{'glyphicon-flash' : user.Users.admin}"></span>
         </td>
         <td>
            <a href="#/users/{{user.Users.encoded_name}}">{{user.Users.user_name}}</a>
         </td>
         <td>{{user.Users.userTypeName}}</td>
-        <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{user.Users.active ? 'Active' : 'Inactive'}}</span></td>
+        <td><span ng-class="user.Users.active ? 'text-success' : 'text-danger'">{{'users.' + (user.Users.active ? 'active' : 'inactive') | translate}}</span></td>
       </tr>
     </tbody>
   </table>
-  <div class="col-sm-12">
+  <div class="alert alert-info col-sm-12" ng-show="!users.length">
+    {{'common.alerts.nothingToDisplay' | translate: '{term: constants.users}'}}
+  </div>
+  <div class="col-sm-12 table-bar">
+    <div class="pull-left filtered-info">
+      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: constants.users}'}}</span>
+      <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
+    </div>
     <div class="pull-right left-margin">
       <pagination class="paginator" total-items="totalUsers" max-size="maxVisiblePages" items-per-page="usersPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
     </div>

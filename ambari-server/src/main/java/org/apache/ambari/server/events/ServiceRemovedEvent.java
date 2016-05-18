@@ -41,7 +41,7 @@ public class ServiceRemovedEvent extends ServiceEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("ServiceRemovedEvent{ ");
+    StringBuilder buffer = new StringBuilder("ServiceRemovedEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);

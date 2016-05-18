@@ -84,12 +84,21 @@ public enum HostRoleStatus {
   private static List<HostRoleStatus> HOLDING_STATES = Arrays.asList(HOLDING, HOLDING_FAILED,
       HOLDING_TIMEDOUT);
 
+  public static List<HostRoleStatus> SCHEDULED_STATES = Arrays.asList(PENDING, QUEUED, IN_PROGRESS);
+
   /**
    * The {@link HostRoleStatus}s that represent any commands which are
    * considered to be "Failed".
    */
   public static EnumSet<HostRoleStatus> FAILED_STATUSES = EnumSet.of(FAILED, TIMEDOUT, ABORTED,
       SKIPPED_FAILED);
+
+  /**
+   * The {@link HostRoleStatus}s that represent the current commands that failed during stack upgrade.
+   * This is not used to indicate commands that failed and then skipped.
+   */
+  public static EnumSet<HostRoleStatus> STACK_UPGRADE_FAILED_STATUSES = EnumSet.of(FAILED, HOLDING_FAILED,
+      HOLDING_TIMEDOUT);
 
   /**
    * The {@link HostRoleStatus}s that represent any commands which are

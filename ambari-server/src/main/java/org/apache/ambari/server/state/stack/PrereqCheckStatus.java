@@ -21,7 +21,20 @@ package org.apache.ambari.server.state.stack;
  * Indicates status of prerequisite check.
  */
 public enum PrereqCheckStatus {
+  /**
+   * The check passed with no warnings or errors.
+   */
   PASS,
+  /**
+   * The check passed but reporting a warning that should be examined.
+   */
   WARNING,
+  /**
+   * The check failed but a configuration allows bypassing failures.
+   */
+  BYPASS,
+  /**
+   * The check failed and is not allowed to bypass errors.
+   */
   FAIL
 }

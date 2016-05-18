@@ -24,10 +24,10 @@
       <version>0.5.0.2.3</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>atlas-metadata_2_3_*</name>
+              <name>atlas-metadata_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -35,11 +35,17 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>atlas-metadata-2-3-.*</name>
+              <name>atlas-metadata-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
       </osSpecifics>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

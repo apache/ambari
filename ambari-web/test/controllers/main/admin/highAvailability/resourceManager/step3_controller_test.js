@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('controllers/main/admin/highAvailability/resourceManager/step3_controller');
+var testHelpers = require('test/helpers');
 
 describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
@@ -54,14 +55,6 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
       content: Em.Object.create({})
     });
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should send proper ajax request', function () {
       controller.loadConfigTagsSuccessCallback({
         'Clusters': {
@@ -71,14 +64,17 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
             },
             'yarn-site': {
               'tag': 1
+            },
+            'yarn-env': {
+              'tag': 1
             }
           }
         }
       }, {}, {
         'serviceConfig': {}
       });
-      var data = App.ajax.send.args[0][0].data;
-      expect(data.urlParams).to.equal('(type=zoo.cfg&tag=1)|(type=yarn-site&tag=1)');
+      var data = testHelpers.findAjaxRequest('name', 'reassign.load_configs')[0].data;
+      expect(data.urlParams).to.equal('(type=zoo.cfg&tag=1)|(type=yarn-site&tag=1)|(type=yarn-env&tag=1)');
       expect(data.serviceConfig).to.eql({});
     });
 
@@ -221,6 +217,12 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           }
         },
         {
+          type: 'yarn-env',
+          properties: {
+            yarn_user: 'yarn'
+          }
+        },
+        {
           type: 'yarn-site',
           properties: {
             'yarn.resourcemanager.webapp.address': 'lclhst:1234',
@@ -268,6 +270,15 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           }),
           Em.Object.create({
             name: 'yarn.resourcemanager.webapp.https.address.rm2'
+          }),
+          Em.Object.create({
+            name: 'yarn.resourcemanager.ha'
+          }),
+          Em.Object.create({
+            name: 'yarn.resourcemanager.scheduler.ha'
+          }),
+          Em.Object.create({
+            name: 'hadoop.proxyuser.yarn.hosts'
           })
         ]
       };
@@ -289,31 +300,68 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           })
         ];
       });
+      controller.setDynamicConfigValues(configs, data);
     });
 
     afterEach(function () {
       App.HostComponent.find.restore();
     });
 
-    it('setting new RM properties values', function () {
-      controller.setDynamicConfigValues(configs, data);
+    it('yarn.resourcemanager.hostname.rm1 value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').get('value')).to.equal('h0');
+    });
+    it('yarn.resourcemanager.hostname.rm1 recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').get('recommendedValue')).to.equal('h0');
+    });
+    it('yarn.resourcemanager.hostname.rm2 value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').get('value')).to.equal('h1');
+    });
+    it('yarn.resourcemanager.hostname.rm2 recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').get('recommendedValue')).to.equal('h1');
-
+    });
+    it('yarn.resourcemanager.webapp.address.rm1 value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('value')).to.equal('h0:1234');
+    });
+    it('yarn.resourcemanager.webapp.address.rm1 recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('recommendedValue')).to.equal('h0:1234');
+    });
+    it('yarn.resourcemanager.webapp.address.rm2 value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('value')).to.equal('h1:1234');
+    });
+    it('yarn.resourcemanager.webapp.address.rm2 recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('recommendedValue')).to.equal('h1:1234');
-
+    });
+    it('yarn.resourcemanager.webapp.https.address.rm1 value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('value')).to.equal('h0:4321');
+    });
+    it('yarn.resourcemanager.webapp.https.address.rm1 recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('recommendedValue')).to.equal('h0:4321');
+    });
+    it('yarn.resourcemanager.webapp.https.address.rm2 value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('value')).to.equal('h1:4321');
+    });
+    it('yarn.resourcemanager.webapp.https.address.rm2 recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('recommendedValue')).to.equal('h1:4321');
-
+    });
+    it('yarn.resourcemanager.zk-address value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('value')).to.equal('h2:2222,h3:2222');
+    });
+    it('yarn.resourcemanager.zk-address recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('recommendedValue')).to.equal('h2:2222,h3:2222');
+    });
+    it('yarn.resourcemanager.ha value', function () {
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.ha').get('value')).to.equal('h0:8032,h1:8032');
+    });
+    it('yarn.resourcemanager.ha recommendedValue', function () {
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.scheduler.ha').get('recommendedValue')).to.equal('h0:8030,h1:8030');
+    });
+
+    it('hadoop.proxyuser.yarn.hosts value', function () {
+      expect(configs.configs.findProperty('name', 'hadoop.proxyuser.yarn.hosts').get('value')).to.equal('h0,h1');
+    });
+
+    it('hadoop.proxyuser.yarn.hosts recommendedValue', function () {
+      expect(configs.configs.findProperty('name', 'hadoop.proxyuser.yarn.hosts').get('recommendedValue')).to.equal('h0,h1');
     });
 
   });

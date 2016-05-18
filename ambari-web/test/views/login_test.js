@@ -21,16 +21,17 @@ var App = require('app');
 require('views/login');
 
 var view,
-  controller,
   pass;
 
 describe('App.LoginView', function () {
 
   before(function () {
     sinon.stub(App, 'get', function(k) {
-      if (k === 'router') return {
-        login: Em.K
-      };
+      if (k === 'router') {
+        return {
+          login: Em.K
+        };
+      }
       return Em.get(App, k);
     });
   });

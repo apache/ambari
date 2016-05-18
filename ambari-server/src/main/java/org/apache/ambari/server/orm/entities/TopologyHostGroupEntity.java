@@ -51,8 +51,6 @@ public class TopologyHostGroupEntity {
   private Long id;
 
   @Column(name = "name", nullable = false, updatable = false)
-  @Basic(fetch = FetchType.LAZY)
-  @Lob
   private String name;
 
   @Column(name = "group_properties")

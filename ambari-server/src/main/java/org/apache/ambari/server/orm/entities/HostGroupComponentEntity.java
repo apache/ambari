@@ -47,6 +47,9 @@ public class HostGroupComponentEntity {
   @Column(name = "name", nullable = false, insertable = true, updatable = false)
   private String name;
 
+  @Column(name = "provision_action", nullable = true, insertable = true, updatable = false)
+  private String provisionAction;
+
   @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "hostgroup_name", referencedColumnName = "name", nullable = false),
@@ -125,5 +128,25 @@ public class HostGroupComponentEntity {
    */
   public void setBlueprintName(String blueprintName) {
     this.blueprintName = blueprintName;
+  }
+
+  /**
+   * Get the provision action associated with this
+   *   component.
+   *
+   * @return provision action
+   */
+  public String getProvisionAction() {
+    return provisionAction;
+  }
+
+  /**
+   * Set the provision action associated with this
+   *   component.
+   *
+   * @param provisionAction action associated with the component (example: INSTALL_ONLY, INSTALL_AND_START)
+   */
+  public void setProvisionAction(String provisionAction) {
+    this.provisionAction = provisionAction;
   }
 }

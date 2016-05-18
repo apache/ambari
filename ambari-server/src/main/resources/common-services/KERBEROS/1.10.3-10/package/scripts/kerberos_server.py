@@ -27,7 +27,7 @@ class KerberosServer(KerberosScript):
 
     Directory(params.kadm5_acl_dir,
               owner='root',
-              recursive=True,
+              create_parents = True,
               group='root',
               mode=0700
     )
@@ -50,7 +50,7 @@ class KerberosServer(KerberosScript):
 
     Directory(params.kdc_conf_dir,
               owner='root',
-              recursive=True,
+              create_parents = True,
               group='root',
               mode=0700
     )

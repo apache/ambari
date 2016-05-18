@@ -160,7 +160,7 @@ App.RollingRestartView = Em.View.extend({
    * Formatted <code>hostComponentName</code>
    * @type {String}
    */
-  hostComponentDisplayName: Em.computed.formatRole('hostComponentName'),
+  hostComponentDisplayName: Em.computed.formatRole('hostComponentName', false),
 
   /**
    * List of all host components

@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
  * Checks that namenode high availability is enabled.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 16.1f)
 public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescriptor {
 
   /**
@@ -58,7 +58,7 @@ public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescript
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     final DesiredConfig desiredConfig = desiredConfigs.get(configType);
     final Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (!config.getProperties().containsKey("dfs.nameservices")) {
+    if (!config.getProperties().containsKey("dfs.internal.nameservices")) {
       prerequisiteCheck.getFailedOn().add("HDFS");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));

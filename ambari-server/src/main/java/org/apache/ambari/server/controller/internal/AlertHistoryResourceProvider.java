@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -39,12 +40,14 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * ResourceProvider for Alert History
@@ -74,6 +77,9 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
    */
   @Inject
   private static AlertsDAO s_dao = null;
+
+  @Inject
+  private static AlertDefinitionDAO alertDefinitionDAO = null;
 
   /**
    * The property ids for an alert history resource.
@@ -147,7 +153,7 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
    * {@inheritDoc}
    */
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new UnsupportedOperationException();
@@ -160,6 +166,38 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
+
+    // Verify authorization to retrieve the requested data
+    Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
+    for(Map<String, Object> propertyMap: propertyMaps) {
+      try {
+        String clusterName = (String) propertyMap.get(ALERT_HISTORY_CLUSTER_NAME);
+        Long clusterId = (StringUtils.isEmpty(clusterName)) ? null : getClusterId(clusterName);
+        String definitionName = (String) propertyMap.get(ALERT_HISTORY_DEFINITION_NAME);
+        String definitionId = (String) propertyMap.get(ALERT_HISTORY_DEFINITION_ID);
+
+        if(clusterId == null)  {
+          // Make sure the user has administrative access by using -1 as the cluster id
+          AlertResourceProviderUtils.verifyViewAuthorization("", -1L);
+        }
+        else if(!StringUtils.isEmpty(definitionName)) {
+          // Make sure the user has access to the alert
+          AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findByName(clusterId, definitionName);
+          AlertResourceProviderUtils.verifyViewAuthorization(alertDefinition);
+        }
+        else if(StringUtils.isNumeric(definitionId)) {
+          // Make sure the user has access to the alert
+          AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findById(Long.valueOf(definitionId));
+          AlertResourceProviderUtils.verifyViewAuthorization(alertDefinition);
+        }
+        else {
+          // Make sure the user has the ability to view cluster-level alerts
+          AlertResourceProviderUtils.verifyViewAuthorization("", getClusterResourceId(clusterName));
+        }
+      } catch (AmbariException e) {
+        throw new SystemException(e.getMessage(), e);
+      }
+    }
 
     Set<Resource> results = new LinkedHashSet<Resource>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);

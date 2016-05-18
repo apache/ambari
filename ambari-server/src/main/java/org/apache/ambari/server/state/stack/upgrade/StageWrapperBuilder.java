@@ -169,7 +169,7 @@ public abstract class StageWrapperBuilder {
    */
   protected String getStageText(String prefix, String component, Set<String> hosts, int batchNum, int totalBatches) {
     String stageText = getStageText(prefix, component, hosts);
-    String batchText = 1 == totalBatches? "" : String.format(" ( Batch %s of %s )", batchNum, totalBatches);
+    String batchText = 1 == totalBatches? "" : String.format(" (Batch %s of %s)", batchNum, totalBatches);
     return stageText + batchText;
   }
 
@@ -195,23 +195,56 @@ public abstract class StageWrapperBuilder {
    *   <li>When performing a downgrade, use the downgrade tasks if they are defined</li>
    *   <li>When performing a downgrade, but no downgrade tasks exist, reuse the upgrade tasks</li>
    * </ul>
-   * @param forUpgrade  {@code true} if resolving for an upgrade, {@code false} for downgrade
+   * @param context     the upgrade context
    * @param preTasks    {@code true} if loading pre-upgrade or pre-downgrade
    * @param pc          the processing component holding task definitions
    * @return A collection, potentially empty, of the tasks to run, which may contain either
    * pre or post tasks if they exist, and the order depends on whether it's an upgrade or downgrade.
    */
-  protected List<Task> resolveTasks(boolean forUpgrade, boolean preTasks, ProcessingComponent pc) {
+  protected List<Task> resolveTasks(final UpgradeContext context, boolean preTasks, ProcessingComponent pc) {
     if (null == pc) {
       return Collections.emptyList();
     }
 
+    boolean forUpgrade = context.getDirection().isUpgrade();
+
+    final List<Task> interim;
+
     if (forUpgrade) {
-      return preTasks ? pc.preTasks : pc.postTasks;
+      interim = preTasks ? pc.preTasks : pc.postTasks;
     } else {
-      return preTasks ?
+      interim = preTasks ?
         (null == pc.preDowngradeTasks ? pc.preTasks : pc.preDowngradeTasks) :
         (null == pc.postDowngradeTasks ? pc.postTasks : pc.postDowngradeTasks);
     }
+
+    if (null == interim || interim.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<Task> tasks = new ArrayList<>();
+    for (Task t : interim) {
+      if (context.isScoped(t.scope)) {
+        tasks.add(t);
+      }
+    }
+
+    return tasks;
+  }
+
+  /**
+   * The upgrade packs are written such that there is one and only one upgrade element
+   * for a component, all other directives go in (pre|post)-(upgrade|downgrade) elements.
+   * @param pc the processing component
+   * @return the single task, or {@code null} if there is none
+   */
+  protected Task resolveTask(UpgradeContext context, ProcessingComponent pc) {
+    if (null != pc.tasks && 1 == pc.tasks.size()) {
+      if (context.isScoped(pc.tasks.get(0).scope)) {
+        return pc.tasks.get(0);
+      }
+    }
+
+    return null;
   }
 }

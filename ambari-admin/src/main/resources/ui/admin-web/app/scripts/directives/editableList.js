@@ -37,12 +37,12 @@ angular.module('ambariAdminConsole')
       };
 
       var isIE = function () {
-        var ua = window.navigator.userAgent
-        var msie = ua.indexOf("MSIE ")
+        var ua = window.navigator.userAgent;
+        var msie = ua.indexOf("MSIE ");
 
         // If Internet Explorer, return version number
         if (msie > 0)
-          return !!parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)))
+          return !!parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)));
 
         // If Internet Explorer 11 handling differently becaue UserAgent string updated by Microsoft
         else if (!!navigator.userAgent.match(/Trident\/7\./))
@@ -111,6 +111,13 @@ angular.module('ambariAdminConsole')
             break;
         }
       });
+
+      $elem.find('.editable-list-container').on('reset', function(event) {
+        $scope.editMode = false;
+        $scope.items = angular.copy($scope.itemsSource);
+        $scope.input = '';
+        event.stopPropagation();
+      });
     },
     controller: ['$scope', '$injector', '$modal', function($scope, $injector, $modal) {
       var $resource = $injector.get($scope.resourceType);
@@ -175,6 +182,8 @@ angular.module('ambariAdminConsole')
 
       $scope.enableEditMode = function(event) {
         if( $scope.editable && !$scope.editMode){
+          //only one editable-list could be in edit mode at once
+          $('.cluster-manage-access-pane div.edit-mode').trigger('reset');
           $scope.editMode = true;
           $scope.focusOnInput();
         }
@@ -232,7 +241,7 @@ angular.module('ambariAdminConsole')
         }
         if( $scope.editMode && !angular.equals($scope.items, $scope.itemsSource)){
           var modalInstance = $modal.open({
-            template: '<div class="modal-header"><h3 class="modal-title">Warning</h3></div><div class="modal-body">You have unsaved changes. Save changes or discard?</div><div class="modal-footer"><div class="btn btn-default" ng-click="cancel()">Cancel</div><div class="btn btn-warning" ng-click="discard()">Discard</div><div class="btn btn-primary" ng-click="save()">Save</div></div>',
+            template: '<div class="modal-header"><h3 class="modal-title">{{"common.warning" | translate}}</h3></div><div class="modal-body">{{"common.alerts.unsavedChanges" | translate}}</div><div class="modal-footer"><div class="btn btn-default" ng-click="cancel()">{{"common.controls.cancel" | translate}}</div><div class="btn btn-warning" ng-click="discard()">{{"common.controls.discard" | translate}}</div><div class="btn btn-primary" ng-click="save()">{{"common.controls.save" | translate}}</div></div>',
             controller: ['$scope', '$modalInstance', function($scope, $modalInstance) {
               $scope.save = function() {
                 $modalInstance.close('save');

@@ -28,7 +28,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.apache.ambari</groupId>
-    <version>2.1.2</version>
+    <version>2.2.2</version>
     <artifactId>ambari</artifactId>
     <packaging>pom</packaging>
 
@@ -42,7 +42,7 @@
         <package.pid.dir>/var/run/ambari</package.pid.dir>
         <package.release>1</package.release>
         <package.type>tar.gz</package.type>
-        <ambari.version>2.1.2</ambari.version>
+        <ambari.version>2.2.1</ambari.version>
         <final.name>${project.artifactId}-${ambari.version}</final.name>
     </properties>
 
@@ -86,6 +86,24 @@
             <archive>http://mail-archives.apache.org/mod_mbox/ambari-dev/</archive>
         </mailingList>
         <mailingList>
+            <name>JIRA list</name>
+            <subscribe>mailto:issues-subscribe@ambari.apache.org
+            </subscribe>
+            <unsubscribe>mailto:issues-unsubscribe@ambari.apache.org
+            </unsubscribe>
+            <post>mailto:issues@ambari.apache.org</post>
+            <archive>http://mail-archives.apache.org/mod_mbox/ambari-issues/</archive>
+        </mailingList>
+        <mailingList>
+            <name>Review Board list</name>
+            <subscribe>mailto:reviews-subscribe@ambari.apache.org
+            </subscribe>
+            <unsubscribe>mailto:reviews-unsubscribe@ambari.apache.org
+            </unsubscribe>
+            <post>mailto:reviews@ambari.apache.org</post>
+            <archive>http://mail-archives.apache.org/mod_mbox/ambari-reviews/</archive>
+        </mailingList>
+        <mailingList>
             <name>Commit list</name>
             <subscribe>mailto:commits-subscribe@ambari.apache.org
             </subscribe>
@@ -114,6 +132,18 @@
             <name>Artem Baranchuk</name>
             <email>abaranchuk@apache.org</email>
             <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>ajit</id>
+            <name>Ajit Kumar</name>
+            <email>ajit@apache.org</email>
+            <timezone>-8</timezone>
             <roles>
                 <role>Committer</role>
             </roles>
@@ -182,6 +212,18 @@
             </organization>
         </developer>
         <developer>
+            <id>avijayan</id>
+            <name>Aravindan Vijayan</name>
+            <email>avijayan@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>berndf</id>
             <name>Bernd Fondermann</name>
             <email>berndf@apache.org</email>
@@ -189,6 +231,18 @@
             <roles>
                 <role>PMC</role>
             </roles>
+        </developer>
+        <developer>
+            <id>bhuvnesh2703</id>
+            <name>Bhuvnesh Chaudhary</name>
+            <email>bhuvnesh2703@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Pivotal
+            </organization>
         </developer>
         <developer>
             <id>billie</id>
@@ -214,6 +268,18 @@
                 Red Hat
             </organization>
         </developer>
+        <developer>
+            <id>dbhowmick</id>
+            <name>Dipayan Bhowmick</name>
+            <email>dbhowmick@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
         <developer>            
             <id>ddas</id>
             <name>Devaraj Das</name>
@@ -227,15 +293,27 @@
             </organization>            
         </developer>
         <developer>
-            <id>ddorai</id>
-            <name>Dilli Arumugam</name>
-            <email>ddorai@hortonworks.com</email>
+            <id>dillidorai</id>
+            <name>Dilli Dorai</name>
+            <email>dillidorai@apache.org</email>
             <timezone>-8</timezone>
             <roles>
                 <role>Committer</role>
             </roles>
             <organization>
-                Hortonworks
+                BlueTalon
+            </organization>
+        </developer>
+        <developer>
+            <id>dili</id>
+            <name>Di Li</name>
+            <email>dili@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                IBM
             </organization>
         </developer>
         <developer>
@@ -295,7 +373,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                Hortonworks
+                
             </organization>
         </developer>
         <developer>
@@ -397,7 +475,7 @@
         <developer>
             <id>kzhang</id>
             <name>Kan Zhang</name>
-            <email>kanzhangmail@yahoo.com</email>
+            <email>kzhang@apache.org</email>
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
@@ -428,6 +506,30 @@
             </roles>
             <organization>
                 Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>magyari_sandor</id>
+            <name>Sandor Magyari</name>
+            <email>magyari_sandor@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>mithmatt</id>
+            <name>Mithun Mathew</name>
+            <email>mithmatt@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Pivotal
             </organization>
         </developer>
         <developer>
@@ -485,6 +587,18 @@
             <timezone>+2</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>pallavkul</id>
+            <name>Pallav Kulshreshtha</name>
+            <email>pallavkul@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
@@ -575,12 +689,36 @@
             </organization>
         </developer>
         <developer>
+            <id>smnaha</id>
+            <name>Nahappan Somasundaram</name>
+            <email>smnaha@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>sposetti</id>
             <name>Jeff Sposetti</name>
             <email>sposetti@apache.org</email>
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>stoader</id>
+            <name>Sebastian Toader</name>
+            <email>stoader@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
@@ -632,6 +770,18 @@
             </roles>
             <organization>
                 Red Hat
+            </organization>
+        </developer>
+        <developer>
+            <id>swapan</id>
+            <name>Swapan Shridhar</name>
+            <email>swapan@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
             </organization>
         </developer>
         <developer>
@@ -718,6 +868,18 @@
                 Hortonworks
             </organization>
         </developer>
+        <developer>
+            <id>zhewang</id>
+            <name>Joe Wang</name>
+            <email>zhewang@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
       </developers>
       <contributors>
         <contributor>
@@ -739,10 +901,6 @@
         <contributor>
           <name>Daniel Ballard</name>
           <organization>Pivotal</organization>
-        </contributor>
-        <contributor>
-          <name>Dipayan Bhowmick</name>
-          <organization>Hortonworks</organization>
         </contributor>
         <contributor>
           <name>Zachary Blanco</name>
@@ -833,20 +991,12 @@
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
-          <name>Pallav Kulshreshtha</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
           <name>Olivier Lamy</name>
           <organization></organization>
         </contributor>
         <contributor>
           <name>Brandon Li</name>
           <organization></organization>
-        </contributor>
-        <contributor>
-          <name>Di Li</name>
-          <organization>IBM</organization>
         </contributor>
         <contributor>
           <name>Chuan Liu</name>
@@ -945,10 +1095,6 @@
           <organization>Pivotal</organization>
         </contributor>
         <contributor>
-          <name>Nahappan Somasundaram</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
           <name>Suresh Srinivas</name>
           <organization>Hortonworks</organization>
         </contributor>
@@ -974,10 +1120,6 @@
         </contributor>
         <contributor>
           <name>Ram Venkatesh</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Aravindan Vijayan</name>
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>

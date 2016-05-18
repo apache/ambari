@@ -23,7 +23,7 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 
 # a map of the Ambari role to the component name
-# for use with /usr/hdp/current/<component>
+# for use with <stack-root>/current/<component>
 SERVER_ROLE_DIRECTORY_MAP = {
   'ACCUMULO_MASTER' : 'accumulo-master',
   'ACCUMULO_MONITOR' : 'accumulo-monitor',
@@ -36,8 +36,9 @@ SERVER_ROLE_DIRECTORY_MAP = {
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "ACCUMULO_CLIENT")
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
-conf_dir = format('/usr/hdp/current/{component_directory}/conf')
+conf_dir = format('{stack_root}/current/{component_directory}/conf')
 server_conf_dir = format('{conf_dir}/server')
 pid_dir = config['configurations']['accumulo-env']['accumulo_pid_dir']
 accumulo_user = config['configurations']['accumulo-env']['accumulo_user']
@@ -47,3 +48,6 @@ hostname = config['hostname']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()
+
+# stack name
+stack_name = default("/hostLevelParams/stack_name", None)

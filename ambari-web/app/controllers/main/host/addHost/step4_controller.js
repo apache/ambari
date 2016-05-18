@@ -18,9 +18,9 @@
 
 var App = require('app');
 
-App.AddHostStep4Controller= Em.Controller.extend({
+App.AddHostStep4Controller = Em.Controller.extend({
 
-  name:"addHostStep4Controller",
+  name: "addHostStep4Controller",
   isConfigGroupLoaded: false,
 
   loadConfigGroups: function () {
@@ -33,11 +33,11 @@ App.AddHostStep4Controller= Em.Controller.extend({
   },
 
   successLoadingConfigGroup: function (data) {
-    App.router.get('addHostController.content').set('configGroups',data.items);
+    App.router.get('addHostController.content').set('configGroups', data.items);
     this.set('isConfigGroupLoaded', true);
   },
 
-  errorLoadingConfigGroup: function(data) {
+  errorLoadingConfigGroup: function (data) {
     App.router.get('addHostController.content').set('configGroups', []);
     this.set('isConfigGroupLoaded', true);
   },

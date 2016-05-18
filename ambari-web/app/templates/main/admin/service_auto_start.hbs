@@ -1,0 +1,75 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="admin-auto-start">
+  <div class="header background-text">
+    <strong>{{t admin.serviceAutoStart.header}}</strong>
+  </div>
+  <div>
+    {{t admin.serviceAutoStart.header.text}}
+  </div>
+  <br/>
+  <div class="cluster-switcher row-fluid">
+      <div class="span2">
+          <strong>{{t admin.serviceAutoStart.body.text}}</strong>
+      </div>
+      <div class="span4">
+          {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
+      </div>
+      <div class="pull-right operations-button pull-right">
+          <button class="btn" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+          <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
+      </div>
+  </div>
+    {{#if view.switcherValue}}
+        <hr>
+        <div class="row-fluid mlm"><h5 class="span2">{{t common.service}}</h5><h5 class="span4">{{t common.component}}</h5><h5 class="span4">{{t common.status}}</h5></div>
+        <div class="tabs-left">
+            <ul class="nav nav-tabs span2">
+                {{#each tab in controller.tabs}}
+                    <li {{bindAttr class="tab.isActive:active"}}>
+                        <a href="#" data-toggle="tab" {{bindAttr data-target="tab.headingClass"}}>
+                            {{tab.display_name}}
+                            {{view App.MainAdminServiceAutoStartIndicatorView tabBinding="tab"}}
+                        </a>
+                    </li>
+                {{/each}}
+            </ul>
+            <div class="tab-content">
+                {{#each tab in controller.tabs}}
+                    <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name :row-fluid :mtm"}}>
+                        {{#each component in tab.componentRecovery}}
+                            <div class="row-fluid mbm">
+                                <div class="span4">
+                                    {{component.display_name}}
+                                </div>
+                                <div class="span8">
+                                    {{view App.MainAdminServiceAutoStartComponentView recoveryEnabledBinding="component.recovery_enabled" componentBinding="component" tabBinding="tab"}}
+                                </div>
+                            </div>
+                        {{/each}}
+                        <div class="offset4">
+                            <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
+                            <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
+                        </div>
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+    {{/if}}
+</div>

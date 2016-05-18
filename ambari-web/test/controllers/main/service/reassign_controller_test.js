@@ -101,6 +101,7 @@ describe('App.ReassignMasterController', function () {
     beforeEach(function () {
       sinon.stub(App.db, 'setMasterComponentHosts', Em.K);
       sinon.stub(reassignMasterController, 'setDBProperty', Em.K);
+      reassignMasterController.saveMasterComponentHosts(stepController);
     });
 
     afterEach(function () {
@@ -108,12 +109,23 @@ describe('App.ReassignMasterController', function () {
       reassignMasterController.setDBProperty.restore();
     });
 
-    it('should save master component hosts', function () {
-      reassignMasterController.saveMasterComponentHosts(stepController);
+    it('setMasterComponentHosts is called once', function () {
       expect(App.db.setMasterComponentHosts.calledOnce).to.be.true;
+    });
+
+    it('setDBProperty is called once', function () {
       expect(reassignMasterController.setDBProperty.calledOnce).to.be.true;
+    });
+
+    it('setMasterComponentHosts is called with valid arguments', function () {
       expect(App.db.setMasterComponentHosts.calledWith(masterComponentHosts)).to.be.true;
+    });
+
+    it('setDBProperty is called with valid arguments', function () {
       expect(reassignMasterController.setDBProperty.calledWith('masterComponentHosts', masterComponentHosts)).to.be.true;
+    });
+
+    it('masterComponentHosts are equal to ' + JSON.stringify(masterComponentHosts), function () {
       expect(reassignMasterController.get('content.masterComponentHosts')).to.eql(masterComponentHosts);
     });
 

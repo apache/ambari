@@ -40,6 +40,11 @@ public class ResultImpl implements Result {
   private ResultStatus m_status;
 
   /**
+   * Result metadata.
+   */
+  private ResultMetadata m_resultMetadata;
+
+  /**
    * Tree structure which holds the results
    */
   private TreeNode<Resource> m_tree = new TreeNodeImpl<Resource>(null, null, null);
@@ -82,5 +87,14 @@ public class ResultImpl implements Result {
   public void setResultStatus(ResultStatus status) {
     m_status = status;
   }
+
+  public void setResultMetadata(ResultMetadata resultMetadata) {
+    m_resultMetadata = resultMetadata;
+  }
+
+  public ResultMetadata getResultMetadata() {
+    return m_resultMetadata;
+  }
+
 }
 

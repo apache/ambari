@@ -23,6 +23,7 @@
   <property>
     <name>hadoop.kms.key.provider.uri</name>
     <value>dbks://http@localhost:9292/kms</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>URI of the backing KeyProvider for the KMS.</description>
   </property>
 

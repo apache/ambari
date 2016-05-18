@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.state.alerts;
 
-import junit.framework.Assert;
+import java.util.List;
 
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
@@ -27,8 +27,10 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -47,6 +49,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 /**
  * Tests that {@link InitialAlertEventTest} instances are fired correctly.
@@ -130,17 +134,24 @@ public class InitialAlertEventTest {
     // create the "first" alert
     Alert alert = new Alert(definition.getDefinitionName(), null,
         definition.getServiceName(), definition.getComponentName(), null,
-        AlertState.OK);
+        AlertState.CRITICAL);
+
     alert.setCluster(m_clusterName);
 
-    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(),
-        alert);
+    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
 
     // public the received event
     m_eventPublisher.publish(event);
 
-    // ensure we now have a history item
+    // ensure we now have a history item and a current
     Assert.assertEquals(1, m_alertsDao.findAll().size());
+    List<AlertCurrentEntity> currentAlerts = m_alertsDao.findCurrent();
+    Assert.assertEquals(1, currentAlerts.size());
+
+    // verify that that initial alert is HARD
+    Assert.assertEquals(AlertFirmness.HARD, currentAlerts.get(0).getFirmness());
+    Assert.assertEquals(AlertState.CRITICAL,
+        currentAlerts.get(0).getAlertHistory().getAlertState());
 
     // verify that the initial alert event was triggered
     Assert.assertEquals(1,
@@ -164,7 +175,6 @@ public class InitialAlertEventTest {
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = m_serviceFactory.createNew(m_cluster, serviceName);
-    m_cluster.addService(service);
     service.persist();
     service = m_cluster.getService(serviceName);
 

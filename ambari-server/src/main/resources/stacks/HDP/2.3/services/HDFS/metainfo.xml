@@ -45,7 +45,7 @@
           </dependencies>
         </component>
       </components>
-
+      
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -55,12 +55,11 @@
             </package>
           </packages>
         </osSpecific>
-
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_3_*</name>
+              <name>hadoop_${stack_version}</name>
             </package>
             <package>
               <name>snappy</name>
@@ -71,12 +70,18 @@
             <package>
               <name>lzo</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
             </package>
             <package>
-              <name>hadooplzo_2_3_*</name>
+              <name>hadooplzo_${stack_version}</name>
+              <condition>should_install_lzo</condition>
             </package>
             <package>
-              <name>hadoop_2_3_*-libhdfs</name>
+              <name>hadooplzo_${stack_version}-native</name>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop_${stack_version}-libhdfs</name>
             </package>
           </packages>
         </osSpecific>
@@ -85,22 +90,22 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>hadoop-2-3-.*-client</name>
+              <name>hadoop-${stack_version}-client</name>
             </package>
             <package>
-              <name>hadoop-2-3-.*-hdfs-datanode</name>
+              <name>hadoop-${stack_version}-hdfs-datanode</name>
             </package>
             <package>
-              <name>hadoop-2-3-.*-hdfs-journalnode</name>
+              <name>hadoop-${stack_version}-hdfs-journalnode</name>
             </package>
             <package>
-              <name>hadoop-2-3-.*-hdfs-namenode</name>
+              <name>hadoop-${stack_version}-hdfs-namenode</name>
             </package>
             <package>
-              <name>hadoop-2-3-.*-hdfs-secondarynamenode</name>
+              <name>hadoop-${stack_version}-hdfs-secondarynamenode</name>
             </package>
             <package>
-              <name>hadoop-2-3-.*-hdfs-zkfc</name>
+              <name>hadoop-${stack_version}-hdfs-zkfc</name>
             </package>
             <package>
               <name>libsnappy1</name>
@@ -109,15 +114,22 @@
               <name>libsnappy-dev</name>
             </package>
             <package>
-              <name>hadooplzo-2-3-.*</name>
+              <name>hadooplzo-${stack_version}</name>
+              <condition>should_install_lzo</condition>
             </package>
             <package>
-              <name>libhdfs0-2-3-.*</name>
+              <name>libhdfs0-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
       </osSpecifics>
 
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

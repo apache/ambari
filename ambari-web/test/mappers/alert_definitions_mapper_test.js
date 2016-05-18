@@ -21,7 +21,8 @@ require('mappers/alert_definitions_mapper');
 var testHelpers = require('test/helpers');
 
 describe('App.alertDefinitionsMapper', function () {
-  describe.skip('#map', function () {
+  /*eslint-disable mocha-cleanup/asserts-limit */
+  describe('#map', function () {
 
     var json = {
       items: [
@@ -99,6 +100,7 @@ describe('App.alertDefinitionsMapper', function () {
                 "https" : "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
                 "https_property" : "{{yarn-site/yarn.http.policy}}",
                 "https_property_value" : "HTTPS_ONLY",
+                "connection_timeout" : 5.0,
                 "default_port" : 0.0
               }
             }
@@ -148,6 +150,17 @@ describe('App.alertDefinitionsMapper', function () {
             "scope" : "HOST",
             "service_name" : "YARN",
             "source" : {
+              "parameters" : [
+                {
+                  "name" : "connection.timeout",
+                  "display_name" : "Connection Timeout",
+                  "units" : "seconds",
+                  "value" : 5.0,
+                  "description" : "The maximum time before this alert is considered to be CRITICAL",
+                  "type" : "NUMERIC",
+                  "threshold" : "CRITICAL"
+                }
+              ],
               "path" : "HDP/2.0.6/services/YARN/package/files/alert_nodemanager_health.py",
               "type" : "SCRIPT"
             }
@@ -179,6 +192,59 @@ describe('App.alertDefinitionsMapper', function () {
               "uri" : "{{zookeeper-env/clientPort}}"
             }
           }
+        },
+        {
+          "AlertDefinition" : {
+            "component_name" : "NAMENODE",
+            "description" : "This service-level alert is triggered if the NN heap usage deviation has grown beyond the specified threshold within a given time interval.",
+            "enabled" : true,
+            "help_url" : "http://test.test",
+            "id" : 6,
+            "ignore_host" : false,
+            "interval" : 1,
+            "label" : "NameNode Heap Usage (Hourly)",
+            "name" : "namenode_free_heap_size_deviation_percentage",
+            "repeat_tolerance" : 1,
+            "repeat_tolerance_enabled" : true,
+            "scope" : "SERVICE",
+            "service_name" : "HDFS",
+            "source" : {
+              "ams" : {
+                "metric_list" : [
+                  "jvm.JvmMetrics.MemHeapUsedM",
+                  "jvm.JvmMetrics.MemHeapMaxM"
+                ],
+                "value" : "{1} - {0}",
+                "interval" : 60.0,
+                "compute" : "sample_standard_deviation_percentage",
+                "app_id" : "NAMENODE",
+                "minimum_value" : 1.0
+              },
+              "reporting" : {
+                "ok" : {
+                  "text" : "The sample standard deviation percentage is {0}%"
+                },
+                "warning" : {
+                  "text" : "The sample standard deviation percentage is {0}%",
+                  "value" : 20.0
+                },
+                "critical" : {
+                  "text" : "The sample standard deviation percentage is {0}%",
+                  "value" : 50.0
+                },
+                "units" : "%"
+              },
+              "type" : "AMS",
+              "uri" : {
+                "http" : "{{ams-site/timeline.metrics.service.webapp.address}}",
+                "https" : "{{ams-site/timeline.metrics.service.webapp.address}}",
+                "https_property" : "{{ams-site/timeline.metrics.service.http.policy}}",
+                "https_property_value" : "HTTPS_ONLY",
+                "default_port" : 0.0,
+                "connection_timeout" : 5.0
+              }
+            }
+          }
         }
       ]
     };
@@ -187,10 +253,11 @@ describe('App.alertDefinitionsMapper', function () {
 
       App.alertDefinitionsMapper.setProperties({
         'model': {},
-
+        'parameterModel': {},
         'reportModel': {},
         'metricsSourceModel': {},
-        'metricsUriModel': {}
+        'metricsUriModel': {},
+        'metricsAmsModel': {}
       });
 
       sinon.stub(App.alertDefinitionsMapper, 'deleteRecord', Em.K);
@@ -201,7 +268,7 @@ describe('App.alertDefinitionsMapper', function () {
       });
 
       sinon.stub(App.router, 'get', function() {return false;});
-      App.cache['previousAlertGroupsMap'] = {};
+      App.cache.previousAlertGroupsMap = {};
 
       sinon.stub(App.alertDefinitionsMapper, 'setMetricsSourcePropertyLists', Em.K);
       sinon.stub(App.alertDefinitionsMapper, 'setAlertDefinitionsRawSourceData', Em.K);
@@ -218,13 +285,14 @@ describe('App.alertDefinitionsMapper', function () {
 
         'reportModel': App.AlertReportDefinition,
         'metricsSourceModel': App.AlertMetricsSourceDefinition,
-        'metricsUriModel': App.AlertMetricsUriDefinition
+        'metricsUriModel': App.AlertMetricsUriDefinition,
+        'metricsAmsModel': App.AlertMetricsAmsDefinition
       });
 
       App.alertDefinitionsMapper.deleteRecord.restore();
 
       App.router.get.restore();
-      App.cache['previousAlertGroupsMap'] = {};
+      App.cache.previousAlertGroupsMap = {};
 
       App.alertDefinitionsMapper.setMetricsSourcePropertyLists.restore();
       App.alertDefinitionsMapper.setAlertDefinitionsRawSourceData.restore();
@@ -308,7 +376,8 @@ describe('App.alertDefinitionsMapper', function () {
           "http":"{{yarn-site/yarn.resourcemanager.webapp.address}}",
           "https":"{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
           "https_property":"{{yarn-site/yarn.http.policy}}",
-          "https_property_value":"HTTPS_ONLY"
+          "https_property_value":"HTTPS_ONLY",
+          "connection_timeout" : 5.0
         }];
 
       beforeEach(function () {
@@ -352,7 +421,7 @@ describe('App.alertDefinitionsMapper', function () {
 
     });
 
-    it('should parse SCRIPT alertDefinitions', function () {
+    describe('should parse SCRIPT alertDefinitions', function () {
 
       var data = {items: [json.items[3]]},
         expected = [
@@ -370,9 +439,29 @@ describe('App.alertDefinitionsMapper', function () {
             "location":"HDP/2.0.6/services/YARN/package/files/alert_nodemanager_health.py"
           }
         ];
-      App.alertDefinitionsMapper.map(data);
 
-      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
+      var expectedParameters = [{
+        "id": "4connection.timeout",
+        "name": "connection.timeout",
+        "display_name": "Connection Timeout",
+        "units": "seconds",
+        "value": 5,
+        "description": "The maximum time before this alert is considered to be CRITICAL",
+        "type": "NUMERIC",
+        "threshold": "CRITICAL"
+      }];
+
+      beforeEach(function () {
+        App.alertDefinitionsMapper.map(data);
+      });
+
+      it('should map definition', function () {
+        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
+      });
+
+      it('should map parameters', function () {
+        testHelpers.nestedExpect(expectedParameters, App.alertDefinitionsMapper.get('parameterModel.content'));
+      });
 
     });
 
@@ -401,9 +490,62 @@ describe('App.alertDefinitionsMapper', function () {
 
     });
 
+    describe('should parse AMS alertDefinitions', function () {
+
+      var data = {items: [json.items[5]]};
+      var expected = [
+        {
+          "id" : 6,
+          "interval" : 1,
+          "label" : "NameNode Heap Usage (Hourly)",
+          "name" : "namenode_free_heap_size_deviation_percentage",
+          "repeat_tolerance" : 1,
+          "repeat_tolerance_enabled" : true,
+          "scope" : "SERVICE",
+          "service_name" : "HDFS",
+          "component_name" : "NAMENODE",
+          "help_url" : "http://test.test"
+        }
+      ];
+
+      var expectedMetricsUri = [{
+        "id":"6uri",
+        "http" : "{{ams-site/timeline.metrics.service.webapp.address}}",
+        "https" : "{{ams-site/timeline.metrics.service.webapp.address}}",
+        "https_property" : "{{ams-site/timeline.metrics.service.http.policy}}",
+        "https_property_value" : "HTTPS_ONLY",
+        "connection_timeout" : 5.0
+      }];
+
+      var expectedAms = [{
+        "id": "6ams",
+        "value": "{1} - {0}",
+        "minimal_value": 1,
+        "interval": 60
+      }];
+
+      beforeEach(function () {
+        App.alertDefinitionsMapper.map(data);
+      });
+
+      it('should map definition', function () {
+        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
+      });
+
+      it('parse metrics uri', function() {
+        testHelpers.nestedExpect(expectedMetricsUri, App.alertDefinitionsMapper.get('metricsUriModel.content'));
+      });
+
+      it('parse ams parameters', function () {
+        testHelpers.nestedExpect(expectedAms, App.alertDefinitionsMapper.get('metricsAmsModel.content'));
+      });
+
+    });
+
+    /*eslint-disable mocha-cleanup/complexity-it */
     it('should set groups from App.cache.previousAlertGroupsMap', function () {
 
-      App.cache['previousAlertGroupsMap'] = {
+      App.cache.previousAlertGroupsMap = {
         1: [5,1],
         2: [4,3],
         3: [3,2],
@@ -421,6 +563,7 @@ describe('App.alertDefinitionsMapper', function () {
 
 
     });
+    /*eslint-enable mocha-cleanup/complexity-it */
 
     describe('should delete not existing definitions', function () {
 
@@ -450,5 +593,6 @@ describe('App.alertDefinitionsMapper', function () {
     });
 
   });
+  /*eslint-enable mocha-cleanup/asserts-limit */
 
 });

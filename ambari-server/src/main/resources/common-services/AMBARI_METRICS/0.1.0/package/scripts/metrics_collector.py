@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script import Script
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -31,6 +31,8 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 class AmsCollector(Script):
   def install(self, env):
+    import params
+    env.set_params(params)
     self.install_packages(env)
 
   def configure(self, env, action = None):
@@ -57,6 +59,14 @@ class AmsCollector(Script):
     import status_params
     env.set_params(status_params)
     check_service_status(name='collector')
+    
+  def get_log_folder(self):
+    import params
+    return params.ams_collector_log_dir
+  
+  def get_user(self):
+    import params
+    return params.ams_user
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

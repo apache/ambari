@@ -151,6 +151,14 @@ aside  {
   }
 }
 
+.history-date-range {
+  white-space: nowrap;
+}
+.history-date-range .fromDate,
+.history-date-range .toDate {
+  width: 48%;
+}
+
 .form-control::-moz-placeholder {
   color: $placeholder-color;
 }
@@ -193,6 +201,7 @@ aside  {
 
 .slider {
   min-width: 200px;
+  margin-right: 8px;
 }
 
 .slider-labels {
@@ -579,7 +588,7 @@ tree-view ul li {
   margin: 0 0 10px;
 }
 
-#query-results, #upload-table  {
+#query-results, #upload-table{
   .table {
     display: inline-block;
     overflow: auto;
@@ -589,9 +598,51 @@ tree-view ul li {
     margin-top: 10px;
   }
 
-  input {
+  input, .selectize-input {
     width: 300px;
   }
+}
+
+#upload-controls {
+  .table {
+    display: inline-block;
+    overflow: auto;
+  }
+
+  input, .selectize-input {
+    width: 94px;
+    font-size : smaller;
+  }
+
+  .hidden {
+    visibility:hidden;
+  }
+
+  .visible {
+    visibility:visible;
+  }
+
+  td {
+    padding-right : 5px;
+  }
+}
+
+
+.data-upload-form tr td {
+    padding-right : 5px;
+}
+
+td.data-upload-form-label {
+    width: 150px;
+    padding-left: 50px;
+}
+td.data-upload-form-field {
+    width: 350px;
+}
+
+#hdfs-param input {
+  width: 80%;
+  display: inline;
 }
 
 #visualization{
@@ -609,12 +660,30 @@ tree-view ul li {
 .mozBoxSizeFix {
   -moz-box-sizing: border-box;
 }
-
-#isFirstRowHeader {
+.show-data {
+    display : block;
+}
+.hide-data {
+    display : none;
+}
+.no-shadow {
   box-shadow: none;
   width: inherit;
 }
 
 .widget-controls {
   padding-right: 10px;
+}
+
+.accordion-body {
+   word-break: break-all;
+   overflow-y: scroll;
+}
+
+table.no-border, table.no-border tr, table.no-border tr td {
+  border: none;
+}
+
+.red-border {
+  border-color :red;
 }

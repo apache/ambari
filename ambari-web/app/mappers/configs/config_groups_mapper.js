@@ -25,8 +25,7 @@ var App = require('app');
 App.configGroupsMapper = App.QuickDataMapper.create({
   model: App.ServiceConfigGroup,
   config: {
-    id: 'id',
-    config_group_id: 'ConfigGroup.id',
+    id: 'ConfigGroup.id',
     name: 'ConfigGroup.group_name',
     service_name: 'ConfigGroup.tag',
     description: 'ConfigGroup.description',
@@ -39,8 +38,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
    * using this config when saving group from config_version api
    */
   config2: {
-    id: 'id',
-    config_group_id: 'group_id',
+    id: 'group_id',
     name: 'group_name',
     service_name: 'service_name',
     hosts: 'hosts',
@@ -67,9 +65,9 @@ App.configGroupsMapper = App.QuickDataMapper.create({
         json.items.forEach(function (configGroup) {
           if (configGroup.group_name != 'default') {
             if (mapFromVersions) {
-              configGroup.id = configGroup.service_name + configGroup.group_id;
+              configGroup.id = App.ServiceConfigGroup.groupId(configGroup.service_name, configGroup.group_name);
             } else {
-              configGroup.id = configGroup.ConfigGroup.tag + configGroup.ConfigGroup.id;
+              configGroup.id = App.ServiceConfigGroup.groupId(configGroup.ConfigGroup.tag, configGroup.ConfigGroup.group_name);
               configGroup.hosts = configGroup.ConfigGroup.hosts.mapProperty('host_name');
               configGroup.service_name = configGroup.ConfigGroup.tag;
             }
@@ -108,7 +106,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
 
 
       configGroups.sort(function (configGroupA, configGroupB) {
-        return configGroupA.config_group_id == -1 || (configGroupA.name > configGroupB.name);
+        return configGroupA.is_default || (configGroupA.name > configGroupB.name);
       });
       App.store.loadMany(this.get('model'), configGroups);
       App.store.commit();
@@ -117,24 +115,34 @@ App.configGroupsMapper = App.QuickDataMapper.create({
   },
 
   /**
+   * Get array with all hosts
+   *
+   * @returns {String[]}
+   * @private
+   */
+  _getAllHosts: function() {
+    return App.get('allHostNames.length') ? App.get('allHostNames') : Object.keys(App.get('router.installerController.content.hosts'));
+  },
+
+  /**
    * generate mock object for default config group
    * @param {string} serviceName
    * @param {string[]} [hostNames=null]
    * @param {Array} childConfigGroups
-   * @returns {{id: string, config_group_id: string, name: string, service_name: string, description: string, host_names: [string], service_id: string}}
+   * @returns {{id: string, name: string, service_name: string, description: string, host_names: [string], service_id: string, is_default: boolean}}
    */
   generateDefaultGroup: function (serviceName, hostNames, childConfigGroups) {
     return {
       id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
-      config_group_id: '-1',
       name: 'Default',
       service_name: serviceName,
-      description: 'Default cluster level ' + App.format.role(serviceName) + ' configuration',
-      hosts: hostNames ? hostNames.slice() : App.get('allHostNames').slice(),
+      description: 'Default cluster level ' + App.format.role(serviceName, true) + ' configuration',
+      hosts: hostNames ? hostNames.slice() : this._getAllHosts().slice(),
       child_config_groups: childConfigGroups ? childConfigGroups.uniq() : [],
       service_id: serviceName,
       desired_configs: [],
-      properties: []
+      properties: [],
+      is_default: true
     }
   }
 });

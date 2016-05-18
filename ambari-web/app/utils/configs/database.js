@@ -18,6 +18,14 @@
 
 var validators = require('utils/validator');
 var stringUtils = require('utils/string_utils');
+
+/**
+ * @typedef {parsedJDBCUrl}
+ * @type {object}
+ * @property {string} dbType alias name by type of database @see utils/configs/database.DB_UI_TYPE_ALIAS
+ * @property {string} location parsed host name
+ */
+
 /**
  * Helper methods to process database values and properties
  * @module utils/configs/database
@@ -33,14 +41,12 @@ module.exports = {
     HIVE: {
       dbType: 'hive_database',
       databaseName: 'ambari.hive.db.schema.name',
-      connectionUrl: 'javax.jdo.option.ConnectionURL',
-      fallbackHostName: 'hive_hostname'
+      connectionUrl: 'javax.jdo.option.ConnectionURL'
     },
     OOZIE: {
       dbType: 'oozie_database',
       connectionUrl: 'oozie.service.JPAService.jdbc.url',
-      databaseName: 'oozie.db.schema.name',
-      fallbackHostName: 'oozie_hostname'
+      databaseName: 'oozie.db.schema.name'
     },
     RANGER: {
       dbType: 'DB_FLAVOR',
@@ -62,6 +68,15 @@ module.exports = {
     derby: 'jdbc:derby:{0}/{1}',
     oracle: 'jdbc:oracle:thin:@(?:\/?\/?){0}:1521(\:|\/){1}',
     sqla: 'jdbc:sqlanywhere:host={0};database={1}'
+  },
+
+  DB_UI_TYPE_ALIAS: {
+    mysql: 'mysql',
+    sqlserver: 'mssql',
+    postgresql: 'postgres',
+    derby: 'derby',
+    oracle: 'oracle',
+    sqlanywhere: 'sqla'
   },
 
   /**
@@ -97,10 +112,6 @@ module.exports = {
         }
       });
     });
-  },
-
-  isValidHostname: function(value) {
-    return validators.isHostname(value) || validators.isIpAddress(value);
   },
 
   /**
@@ -142,22 +153,58 @@ module.exports = {
   },
 
   /**
-   * Get database location from jdbc url value.
+   * Get database location from jdbc url value
    *
    * @method getDBLocationFromJDBC
    * @param {string} jdbcUrl - url to parse
-   * @returns {string|null} 
+   * @returns {string|null}
    */
   getDBLocationFromJDBC: function(jdbcUrl) {
-    var self = this;
-    var matches = Em.keys(this.DB_JDBC_PATTERNS).map(function(key) {
-      var reg = new RegExp(self.DB_JDBC_PATTERNS[key].format('(.*)', '(.*)'));
-      return jdbcUrl.match(reg);
-    }).compact();
+    var dbProvider = this.getJDBCProviderName(jdbcUrl),
+        protocol = this._makeProtocol(dbProvider),
+        pattern = /^\/\//,
+        url;
+    if (!this.isSupportedProvider(dbProvider)) {
+      return '';
+    }
+    if (dbProvider === 'derby') {
+      return this.getDerbyPath(jdbcUrl);
+    }
+    url = "http://" + jdbcUrl.replace(protocol, '').replace(pattern, '');
+    if (dbProvider === 'sqlserver') {
+      url = url.split(';')[0];
+    }
+    if (dbProvider === 'oracle') {
+      var matches = jdbcUrl.replace(protocol, '').match(/@(?:\/?\/?)(.+)/);
+      if (matches.length) {
+        var result = Em.getWithDefault(matches, '1', '').split(':')[0];
+        return result === '{0}' ? '' : result;
+      }
+      return '';
+    }
+    if (dbProvider === 'sqlanywhere') {
+      url = url.split(';').map(function(i) {
+        return /host=/.test(i) ? i.replace('host=', '').replace('http://', '') : null;
+      }).compact()[0];
+      return this.getHostNameByUrl('http://' + url);
+    }
+    url = url.split(':').slice(0, 2).join(':');
+    return this.getHostNameByUrl(url);
+  },
+
+
+  /**
+   * Return derby database path by jdbcUrl
+   *
+   * @param {string} jdbcUrl
+   * @return {string} database path
+   */
+  getDerbyPath: function(jdbcUrl) {
+    var matches = jdbcUrl.match(new RegExp(this.DB_JDBC_PATTERNS['derby'].format('(.*)', '(.*)')));
     if (matches.length) {
-      var dbLocation = Em.get(matches, '0.1');
+      var dbLocation = Em.getWithDefault(matches, '1', '');
       if (dbLocation.startsWith('${')) {
-        return Em.getWithDefault(matches, '0.0', '').match(/\${[^}]+}/)[0];
+        return Em.getWithDefault(matches, '0', '').match(/\${[^}]+}/)[0];
       }
       return dbLocation != '{0}' ? dbLocation : null;
     } else {
@@ -165,27 +212,74 @@ module.exports = {
     }
   },
 
+  /**
+   * Returns host name by url input
+   *
+   * @param {string} url
+   * @returns {string} host name
+   */
+  getHostNameByUrl: function(url) {
+    var link = document.createElement('a');
+    link.href = url;
+    var hostName = link.hostname;
+    link = null;
+    return hostName;
+  },
+
+  _makeProtocol: function(dbProvider) {
+    var protocol = 'jdbc:' + dbProvider + ':';
+    if (dbProvider === 'oracle') {
+      return protocol + 'thin:';
+    }
+    return protocol;
+  },
+
+  /**
+   * Returns provider name from jdbcUrl
+   *
+   * @param {string} jdbcUrl
+   * @returns {string} provider name e.g. `jdbc:some_provider:another-opt//additional` -> `some_provider`
+   */
+  getJDBCProviderName: function(jdbcUrl) {
+    return jdbcUrl.split(':')[1];
+  },
+
+  /**
+   * Returns true when provider supported by UI.
+   *
+   * @returns {boolean}
+   */
+  isSupportedProvider: function(dbProvider) {
+    return !!(this.DB_UI_TYPE_ALIAS[dbProvider]);
+  },
+
+  /**
+   * Determines alias value (DB_UI_TYPE_ALIAS attribute value) by provider name
+   *
+   * @param {string} dbProvider provider name parsed from jdbcUrl e,g. from `jdbc:mysql://` -> `mysql`
+   * @returns {string} alias value used on UI.
+   */
+  getJDBCAlias: function(dbProvider) {
+    return this.DB_UI_TYPE_ALIAS[dbProvider];
+  },
+
+  /**
+   * Returns parsed info from jdbcUrl connection string
+   *
+   * @param {string} jdbcUrl
+   * @returns {parsedJDBCUrl}
+   */
   parseJdbcUrl: function(jdbcUrl) {
-    var self = this;
     var result = {
       dbType: null,
-      location: null,
-      databaseName: null
+      location: null
     };
-    var dbName;
-
-    result.dbType = Em.keys(this.DB_JDBC_PATTERNS).filter(function(key) {
-      var scheme = self.DB_JDBC_PATTERNS[key].match(/^jdbc:(\w+):/)[1];
-      return new RegExp('jdbc:' + scheme).test(jdbcUrl);
-    })[0];
-
-    result.location = this.getDBLocationFromJDBC(jdbcUrl);
-    if (!jdbcUrl.endsWith('{1}')) {
-      dbName = jdbcUrl.replace(new RegExp(this.DB_JDBC_PATTERNS[result.dbType].format(stringUtils.escapeRegExp(result.location),'')), '');
-      if (dbName) {
-        result.databaseName = dbName.split(/[;|?]/)[0];
-      }
+    if (jdbcUrl === '') {
+      return result;
     }
+    result.dbType = this.getJDBCAlias(this.getJDBCProviderName(jdbcUrl)) || null;
+    result.location = this.getDBLocationFromJDBC(jdbcUrl);
     return result;
   }
+
 };

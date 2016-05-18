@@ -43,6 +43,8 @@ Router.map(function () {
   });
 
   this.route('loading');
+  this.route('splash');
+
 });
 
 export default Router;

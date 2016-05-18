@@ -38,36 +38,27 @@ App.HostTableMenuView = Em.View.extend({
 
   components: function () {
     var serviceNames = App.Service.find().mapProperty('serviceName');
-    var menuItems = [
-      O.create({
-        serviceName: 'HDFS',
-        componentName: 'DATANODE',
-        masterComponentName: 'NAMENODE',
-        componentNameFormatted: Em.I18n.t('dashboard.services.hdfs.datanodes')
-      }),
-      O.create({
-        serviceName: 'YARN',
-        componentName: 'NODEMANAGER',
-        masterComponentName: 'RESOURCEMANAGER',
-        componentNameFormatted: Em.I18n.t('dashboard.services.yarn.nodeManagers')
-      }),
-      O.create({
-        serviceName: 'HBASE',
-        componentName: 'HBASE_REGIONSERVER',
-        masterComponentName: 'HBASE_MASTER',
-        componentNameFormatted: Em.I18n.t('dashboard.services.hbase.regionServers')
-      }),
-      O.create({
-        serviceName: 'STORM',
-        componentName: 'SUPERVISOR',
-        masterComponentName: 'SUPERVISOR',
-        componentNameFormatted: Em.I18n.t('dashboard.services.storm.supervisors')
-      })];
-
+    var menuItems = this.getBulkMenuItemsPerServiceComponent();
     return menuItems.filter(function (item) {
       return serviceNames.contains(item.serviceName);
     });
   }.property(),
+
+  getBulkMenuItemsPerServiceComponent: function(){
+    var menuItems = [];
+    App.StackServiceComponent.find().forEach(function (stackComponent) {
+      if(stackComponent.get('hasBulkCommandsDefinition')){
+        var menuItem = O.create({
+          serviceName: stackComponent.get('serviceName'),
+          componentName: stackComponent.get('componentName'),
+          masterComponentName: stackComponent.get('bulkCommandsMasterComponentName'),
+          componentNameFormatted: stackComponent.get('bulkCommandsDisplayName')
+        });
+        menuItems.push(menuItem);
+      }
+    }, this);
+    return menuItems;
+  },
 
   /**
    * slaveItemView build second-level menu
@@ -134,6 +125,20 @@ App.HostTableMenuView = Em.View.extend({
           })
         ])
       }
+      if (App.isAuthorized("HOST.ADD_DELETE_COMPONENTS")) {
+        menuItems.pushObjects([
+          O.create({
+            label: Em.I18n.t('common.add'),
+            operationData: O.create({
+              action: 'ADD',
+              message: Em.I18n.t('common.add'),
+              componentName: content.componentName,
+              serviceName: content.serviceName,
+              componentNameFormatted: content.componentNameFormatted
+            })
+          })
+        ])
+      }
       if (App.isAuthorized("SERVICE.DECOMMISSION_RECOMMISSION") && App.get('components.decommissionAllowed').contains(content.componentName)) {
         menuItems.pushObjects([
           O.create({
@@ -193,7 +198,7 @@ App.HostTableMenuView = Em.View.extend({
 
       tooltipMsg: function () {
         return (this.get('disabledElement') == 'disabled') ?
-          Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'), App.format.role(this.get('content.componentName'))) : '';
+          Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'), App.format.role(this.get('content.componentName'), false)) : '';
       }.property('disabledElement', 'content.componentName'),
 
       disabledElement: function () {
@@ -262,6 +267,13 @@ App.HostTableMenuView = Em.View.extend({
             operationData: O.create({
               action: 'RESTART',
               message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
+            })
+          }),
+          O.create({
+            label: Em.I18n.t('hosts.table.menu.l2.reinstallFailedComponents'),
+            operationData: O.create({
+              action: 'REINSTALL',
+              message: Em.I18n.t('hosts.table.menu.l2.reinstallFailedComponents')
             })
           })
         ]);

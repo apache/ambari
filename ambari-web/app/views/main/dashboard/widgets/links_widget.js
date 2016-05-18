@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var date = require('utils/date/date');
 
 App.LinkDashboardWidgetView = App.DashboardWidgetView.extend({
 

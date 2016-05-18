@@ -17,6 +17,8 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
+import java.util.Arrays;
+
 /**
  * Is used to determine metrics aggregate table.
  *
@@ -24,8 +26,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
  * @see org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.TimelineWebServices#getTimelineMetrics
  */
 public class Function {
-  public static Function DEFAULT_VALUE_FUNCTION =
-    new Function(ReadFunction.VALUE, null);
+  public static Function DEFAULT_VALUE_FUNCTION = new Function(ReadFunction.VALUE, null);
   private static final String SUFFIX_SEPARATOR = "\\._";
 
   private ReadFunction readFunction = ReadFunction.VALUE;
@@ -42,7 +43,13 @@ public class Function {
     this.postProcessingFunction = ppFunction;
   }
 
-  public static Function fromMetricName(String metricName){
+  /**
+   * Segregate post processing function eg: rate from aggregate function,
+   * example: avg, in any order
+   * @param metricName metric name from request
+   * @return @Function
+   */
+  public static Function fromMetricName(String metricName) {
     // gets postprocessing, and aggregation function
     // ex. Metric._rate._avg
     String[] parts = metricName.split(SUFFIX_SEPARATOR);
@@ -50,14 +57,31 @@ public class Function {
     ReadFunction readFunction = ReadFunction.VALUE;
     PostProcessingFunction ppFunction = null;
 
-      if (parts.length == 3) {
-        ppFunction = PostProcessingFunction.getFunction(parts[1]);
-        readFunction = ReadFunction.getFunction(parts[2]);
-      } else if (parts.length == 2) {
-        ppFunction = null;
-        readFunction = ReadFunction.getFunction(parts[1]);
-      }
+    if (parts.length <= 1) {
+      return new Function(readFunction, null);
+    }
+    if (parts.length > 3) {
+      throw new IllegalArgumentException("Invalid number of functions specified.");
+    }
 
+    // Parse functions
+    boolean isSuccessful = false; // Best effort
+    for (String part : parts) {
+      if (ReadFunction.isPresent(part)) {
+        readFunction = ReadFunction.getFunction(part);
+        isSuccessful = true;
+      }
+      if (PostProcessingFunction.isPresent(part)) {
+        ppFunction = PostProcessingFunction.getFunction(part);
+        isSuccessful = true;
+      }
+    }
+
+    // Throw exception if parsing failed
+    if (!isSuccessful) {
+      throw new FunctionFormatException("Could not parse provided functions: " +
+        "" + Arrays.asList(parts));
+    }
 
     return new Function(readFunction, ppFunction);
   }
@@ -101,7 +125,8 @@ public class Function {
 
   public enum PostProcessingFunction {
     NONE(""),
-    RATE("._rate");
+    RATE("._rate"),
+    DIFF("._diff");
 
     PostProcessingFunction(String suffix){
       this.suffix = suffix;
@@ -113,8 +138,16 @@ public class Function {
       return suffix;
     }
 
-    public static PostProcessingFunction getFunction(String functionName) throws
-      FunctionFormatException {
+    public static boolean isPresent(String functionName) {
+      try {
+        PostProcessingFunction.valueOf(functionName.toUpperCase());
+      } catch (IllegalArgumentException e) {
+        return false;
+      }
+      return true;
+    }
+
+    public static PostProcessingFunction getFunction(String functionName) throws FunctionFormatException {
       if (functionName == null) {
         return NONE;
       }
@@ -122,8 +155,7 @@ public class Function {
       try {
         return PostProcessingFunction.valueOf(functionName.toUpperCase());
       } catch (IllegalArgumentException e) {
-        throw new FunctionFormatException("Function should be value, avg, min, " +
-          "max", e);
+        throw new FunctionFormatException("Function should be ._rate", e);
       }
     }
   }
@@ -145,8 +177,16 @@ public class Function {
       return suffix;
     }
 
-    public static ReadFunction getFunction(String functionName) throws
-      FunctionFormatException {
+    public static boolean isPresent(String functionName) {
+      try {
+        ReadFunction.valueOf(functionName.toUpperCase());
+      } catch (IllegalArgumentException e) {
+        return false;
+      }
+      return true;
+    }
+
+    public static ReadFunction getFunction(String functionName) throws FunctionFormatException {
       if (functionName == null) {
         return VALUE;
       }
@@ -154,12 +194,16 @@ public class Function {
         return ReadFunction.valueOf(functionName.toUpperCase());
       } catch (IllegalArgumentException e) {
         throw new FunctionFormatException(
-          "Function should be value, avg, min, max. Got " + functionName, e);
+          "Function should be sum, avg, min, max. Got " + functionName, e);
       }
     }
   }
 
   public static class FunctionFormatException extends IllegalArgumentException {
+    public FunctionFormatException(String message) {
+      super(message);
+    }
+
     public FunctionFormatException(String message, Throwable cause) {
       super(message, cause);
     }

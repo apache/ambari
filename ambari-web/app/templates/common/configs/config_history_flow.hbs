@@ -44,12 +44,14 @@
                 {{#if view.compareServiceVersion.isCurrent}}
                     <span class="label label-success">{{t common.current}}</span>
                 {{/if}}
-                  <strong>{{view.compareServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}
+                  <strong>{{view.compareServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}
                   &nbsp;<strong>{{view.compareServiceVersion.createdDate}}</strong>
               </div>
+            {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
               <div class="pull-right operations-button">
                   <button class="btn btn-success"  {{action doAction view.serviceVersionsReferences.compare view.actionTypes.REVERT target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.compareServiceVersion.canBeMadeCurrent::hidden"}}>{{view.compareServiceVersion.makeCurrentButtonText}}</button>
               </div>
+            {{/isAuthorized}}
           </div>
       </div>
     {{/isAuthorized}}
@@ -66,7 +68,7 @@
                     <div class="row-fluid version-in-dropdown " {{action doAction serviceVersion view.actionTypes.SWITCH target="view"}}>
                       <div class="span2">{{serviceVersion.versionText}}</div>
                       <div class="span6">{{serviceVersion.createdDate}}</div>
-                      <div class="span3">{{serviceVersion.author}}</div>
+                      <div class="span3">{{serviceVersion.authorFormatted}}</div>
                       <div class="pull-right"><i class="icon-caret-right"></i></div>
                     </div>
                     <ul class="dropdown-menu version-info-operations">
@@ -74,13 +76,15 @@
                         <span class="label label-info">{{serviceVersion.versionText}}</span>
                         <span class="stack">{{serviceVersion.stackVersion}}</span>
                         <div class="group"><strong>{{serviceVersion.configGroupName}}</strong></div>
-                        <div class="date"><strong>{{serviceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{serviceVersion.createdDate}}</strong></div>
+                        <div class="date"><strong>{{serviceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{serviceVersion.createdDate}}</strong></div>
                         <div class="notes">{{serviceVersion.fullNotes}}</div>
                       </div>
                       <div class="version-operations-buttons">
                         <button {{bindAttr disabled="serviceVersion.disabledActionAttr.view" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.view"}} {{action doAction serviceVersion view.actionTypes.SWITCH target="view"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
                         {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
                           <button {{bindAttr disabled="serviceVersion.disabledActionAttr.compare" class=":btn serviceVersion.isDisplayed:not-allowed-cursor" title="serviceVersion.disabledActionMessages.compare"}} {{action doAction serviceVersion view.actionTypes.COMPARE target="view"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+                        {{/isAuthorized}}
+                        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
                           <button {{bindAttr disabled="serviceVersion.disabledActionAttr.revert" class=":btn serviceVersion.isCurrent:not-allowed-cursor serviceVersion.isCompatible::hidden" title="serviceVersion.disabledActionMessages.revert"}} {{action doAction serviceVersion view.actionTypes.REVERT target="view"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
                         {{/isAuthorized}}
                       </div>
@@ -105,7 +109,7 @@
                   <span class="label-current label label-success icon-ok" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
               {{/if}}
               {{#if view.displayedServiceVersion.author}}
-                <strong>{{view.displayedServiceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
+                <strong>{{view.displayedServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
               {{/if}}
             </div>
           {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}

@@ -76,9 +76,9 @@ module.exports = {
    * @returns {boolean}
    */
   isValidDataNodeDir: function(value) {
-    var dirRegex = /^(\[[0-9a-zA-Z]+\])?(\/[0-9a-z]*)/;
-    var winRegex = /^(\[[0-9a-zA-Z]+\])?[a-zA-Z]:\\[0-9a-zA-Z]*/;
-    var winUrlRegex = /^(\[[0-9a-zA-Z]+\])?file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
+    var dirRegex = /^(\[[0-9a-zA-Z]+_?[0-9a-zA-Z]+\])?(file:\/\/)?(\/[0-9a-z]*)/;
+    var winRegex = /^(\[[0-9a-zA-Z]+_?[0-9a-zA-Z]+\])?[a-zA-Z]:\\[0-9a-zA-Z]*/;
+    var winUrlRegex = /^(\[[0-9a-zA-Z]+_?[0-9a-zA-Z]+\])?file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
     var dirs = value.split(',');
     if (dirs.some(function (i) {return i.startsWith(' '); })) {
       return false;
@@ -145,7 +145,7 @@ module.exports = {
    * @returns {Boolean} - <code>true</code> if ends with spaces
    */
   isNotTrimmedRight: function(value) {
-    return /\s+$/.test(("" + value).split(/\n/).slice(-1)[0]);
+    return value !== ' ' && /\s+$/.test(("" + value).split(/\n/).slice(-1)[0]);
   },
 
   /**
@@ -198,6 +198,16 @@ module.exports = {
     return configKeyRegex.test(value);
   },
 
+  /**
+   * validate alert notification name
+   * @param value
+   * @return {Boolean}
+   */
+  isValidAlertNotificationName: function(value) {
+    var configKeyRegex = /^[\s0-9a-z_\-]+$/i;
+    return configKeyRegex.test(value);
+  },
+  
   /**
    * validate alert group name
    * @param value
@@ -282,5 +292,25 @@ module.exports = {
     var remotePattern = /^(?:(?:https?|ftp):\/{2})(?:\S+(?::\S*)?@)?(?:(?:(?:[\w\-.]))*)(?::[0-9]+)?(?:\/\S*)?$/,
       localPattern = /^file:\/{2,3}([a-zA-Z][:|]\/){0,1}[\w~!*'();@&=\/\\\-+$,?%#.\[\]]+$/;
     return remotePattern.test(value) || localPattern.test(value);
+  },
+
+  /**
+   * Validate widget name
+   * @param {string} value
+   * @returns {boolean}
+   */
+  isValidWidgetName: function(value) {
+    var widgetNameRegex = /^[\s0-9a-z_\-%]+$/i;
+    return widgetNameRegex.test(value);
+  },
+
+  /**
+   * Validate widget description
+   * @param {string} value
+   * @returns {boolean}
+   */
+  isValidWidgetDescription: function(value) {
+    var widgetDescriptionRegex = /^[\s0-9a-z_\-%]+$/i;
+    return widgetDescriptionRegex.test(value);
   }
 };

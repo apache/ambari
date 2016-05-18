@@ -20,14 +20,24 @@ var App = require('app');
 require('views/common/widget/number_widget_view');
 
 describe('App.NumberWidgetView', function () {
-  var view = App.NumberWidgetView.create({
-    value: 0,
-    content: {
-      properties: {
-        warning_threshold: 0,
-        critical_threshold: 0
+
+  var view;
+
+  beforeEach(function () {
+    view = App.NumberWidgetView.create({
+      value: 0,
+      content: {
+        properties: {
+          warning_threshold: 0,
+          critical_threshold: 0
+        }
       }
-    }
+    });
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('timeoutId'));
+    view.destroy();
   });
 
   describe("#contentColor()", function() {

@@ -22,18 +22,26 @@ angular.module('ambariAdminConsole')
   
   function getPermissionsFor(resource, params){
     var deferred = $q.defer();
+
     resource.getPermissions(params).then(function(permissions) {
       var permissionsInner = {}; // Save object into closure, until it completely fills to prevent blinkong
       angular.forEach(permissions, function(permission) {
         permission.GROUP = [];
         permission.USER = [];
+        angular.forEach(View.clusterInheritedPermissionKeys, function(key) {
+          permission[key] = false;
+        });
         permissionsInner[permission.PermissionInfo.permission_name] = permission;
       });
 
       // Now we can get privileges
       resource.getPrivileges(params).then(function(privileges) {
         angular.forEach(privileges, function(privilege) {
-          permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type].push(privilege.PrivilegeInfo.principal_name);
+          if(!privilege.PrivilegeInfo.principal_type.startsWith("ALL.")) {
+            permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type].push(privilege.PrivilegeInfo.principal_name);
+          } else {
+            permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type] = true;
+          }
         });
 
         // After all builded - return object

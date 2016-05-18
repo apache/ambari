@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import ENV from '../config/environment';
 
 export default Ember.Controller.extend({
   databaseService: Ember.inject.service(constants.namingConventions.database),
@@ -25,10 +26,13 @@ export default Ember.Controller.extend({
 
   pageCount: 10,
 
+  previousSelectedDatabaseName : "" ,
   selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
   databases: Ember.computed.alias('databaseService.databases'),
 
   tableSearchResults: Ember.Object.create(),
+
+  isDatabaseRefreshInProgress: false,
 
   tableControls: [
     {
@@ -92,12 +96,18 @@ export default Ember.Controller.extend({
   selectedDatabaseChanged: function () {
     var self = this;
 
+    this.resetSearch();
+
     this.set('isLoading', true);
 
     this.get('databaseService').getAllTables().then(function () {
       self.set('isLoading', false);
-    }, function (err) {
-      self._handleError(err);
+      self.set('previousSelectedDatabaseName',self.get('selectedDatabase').get('name'));
+      self.get('notifyService').info("Selected database : "+self.get('selectedDatabase').get('name'));
+    }, function (error) {
+      self.get('notifyService').pushError("Error while selecting database : "+self.get('selectedDatabase').get('name'),error.responseJSON.message+"\n"+error.responseJSON.trace);
+      self.get('databaseService').setDatabaseByName(self.get('previousSelectedDatabaseName'));
+      self.set('isLoading', false);
     });
   }.observes('selectedDatabase'),
 
@@ -147,33 +157,91 @@ export default Ember.Controller.extend({
 
   getDatabases: function () {
     var self = this;
-    var selectedDatabase = this.get('selectedDatabase');
+    var selectedDatabase = this.get('selectedDatabase.name') || 'default';
+
+    this.set('isDatabaseRefreshInProgress', true);
 
     this.set('isLoading', true);
 
     this.get('databaseService').getDatabases().then(function (databases) {
       self.set('isLoading');
+      self.get('databaseService').setDatabaseByName(selectedDatabase);
     }).catch(function (error) {
       self._handleError(error);
 
       if(error.status == 401) {
          self.send('passwordLDAPDB');
       }
-
-
+    }).finally(function() {
+      self.set('isDatabaseRefreshInProgress', false);
     });
   }.on('init'),
 
+  syncDatabases: function() {
+    this.set('isDatabaseRefreshInProgress', true);
+    var oldDatabaseNames = this.store.all('database').mapBy('name');
+    var self = this;
+    return this.get('databaseService').getDatabasesFromServer().then(function(data) {
+      // Remove the databases from store which are not in server
+      data.forEach(function(dbName) {
+        if(!oldDatabaseNames.contains(dbName)) {
+          self.store.createRecord('database', {
+            id: dbName,
+            name: dbName
+          });
+        }
+      });
+      // Add the databases in store which are new in server
+      oldDatabaseNames.forEach(function(dbName) {
+        if(!data.contains(dbName)) {
+          self.store.find('database', dbName).then(function(db) {
+            self.store.unloadRecord(db);
+          });
+        }
+      });
+    }).finally(function() {
+      self.set('isDatabaseRefreshInProgress', false);
+    });
+  },
+
+  initiateDatabaseSync: function() {
+    // This was required so that the unit test would not stall
+    if(ENV.environment !== "test") {
+      Ember.run.later(this, function() {
+        if (this.get('isDatabaseRefreshInProgress') === false) {
+          this.syncDatabases();
+          this.initiateDatabaseSync();
+        }
+      }, 15000);
+    }
+  }.on('init'),
+
+  resetSearch: function() {
+    var resultsTab = this.get('tabs').findBy('view', constants.namingConventions.databaseSearch);
+    var databaseExplorerTab = this.get('tabs').findBy('view', constants.namingConventions.databaseTree);
+    var tableSearchResults = this.get('tableSearchResults');
+    resultsTab.set('visible', false);
+    this.set('selectedTab', databaseExplorerTab);
+    this.set('tableSearchTerm', '');
+    this.set('columnSearchTerm', '');
+    tableSearchResults.set('tables', undefined);
+    tableSearchResults.set('hasNext', undefined);
+  },
+
+
   actions: {
     refreshDatabaseExplorer: function () {
-      this.getDatabases();
+      if (this.get('isDatabaseRefreshInProgress') === false) {
+        this.getDatabases();
+        this.resetSearch();
+      } else {
+        console.log("Databases refresh is in progress. Skipping this request.");
+      }
     },
 
     passwordLDAPDB: function(){
       var self = this,
           defer = Ember.RSVP.defer();
-
-      self.getDatabases = this.getDatabases;
 
       this.send('openModal', 'modal-save', {
         heading: "modals.authenticationLDAP.heading",
@@ -193,7 +261,6 @@ export default Ember.Controller.extend({
 
         $.ajax({
           url: ldapAuthURL,
-          dataType: "json",
           type: 'post',
           headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
           contentType: 'application/json',
@@ -201,13 +268,13 @@ export default Ember.Controller.extend({
           success: function( data, textStatus, jQxhr ){
             console.log( "LDAP done: " + data );
             self.getDatabases();
+            self.syncDatabases();
           },
           error: function( jqXhr, textStatus, errorThrown ){
             console.log( "LDAP fail: " + errorThrown );
             self.get('notifyService').error( "Wrong Credentials." );
           }
         });
-
       });
     },
 

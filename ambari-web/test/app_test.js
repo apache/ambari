@@ -20,7 +20,6 @@ var App = require('app');
 require('views/common/quick_view_link_view');
 require('models/host_component');
 require('models/stack_service_component');
-var modelSetup = require('test/init_model_test');
 App.auth = ["AMBARI.ADD_DELETE_CLUSTERS", "AMBARI.ASSIGN_ROLES", "AMBARI.EDIT_STACK_REPOS", "AMBARI.MANAGE_GROUPS", "AMBARI.MANAGE_STACK_VERSIONS", "AMBARI.MANAGE_USERS", "AMBARI.MANAGE_VIEWS", "AMBARI.RENAME_CLUSTER", "AMBARI.SET_SERVICE_USERS_GROUPS", "CLUSTER.TOGGLE_ALERTS", "CLUSTER.TOGGLE_KERBEROS", "CLUSTER.UPGRADE_DOWNGRADE_STACK", "CLUSTER.VIEW_ALERTS", "CLUSTER.VIEW_CONFIGS", "CLUSTER.VIEW_METRICS", "CLUSTER.VIEW_STACK_DETAILS", "CLUSTER.VIEW_STATUS_INFO", "HOST.ADD_DELETE_COMPONENTS", "HOST.ADD_DELETE_HOSTS", "HOST.TOGGLE_MAINTENANCE", "HOST.VIEW_CONFIGS", "HOST.VIEW_METRICS", "HOST.VIEW_STATUS_INFO", "SERVICE.ADD_DELETE_SERVICES", "SERVICE.COMPARE_CONFIGS", "SERVICE.DECOMMISSION_RECOMMISSION", "SERVICE.ENABLE_HA", "SERVICE.MANAGE_CONFIG_GROUPS", "SERVICE.MODIFY_CONFIGS", "SERVICE.MOVE", "SERVICE.RUN_CUSTOM_COMMAND", "SERVICE.RUN_SERVICE_CHECK", "SERVICE.START_STOP", "SERVICE.TOGGLE_ALERTS", "SERVICE.TOGGLE_MAINTENANCE", "SERVICE.VIEW_ALERTS", "SERVICE.VIEW_CONFIGS", "SERVICE.VIEW_METRICS", "SERVICE.VIEW_STATUS_INFO", "VIEW.USE"];
 
 describe('App', function () {
@@ -103,12 +102,22 @@ describe('App', function () {
     ];
 
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        sinon.stub(App.Service, 'find', function () {
-          return test.service;
+      describe(test.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(App.Service, 'find', function () {
+            return test.service;
+          });
         });
-        expect(App.get('falconServerURL')).to.equal(test.result);
-        App.Service.find.restore();
+
+        afterEach(function () {
+          App.Service.find.restore();
+        });
+
+        it('App.falconServerURL is ' + test.result, function () {
+          expect(App.get('falconServerURL')).to.equal(test.result);
+        });
+
       });
     });
   });
@@ -219,19 +228,42 @@ describe('App', function () {
       })
     ];
 
-    it('distribute services by categories', function () {
+    beforeEach(function () {
       sinon.stub(App.StackService, 'find', function () {
         return stackServices;
       });
+    });
 
-      expect(App.get('services.all')).to.eql(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']);
-      expect(App.get('services.clientOnly')).to.eql(['S1']);
-      expect(App.get('services.hasClient')).to.eql(['S2']);
-      expect(App.get('services.hasMaster')).to.eql(['S3']);
-      expect(App.get('services.hasSlave')).to.eql(['S4']);
-      expect(App.get('services.noConfigTypes')).to.eql(['S5']);
-      expect(App.get('services.monitoring')).to.eql(['S6']);
+    afterEach(function () {
       App.StackService.find.restore();
+    });
+
+    it('App.services.all', function () {
+      expect(App.get('services.all')).to.eql(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']);
+    });
+
+    it('App.services.clientOnly', function () {
+      expect(App.get('services.clientOnly')).to.eql(['S1']);
+    });
+
+    it('App.services.hasClient', function () {
+      expect(App.get('services.hasClient')).to.eql(['S2']);
+    });
+
+    it('App.services.hasMaster', function () {
+      expect(App.get('services.hasMaster')).to.eql(['S3']);
+    });
+
+    it('App.services.hasSlave', function () {
+      expect(App.get('services.hasSlave')).to.eql(['S4']);
+    });
+
+    it('App.services.noConfigTypes', function () {
+      expect(App.get('services.noConfigTypes')).to.eql(['S5']);
+    });
+
+    it('App.services.monitoring', function () {
+      expect(App.get('services.monitoring')).to.eql(['S6']);
     });
   });
 
@@ -379,58 +411,6 @@ describe('App', function () {
     })
   });
 
-  describe('#isHadoop20Stack', function () {
-
-    Em.A([
-      {
-        currentStackVersion: 'HDP-2.2',
-        e: false
-      },
-        {
-          currentStackVersion: 'HDP-2.1',
-          e: false
-        },
-        {
-          currentStackVersion: 'HDP-2.0',
-          e: true
-        },
-        {
-          currentStackVersion: 'HDP-2.0.0',
-          e: true
-        },
-        {
-          currentStackVersion: 'HDP-2.0.6',
-          e: true
-        },
-        {
-          currentStackVersion: 'HDPLocal-2.2',
-          e: false
-        },
-        {
-          currentStackVersion: 'HDPLocal-2.1',
-          e: false
-        },
-        {
-          currentStackVersion: 'HDPLocal-2.0',
-          e: true
-        },
-        {
-          currentStackVersion: 'HDPLocal-2.0.0',
-          e: true
-        },
-        {
-          currentStackVersion: 'HDPLocal-2.0.6',
-          e: true
-        }
-    ]).forEach(function (test) {
-        it('for ' + test.currentStackVersion + ' isHadoop20Stack = ' + test.e.toString(), function () {
-          App.set('currentStackVersion', test.currentStackVersion);
-          expect(App.get('isHadoop20Stack')).to.equal(test.e);
-        });
-      });
-
-  });
-
   describe('#upgradeIsRunning', function () {
 
     Em.A([
@@ -458,17 +438,48 @@ describe('App', function () {
 
   });
 
+  describe('#upgradeSuspended', function () {
+    var cases = [
+      {
+        upgradeState: 'INIT',
+        isSuspended: false,
+        upgradeSuspended: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: false,
+        upgradeSuspended: false
+      },
+      {
+        upgradeState: 'ABORTED',
+        isSuspended: true,
+        upgradeSuspended: true
+      }
+    ];
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    cases.forEach(function (test) {
+      it(test.upgradeState + ", isSuspended=" + test.isSuspended, function () {
+        App.set('upgradeState', test.upgradeState);
+        this.mock.returns(test.isSuspended);
+        App.propertyDidChange('upgradeSuspended');
+        expect(App.get('upgradeSuspended')).to.equal(test.upgradeSuspended);
+      });
+    });
+  });
+
   describe('#upgradeAborted', function () {
 
     var cases = [
       {
         upgradeState: 'INIT',
         isSuspended: false,
-        upgradeAborted: false
-      },
-      {
-        upgradeState: 'INIT',
-        isSuspended: true,
         upgradeAborted: false
       },
       {
@@ -483,61 +494,43 @@ describe('App', function () {
       }
     ];
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.mock = sinon.stub(App.router, 'get');
     });
-    afterEach(function () {
+    afterEach(function() {
       this.mock.restore();
     });
 
-    cases.forEach(function (item) {
-      it(item.upgradeState + ", " + item.isSuspended, function () {
-        this.mock.returns(item.isSuspended);
-        App.set('upgradeState', item.upgradeState);
+    cases.forEach(function (test) {
+      it(test.upgradeState + ", isSuspended=" + test.isSuspended, function () {
+        App.set('upgradeState', test.upgradeState);
+        this.mock.returns(test.isSuspended);
         App.propertyDidChange('upgradeAborted');
-        expect(App.get('upgradeAborted')).to.equal(item.upgradeAborted);
+        expect(App.get('upgradeAborted')).to.equal(test.upgradeAborted);
       });
     });
   });
 
   describe('#wizardIsNotFinished', function () {
-
-    beforeEach(function () {
-      this.mock = sinon.stub(App.router, 'get');
-    });
-    afterEach(function () {
-      this.mock.restore();
-    });
-
     var cases = [
       {
         upgradeState: 'INIT',
-        isSuspended: false,
         wizardIsNotFinished: false
       },
       {
         upgradeState: 'IN_PROGRESS',
-        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING',
-        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING_TIMEDOUT',
-        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'ABORTED',
-        isSuspended: false,
-        wizardIsNotFinished: true
-      },
-      {
-        upgradeState: 'ABORTED',
-        isSuspended: true,
         wizardIsNotFinished: true
       }
     ];
@@ -545,9 +538,51 @@ describe('App', function () {
     cases.forEach(function (item) {
       it(item.upgradeState, function () {
         App.set('upgradeState', item.upgradeState);
-        this.mock.returns(item.isSuspended);
         App.propertyDidChange('wizardIsNotFinished');
         expect(App.get('wizardIsNotFinished')).to.equal(item.wizardIsNotFinished);
+      });
+    });
+  });
+
+  describe("#upgradeHolding", function () {
+    var cases = [
+      {
+        upgradeState: 'INIT',
+        upgradeAborted: false,
+        upgradeHolding: false
+      },
+      {
+        upgradeState: 'HOLDING',
+        upgradeAborted: false,
+        upgradeHolding: true
+      },
+      {
+        upgradeState: 'HOLDING_FAILED',
+        upgradeAborted: false,
+        upgradeHolding: true
+      },
+      {
+        upgradeState: 'INIT',
+        upgradeAborted: true,
+        upgradeHolding: true
+      }
+    ];
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    cases.forEach(function (test) {
+      it(test.upgradeState + ", upgradeAborted=" + test.upgradeAborted, function () {
+        App.reopen({
+          upgradeAborted: test.upgradeAborted,
+          upgradeState: test.upgradeState
+        });
+        App.propertyDidChange('upgradeHolding');
+        expect(App.get('upgradeHolding')).to.equal(test.upgradeHolding);
       });
     });
   });

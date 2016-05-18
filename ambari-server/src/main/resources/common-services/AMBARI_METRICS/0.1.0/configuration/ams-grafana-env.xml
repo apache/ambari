@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration>
+  <property>
+    <name>metrics_grafana_log_dir</name>
+    <value>/var/log/ambari-metrics-grafana</value>
+    <display-name>Metrics Grafana log dir</display-name>
+    <description>Metrics Grafana log directory.</description>
+  </property>
+  <property>
+    <name>metrics_grafana_pid_dir</name>
+    <value>/var/run/ambari-metrics-grafana</value>
+    <display-name>Metrics Grafana pid dir</display-name>
+    <description>Metrics Grafana pid directory.</description>
+  </property>
+  <property>
+    <name>metrics_grafana_data_dir</name>
+    <value>/var/lib/ambari-metrics-grafana</value>
+    <display-name>Metrics Grafana data dir</display-name>
+    <description>Metrics Grafana data directory.</description>
+  </property>
+  <property>
+    <name>metrics_grafana_username</name>
+    <value>admin</value>
+    <display-name>Grafana Admin Username</display-name>
+    <description>
+      Metrics Grafana Username. This value cannot be modified by Ambari
+      except on initial install. Please make sure the username change in
+      Grafana is reflected in Ambari.
+    </description>
+    <value-attributes>
+      <type>db_user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+  <property require-input="true">
+    <name>metrics_grafana_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Grafana Admin Password</display-name>
+    <description>
+      Metrics Grafana password. This value cannot be modified by Ambari
+      except on initial install. Please make sure the password change in
+      Grafana is reflected back in Ambari.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>password</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>content</name>
+    <value>
+# Set environment variables here.
+
+# AMS UI Server Home Dir
+export AMS_GRAFANA_HOME_DIR={{ams_grafana_home_dir}}
+
+# AMS UI Server Data Dir
+export AMS_GRAFANA_DATA_DIR={{ams_grafana_data_dir}}
+
+# AMS UI Server Log Dir
+export AMS_GRAFANA_LOG_DIR={{ams_grafana_log_dir}}
+
+# AMS UI Server PID Dir
+export AMS_GRAFANA_PID_DIR={{ams_grafana_pid_dir}}
+    </value>
+  </property>
+
+</configuration>

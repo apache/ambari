@@ -48,7 +48,7 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         });
         summaryMap[alertDefinitionSummary.definition_id] = {
           summary: summary,
-          lastTriggered: App.dateTimeWithTimeZone(parseInt(timestamp)),
+          lastTriggered: App.dateTimeWithTimeZone(parseInt(timestamp, 10)),
           lastTriggeredRaw: timestamp
         };
       }
@@ -56,6 +56,9 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
 
     alertDefinitions.forEach(function (d) {
       var id = d.get('id');
+      if (alertDefinitionsMap[id].get('stateManager.currentState.name') !== 'saved') {
+        alertDefinitionsMap[id].get('stateManager').transitionTo('saved');
+      }
       alertDefinitionsMap[id].setProperties(summaryMap[id]);
       if (!alertDefinitionsMap[id].get('enabled')) {
         // clear summary for disabled alert definitions
@@ -64,6 +67,7 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
     });
     // set alertsCount and hasCriticalAlerts for each service
     var groupedByServiceName = dataManipulation.groupPropertyValues(alertDefinitions, 'service.serviceName');
+    var groupedByComponentName = dataManipulation.groupPropertyValues(alertDefinitions, 'componentName');
     var services = App.Service.find();
     var servicesMap = services.toArray().toMapByProperty('id');
     Object.keys(groupedByServiceName).forEach(function(serviceName) {
@@ -87,9 +91,33 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
           alertsCount: alertsCount,
           hasCriticalAlerts: hasCriticalAlerts
         });
+
+        service.get('hostComponents').filterProperty('isMaster').forEach(function (master) {
+
+          hasCriticalAlerts = false;
+          alertsCount = (groupedByComponentName[master.get('componentName')] || []).map(function (alertDefinition) {
+
+            var criticalCount = alertDefinition.getWithDefault('summary.CRITICAL.count', 0);
+            var warningCount = alertDefinition.getWithDefault('summary.WARNING.count', 0);
+
+            if (criticalCount) {
+              hasCriticalAlerts = true;
+            }
+            return criticalCount + warningCount;
+
+          }).reduce(Em.sum, 0);
+
+          master.setProperties({
+            alertsCount: alertsCount,
+            hasCriticalAlerts: hasCriticalAlerts
+          });
+        });
       }
     });
-
+    if (!$.mocho) {
+      //for some reasons this causing error in unit test
+      App.store.commit();
+    }
     console.timeEnd('App.alertDefinitionSummaryMapper execution time');
 
   }

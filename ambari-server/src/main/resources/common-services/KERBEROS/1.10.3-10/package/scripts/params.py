@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management import *
 from utils import get_property_value, get_unstructured_data
 from ambari_commons.os_check import OSCheck
+from resource_management.libraries.functions.expect import expect
 
 krb5_conf_dir = '/etc'
 krb5_conf_file = 'krb5.conf'
@@ -67,7 +68,7 @@ jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is a
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -100,7 +101,7 @@ if config is not None:
     # ##############################################################################################
     realm = 'EXAMPLE.COM'
     domains = ''
-    kdc_host = 'localhost'
+    kdc_hosts = 'localhost'
     admin_server_host = None
     admin_principal = None
     admin_password = None
@@ -121,7 +122,7 @@ if config is not None:
       manage_identities = get_property_value(kerberos_env, "manage_identities", "true", True, "true")
       encryption_types = get_property_value(kerberos_env, "encryption_types", None, True, None)
       realm = get_property_value(kerberos_env, "realm", None, True, None)
-      kdc_host = get_property_value(kerberos_env, 'kdc_host', kdc_host)
+      kdc_hosts = get_property_value(kerberos_env, 'kdc_hosts', kdc_hosts)
       admin_server_host = get_property_value(kerberos_env, 'admin_server_host', admin_server_host)
 
     if krb5_conf_data is not None:
@@ -143,6 +144,15 @@ if config is not None:
       krb5_conf_path = krb5_conf_dir + '/' + krb5_conf_file
 
       manage_krb5_conf = get_property_value(krb5_conf_data, 'manage_krb5_conf', "true")
+
+    # For backward compatibility, ensure that kdc_host exists. This may be needed if the krb5.conf
+    # template in krb5-conf/content had not be updated during the Ambari upgrade to 2.4.0 - which
+    # will happen if the template was altered from its stack-default value.
+    kdc_host_parts = kdc_hosts.split(',')
+    if kdc_host_parts:
+      kdc_host = kdc_host_parts[0]
+    else:
+      kdc_host = kdc_hosts
 
     # ##############################################################################################
     # Get kdc.conf template data

@@ -83,7 +83,7 @@
             }
           ],
           "properties": {
-            "display_unit": "compactions",
+            "display_unit": "MinCs",
             "graph_type": "LINE",
             "time_range": "1"
           }
@@ -118,7 +118,7 @@
             }
           ],
           "properties": {
-            "display_unit": "compactions",
+            "display_unit": "MajCs",
             "graph_type": "LINE",
             "time_range": "1"
           }

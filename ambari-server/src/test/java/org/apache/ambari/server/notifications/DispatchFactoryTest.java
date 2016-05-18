@@ -20,6 +20,7 @@ package org.apache.ambari.server.notifications;
 import java.io.File;
 import java.util.Properties;
 
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.notifications.dispatchers.EmailDispatcher;
@@ -46,13 +47,15 @@ public class DispatchFactoryTest {
   public void testDispatchFactoryRegistration() throws Exception {
     String sourceResourceDirectory = "src" + File.separator + "test"
         + File.separator + "resources";
+    Integer snmpPort = 30111;
 
     Properties properties = new Properties();
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY,"in-memory");
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY,sourceResourceDirectory);
+    properties.setProperty(Configuration.ALERTS_SNMP_DISPATCH_UDP_PORT,snmpPort.toString());
 
-    Injector injector = Guice.createInjector(new ControllerModule(properties));
+    Injector injector = Guice.createInjector(new AuditLoggerModule(), new ControllerModule(properties));
     DispatchFactory dispatchFactory = injector.getInstance(DispatchFactory.class);
     DispatchFactory dispatchFactory2 = injector.getInstance(DispatchFactory.class);
 
@@ -72,7 +75,9 @@ public class DispatchFactoryTest {
     SNMPDispatcher snmpDispatcher2 = (SNMPDispatcher) dispatchFactory.getDispatcher(snmpDispatcher.getType());
 
     Assert.assertNotNull(snmpDispatcher);
+    Assert.assertEquals(snmpDispatcher.getPort(), snmpPort);
     Assert.assertNotNull(snmpDispatcher2);
+    Assert.assertEquals(snmpDispatcher2.getPort(), snmpPort);
 
     // verify singleton
     Assert.assertEquals(snmpDispatcher, snmpDispatcher2);

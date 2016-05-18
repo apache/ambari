@@ -21,9 +21,10 @@ limitations under the License.
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
-import traceback
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
+from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.core.environment import Environment
 
 RESULT_STATE_OK = 'OK'
@@ -35,7 +36,7 @@ HDFS_NN_STATE_ACTIVE = 'active'
 HDFS_NN_STATE_STANDBY = 'standby'
 
 HDFS_SITE_KEY = '{{hdfs-site}}'
-NAMESERVICE_KEY = '{{hdfs-site/dfs.nameservices}}'
+NAMESERVICE_KEY = '{{hdfs-site/dfs.internal.nameservices}}'
 NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
 NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
 DFS_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
@@ -45,6 +46,10 @@ KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
+INADDR_ANY = '0.0.0.0'
+NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
+NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
+NAMENODE_RPC_FRAGMENT = 'dfs.namenode.rpc-address.{0}.{1}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -106,6 +111,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     kerberos_principal = configurations[KERBEROS_PRINCIPAL]
     kerberos_principal = kerberos_principal.replace('_HOST', host_name)
 
+  kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
   # determine whether or not SSL is enabled
   is_ssl_enabled = False
@@ -122,11 +128,11 @@ def execute(configurations={}, parameters={}, host_name=None):
   if not nn_unique_ids_key in hdfs_site:
     return (RESULT_STATE_UNKNOWN, ['Unable to find unique namenode alias key {0}'.format(nn_unique_ids_key)])
 
-  namenode_http_fragment = 'dfs.namenode.http-address.{0}.{1}'
+  namenode_http_fragment = NAMENODE_HTTP_FRAGMENT
   jmx_uri_fragment = "http://{0}/jmx?qry=Hadoop:service=NameNode,name=*"
 
   if is_ssl_enabled:
-    namenode_http_fragment = 'dfs.namenode.https-address.{0}.{1}'
+    namenode_http_fragment = NAMENODE_HTTPS_FRAGMENT
     jmx_uri_fragment = "https://{0}/jmx?qry=Hadoop:service=NameNode,name=*"
 
 
@@ -140,10 +146,16 @@ def execute(configurations={}, parameters={}, host_name=None):
   nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
   for nn_unique_id in nn_unique_ids:
     key = namenode_http_fragment.format(name_service,nn_unique_id)
+    rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,nn_unique_id)
 
     if key in hdfs_site:
       # use str() to ensure that unicode strings do not have the u' in them
       value = str(hdfs_site[key])
+      if INADDR_ANY in value and rpc_key in hdfs_site:
+        rpc_value = str(hdfs_site[rpc_key])
+        if INADDR_ANY not in rpc_value:
+          rpc_host = rpc_value.split(":")[0]
+          value = value.replace(INADDR_ANY, rpc_host)
 
       try:
         jmx_uri = jmx_uri_fragment.format(value)
@@ -155,7 +167,8 @@ def execute(configurations={}, parameters={}, host_name=None):
 
           state_response, error_msg, time_millis  = curl_krb_request(env.tmp_dir,
             kerberos_keytab, kerberos_principal, jmx_uri,"ha_nn_health", executable_paths, False,
-            "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout)
+            "NameNode High Availability Health", smokeuser, connection_timeout=curl_connection_timeout,
+            kinit_timer_ms = kinit_timer_ms)
 
           state = _get_ha_state_from_json(state_response)
         else:
@@ -234,7 +247,7 @@ def get_jmx(query, connection_timeout):
 
 def _get_ha_state_from_json(string_json):
   """
-  Searches through the specified JSON string looking for either the HDP 2.0 or 2.1+ HA state
+  Searches through the specified JSON string looking for HA state
   enumerations.
   :param string_json: the string JSON
   :return:  the value of the HA state (active, standby, etc)
@@ -242,7 +255,7 @@ def _get_ha_state_from_json(string_json):
   json_data = json.loads(string_json)
   jmx_beans = json_data["beans"]
 
-  # look for HDP 2.1+ first
+  # look for NameNodeStatus-State first
   for jmx_bean in jmx_beans:
     if "name" not in jmx_bean:
       continue
@@ -251,7 +264,7 @@ def _get_ha_state_from_json(string_json):
     if jmx_bean_name == "Hadoop:service=NameNode,name=NameNodeStatus" and "State" in jmx_bean:
       return jmx_bean["State"]
 
-  # look for HDP 2.0 last
+  # look for FSNamesystem-tag.HAState last
   for jmx_bean in jmx_beans:
     if "name" not in jmx_bean:
       continue

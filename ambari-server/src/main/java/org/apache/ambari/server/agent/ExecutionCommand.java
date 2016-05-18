@@ -100,8 +100,8 @@ public class ExecutionCommand extends AgentCommand {
   private String serviceName;
 
   @SerializedName("serviceType")
-  private String serviceType;  
-  
+  private String serviceType;
+
   @SerializedName("componentName")
   private String componentName;
 
@@ -284,7 +284,7 @@ public class ExecutionCommand extends AgentCommand {
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
   }
-  
+
   public String getServiceType() {
 	return serviceType;
   }
@@ -366,11 +366,15 @@ public class ExecutionCommand extends AgentCommand {
     String REFRESH_ADITIONAL_COMPONENT_TAGS = "forceRefreshConfigTags";
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
+    String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
     String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";
     String COMMAND_RETRY_ENABLED = "command_retry_enabled";
+    String AGENT_STACK_RETRY_ON_UNAVAILABILITY = "agent_stack_retry_on_unavailability";
+    String AGENT_STACK_RETRY_COUNT = "agent_stack_retry_count";
+
     /**
      * Comma separated list of config-types whose tags have be refreshed
      * at runtime before being executed. If all config-type tags have to be
@@ -380,6 +384,24 @@ public class ExecutionCommand extends AgentCommand {
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standard command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";
-  }
 
+    /**
+     * The key indicating that the package_version string is available
+     */
+    String PACKAGE_VERSION = "package_version";
+
+    /**
+     * The key indicating that there is an un-finalized upgrade which is suspended.
+     */
+    String UPGRADE_SUSPENDED = "upgrade_suspended";
+
+    /**
+     * When installing packages, optionally provide the row id the version is
+     * for in order to precisely match response data.
+     * <p/>
+     * The agent will return this value back in its response so the repository
+     * can be looked up and possibly have its version updated.
+     */
+    String REPO_VERSION_ID = "repository_version_id";
+  }
 }

@@ -32,6 +32,7 @@
           <category>MASTER</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -60,6 +61,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>oozie_app</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>

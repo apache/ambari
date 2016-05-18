@@ -24,6 +24,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   name: 'clusterController',
   isLoaded: false,
   ambariProperties: null,
+  clusterEnv: null,
   clusterDataLoadedPercent: 'width:0', // 0 to 1
 
   isClusterNameLoaded: false,
@@ -41,6 +42,11 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   isStackConfigsLoaded: false,
 
   isServiceMetricsLoaded: false,
+
+  /**
+   * @type {boolean}
+   */
+  isHostComponentMetricsLoaded: false,
 
   /**
    * Ambari uses custom jdk.
@@ -197,9 +203,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     });
 
 
-    if (App.get('supports.stackUpgrade')) {
-      self.restoreUpgradeState();
-    }
+    self.restoreUpgradeState();
 
     App.router.get('wizardWatcherController').getUser();
 
@@ -208,14 +212,14 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     /**
      * Order of loading:
      * 1. load all created service components
-     * 1. request for service components supported by stack
-     * 2. load stack components to model
-     * 3. request for services
-     * 4. put services in cache
-     * 5. request for hosts and host-components (single call)
-     * 6. request for service metrics
-     * 7. load host-components to model
-     * 8. load services from cache with metrics to model
+     * 2. request for service components supported by stack
+     * 3. load stack components to model
+     * 4. request for services
+     * 5. put services in cache
+     * 6. request for hosts and host-components (single call)
+     * 7. request for service metrics
+     * 8. load host-components to model
+     * 9. load services from cache with metrics to model
      */
     self.loadStackServiceComponents(function (data) {
       data.items.forEach(function (service) {
@@ -245,7 +249,9 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
           updater.updateServiceMetric(function () {
             self.set('isServiceMetricsLoaded', true);
             // make second call, because first is light since it doesn't request host-component metrics
-            updater.updateServiceMetric(Em.K);
+            updater.updateServiceMetric(function() {
+              self.set('isHostComponentMetricsLoaded', true);
+            });
             // components config loading doesn't affect overall progress
             updater.updateComponentConfig(function () {
               self.set('isComponentsConfigLoaded', true);
@@ -270,6 +276,9 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         });
       });
     });
+
+    //load cluster-env, used by alert check tolerance // TODO services auto-start
+    updater.updateClusterEnv();
 
     /*  Root service mapper maps all the data exposed under Ambari root service which includes ambari configurations i.e ambari-properties
      ** This is useful information but its not being used in the code anywhere as of now
@@ -361,9 +370,9 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadAuthorizationsSuccessCallback: function(response) {
-    if (response.items) {
-      App.auth = response.items.mapProperty('AuthorizationInfo.authorization_id');
-      App.db.setAuth(App.auth);
+    if (response && response.items) {
+      App.set('auth', response.items.mapProperty('AuthorizationInfo.authorization_id').uniq());
+      App.db.setAuth(App.get('auth'));
     }
   },
 
@@ -417,26 +426,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * @returns {$.ajax}
    */
   createKerberosAdminSession: function (credentialResource, ajaxOpt) {
-    if (App.get('supports.storeKDCCredentials')) {
-      return credentialUtils.createOrUpdateCredentials(App.get('clusterName'), credentialUtils.ALIAS.KDC_CREDENTIALS, credentialResource).then(function() {
-        if (ajaxOpt) {
-          $.ajax(ajaxOpt);
-        }
-      });
-    }
-
-    return App.ajax.send({
-      name: 'common.cluster.update',
-      sender: this,
-      data: {
-        clusterName: App.get('clusterName'),
-        data: [{
-          session_attributes: {
-            kerberos_admin: {principal: credentialResource.principal, password: credentialResource.key}
-          }
-        }]
-      }
-    }).success(function () {
+    return credentialUtils.createOrUpdateCredentials(App.get('clusterName'), credentialUtils.ALIAS.KDC_CREDENTIALS, credentialResource).then(function() {
       if (ajaxOpt) {
         $.ajax(ajaxOpt);
       }

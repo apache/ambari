@@ -24,12 +24,12 @@ if [ -a /usr/bin/python2 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2
 fi
 
-if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.6
-fi
-
 if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2.7
+fi
+
+if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
+  PYTHON=/usr/bin/python2.6
 fi
 
 # if no preferable python versions found, try to use system one. Hoping it's Python 2

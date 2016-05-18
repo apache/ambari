@@ -28,7 +28,9 @@ angular.module('ambariAdminConsole', [
 .constant('Settings', {
 	baseUrl: '/api/v1',
   testMode: (window.location.port == 8000),
-  mockDataPrefix: 'assets/data/'
+  mockDataPrefix: 'assets/data/',
+  isLDAPConfigurationSupported: false,
+  isLoginActivitiesSupported: false
 })
 .config(['RestangularProvider', '$httpProvider', '$provide', function(RestangularProvider, $httpProvider, $provide) {
   // Config Ajax-module

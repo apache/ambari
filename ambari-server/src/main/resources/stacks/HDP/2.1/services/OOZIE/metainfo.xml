@@ -40,16 +40,16 @@
             </package>
           </packages>
         </osSpecific>
-        
+
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11</osFamily>
           <packages>
             <package>
               <name>extjs-2.2-1</name>
             </package>
           </packages>
         </osSpecific>
-        
+
         <osSpecific>
           <osFamily>ubuntu12</osFamily>
           <packages>
@@ -61,7 +61,7 @@
             </package>
           </packages>
         </osSpecific>
-        
+
       </osSpecifics>
       <configuration-dependencies>
         <config-type>oozie-site</config-type>

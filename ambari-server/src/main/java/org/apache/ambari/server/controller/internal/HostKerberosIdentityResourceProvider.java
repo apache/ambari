@@ -37,6 +37,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 
 import java.text.DecimalFormat;
 import java.util.Collection;
@@ -178,12 +179,18 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
 
                   if ((principal != null) && !principal.isEmpty()) {
                     Resource resource = new ResourceImpl(Resource.Type.HostKerberosIdentity);
+                    KerberosPrincipalType principalType = principalDescriptor.getType();
+
+                    // Assume the principal is a service principal if not specified
+                    if(principalType == null) {
+                      principalType = KerberosPrincipalType.SERVICE;
+                    }
 
                     setResourceProperty(resource, KERBEROS_IDENTITY_CLUSTER_NAME_PROPERTY_ID, clusterName, requestPropertyIds);
                     setResourceProperty(resource, KERBEROS_IDENTITY_HOST_NAME_PROPERTY_ID, currentHostName, requestPropertyIds);
 
                     setResourceProperty(resource, KERBEROS_IDENTITY_PRINCIPAL_NAME_PROPERTY_ID, principal, requestPropertyIds);
-                    setResourceProperty(resource, KERBEROS_IDENTITY_PRINCIPAL_TYPE_PROPERTY_ID, principalDescriptor.getType(), requestPropertyIds);
+                    setResourceProperty(resource, KERBEROS_IDENTITY_PRINCIPAL_TYPE_PROPERTY_ID, principalType, requestPropertyIds);
                     setResourceProperty(resource, KERBEROS_IDENTITY_PRINCIPAL_LOCAL_USERNAME_PROPERTY_ID, principalDescriptor.getLocalUsername(), requestPropertyIds);
 
                     String installedStatus;

@@ -102,7 +102,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResources_NonAdministrator() throws Exception {
-    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    createResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   @Test
@@ -112,7 +112,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testGetResources_NonAdministrator() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   @Test
@@ -127,12 +127,12 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testGetResource_NonAdministrator_Self() throws Exception {
-    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResource_NonAdministrator_Other() throws Exception {
-    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    getResourceTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   @Test
@@ -147,12 +147,12 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_NonAdministrator_Self() throws Exception {
-    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResources_NonAdministrator_Other() throws Exception {
-    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    updateResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   @Test
@@ -162,7 +162,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = AuthorizationException.class)
   public void testDeleteResources_NonAdministrator() throws Exception {
-    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    deleteResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L));
   }
 
   @Test
@@ -187,7 +187,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     expect(ambariUserEntity.getPrincipal()).andReturn(ambariPrincipalEntity).anyTimes();
     expect(ambariUserEntity.getUserName()).andReturn("joe").anyTimes();
     expect(ambariPermissionEntity.getPermissionName()).andReturn("AMBARI.ADMINISTRATOR").anyTimes();
-    expect(ambariPermissionEntity.getPermissionLabel()).andReturn("Administrator").anyTimes();
+    expect(ambariPermissionEntity.getPermissionLabel()).andReturn("Ambari Administrator").anyTimes();
     expect(ambariPrincipalEntity.getPrincipalType()).andReturn(ambariPrincipalTypeEntity).anyTimes();
     expect(ambariPrincipalTypeEntity.getName()).andReturn("USER").anyTimes();
 
@@ -294,7 +294,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Assert.assertEquals(6, resource1.getPropertiesMap().get("PrivilegeInfo").size());
     Assert.assertEquals("AMBARI.ADMINISTRATOR", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Administrator", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
+    Assert.assertEquals("Ambari Administrator", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
     Assert.assertEquals("joe", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
     Assert.assertEquals("USER", resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
     Assert.assertEquals(31, resource1.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID));
@@ -331,7 +331,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
   public void testToResource_AMBARI() {
     PermissionEntity permissionEntity = createMock(PermissionEntity.class);
     expect(permissionEntity.getPermissionName()).andReturn("ADMINISTRATOR").atLeastOnce();
-    expect(permissionEntity.getPermissionLabel()).andReturn("Administrator").atLeastOnce();
+    expect(permissionEntity.getPermissionLabel()).andReturn("Ambari Administrator").atLeastOnce();
 
     PrincipalTypeEntity principalTypeEntity = createMock(PrincipalTypeEntity.class);
     expect(principalTypeEntity.getName()).andReturn("USER").atLeastOnce();
@@ -597,7 +597,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     privilegeEntities.add(createMockPrivilegeEntity(
         1, ambariResourceEntity,
         principalEntity,
-        createMockPermissionEntity("AMBARI.ADMINISTRATOR", "Administrator", ambariResourceTypeEntity)));
+        createMockPermissionEntity("AMBARI.ADMINISTRATOR", "Ambari Administrator", ambariResourceTypeEntity)));
 
     PrivilegeDAO privilegeDAO = injector.getInstance(PrivilegeDAO.class);
     expect(privilegeDAO.findAll()).andReturn(privilegeEntities).atLeastOnce();
@@ -623,7 +623,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     Resource resource = resources.iterator().next();
 
     Assert.assertEquals("AMBARI.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
-    Assert.assertEquals("Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
+    Assert.assertEquals("Ambari Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
     Assert.assertEquals("User1", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
     Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
 
@@ -784,7 +784,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = getResourceProvider(injector);
-    provider.deleteResources(createPredicate(1L));
+    provider.deleteResources(new RequestImpl(null, null, null, null), createPredicate(1L));
 
     verifyAll();
   }

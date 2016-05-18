@@ -21,202 +21,256 @@ require('mappers/configs/stack_config_properties_mapper');
 
 describe.skip('App.stackConfigPropertiesMapper', function () {
 
-  describe("#map", function() {
+  describe("#map", function () {
 
-    var json = { items: [
-      {
-        "StackServices" : {
-          "service_name" : "HBASE",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2",
-          "config_types" : {
-            "site1" : {
-              "supports" : {
-                "adding_forbidden" : "false",
-                "do_not_extend" : "false",
-                "final" : "true"
+    var json = {
+      items: [
+        {
+          "StackServices": {
+            "service_name": "HBASE",
+            "stack_name": "HDP",
+            "stack_version": "2.2",
+            "config_types": {
+              "site1": {
+                "supports": {
+                  "adding_forbidden": "false",
+                  "do_not_extend": "false",
+                  "final": "true"
+                }
               }
             }
-          }
-        },
-        "configurations" : [
-          {
-            "StackConfigurations" : {
-              "final" : "false",
-              "property_description" : "desc1",
-              "property_name" : "p1",
-              "property_display_name" : "P1",
-              "property_type" : [ ],
-              "property_value" : "v1",
-              "service_name" : "s1",
-              "stack_name" : "HDP",
-              "stack_version" : "2.2",
-              "type" : "site1.xml",
-              "property_depends_on": [
+          },
+          "configurations": [
+            {
+              "StackConfigurations": {
+                "final": "false",
+                "property_description": "desc1",
+                "property_name": "p1",
+                "property_display_name": "P1",
+                "property_type": [],
+                "property_value": "v1",
+                "service_name": "s1",
+                "stack_name": "HDP",
+                "stack_version": "2.2",
+                "type": "site1.xml",
+                "property_depends_on": [
+                  {
+                    "name": "p5",
+                    "type": "site5"
+                  }
+                ],
+                "property_value_attributes": {
+                  "type": "int",
+                  "minimum": "512",
+                  "maximum": "10240",
+                  "unit": "MB"
+                }
+              },
+              "dependencies": [
                 {
-                  "name": "p5",
-                  "type": "site5"
+                  "StackConfigurationDependency": {
+                    "dependency_name": "p4",
+                    "dependency_type": "site4"
+                  }
                 }
-              ],
-              "property_value_attributes": {
-                "type": "int",
-                "minimum": "512",
-                "maximum": "10240",
-                "unit": "MB"
-              }
-            },
-            "dependencies": [
-              {
-                "StackConfigurationDependency" : {
-                  "dependency_name" : "p4",
-                  "dependency_type" : "site4"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "StackServices" : {
-          "service_name" : "HDFS",
-          "stack_name" : "HDP",
-          "stack_version" : "2.2",
-          "config_types" : {
-            "site2" : {
-              "supports" : {
-                "adding_forbidden" : "false",
-                "do_not_extend" : "false",
-                "final" : "true"
-              }
-            },
-            "site3" : {
-              "supports" : {
-                "adding_forbidden" : "false",
-                "do_not_extend" : "false",
-                "final" : "true"
-              }
+              ]
             }
-          }
+          ]
         },
-        "configurations" : [
-          {
-            "StackConfigurations" : {
-              "final" : "false",
-              "property_description" : "desc3",
-              "property_name" : "p2",
-              "property_display_name" : "P2",
-              "property_type" : [ ],
-              "property_value" : "v2",
-              "service_name" : "s2",
-              "stack_name" : "HDP",
-              "stack_version" : "2.2",
-              "type" : "site2.xml"
+        {
+          "StackServices": {
+            "service_name": "HDFS",
+            "stack_name": "HDP",
+            "stack_version": "2.2",
+            "config_types": {
+              "site2": {
+                "supports": {
+                  "adding_forbidden": "false",
+                  "do_not_extend": "false",
+                  "final": "true"
+                }
+              },
+              "site3": {
+                "supports": {
+                  "adding_forbidden": "false",
+                  "do_not_extend": "false",
+                  "final": "true"
+                }
+              }
             }
           },
-          {
-            "StackConfigurations" : {
-              "final" : "false",
-              "property_description" : "desc3",
-              "property_name" : "p3",
-              "property_display_name" : "P3",
-              "property_type" : [ ],
-              "property_value" : "v3",
-              "service_name" : "s2",
-              "stack_name" : "HDP",
-              "stack_version" : "2.2",
-              "type" : "site3.xml"
+          "configurations": [
+            {
+              "StackConfigurations": {
+                "final": "false",
+                "property_description": "desc3",
+                "property_name": "p2",
+                "property_display_name": "P2",
+                "property_type": [],
+                "property_value": "v2",
+                "service_name": "s2",
+                "stack_name": "HDP",
+                "stack_version": "2.2",
+                "type": "site2.xml"
+              }
+            },
+            {
+              "StackConfigurations": {
+                "final": "false",
+                "property_description": "desc3",
+                "property_name": "p3",
+                "property_display_name": "P3",
+                "property_type": [],
+                "property_value": "v3",
+                "service_name": "s2",
+                "stack_name": "HDP",
+                "stack_version": "2.2",
+                "type": "site3.xml"
+              }
+            },
+            {
+              "StackConfigurations": {
+                "final": "false",
+                "property_description": "desc4",
+                "property_name": "p4",
+                "property_display_name": "P4",
+                "property_type": ["PASSWORD"],
+                "property_value": "v4",
+                "service_name": "s2",
+                "stack_name": "HDP",
+                "stack_version": "2.2",
+                "type": "site3.xml"
+              }
+            },
+            {
+              "StackConfigurations": {
+                "final": "false",
+                "property_description": "desc5",
+                "property_name": "p5",
+                "property_display_name": "P5",
+                "property_type": ["USER"],
+                "property_value": "v4",
+                "service_name": "s2",
+                "stack_name": "HDP",
+                "stack_version": "2.2",
+                "type": "site3.xml"
+              }
             }
-          },
-          {
-            "StackConfigurations" : {
-              "final" : "false",
-              "property_description" : "desc4",
-              "property_name" : "p4",
-              "property_display_name" : "P4",
-              "property_type" : [ "PASSWORD" ],
-              "property_value" : "v4",
-              "service_name" : "s2",
-              "stack_name" : "HDP",
-              "stack_version" : "2.2",
-              "type" : "site3.xml"
-            }
-          },
-          {
-            "StackConfigurations" : {
-              "final" : "false",
-              "property_description" : "desc5",
-              "property_name" : "p5",
-              "property_display_name" : "P5",
-              "property_type" : [ "USER" ],
-              "property_value" : "v4",
-              "service_name" : "s2",
-              "stack_name" : "HDP",
-              "stack_version" : "2.2",
-              "type" : "site3.xml"
-            }
-          }
-        ]
-      }
-    ]};
+          ]
+        }
+      ]
+    };
 
     beforeEach(function () {
       App.resetDsStoreTypeMap(App.StackConfigProperty);
       sinon.stub(App.store, 'commit', Em.K);
-      sinon.stub(App.StackService, 'find', function() { return Em.A()});
+      sinon.stub(App.StackService, 'find', function () {
+        return Em.A()
+      });
     });
-    afterEach(function(){
+    afterEach(function () {
       App.store.commit.restore();
       App.StackService.find.restore();
     });
 
-    it('should not do anything as there is no json', function() {
+    it('should not do anything as there is no json', function () {
       App.stackConfigPropertiesMapper.map(null);
       expect(App.StackConfigProperty.find().get('length')).to.equal(0);
     });
 
-    it('should load data to model', function() {
-      App.stackConfigPropertiesMapper.map(json);
-      expect(App.StackConfigProperty.find().get('length')).to.equal(5);
-      expect(App.StackConfigProperty.find().mapProperty('id')).to.eql(['p1__site1','p2__site2','p3__site3', 'p4__site3', 'p5__site3']);
+    describe('should load data to model', function () {
 
-      expect(App.StackConfigProperty.find('p1__site1').get('name')).to.eql('p1');
-      expect(App.StackConfigProperty.find('p1__site1').get('displayName')).to.eql('P1');
-      expect(App.StackConfigProperty.find('p1__site1').get('description')).to.eql('desc1');
-      expect(App.StackConfigProperty.find('p1__site1').get('recommendedValue')).to.eql('v1');
-      expect(App.StackConfigProperty.find('p1__site1').get('recommendedIsFinal')).to.be.false;
-      expect(App.StackConfigProperty.find('p1__site1').get('serviceName')).to.eql('s1');
-      expect(App.StackConfigProperty.find('p1__site1').get('stackName')).to.eql('HDP');
-      expect(App.StackConfigProperty.find('p1__site1').get('stackVersion')).to.eql('2.2');
-      expect(App.StackConfigProperty.find('p1__site1').get('type').toArray()).to.eql([]);
-      expect(App.StackConfigProperty.find('p1__site1').get('fileName')).to.eql('site1.xml');
-      expect(App.StackConfigProperty.find('p1__site1').get('propertyDependedBy')).to.eql([
-        {
-          "type": "site4",
-          "name": "p4"
-        }
-      ]);
-      expect(App.StackConfigProperty.find('p1__site1').get('propertyDependsOn')).to.eql([
-        {
-          "type": "site5",
-          "name": "p5"
-        }
-      ]);
-      expect(App.StackConfigProperty.find('p1__site1').get('valueAttributes')).to.eql({
-        "type": "int",
-        "minimum": "512",
-        "maximum": "10240",
-        "unit": "MB"
+      beforeEach(function () {
+        App.stackConfigPropertiesMapper.map(json);
       });
-      expect(App.StackConfigProperty.find('p1__site1').get('supportsFinal')).to.be.true;
+
+      it('5 properties are mapped', function () {
+        expect(App.StackConfigProperty.find().get('length')).to.equal(5);
+      });
+
+      it('ids are valid', function () {
+        expect(App.StackConfigProperty.find().mapProperty('id')).to.eql(['p1__site1', 'p2__site2', 'p3__site3', 'p4__site3', 'p5__site3']);
+      });
+
+      it('name is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('name')).to.be.equal('p1');
+      });
+
+      it('displayName is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('displayName')).to.be.equal('P1');
+      });
+
+      it('description is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('description')).to.be.equal('desc1');
+      });
+
+      it('recommendedValue is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('recommendedValue')).to.be.equal('v1');
+      });
+
+      it('recommendedIsFinal is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('recommendedIsFinal')).to.be.false;
+      });
+
+      it('serviceName is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('serviceName')).to.be.equal('s1');
+      });
+
+      it('stackName is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('stackName')).to.be.equal('HDP');
+      });
+
+      it('stackVersion is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('stackVersion')).to.be.equal('2.2');
+      });
+
+      it('type is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('type').toArray()).to.eql([]);
+      });
+
+      it('fileName is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('fileName')).to.be.equal('site1.xml');
+      });
+
+      it('propertyDependedBy is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('propertyDependedBy')).to.eql([
+          {
+            "type": "site4",
+            "name": "p4"
+          }
+        ]);
+      });
+
+      it('propertyDependsOn is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('propertyDependsOn')).to.eql([
+          {
+            "type": "site5",
+            "name": "p5"
+          }
+        ]);
+      });
+
+      it('valueAttributes is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('valueAttributes')).to.eql({
+          "type": "int",
+          "minimum": "512",
+          "maximum": "10240",
+          "unit": "MB"
+        });
+      });
+
+      it('supportsFinal is valid', function () {
+        expect(App.StackConfigProperty.find('p1__site1').get('supportsFinal')).to.be.true;
+      });
     });
 
-    it('should set "displayType" by "property_type" attribute', function() {
+    it('should set "displayType" by "property_type" attribute', function () {
       App.stackConfigPropertiesMapper.map(json);
       var prop = App.StackConfigProperty.find().findProperty('name', 'p4');
       var prop2 = App.StackConfigProperty.find().findProperty('name', 'p5');
       expect(prop).to.be.ok;
-      expect(prop.get('displayType')).to.be.eql('password');
-      expect(prop2.get('displayType')).to.be.eql('user');
+      expect(prop.get('displayType')).to.be.equal('password');
+      expect(prop2.get('displayType')).to.be.equal('user');
     });
   });
 

@@ -17,9 +17,13 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.base.Enums;
-import com.google.common.base.Strings;
-import com.google.common.base.Optional;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
@@ -36,12 +40,9 @@ import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 
 /**
  * Request for provisioning a cluster.
@@ -73,6 +74,12 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public static final String HOSTGROUP_HOST_FQDN_PROPERTY = "fqdn";
 
+
+  /**
+   * rack info property name
+   */
+  public static final String HOSTGROUP_HOST_RACK_INFO_PROPERTY = "rack_info";
+
   /**
    * host group hosts property name
    */
@@ -92,6 +99,18 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * configuration recommendation strategy property name
    */
   public static final String CONFIG_RECOMMENDATION_STRATEGY = "config_recommendation_strategy";
+
+  /**
+   * Support for controlling whether Install and Start tasks are created on
+   * blueprint deploy by default.
+   */
+  public static final String PROVISION_ACTION_PROPERTY = "provision_action";
+
+  /**
+   * The repo version to use
+   */
+  public static final String REPO_VERSION_PROPERTY = "repository_version";
+
 
   /**
    * configuration factory
@@ -115,6 +134,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   private final ConfigRecommendationStrategy configRecommendationStrategy;
 
+  private final ProvisionAction provisionAction;
+
+  private String repoVersion;
+
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
   /**
@@ -127,6 +150,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     InvalidTopologyTemplateException {
     setClusterName(String.valueOf(properties.get(
       ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
+
+    if (properties.containsKey(REPO_VERSION_PROPERTY)) {
+      repoVersion = properties.get(REPO_VERSION_PROPERTY).toString();
+    }
 
     if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
       defaultPassword = String.valueOf(properties.get(DEFAULT_PASSWORD_PROPERTY));
@@ -152,6 +179,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     this.credentialsMap = parseCredentials(properties);
 
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
+
+    this.provisionAction = parseProvisionAction(properties);
   }
 
   private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
@@ -354,6 +383,12 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
         if (hostProperties.containsKey(HOSTGROUP_HOST_FQDN_PROPERTY)) {
           hostGroupInfo.addHost(hostProperties.get(HOSTGROUP_HOST_FQDN_PROPERTY));
         }
+
+        if (hostProperties.containsKey(HOSTGROUP_HOST_RACK_INFO_PROPERTY)) {
+          hostGroupInfo.addHostRackInfo(
+              hostProperties.get(HOSTGROUP_HOST_FQDN_PROPERTY),
+              hostProperties.get(HOSTGROUP_HOST_RACK_INFO_PROPERTY));
+        }
       }
     }
 
@@ -377,7 +412,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
         Enums.getIfPresent(ConfigRecommendationStrategy.class, configRecommendationStrategy);
       if (!configRecommendationStrategyOpt.isPresent()) {
         throw new InvalidTopologyTemplateException(String.format(
-          "Config recommendation stratagy is not supported: %s", configRecommendationStrategy));
+          "Config recommendation strategy is not supported: %s", configRecommendationStrategy));
       }
       return configRecommendationStrategyOpt.get();
     } else {
@@ -385,4 +420,38 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       return ConfigRecommendationStrategy.NEVER_APPLY;
     }
   }
+
+  /**
+   * Parse Provision Action specified in RequestInfo properties.
+   */
+  private ProvisionAction parseProvisionAction(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+    if (properties.containsKey(PROVISION_ACTION_PROPERTY)) {
+      String provisionActionStr = String.valueOf(properties.get(PROVISION_ACTION_PROPERTY));
+      Optional<ProvisionAction> provisionActionOptional =
+        Enums.getIfPresent(ProvisionAction.class, provisionActionStr);
+
+      if (!provisionActionOptional.isPresent()) {
+        throw new InvalidTopologyTemplateException(String.format(
+          "Invalid provision_action specified in the template: %s", provisionActionStr));
+      }
+      return provisionActionOptional.get();
+    } else {
+      return ProvisionAction.INSTALL_AND_START;
+    }
+  }
+
+  /**
+   * Get requested @ProvisionClusterRequest.ProvisionAction
+   */
+  public ProvisionAction getProvisionAction() {
+    return provisionAction;
+  }
+
+  /**
+   * @return the repository version, if any
+   */
+  public String getRepositoryVersion() {
+    return repoVersion;
+  }
+
 }

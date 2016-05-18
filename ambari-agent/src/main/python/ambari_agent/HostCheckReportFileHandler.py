@@ -87,9 +87,9 @@ class HostCheckReportFileHandler:
       logger.error("Can't write host check file at %s :%s " % (self.hostCheckCustomActionsFilePath, err.message))
       traceback.print_exc()
 
-  def _hdp_list_directory(self):
+  def _stack_list_directory(self):
     """
-    Return filtered list of /usr/hdp directory allowed to be removed
+    Return filtered list of <stack-root> directory allowed to be removed
     :rtype list
     """
 
@@ -152,7 +152,7 @@ class HostCheckReportFileHandler:
         items = []
         for itemDetail in hostInfo['stackFoldersAndFiles']:
           items.append(itemDetail['name'])
-        items += self._hdp_list_directory()
+        items += self._stack_list_directory()
         config.add_section('directories')
         config.set('directories', 'dir_list', ','.join(items))
 

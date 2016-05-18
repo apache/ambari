@@ -3,6 +3,9 @@
     "clusterName": "c1",
     "hostname": "c6401.ambari.apache.org",
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
         "ambari_db_rca_password": "mapred",
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
@@ -33,6 +36,10 @@
         "slider-client": {
             "slider.yarn.queue": "default"
         },
+        "sqoop-site": {
+          "atlas.cluster.name": "c1",
+          "sqoop.job.data.publish.class": "org.apache.atlas.sqoop.hook.SqoopHook"
+        },
         "mahout-env": {
              "mahout_user": "mahout"
         },
@@ -57,6 +64,7 @@
             "yarn.resourcemanager.scheduler.address": "c6401.ambari.apache.org:8030"
         },
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
             "smokeuser": "ambari-qa",
@@ -164,6 +172,7 @@
         "log.retention.hours": "168"
       },
       "application-properties": {
+        "atlas.cluster.name" : "c2",
         "atlas.graph.storage.backend": "berkeleyje",
         "atlas.graph.storage.directory": "data/berkley",
         "atlas.graph.index.search.backend": "elasticsearch",
@@ -185,7 +194,13 @@
         "atlas.http.authentication.kerberos.principal": "HTTP/_HOST@EXAMPLE.COM",
         "atlas.http.authentication.kerberos.keytab": "/etc/security/keytabs/spnego.service.keytab",
         "atlas.http.authentication.kerberos.name.rules": "DEFAULT",
-        "atlas.server.http.port" : "21000"
+        "atlas.server.http.port" : "21000",
+        "atlas.notification.embedded" : false,
+        "atlas.kafka.bootstrap.servers" : "c6401.ambari.apache.org:6667",
+        "atlas.kafka.data" : "/usr/hdp/current/atlas-server/data/kafka",
+        "atlas.kafka.entities.group.id" : "entities",
+        "atlas.kafka.hook.group.id" : "atlas",
+        "atlas.kafka.zookeeper.connect" : "c6401.ambari.apache.org:2181"
       },
       "atlas-env": {
         "content": "# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path\nexport JAVA_HOME={{java64_home}}\n# any additional java opts you want to set. This will apply to both client and server operations\nexport METADATA_OPTS={{metadata_opts}}\n# metadata configuration directory\nexport METADATA_CONF={{conf_dir}}\n# Where log files are stored. Defatult is logs directory under the base install location\nexport METADATA_LOG_DIR={{log_dir}}\n# additional classpath entries\nexport METADATACPPATH={{metadata_classpath}}\n# data dir\nexport METADATA_DATA_DIR={{data_dir}}\n# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.\nexport METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}",
@@ -194,7 +209,17 @@
         "metadata_pid_dir": "/var/run/atlas",
         "metadata_log_dir": "/var/log/atlas",
         "metadata_data_dir": "/var/lib/atlas/data",
-        "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp"
+        "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp",
+        "metadata_conf_file": "application.properties",
+        "has_embedded_hbase":"true"
+      },
+      "atlas-log4j": {
+        "content": "<property><name>content</name><description>Custom log4j.properties</description><value></value></property>",
+        "atlas_log_level": "debug",
+        "audit_log_level": "OFF"
+      },
+      "atlas-hbase-site": {
+        "hbase.master.info.port": "61510"
       },
       "ranger-hbase-plugin-properties": {
             "ranger-hbase-plugin-enabled":"yes"
@@ -207,6 +232,7 @@
       }
     },
     "configuration_attributes": {
+        "sqoop-site": {},
         "yarn-site": {
             "final": {
                 "yarn.nodemanager.disk-health-checker.min-healthy-disks": "true",
@@ -239,6 +265,7 @@
       "kafka-env": {},
       "kafka-log4j": {},
       "kafka-broker": {},
+      "atlas-hbase-site": {},
       "metadata-env": {}
     },
     "configurationTags": {

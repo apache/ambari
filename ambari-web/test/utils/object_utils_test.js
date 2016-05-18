@@ -35,7 +35,7 @@ describe('utils/object_utils', function() {
     };
     it('should return correct tree of childs', function(){
       var result = objectUtils.recursiveTree(testObj);
-      expect(result).to.eql('a2 (/a1)<br/>a5 (/a1/a3/a4)<br/>');
+      expect(result).to.be.equal('a2 (/a1)<br/>a5 (/a1/a3/a4)<br/>');
     });
 
     it('should return `null` if type missed', function() {
@@ -178,4 +178,446 @@ describe('utils/object_utils', function() {
     });
   });
 
+  describe('#deepMerge', function() {
+    var tests = [
+      {
+        target: {
+          a: [
+            {
+              c: 3
+            }
+          ]
+        },
+        source: {
+          a: [
+            {
+              b: 2
+            }
+          ]
+        },
+        e: {
+          a: [
+            {
+              c: 3
+            },
+            {
+              b: 2
+            }
+          ]
+        }
+      },
+      {
+        target: {
+          a: {}
+        },
+        source: {
+          a: {
+            b: 2,
+            c: [1,2,3]
+          }
+        },
+        e: {
+          a: {
+            b: 2,
+            c: [1,2,3]
+          }
+        }
+      },
+      {
+        target: {
+          artifact_data: {
+            services: [
+              {
+                name: "HIVE",
+                configurations: [
+                  {
+                    "hive-site": {
+                      hive_prop1: "hive_val1"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        source: {
+          artifact_data: {
+            services: [
+              {
+                name: "HDFS",
+                configurations: [
+                  {
+                    "hdfs-site": {
+                      hdfs_prop1: "hdfs_val1"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        e: {
+          artifact_data: {
+            services: [
+              {
+                name: "HIVE",
+                configurations: [
+                  {
+                    "hive-site": {
+                      hive_prop1: "hive_val1"
+                    }
+                  }
+                ]
+              },
+              {
+                name: "HDFS",
+                configurations: [
+                  {
+                    "hdfs-site": {
+                      hdfs_prop1: "hdfs_val1"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        source: {
+          "artifact_data" : {
+            "identities" : [
+              {
+                "principal" : {
+                  "value" : "HTTP/_HOST@${realm}",
+                  "type" : "service"
+                },
+                "name" : "spnego",
+                "keytab" : {
+                  "file" : "${keytab_dir}/spnego.service.keytab",
+                  "owner" : {
+                    "name" : "root",
+                    "access" : "r"
+                  },
+                  "group" : {
+                    "name" : "${cluster-env/user_group}",
+                    "access" : "r"
+                  }
+                }
+              },
+              {
+                "principal" : {
+                  "value" : "${cluster-env/smokeuser}-----@${realm}",
+                  "local_username" : "${cluster-env/smokeuser}",
+                  "configuration" : "cluster-env/smokeuser_principal_name",
+                  "type" : "user"
+                },
+                "name" : "smokeuser",
+                "keytab" : {
+                  "file" : "${keytab_dir}/smokeuser.headless.keytab",
+                  "owner" : {
+                    "name" : "${cluster-env/smokeuser}",
+                    "access" : "r"
+                  },
+                  "configuration" : "cluster-env/smokeuser_keytab",
+                  "group" : {
+                    "name" : "${cluster-env/user_group}",
+                    "access" : "r"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        target: {
+          "artifact_data" : {
+            "identities" : [
+              {
+                "principal" : {
+                  "value" : "${cluster-env/smokeuser}@${realm}",
+                  "local_username" : "${cluster-env/smokeuser}",
+                  "configuration" : "cluster-env/smokeuser_principal_name",
+                  "type" : "user"
+                },
+                "name" : "smokeuser",
+                "keytab" : {
+                  "file" : "${keytab_dir}/smokeuser.headless.keytab",
+                  "owner" : {
+                    "name" : "${cluster-env/smokeuser}",
+                    "access" : "r"
+                  },
+                  "configuration" : "cluster-env/smokeuser_keytab",
+                  "group" : {
+                    "name" : "${cluster-env/user_group}",
+                    "access" : "r"
+                  }
+                }
+              },
+              {
+                "principal" : {
+                  "value" : "HTTP/_HOST@${realm}",
+                  "local_username" : null,
+                  "configuration" : null,
+                  "type" : "service"
+                },
+                "name" : "spnego",
+                "keytab" : {
+                  "file" : "${keytab_dir}/spnego.service.keytab",
+                  "owner" : {
+                    "name" : "root",
+                    "access" : "r"
+                  },
+                  "configuration" : null,
+                  "group" : {
+                    "name" : "${cluster-env/user_group}",
+                    "access" : "d"
+                  }
+                }
+              },
+              {
+                "name": "anotherOne"
+              }
+            ]
+          }
+        },
+        e: {
+          "artifact_data" : {
+            "identities" : [
+              {
+                "principal" : {
+                  "value" : "${cluster-env/smokeuser}-----@${realm}",
+                  "local_username" : "${cluster-env/smokeuser}",
+                  "configuration" : "cluster-env/smokeuser_principal_name",
+                  "type" : "user"
+                },
+                "name" : "smokeuser",
+                "keytab" : {
+                  "file" : "${keytab_dir}/smokeuser.headless.keytab",
+                  "owner" : {
+                    "name" : "${cluster-env/smokeuser}",
+                    "access" : "r"
+                  },
+                  "configuration" : "cluster-env/smokeuser_keytab",
+                  "group" : {
+                    "name" : "${cluster-env/user_group}",
+                    "access" : "r"
+                  }
+                }
+              },
+              {
+                "principal" : {
+                  "value" : "HTTP/_HOST@${realm}",
+                  "local_username" : null,
+                  "configuration" : null,
+                  "type" : "service"
+                },
+                "name" : "spnego",
+                "keytab" : {
+                  "file" : "${keytab_dir}/spnego.service.keytab",
+                  "owner" : {
+                    "name" : "root",
+                    "access" : "r"
+                  },
+                  "configuration" : null,
+                  "group" : {
+                    "name" : "${cluster-env/user_group}",
+                    "access" : "r"
+                  }
+                }
+              },
+              {
+                "name": "anotherOne"
+              }
+            ]
+          }
+        }
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it("Should merge objects `{0}`, `{1}`".format(JSON.stringify(test.target), JSON.stringify(test.source)), function() {
+        expect(objectUtils.deepMerge(test.target, test.source, test.handler)).to.be.eql(test.e);
+      });
+    });
+  });
+
+  describe('#detectIndexedKey', function() {
+    var tests = [
+      {
+        target: [
+          {
+            a: 1,
+            b: []
+          },
+          {
+            a: 3,
+            b: 2
+          },
+          {
+            a: 2,
+            b: {}
+          }
+        ],
+        e: 'a',
+        m: 'should detect uniq key as `a`'
+      },
+      {
+        target: [
+          {
+            "principal" : {
+              "value" : "HTTP/_HOST@${realm}",
+              "local_username" : null,
+              "configuration" : null,
+              "type" : "service"
+            },
+            "name" : "spnego",
+            "keytab" : {
+              "file" : "${keytab_dir}/spnego.service.keytab",
+              "owner" : {
+                "name" : "root",
+                "access" : "r"
+              },
+              "configuration" : null,
+              "group" : {
+                "name" : "${cluster-env/user_group}",
+                "access" : "r"
+              }
+            }
+          },
+          {
+            "principal" : {
+              "value" : "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}",
+              "local_username" : "${cluster-env/smokeuser}",
+              "configuration" : "cluster-env/smokeuser_principal_name",
+              "type" : "user"
+            },
+            "name" : "smokeuser",
+            "keytab" : {
+              "file" : "${keytab_dir}/smokeuser.headless.keytab",
+              "owner" : {
+                "name" : "${cluster-env/smokeuser}",
+                "access" : "r"
+              },
+              "configuration" : "cluster-env/smokeuser_keytab",
+              "group" : {
+                "name" : "${cluster-env/user_group}",
+                "access" : "r"
+              }
+            }
+          }
+        ],
+        e: 'name',
+        m: 'should detect uniq key as `name`'
+      },
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(objectUtils.detectIndexedKey(test.target)).to.eql(test.e);
+      });
+    });
+  });
+
+  describe('#smartArrayObjectMerge', function() {
+    var tests = [
+      {
+        target: [
+          {
+            a: 2,
+            B: 2
+          }
+        ],
+        source: [
+          {
+            a: 3,
+            c: 4
+          },
+        ],
+        m: 'should merge {0} {1}, into {2}',
+        e: [
+          {
+            a: 2,
+            B: 2
+          },
+          {
+            a: 3,
+            c: 4
+          }
+        ]
+      },
+      {
+        target: [
+          {
+            a: 2,
+            B: 2
+          }
+        ],
+        source: [
+          {
+            a: 2,
+            B: 3,
+            b: 4
+          },
+          {
+            a: 3,
+            c: 4
+          }
+        ],
+        m: 'should merge {0} {1}, into {2}',
+        e: [
+          {
+            a: 2,
+            B: 3,
+            b: 4
+          },
+          {
+            a: 3,
+            c: 4
+          }
+        ]
+      },
+      {
+        target: [
+          {
+            "spark-defaults" : {
+              "spark.history.kerberos.enabled" : "true",
+              "spark.history.enabled" : "no"
+            }
+          }
+        ],
+        source: [
+          {
+            "spark-defaults" : {
+              "spark.history.kerberos.enabled" : "false"
+            }
+          },
+          {
+            "spark-site" : {
+              "spark.property" : "false"
+            }
+          }
+        ],
+        m: 'should merge {0} {1}, into {2}',
+        e: [
+          {
+            "spark-defaults" : {
+              "spark.history.kerberos.enabled" : "true",
+              "spark.history.enabled" : "no"
+            }
+          },
+          {
+            "spark-site" : {
+              "spark.property" : "false"
+            }
+          }
+        ]
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m.format(JSON.stringify(test.target), JSON.stringify(test.source), JSON.stringify(test.e)), function() {
+        expect(objectUtils.smartArrayObjectMerge(test.target, test.source).toArray()).to.be.eql(test.e);
+      });
+    });
+  });
 });

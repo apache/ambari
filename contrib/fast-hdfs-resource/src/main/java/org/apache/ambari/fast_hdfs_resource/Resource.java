@@ -44,6 +44,7 @@ public class Resource {
   private boolean recursiveChown;
   private boolean recursiveChmod;
   private boolean changePermissionforParents;
+  private boolean manageIfExists;
 
   public String getSource() {
     return source;
@@ -125,16 +126,22 @@ public class Resource {
     this.changePermissionforParents = changePermissionforParents;
   }
 
-  
-  
-  
+  public boolean isManageIfExists() {
+    return manageIfExists;
+  }
+
+  public void setManageIfExists(boolean manageIfExists) {
+    this.manageIfExists = manageIfExists;
+  }
+
   @Override
   public String toString() {
     return "Resource [source=" + source + ", target=" + target + ", type="
         + type + ", action=" + action + ", owner=" + owner + ", group=" + group
         + ", mode=" + mode + ", recursiveChown=" + recursiveChown
         + ", recursiveChmod=" + recursiveChmod
-        + ", changePermissionforParents=" + changePermissionforParents + "]";
+        + ", changePermissionforParents=" + changePermissionforParents
+        + ", manageIfExists=" + manageIfExists + "]";
   }
 
   /*
@@ -203,7 +210,11 @@ public class Resource {
     } else if (isCreate && resource.getType().equals("file")) {
       dfs.createNewFile(pathHadoop); // empty file
     } else {
-      dfs.copyFromLocalFile(new Path(resource.getSource()), pathHadoop);// copy
+      if(dfs.exists(pathHadoop) && dfs.getFileStatus(pathHadoop).isDir()) {
+        System.out.println("Skipping copy from local, as target " + pathHadoop + " is an existing directory."); // Copy from local to existing directory is not supported by dfs.
+      } else {
+        dfs.copyFromLocalFile(new Path(resource.getSource()), pathHadoop);
+      }
     }
   }
 
@@ -214,7 +225,7 @@ public class Resource {
       FileSystem dfs, Path pathHadoop) throws IOException {
 
     if (resource.getMode() != null) {
-      FsPermission permission = new FsPermission(Short.valueOf(resource.getMode()));
+      FsPermission permission = new FsPermission((short)Integer.parseInt(resource.getMode(), 8));
       dfs.setPermission(pathHadoop, permission);
 
       // Recursive

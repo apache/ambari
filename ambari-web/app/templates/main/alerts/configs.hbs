@@ -17,22 +17,24 @@
 }}
 <form class="form-horizontal alert-configs">
   {{#each property in controller.configs}}
-    <div {{bindAttr class=":control-group property.name property.isValid::error"}}>
-      {{#if property.isPreLabeled}}
-        <label {{bindAttr class=":control-label property.isShifted:shifted"}}>{{property.label}}</label>
+    {{#unless property.hidden}}
+      <div {{bindAttr class=":control-group property.name property.isValid::error"}}>
+        {{#if property.isPreLabeled}}
+          <label {{bindAttr class=":control-label property.isShifted:shifted"}}>{{property.label}}</label>
 
-        <div {{bindAttr class=":controls property.isShifted:shifted"}}>
-          {{view property.viewClass propertyBinding="property"}}
-        </div>
-      {{else}}
-        <div class="controls">
-          <label class="radio">
+          <div {{bindAttr class=":controls property.isShifted:shifted"}}>
             {{view property.viewClass propertyBinding="property"}}
-            {{property.label}}
-          </label>
-        </div>
-      {{/if}}
-    </div>
+          </div>
+        {{else}}
+          <div class="controls">
+            <label class="radio">
+              {{view property.viewClass propertyBinding="property"}}
+              {{property.label}}
+            </label>
+          </div>
+        {{/if}}
+      </div>
+    {{/unless}}
   {{/each}}
   {{#if controller.hasThresholdsError}}
     <div class="error-message controls">

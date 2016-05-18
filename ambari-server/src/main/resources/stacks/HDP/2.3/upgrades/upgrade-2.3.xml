@@ -76,6 +76,12 @@
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /usr/hdp/current/knox-server/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBase Backup">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
@@ -91,7 +97,7 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Pre Upgrade Oozie Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -107,7 +113,7 @@
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Pre Upgrade Ranger KMS Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup Ranger KMS database</message>
+          <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
     </group>
@@ -138,8 +144,8 @@
     <group name="CORE_MASTER" title="Core Masters">
       <service-check>false</service-check>
       <service name="HDFS">
-        <component>JOURNALNODE</component>
         <component>NAMENODE</component>
+        <component>JOURNALNODE</component>
         <component>ZKFC</component>
       </service>
 
@@ -169,6 +175,7 @@
       </priority>
       <exclude>
         <service>AMBARI_METRICS</service>
+        <service>LOGSEARCH</service>
       </exclude>
     </group>
     
@@ -207,6 +214,7 @@
       </priority>
       <exclude>
         <service>AMBARI_METRICS</service>
+        <service>LOGSEARCH</service>
       </exclude>
     </group>
 
@@ -226,6 +234,7 @@
       <service-check>false</service-check>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 
@@ -233,6 +242,16 @@
       <skippable>true</skippable>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+
+    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
+    <group name="ATLAS" title="Atlas">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service name="ATLAS">
+        <component>ATLAS_SERVER</component>
       </service>
     </group>
 
@@ -322,6 +341,7 @@
       </priority>
       <exclude>
         <service>AMBARI_METRICS</service>
+        <service>LOGSEARCH</service>
       </exclude>
     </group>
 
@@ -376,6 +396,7 @@
     </group>
 
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
+      <scope>COMPLETE</scope>
       <execute-stage title="Update remaining HDP stack to {{version}}">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
@@ -434,9 +455,37 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger database schema">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
+
+        <post-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-upgrade>
+
+        <post-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
+        </post-downgrade>
       </component>
 
       <component name="RANGER_USERSYNC">
@@ -448,6 +497,20 @@
 
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger KMS database schema">
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -508,6 +571,10 @@
       </component>
 
       <component name="MAPREDUCE2_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -542,6 +609,11 @@
 
     <service name="HBASE">
       <component name="HBASE_MASTER">
+        <pre-upgrade>
+          <!-- These HBASE configs changed in HDP 2.3.4.0, but Ambari can't distinguish HDP 2.3.2.0 vs HDP 2.3.4.0, so easier to always do them. -->
+          <task xsi:type="configure" id="hdp_2_3_4_0_hbase_remove_local_indexing"/>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -570,6 +642,8 @@
       <component name="TEZ_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+
+          <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -612,7 +686,7 @@
         <pre-upgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10010 if Hive is using a binary transfer mode or 10011 if Hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_set_transport_mode"/>
@@ -621,7 +695,7 @@
         <pre-downgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10000 if hive is using a binary transfer mode or 10001 if hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10000 if Hive is using a binary transfer mode or 10001 if Hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_restore_transport_mode_on_downgrade"/>
@@ -657,6 +731,11 @@
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
+      <component name="SPARK_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
       <component name="SPARK_CLIENT">
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -667,24 +746,29 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+          <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+
+          <!-- It is extremely important that both of these tasks run on the exact same host. Hence, pick the first alphabetically. -->
+          <task xsi:type="configure_function" hosts="first" />
+
+          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>

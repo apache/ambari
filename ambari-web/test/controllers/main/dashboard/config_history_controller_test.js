@@ -18,12 +18,21 @@
 
 
 var App = require('app');
-
+var testHelpers = require('test/helpers');
 require('controllers/main/dashboard/config_history_controller');
 
 describe('MainConfigHistoryController', function () {
 
-  var controller = App.MainConfigHistoryController.create();
+  var controller;
+
+  beforeEach(function () {
+    controller = App.MainConfigHistoryController.create();
+  });
+
+  afterEach(function () {
+    clearTimeout(controller.get('timeoutRef'));
+    controller.destroy();
+  });
 
   describe('#realUrl', function () {
     it('cluster name is empty', function () {
@@ -36,50 +45,66 @@ describe('MainConfigHistoryController', function () {
     });
   });
   describe('#load()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(controller, 'updateTotalCounter', Em.K);
       sinon.stub(controller, 'loadConfigVersionsToModel').returns({done: Em.K});
-
       controller.load();
-      expect(controller.updateTotalCounter.calledOnce).to.be.true;
+    });
 
+    afterEach(function () {
       controller.updateTotalCounter.restore();
       controller.loadConfigVersionsToModel.restore();
     });
+
+    it('updateTotalCounter is called once', function () {
+      expect(controller.updateTotalCounter.calledOnce).to.be.true;
+    });
   });
   describe('#loadConfigVersionsToModel()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(App.HttpClient, 'get', Em.K);
       sinon.stub(controller, 'getUrl', Em.K);
       sinon.stub(controller, 'getQueryParameters', function(){
         return [1];
       });
-
       controller.loadConfigVersionsToModel();
-      expect(App.HttpClient.get.calledOnce).to.be.true;
-      expect(controller.getQueryParameters.calledOnce).to.be.true;
-      expect(controller.getUrl.calledWith([1])).to.be.true;
+    });
 
-
+    afterEach(function () {
       controller.getUrl.restore();
       controller.getQueryParameters.restore();
       App.HttpClient.get.restore();
     });
+
+    it('HttpClient.get is called once', function () {
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+
+    it('getQueryParameters is called once', function () {
+      expect(controller.getQueryParameters.calledOnce).to.be.true;
+    });
+
+    it('getUrl is called with correct data', function () {
+      expect(controller.getUrl.calledWith([1])).to.be.true;
+    });
   });
 
   describe('#updateTotalCounter()', function () {
-    it('', function () {
-      sinon.stub(App.ajax, 'send', Em.K);
 
+    beforeEach(function () {
       controller.updateTotalCounter();
-      expect(App.ajax.send.calledOnce).to.be.true;
+    });
 
-      App.ajax.send.restore();
+    it('ajax-request is sent', function () {
+      var args = testHelpers.findAjaxRequest('name', 'service.serviceConfigVersions.get.total');
+      expect(args).to.exists;
     });
   });
 
   describe('#updateTotalCounterSuccess()', function () {
-    it('', function () {
+    it('totalCount is updated', function () {
       controller.updateTotalCounterSuccess({itemTotal: 1});
       expect(controller.get('totalCount')).to.equal(1);
     });
@@ -96,27 +121,12 @@ describe('MainConfigHistoryController', function () {
     });
     afterEach(function () {
       App.router.get.restore();
-      App.get.restore();
-    });
-    it('testMode is true', function () {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      expect(controller.getUrl()).to.equal('/data/configurations/service_versions.json');
     });
     it('query params is empty', function () {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
+
       expect(controller.getUrl()).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true');
     });
     it('query params is correct', function () {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
       expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?params&fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true');
     });
   });

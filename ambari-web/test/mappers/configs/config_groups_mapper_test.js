@@ -111,13 +111,13 @@ describe.skip('App.configGroupsMapper', function () {
       App.Service.createRecord({'id': 'Service1'});
       App.configGroupsMapper.map(null, ["Service1"]);
       expect(App.ServiceConfigGroup.find().get('length')).to.equal(1);
-      expect(App.ServiceConfigGroup.find('Service10').get('id')).to.eql('Service10');
-      expect(App.ServiceConfigGroup.find('Service10').get('configGroupId')).to.eql(-1);
-      expect(App.ServiceConfigGroup.find('Service10').get('name')).to.eql('Service1 Default');
-      expect(App.ServiceConfigGroup.find('Service10').get('description')).to.eql('Default cluster level Service1 configuration');
+      expect(App.ServiceConfigGroup.find('Service10').get('id')).to.equal('Service10');
+      expect(App.ServiceConfigGroup.find('Service10').get('configGroupId')).to.equal(-1);
+      expect(App.ServiceConfigGroup.find('Service10').get('name')).to.equal('Service1 Default');
+      expect(App.ServiceConfigGroup.find('Service10').get('description')).to.equal('Default cluster level Service1 configuration');
       expect(App.ServiceConfigGroup.find('Service10').get('hostNames')).to.eql(defaultAllHosts);
-      expect(App.ServiceConfigGroup.find('Service10').get('serviceName')).to.eql('Service1');
-      expect(App.ServiceConfigGroup.find('Service10').get('service.id')).to.eql('Service1');
+      expect(App.ServiceConfigGroup.find('Service10').get('serviceName')).to.equal('Service1');
+      expect(App.ServiceConfigGroup.find('Service10').get('service.id')).to.equal('Service1');
     });
 
     it('should generate groups form json and default config groups', function() {
@@ -133,13 +133,13 @@ describe.skip('App.configGroupsMapper', function () {
       App.Service.createRecord({'id': 'Service2'});
       App.configGroupsMapper.map(json, ["Service1", "Service2"]);
 
-      expect(App.ServiceConfigGroup.find('Service12').get('id')).to.eql('Service12');
-      expect(App.ServiceConfigGroup.find('Service12').get('configGroupId')).to.eql(2);
-      expect(App.ServiceConfigGroup.find('Service12').get('name')).to.eql('1');
-      expect(App.ServiceConfigGroup.find('Service12').get('description')).to.eql('1');
+      expect(App.ServiceConfigGroup.find('Service12').get('id')).to.equal('Service12');
+      expect(App.ServiceConfigGroup.find('Service12').get('configGroupId')).to.equal(2);
+      expect(App.ServiceConfigGroup.find('Service12').get('name')).to.equal('1');
+      expect(App.ServiceConfigGroup.find('Service12').get('description')).to.equal('1');
       expect(App.ServiceConfigGroup.find('Service12').get('hostNames')).to.eql(["host1"]);
-      expect(App.ServiceConfigGroup.find('Service12').get('serviceName')).to.eql('Service1');
-      expect(App.ServiceConfigGroup.find('Service12').get('service.id')).to.eql('Service1');
+      expect(App.ServiceConfigGroup.find('Service12').get('serviceName')).to.equal('Service1');
+      expect(App.ServiceConfigGroup.find('Service12').get('service.id')).to.equal('Service1');
     });
   });
 

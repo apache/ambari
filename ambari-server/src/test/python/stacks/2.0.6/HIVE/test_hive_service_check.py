@@ -30,6 +30,7 @@ import resource_management.libraries.functions
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
 
 
   def test_service_check_default(self, socket_mock):
@@ -38,7 +39,7 @@ class TestServiceCheck(RMFTestCase):
                         classname="HiveServiceCheck",
                         command="service_check",
                         config_file="default.json",
-                        hdp_stack_version = self.STACK_VERSION,
+                        stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
@@ -62,11 +63,8 @@ class TestServiceCheck(RMFTestCase):
         try_sleep = 5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
-        security_enabled = False,
-        keytab = UnknownConfigurationMock(),
         conf_dir = '/etc/hadoop/conf',
         logoutput = True,
-        kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         bin_dir = '/bin:/usr/lib/hive/bin:/usr/bin',
     )
@@ -90,6 +88,7 @@ class TestServiceCheck(RMFTestCase):
         owner="hdfs"
     )
     self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.pig',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -103,9 +102,10 @@ class TestServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.in',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -119,9 +119,10 @@ class TestServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
@@ -131,10 +132,10 @@ class TestServiceCheck(RMFTestCase):
         principal_name = 'missing_principal',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig no_keytab false /usr/bin/kinit no_principal',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig no_keytab false /usr/bin/kinit no_principal /tmp',
         logoutput = True,
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
         tries = 3,
@@ -149,7 +150,7 @@ class TestServiceCheck(RMFTestCase):
                         classname="HiveServiceCheck",
                         command="service_check",
                         config_file="secured.json",
-                        hdp_stack_version = self.STACK_VERSION,
+                        stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; ',
@@ -172,15 +173,14 @@ class TestServiceCheck(RMFTestCase):
         user = 'ambari-qa',
         try_sleep = 5,
     )
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
+        user = 'hdfs',
+    )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
-        security_enabled = True,
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         conf_dir = '/etc/hadoop/conf',
         logoutput = True,
-        kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
         bin_dir = '/bin:/usr/lib/hive/bin:/usr/bin',
-        principal = 'hdfs',
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;  /tmp/hcatSmoke.sh hcatsmoke cleanup false',
         logoutput = True,
@@ -203,6 +203,7 @@ class TestServiceCheck(RMFTestCase):
         owner = "hdfs"
     )
     self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.pig',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -216,9 +217,10 @@ class TestServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.in',
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -232,9 +234,10 @@ class TestServiceCheck(RMFTestCase):
         owner = 'ambari-qa',
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'file',
-        action = ['create_on_execute'],
+        action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
     )
     self.assertResourceCalled('HdfsResource', None,
+        immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
@@ -244,10 +247,10 @@ class TestServiceCheck(RMFTestCase):
         principal_name = 'hdfs',
         user = 'hdfs',
         dfs_type = '',
-        action = ['execute'],
+        action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         hadoop_conf_dir = '/etc/hadoop/conf',
     )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM /tmp',
         logoutput = True,
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
         tries = 3,
@@ -268,7 +271,7 @@ class TestServiceCheck(RMFTestCase):
       classname="HiveServiceCheck",
       command="service_check",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10010/;transportMode=binary' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",

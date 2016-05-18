@@ -46,6 +46,9 @@
     "clusterName": "c1", 
     "hostname": "c6401.ambari.apache.org", 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://10.0.0.15:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "java_home": "/usr/jdk64/jdk1.7.0_45",
@@ -221,7 +224,7 @@
             "dfs.namenode.stale.datanode.interval": "30000", 
             "dfs.datanode.ipc.address": "0.0.0.0:8010", 
             "dfs.namenode.name.dir": "/hadoop/hdfs/namenode", 
-            "dfs.nameservices": "nn1", 
+            "dfs.internal.nameservices": "nn1",
             "dfs.datanode.data.dir": "/hadoop/hdfs/data", 
             "dfs.namenode.http-address": "c6401.ambari.apache.org:50070", 
             "dfs.webhdfs.enabled": "true", 
@@ -564,6 +567,7 @@
             "zk_user": "zookeeper"
         }, 
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
             "kerberos_domain": "EXAMPLE.COM",

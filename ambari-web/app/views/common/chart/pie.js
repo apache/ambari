@@ -82,16 +82,15 @@ App.ChartPieView = Em.View.extend({
       .append("svg:g")
       .attr("transform", "translate(" + thisChart.get('w') / 2 + "," + thisChart.get('h') / 2 + ")"));
 
-    this.set('arcs', thisChart.get('svg').selectAll("path")
+    this.set('arcs', thisChart.get('svg').selectAll(".arc")
       .data(thisChart.donut(thisChart.get('data')))
-      .enter().append("svg:path")
+      .enter()
+      .append("svg:g").attr('class', 'arc')
+      .append('svg:path')
       .attr("fill", function (d, i) {
         return thisChart.palette.color(i);
       })
       .attr("d", thisChart.get('arc'))
-
     );
-
   }
-
 });

@@ -40,7 +40,7 @@
           disabledBinding="isInstalled"
           checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>
           </td>
-          <td>{{serviceVersion}}</td>
+          <td>{{serviceVersionDisplay}}</td>
           <td>{{{comments}}}</td>
         </tr>
       {{/unless}}
@@ -52,6 +52,11 @@
     {{#unless view.parentView.controller.hideBackButton}}
       <a class="btn pull-left installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
     {{/unless}}
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}> {{t common.next}} &rarr;</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+      {{/if}}
+      {{t common.next}} &rarr;
+    </a>
   </div>
 </div>

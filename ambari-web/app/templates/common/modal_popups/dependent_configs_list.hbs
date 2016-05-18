@@ -33,30 +33,30 @@
     </tr>
     </thead>
     <tbody>
-    {{#each config in view.parentView.configs}}
+    {{#each recommendation in view.parentView.recommendations}}
       <tr>
-        <td class="check-box-col">{{view Em.Checkbox checkedBinding="config.saveRecommended"}}</td>
-        <td class="config-dependency-name">{{config.propertyName}}</td>
-        <td class="config-dependency-service">{{config.serviceDisplayName}}</td>
+        <td class="check-box-col">{{view Em.Checkbox checkedBinding="recommendation.saveRecommended"}}</td>
+        <td class="config-dependency-name">{{recommendation.propertyName}}</td>
+        <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
         <td class="config-dependency-group">
-          <span {{bindAttr class="config.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
-            {{action showSelectGroupPopup config.serviceName target="App.router.mainServiceInfoConfigsController"}}>
-            {{config.configGroup}}
+          <span {{bindAttr class="recommendation.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
+            {{action showSelectGroupPopup recommendation.serviceName target="App.router.mainServiceInfoConfigsController"}}>
+            {{recommendation.configGroup}}
           </a></span>
         </td>
-        <td class="config-dependency-filename">{{config.fileName}}</td>
+        <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
         <td class="config-dependency-value">
-          {{#if config.notDefined}}
+          {{#if recommendation.notDefined}}
             <i>{{t popup.dependent.configs.table.not.defined}}</i>
           {{else}}
-            {{config.value}}
+            {{recommendation.initialValue}}
           {{/if}}
         </td>
         <td class="config-dependency-recommended-value">
-          {{#if config.isDeleted}}
+          {{#if recommendation.isDeleted}}
             <i>{{t common.removed}}</i>
           {{else}}
-            {{config.recommendedValue}}
+            {{recommendation.recommendedValue}}
           {{/if}}
         </td>
       </tr>

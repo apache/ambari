@@ -25,7 +25,7 @@ var App = require('app');
  */
 App.RootService = DS.Model.extend({
   serviceName: DS.attr('string'),
-  displayName: Em.computed.formatRole('serviceName'),
+  displayName: Em.computed.formatRole('serviceName', true),
   components: DS.hasMany('App.RootServiceComponents')
 });
 
@@ -33,7 +33,7 @@ App.RootService.FIXTURES = [];
 
 App.RootServiceComponents =   DS.Model.extend({
   componentName: DS.attr('string'),
-  displayName: Em.computed.formatRole('componentName'),
+  displayName: Em.computed.formatRole('componentName', false),
   componentVersion: DS.attr('string'),
   serverClock: DS.attr('number'),
   serviceName: DS.attr('string'),

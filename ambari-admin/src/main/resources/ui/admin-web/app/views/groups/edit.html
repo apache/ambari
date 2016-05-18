@@ -18,13 +18,13 @@
   
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
-    <li><a href="#/groups">Groups</a></li>
+    <li><a href="#/groups">{{'common.groups' | translate}}</a></li>
     <li class="active">{{group.group_name}}</li>
   </ol>
   <div class="pull-right top-margin-4">
     <div ng-switch="group.ldap_group">
-      <button ng-switch-when="true" class="btn disabled deletegroup-btn deleteuser-btn" tooltip="Cannot Delete Group">Delete Group</button>
-      <button ng-switch-when="false" class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)">Delete Group</button>
+      <button ng-switch-when="true" class="btn disabled deletegroup-btn deleteuser-btn" tooltip="{{'common.cannotDelete' | translate: '{term: constants.group}'}}">{{'common.delete' | translate: '{term: constants.group}'}}</button>
+      <button ng-switch-when="false" class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)" tooltip="{{'common.cannotDelete' | translate: '{term: constants.group}'}}">{{'common.delete' | translate: '{term: constants.group}'}}</button>
     </div>
       
   </div>
@@ -32,26 +32,26 @@
 <hr>
 <form class="form-horizontal group-edit" role="form" novalidate name="form" >
   <div class="form-group">
-    <label for="" class="col-sm-2 control-label">Type</label>
+    <label for="" class="col-sm-2 control-label">{{'common.type' | translate}}</label>
     <div class="col-sm-10">
-      <label for="" class="control-label">{{group.ldap_group ? 'LDAP' : 'Local'}}</label>
+      <label for="" class="control-label">{{'common.' + (group.ldap_group ? 'ldap' : 'local') | translate}}</label>
     </div>
   </div>
   <div class="form-group">
-    <label for="members" class="col-sm-2 control-label">{{group.ldap_group ? 'LDAP Members' : 'Local Members'}}</label>
+    <label for="members" class="col-sm-2 control-label">{{'common.' + (group.ldap_group ? 'ldap' : 'local') | translate}} {{'groups.members' | translate}}</label>
     <div class="col-sm-10">
       <editable-list items-source="group.editingUsers" resource-type="User" editable="!group.ldap_group"></editable-list>
     </div>
   </div>
 
   <div class="form-group">
-      <label for="" class="col-sm-2 control-label">Privileges</label>
+      <label for="" class="col-sm-2 control-label">{{'common.privileges' | translate}}</label>
       <div class="col-sm-10">
-        <table class="table">
+        <table class="table" ng-hide="hidePrivileges">
           <thead>
             <tr>
-              <th>Cluster</th>
-              <th>Cluster Role</th>
+              <th>{{'common.cluster' | translate}}</th>
+              <th>{{'common.clusterRole' | translate}}</th>
             </tr>
           </thead>
           <tbody>
@@ -64,11 +64,14 @@
                 <span tooltip="{{item}}" ng-repeat="item in privilege">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
             </tr>
+            <tr>
+              <td ng-show="noClusterPriv">{{'common.alerts.noPrivileges' | translate: '{term: constants.cluster}'}}</td>
+            </tr>
           </tbody>
           <thead class="view-permission-header">
             <tr>
-              <th>View</th>
-              <th>View Permissions</th>
+              <th>{{'common.view' | translate}}</th>
+              <th>{{'common.viewPermissions' | translate}}</th>
             </tr>
           </thead>
           <tbody>
@@ -81,9 +84,12 @@
                 <span tooltip="{{item}}" ng-repeat="item in privilege.privileges">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
             </tr>
+            <tr>
+              <td ng-show="noViewPriv">{{'common.alerts.noPrivileges' | translate: '{term: constants.view}'}}</td>
+            </tr>
           </tbody>
         </table>
-        <div class="alert alert-info hide-soft" ng-class="{'visible' : !privileges}">This group does not have any privileges.</div>
+        <div class="alert alert-info hide-soft" ng-class="{'visible' : !privileges}">{{'common.alerts.noPrivilegesDescription' | translate: '{term: constants.group.toLowerCase()}'}}</div>
       </div>
     </div>
 </form>

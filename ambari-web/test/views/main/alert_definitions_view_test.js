@@ -22,12 +22,16 @@ require('views/main/alert_definitions_view');
 
 var view;
 
+function getView() {
+  return App.MainAlertDefinitionsView.create({});
+}
+
 describe('App.MainAlertDefinitionsView', function () {
 
   beforeEach(function () {
-    view = App.MainAlertDefinitionsView.create({});
+    view = getView();
     sinon.stub(App.db, 'setFilterConditions', Em.K);
-    sinon.stub(App.db, 'getFilterConditions', Em.K);
+    sinon.stub(App.db, 'getFilterConditions').returns([]);
     sinon.stub(App.db, 'getDisplayLength', Em.K);
     sinon.stub(App.db, 'setStartIndex', Em.K);
     sinon.stub(view, 'initFilters', Em.K);
@@ -41,12 +45,14 @@ describe('App.MainAlertDefinitionsView', function () {
     view.initFilters.restore();
   });
 
+  App.TestAliases.testAsComputedAlias(getView(), 'totalCount', 'content.length', 'number');
+
   describe('#serviceFilterView', function () {
     it('Add Ambari service to filters', function () {
       var serviceFilterClass = view.serviceFilterView;
       var content = serviceFilterClass.create({}).get('content');
-      expect(content[0].label==Em.I18n.t('common.all'));
-      expect(content[content.length-1].label==Em.I18n.t('app.name'));
+      expect(content[0].label).to.be.equal(Em.I18n.t('common.all'));
+      expect(content[content.length - 1].label).to.be.equal(Em.I18n.t('app.name'));
     });
   });
 

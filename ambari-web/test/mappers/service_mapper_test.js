@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 
 require('utils/helper');
@@ -27,8 +26,7 @@ describe('App.serviceMetricsMapper', function () {
 
   describe('#hbaseMapper', function() {
 
-    it ('Round Average Load', function() {
-      var tests = [
+    var tests = [
         {
           components: [
             {
@@ -153,8 +151,9 @@ describe('App.serviceMetricsMapper', function () {
           ],
           e: '1.20'
         }
-      ];
-      tests.forEach(function(test) {
+    ];
+    tests.forEach(function(test) {
+      it('Round Average Load (' + test.e + ')', function () {
         var result = App.serviceMetricsMapper.hbaseMapper(test);
         expect(result.average_load).to.equal(test.e);
       });
@@ -255,16 +254,19 @@ describe('App.serviceMetricsMapper', function () {
       }
     ];
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App, 'get');
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
     tests.forEach(function(test) {
       it(test.message, function() {
-        sinon.stub(App, 'get', function(key) {
-          if (key == 'currentStackVersionNumber') {
-            return test.stackVersionNumber;
-          }
-        });
+        this.stub.withArgs('currentStackVersionNumber').returns(test.stackVersionNumber);
         var result = App.serviceMetricsMapper.stormMapper(test);
         expect(result).to.include(test.expectedValues);
-        App.get.restore();
       });
     });
 

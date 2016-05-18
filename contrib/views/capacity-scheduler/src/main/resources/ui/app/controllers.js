@@ -20,3 +20,8 @@ require('controllers/queue');
 require('controllers/queues');
 require('controllers/trace');
 require('controllers/configs');
+require('controllers/capsched');
+require('controllers/advanced');
+require('controllers/scheduler');
+require('controllers/queuesconf');
+require('controllers/editqueue');

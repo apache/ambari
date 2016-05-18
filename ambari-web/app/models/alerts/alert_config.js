@@ -139,6 +139,8 @@ App.AlertConfigProperty = Ember.Object.extend({
         return App.AlertConfigThresholdView;
       case 'radioButton':
         return App.AlertConfigRadioButtonView;
+      case 'parameter':
+        return App.AlertConfigParameterView;
       default:
     }
   }.property('displayType'),
@@ -331,17 +333,15 @@ App.AlertConfigProperties = {
      * Custom css-class for different badges
      * type {string}
      */
-    badgeCssClass: function () {
-      return 'alert-state-' + this.get('badge');
-    }.property('badge'),
+    badgeCssClass: Em.computed.format('alert-state-{0}', 'badge'),
 
     /**
      * Determines if <code>value</code> or <code>text</code> were changed
      * @type {bool}
      */
     wasChanged: function () {
-      return (this.get('previousValue') !== null && this.get('value') !== this.get('previousValue')) ||
-      (this.get('previousText') !== null && this.get('text') !== this.get('previousText'));
+      return this.get('previousValue') !== null && this.get('value') !== this.get('previousValue') ||
+      this.get('previousText') !== null && this.get('text') !== this.get('previousText');
     }.property('value', 'text', 'previousValue', 'previousText'),
 
     /**
@@ -464,10 +464,68 @@ App.AlertConfigProperties = {
     displayType: 'textArea',
     classNames: 'alert-config-text-area',
     apiProperty: Em.computed.ifThenElse('isJMXMetric', 'source.jmx.value', 'source.ganglia.value')
+  }),
+
+  Parameter: App.AlertConfigProperty.extend({
+
+    name: 'parameter',
+
+    displayType: 'parameter',
+
+    badge: Em.computed.alias('threshold'),
+
+    thresholdExists: Em.computed.bool('threshold'),
+
+    thresholdNotExists: Em.computed.empty('threshold'),
+
+    /**
+     * Custom css-class for different badges
+     * type {string}
+     */
+    badgeCssClass: Em.computed.format('alert-state-{0}', 'badge'),
+
   })
 
 };
+App.AlertConfigProperties.Parameters = {
 
+  StringMixin: Em.Mixin.create({
+    isValid: function () {
+      var value = this.get('value');
+      return String(value).trim() !== '';
+    }.property('value')
+  }),
+  NumericMixin: Em.Mixin.create({
+    isValid: function () {
+      var value = this.get('value');
+      if (!value) {
+        return false;
+      }
+      value = ('' + value).trim();
+      if (!numericUtils.isPositiveNumber(value)) {
+        return false;
+      }
+      value = parseFloat(value);
+      return !isNaN(value);
+    }.property('value')
+  }),
+  PercentageMixin: Em.Mixin.create({
+    isValid: function () {
+      var value = this.get('value');
+      if (!value) {
+        return false;
+      }
+      if (!validator.isValidFloat(value) || !numericUtils.isPositiveNumber(value)) {
+        return false;
+      }
+      value = String(value).trim();
+      value = parseFloat(value);
+
+      return !isNaN(value) && value > 0;
+    }.property('value')
+  })
+
+};
 App.AlertConfigProperties.Thresholds = {
 
   OkThreshold: App.AlertConfigProperties.Threshold.extend({
@@ -553,26 +611,8 @@ App.AlertConfigProperties.Thresholds = {
         return false;
       }
 
-      return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
-    }.property('displayValue', 'showInputForValue'),
-
-    /**
-     * Return <code>value * 100</code>
-     * @returns {string}
-     */
-    getNewValue: function () {
-      var value = this.get('value');
-      return (value && !isNaN(value)) ? (Number(value) * 100) + '' : value;
-    },
-
-    /**
-     * Return <code>displayValue / 100</code>
-     * @returns {string}
-     */
-    getNewDisplayValue: function () {
-      var displayValue = this.get('displayValue');
-      return (displayValue && !isNaN(displayValue)) ? (Number(displayValue) / 100) + '' : displayValue;
-    }
+      return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
+    }.property('displayValue', 'showInputForValue')
 
   }),
 

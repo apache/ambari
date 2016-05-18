@@ -51,10 +51,10 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
@@ -497,6 +497,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
          new ServiceComponentHostOpCompletedTransition())
 
+     .addTransition(State.INSTALL_FAILED,
+         State.INSTALL_FAILED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
+         new ServiceComponentHostOpInProgressTransition())
+
     .addTransition(State.INSTALLED,
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
@@ -821,7 +826,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       HostComponentStateEntity stateEntity = getStateEntity();
       if (stateEntity != null) {
         getStateEntity().setCurrentState(state);
-        saveIfPersisted();
+        saveComponentStateEntityIfPersisted();
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
           "previously deleted, serviceName = " + getServiceName() + ", " +
@@ -860,7 +865,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       HostComponentStateEntity stateEntity = getStateEntity();
       if (stateEntity != null) {
         getStateEntity().setVersion(version);
-        saveIfPersisted();
+        saveComponentStateEntityIfPersisted();
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
           "previously deleted, serviceName = " + getServiceName() + ", " +
@@ -899,7 +904,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       HostComponentStateEntity stateEntity = getStateEntity();
       if (stateEntity != null) {
         getStateEntity().setSecurityState(securityState);
-        saveIfPersisted();
+        saveComponentStateEntityIfPersisted();
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
           "previously deleted, serviceName = " + getServiceName() + ", " +
@@ -940,8 +945,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     writeLock.lock();
     try {
+      LOG.debug("Set DesiredSecurityState on serviceName = {} componentName = {} hostName = {} to {}",
+        getServiceName(), getServiceComponentName(), getHostName(), securityState);
+
       getDesiredStateEntity().setSecurityState(securityState);
-      saveIfPersisted();
+      saveComponentDesiredStateEntityIfPersisted();
     } finally {
       writeLock.unlock();
     }
@@ -963,7 +971,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       HostComponentStateEntity stateEntity = getStateEntity();
       if (stateEntity != null) {
         stateEntity.setUpgradeState(upgradeState);
-        saveIfPersisted();
+        saveComponentStateEntityIfPersisted();
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
           "previously deleted, serviceName = " + getServiceName() + ", " +
@@ -1015,7 +1023,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         try {
           stateMachine.doTransition(event.getType(), event);
           getStateEntity().setCurrentState(stateMachine.getCurrentState());
-          saveIfPersisted();
+          saveComponentStateEntityIfPersisted();
           // TODO Audit logs
         } catch (InvalidStateTransitionException e) {
           LOG.error("Can't handle ServiceComponentHostEvent event at"
@@ -1175,7 +1183,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       HostComponentStateEntity stateEntity = getStateEntity();
       if (stateEntity != null) {
         stateEntity.setCurrentStack(stackEntity);
-        saveIfPersisted();
+        saveComponentStateEntityIfPersisted();
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
           "previously deleted, serviceName = " + getServiceName() + ", " +
@@ -1212,10 +1220,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void setDesiredState(State state) {
     writeLock.lock();
     try {
+      LOG.debug("Set DesiredState on serviceName = {} componentName = {} hostName = {} to {} ",
+        getServiceName(), getServiceComponentName(), getHostName(), state);
+
       HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
       if (desiredStateEntity != null) {
         desiredStateEntity.setDesiredState(state);
-        saveIfPersisted();
+        saveComponentDesiredStateEntityIfPersisted();
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
           "previously deleted, serviceName = " + getServiceName() + ", " +
@@ -1253,13 +1264,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void setDesiredStackVersion(StackId stackId) {
     writeLock.lock();
     try {
+      LOG.debug("Set DesiredStackVersion on serviceName = {} componentName = {} hostName = {} to {}",
+        getServiceName(), getServiceComponentName(), getHostName(), stackId);
+
       HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
       if (desiredStateEntity != null) {
         StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
           stackId.getStackVersion());
 
         desiredStateEntity.setDesiredStack(stackEntity);
-        saveIfPersisted();
+        saveComponentDesiredStateEntityIfPersisted();
       }
     } finally {
       writeLock.unlock();
@@ -1290,10 +1304,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void setComponentAdminState(HostComponentAdminState attribute) {
     writeLock.lock();
     try {
+      LOG.debug("Set ComponentAdminState on serviceName = {} componentName = {} hostName = {} to {}",
+        getServiceName(), getServiceComponentName(), getHostName(), attribute);
+
       HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
       if (desiredStateEntity != null) {
         desiredStateEntity.setAdminState(attribute);
-        saveIfPersisted();
+        saveComponentDesiredStateEntityIfPersisted();
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
           "previously deleted, serviceName = " + getServiceName() + ", " +
@@ -1307,43 +1324,57 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public ServiceComponentHostResponse convertToResponse() {
-    readLock.lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      HostComponentStateEntity hostComponentStateEntity = getStateEntity();
-      if (null == hostComponentStateEntity) {
-        LOG.warn("Could not convert ServiceComponentHostResponse to a response. It's possible that Host " + getHostName() + " was deleted.");
-        return null;
-      }
-
-      String clusterName = serviceComponent.getClusterName();
-      String serviceName = serviceComponent.getServiceName();
-      String serviceComponentName = serviceComponent.getName();
-      String hostName = getHostName();
-      String state = getState().toString();
-      String stackId = getStackVersion().getStackId();
-      String desiredState = getDesiredState().toString();
-      String desiredStackId = getDesiredStackVersion().getStackId();
-      HostComponentAdminState componentAdminState = getComponentAdminState();
-      UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
-
-      ServiceComponentHostResponse r = new ServiceComponentHostResponse(
-          clusterName, serviceName,
-          serviceComponentName, hostName, state,
-          stackId, desiredState,
-          desiredStackId, componentAdminState);
-
-      r.setActualConfigs(actualConfigs);
-      r.setUpgradeState(upgradeState);
-
+      readLock.lock();
       try {
-        r.setStaleConfig(helper.isStaleConfigs(this));
-      } catch (Exception e) {
-        LOG.error("Could not determine stale config", e);
-      }
+        HostComponentStateEntity hostComponentStateEntity = getStateEntity();
+        if (null == hostComponentStateEntity) {
+          LOG.warn("Could not convert ServiceComponentHostResponse to a response. It's possible that Host " + getHostName() + " was deleted.");
+          return null;
+        }
 
-      return r;
+        String clusterName = serviceComponent.getClusterName();
+        String serviceName = serviceComponent.getServiceName();
+        String serviceComponentName = serviceComponent.getName();
+        String hostName = getHostName();
+        String state = getState().toString();
+        String stackId = getStackVersion().getStackId();
+        String desiredState = getDesiredState().toString();
+        String desiredStackId = getDesiredStackVersion().getStackId();
+        HostComponentAdminState componentAdminState = getComponentAdminState();
+        UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
+
+        String displayName = null;
+        try {
+          ComponentInfo compInfo = ambariMetaInfo.getComponent(getStackVersion().getStackName(),
+            getStackVersion().getStackVersion(), serviceName, serviceComponentName);
+          displayName = compInfo.getDisplayName();
+        } catch (AmbariException e) {
+          displayName = serviceComponentName;
+        }
+
+        ServiceComponentHostResponse r = new ServiceComponentHostResponse(
+            clusterName, serviceName,
+            serviceComponentName, displayName, hostName, state,
+            stackId, desiredState,
+            desiredStackId, componentAdminState);
+
+        r.setActualConfigs(actualConfigs);
+        r.setUpgradeState(upgradeState);
+
+        try {
+          r.setStaleConfig(helper.isStaleConfigs(this));
+        } catch (Exception e) {
+          LOG.error("Could not determine stale config", e);
+        }
+
+        return r;
+      } finally {
+        readLock.unlock();
+      }
     } finally {
-      readLock.unlock();
+      clusterGlobalLock.readLock().unlock();
     }
   }
 
@@ -1422,11 +1453,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
           ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(
               getClusterId(), stackId.getStackName(),
-              stackId.getStackVersion(), getServiceName(), getServiceComponentName(), getHostName());
+              stackId.getStackVersion(), getServiceName(), getServiceComponentName(), getHostName(),
+                  isRecoveryEnabled());
 
           eventPublisher.publish(event);
         } else {
-          saveIfPersisted();
+          saveComponentStateEntityIfPersisted();
+          saveComponentDesiredStateEntityIfPersisted();
         }
       } finally {
         writeLock.unlock();
@@ -1440,25 +1473,25 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Transactional
   protected void persistEntities() {
+    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
+        serviceComponent.getClusterId(), serviceComponent.getServiceName(),
+        serviceComponent.getName());
+
     HostEntity hostEntity = hostDAO.findByName(getHostName());
     hostEntity.addHostComponentStateEntity(stateEntity);
     hostEntity.addHostComponentDesiredStateEntity(desiredStateEntity);
 
-    ServiceComponentDesiredStateEntityPK dpk = new ServiceComponentDesiredStateEntityPK();
-    dpk.setClusterId(serviceComponent.getClusterId());
-    dpk.setServiceName(serviceComponent.getServiceName());
-    dpk.setComponentName(serviceComponent.getName());
-
-    ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(dpk);
-    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
-
     desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     desiredStateEntity.setHostEntity(hostEntity);
+
     stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     stateEntity.setHostEntity(hostEntity);
 
     hostComponentStateDAO.create(stateEntity);
     hostComponentDesiredStateDAO.create(desiredStateEntity);
+
+    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(
+        desiredStateEntity);
 
     HostComponentStateEntity stateEntity = hostComponentStateDAO.findByIndex(serviceComponent.getClusterId(),
       serviceComponent.getServiceName(), serviceComponent.getName(), hostEntity.getHostId());
@@ -1481,18 +1514,32 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   /**
-   * Merges the encapsulated {@link HostComponentStateEntity} and
-   * {@link HostComponentDesiredStateEntity} inside of a new transaction. This
+   * Merges the encapsulated {@link HostComponentStateEntity} inside of a new transaction. This
    * method assumes that the appropriate write lock has already been acquired
    * from {@link #readWriteLock}.
    */
   @Transactional
-  void saveIfPersisted() {
+  void saveComponentStateEntityIfPersisted() {
     if (isPersisted()) {
       hostComponentStateDAO.merge(stateEntity);
+    }
+  }
+
+  /**
+   * Merges the encapsulated {@link HostComponentDesiredStateEntity} inside of a new transaction. This
+   * method assumes that the appropriate write lock has already been acquired
+   * from {@link #readWriteLock}.
+   */
+  @Transactional
+  void saveComponentDesiredStateEntityIfPersisted() {
+    if (isPersisted()) {
+      LOG.debug("Save desiredStateEntity serviceName = {} componentName = {} hostName = {} desiredState = {}",
+        getServiceName(), getServiceComponentName(), getHostName(), desiredStateEntity.getDesiredState());
+
       hostComponentDesiredStateDAO.merge(desiredStateEntity);
     }
   }
+
 
   @Override
   public boolean canBeRemoved() {
@@ -1552,10 +1599,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       String serviceName = getServiceName();
       String componentName = getServiceComponentName();
       String hostName = getHostName();
+      boolean recoveryEnabled = isRecoveryEnabled();
 
       ServiceComponentUninstalledEvent event = new ServiceComponentUninstalledEvent(
           clusterId, stackName, stackVersion, serviceName, componentName,
-          hostName);
+          hostName, recoveryEnabled);
 
       eventPublisher.publish(event);
     }
@@ -1642,13 +1690,21 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public boolean isRecoveryEnabled() {
+    return serviceComponent.isRecoveryEnabled();
+  }
+
+  @Override
   public void setMaintenanceState(MaintenanceState state) {
     writeLock.lock();
     try {
+      LOG.debug("Set MaintenanceState on serviceName = {} componentName = {} hostName = {} to {}",
+        getServiceName(), getServiceComponentName(), getHostName(), state);
+
       HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
       if (desiredStateEntity != null) {
         desiredStateEntity.setMaintenanceState(state);
-        saveIfPersisted();
+        saveComponentDesiredStateEntityIfPersisted();
 
         // broadcast the maintenance mode change
         MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
@@ -1708,10 +1764,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public void setRestartRequired(boolean restartRequired) {
     writeLock.lock();
     try {
+      LOG.debug("Set RestartRequired on serviceName = {} componentName = {} hostName = {} to {}",
+        getServiceName(), getServiceComponentName(), getHostName(), restartRequired);
+
       HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
       if (desiredStateEntity != null) {
         desiredStateEntity.setRestartRequired(restartRequired);
-        saveIfPersisted();
+        saveComponentDesiredStateEntityIfPersisted();
         helper.invalidateStaleConfigsCache(this);
       } else {
         LOG.warn("Setting a member on an entity object that may have been " +
@@ -1758,12 +1817,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public RepositoryVersionEntity recalculateHostVersionState() throws AmbariException {
     RepositoryVersionEntity repositoryVersion = null;
     String version = getVersion();
-    if (version == null || version.isEmpty() || version.equalsIgnoreCase(State.UNKNOWN.toString())) {
-      // Recalculate only if some particular version is set
+    if (getUpgradeState().equals(UpgradeState.IN_PROGRESS) ||
+      getUpgradeState().equals(UpgradeState.VERSION_MISMATCH) ||
+        State.UNKNOWN.toString().equals(version)) {
+      // TODO: we still recalculate host version if upgrading component failed. It seems to be ok
+      // Recalculate only if no upgrade in progress/no version mismatch
       return null;
     }
 
     final String hostName = getHostName();
+    final long hostId = getHost().getHostId();
     final Set<Cluster> clustersForHost = clusters.getClustersForHost(hostName);
     if (clustersForHost.size() != 1) {
       throw new AmbariException("Host " + hostName + " should be assigned only to one cluster");
@@ -1782,7 +1845,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         repositoryVersion = createRepositoryVersion(version, stackId, stackInfo);
       }
 
-      final HostEntity host = hostDAO.findByName(hostName);
+      final HostEntity host = hostDAO.findById(hostId);
       cluster.transitionHostVersionState(host, repositoryVersion, stackId);
     } finally {
       writeLock.unlock();

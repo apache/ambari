@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+var validator = require('utils/validator');
+
 App.MainAlertDefinitionDetailsController = Em.Controller.extend({
 
   name: 'mainAlertDefinitionDetailsController',
@@ -42,12 +44,6 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * @type {Object}
    */
   lastDayAlertsCount: null,
-
-  /**
-   * Define if let user leave the page
-   * @type {Boolean}
-   */
-  forceTransition: false,
 
   /**
    * List of all group names related to alert definition
@@ -241,6 +237,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   /**
    * Enable/disable alertDefinition
    * @param {object} alertDefinition
+   * @param {string} property
    * @returns {$.ajax}
    * @method toggleDefinitionState
    */
@@ -259,6 +256,82 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
     });
   },
 
+  globalAlertsRepeatTolerance: function () {
+    return App.router.get('clusterController.clusterEnv.properties.alerts_repeat_tolerance') || "1";
+  }.property('App.router.clusterController.clusterEnv'),
+
+  enableRepeatTolerance: function (enable) {
+    var alertDefinition = this.get('content');
+    alertDefinition.set('repeat_tolerance_enabled', enable);
+    return App.ajax.send({
+      name: 'alerts.update_alert_definition',
+      sender: this,
+      data: {
+        id: alertDefinition.get('id'),
+        data: {
+          "AlertDefinition/repeat_tolerance_enabled": enable
+        }
+      }
+    });
+  },
+
+  editRepeatTolerance: function () {
+    var self = this;
+    var alertDefinition = this.get('content');
+
+    var alertsRepeatTolerance = App.router.get('clusterController.clusterEnv.properties.alerts_repeat_tolerance') || "1";
+
+    return App.ModalPopup.show({
+      classNames: ['fourty-percent-width-modal'],
+      header: Em.I18n.t('alerts.actions.editRepeatTolerance.header'),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.cancel'),
+      inputValue: self.get('content.repeat_tolerance_enabled') ? (self.get('content.repeat_tolerance') || 1) : alertsRepeatTolerance,
+      errorMessage: Em.I18n.t('alerts.actions.editRepeatTolerance.error'),
+      isInvalid: function () {
+        var intValue = Number(this.get('inputValue'));
+        return this.get('inputValue') !== 'DEBUG' && (!validator.isValidInt(intValue) || intValue < 1 || intValue > 99);
+      }.property('inputValue'),
+      isChanged: function () {
+        return Number(this.get('inputValue')) != alertsRepeatTolerance;
+      }.property('inputValue'),
+      doRestoreDefaultValue: function () {
+        this.set('inputValue', alertsRepeatTolerance);
+        this.$('[data-toggle=tooltip]').tooltip('destroy');
+      },
+      disablePrimary: Em.computed.alias('isInvalid'),
+      onPrimary: function () {
+        if (this.get('isInvalid')) {
+          return;
+        }
+        var input = this.get('inputValue');
+        self.set('content.repeat_tolerance', input);
+        self.enableRepeatTolerance(input != alertsRepeatTolerance);
+        App.ajax.send({
+          name: 'alerts.update_alert_definition',
+          sender: self,
+          data: {
+            id: alertDefinition.get('id'),
+            data: {
+              "AlertDefinition/repeat_tolerance": input
+            }
+          }
+        });
+        this.hide();
+      },
+      didInsertElement: function () {
+        this._super();
+        App.tooltip(this.$('[data-toggle=tooltip]'));
+      },
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/modal_popups/prompt_popup'),
+        title: Em.I18n.t('alerts.actions.editRepeatTolerance.title'),
+        description: Em.I18n.t('alerts.actions.editRepeatTolerance.description'),
+        label: Em.I18n.t('alerts.actions.editRepeatTolerance.label')
+      })
+    });
+  },
+
   /**
    * Define if label or configs are in edit mode
    * @type {Boolean}
@@ -270,7 +343,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * @param {String} path
    * @method showSavePopup
    */
-  showSavePopup: function (path) {
+  showSavePopup: function (callback) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
@@ -283,13 +356,11 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       disablePrimary: Em.computed.or('App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors'),
       onPrimary: function () {
         self.saveLabelAndConfigs();
-        self.set('forceTransition', true);
-        App.router.route(path);
+        callback();
         this.hide();
       },
       onSecondary: function () {
-        self.set('forceTransition', true);
-        App.router.route(path);
+        callback();
         this.hide();
       },
       onThird: function () {

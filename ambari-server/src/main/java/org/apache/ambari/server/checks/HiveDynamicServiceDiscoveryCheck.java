@@ -39,7 +39,7 @@ import com.google.inject.Singleton;
  * is properly configured for dynamic discovery.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f, required = true)
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 20.0f, required = true)
 public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
 
   static final String HIVE_DYNAMIC_SERVICE_DISCOVERY_ENABLED_KEY = "hive.dynamic-service.discovery.enabled.key";

@@ -47,29 +47,14 @@ module.exports = App.WizardRoute.extend({
               onClose: function () {
                 this.set('showCloseButton', false); // prevent user to click "Close" many times
                 App.router.get('updateController').set('isWorking', true);
-                var self = this;
                 App.router.get('updateController').updateServices(function () {
                   App.router.get('updateController').updateServiceMetric();
                 });
                 var exitPath = addServiceController.getDBProperty('onClosePath') || 'main.services.index';
-                addServiceController.finish();
-                App.router.get('wizardWatcherController').resetUser();
-                // We need to do recovery based on whether we are in Add Host or Installer wizard
-                App.clusterStatus.setClusterStatus({
-                  clusterName: App.router.get('content.cluster.name'),
-                  clusterState: 'DEFAULT'
-                }, {
-                  alwaysCallback: function () {
-                    self.hide();
-                    App.router.transitionTo(exitPath);
-                    Em.run.next(function() {
-                      location.reload();
-                    });
-                  }
-                });
-
+                addServiceController.resetOnClose(addServiceController, exitPath);
               },
               didInsertElement: function () {
+                this._super();
                 this.fitHeight();
               }
             });
@@ -82,12 +67,13 @@ module.exports = App.WizardRoute.extend({
                   break;
                 case 'ADD_SERVICES_INSTALLING_3' :
                 case 'SERVICE_STARTING_3' :
-                  addServiceController.setCurrentStep('6');
-                  break;
                 case 'ADD_SERVICES_INSTALLED_4' :
                   addServiceController.setCurrentStep('7');
                   break;
                 default:
+                  if(App.db.data.AddService.currentStep != undefined) {
+                    addServiceController.setCurrentStep(App.db.data.AddService.currentStep);
+                  }
                   break;
               }
             }
@@ -115,7 +101,14 @@ module.exports = App.WizardRoute.extend({
         controller.loadAllPriorSteps().done(function () {
           var wizardStep4Controller = router.get('wizardStep4Controller');
           wizardStep4Controller.set('wizardController', controller);
-          controller.connectOutlet('wizardStep4', controller.get('content.services').filterProperty('isInstallable', true));
+          controller.loadServiceVersionFromVersionDefinitions().complete(function () {
+            controller.set('content.services', App.StackService.find().forEach(function (item) {
+              // user the service version from VersionDefinition
+              Ember.set(item, 'serviceVersionDisplay', controller.get('serviceVersionsMap')[item.get('serviceName')]);
+              //item.set('serviceVersionDisplay', controller.get('serviceVersionsMap')[item.get('serviceName')]);
+            }));
+            controller.connectOutlet('wizardStep4', controller.get('content.services').filterProperty('isInstallable', true));
+          });
         });
       });
     },
@@ -185,6 +178,7 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
+      App.set('router.nextBtnClickInProgress', true);
       var addServiceController = router.get('addServiceController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
 
@@ -199,7 +193,9 @@ module.exports = App.WizardRoute.extend({
             recommendationsConfigs: null
           });
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
-          router.get('wizardStep7Controller').clearDependentConfigs();
+          router.get('wizardStep7Controller').clearAllRecommendations();
+          addServiceController.setDBProperty('serviceConfigGroups', undefined);
+          App.set('router.nextBtnClickInProgress', false);
           router.transitionTo('step4');
         });
       });
@@ -285,9 +281,8 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       if (App.Cluster.find().objectAt(0).get('isKerberosEnabled')) {
         if (router.get('mainAdminKerberosController.isManualKerberos')) {
+          router.get('wizardStep8Controller').set('wizardController', router.get('addServiceController'));
           router.get('wizardStep8Controller').updateKerberosDescriptor(true);
-        } else {
-          router.get('kerberosWizardStep2Controller').createKerberosAdminSession(router.get('kerberosWizardStep4Controller.stepConfigs')[0].get('configs'));
         }
         router.get('addServiceController').cacheStepConfigValues(router.get('kerberosWizardStep4Controller'));
       }

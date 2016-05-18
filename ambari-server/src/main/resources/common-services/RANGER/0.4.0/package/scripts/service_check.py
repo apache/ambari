@@ -27,16 +27,14 @@ import os
 
 class RangerServiceCheck(Script):
 
-  upgrade_marker_file = '/tmp/rangeradmin_ru.inprogress'
-
   def service_check(self, env):
     import params
 
     env.set_params(params)
-    self.check_ranger_admin_service(params.ranger_external_url)
+    self.check_ranger_admin_service(params.ranger_external_url, params.upgrade_marker_file)
 
-  def check_ranger_admin_service(self, ranger_external_url):
-    if (self.is_ru_rangeradmin_in_progress()):
+  def check_ranger_admin_service(self, ranger_external_url, upgrade_marker_file):
+    if (self.is_ru_rangeradmin_in_progress(upgrade_marker_file)):
       Logger.info('Ranger admin process not running - skipping as stack upgrade is in progress')
     else:
       Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {ranger_external_url}/login.jsp | grep 200"),
@@ -44,8 +42,8 @@ class RangerServiceCheck(Script):
         try_sleep=3,
         logoutput=True)
 
-  def is_ru_rangeradmin_in_progress(self):
-    return os.path.isfile(RangerServiceCheck.upgrade_marker_file)
+  def is_ru_rangeradmin_in_progress(self, upgrade_marker_file):
+    return os.path.isfile(upgrade_marker_file)
 
 if __name__ == "__main__":
   RangerServiceCheck().execute()

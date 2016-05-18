@@ -113,7 +113,7 @@
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
-        "type" : "gpcheck-env.xml"
+        "type" : "hawq-check-env.xml"
       },
       "dependencies" : [ ]
     }, {
@@ -352,6 +352,17 @@
       "StackConfigurations" : {
         "property_depends_on" : [ ],
         "property_name" : "hawq_standby_address_host",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/default_segment_num",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "default_segment_num",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",

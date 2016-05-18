@@ -59,7 +59,7 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
       reflectionSizeOf.sizeOf(new Double(2.0));
 
     //SizeOfMapEntryOverhead = SizeOfMapWithOneEntry - (SizeOfEmptyMap + SizeOfOneEntry)
-    TreeMap<Long,Double> map = new TreeMap<>();
+    TreeMap<Long, Double> map = new TreeMap<>();
     long emptyMapSize = reflectionSizeOf.sizeOf(map);
     map.put(new Long(1), new Double(2.0));
     long sizeOfMapOneEntry = reflectionSizeOf.deepSizeOf(DEFAULT_MAX_DEPTH, DEFAULT_ABORT_WHEN_MAX_DEPTH_EXCEEDED, map).getCalculated();
@@ -95,6 +95,8 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
       reflectionSizeOf.deepSizeOf(1000, false, key.getMetricNames()).getCalculated() : 0;
     size += key.getSpec() != null ?
       reflectionSizeOf.deepSizeOf(1000, false, key.getSpec()).getCalculated() : 0;
+    size += key.getHostNames() != null ?
+      reflectionSizeOf.deepSizeOf(1000, false, key.getHostNames()).getCalculated() : 0;
     // 4 fixed longs of @TemporalInfo + reference
     size += 40;
     size += 8; // Object overhead

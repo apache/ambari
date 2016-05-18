@@ -17,8 +17,11 @@
  */
 package org.apache.ambari.server.controller.metrics.ganglia;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.ComponentSSLConfigurationTest;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
@@ -29,17 +32,26 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,11 +61,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 
 /**
  * Test the Ganglia property provider.
@@ -98,8 +113,88 @@ public class GangliaPropertyProviderTest {
     this.configuration = configuration;
   }
 
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @Test
+  public void testGangliaPropertyProviderAsClusterAdministrator() throws Exception {
+    //Setup user with Role 'ClusterAdministrator'.
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("ClusterAdmin", 2L));
+    testPopulateResources();
+    testPopulateResources_checkHostComponent();
+    testPopulateResources_checkHost();
+    testPopulateManyResources();
+    testPopulateResources__LargeNumberOfHostResources();
+    testPopulateResources_params();
+    testPopulateResources_paramsMixed();
+    testPopulateResources_paramsAll();
+    testPopulateResources_params_category1();
+    testPopulateResources_params_category2();
+    testPopulateResources_params_category3();
+    testPopulateResources_params_category4();
+  }
+
+  @Test
+  public void testGangliaPropertyProviderAsAdministrator() throws Exception {
+    //Setup user with Role 'Administrator'
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("Admin"));
+    testPopulateResources();
+    testPopulateResources_checkHostComponent();
+    testPopulateResources_checkHost();
+    testPopulateManyResources();
+    testPopulateResources__LargeNumberOfHostResources();
+    testPopulateResources_params();
+    testPopulateResources_paramsMixed();
+    testPopulateResources_paramsAll();
+    testPopulateResources_params_category1();
+    testPopulateResources_params_category2();
+    testPopulateResources_params_category3();
+    testPopulateResources_params_category4();
+  }
+
+  @Test
+  public void testGangliaPropertyProviderAsServiceAdministrator() throws Exception {
+    //Setup user with 'ServiceAdministrator'
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createServiceAdministrator("ServiceAdmin", 2L));
+    testPopulateResources();
+    testPopulateResources_checkHostComponent();
+    testPopulateResources_checkHost();
+    testPopulateManyResources();
+    testPopulateResources__LargeNumberOfHostResources();
+    testPopulateResources_params();
+    testPopulateResources_paramsMixed();
+    testPopulateResources_paramsAll();
+    testPopulateResources_params_category1();
+    testPopulateResources_params_category2();
+    testPopulateResources_params_category3();
+    testPopulateResources_params_category4();
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGangliaPropertyProviderAsViewUser() throws Exception {
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
+    // Setup user with 'ViewUser'
+    // ViewUser doesn't have the 'CLUSTER_VIEW_METRICS', 'HOST_VIEW_METRICS' and 'SERVICE_VIEW_METRICS', thus
+    // can't retrieve the Metrics.
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser("ViewUser", 2L));
+    testPopulateResources();
+    testPopulateResources_checkHostComponent();
+    testPopulateResources_checkHost();
+    testPopulateManyResources();
+    testPopulateResources__LargeNumberOfHostResources();
+    testPopulateResources_params();
+    testPopulateResources_paramsMixed();
+    testPopulateResources_paramsAll();
+    testPopulateResources_params_category1();
+    testPopulateResources_params_category2();
+    testPopulateResources_params_category3();
+    testPopulateResources_params_category4();
+  }
+
   public void testPopulateResources() throws Exception {
+    setUpCommonMocks();
     TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
@@ -115,7 +210,7 @@ public class GangliaPropertyProviderTest {
 
     // namenode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
 
@@ -127,16 +222,17 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
 
-    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+    String expected = (configuration.isHttpsEnabled() ? "https" : "http") +
         "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPDataNode%2CHDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1";
     Assert.assertEquals(expected, streamProvider.getLastSpec());
 
-    Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(4, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID));
 
 
     // tasktracker
     resource = new ResourceImpl(Resource.Type.HostComponent);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "TASKTRACKER");
 
@@ -175,7 +271,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPTaskTracker,HDPSlaves");
@@ -194,7 +290,7 @@ public class GangliaPropertyProviderTest {
     
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
 
-    Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(7, PropertyHelper.getProperties(resource).size());
 
     Assert.assertNotNull(resource.getPropertyValue(shuffle_exceptions_caught));
 
@@ -211,7 +307,6 @@ public class GangliaPropertyProviderTest {
     Assert.assertNotNull(resource.getPropertyValue(shuffle_success_outputs));
   }
   
-  @Test
   public void testPopulateResources_checkHostComponent() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
     MetricHostProvider hostProvider =  PowerMock.createPartialMock(MetricHostProvider.class,
@@ -228,7 +323,7 @@ public class GangliaPropertyProviderTest {
 
     // datanode
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
 
@@ -252,7 +347,6 @@ public class GangliaPropertyProviderTest {
     
   }
 
-  @Test
   public void testPopulateResources_checkHost() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("host_temporal_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -268,6 +362,7 @@ public class GangliaPropertyProviderTest {
 
     // host
     Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "corp-hadoopda05.client.ext");
 
     // only ask for one property
@@ -285,7 +380,6 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(226, val.length);
   }
 
-  @Test
   public void testPopulateManyResources() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data_1.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -303,14 +397,17 @@ public class GangliaPropertyProviderTest {
 
     // host
     Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
     resources.add(resource);
 
     resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E2.compute-1.internal");
     resources.add(resource);
 
     resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E3.compute-1.internal");
     resources.add(resource);
 
@@ -323,7 +420,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder uriBuilder = new URIBuilder();
 
-    uriBuilder.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    uriBuilder.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     uriBuilder.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     uriBuilder.setPath("/cgi-bin/rrd.py");
     uriBuilder.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
@@ -340,7 +437,7 @@ public class GangliaPropertyProviderTest {
         "HDPSlaves", "HDPHistoryServer", "HDPJournalNode", "HDPTaskTracker", "HDPHBaseRegionServer", "HDPNameNode"});
     List<String> hosts = Arrays.asList(new String[]{"domU-12-31-39-0E-34-E3.compute-1.internal", "domU-12-31-39-0E-34-E1.compute-1.internal",
         "domU-12-31-39-0E-34-E2.compute-1.internal"});
-    int httpsVariation = configuration.isGangliaSSL() ? 1 : 0;
+    int httpsVariation = configuration.isHttpsEnabled() ? 1 : 0;
 
     Assert.assertEquals(expected.substring(0, 66 + httpsVariation), streamProvider.getLastSpec().substring(0, 66 + httpsVariation));
     Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(streamProvider.getLastSpec().substring(66 + httpsVariation, 236 + httpsVariation), components, "%2C", 0, 0));
@@ -348,12 +445,11 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(expected.substring(369 + httpsVariation), streamProvider.getLastSpec().substring(369 + httpsVariation));
 
     for (Resource res : resources) {
-      Assert.assertEquals(2, PropertyHelper.getProperties(res).size());
+      Assert.assertEquals(3, PropertyHelper.getProperties(res).size());
       Assert.assertNotNull(res.getPropertyValue(PROPERTY_ID));
     }
   }
 
-  @Test
   public void testPopulateResources__LargeNumberOfHostResources() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -373,6 +469,7 @@ public class GangliaPropertyProviderTest {
     
     for (int i = 0; i < 150; ++i) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
+      resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
       resource.setProperty(HOST_NAME_PROPERTY_ID, "host" + i);
       resources.add(resource);
       
@@ -392,7 +489,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
     
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
@@ -412,7 +509,6 @@ public class GangliaPropertyProviderTest {
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
   }
   
-  @Test
   public void testPopulateResources_params() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -430,6 +526,7 @@ public class GangliaPropertyProviderTest {
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
@@ -448,7 +545,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
     
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -466,11 +563,10 @@ public class GangliaPropertyProviderTest {
     
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
     
-    Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(4, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
 
-  @Test
   public void testPopulateResources_paramsMixed() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -488,6 +584,7 @@ public class GangliaPropertyProviderTest {
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
@@ -511,7 +608,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -528,12 +625,11 @@ public class GangliaPropertyProviderTest {
     
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
        
-    Assert.assertEquals(22, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(23, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID2));
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
 
-  @Test
   public void testPopulateResources_paramsAll() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -550,6 +646,7 @@ public class GangliaPropertyProviderTest {
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
@@ -558,22 +655,21 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+    String expected = (configuration.isHttpsEnabled() ? "https" : "http") +
         "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPFlumeServer%2CHDPSlaves&h=ip-10-39-113-33.ec2.internal&m=";
 
     // Depends on hashing, string representation can be different
     List<String> components = Arrays.asList(new String[]{"HDPFlumeServer", "HDPSlaves"});
-    int httpsVariation = configuration.isGangliaSSL() ? 1 : 0;
+    int httpsVariation = configuration.isHttpsEnabled() ? 1 : 0;
 
     Assert.assertEquals(expected.substring(0, 66 + httpsVariation), streamProvider.getLastSpec().substring(0, 66 + httpsVariation));
     Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(streamProvider.getLastSpec().substring(66 + httpsVariation, 92 + httpsVariation), components, "%2C", 0, 0));
     Assert.assertTrue(streamProvider.getLastSpec().substring(92 + httpsVariation).startsWith(expected.substring(92 + httpsVariation)));
 
-    Assert.assertEquals(33, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(34, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
 
-  @Test
   public void testPopulateResources_params_category1() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -591,6 +687,7 @@ public class GangliaPropertyProviderTest {
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
@@ -609,7 +706,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -627,11 +724,10 @@ public class GangliaPropertyProviderTest {
     
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
 
-    Assert.assertEquals(21, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(22, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
 
-  @Test
   public void testPopulateResources_params_category2() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -649,6 +745,7 @@ public class GangliaPropertyProviderTest {
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
@@ -667,7 +764,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -685,11 +782,10 @@ public class GangliaPropertyProviderTest {
     
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
 
-    Assert.assertEquals(21, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(22, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
 
-  @Test
   public void testPopulateResources_params_category3() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -707,6 +803,7 @@ public class GangliaPropertyProviderTest {
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
@@ -726,7 +823,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -744,11 +841,10 @@ public class GangliaPropertyProviderTest {
     
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
 
-    Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(12, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
 
-  @Test
   public void testPopulateResources_params_category4() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("flume_ganglia_data.txt");
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
@@ -766,6 +862,7 @@ public class GangliaPropertyProviderTest {
     // flume
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
     resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "FLUME_HANDLER");
 
@@ -785,7 +882,7 @@ public class GangliaPropertyProviderTest {
     
     URIBuilder expectedUri = new URIBuilder();
 
-    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setScheme((configuration.isHttpsEnabled() ? "https" : "http"));
     expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
     expectedUri.setPath("/cgi-bin/rrd.py");
     expectedUri.setParameter("c", "HDPFlumeServer,HDPSlaves");
@@ -803,7 +900,7 @@ public class GangliaPropertyProviderTest {
     
     Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));    
     
-    Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
+    Assert.assertEquals(12, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
 
@@ -853,6 +950,25 @@ public class GangliaPropertyProviderTest {
       }
     }
     return metricsBuilder.toString();
+  }
+
+  private void setUpCommonMocks() throws AmbariException, NoSuchFieldException, IllegalAccessException {
+    AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
+    Field field = AmbariServer.class.getDeclaredField("clusterController");
+    field.setAccessible(true);
+    field.set(null, amc);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster(CLUSTER_NAME_PROPERTY_ID)).andReturn(cluster).anyTimes();
+    expect(cluster.getResourceId()).andReturn(2L).anyTimes();
+    try {
+      expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).anyTimes();
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    replay(amc, clusters, cluster);
+    PowerMock.replayAll();
   }
 
   public static class TestGangliaServiceProvider implements MetricsServiceProvider {

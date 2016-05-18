@@ -1,32 +1,22 @@
 {
-  "name": "filebrowser-web",
-  "version": "0.0.1",
-  "main": "public/app.js",
+  "name": "files-view",
   "dependencies": {
-    "ember": "1.7.0",
-    "ember-data": "1.0.0-beta.9",
-    "jquery": "2.x",
-    "bootstrap": "3.1.x",
-    "ember-uploader": "~0.2.7",
-    "ladda-bootstrap": "git://github.com/msurguy/ladda-bootstrap.git#~0.1.0",
-    "moment": "~2.5.1",
-    "ember-i18n": "~1.6.0",
-    "bootstrap-contextmenu": "~0.2.0",
-    "font-awesome": "~4.0.3",
-    "ivy-codemirror": "~1.0.0"
+    "ember": "2.2.0",
+    "ember-cli-shims": "0.1.0",
+    "ember-cli-test-loader": "0.2.2",
+    "ember-load-initializers": "0.1.7",
+    "ember-qunit-notifications": "0.1.0",
+    "jquery": "1.11.3",
+    "loader.js": "^3.5.0",
+    "qunit": "~1.20.0",
+    "bootstrap": "~3.3.6",
+    "bootstrap-treeview": "~1.2.0",
+    "moment": "~2.11.1",
+    "font-awesome": "~4.5.0",
+    "ember-uploader": "~0.3.11",
+    "clipboard": "~1.5.5"
   },
-  "overrides": {
-    "ember-uploader": {
-      "main": "dist/ember-uploader.js"
-    },
-    "cldr": {
-      "main": "plurals.js"
-    },
-    "ember-i18n": {
-      "scripts": []
-    },
-    "font-awesome": {
-      "main": "css/font-awesome.css"
-    }
+  "resolutions": {
+    "ember": "2.2.0"
   }
 }

@@ -23,7 +23,7 @@ describe('routes/views', function() {
   var route = routeClass.create().get('viewDetails').create();
 
   describe("#parseViewPath", function() {
-    var testCases = [
+    [
       {
         url: 'viewName',
         result: ''

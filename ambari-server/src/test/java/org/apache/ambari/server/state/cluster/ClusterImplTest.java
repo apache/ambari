@@ -23,6 +23,8 @@ import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -40,6 +42,7 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -51,6 +54,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ClusterImplTest {
 
@@ -254,6 +258,52 @@ public class ClusterImplTest {
     boolean checkHost2 = !cluster.getServiceComponentHosts(hostName2).contains(tezClientHost2);
 
     assertTrue("All components of the deleted service should be removed from all hosts", checkHost1 && checkHost2);
+
+  }
+
+  @Test
+  public void testDeleteHost() throws Exception {
+    // Given
+
+
+    String clusterName = "TEST_DELETE_HOST";
+    String hostName1 = "HOSTNAME1", hostName2 = "HOSTNAME2";
+    String hostToDelete = hostName2;
+
+    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+
+    Cluster cluster = clusters.getCluster(clusterName);
+
+    clusters.addHost(hostName1);
+    clusters.addHost(hostName2);
+
+    Host host1 = clusters.getHost(hostName1);
+    host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
+    host1.persist();
+
+    Host host2 = clusters.getHost(hostName2);
+    host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
+    host2.persist();
+
+    clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
+
+    // When
+    clusters.deleteHost(hostToDelete);
+
+    // Then
+    assertTrue(clusters.getClustersForHost(hostToDelete).isEmpty());
+    assertFalse(clusters.getHostsForCluster(clusterName).containsKey(hostToDelete));
+
+    assertFalse(cluster.getHosts().contains(hostToDelete));
+
+    try {
+      clusters.getHost(hostToDelete);
+      fail("getHost(hostName) should throw Exception when invoked for deleted host !");
+    }
+    catch(HostNotFoundException e){
+
+    }
+
 
   }
 }

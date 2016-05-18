@@ -107,6 +107,9 @@
     <display-name>​User Search Filter</display-name>
     <value></value>
     <description>default value is empty</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>  
   </property>
   <property>
     <name>SYNC_LDAP_USER_NAME_ATTRIBUTE</name>
@@ -122,12 +125,12 @@
   </property>
   <property>
     <name>SYNC_LDAP_USERNAME_CASE_CONVERSION</name>
-    <value>lower</value>
+    <value>none</value>
     <description>possible values:  none, lower, upper</description>
   </property>
   <property>
     <name>SYNC_LDAP_GROUPNAME_CASE_CONVERSION</name>
-    <value>lower</value>
+    <value>none</value>
     <description>possible values:  none, lower, upper</description>
   </property>
   <property>

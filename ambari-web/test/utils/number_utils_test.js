@@ -268,7 +268,7 @@ describe('utils/number_utils', function() {
     ];
     var message = 'cardinality `{0}`. {1} value should be {2}';
     tests.forEach(function(test) {
-      it(message.format('' + test.cardinality, (test.isMax ? 'maximum' : 'minimum'), test.e), function() {
+      it(message.format('' + test.cardinality, test.isMax ? 'maximum' : 'minimum', test.e), function() {
         expect(numberUtils.getCardinalityValue(test.cardinality, test.isMax)).to.be.eql(test.e);
       });
     })

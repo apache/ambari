@@ -7,43 +7,43 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "Reads and Writes",
-          "description": "Count of read and write requests on all regions in the cluster.",
+          "description": "Rate (per second) of read and write requests on all regions in the cluster.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.Get_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._sum",
+              "name": "regionserver.Server.Get_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.ScanNext_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_num_ops._sum",
+              "name": "regionserver.Server.ScanNext_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Append_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops._sum",
+              "name": "regionserver.Server.Append_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Delete_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops._sum",
+              "name": "regionserver.Server.Delete_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Increment_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops._sum",
+              "name": "regionserver.Server.Increment_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Mutate_num_ops._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._sum",
+              "name": "regionserver.Server.Mutate_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -51,11 +51,11 @@
           "values": [
             {
               "name": "Read Requests",
-              "value": "${regionserver.Server.Get_num_ops._sum + regionserver.Server.ScanNext_num_ops._sum}"
+              "value": "${regionserver.Server.Get_num_ops._rate + regionserver.Server.ScanNext_num_ops._rate}"
             },
             {
               "name": "Write Requests",
-              "value": "${regionserver.Server.Append_num_ops._sum + regionserver.Server.Delete_num_ops._sum + regionserver.Server.Increment_num_ops._sum + regionserver.Server.Mutate_num_ops._sum}"
+              "value": "${regionserver.Server.Append_num_ops._rate + regionserver.Server.Delete_num_ops._rate + regionserver.Server.Increment_num_ops._rate + regionserver.Server.Mutate_num_ops._rate}"
             }
           ],
           "properties": {
@@ -244,8 +244,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.updatesBlockedTime._sum",
-              "metric_path": "metrics/hbase/regionserver/Server/updatesBlockedTime._sum",
+              "name": "regionserver.Server.updatesBlockedTime._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/updatesBlockedTime._rate",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -253,7 +253,7 @@
           "values": [
             {
               "name": "Updates Blocked Time",
-              "value": "${regionserver.Server.updatesBlockedTime._sum}"
+              "value": "${regionserver.Server.updatesBlockedTime._rate}"
             }
           ],
           "properties": {

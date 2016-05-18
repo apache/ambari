@@ -230,7 +230,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       } else {
         this.set('bootHosts', this.get('hosts'));
         if (App.get('testMode')) {
-          this.startHostcheck();
+          this.startHostcheck(this.get('hosts'));
           this.get('bootHosts').setEach('cpu', '2');
           this.get('bootHosts').setEach('memory', '2000000');
           this.set('isSubmitDisabled', false);
@@ -702,7 +702,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     }, this);
 
     if (stopPolling) {
-      this.startHostcheck();
+      this.startHostcheck(hosts);
     }
     else {
       if (hosts.someProperty('bootStatus', 'RUNNING') || App.dateTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
@@ -718,7 +718,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           _host.set('bootStatus', 'FAILED');
           _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
         });
-        this.startHostcheck();
+        this.startHostcheck(hosts);
       }
     }
   },
@@ -910,10 +910,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
 
-  startHostcheck: function() {
-    this.set('isWarningsLoaded', false);
-    this.getHostNameResolution();
-    this.checkHostJDK();
+  startHostcheck: function(hosts) {
+    if (!hosts.everyProperty('bootStatus', 'FAILED')) {
+      this.set('isWarningsLoaded', false);
+      this.getHostNameResolution();
+      this.checkHostJDK();
+    } else {
+      this.stopHostCheck();
+    }
   },
 
   getHostNameResolution: function () {
@@ -1218,14 +1222,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       var existingUsers = lastAgentEnvCheck.existingUsers;
       if (existingUsers) {
         existingUsers.forEach(function (user) {
-          warning = warningCategories.usersWarnings[user.userName];
+          warning = warningCategories.usersWarnings[user.name];
           if (warning) {
             warning.hosts.push(hostName);
             warning.hostsLong.push(hostName);
             warning.onSingleHost = false;
           } else {
-            warningCategories.usersWarnings[user.userName] = warning = {
-              name: user.userName,
+            warningCategories.usersWarnings[user.name] = warning = {
+              name: user.name,
               hosts: [hostName],
               hostsLong: [hostName],
               category: 'users',
@@ -1373,7 +1377,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       var name = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error');
       var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
       if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(task.Tasks.status)) {
-        if (task.Tasks.status == "COMPLETED" && Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count") != 0) {
+        if (task.Tasks.status === "COMPLETED" && !!Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count")) {
           var targetHostName = Em.get(task, "Tasks.host_name");
           var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.failures")
             ? Em.get(task, "Tasks.structured_out.host_resolution_check.failures").mapProperty('host') : [];
@@ -1648,22 +1652,27 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
   /**
    * Submit-click handler
+   * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @return {App.ModalPopup|null}
    * @method submit
    */
   submit: function () {
     var self = this;
-
+    if(App.router.nextBtnClickInProgress){
+      return;
+    }
     if (this.get('isHostHaveWarnings')) {
       return App.showConfirmationPopup(
         function () {
           self.set('confirmedHosts', self.get('bootHosts'));
+          App.router.nextBtnClickInProgress = true;
           App.router.send('next');
         },
         Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
     }
     else {
       this.set('confirmedHosts', this.get('bootHosts'));
+      App.router.nextBtnClickInProgress = true;
       App.router.send('next');
     }
     return null;
@@ -1893,14 +1902,14 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       //todo: to be removed after check in new API
       if (_host.Hosts.last_agent_env.existingUsers) {
         _host.Hosts.last_agent_env.existingUsers.forEach(function (user) {
-          warning = warningCategories.usersWarnings[user.userName];
+          warning = warningCategories.usersWarnings[user.name];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.hostsLong.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
           } else {
-            warningCategories.usersWarnings[user.userName] = warning = {
-              name: user.userName,
+            warningCategories.usersWarnings[user.name] = warning = {
+              name: user.name,
               hosts: [_host.Hosts.host_name],
               hostsLong: [_host.Hosts.host_name],
               category: 'users',

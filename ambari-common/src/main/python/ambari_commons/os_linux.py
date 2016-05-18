@@ -51,7 +51,7 @@ def os_run_os_command(cmd, env=None, shell=False, cwd=None):
 
 def os_change_owner(filePath, user, recursive):
   if recursive:
-    params = " -R "
+    params = " -R -L"
   else:
     params = ""
   command = NR_CHOWN_CMD.format(params, user, filePath)

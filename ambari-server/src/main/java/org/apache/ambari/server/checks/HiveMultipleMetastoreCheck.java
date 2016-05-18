@@ -37,7 +37,7 @@ import com.google.inject.Singleton;
  * Metastore instances in the cluster.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MULTIPLE_COMPONENT_WARNING, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.MULTIPLE_COMPONENT_WARNING, order = 20.1f)
 public class HiveMultipleMetastoreCheck extends AbstractCheckDescriptor {
 
   /**

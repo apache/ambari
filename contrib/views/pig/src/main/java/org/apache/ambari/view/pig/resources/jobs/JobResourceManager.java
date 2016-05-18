@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.WebApplicationException;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -166,9 +168,12 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
       // content can be passed from front-end with substituted arguments
       if (job.getForcedContent() != null && !job.getForcedContent().isEmpty()) {
         String forcedContent = job.getForcedContent();
-        // variable for sourceFile can be passed from front-ent
+        URI uri = new URI(context.getProperties().get("webhdfs.url"));
+        // variable for sourceFile can be passed from front-end
+        // cannot use webhdfs url as webhcat does not support http authentication
+        // using url hdfs://host/sourcefilepath
         forcedContent = forcedContent.replace("${sourceFile}",
-            context.getProperties().get("webhdfs.url") + newSourceFilePath);
+            "hdfs://" + uri.getHost() + newSourceFilePath);
         job.setForcedContent(null); // we should not store content in DB
         save(job);
 
@@ -183,9 +188,11 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
       throw new ServiceFormattedException("Can't copy pig script file from " + job.getPigScript() +
           " to " + newPigScriptPath, e);
     } catch (IOException e) {
-      throw new ServiceFormattedException("Can't create/copy pig script file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create/copy pig script file: " + e.getMessage(), e);
     } catch (InterruptedException e) {
-      throw new ServiceFormattedException("Can't create/copy pig script file: " + e.toString(), e);
+      throw new ServiceFormattedException("Can't create/copy pig script file: " + e.getMessage(), e);
+    } catch (URISyntaxException e) {
+      throw new ServiceFormattedException("Can't create/copy pig script file: " + e.getMessage(), e);
     }
 
     if (job.getPythonScript() != null && !job.getPythonScript().isEmpty()) {

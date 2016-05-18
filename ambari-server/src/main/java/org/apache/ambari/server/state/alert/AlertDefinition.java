@@ -19,6 +19,8 @@ package org.apache.ambari.server.state.alert;
 
 import java.util.HashSet;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -52,6 +54,9 @@ public class AlertDefinition {
 
   @SerializedName("ignore_host")
   private boolean ignoreHost = false;
+
+  @SerializedName("help_url")
+  private String helpURL = null;
 
   /**
    * Gets the cluster ID for this definition.
@@ -203,6 +208,22 @@ public class AlertDefinition {
   }
 
   /**
+   * @return the help url for this definition or {@code null} if none.
+   */
+  public String getHelpURL() {
+    return helpURL;
+  }
+
+  /**
+   * Sets the help url for this definition.
+   *
+   * @param helpURL
+   */
+  public void setHelpURL(String helpURL) {
+    this.helpURL = helpURL;
+  }
+
+  /**
    * @return the description
    */
   public String getDescription() {
@@ -240,7 +261,7 @@ public class AlertDefinition {
    * Compares {@link #equals(Object)} of every field. This is used mainly for
    * reconciling the stack versus the database.
    *
-   * @param object
+   * @param obj
    * @return
    */
   public boolean deeplyEquals(Object obj) {
@@ -282,6 +303,10 @@ public class AlertDefinition {
         return false;
       }
     } else if (!label.equals(other.label)) {
+      return false;
+    }
+
+    if (!StringUtils.equals(helpURL, other.helpURL)) {
       return false;
     }
 

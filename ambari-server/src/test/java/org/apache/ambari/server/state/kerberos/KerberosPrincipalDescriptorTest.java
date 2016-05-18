@@ -34,6 +34,11 @@ public class KerberosPrincipalDescriptorTest {
           "\"local_username\": \"localUser\"" +
           "}";
 
+  public static final String JSON_VALUE_SPARSE =
+      "{" +
+          "\"value\": \"serviceOther/_HOST@_REALM\"" +
+          "}";
+
   public static final Map<String, Object> MAP_VALUE =
       new HashMap<String, Object>() {
         {
@@ -41,6 +46,13 @@ public class KerberosPrincipalDescriptorTest {
           put("configuration", "service-site/service.component.kerberos.https.principal");
           put("type", "user");
           put("local_username", null);
+        }
+      };
+
+  public static final Map<String, Object> MAP_VALUE_SPARSE =
+      new HashMap<String, Object>() {
+        {
+          put("value", "userOther@_REALM");
         }
       };
 
@@ -77,8 +89,19 @@ public class KerberosPrincipalDescriptorTest {
     return new KerberosPrincipalDescriptor(map);
   }
 
+  private static KerberosPrincipalDescriptor createFromJSONSparse() {
+    Map<?, ?> map = new Gson().fromJson(JSON_VALUE_SPARSE,
+        new TypeToken<Map<?, ?>>() {
+        }.getType());
+    return new KerberosPrincipalDescriptor(map);
+  }
+
   private static KerberosPrincipalDescriptor createFromMap() {
     return new KerberosPrincipalDescriptor(MAP_VALUE);
+  }
+
+  private static KerberosPrincipalDescriptor createFromMapSparse() {
+    return new KerberosPrincipalDescriptor(MAP_VALUE_SPARSE);
   }
 
   @Test
@@ -115,5 +138,55 @@ public class KerberosPrincipalDescriptorTest {
     principalDescriptor.update(updatedPrincipalDescriptor);
 
     validateUpdatedData(principalDescriptor);
+  }
+
+  @Test
+  public void testUpdateSparse() {
+    KerberosPrincipalDescriptor principalDescriptor;
+    KerberosPrincipalDescriptor updatedPrincipalDescriptor;
+
+    /* ****************************************
+     * Test updating a service principal
+     * **************************************** */
+    principalDescriptor = createFromJSON();
+    updatedPrincipalDescriptor = createFromJSONSparse();
+
+    Assert.assertNotNull(principalDescriptor);
+    Assert.assertNotNull(updatedPrincipalDescriptor);
+
+    // The original value
+    Assert.assertEquals("service/_HOST@_REALM", principalDescriptor.getValue());
+    Assert.assertEquals("service-site/service.component.kerberos.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals(KerberosPrincipalType.SERVICE, principalDescriptor.getType());
+    Assert.assertEquals("localUser", principalDescriptor.getLocalUsername());
+
+    principalDescriptor.update(updatedPrincipalDescriptor);
+
+    // The updated value
+    Assert.assertEquals("serviceOther/_HOST@_REALM", principalDescriptor.getValue());
+    Assert.assertEquals("service-site/service.component.kerberos.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals(KerberosPrincipalType.SERVICE, principalDescriptor.getType());
+    Assert.assertEquals("localUser", principalDescriptor.getLocalUsername());
+
+    /* ****************************************
+     * Test updating a user principal
+     * **************************************** */
+    principalDescriptor = createFromMap();
+    updatedPrincipalDescriptor = createFromMapSparse();
+
+    Assert.assertNotNull(principalDescriptor);
+    Assert.assertNotNull(updatedPrincipalDescriptor);
+
+    Assert.assertEquals("user@_REALM", principalDescriptor.getValue());
+    Assert.assertEquals("service-site/service.component.kerberos.https.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals(KerberosPrincipalType.USER, principalDescriptor.getType());
+    Assert.assertNull(principalDescriptor.getLocalUsername());
+
+    principalDescriptor.update(updatedPrincipalDescriptor);
+
+    Assert.assertEquals("userOther@_REALM", principalDescriptor.getValue());
+    Assert.assertEquals("service-site/service.component.kerberos.https.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals(KerberosPrincipalType.USER, principalDescriptor.getType());
+    Assert.assertNull(principalDescriptor.getLocalUsername());
   }
 }

@@ -53,7 +53,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   widgetTypeMap: {
     checkbox: App.CheckboxConfigWidgetView,
     combo: App.ComboConfigWidgetView,
-    directory: App.DirectoryConfigWidgetView,
+    directory: App.TextFieldConfigWidgetView,
     directories: App.DirectoryConfigWidgetView,
     list: App.ListConfigWidgetView,
     password: App.PasswordConfigWidgetView,
@@ -63,6 +63,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     'time-interval-spinner': App.TimeIntervalSpinnerView,
     toggle: App.ToggleConfigWidgetView,
     'text-area': App.StringConfigWidgetView,
+    'label': App.LabelView,
     'test-db-connection': App.TestDbConnectionWidgetView
   },
 
@@ -138,6 +139,13 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
       if (configConditions && configConditions.length) {
         additionalProperties.configConditions = configConditions;
       }
+
+      var configAction = App.ConfigAction.find().filterProperty('fileName', Em.get(config,'filename')).findProperty('configName', Em.get(config,'name'));
+
+      if (configAction) {
+        additionalProperties.configAction = configAction;
+      }
+
       configProperty.setProperties(additionalProperties);
 
       if (configProperty.get('overrides')) {

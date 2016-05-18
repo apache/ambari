@@ -18,7 +18,6 @@
 
 var App = require('app');
 
-var modelSetup = require('test/init_model_test');
 require('models/service/hdfs');
 
 describe('App.HDFSService', function () {

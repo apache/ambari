@@ -1091,7 +1091,8 @@ describe('Ember.computed macros', function () {
     beforeEach(function () {
       this.obj = Em.Object.create({
         prop1: 'NAMENODE',
-        prop2: Em.computed.formatRole('prop1')
+        prop2: false,
+        prop3: Em.computed.formatRole('prop1', 'prop2')
       });
       sinon.stub(App.StackServiceComponent, 'find', function () {
         return [
@@ -1113,12 +1114,13 @@ describe('Ember.computed macros', function () {
     });
 
     it('should format as role', function () {
-      expect(this.obj.get('prop2')).to.equal('NameNode');
+      expect(this.obj.get('prop3')).to.equal('NameNode');
     });
 
     it('should format as role (2)', function () {
       this.obj.set('prop1', 'HIVE');
-      expect(this.obj.get('prop2')).to.equal('Hive');
+      this.obj.set('prop2', true);
+      expect(this.obj.get('prop3')).to.equal('Hive');
     });
 
   });
@@ -1462,6 +1464,145 @@ describe('Ember.computed macros', function () {
 
     it('prop3 dependent keys are valid', function () {
       expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.eql(['App.someRandomTestingKey']);
+    });
+
+  });
+
+  describe('#getByKey', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: {a: 1, b: 2, c: 3},
+        prop2: 'a',
+        prop3: Em.computed.getByKey('prop1', 'prop2'),
+        prop4: Em.computed.getByKey('prop1', 'App.someRandomTestingKey'),
+        prop5: Em.computed.getByKey('prop1', 'prop2', 100500) // with default value
+      });
+      App.set('someAnotherKey', 'a');
+    });
+
+    it('prop3 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.eql(['prop1', 'prop2']);
+    });
+
+    it('prop4 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.eql(['prop1', 'App.someRandomTestingKey']);
+    });
+
+    it('prop5 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop5._dependentKeys).to.eql(['prop1', 'prop2']);
+    });
+
+    it('prop3 value is 1', function () {
+      expect(this.obj.get('prop3')).to.be.equal(1);
+    });
+
+    it('prop3 value is 2', function () {
+      this.obj.set('prop2', 'b');
+      expect(this.obj.get('prop3')).to.be.equal(2);
+    });
+
+    it('prop3 value is 3', function () {
+      this.obj.set('prop2', 'c');
+      expect(this.obj.get('prop3')).to.be.equal(3);
+    });
+
+    it('prop3 value is 4', function () {
+      this.obj.set('prop1.c', 4);
+      this.obj.set('prop2', 'c');
+      expect(this.obj.get('prop3')).to.be.equal(4);
+    });
+
+    it('prop4 values is 1', function () {
+      expect(this.obj.get('prop4')).to.be.equal(1);
+    });
+
+    it('prop4 values is 2', function () {
+      App.set('someAnotherKey', 'b');
+      expect(this.obj.get('prop4')).to.be.equal(2);
+    });
+
+    it('prop4 values is 3', function () {
+      App.set('someAnotherKey', 'c');
+      expect(this.obj.get('prop4')).to.be.equal(3);
+    });
+
+    it('prop5 value is set to the default value', function () {
+      this.obj.set('prop2', 'd');
+      expect(this.obj.get('prop5')).to.be.equal(100500);
+    });
+
+  });
+
+  describe('#truncate', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: '123456789',
+        prop2: Em.computed.truncate('prop1', 8, 5),
+        prop3: Em.computed.truncate('App.someRandomTestingKey', 8, 5),
+        prop4: Em.computed.truncate('prop1', 8, 5, '###')
+      });
+      App.set('someAnotherKey', 'abcdefghi');
+    });
+
+    it('prop2 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.be.eql(['prop1']);
+    });
+
+    it('prop3 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.be.eql(['App.someRandomTestingKey']);
+    });
+
+    it('prop4 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.be.eql(['prop1']);
+    });
+
+    it('prop2 value is 12345...', function () {
+      expect(this.obj.get('prop2')).to.be.equal('12345...');
+    });
+
+    it('prop2 value is 54321...', function () {
+      this.obj.set('prop1', '543216789');
+      expect(this.obj.get('prop2')).to.be.equal('54321...');
+    });
+
+    it('prop2 value is 1234', function () {
+      this.obj.set('prop1', '1234');
+      expect(this.obj.get('prop2')).to.be.equal('1234');
+    });
+
+    it('prop2 value is ""', function () {
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop2')).to.be.equal('');
+    });
+
+    it('prop3 value is abcde...', function () {
+      expect(this.obj.get('prop3')).to.be.equal('abcde...');
+    });
+
+    it('prop3 value is edcba...', function () {
+      App.set('someAnotherKey', 'edcbafghi');
+      expect(this.obj.get('prop3')).to.be.equal('edcba...');
+    });
+
+    it('prop3 value is abcd', function () {
+      App.set('someAnotherKey', 'abcd');
+      expect(this.obj.get('prop3')).to.be.equal('abcd');
+    });
+
+    it('prop4 value is 12345###', function () {
+      expect(this.obj.get('prop4')).to.be.equal('12345###');
+    });
+
+    it('prop4 value is 54321###', function () {
+      this.obj.set('prop1', '543216789');
+      expect(this.obj.get('prop4')).to.be.equal('54321###');
+    });
+
+    it('prop4 value is 12345', function () {
+      this.obj.set('prop1', '12345');
+      expect(this.obj.get('prop4')).to.be.equal('12345');
     });
 
   });

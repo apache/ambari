@@ -47,13 +47,17 @@ describe('App.WidgetSectionMixin', function () {
       }
     ];
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App.Service, 'find');
+    });
+
     afterEach(function () {
       App.Service.find.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        sinon.stub(App.Service, 'find').returns(item.services);
+        this.stub.returns(item.services);
         expect(obj.get('isAmbariMetricsInstalled')).to.equal(item.isAmbariMetricsInstalled);
       });
     });

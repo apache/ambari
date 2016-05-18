@@ -21,6 +21,7 @@ package org.apache.ambari.server.stack;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
@@ -954,7 +955,7 @@ public class ServiceModuleTest {
     serviceInfo.setName("TEST_SERVICE");
     serviceInfo.setVersion("1.0.0");
     serviceInfo.setValid(false);
-    serviceInfo.setErrors("Test error message");
+    serviceInfo.addError("Test error message");
 
 
     // When
@@ -1147,7 +1148,7 @@ public class ServiceModuleTest {
 
     ServiceDirectory serviceDirectory = createNiceMock(ServiceDirectory.class);
 
-    expect(serviceDirectory.getConfigurationDirectory(dir)).andReturn(configDir).anyTimes();
+    expect(serviceDirectory.getConfigurationDirectory(dir, AmbariMetaInfo.SERVICE_PROPERTIES_FOLDER_NAME)).andReturn(configDir).anyTimes();
     expect(serviceDirectory.getMetricsFile(anyObject(String.class))).andReturn(new File("testMetricsFile")).anyTimes();
     expect(serviceDirectory.getWidgetsDescriptorFile(anyObject(String.class))).andReturn(new File("testWidgetsFile")).anyTimes();
     expect(serviceDirectory.getAlertsFile()).andReturn(new File("testAlertsFile")).anyTimes();

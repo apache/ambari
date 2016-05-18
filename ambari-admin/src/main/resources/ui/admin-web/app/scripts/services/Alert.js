@@ -48,7 +48,7 @@ angular.module('ambariAdminConsole')
       elem.append('<div class="more">'+moreInfo.replace(/\./g, '.<wbr />')+'</div>');
     }
 
-    $('<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>')
+    $('<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">{{"common.controls.close" | translate}}</span></button>')
       .appendTo(elem)
       .on('click', function() {
         var $box = $(this).closest('.ambariAlert');

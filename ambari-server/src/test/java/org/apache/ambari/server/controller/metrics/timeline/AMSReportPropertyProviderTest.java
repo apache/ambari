@@ -93,7 +93,7 @@ public class AMSReportPropertyProviderTest {
     Resource res = resources.iterator().next();
     Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
     Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 6188, false);
     uriBuilder.addParameter("metricNames", "cpu_user");
     uriBuilder.addParameter("appId", "HOST");
     uriBuilder.addParameter("startTime", "1416445244800");
@@ -136,7 +136,7 @@ public class AMSReportPropertyProviderTest {
     Resource res = resources.iterator().next();
     Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
     Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 6188, false);
     uriBuilder.addParameter("metricNames", "cpu_user._sum");
     uriBuilder.addParameter("appId", "HOST");
     uriBuilder.addParameter("startTime", "1432033257812");

@@ -1,0 +1,65 @@
+{
+  "services": [
+    {
+      "name": "RANGER_KMS",
+      "identities": [
+        {
+          "name": "/spnego",
+          "keytab": {
+            "configuration": "kms-site/hadoop.kms.authentication.kerberos.keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "auth_to_local_properties" : [
+        "kms-site/hadoop.kms.authentication.kerberos.name.rules"
+      ],
+      "configurations": [
+        {
+          "kms-site": {
+            "hadoop.kms.authentication.type": "kerberos",
+            "hadoop.kms.authentication.kerberos.principal": "*"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "RANGER_KMS_SERVER",
+          "identities": [
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab"
+              }
+            },
+            {
+              "name": "/smokeuser"
+            },
+            {
+              "name": "rangerkms",
+              "principal": {
+                "value": "rangerkms/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "dbks-site/ranger.ks.kerberos.principal",
+                "local_username" : "keyadmin"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/rangerkms.service.keytab",
+                "owner": {
+                  "name": "${kms-env/kms_user}",
+                  "access": "r"
+                },
+                "configuration": "dbks-site/ranger.ks.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

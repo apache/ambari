@@ -43,6 +43,9 @@ var InitialData = {
   },
   'HighAvailabilityWizard': {},
   'RMHighAvailabilityWizard': {},
+  'AddHawqStandbyWizard': {},
+  'RemoveHawqStandbyWizard': {},
+  'ActivateHawqStandbyWizard': {},
   'RAHighAvailabilityWizard': {},
   'RollbackHighAvailabilityWizard': {},
   'MainAdminStackAndUpgrade': {},
@@ -202,6 +205,10 @@ App.db.setFilterConditions = function (name, filterConditions) {
   App.db.set('app.tables.filterConditions', name, filterConditions);
 };
 
+App.db.setComboSearchQuery = function (name, query) {
+  App.db.set('app.tables.comboSearchQuery', name, query);
+};
+
 App.db.setDisplayLength = function (name, displayLength) {
   App.db.set('app.tables.displayLength', name, displayLength);
 };
@@ -240,6 +247,14 @@ App.db.setReassignTasksRequestIds = function (requestIds) {
 
 App.db.setStacks = function (stacks) {
   App.db.set('Installer', 'stacksVersions', stacks);
+};
+
+App.db.setRepos = function (repos) {
+  App.db.set('Installer', 'repositories', repos);
+};
+
+App.db.setLocalRepoVDFData = function (data) {
+  App.db.set('Installer', 'localRepoVDFData', data);
 };
 
 App.db.setConfigs = function (configs) {
@@ -366,6 +381,10 @@ App.db.getFilterConditions = function (name) {
   return name ? App.db.get('app.tables.filterConditions', name) : null;
 };
 
+App.db.getComboSearchQuery = function (name) {
+  return name ? App.db.get('app.tables.comboSearchQuery', name) : null;
+};
+
 App.db.getDisplayLength = function (name) {
   return name ? App.db.get('app.tables.displayLength', name) : null;
 };
@@ -421,6 +440,14 @@ App.db.getDisableSecurityStatus = function () {
 
 App.db.getStacks = function () {
   return App.db.get('Installer', 'stacksVersions');
+};
+
+App.db.getRepos = function () {
+  return App.db.get('Installer', 'repositories');
+};
+
+App.db.getLocalRepoVDFData = function () {
+  return App.db.get('Installer', 'localRepoVDFData');
 };
 
 App.db.getHighAvailabilityWizardHdfsUser = function () {

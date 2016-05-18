@@ -19,20 +19,29 @@
 <div class="cluster-manage-access-pane">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li class="active">{{clusterName}} Roles</li>
+      <li class="active">{{clusterName}} {{'common.roles' | translate}}</li>
     </ol>
   </div>
   <hr>
   <div class="pull-right">
-    <i class="glyphicon glyphicon-th-large layout-switch-icon"></i>
-    <i class="glyphicon glyphicon-list layout-switch-icon disabled" ng-click="switchToList()" tooltip="Switch&nbsp;to&nbsp;list&nbsp;view"></i>
+    <div class="layout-switch-icon-wrapper">
+      <i class="glyphicon glyphicon-th-large layout-switch-icon"></i>
+      <p class="label-block">{{'common.blockViewLabel' | translate}}</p>
+    </div>
+    <div class="layout-switch-icon-wrapper disabled">
+      <i class="glyphicon glyphicon-list layout-switch-icon" ng-click="switchToList()" tooltip-html-unsafe="{{'clusters.switchToList' | translate}}"></i>
+      <p class="label-list">{{'common.listViewLabel' | translate}}</p>
+    </div>
   </div>
   <table class="table">
     <thead>
       <tr>
-        <th class="col-sm-2" width="20%"><label>Roles</label></th>
-        <th class="col-sm-5" width="40%"><label>Assign roles to these users</label></th>
-        <th class="col-sm-5" width="40%"><label>Assign roles to these groups</label></th>
+        <th class="col-sm-2" width="20%">
+          <label>{{'common.roles' | translate}}</label>&nbsp;
+          <i class="glyphicon glyphicon-question-sign green-icon cursor-pointer" ng-click="showHelpPage()"></i>
+        </th>
+        <th class="col-sm-5" width="40%"><label>{{'clusters.assignRoles' | translate: '{term: getConstant("users")}'}}</label></th>
+        <th class="col-sm-5" width="40%"><label>{{'clusters.assignRoles' | translate: '{term: getConstant("groups")}'}}</label></th>
       </tr>
     </thead>
     <tbody>

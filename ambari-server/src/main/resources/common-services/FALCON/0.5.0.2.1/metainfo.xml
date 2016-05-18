@@ -80,6 +80,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>falcon_app</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
       </components>
 
@@ -114,6 +120,12 @@
         <config-type>oozie-site</config-type>
       </excluded-config-types>
 
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

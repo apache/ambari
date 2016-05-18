@@ -68,7 +68,7 @@ public class EmailDispatcher implements NotificationDispatcher {
   /**
    * The JavaMail property for the {@code From:} header.
    */
-  private static final String JAVAMAIL_FROM_PROPERTY = "mail.smtp.from";
+  public static final String JAVAMAIL_FROM_PROPERTY = "mail.smtp.from";
 
   /**
    * {@inheritDoc}

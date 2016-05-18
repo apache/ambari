@@ -18,7 +18,7 @@
 
 [default]
 debug_level = INFO
-metrics_server = {{metric_collector_host}}:{{metric_collector_port}}
+hostname = {{hostname}}
 enable_time_threshold = false
 enable_value_threshold = false
 
@@ -26,5 +26,8 @@ enable_value_threshold = false
 send_interval = {{metrics_report_interval}}
 
 [collector]
-collector_sleep_interval = 5
+collector_sleep_interval = 10
 max_queue_size = 5000
+host = {{metric_collector_host}}
+port = {{metric_collector_port}}
+https_enabled = {{metric_collector_https_enabled}}

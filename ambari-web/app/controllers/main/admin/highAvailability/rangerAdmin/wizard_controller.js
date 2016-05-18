@@ -77,8 +77,9 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
           var self = this;
           this.loadHosts().done(function () {
             self.loadServicesFromServer();
-            self.loadMasterComponentHosts();
-            dfd.resolve();
+            self.loadMasterComponentHosts().done(function () {
+              dfd.resolve();
+            });
           });
           return dfd.promise();
         }

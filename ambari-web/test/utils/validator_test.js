@@ -232,8 +232,9 @@ describe('validator', function () {
       { obj: 1, detect: false },
       { obj: true, detect: false }
     ];
-    testable.forEach(function(value){
-      it('should ' + (value.detect ? '' : 'not') + ' detect empty value in `' + new String(value.obj) + '`', function(){
+    testable.forEach(function(value) {
+      var detect = value.detect ? '' : 'not';
+      it('should {0} detect empty value in `{1}`'.format(detect, JSON.stringify(value.obj)), function() {
         expect(validator.empty(value.obj)).to.eql(value.detect);
       });
     });
@@ -326,11 +327,15 @@ describe('validator', function () {
       {m:'"/1a2b3c" - valid',i:'/1a2b3c',e:true},
       {m:'"[ssd]/1a2b3c" - valid',i:'[ssd]/1a2b3c',e:true},
       {m:'"[DISK]/1a2b3c" - valid',i:'[DISK]/1a2b3c',e:true},
+      {m:'"[DISK]file:///1a2b3c" - valid',i:'[DISK]file:///1a2b3c',e:true},
       {m:'"[] /1a2b3c" - invalid',i:'[] /1a2b3c',e:false},
       {m:'"[ssd] /1a2b3c" - invalid',i:'[ssd] /1a2b3c',e:false},
       {m:'"[/1a2b3c]" - invalid',i:'[/1a2b3c]',e:false},
       {m:'"[s]ss /sd" - invalid',i:'[s]ss /sd',e:false},
-      {m:'" [s]ss/sd" - invalid',i:' [s]ss/sd',e:false}
+      {m:'" [s]ss/sd" - invalid',i:' [s]ss/sd',e:false},
+      {m:'"[RAM_DISK]/1a2b3c" - valid',i:'[RAM_DISK]/1a2b3c',e:true},
+      {m:'"[RAMDISK_]/1a2b3c" - invalid',i:'[RAMDISK_]/1a2b3c',e:false},
+      {m:'"[_RAMDISK]/1a2b3c" - invalid',i:'[_RAMDISK]/1a2b3c',e:false}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
@@ -420,7 +425,7 @@ describe('validator', function () {
         { value: 'a{1,2}{', expected: false }
       ];
     tests.forEach(function(test) {
-      it(message.format(test.value, (test.expected) ? 'valid' : 'not valid'), function() {
+      it(message.format(test.value, test.expected ? 'valid' : 'not valid'), function() {
         expect(validator.isValidMatchesRegexp(test.value)).to.equal(test.expected);
       })
     });

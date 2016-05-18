@@ -17,17 +17,38 @@
  */
 package org.apache.ambari.server.utils;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Range;
-import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -37,6 +58,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -62,33 +84,16 @@ import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.getCurrentArguments;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Range;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class StageUtilsTest extends EasyMockSupport {
   private static final String STACK_ID = "HDP-1.3.1";
@@ -118,6 +123,9 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
         bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
+        bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
+
+        install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
       }
     });
 
@@ -393,7 +401,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return nnServiceComponentHosts.get((String) args[0]);
+            return nnServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     expect(nnComponent.getServiceComponentHosts()).andReturn(nnServiceComponentHosts).anyTimes();
@@ -406,7 +414,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return snnServiceComponentHosts.get((String) args[0]);
+            return snnServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     expect(snnComponent.getServiceComponentHosts()).andReturn(snnServiceComponentHosts).anyTimes();
@@ -419,7 +427,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return dnServiceComponentHosts.get((String) args[0]);
+            return dnServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     expect(dnComponent.getServiceComponentHosts()).andReturn(dnServiceComponentHosts).anyTimes();
@@ -432,7 +440,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return hbmServiceComponentHosts.get((String) args[0]);
+            return hbmServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     expect(hbmComponent.getServiceComponentHosts()).andReturn(hbmServiceComponentHosts).anyTimes();
@@ -445,7 +453,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return hbrsServiceComponentHosts.get((String) args[0]);
+            return hbrsServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     Map<String, ServiceComponentHost> hbrsHosts = Maps.filterKeys(hbrsServiceComponentHosts, new Predicate<String>() {
@@ -464,7 +472,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return mrjtServiceComponentHosts.get((String) args[0]);
+            return mrjtServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     expect(mrjtComponent.getServiceComponentHosts()).andReturn(mrjtServiceComponentHosts).anyTimes();
@@ -477,7 +485,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return mrttServiceComponentHosts.get((String) args[0]);
+            return mrttServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     expect(mrttCompomnent.getServiceComponentHosts()).andReturn(mrttServiceComponentHosts).anyTimes();
@@ -490,7 +498,7 @@ public class StageUtilsTest extends EasyMockSupport {
           @Override
           public ServiceComponentHost answer() throws Throwable {
             Object[] args = getCurrentArguments();
-            return nnsServiceComponentHosts.get((String) args[0]);
+            return nnsServiceComponentHosts.get(args[0]);
           }
         }).anyTimes();
     expect(nnsComponent.getServiceComponentHosts()).andReturn(nnsServiceComponentHosts).anyTimes();
@@ -536,7 +544,7 @@ public class StageUtilsTest extends EasyMockSupport {
 
 
     final TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
-    topologyManager.getProjectedTopology();
+    topologyManager.getPendingHostComponents();
     expectLastCall().andReturn(projectedTopology).once();
 
     replayAll();

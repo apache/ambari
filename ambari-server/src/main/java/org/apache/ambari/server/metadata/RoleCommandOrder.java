@@ -137,6 +137,9 @@ public class RoleCommandOrder {
   }
 
   void addDependencies(Map<String, Object> jsonSection) {
+    if(jsonSection == null) // in case we don't have a certain section or role_command_order.json at all.
+      return;
+    
     for (Object blockedObj : jsonSection.keySet()) {
       String blocked = (String) blockedObj;
       if (COMMENT_STR.equals(blocked)) {

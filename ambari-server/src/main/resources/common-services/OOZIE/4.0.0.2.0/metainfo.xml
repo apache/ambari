@@ -31,6 +31,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -59,6 +60,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>oozie_app</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -119,16 +126,16 @@
             </package>
           </packages>
         </osSpecific>
-        
+
        <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>extjs-2.2-1</name>
             </package>
           </packages>
         </osSpecific>
-        
+
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
@@ -140,7 +147,7 @@
             </package>
           </packages>
         </osSpecific>
-        
+
       </osSpecifics>
 
       <commandScript>
@@ -148,7 +155,7 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
-      
+
       <requiredServices>
         <service>YARN</service>
       </requiredServices>

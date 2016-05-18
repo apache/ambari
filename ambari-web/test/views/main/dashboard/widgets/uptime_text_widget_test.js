@@ -21,7 +21,12 @@ require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widgets/uptime_text_widget');
 
+var uptimeTextDashboardWidgetView;
 describe('App.UptimeTextDashboardWidgetView', function() {
+
+  beforeEach(function () {
+    uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresh1:40, thresh2:70});
+  });
 
   describe('#timeConverter', function() {
     var ts1 = 1358245370553, ts2 = 0;
@@ -42,7 +47,6 @@ describe('App.UptimeTextDashboardWidgetView', function() {
       }
     ];
     timestamps.forEach(function(timestamp) {
-      var uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresh1:40, thresh2:70});
       it('timestamp ' + timestamp.t, function() {
         var result = uptimeTextDashboardWidgetView.timeConverter(timestamp.t);
         expect(result.length).to.equal(timestamp.e.l);
@@ -79,9 +83,8 @@ describe('App.UptimeTextDashboardWidgetView', function() {
       }
     ];
     timestamps.forEach(function(timestamp) {
-      var uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresh1:40, thresh2:70});
-      it('timestamp ' + timestamp.t + '. timeUnit should be ' + '"' + timestamp.e.timeUnit + '"', function() {
-        var result = uptimeTextDashboardWidgetView.uptimeProcessing(((new Date()).getTime() - timestamp.diff));
+      it('timestamp {0}. timeUnit should be "{1}"'.format(timestamp.t, timestamp.e.timeUnit), function() {
+        uptimeTextDashboardWidgetView.uptimeProcessing(new Date().getTime() - timestamp.diff);
         expect(uptimeTextDashboardWidgetView.get('timeUnit')).to.equal(timestamp.e.timeUnit);
       });
     });

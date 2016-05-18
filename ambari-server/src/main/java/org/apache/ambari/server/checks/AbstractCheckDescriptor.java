@@ -29,6 +29,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -65,6 +66,9 @@ public abstract class AbstractCheckDescriptor {
 
   @Inject
   Provider<RepositoryVersionDAO> repositoryVersionDaoProvider;
+
+  @Inject
+  Provider<UpgradeDAO> upgradeDaoProvider;
 
   @Inject
   Provider<RepositoryVersionHelper> repositoryVersionHelper;
@@ -119,17 +123,21 @@ public abstract class AbstractCheckDescriptor {
   public boolean isApplicable(PrereqCheckRequest request, List<String> requiredServices, boolean requiredAll) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     Set<String> services = cluster.getServices().keySet();
-    boolean serviceFound = false;
+
+    // default return value depends on assign inside check block
+    boolean serviceFound = requiredAll && !requiredServices.isEmpty();
 
     for (String service : requiredServices) {
-      if (services.contains(service) && !requiredAll) {
+      if ( services.contains(service) && !requiredAll) {
         serviceFound = true;
+        break;
       } else if (!services.contains(service) && requiredAll) {
-        return false;
+        serviceFound = false;
+        break;
       }
     }
 
-    return !(!serviceFound && !requiredAll);
+    return serviceFound;
   }
 
   /**
@@ -281,5 +289,13 @@ public abstract class AbstractCheckDescriptor {
    */
   public Boolean isRequired(){
       return getClass().getAnnotation(UpgradeCheck.class).required();
+  }
+  
+  /**
+   * Return a boolean indicating whether or not configs allow bypassing errors during the RU/EU PreChecks.
+   * @return
+   */
+  public boolean isStackUpgradeAllowedToBypassPreChecks() {
+    return config.isUpgradePrecheckBypass();
   }
 }

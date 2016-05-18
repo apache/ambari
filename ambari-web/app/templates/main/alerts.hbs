@@ -57,29 +57,15 @@
               <span {{bindAttr title="alertDefinition.type"}} {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>
               <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
             </td>
-            <td class="alert-status">{{{alertDefinition.status}}}</td>
+            <td class="alert-status">
+              {{view App.AlertDefinitionSummary contentBinding="alertDefinition"}}
+            </td>
             <td class="alert-service">{{alertDefinition.serviceDisplayName}}</td>
             <td class="alert-time">
               <time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time>
             </td>
             <td class="last toggle-state-button alert-state">
-              {{#if alertDefinition.enabled not=true}}
-                {{#isAuthorized "CLUSTER.TOGGLE_ALERTS"}}
-                  <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
-                  <span class="enable-disable-button" {{bindAttr data-original-title="view.enabledTooltip"}}>
-                    {{view.enabledDisplay}}
-                  </span>
-                  </a>
-                {{/isAuthorized}}
-              {{else}}
-                {{#isAuthorized "CLUSTER.TOGGLE_ALERTS"}}
-                  <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
-                  <span class="enable-disable-button" {{bindAttr data-original-title="view.disabledTooltip"}}>
-                    {{view.disabledDisplay}}
-                  </span>
-                  </a>
-                {{/isAuthorized}}
-              {{/if}}
+              {{view App.AlertDefinitionState contentBinding="alertDefinition"}}
             </td>
           </tr>
         {{/each}}
@@ -95,7 +81,7 @@
       <tr>
         <td class="first"></td>
         <td colspan="2">
-          <div class="spinner"></div>
+          {{view App.SpinnerView}}
         </td>
         <td colspan="2"></td>
       </tr>

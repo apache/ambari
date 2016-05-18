@@ -59,6 +59,16 @@ public interface DbmsHelper {
                                  String... columnNames);
 
   /**
+   * Gets DROP INDEX statement
+   *
+   * @param indexName
+   * @param tableName
+   * @param columnNames
+   * @return
+   */
+  String getDropIndexStatement(String indexName, String tableName);
+
+  /**
    * Generate alter table statement to add unique constraint
    * @param tableName name of the table
    * @param constraintName name of the constraint
@@ -102,7 +112,7 @@ public interface DbmsHelper {
 
   /**
    * Gets the {@code SET NULL} or {@code SET NOT NULL} statement.
-   * 
+   *
    * @param tableName
    *          the table (not {@code null}).
    * @param columnInfo

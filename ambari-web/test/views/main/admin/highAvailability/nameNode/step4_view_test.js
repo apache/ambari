@@ -42,7 +42,7 @@ describe('App.HighAvailabilityWizardStep4View', function () {
   });
 
   describe("#step4BodyText", function() {
-    it("", function() {
+    it("formatted with dependent data", function() {
       view.set('controller.content.masterComponentHosts', [{
         component: 'NAMENODE',
         isInstalled: true,
@@ -54,16 +54,6 @@ describe('App.HighAvailabilityWizardStep4View', function () {
     });
   });
 
-  describe("#nnCheckPointText", function() {
-    it("isNextEnabled true", function() {
-      view.set('controller.isNextEnabled', true);
-      view.propertyDidChange('nnCheckPointText');
-      expect(view.get('nnCheckPointText')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated'));
-    });
-    it("isNextEnabled false", function() {
-      view.set('controller.isNextEnabled', false);
-      view.propertyDidChange('nnCheckPointText');
-      expect(view.get('nnCheckPointText')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step4.ckNotCreated'));
-    });
-  });
+  App.TestAliases.testAsComputedIfThenElse(view, 'nnCheckPointText', 'controller.isNextEnabled', Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated'), Em.I18n.t('admin.highAvailability.wizard.step4.ckNotCreated'));
+
 });

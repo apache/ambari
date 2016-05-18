@@ -118,8 +118,6 @@ public class ConfigurationService {
   public Response readLatestConfiguration() {
     Response response = null;
     try {
-      validateViewConfiguration();
-      
       String versionTag = getVersionTag();
       JSONObject configurations = getConfigurationFromAmbari(versionTag);
       response = Response.ok(configurations).build();
@@ -143,8 +141,6 @@ public class ConfigurationService {
   public Response readClusterInfo() {
     Response response = null;
     try {
-      validateViewConfiguration();
-
       JSONObject configurations = readFromCluster("");
       response = Response.ok(configurations).build();
     } catch (WebApplicationException ex) {
@@ -167,8 +163,6 @@ public class ConfigurationService {
   public Response readAllConfigurations() {
     Response response = null;
     try {
-      validateViewConfiguration();
-
       JSONObject responseJSON = readFromCluster(CONFIGURATION_URL);
       response = Response.ok( responseJSON ).build();
     } catch (WebApplicationException ex) {
@@ -191,8 +185,6 @@ public class ConfigurationService {
   public Response readConfigurationByTag(@PathParam("tag") String tag) {
     Response response = null;
     try {
-      validateViewConfiguration();
-
       JSONObject configurations = getConfigurationFromAmbari(tag);
       response = Response.ok(configurations).build();
     } catch (WebApplicationException ex) {
@@ -265,8 +257,7 @@ public class ConfigurationService {
    * @return    if <code>true</code>, the user is an operator; otherwise <code>false</code>
    */
   private   boolean isOperator() {
-      validateViewConfiguration();
-            
+
       // first check if the user is an CLUSTER.ADMINISTRATOR
       String url = String.format(CLUSTER_OPERATOR_PRIVILEGE_URL, context.getUsername());
       JSONObject json = readFromCluster(url);
@@ -314,33 +305,6 @@ public class ConfigurationService {
           message + ". Check Capacity-Scheduler instance properties.");
     }
     return jsonObject;
-  }
-
-  /**
-   * Validates the view configuration properties.
-   *
-   * @throws MisconfigurationFormattedException if one of the required view configuration properties are not set
-   */
-  private void validateViewConfiguration() {
-    // check if we are cluster config'd, if so, just go
-    if (ambariApi.isLocalCluster()) {
-      return;
-    }
-
-    String hostname = context.getProperties().get("ambari.server.url");
-    if (hostname == null) {
-      throw new MisconfigurationFormattedException("ambari.server.url");
-    }
-
-    String username = context.getProperties().get("ambari.server.username");
-    if (username == null) {
-      throw new MisconfigurationFormattedException("ambari.server.username");
-    }
-
-    String password = context.getProperties().get("ambari.server.password");
-    if (password == null) {
-      throw new MisconfigurationFormattedException("ambari.server.password");
-    }
   }
 
   private JSONObject getConfigurationFromAmbari(String versionTag) {
@@ -398,7 +362,6 @@ public class ConfigurationService {
   public Response writeConfiguration(JSONObject request) {
     JSONObject response;
     try {
-      validateViewConfiguration();
 
       if (isOperator() == false) {
         return Response.status(401).build();
@@ -467,7 +430,7 @@ public class ConfigurationService {
 
       String rmHosts = getRMHosts();
       JSONObject data = getJsonObject(String.format(RESTART_RM_REQUEST_DATA,
-          ambariApi.getCluster().getName(), rmHosts, rmHosts));
+          context.getCluster().getName(), rmHosts, rmHosts));
 
       Map<String, String> headers = new HashMap<String, String>();
       headers.put("Content-Type", "application/x-www-form-urlencoded");
@@ -491,7 +454,7 @@ public class ConfigurationService {
   @Path("/getConfig")
   public Response getConfigurationValue(@QueryParam("siteName") String siteName,@QueryParam("configName") String configName){
     try{
-      String configValue = ambariApi.getCluster().getConfigurationValue(siteName,configName);
+      String configValue = context.getCluster().getConfigurationValue(siteName,configName);
       JSONObject res = new JSONObject();
       JSONArray arr = new JSONArray();
       JSONObject conf = new JSONObject();
@@ -511,7 +474,7 @@ public class ConfigurationService {
   private String getRMHosts() {
     StringBuilder hosts = new StringBuilder();
     boolean first = true;
-    for (String host : ambariApi.getHostsWithComponent("RESOURCEMANAGER")) {
+    for (String host : context.getCluster().getHostsForServiceComponent("YARN", "RESOURCEMANAGER")) {
       if (!first) {
         hosts.append(",");
       }

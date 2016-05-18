@@ -45,6 +45,12 @@ public class InstanceConfig {
   private String description;
 
   /**
+   * An optional short url for this instance
+   */
+  private String shortUrl;
+
+
+  /**
    * Indicates whether or not the instance should be visible.
    */
   private boolean visible = true;
@@ -131,4 +137,5 @@ public class InstanceConfig {
   public List<PropertyConfig> getProperties() {
     return properties == null ? Collections.<PropertyConfig>emptyList() : properties;
   }
+
 }

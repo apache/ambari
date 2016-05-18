@@ -18,13 +18,28 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
@@ -39,26 +54,14 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.inject.Singleton;
 
 /**
  * Manages all cluster provisioning actions on the cluster topology.
@@ -99,10 +102,6 @@ public class TopologyManager {
   @Inject
   private SecurityConfigurationFactory securityConfigurationFactory;
 
-  @Inject
-  private CredentialStoreService credentialStoreService;
-
-
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
    * locking on the synchronized keyword.
@@ -137,18 +136,25 @@ public class TopologyManager {
     ensureInitialized();
     ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
+    final String repoVersion = request.getRepositoryVersion();
 
     // get the id prior to creating ambari resources which increments the counter
     Long provisionId = ambariContext.getNextRequestId();
 
+    final Stack stack = topology.getBlueprint().getStack();
+    boolean configureSecurity = false;
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
-
+      configureSecurity = true;
       addKerberosClient(topology);
+
+      // refresh default stack config after adding KERBEROS_CLIENT component to topology
+      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint
+        ().getServices()));
 
       // create Cluster resource with security_type = KERBEROS, this will trigger cluster Kerberization
       // upon host install task execution
-      ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType());
+      ambariContext.createAmbariResources(topology, clusterName, SecurityType.KERBEROS, repoVersion);
       if (securityConfiguration.getDescriptor() != null) {
         submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
       }
@@ -159,7 +165,7 @@ public class TopologyManager {
       }
       submitCredential(clusterName, credential);
     } else {
-      ambariContext.createAmbariResources(topology, clusterName, null);
+      ambariContext.createAmbariResources(topology, clusterName, null, repoVersion);
     }
 
     long clusterId = ambariContext.getClusterId(clusterName);
@@ -167,6 +173,8 @@ public class TopologyManager {
     request.setClusterId(clusterId);
     // set recommendation strategy
     topology.setConfigRecommendationStrategy(request.getConfigRecommendationStrategy());
+    // set provision action requested
+    topology.setProvisionAction(request.getProvisionAction());
     // persist request after it has successfully validated
     PersistedTopologyRequest persistedRequest = RetryHelper.executeWithRetry(new Callable<PersistedTopologyRequest>() {
       @Override
@@ -177,10 +185,8 @@ public class TopologyManager {
 
     clusterTopologyMap.put(clusterId, topology);
 
-    final Stack stack = topology.getBlueprint().getStack();
-
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(
-      ambariContext, topology, true, stackAdvisorBlueprintProcessor));
+      ambariContext, topology, true, stackAdvisorBlueprintProcessor, configureSecurity));
     LogicalRequest logicalRequest = processRequest(persistedRequest, topology, provisionId);
 
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
@@ -252,7 +258,7 @@ public class TopologyManager {
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-        "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
         Collections.singleton(properties), requestInfoProps, null);
@@ -372,7 +378,23 @@ public class TopologyManager {
     }
   }
 
-  public Request getRequest(long requestId) {
+  /**
+   * Through this method {@see TopologyManager} gets notified when a connection to a host in the cluster is lost.
+   * The passed host will be excluded from scheduling any tasks onto it as it can't be reached.
+   * @param host
+   */
+  public void onHostHeartBeatLost(Host host) {
+    if (AmbariServer.getController() == null) {
+      return;
+    }
+    ensureInitialized();
+    synchronized (availableHosts) {
+      LOG.info("Hearbeat for host {} lost thus removing it from available hosts.", host.getHostName());
+      availableHosts.remove(host);
+    }
+  }
+
+  public LogicalRequest getRequest(long requestId) {
     ensureInitialized();
     return allRequests.get(requestId);
   }
@@ -393,8 +415,10 @@ public class TopologyManager {
     }
   }
 
-  // currently we are just returning all stages for all requests
-  //and relying on the StageResourceProvider to convert each to a resource and do a predicate eval on each
+  /**
+   * Currently we are just returning all stages for all requests
+   * and relying on the StageResourceProvider to convert each to a resource and do a predicate eval on each.
+   */
   public Collection<StageEntity> getStages() {
     ensureInitialized();
     Collection<StageEntity> stages = new ArrayList<StageEntity>();
@@ -451,20 +475,24 @@ public class TopologyManager {
     return clusterTopologyMap.get(clusterId);
   }
 
-  public Map<String, Collection<String>> getProjectedTopology() {
+  public Map<String, Collection<String>> getPendingHostComponents() {
     ensureInitialized();
     Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
 
     for (LogicalRequest logicalRequest : allRequests.values()) {
-      Map<String, Collection<String>> requestTopology = logicalRequest.getProjectedTopology();
-      for (Map.Entry<String, Collection<String>> entry : requestTopology.entrySet()) {
-        String host = entry.getKey();
-        Collection<String> hostComponents = hostComponentMap.get(host);
-        if (hostComponents == null) {
-          hostComponents = new HashSet<String>();
-          hostComponentMap.put(host, hostComponents);
+      Map<Long, HostRoleCommandStatusSummaryDTO> summary = logicalRequest.getStageSummaries();
+      final CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+      if (status.getStatus().isInProgress()) {
+        Map<String, Collection<String>> requestTopology = logicalRequest.getProjectedTopology();
+        for (Map.Entry<String, Collection<String>> entry : requestTopology.entrySet()) {
+          String host = entry.getKey();
+          Collection<String> hostComponents = hostComponentMap.get(host);
+          if (hostComponents == null) {
+            hostComponents = new HashSet<String>();
+            hostComponentMap.put(host, hostComponents);
+          }
+          hostComponents.addAll(entry.getValue());
         }
-        hostComponents.addAll(entry.getValue());
       }
     }
     return hostComponentMap;
@@ -568,10 +596,14 @@ public class TopologyManager {
     return logicalRequest;
   }
 
-  private void processAcceptedHostOffer(ClusterTopology topology, final HostOfferResponse response, HostImpl host) {
+  private void processAcceptedHostOffer(ClusterTopology topology, final HostOfferResponse response, final HostImpl host) {
     final String hostName = host.getHostName();
     try {
       topology.addHostToTopology(response.getHostGroupName(), hostName);
+
+      // update the host with the rack info if applicable
+      updateHostWithRackInfo(topology, response, host);
+
     } catch (InvalidTopologyException e) {
       // host already registered
       throw new RuntimeException("An internal error occurred while performing request host registration: " + e, e);
@@ -586,6 +618,7 @@ public class TopologyManager {
         @Override
         public Object call() throws Exception {
           persistedState.registerHostName(response.getHostRequestId(), hostName);
+          persistedState.registerInTopologyHostInfo(host);
           return null;
         }
       });
@@ -604,6 +637,24 @@ public class TopologyManager {
 
       task.init(topology, ambariContext);
       executor.execute(task);
+    }
+  }
+
+  private void updateHostWithRackInfo(ClusterTopology topology, HostOfferResponse response, HostImpl host) {
+    // the rack info from the cluster creation template
+    String rackInfoFromTemplate = topology.getHostGroupInfo().get(response.getHostGroupName()).getHostRackInfo().get
+        (host.getHostName());
+
+    if (null != rackInfoFromTemplate) {
+      host.setRackInfo(rackInfoFromTemplate);
+      host.persist(); //todo this is required only if host is not persisted to database yet, is it really so?
+      try {
+        // todo: do we need this in case of blueprints?
+        ambariContext.getController().registerRackChange(ambariContext.getClusterName(topology.getClusterId()));
+      } catch (AmbariException e) {
+        LOG.error("Could not register rack change for cluster id {}", topology.getClusterId());
+        LOG.error("Exception during rack change: ", e);
+      }
     }
   }
 

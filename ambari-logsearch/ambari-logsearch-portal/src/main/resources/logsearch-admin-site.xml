@@ -1,0 +1,116 @@
+<!-- Licensed under the Apache License, Version 2.0 (the "License"); you 
+	may not use this file except in compliance with the License. You may obtain 
+	a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless 
+	required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. 
+	See accompanying LICENSE file. -->
+
+
+<configuration>
+	<property>
+		<name>authentication.ldap.primaryUrl</name>
+		<value></value>
+		<display-name></display-name>
+		<description>The hostname and port for the LDAP or AD server. Example: my.ldap.server:389</description>		
+	</property>
+	<property>
+		<name>authentication.ldap.useSSL</name>
+		<value>false</value>
+		<display-name></display-name>
+		<description>If true, use SSL when connecting to the LDAP or AD server.</description>
+	</property>
+	<property>
+		<name>authentication.ldap.baseDn</name>
+		<value>dc=example,dc=com</value>
+		<display-name></display-name>
+		<description>The root Distinguished Name to search in the directory for users. Example: ou=people,dc=hadoop,dc=apache,dc=org</description>
+	</property>
+	<property>
+		<name>authentication.ldap.bindAnonymously</name>
+		<value>false</value>
+		<display-name></display-name>
+		<description>If true, bind to the LDAP or AD server anonymously</description>
+	</property>
+	<property>
+		<name>authentication.ldap.managerDn</name>
+		<value>cn=Manager,dc=example,dc=com</value>
+		<display-name></display-name>
+		<description>If Bind anonymous is set to false, the Distinguished Name (“DN”) for the manager.
+		 Example: uid=hdfs,ou=people,dc=hadoop,dc=apache,dc=org</description>
+	</property>
+	<property>
+		<name>authentication.ldap.managerPassword</name>
+		<value></value>
+		<display-name></display-name>
+		<property-type>PASSWORD</property-type>
+		<description>If Bind anonymous is set to false, the password for the manager</description>
+	</property>
+	<property>
+		<name>authentication.ldap.dnAttribute</name>
+		<value>dn</value>
+		<display-name></display-name>
+		<description></description>
+	</property>
+	<property>
+		<name>authentication.ldap.usernameAttribute</name>
+		<value>uid</value>
+		<display-name></display-name>
+		<description>The attribute for username. Example: uid</description>
+	</property>
+	<property>
+		<name>authentication.ldap.userBase</name>
+		<value>ou=people,dc=example,dc=com</value>
+		<display-name></display-name>
+		<description></description>
+	</property>
+	<property>
+		<name>authentication.ldap.userObjectClass</name>
+		<value>person</value>
+		<display-name></display-name>
+		<description>The object class that is used for users. Example: organizationalPerson</description>
+	</property>
+	<property>
+		<name>authentication.ldap.groupBase</name>
+		<value>ou=groups,dc=example,dc=com"</value>
+		<display-name></display-name>
+		<description></description>
+	</property>
+	<property>
+		<name>authentication.ldap.groupObjectClass</name>
+		<value>group</value>
+		<display-name></display-name>
+		<description>The object class that is used for groups. Example: groupOfUniqueNames</description>
+	</property>
+	<property>
+		<name>authentication.ldap.groupNamingAttr</name>
+		<value>cn</value>
+		<display-name></display-name>
+		<description>The attribute for group name.</description>
+	</property>
+	<property>
+		<name>authentication.ldap.groupMembershipAttr</name>
+		<value>member</value>
+		<display-name></display-name>
+		<description>The attribute for group membership. Example: uniqueMember</description>
+	</property>
+	<property>
+		<name>authorization.ldap.adminGroupMappingRules</name>
+		<value>Logsearch Administrators</value>
+		<display-name></display-name>
+		<description></description>
+	</property>
+	<property>
+		<name>authorization.ldap.groupSearchFilter</name>
+		<value></value>
+		<display-name></display-name>
+		<description></description>
+	</property>
+	<property>
+		<name>authentication.ldap.referral</name>
+		<value>ignore</value>
+		<display-name></display-name>
+		<description>Determines if LDAP referrals should be followed, or ignored.</description>
+	</property>
+</configuration>

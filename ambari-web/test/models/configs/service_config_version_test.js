@@ -21,66 +21,267 @@ require('models/configs/service_config_version');
 
 var model;
 
+function getModel() {
+  return App.ServiceConfigVersion.createRecord({});
+}
+
 describe('App.ServiceConfigVersion', function () {
 
   beforeEach(function () {
-    model = App.ServiceConfigVersion.createRecord({});
+    model = getModel();
   });
 
-  describe('#authorFormatted', function () {
+  App.TestAliases.testAsComputedAnd(getModel(), 'canBeMadeCurrent', ['isCompatible', '!isCurrent']);
 
-    var cases = [
+  App.TestAliases.testAsComputedTruncate(getModel(), 'authorFormatted', 'author', 15, 15);
+
+  App.TestAliases.testAsComputedTruncate(getModel(), 'briefNotes', 'fullNotes', 81, 81, '');
+
+  App.TestAliases.testAsComputedNotEqualProperties(getModel(), 'moreNotesExists', 'fullNotes', 'briefNotes');
+
+  describe("#configGroupName", function() {
+
+    it("not default group", function() {
+      model.reopen({
+        groupName: 'g1',
+        isDefault: false
+      });
+      expect(model.get('configGroupName')).to.equal('g1');
+    });
+
+    it("default group", function() {
+      model.reopen({
+        isDefault: true
+      });
+      expect(model.get('configGroupName')).to.equal(Em.I18n.t('common.default'));
+    });
+
+  });
+
+  describe("#fullNotes", function() {
+
+    it("notes is null", function() {
+      model.set('notes', null);
+      expect(model.get('fullNotes')).to.equal(Em.I18n.t('dashboard.configHistory.table.notes.no'));
+    });
+
+    it("notes is empty", function() {
+      model.set('notes', "");
+      expect(model.get('fullNotes')).to.equal(Em.I18n.t('dashboard.configHistory.table.notes.no'));
+    });
+
+    it("notes has value", function() {
+      model.set('notes', "notes-value");
+      expect(model.get('fullNotes')).to.equal('notes-value');
+    });
+
+  });
+
+  describe("#createdDate", function() {
+
+    it("should return created date", function() {
+      model.set('createTime', 1450267588961);
+      moment.tz.setDefault('America/Los_Angeles');
+      expect(model.get('createdDate')).to.equal('Wed, Dec 16, 2015 04:06');
+    });
+
+  });
+
+  describe("#timeSinceCreated", function () {
+
+    before(function () {
+      sinon.stub($, 'timeago').returns('timeago');
+    });
+    after(function () {
+      $.timeago.restore()
+    });
+
+    it("should return time since created", function () {
+      model.set('rawCreateTime', 1450267588961);
+      expect(model.get('timeSinceCreated')).to.equal('timeago');
+    });
+
+  });
+
+  describe("#isRestartRequired", function() {
+
+    it("service.isRestartRequired is false", function() {
+      model.set('service', Em.Object.create({
+        isRestartRequired: false
+      }));
+      expect(model.get('isRestartRequired')).to.be.false;
+    });
+
+    it("non-current version", function() {
+      model.set('service', Em.Object.create({
+        isRestartRequired: true
+      }));
+      model.set('isCurrent', false);
+      expect(model.get('isRestartRequired')).to.be.false;
+    });
+
+    it("version has no hosts", function() {
+      model.setProperties({
+        service: Em.Object.create({
+          isRestartRequired: true
+        }),
+        isCurrent: true,
+        hosts: []
+      });
+      expect(model.get('isRestartRequired')).to.be.false;
+    });
+
+    it("version hosts don't need restart", function() {
+      model.setProperties({
+        service: Em.Object.create({
+          isRestartRequired: true,
+          restartRequiredHostsAndComponents: {}
+        }),
+        isCurrent: true,
+        hosts: ['host1']
+      });
+      expect(model.get('isRestartRequired')).to.be.false;
+    });
+
+    it("version hosts need restart", function() {
+      model.setProperties({
+        service: Em.Object.create({
+          isRestartRequired: true,
+          restartRequiredHostsAndComponents: {'host1': {}}
+        }),
+        isCurrent: true,
+        hosts: ['host1']
+      });
+      expect(model.get('isRestartRequired')).to.be.true;
+    });
+
+  });
+
+  describe("#disabledActionMessages", function() {
+    var testCases = [
       {
-        author: 'admin',
-        authorFormatted: 'admin',
-        title: 'should display username as is'
+        input: {
+          isDisplayed: false,
+          isCurrent: false
+        },
+        expected: {
+          view: '',
+          compare: '',
+          revert: ''
+        }
       },
       {
-        author: 'userNameIsTooLongToDisplay',
-        authorFormatted: 'userNameIsTooLongToD...',
-        title: 'should trim username to 20 chars'
+        input: {
+          isDisplayed: true,
+          isCurrent: false
+        },
+        expected: {
+          view: Em.I18n.t('dashboard.configHistory.info-bar.view.button.disabled'),
+          compare: Em.I18n.t('dashboard.configHistory.info-bar.compare.button.disabled'),
+          revert: ''
+        }
+      },
+      {
+        input: {
+          isDisplayed: false,
+          isCurrent: true
+        },
+        expected: {
+          view: '',
+          compare: '',
+          revert: Em.I18n.t('dashboard.configHistory.info-bar.revert.button.disabled')
+        }
+      },
+      {
+        input: {
+          isDisplayed: true,
+          isCurrent: true
+        },
+        expected: {
+          view: Em.I18n.t('dashboard.configHistory.info-bar.view.button.disabled'),
+          compare: Em.I18n.t('dashboard.configHistory.info-bar.compare.button.disabled'),
+          revert: Em.I18n.t('dashboard.configHistory.info-bar.revert.button.disabled')
+        }
       }
     ];
 
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        model.set('author', item.author);
-        expect(model.get('authorFormatted')).to.equal(item.authorFormatted);
+    testCases.forEach(function(test) {
+      it("isDisplayed = " + test.input.isDisplayed + ", isCurrent = " + test.input.isCurrent, function() {
+        model.setProperties(test.input);
+        expect(model.get('disabledActionMessages')).to.eql(test.expected);
       });
     });
 
   });
 
-  describe('#canBeMadeCurrent', function () {
-
-    var cases = [
+  describe("#disabledActionAttr", function() {
+    var testCases = [
       {
-        isCompatible: true,
-        isCurrent: true,
-        canBeMadeCurrent: false,
-        title: 'current version'
+        input: {
+          isDisplayed: false,
+          isCurrent: false,
+          isDisabled: false
+        },
+        expected: {
+          view: false,
+          compare: false,
+          revert: false
+        }
       },
       {
-        isCompatible: true,
-        isCurrent: false,
-        canBeMadeCurrent: true,
-        title: 'compatible version'
+        input: {
+          isDisplayed: true,
+          isCurrent: false,
+          isDisabled: false
+        },
+        expected: {
+          view: 'disabled',
+          compare: 'disabled',
+          revert: false
+        }
       },
       {
-        isCompatible: false,
-        isCurrent: false,
-        canBeMadeCurrent: false,
-        title: 'not compatible version'
+        input: {
+          isDisplayed: false,
+          isCurrent: false,
+          isDisabled: true
+        },
+        expected: {
+          view: false,
+          compare: 'disabled',
+          revert: 'disabled'
+        }
+      },
+      {
+        input: {
+          isDisplayed: false,
+          isCurrent: true,
+          isDisabled: false
+        },
+        expected: {
+          view: false,
+          compare: false,
+          revert: 'disabled'
+        }
+      },
+      {
+        input: {
+          isDisplayed: true,
+          isCurrent: true,
+          isDisabled: true
+        },
+        expected: {
+          view: 'disabled',
+          compare: 'disabled',
+          revert: 'disabled'
+        }
       }
     ];
 
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        model.setProperties({
-          isCompatible: item.isCompatible,
-          isCurrent: item.isCurrent
-        });
-        expect(model.get('canBeMadeCurrent')).to.equal(item.canBeMadeCurrent);
+    testCases.forEach(function(test) {
+      it("isDisplayed = " + test.input.isDisplayed + ", isCurrent = " + test.input.isCurrent + ", isDisabled = " + test.input.isDisabled, function() {
+        model.setProperties(test.input);
+        expect(model.get('disabledActionAttr')).to.eql(test.expected);
       });
     });
 

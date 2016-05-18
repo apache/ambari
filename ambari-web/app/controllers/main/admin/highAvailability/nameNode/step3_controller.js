@@ -46,7 +46,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
    * @type Object
    */
   configsToRemove: {
-    'hdfs-site': ['dfs.namenode.secondary.http-address', 'dfs.namenode.rpc-address']
+    'hdfs-site': ['dfs.namenode.secondary.http-address', 'dfs.namenode.rpc-address', 'dfs.namenode.http-address', 'dfs.namenode.https-address']
   },
 
   clearStep: function () {
@@ -95,6 +95,14 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       var amsHbaseSiteTag = data.Clusters.desired_configs['ams-hbase-site'].tag;
       urlParams.push('(type=ams-hbase-site&tag=' + amsHbaseSiteTag + ')');
       this.set("amsHbaseSiteTag", {name : "amsHbaseSiteTag", value : amsHbaseSiteTag});
+    }
+    if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      var hawqSiteTag = data.Clusters.desired_configs['hawq-site'].tag;
+      urlParams.push('(type=hawq-site&tag=' + hawqSiteTag + ')');
+      this.set("hawqSiteTag", {name : "hawqSiteTag", value : hawqSiteTag});
+      var hdfsClientTag = data.Clusters.desired_configs['hdfs-client'].tag;
+      urlParams.push('(type=hdfs-client&tag=' + hdfsClientTag + ')');
+      this.set("hdfsClientTag", {name : "hdfsClientTag", value : hdfsClientTag});
     }
     App.ajax.send({
       name: 'admin.get.all_configurations',
@@ -164,6 +172,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
     configs.forEach(function (config) {
       App.NnHaConfigInitializer.initialValue(config, localDB, dependencies);
+      config.isOverridable = false;
     });
 
     return configs;
@@ -219,7 +228,6 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
-      serviceConfigProperty.validate();
     }, this);
   },
 

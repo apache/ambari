@@ -18,8 +18,28 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
@@ -50,27 +70,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 
 /**
  * AmbariContext unit tests
@@ -199,6 +201,9 @@ public class AmbariContextTest {
     expect(clusters.getHost(HOST1)).andReturn(host1).anyTimes();
     expect(clusters.getHost(HOST2)).andReturn(host2).anyTimes();
 
+    Map<String, Host> clusterHosts = ImmutableMap.of(HOST1, host1, HOST2, host2);
+    expect(clusters.getHostsForCluster(CLUSTER_NAME)).andReturn(clusterHosts).anyTimes();
+
     expect(cluster.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(cluster.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
 
@@ -258,7 +263,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null);
+    context.createAmbariResources(topology, CLUSTER_NAME, null, null);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();
@@ -342,6 +347,54 @@ public class AmbariContextTest {
     Collection<String> requestHosts = configGroupRequest.getHosts();
     requestHosts.retainAll(group1Hosts);
     assertEquals(group1Hosts.size(), requestHosts.size());
+
+    Map<String, Config> requestConfig = configGroupRequest.getConfigs();
+    assertEquals(1, requestConfig.size());
+    Config type1Config = requestConfig.get("type1");
+    //todo: other properties such as cluster name are not currently being explicitly set on config
+    assertEquals("type1", type1Config.getType());
+    assertEquals("group1", type1Config.getTag());
+    Map<String, String> requestProps = type1Config.getProperties();
+    assertEquals(3, requestProps.size());
+    // 1.2 is overridden value
+    assertEquals("val1.2", requestProps.get("prop1"));
+    assertEquals("val2", requestProps.get("prop2"));
+    assertEquals("val3", requestProps.get("prop3"));
+  }
+
+  @Test
+  public void testRegisterHostWithConfigGroup_createNewConfigGroupWithPendingHosts() throws Exception {
+    // test specific expectations
+    expect(cluster.getConfigGroups()).andReturn(Collections.<Long, ConfigGroup>emptyMap()).once();
+    expect(clusterController.ensureResourceProvider(Resource.Type.ConfigGroup)).andReturn(configGroupResourceProvider).once();
+    //todo: for now not using return value so just returning null
+    expect(configGroupResourceProvider.createResources(capture(configGroupRequestCapture))).andReturn(null).once();
+    configHelper.moveDeprecatedGlobals(stackId, group1Configuration.getFullProperties(1), CLUSTER_NAME);
+
+    reset(group1Info);
+    expect(group1Info.getConfiguration()).andReturn(group1Configuration).anyTimes();
+    Collection<String> groupHosts = ImmutableList.of(HOST1, HOST2, "pending_host"); // pending_host is not registered with the cluster
+    expect(group1Info.getHostNames()).andReturn(groupHosts).anyTimes(); // there are 3 hosts for the host group
+    // replay all mocks
+    replayAll();
+
+    // test
+    context.registerHostWithConfigGroup(HOST1, topology, HOST_GROUP_1);
+
+    // assertions
+    Set<ConfigGroupRequest> configGroupRequests = configGroupRequestCapture.getValue();
+    assertEquals(1, configGroupRequests.size());
+    ConfigGroupRequest configGroupRequest = configGroupRequests.iterator().next();
+    assertEquals(CLUSTER_NAME, configGroupRequest.getClusterName());
+    assertEquals("testBP:group1", configGroupRequest.getGroupName());
+    assertEquals("service1", configGroupRequest.getTag());
+    assertEquals("Host Group Configuration", configGroupRequest.getDescription());
+    Collection<String> requestHosts = configGroupRequest.getHosts();
+
+    // we expect only HOST1 and HOST2 in the config group request as the third host "pending_host" hasn't registered yet with the cluster
+    assertEquals(2, requestHosts.size());
+    assertTrue(requestHosts.contains(HOST1));
+    assertTrue(requestHosts.contains(HOST2));
 
     Map<String, Config> requestConfig = configGroupRequest.getConfigs();
     assertEquals(1, requestConfig.size());

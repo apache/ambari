@@ -63,10 +63,12 @@ def get_mount_point_for_dir(dir):
     # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
     # So take the one with the greatest number of segments.
     for m in cached_mounts:
-      if dir.startswith(m['mount_point']):
+      # Ensure that the mount path and the dir path ends with "/"
+      # The mount point "/hadoop" should not match the path "/hadoop1"
+      if os.path.join(dir, "").startswith(os.path.join(m['mount_point'], "")):
         if best_mount_found is None:
           best_mount_found = m["mount_point"]
-        elif best_mount_found.count(os.path.sep) < os.path.join(m["mount_point"]).count(os.path.sep):
+        elif os.path.join(best_mount_found, "").count(os.path.sep) < os.path.join(m["mount_point"], "").count(os.path.sep):
           best_mount_found = m["mount_point"]
 
   Logger.info("Mount point for directory %s is %s" % (str(dir), str(best_mount_found)))

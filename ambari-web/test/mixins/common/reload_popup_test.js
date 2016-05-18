@@ -28,35 +28,22 @@ describe('App.ReloadPopupMixin', function () {
     obj = Em.Object.create(App.ReloadPopupMixin);
   });
 
-  describe('#showReloadPopup', function () {
-
-    var spanRegExp = new RegExp('<span>([\\s\\S]+)<\/span>'),
-      cases = [
-        {
-          result: Em.I18n.t('app.reloadPopup.text'),
-          title: 'should show modal popup with default message'
-        },
-        {
-          text: 'text',
-          result: 'text',
-          title: 'should show modal popup with custom message'
-        }
-      ];
-
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show', function (popup) {
-        return popup.body;
-      });
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
+  describe('#popupText', function () {
+    var cases = [
+      {
+        result: Em.I18n.t('app.reloadPopup.text'),
+        title: 'should show modal popup with default message'
+      },
+      {
+        text: 'text',
+        result: 'text',
+        title: 'should show modal popup with custom message'
+      }
+    ];
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        obj.showReloadPopup(item.text);
-        expect(obj.get('reloadPopup').match(spanRegExp)[1]).to.equal(item.result);
+        expect(obj.popupText(item.text)).to.equal(item.result);
       });
     });
 
@@ -147,7 +134,6 @@ describe('App.ReloadPopupMixin', function () {
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
       sinon.stub(obj, 'showReloadPopup', Em.K);
       sinon.stub(App, 'get').withArgs('maxRetries').returns(3);
-      sinon.stub(window, 'setTimeout', Em.K);
     });
 
     afterEach(function () {
@@ -155,22 +141,33 @@ describe('App.ReloadPopupMixin', function () {
       App.ajax.defaultErrorHandler.restore();
       obj.showReloadPopup.restore();
       App.get.restore();
-      window.setTimeout.restore();
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        if (!Em.isNone(item.retryCount)) {
-          obj.set('retryCount', item.retryCount);
-        }
-        obj.reloadErrorCallback.apply(obj, item.args);
-        expect(obj.closeReloadPopup.callCount).to.equal(item.closeReloadPopupCallCount);
-        expect(App.ajax.defaultErrorHandler.callCount).to.equal(item.defaultErrorHandlerCallCount);
-        expect(obj.showReloadPopup.callCount).to.equal(item.showReloadPopupCallCount);
-        expect(window.setTimeout.callCount).to.equal(item.setTimeoutCount);
-        if (!Em.isNone(item.retryCountResult)) {
-          obj.set('retryCount', item.retryCountResult);
-        }
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          if (!Em.isNone(item.retryCount)) {
+            obj.set('retryCount', item.retryCount);
+          }
+          obj.reloadErrorCallback.apply(obj, item.args);
+        });
+
+        afterEach(function () {
+          if (!Em.isNone(item.retryCountResult)) {
+            obj.set('retryCount', item.retryCountResult);
+          }
+        });
+
+        it('closeReloadPopup is called needed number of times', function () {
+          expect(obj.closeReloadPopup.callCount).to.equal(item.closeReloadPopupCallCount);
+        });
+        it('defaultErrorHandler is called needed number of times', function () {
+          expect(App.ajax.defaultErrorHandler.callCount).to.equal(item.defaultErrorHandlerCallCount);
+        });
+        it('showReloadPopup is called needed number of times', function () {
+          expect(obj.showReloadPopup.callCount).to.equal(item.showReloadPopupCallCount);
+        });
       });
     });
 

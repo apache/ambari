@@ -53,6 +53,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     super(CheckDescription.HOSTS_REPOSITORY_VERSION);
   }
 
+  @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
     return super.isApplicable(request) && request.getRepositoryVersion() != null;
   }
@@ -77,7 +78,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
         for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
 
           if (hve.getRepositoryVersion().getVersion().equals(request.getRepositoryVersion())
-              && hve.getState() == RepositoryVersionState.INSTALLED) {
+              && (hve.getState() == RepositoryVersionState.INSTALLED || hve.getState() == RepositoryVersionState.NOT_REQUIRED)) {
             found = true;
             break;
           }

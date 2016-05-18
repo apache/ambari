@@ -17,14 +17,14 @@
 
 var App = require('app');
 
-var stringUtils = require('utils/string_utils');
-
 App.alertDefinitionsMapper = App.QuickDataMapper.create({
 
   model: App.AlertDefinition,
   reportModel: App.AlertReportDefinition,
   metricsSourceModel: App.AlertMetricsSourceDefinition,
   metricsUriModel: App.AlertMetricsUriDefinition,
+  metricsAmsModel: App.AlertMetricsAmsDefinition,
+  parameterModel: App.AlertDefinitionParameter,
 
   config: {
     id: 'AlertDefinition.id',
@@ -35,12 +35,20 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     service_name: 'AlertDefinition.service_name',
     component_name: 'AlertDefinition.component_name',
     enabled: 'AlertDefinition.enabled',
+    repeat_tolerance_enabled: 'AlertDefinition.repeat_tolerance_enabled',
+    repeat_tolerance: 'AlertDefinition.repeat_tolerance',
     scope: 'AlertDefinition.scope',
     interval: 'AlertDefinition.interval',
+    help_url: 'AlertDefinition.help_url',
     type: 'AlertDefinition.source.type',
     reporting_key: 'reporting',
     reporting_type: 'array',
     reporting: {
+      item: 'id'
+    },
+    parameters_key: 'parameters',
+    parameters_type: 'array',
+    parameters: {
       item: 'id'
     }
   },
@@ -66,18 +74,28 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     http: 'AlertDefinition.source.uri.http',
     https: 'AlertDefinition.source.uri.https',
     https_property: 'AlertDefinition.source.uri.https_property',
-    https_property_value: 'AlertDefinition.source.uri.https_property_value'
+    https_property_value: 'AlertDefinition.source.uri.https_property_value',
+    connection_timeout: 'AlertDefinition.source.uri.connection_timeout'
+  },
+
+  amsConfig: {
+    id: 'AlertDefinition.source.ams.id',
+    value: 'AlertDefinition.source.ams.value',
+    minimal_value: 'AlertDefinition.source.ams.minimum_value',
+    interval: 'AlertDefinition.source.ams.interval'
   },
 
   map: function (json) {
     console.time('App.alertDefinitionsMapper execution time');
     if (json && json.items) {
       var self = this,
+          parameters = [],
           alertDefinitions = [],
           alertReportDefinitions = [],
           alertMetricsSourceDefinitions = [],
           alertMetricsUriDefinitions = [],
-          alertGroupsMap = App.cache['previousAlertGroupsMap'],
+          alertMetricsAmsDefinitions = [],
+          alertGroupsMap = App.cache.previousAlertGroupsMap,
           existingAlertDefinitions = App.AlertDefinition.find(),
           existingAlertDefinitionsMap = existingAlertDefinitions.toArray().toMapByProperty('id'),
           alertDefinitionsToDelete = existingAlertDefinitions.mapProperty('id'),
@@ -88,7 +106,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         var reporting = item.AlertDefinition.source.reporting;
         for (var report in reporting) {
           if (reporting.hasOwnProperty(report)) {
-            if (report == "units") {
+            if (report === "units") {
               convertedReportDefinitions.push({
                 id: item.AlertDefinition.id + report,
                 type: report,
@@ -105,8 +123,28 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           }
         }
 
+        var convertedParameters = [];
+        var sourceParameters = item.AlertDefinition.source.parameters;
+        if (Array.isArray(sourceParameters)) {
+          sourceParameters.forEach(function (parameter) {
+            convertedParameters.push({
+              id: item.AlertDefinition.id + parameter.name,
+              name: parameter.name,
+              display_name: parameter.display_name,
+              units: parameter.units,
+              value: parameter.value,
+              description: parameter.description,
+              type: parameter.type,
+              threshold: parameter.threshold,
+              visibility: parameter.visibility
+            });
+          });
+        }
+
         alertReportDefinitions = alertReportDefinitions.concat(convertedReportDefinitions);
+        parameters = parameters.concat(convertedParameters);
         item.reporting = convertedReportDefinitions;
+        item.parameters = convertedParameters;
 
         rawSourceData[item.AlertDefinition.id] = item.AlertDefinition.source;
         item.AlertDefinition.description = item.AlertDefinition.description || '';
@@ -178,6 +216,16 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           case 'RECOVERY':
             alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('uriConfig'))));
             break;
+          case 'AMS':
+            // map App.AlertMetricsUriDefinition
+            alertDefinition.uri_id = item.AlertDefinition.id + 'uri';
+            alertDefinition.ams_id = item.AlertDefinition.id + 'ams';
+            item.AlertDefinition.source.uri.id = alertDefinition.uri_id;
+            item.AlertDefinition.source.ams.id = alertDefinition.ams_id;
+            alertMetricsUriDefinitions.push(this.parseIt(item, this.get('uriConfig')));
+            alertMetricsAmsDefinitions.push(this.parseIt(item, this.get('amsConfig')));
+            alertDefinitions.push(alertDefinition);
+            break;
           default:
             console.error('Incorrect Alert Definition type:', item.AlertDefinition);
         }
@@ -189,9 +237,11 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
 
       // load all mapped data to model
       App.store.loadMany(this.get('reportModel'), alertReportDefinitions);
+      App.store.loadMany(this.get('parameterModel'), parameters);
       App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       this.setMetricsSourcePropertyLists(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
+      App.store.loadMany(this.get('metricsAmsModel'), alertMetricsAmsDefinitions);
       // this loadMany takes too much time
       App.store.loadMany(this.get('model'), alertDefinitions);
       this.setAlertDefinitionsRawSourceData(rawSourceData);

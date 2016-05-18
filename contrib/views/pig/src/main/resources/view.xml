@@ -92,6 +92,15 @@
     </parameter>
 
     <parameter>
+        <name>hdfs.umask-mode</name>
+        <description>The umask used when creating files and directories. Defaults to 022</description>
+        <label>Umask</label>
+        <default-value>022</default-value>
+        <required>false</required>
+        <cluster-config>hdfs-site/fs.permissions.umask-mode</cluster-config>
+    </parameter>
+
+    <parameter>
         <name>webhdfs.username</name>
         <description>User and doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
         <label>WebHDFS Username</label>
@@ -103,8 +112,16 @@
         <name>webhdfs.auth</name>
         <description>Semicolon-separated authentication configs. Default: auth=SIMPLE</description>
         <label>WebHDFS Authentication</label>
-        <default-value>auth=SIMPLE</default-value>
+        <placeholder>auth=SIMPLE</placeholder>
         <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>hdfs.auth_to_local</name>
+        <description>Auth to Local Configuration</description>
+        <label>Auth To Local</label>
+        <required>false</required>
+        <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
     </parameter>
 
     <!-- WebHCat Configs -->
@@ -132,6 +149,7 @@
         <label>WebHCat Username</label>
         <required>false</required>
     </parameter>
+
 
     <!-- General Configs -->
     <parameter>

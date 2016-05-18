@@ -43,11 +43,12 @@ import javax.persistence.TableGenerator;
 @TableGenerator(name = "principal_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "principal_id_seq"
-    , initialValue = 2
+    , initialValue = 100
     , allocationSize = 500
 )
 @NamedQueries({
-  @NamedQuery(name = "principalByPrivilegeId", query = "SELECT principal FROM PrincipalEntity principal JOIN principal.privileges privilege WHERE privilege.permission.id=:permission_id")
+  @NamedQuery(name = "principalByPrivilegeId", query = "SELECT principal FROM PrincipalEntity principal JOIN principal.privileges privilege WHERE privilege.permission.id=:permission_id"),
+  @NamedQuery(name = "principalByPrincipalType", query = "SELECT principal FROM PrincipalEntity principal WHERE principal.principalType.name = :principal_type")
 })
 public class PrincipalEntity {
 

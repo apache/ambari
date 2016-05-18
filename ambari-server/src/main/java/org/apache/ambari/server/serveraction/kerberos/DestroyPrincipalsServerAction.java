@@ -21,13 +21,17 @@ package org.apache.ambari.server.serveraction.kerberos;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.audit.event.kerberos.DestroyPrincipalKerberosAuditEvent;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -44,6 +48,12 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
 
   @Inject
   private KerberosPrincipalDAO kerberosPrincipalDAO;
+
+  /**
+   * A set of visited principal names used to prevent unnecessary processing on already processed
+   * principal names
+   */
+  private Set<String> seenPrincipals = new HashSet<String>();
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -86,38 +96,64 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
 
-    String message = String.format("Destroying identity, %s", evaluatedPrincipal);
-    LOG.info(message);
-    actionLog.writeStdOut(message);
+    // Only process this principal if we haven't already processed it
+    if (!seenPrincipals.contains(evaluatedPrincipal)) {
+      seenPrincipals.add(evaluatedPrincipal);
 
-    try {
-      operationHandler.removePrincipal(evaluatedPrincipal);
-    } catch (KerberosOperationException e) {
-      message = String.format("Failed to remove identity for %s from the KDC - %s", evaluatedPrincipal, e.getMessage());
-      LOG.warn(message);
-      actionLog.writeStdErr(message);
-    }
+      String message = String.format("Destroying identity, %s", evaluatedPrincipal);
+      LOG.info(message);
+      actionLog.writeStdOut(message);
+      DestroyPrincipalKerberosAuditEvent.DestroyPrincipalKerberosAuditEventBuilder auditEventBuilder = DestroyPrincipalKerberosAuditEvent.builder()
+          .withTimestamp(System.currentTimeMillis())
+          .withRequestId(getHostRoleCommand().getRequestId())
+          .withTaskId(getHostRoleCommand().getTaskId())
+          .withPrincipal(evaluatedPrincipal);
 
-    try {
-      KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
-
-      if(principalEntity != null) {
-        String cachedKeytabPath = principalEntity.getCachedKeytabPath();
-
-        kerberosPrincipalDAO.remove(principalEntity);
-
-        // If a cached  keytabs file exists for this principal, delete it.
-        if (cachedKeytabPath != null) {
-          if (!new File(cachedKeytabPath).delete()) {
-            LOG.debug(String.format("Failed to remove cached keytab for %s", evaluatedPrincipal));
-          }
+      try {
+        try {
+          operationHandler.removePrincipal(evaluatedPrincipal);
+        } catch (KerberosOperationException e) {
+          message = String.format("Failed to remove identity for %s from the KDC - %s", evaluatedPrincipal, e.getMessage());
+          LOG.warn(message);
+          actionLog.writeStdErr(message);
+          auditEventBuilder.withReasonOfFailure(message);
         }
+
+        try {
+          KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+
+          if (principalEntity != null) {
+            String cachedKeytabPath = principalEntity.getCachedKeytabPath();
+
+            kerberosPrincipalDAO.remove(principalEntity);
+
+            // If a cached  keytabs file exists for this principal, delete it.
+            if (cachedKeytabPath != null) {
+              if (!new File(cachedKeytabPath).delete()) {
+                LOG.debug(String.format("Failed to remove cached keytab for %s", evaluatedPrincipal));
+              }
+            }
+          }
+
+          // delete Ambari server keytab
+          String hostName = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
+          if (hostName != null && hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
+            String keytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
+            if (keytabFilePath != null) {
+              if (!new File(keytabFilePath).delete()) {
+                LOG.debug(String.format("Failed to remove ambari keytab for %s", evaluatedPrincipal));
+              }
+            }
+          }
+        } catch (Throwable t) {
+          message = String.format("Failed to remove identity for %s from the Ambari database - %s", evaluatedPrincipal, t.getMessage());
+          LOG.warn(message);
+          actionLog.writeStdErr(message);
+          auditEventBuilder.withReasonOfFailure(message);
+        }
+      } finally {
+        auditLog(auditEventBuilder.build());
       }
-    }
-    catch (Throwable t) {
-      message = String.format("Failed to remove identity for %s from the Ambari database - %s", evaluatedPrincipal, t.getMessage());
-      LOG.warn(message);
-      actionLog.writeStdErr(message);
     }
 
     // There is no reason to fail this task if an identity was not removed. The cluster will work

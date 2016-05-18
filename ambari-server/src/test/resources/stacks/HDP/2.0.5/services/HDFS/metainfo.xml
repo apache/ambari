@@ -29,6 +29,7 @@
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -60,11 +61,17 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
           <commandScript>
             <script>scripts/datanode.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <bulkCommands>
+            <displayName>DataNodes</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>NAMENODE</masterComponent>
+          </bulkCommands>
         </component>
 
         <component>

@@ -170,6 +170,9 @@ public class UpgradeCatalogHelper {
   protected void addComponent(Injector injector, ClusterEntity clusterEntity,
       ClusterServiceEntity clusterServiceEntity, HostEntity hostEntity,
       String componentName, StackEntity desiredStackEntity) {
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
+        ServiceComponentDesiredStateDAO.class);
+
     ServiceComponentDesiredStateEntity componentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setComponentName(componentName);
@@ -177,6 +180,7 @@ public class UpgradeCatalogHelper {
     componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setClusterId(clusterServiceEntity.getClusterId());
+    serviceComponentDesiredStateDAO.create(componentDesiredStateEntity);
 
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
@@ -208,7 +212,6 @@ public class UpgradeCatalogHelper {
         componentDesiredStateEntity);
 
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
-    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
     serviceComponentDesiredStateDAO.merge(componentDesiredStateEntity);
     hostDAO.merge(hostEntity);

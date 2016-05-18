@@ -131,8 +131,8 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
-   * Retrieve all of the host versions for the given cluster name, host name, and state.
-   *
+   * Retrieve all of the host versions for the given cluster name, host name, and state. <br/>
+   * Consider using faster method: {@link HostVersionDAO#findByClusterHostAndState(long, long, org.apache.ambari.server.state.RepositoryVersionState)}
    * @param clusterName Cluster name
    * @param hostName FQDN of host
    * @param state repository version state
@@ -150,8 +150,29 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
+   * Faster version of {@link HostVersionDAO#findByClusterHostAndState(java.lang.String, java.lang.String, org.apache.ambari.server.state.RepositoryVersionState)}
+   *
+   * @param clusterId Cluster ID
+   * @param hostId Host ID
+   * @param state repository version state
+   * @return Return all of the host versions that match the criteria.
+   */
+  @RequiresSession
+  public List<HostVersionEntity> findByClusterHostAndState(long clusterId, long hostId, RepositoryVersionState state) {
+    TypedQuery<HostVersionEntity> query =
+        entityManagerProvider.get().createNamedQuery("hostVersionByClusterHostIdAndState", HostVersionEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("hostId", hostId);
+    query.setParameter("state", state);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Retrieve the single host version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
    * for the given host.
+   * Consider using faster method {@link HostVersionDAO#findByHostAndStateCurrent(long, long)}
    *
    * @param clusterName Cluster name
    * @param hostName Host name
@@ -175,8 +196,36 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
+   * Retrieve the single host version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
+   * for the given host.
+   * Faster version of {@link HostVersionDAO#findByHostAndStateCurrent(java.lang.String, java.lang.String)}
+   * @param clusterId Cluster ID
+   * @param hostId host ID
+   * @return Returns the single host version for this host whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, or {@code null} otherwise.
+   */
+  @RequiresSession
+  public HostVersionEntity findByHostAndStateCurrent(long clusterId, long hostId) {
+    try {
+      List<?> results = findByClusterHostAndState(clusterId, hostId, RepositoryVersionState.CURRENT);
+      if (results.isEmpty()) {
+        return null;
+      } else {
+        if (results.size() == 1) {
+          return (HostVersionEntity) results.get(0);
+        }
+      }
+      throw new NonUniqueResultException();
+    } catch (NoResultException ignored) {
+      return null;
+    }
+  }
+
+  /**
    * Retrieve the single host version for the given cluster, stack name, stack
-   * version, and host name.
+   * version, and host name. <br/>
+   * This query is slow and not suitable for frequent use. <br/>
+   * Please, use {@link HostVersionDAO#findByClusterStackVersionAndHost(long, org.apache.ambari.server.state.StackId, java.lang.String, long)} <br/>
+   * It is ~50 times faster
    *
    * @param clusterName
    *          Cluster name
@@ -199,6 +248,29 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
     query.setParameter("stackVersion", stackId.getStackVersion());
     query.setParameter("version", version);
     query.setParameter("hostName", hostName);
+
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
+   * Optimized version of {@link HostVersionDAO#findByClusterStackVersionAndHost(java.lang.String, org.apache.ambari.server.state.StackId, java.lang.String, java.lang.String)}
+   * @param clusterId Id of cluster
+   * @param stackId Stack ID (e.g., HDP-2.2)
+   * @param version Stack version (e.g., 2.2.0.1-995)
+   * @param hostId Host Id
+   * @return Returns the single host version that matches the criteria.
+   */
+  @RequiresSession
+  public HostVersionEntity findByClusterStackVersionAndHost(long clusterId, StackId stackId, String version,
+                                                            long hostId) {
+    TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
+        .createNamedQuery("hostVersionByClusterStackVersionAndHostId", HostVersionEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("stackName", stackId.getStackName());
+    query.setParameter("stackVersion", stackId.getStackVersion());
+    query.setParameter("version", version);
+    query.setParameter("hostId", hostId);
 
     return daoUtils.selectSingle(query);
   }

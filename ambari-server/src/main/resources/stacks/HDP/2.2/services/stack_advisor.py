@@ -40,7 +40,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "YARN": self.recommendYARNConfigurations,
       "STORM": self.recommendStormConfigurations,
       "KNOX": self.recommendKnoxConfigurations,
-      "RANGER": self.recommendRangerConfigurations
+      "RANGER": self.recommendRangerConfigurations,
+      "LOGSEARCH" : self.recommendLogsearchConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -78,6 +79,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
           putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
 
+      kerberos_authentication_enabled = False
+      if "core-site" in services["configurations"] and "hadoop.security.authentication" in services["configurations"]["core-site"]["properties"]:
+        if services["configurations"]["core-site"]["properties"]["hadoop.security.authentication"].lower() == "kerberos" :
+          kerberos_authentication_enabled = True
+          putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
+
       if "yarn-env" in services["configurations"] and "yarn_cgroups_enabled" in services["configurations"]["yarn-env"]["properties"]:
         yarn_cgroups_enabled = services["configurations"]["yarn-env"]["properties"]["yarn_cgroups_enabled"].lower() == "true"
         if yarn_cgroups_enabled:
@@ -88,7 +95,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putYarnProperty('yarn.nodemanager.container-executor.cgroups.mount', 'true')
           putYarnProperty('yarn.nodemanager.linux-container-executor.cgroups.mount-path', '/cgroup')
         else:
-          putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor')
+          if not kerberos_authentication_enabled:
+            putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor')
           putYarnPropertyAttribute('yarn.nodemanager.container-executor.resources-handler.class', 'delete', 'true')
           putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.hierarchy', 'delete', 'true')
           putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.mount', 'delete', 'true')
@@ -353,14 +361,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
     # CBO
-    putHiveEnvProperty("cost_based_optimizer", "On")
-    if str(configurations["hive-env"]["properties"]["cost_based_optimizer"]).lower() == "on":
-      putHiveSiteProperty("hive.cbo.enable", "true")
-    else:
-      putHiveSiteProperty("hive.cbo.enable", "false")
-    hive_cbo_enable = configurations["hive-site"]["properties"]["hive.cbo.enable"]
-    putHiveSiteProperty("hive.stats.fetch.partition.stats", hive_cbo_enable)
-    putHiveSiteProperty("hive.stats.fetch.column.stats", hive_cbo_enable)
+    if "hive-site" in services["configurations"] and "hive.cbo.enable" in services["configurations"]["hive-site"]["properties"]:
+      hive_cbo_enable = services["configurations"]["hive-site"]["properties"]["hive.cbo.enable"]
+      putHiveSiteProperty("hive.stats.fetch.partition.stats", hive_cbo_enable)
+      putHiveSiteProperty("hive.stats.fetch.column.stats", hive_cbo_enable)
+
     putHiveSiteProperty("hive.compute.query.using.stats", "true")
 
     # Interactive Query
@@ -370,17 +375,20 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     yarn_queues = "default"
     capacitySchedulerProperties = {}
-    if "capacity-scheduler" in services['configurations'] and "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
-      properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]).split('\n')
-      for property in properties:
-        key,sep,value = property.partition("=")
-        capacitySchedulerProperties[key] = value
-    if "yarn.scheduler.capacity.root.queues" in capacitySchedulerProperties:
-      yarn_queues = str(capacitySchedulerProperties["yarn.scheduler.capacity.root.queues"])
+    if "capacity-scheduler" in services['configurations']:
+      if "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
+        properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]).split('\n')
+        for property in properties:
+          key,sep,value = property.partition("=")
+          capacitySchedulerProperties[key] = value
+      if "yarn.scheduler.capacity.root.queues" in capacitySchedulerProperties:
+        yarn_queues = str(capacitySchedulerProperties["yarn.scheduler.capacity.root.queues"])
+      elif "yarn.scheduler.capacity.root.queues" in services['configurations']["capacity-scheduler"]["properties"]:
+        yarn_queues =  services['configurations']["capacity-scheduler"]["properties"]["yarn.scheduler.capacity.root.queues"]
     # Interactive Queues property attributes
     putHiveServerPropertyAttribute = self.putPropertyAttribute(configurations, "hiveserver2-site")
     toProcessQueues = yarn_queues.split(",")
-    leafQueues = []
+    leafQueueNames = set() # Remove duplicates
     while len(toProcessQueues) > 0:
       queue = toProcessQueues.pop()
       queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
@@ -391,7 +399,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           toProcessQueues.append(queue + "." + subQueue)
       else:
         # This is a leaf queue
-        leafQueues.append({"label": str(queue) + " queue", "value": queue})
+        queueName = queue.split(".")[-1] # Fully qualified queue name does not work, we should use only leaf name
+        leafQueueNames.add(queueName)
+    leafQueues = [{"label": str(queueName) + " queue", "value": queueName} for queueName in leafQueueNames]
     leafQueues = sorted(leafQueues, key=lambda q:q['value'])
     putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", leafQueues)
     putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))
@@ -497,8 +507,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
 
     if hive_server2_auth == "kerberos":
-      putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
-      putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
+      if "hive-site" in services["configurations"] and "hive.server2.authentication.kerberos.keytab" not in services["configurations"]["hive-site"]["properties"]:
+        putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
+      if "hive-site" in services["configurations"] and "hive.server2.authentication.kerberos.principal" not in services["configurations"]["hive-site"]["properties"]:
+        putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
     elif "KERBEROS" not in servicesList: # Since 'hive_server2_auth' cannot be relied on within the default, empty recommendations request
       if ("hive.server2.authentication.kerberos.keytab" in configurations["hive-site"]["properties"]) or \
               ("hive-site" not in services["configurations"]) or \
@@ -607,7 +619,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       hbase_regionserver_global_memstore_size = '0.4'
       reserved_offheap_memory = 2048
       bucketcache_offheap_memory = regionserver_max_direct_memory_size - reserved_offheap_memory
-      hbase_bucketcache_size = block_cache_heap + bucketcache_offheap_memory
+      hbase_bucketcache_size = bucketcache_offheap_memory
       hbase_bucketcache_percentage_in_combinedcache = float(bucketcache_offheap_memory) / hbase_bucketcache_size
       hbase_bucketcache_percentage_in_combinedcache_str = "{0:.4f}".format(math.ceil(hbase_bucketcache_percentage_in_combinedcache * 10000) / 10000.0)
 
@@ -668,7 +680,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append(authRegionClasses[item])
       else:
         if 'org.apache.hadoop.hbase.security.access.AccessController' in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].remove('org.apache.hadoop.hbase.security.access.AccessController')
+        if 'org.apache.hadoop.hbase.security.access.AccessController' in hbaseCoProcessorConfigs['hbase.coprocessor.master.classes']:
           hbaseCoProcessorConfigs['hbase.coprocessor.master.classes'].remove('org.apache.hadoop.hbase.security.access.AccessController')
+
         hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
         if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-site"]["properties"]) or \
                 ('hbase-site' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-site"]["properties"]):
@@ -930,11 +945,37 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
 
+  def recommendLogsearchConfigurations(self, configurations, clusterData, services, hosts):
+    putLogsearchProperty = self.putProperty(configurations, "logsearch-properties", services)
+    logsearchSolrHosts = self.getComponentHostNames(services, "LOGSEARCH", "LOGSEARCH_SOLR")
+
+    if logsearchSolrHosts is not None and len(logsearchSolrHosts) > 0 \
+      and "logsearch-properties" in services["configurations"]:
+      recommendedMinShards = len(logsearchSolrHosts)
+      recommendedShards = 2 * len(logsearchSolrHosts)
+      recommendedMaxShards = 3 * len(logsearchSolrHosts)
+      # recommend number of shard
+      putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
+      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
+      putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'maximum', recommendedMaxShards)
+      putLogsearchProperty("logsearch.collection.service.logs.numshards", recommendedShards)
+
+      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'minimum', recommendedMinShards)
+      putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
+      putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
+      # recommend replication factor
+      replicationReccomendFloat = math.log(len(logsearchSolrHosts), 5)
+      recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
+      putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
+      putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)
+
   def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
                         {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
                         {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
+    if "tez.tez-ui.history-url.base" in recommendedDefaults:
+      validationItems.append({"config-name": 'tez.tez-ui.history-url.base', "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults, 'tez.tez-ui.history-url.base')})
 
     tez_site = properties
     prop_name1 = 'tez.am.resource.memory.mb'
@@ -1042,6 +1083,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    parentValidationProblems = super(HDP22StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
     hdfs_site = properties
@@ -1179,7 +1221,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "item": self.getWarnItem(
                                     "Invalid property value: {0}. Valid values are {1}.".format(
                                       data_transfer_protection_value, VALID_TRANSFER_PROTECTION_VALUES))})
-    return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_server2 = properties

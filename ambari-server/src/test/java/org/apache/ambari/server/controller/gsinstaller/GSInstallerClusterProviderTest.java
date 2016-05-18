@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.gsinstaller;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
@@ -93,7 +94,7 @@ public class GSInstallerClusterProviderTest {
     GSInstallerResourceProvider provider = new GSInstallerClusterProvider(clusterDefinition);
 
     try {
-      provider.deleteResources(null);
+      provider.deleteResources(new RequestImpl(null, null, null, null), null);
       Assert.fail("Expected UnsupportedOperationException.");
     } catch (UnsupportedOperationException e) {
       //expected

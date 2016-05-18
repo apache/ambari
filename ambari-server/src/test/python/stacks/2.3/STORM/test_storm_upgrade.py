@@ -24,7 +24,7 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestStormUpgrade(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1.2.1/package"
+  COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1/package"
   STACK_VERSION = "2.3"
 
   def test_delete_zookeeper_data(self):
@@ -41,7 +41,7 @@ class TestStormUpgrade(RMFTestCase):
       classname = "StormUpgrade",
       command = "delete_storm_zookeeper_data",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [],
       mocks_dict = mocks_dict)
@@ -73,7 +73,7 @@ class TestStormUpgrade(RMFTestCase):
       classname = "StormUpgrade",
       command = "delete_storm_zookeeper_data",
       config_dict = json_content,
-      hdp_stack_version = self.STACK_VERSION,
+      stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [],
       mocks_dict = mocks_dict)

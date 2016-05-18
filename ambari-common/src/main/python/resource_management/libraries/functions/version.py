@@ -34,7 +34,7 @@ def _normalize(v, desired_segments=0):
   return [int(x) for x in v_list]
 
 
-def format_hdp_stack_version(input):
+def format_stack_version(input):
   """
   :param input: Input string, e.g. "2.2" or "GlusterFS", or "2.0.6.GlusterFS", or "2.2.0.1-885"
   :return: Returns a well-formatted HDP stack version of the form #.#.#.# as a string.
@@ -60,14 +60,18 @@ def format_hdp_stack_version(input):
   return ""
 
 
-def compare_versions(version1, version2):
+def compare_versions(version1, version2, format=False):
   """
   Used to compare either Ambari Versions, or Stack versions
   E.g., Ambari version 1.6.1 vs 1.7.0,
   Stack Version 2.0.6.0 vs 2.2.0.0
   :param version1: First parameter for version
   :param version2: Second parameter for version
+  :param format: optionally format the versions via format_stack_version before comparing them
   :return: Returns -1 if version1 is before version2, 0 if they are equal, and 1 if version1 is after version2
   """
-  max_segments = max(len(version1.split(".")), len(version2.split(".")))
-  return cmp(_normalize(version1, desired_segments=max_segments), _normalize(version2, desired_segments=max_segments))
+  v1 = version1 if not format else format_stack_version(version1)
+  v2 = version2 if not format else format_stack_version(version2)
+
+  max_segments = max(len(v1.split(".")), len(v2.split(".")))
+  return cmp(_normalize(v1, desired_segments=max_segments), _normalize(v2, desired_segments=max_segments))

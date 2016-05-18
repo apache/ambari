@@ -25,6 +25,9 @@ App.MainHostServiceConfigsView = Em.View.extend({
     this.get('controller').loadStep();
   },
 
+  /**
+   * @type {boolean}
+   */
   isConfigsEditable: false,
 
   content: Em.computed.alias('App.router.mainHostDetailsController.content')

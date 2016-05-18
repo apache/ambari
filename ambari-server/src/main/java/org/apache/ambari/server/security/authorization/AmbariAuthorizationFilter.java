@@ -18,26 +18,16 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.google.inject.Inject;
+import org.apache.ambari.server.audit.event.AccessUnauthorizedAuditEvent;
+import org.apache.ambari.server.audit.event.AuditEvent;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity.ViewInstanceVersionDTO;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
+import org.apache.ambari.server.utils.RequestUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -47,8 +37,19 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public class AmbariAuthorizationFilter implements Filter {
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.regex.Pattern;
 
+public class AmbariAuthorizationFilter implements Filter {
   private static final String REALM_PARAM = "realm";
   private static final String DEFAULT_REALM = "AuthFilter";
 
@@ -65,13 +66,20 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_PRIVILEGES_ALL_PATTERN = API_VERSION_PREFIX + "/privileges.*";
   private static final String API_GROUPS_ALL_PATTERN = API_VERSION_PREFIX + "/groups.*";
   private static final String API_CLUSTERS_PATTERN = API_VERSION_PREFIX + "/clusters/(\\w+)?";
+  private static final String API_WIDGET_LAYOUTS_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/widget_layouts.*?";
   private static final String API_CLUSTERS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters.*";
   private static final String API_VIEWS_ALL_PATTERN = API_VERSION_PREFIX + "/views.*";
   private static final String API_PERSIST_ALL_PATTERN = API_VERSION_PREFIX + "/persist.*";
   private static final String API_LDAP_SYNC_EVENTS_ALL_PATTERN = API_VERSION_PREFIX + "/ldap_sync_events.*";
   private static final String API_CREDENTIALS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/credentials.*";
   private static final String API_CREDENTIALS_AMBARI_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/credentials/ambari\\..*";
+  private static final String API_CLUSTER_REQUESTS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/requests.*";
+  private static final String API_CLUSTER_SERVICES_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/services.*";
+  private static final String API_CLUSTER_ALERT_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/alert.*";
+  private static final String API_CLUSTER_HOSTS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/hosts.*";
   private static final String API_STACK_VERSIONS_PATTERN = API_VERSION_PREFIX + "/stacks/.*?/versions/.*";
+  private static final String API_HOSTS_ALL_PATTERN = API_VERSION_PREFIX + "/hosts.*";
+  private static final String API_ALERT_TARGETS_ALL_PATTERN = API_VERSION_PREFIX + "/alert_targets.*";
 
   protected static final String LOGIN_REDIRECT_BASE = "/#/login?targetURI=";
 
@@ -86,6 +94,11 @@ public class AmbariAuthorizationFilter implements Filter {
    */
   @Inject
   private Users users;
+
+  @Inject
+  private AuditLogger auditLogger;
+
+  @Inject PermissionHelper permissionHelper;
 
   /**
    * The realm to use for the basic http auth
@@ -108,31 +121,42 @@ public class AmbariAuthorizationFilter implements Filter {
 
     Authentication authentication = context.getAuthentication();
 
+    AuditEvent auditEvent = null;
+
     //  If no explicit authenticated user is set, set it to the default user (if one is specified)
     if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
       Authentication defaultAuthentication = getDefaultAuthentication();
       if (defaultAuthentication != null) {
-        context.setAuthentication(authentication);
+        context.setAuthentication(defaultAuthentication);
         authentication = defaultAuthentication;
       }
     }
-
-    if (authentication == null || !authentication.isAuthenticated()) {
+    if (authentication == null || authentication instanceof AnonymousAuthenticationToken ||
+        !authentication.isAuthenticated()) {
       String token = httpRequest.getHeader(INTERNAL_TOKEN_HEADER);
       if (token != null) {
-        context.setAuthentication(new InternalAuthenticationToken(token));
+        InternalAuthenticationToken internalAuthenticationToken = new InternalAuthenticationToken(token);
+        context.setAuthentication(internalAuthenticationToken);
+        if(auditLogger.isEnabled()) {
+          LoginAuditEvent loginAuditEvent = LoginAuditEvent.builder()
+            .withUserName(internalAuthenticationToken.getName())
+            .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
+            .withRoles(permissionHelper.getPermissionLabels(authentication))
+            .withTimestamp(System.currentTimeMillis()).build();
+          auditLogger.log(loginAuditEvent);
+        }
       } else {
         // for view access, we should redirect to the Ambari login
         if (requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
           String queryString = httpRequest.getQueryString();
           String requestedURL = queryString == null ? requestURI : (requestURI + '?' + queryString);
           String redirectURL = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
-
           httpResponse.sendRedirect(redirectURL);
-          return;
         } else {
           httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
+          httpResponse.flushBuffer();
         }
+        return;
       }
     } else if (!authorizationPerformedInternally(requestURI)) {
       boolean authorized = false;
@@ -177,27 +201,25 @@ public class AmbariAuthorizationFilter implements Filter {
               authorized = true;
               break;
             }
-          } else if (requestURI.matches(API_PERSIST_ALL_PATTERN)) {
-            if (permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
-              authorized = true;
-              break;
-            }
           }
         }
       }
 
-      if (!authorized && requestURI.matches(VIEWS_CONTEXT_PATH_PATTERN)) {
-        final ViewInstanceVersionDTO dto = parseViewInstanceInfo(requestURI);
-        authorized = getViewRegistry().checkPermission(dto.getViewName(), dto.getVersion(), dto.getInstanceName(), true);
-      }
-
-
       // allow GET for everything except /views, /api/v1/users, /api/v1/groups, /api/v1/ldap_sync_events
       if (!authorized &&
           (!httpRequest.getMethod().equals("GET")
-              || requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)
-              || requestURI.matches(API_GROUPS_ALL_PATTERN)
               || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
+
+        if(auditLogger.isEnabled()) {
+          auditEvent = AccessUnauthorizedAuditEvent.builder()
+            .withHttpMethodName(httpRequest.getMethod())
+            .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
+            .withResourcePath(httpRequest.getRequestURI())
+            .withUserName(AuthorizationHelper.getAuthenticatedName())
+            .withTimestamp(System.currentTimeMillis())
+            .build();
+          auditLogger.log(auditEvent);
+        }
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
         httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permissions to access this resource.");
@@ -205,9 +227,18 @@ public class AmbariAuthorizationFilter implements Filter {
         return;
       }
     }
-
     if (AuthorizationHelper.getAuthenticatedName() != null) {
       httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
+      if (auditLogger.isEnabled() && httpResponse.getStatus() == HttpServletResponse.SC_FORBIDDEN) {
+        auditEvent = AccessUnauthorizedAuditEvent.builder()
+          .withHttpMethodName(httpRequest.getMethod())
+          .withRemoteIp(RequestUtils.getRemoteAddress(httpRequest))
+          .withResourcePath(httpRequest.getRequestURI())
+          .withUserName(AuthorizationHelper.getAuthenticatedName())
+          .withTimestamp(System.currentTimeMillis())
+          .build();
+        auditLogger.log(auditEvent);
+      }
     }
     chain.doFilter(request, response);
   }
@@ -224,7 +255,7 @@ public class AmbariAuthorizationFilter implements Filter {
       String username = configuration.getDefaultApiAuthenticatedUser();
 
       if (!StringUtils.isEmpty(username)) {
-        final User user = users.getAnyUser(username);
+        final User user = users.getUser(username, UserType.LOCAL);
 
         if (user != null) {
           Principal principal = new Principal() {
@@ -254,9 +285,20 @@ public class AmbariAuthorizationFilter implements Filter {
     return requestURI.matches(API_USERS_ALL_PATTERN) ||
         requestURI.matches(API_GROUPS_ALL_PATTERN) ||
         requestURI.matches(API_CREDENTIALS_ALL_PATTERN) ||
+        requestURI.matches(API_PRIVILEGES_ALL_PATTERN) ||
+        requestURI.matches(API_CLUSTER_REQUESTS_ALL_PATTERN) ||
+        requestURI.matches(API_CLUSTER_SERVICES_ALL_PATTERN) ||
+        requestURI.matches(API_CLUSTER_ALERT_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTERS_PATTERN) ||
         requestURI.matches(API_STACK_VERSIONS_PATTERN) ||
-        requestURI.matches(API_PRIVILEGES_ALL_PATTERN);
+        requestURI.matches(API_VIEWS_ALL_PATTERN) ||
+        requestURI.matches(VIEWS_CONTEXT_PATH_PATTERN) ||
+        requestURI.matches(API_WIDGET_LAYOUTS_PATTERN) ||
+        requestURI.matches(API_CLUSTER_HOSTS_ALL_PATTERN) ||
+        requestURI.matches(API_HOSTS_ALL_PATTERN) ||
+        requestURI.matches(API_ALERT_TARGETS_ALL_PATTERN) ||
+        requestURI.matches(API_PRIVILEGES_ALL_PATTERN) ||
+        requestURI.matches(API_PERSIST_ALL_PATTERN);
   }
 
   @Override
@@ -283,25 +325,6 @@ public class AmbariAuthorizationFilter implements Filter {
       value = filterConfig.getServletContext().getInitParameter(parameterName);
     }
     return value == null || value.length() == 0 ? defaultValue : value;
-  }
-
-  /**
-   * Parses context path into view name, version and instance name
-   *
-   * @param contextPath the context path
-   * @return null if context path doesn't match correct pattern
-   */
-  static ViewInstanceVersionDTO parseViewInstanceInfo(String contextPath) {
-    final Pattern pattern = Pattern.compile(VIEWS_CONTEXT_PATH_PATTERN);
-    final Matcher matcher = pattern.matcher(contextPath);
-    if (!matcher.matches()) {
-      return null;
-    } else {
-      final String viewName = matcher.group(1);
-      final String version = matcher.group(2);
-      final String instanceName = matcher.group(3);
-      return new ViewInstanceVersionDTO(viewName, version, instanceName);
-    }
   }
 
   SecurityContext getSecurityContext() {

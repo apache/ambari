@@ -129,7 +129,7 @@ public class ExportBlueprintRequestTest {
     String hg1Name = null;
     String hg2Name = null;
     for (HostGroup group : hostGroups.values()) {
-      Collection<String> components = group.getComponents();
+      Collection<String> components = group.getComponentNames();
       if (components.containsAll(host1ComponentsList)) {
         assertEquals(host1ComponentsList.size(), components.size());
         assertEquals("1", group.getCardinality());

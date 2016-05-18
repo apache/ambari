@@ -33,7 +33,6 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.ActionQueue import ActionQueue
   from ambari_agent.LiveStatus import LiveStatus
   from ambari_agent import AmbariConfig
-  from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
   from ambari_agent.HostInfo import HostInfoLinux
 
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
@@ -58,6 +57,7 @@ class TestHeartbeat(TestCase):
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
     dummy_controller = MagicMock()
+    dummy_controller.recovery_manager.recovery_timestamp = -1
     actionQueue = ActionQueue(config, dummy_controller)
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
@@ -67,11 +67,12 @@ class TestHeartbeat(TestCase):
     self.assertEquals(result['componentStatus'] is not None, True, "Heartbeat should contain componentStatus")
     self.assertEquals(result['reports'] is not None, True, "Heartbeat should contain reports")
     self.assertEquals(result['timestamp'] >= 1353679373880L, True)
+    self.assertEquals(result['recoveryTimestamp'], -1)
     self.assertEquals(len(result['nodeStatus']), 2)
     self.assertEquals(result['nodeStatus']['cause'], "NONE")
     self.assertEquals(result['nodeStatus']['status'], "HEALTHY")
     # result may or may NOT have an agentEnv structure in it
-    self.assertEquals((len(result) is 6) or (len(result) is 7), True)
+    self.assertEquals((len(result) is 7) or (len(result) is 8), True)
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
   @patch("subprocess.Popen")
@@ -175,6 +176,7 @@ class TestHeartbeat(TestCase):
                   {'status': 'HEALTHY',
                    'cause': 'NONE'},
                 'recoveryReport': {'summary': 'DISABLED'},
+                'recoveryTimestamp': -1,
                 'timestamp': 'timestamp', 'hostname': 'hostname',
                 'responseId': 10, 'reports': [
       {'status': 'IN_PROGRESS', 'roleCommand': u'INSTALL',

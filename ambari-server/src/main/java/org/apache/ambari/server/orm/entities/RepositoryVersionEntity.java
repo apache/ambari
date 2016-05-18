@@ -21,24 +21,33 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.Release;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -62,7 +71,8 @@ import com.google.inject.Provider;
 @NamedQueries({
     @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),
     @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.stack.stackVersion=:stackVersion"),
-        @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version")
+    @NamedQuery(name = "repositoryVersionByStackNameAndVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack.stackName=:stackName AND repoversion.version=:version"),
+    @NamedQuery(name = "repositoryVersionsFromDefinition", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.versionXsd IS NOT NULL")
 })
 @StaticallyInject
 public class RepositoryVersionEntity {
@@ -94,11 +104,37 @@ public class RepositoryVersionEntity {
   @Column(name = "repositories")
   private String operatingSystems;
 
+
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<ClusterVersionEntity> clusterVersionEntities;
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<HostVersionEntity> hostVersionEntities;
+
+  @Column(name = "repo_type", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  private RepositoryType type = RepositoryType.STANDARD;
+
+  @Basic(fetch=FetchType.LAZY)
+  @Lob
+  @Column(name="version_xml", insertable = true, updatable = true)
+  private String versionXml;
+
+  @Transient
+  private VersionDefinitionXml versionDefinition = null;
+
+  @Column(name="version_url", nullable=true, insertable=true, updatable=true)
+  private String versionUrl;
+
+  @Column(name="version_xsd", insertable = true, updatable = true)
+  private String versionXsd;
+
+  @ManyToOne
+  @JoinColumn(name = "parent_id")
+  private RepositoryVersionEntity parent;
+
+  @OneToMany(mappedBy = "parent")
+  private List<RepositoryVersionEntity> children;
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -173,6 +209,19 @@ public class RepositoryVersionEntity {
     this.displayName = displayName;
   }
 
+  /**
+   * @param stackId the stack id for the version
+   * @param release the XML release instance
+   */
+  public void setDisplayName(StackId stackId, Release release) {
+    if (StringUtils.isNotBlank(release.display)) {
+      displayName = release.display;
+    } else {
+      displayName = stackId.getStackName() + "-" + release.getFullVersion();
+    }
+  }
+
+
   public String getOperatingSystemsJson() {
     return operatingSystems;
   }
@@ -214,6 +263,20 @@ public class RepositoryVersionEntity {
     return new StackId(stack.getStackName(), stack.getStackVersion());
   }
 
+  /**
+   * @return the type
+   */
+  public RepositoryType getType() {
+    return type;
+  }
+
+  /**
+   * @param type the repo type
+   */
+  public void setType(RepositoryType type) {
+    this.type = type;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -237,11 +300,72 @@ public class RepositoryVersionEntity {
     if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
       return false;
     }
+
     if (operatingSystems != null ? !operatingSystems.equals(that.operatingSystems) : that.operatingSystems != null) {
       return false;
     }
 
     return true;
+  }
+
+  /**
+   * @return the XML that is the basis for the version
+   */
+  public String getVersionXml() {
+    return versionXml;
+  }
+
+  /**
+   * @param xml the XML that is the basis for the version
+   */
+  public void setVersionXml(String xml) {
+    versionXml = xml;
+  }
+
+  /**
+   * @return The url used for the version.  Optional in case the XML was loaded via blob.
+   */
+  public String getVersionUrl() {
+    return versionUrl;
+  }
+
+  /**
+   * @param url the url used to load the XML.
+   */
+  public void setVersionUrl(String url) {
+    versionUrl = url;
+  }
+
+  /**
+   * @return the XSD name extracted from the XML.
+   */
+  public String getVersionXsd() {
+    return versionXml;
+  }
+
+  /**
+   * @param xsdLocation the XSD name extracted from XML.
+   */
+  public void setVersionXsd(String xsdLocation) {
+    versionXsd = xsdLocation;
+  }
+
+  /**
+   * Parse the version XML into its object representation.  This causes the XML to be lazy-loaded
+   * from storage, and will only be parsed once per request.
+   * @return {@code null} if the XSD (from the XML) is not available.
+   * @throws Exception
+   */
+  public VersionDefinitionXml getRepositoryXml() throws Exception {
+    if (null == versionXsd) {
+      return null;
+    }
+
+    if (null == versionDefinition) {
+      versionDefinition = VersionDefinitionXml.load(getVersionXml());
+    }
+
+    return versionDefinition;
   }
 
   @Override
@@ -280,4 +404,27 @@ public class RepositoryVersionEntity {
     }
     return false;
   }
+
+  /**
+   * @param parent
+   */
+  public void setParent(RepositoryVersionEntity entity) {
+    parent = entity;
+    parent.children.add(this);
+  }
+
+  /**
+   * @return the repositories that are denoted children
+   */
+  public List<RepositoryVersionEntity> getChildren() {
+    return children;
+  }
+
+  /**
+   * @return the parentId, or {@code null} if the entity is already a parent
+   */
+  public Long getParentId() {
+    return null == parent ? null : parent.getId();
+  }
+
 }

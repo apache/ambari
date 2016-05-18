@@ -206,7 +206,9 @@ class TestHDP22StackAdvisor(TestCase):
 
 
   def test_validateHDFSConfigurations(self):
-    recommendedDefaults = None
+    recommendedDefaults = {
+      'dfs.datanode.du.reserved': '1024'
+    }
 
     unsecure_cluster_core_site = {
       'hadoop.security.authentication': 'simple',
@@ -220,6 +222,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Unsecured cluster, secure ports
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
     }
@@ -247,6 +250,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Unsecured cluster, unsecure ports
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.datanode.address': '0.0.0.0:55555',
                     'dfs.datanode.http.address': '0.0.0.0:55555',
                     }
@@ -276,6 +280,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, invalid dfs.http.policy value
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'WRONG_VALUE',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -310,6 +315,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address not defined
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     }
@@ -339,6 +345,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and secure
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.https.address': '0.0.0.0:1022',
@@ -369,6 +376,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and non secure
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -399,6 +407,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https property not defined
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                  }
@@ -450,6 +459,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https defined and secure
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:1022',
@@ -499,6 +509,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid non-root configuration
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -523,6 +534,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure port
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:50475',
@@ -564,6 +576,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, valid configuration
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -587,6 +600,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, absent dfs.http.policy (typical situation)
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
                     }
@@ -609,6 +623,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, misusage of dfs.data.transfer.protection warning
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -638,6 +653,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, wrong dfs.data.transfer.protection value
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -667,6 +683,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Hadoop wire encryption enabled
 
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.encrypt.data.transfer': 'true',  # Wire encryption
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -960,7 +977,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '5'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
-    
+
     # Test - with no 'changed-configurations', we should get updated 'maximum's.
     services.pop("changed-configurations", None)
     services.pop("configurations", None)
@@ -1002,7 +1019,6 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hive-env': {
         'properties': {
-          'cost_based_optimizer': 'On',
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
@@ -1012,11 +1028,10 @@ class TestHDP22StackAdvisor(TestCase):
       'hive-site': {
         'properties': {
           'hive.server2.enable.doAs': 'true',
-          'hive.server2.tez.default.queues': "default",
+          'hive.server2.tez.default.queues': "queue1,queue2",
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.server2.tez.sessions.per.default.queue': '1',
           'hive.auto.convert.join.noconditionaltask.size': '268435456',
-          'hive.cbo.enable': 'true',
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
@@ -1052,13 +1067,22 @@ class TestHDP22StackAdvisor(TestCase):
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
-         'hive.server2.authentication.pam.services': {'delete': 'true'}, 
-         'hive.server2.custom.authentication.class': {'delete': 'true'}, 
+         'hive.server2.authentication.pam.services': {'delete': 'true'},
+         'hive.server2.custom.authentication.class': {'delete': 'true'},
          'hive.server2.authentication.kerberos.principal': {'delete': 'true'},
-         'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
+         'hive.server2.authentication.kerberos.keytab': {'delete': 'true'},
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
-           'entries': [{'value': 'default', 'label': 'default queue'}]
+           "entries": [
+             {
+               "value": "queue1",
+               "label": "queue1 queue"
+             },
+             {
+               "value": "queue2",
+               "label": "queue2 queue"
+             }
+           ]
           }
         }
       },
@@ -1159,7 +1183,8 @@ class TestHDP22StackAdvisor(TestCase):
             "hive.server2.authentication.kerberos.keytab": "",
             "hive.server2.authentication.kerberos.principal": "",
             "hive.server2.authentication.pam.services": "",
-            "hive.server2.custom.authentication.class": ""
+            "hive.server2.custom.authentication.class": "",
+            "hive.cbo.enable": "true"
           }
         },
         "hiveserver2-site": {
@@ -1234,7 +1259,8 @@ class TestHDP22StackAdvisor(TestCase):
             "hive.server2.authentication.kerberos.keytab": "",
             "hive.server2.authentication.kerberos.principal": "",
             "hive.server2.authentication.pam.services": "",
-            "hive.server2.custom.authentication.class": ""
+            "hive.server2.custom.authentication.class": "",
+            "hive.cbo.enable": "true"
           }
         },
         "hiveserver2-site": {
@@ -1298,10 +1324,8 @@ class TestHDP22StackAdvisor(TestCase):
     #test recommendations
     services["configurations"]["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     services["configurations"]["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
-    services["changed-configurations"] = [{"type": "hive-site", "name": "hive.cbo.enable"},
-                                          {"type": "hive-env", "name": "hive_security_authorization"}]
+    services["changed-configurations"] = [{"type": "hive-env", "name": "hive_security_authorization"}]
     expected["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
-    expected["hive-site"]["properties"]["hive.cbo.enable"] = "false"
     expected["hive-site"]["properties"]["hive.stats.fetch.partition.stats"]="false"
     expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="true"
@@ -1378,9 +1402,9 @@ class TestHDP22StackAdvisor(TestCase):
                                    "yarn.scheduler.capacity.root.default.user-limit-factor=1\n"
                                    "yarn.scheduler.capacity.root.queues=default"}
 
-    expected['hive-site']['properties']['hive.server2.tez.default.queues'] = 'default.a.a1,default.a.a2,default.b'
+    expected['hive-site']['properties']['hive.server2.tez.default.queues'] = 'a1,a2,b'
     expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'] = {
-           'entries': [{'value': 'default.a.a1', 'label': 'default.a.a1 queue'}, {'value': 'default.a.a2', 'label': 'default.a.a2 queue'}, {'value': 'default.b', 'label': 'default.b queue'}]
+           'entries': [{'value': 'a1', 'label': 'a1 queue'}, {'value': 'a2', 'label': 'a2 queue'}, {'value': 'b', 'label': 'b queue'}]
           }
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hive-site']['property_attributes']['hive.server2.tez.default.queues'], expected['hive-site']['property_attributes']['hive.server2.tez.default.queues'])
@@ -2009,8 +2033,17 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_xmn_size": "128",
-          "hbase_master_heapsize": "512"
+          "hbase_master_xmn_size": "192",
+          "hbase_master_heapsize": "512",
+          "hbase_regionserver_heapsize": "768"
+        }
+      },
+      "ams-grafana-env": {
+        "properties" : {},
+        "property_attributes": {
+          "metrics_grafana_password": {
+            "visible": "false"
+          }
         }
       },
       "ams-env": {
@@ -2025,15 +2058,20 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.global.memstore.upperLimit": "0.35",
           "hbase.hregion.memstore.flush.size": "134217728",
           "hfile.block.cache.size": "0.3",
+          "hbase.cluster.distributed": "false",
           "hbase.rootdir": "file:///var/lib/ambari-metrics-collector/hbase",
           "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
+          "hbase.zookeeper.property.clientPort": "61181",
         }
       },
       "ams-site": {
         "properties": {
           "timeline.metrics.cluster.aggregate.splitpoints": " ",
           "timeline.metrics.host.aggregate.splitpoints": " ",
-          "timeline.metrics.host.aggregator.ttl": "86400"
+          "timeline.metrics.host.aggregator.ttl": "86400",
+          "timeline.metrics.service.handler.thread.count": "20",
+          'timeline.metrics.service.webapp.address': 'host1:6188',
+          'timeline.metrics.service.watcher.disabled': 'false'
         }
       }
     }
@@ -2138,7 +2176,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     ]
     expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432'
-    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '448'
+    expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '512'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
@@ -2154,6 +2192,8 @@ class TestHDP22StackAdvisor(TestCase):
     ]
 
     services['configurations'] = {
+      'core-site': {'properties': {}},
+      'ams-site': {'properties': {}},
       'ams-hbase-site': {'properties': {}},
       'ams-hbase-env': {'properties': {}}
     }
@@ -2194,11 +2234,12 @@ class TestHDP22StackAdvisor(TestCase):
         "old_value": "512"
       }
     ]
-    services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
-    services["configurations"]['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
-    expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
+    services["configurations"]['ams-site']['properties']['timeline.metrics.service.operation.mode'] = 'distributed'
+    services["configurations"]["core-site"]["properties"]["fs.defaultFS"] = 'hdfs://host1:8020'
+    expected['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
+    expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1:8020/user/ams/hbase'
+    expected['ams-hbase-site']['properties']['hbase.zookeeper.property.clientPort'] = '2181'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
-    # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
 
     # Distributed mode, low memory, no splitpoints recommended
@@ -2208,6 +2249,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '102'
     expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '384'
+    expected['ams-site']['properties']['timeline.metrics.host.aggregator.ttl'] = '259200'
+    expected['ams-site']['properties']['timeline.metrics.service.watcher.disabled'] = 'true'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
@@ -2264,7 +2307,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "8192",
+          "hbase_master_heapsize": "1024",
           "hbase_regionserver_heapsize": "8192",
           }
       }
@@ -2501,7 +2544,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "8192",
+          "hbase_master_heapsize": "1024",
           "hbase_regionserver_heapsize": "8192",
         },
         "property_attributes": {
@@ -2622,8 +2665,8 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test when Ranger plugin HBase is enabled in kerberos environment
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = ''
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
     services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'Yes'
@@ -2751,6 +2794,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hdfs-site': {
         'properties': {
+          'dfs.datanode.du.reserved': '1024',
           'dfs.datanode.max.transfer.threads': '16384',
           'dfs.namenode.safemode.threshold-pct': '1.000',
           'dfs.datanode.failed.volumes.tolerated': '1',
@@ -2770,6 +2814,8 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "hadoop.proxyuser.hdfs.hosts": "*",
           "hadoop.proxyuser.hdfs.groups": "*",
+          "hadoop.proxyuser.ambari_user.hosts": "*",
+          "hadoop.proxyuser.ambari_user.groups": "*"
         }
       }
     }
@@ -2863,7 +2909,8 @@ class TestHDP22StackAdvisor(TestCase):
                         },
                       ],
                     }],
-                "configurations": configurations
+                "configurations": configurations,
+                "ambari-server-properties": {"ambari-server.user":"ambari_user"}
                 }
     hosts = {
       "items" : [
@@ -2877,7 +2924,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : "host1",
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         },
         {
@@ -2890,7 +2941,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : "host2",
             "rack_info" : "/default-rack",
-            "total_mem" : 10485760
+            "total_mem" : 10485760,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         },
       ]
@@ -2914,7 +2969,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : hostname,
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         }
       )
@@ -2937,7 +2996,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : hostname,
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         }
       )
@@ -2962,7 +3025,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : hostname,
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         }
       )
@@ -2973,7 +3040,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test 4 - KMS empty test from previous call
     self.assertTrue("dfs.encryption.key.provider.uri" not in configurations["hdfs-site"]["properties"])
-    
+
     # Test 5 - Calculated from hosts install location
     services["services"].append(
                     {"StackServices":
@@ -3054,26 +3121,31 @@ class TestHDP22StackAdvisor(TestCase):
     recommendedDefaults = {'tez.task.resource.memory.mb': '1024',
                            'tez.runtime.io.sort.mb' : '256',
                            'tez.runtime.unordered.output.buffer.size-mb' : '256',
-                           'tez.am.resource.memory.mb' : '1024'}
+                           'tez.am.resource.memory.mb' : '1024',
+                           'tez.tez-ui.history-url.base' : 'https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
 
     properties = {'tez.task.resource.memory.mb': '2050',
                   'tez.runtime.io.sort.mb' : '256',
                   'tez.runtime.unordered.output.buffer.size-mb' : '256',
-                  'tez.am.resource.memory.mb' : '2050'}
+                  'tez.am.resource.memory.mb' : '2050',
+                  'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
 
 
-    res_expected = [{'config-name': 'tez.am.resource.memory.mb',
-                 'config-type': 'tez-site',
-                 'level': 'WARN',
-                 'message': "tez.am.resource.memory.mb should be less than YARN max allocation size (2048)",
-                 'type': 'configuration',
-                 'level': 'WARN'},
+    res_expected = [{'config-name': 'tez.tez-ui.history-url.base',
+                     'config-type': 'tez-site',
+                     'level': 'WARN',
+                     'message': "It is recommended to set value https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE for property tez.tez-ui.history-url.base",
+                     'type': 'configuration'},
+                    {'config-name': 'tez.am.resource.memory.mb',
+                     'config-type': 'tez-site',
+                     'level': 'WARN',
+                     'message': "tez.am.resource.memory.mb should be less than YARN max allocation size (2048)",
+                     'type': 'configuration'},
                     {'config-name': 'tez.task.resource.memory.mb',
-                 'config-type': 'tez-site',
-                 'level': 'WARN',
-                 'message': "tez.task.resource.memory.mb should be less than YARN max allocation size (2048)",
-                 'type': 'configuration',
-                 'level': 'WARN'}]
+                     'config-type': 'tez-site',
+                     'level': 'WARN',
+                     'message': "tez.task.resource.memory.mb should be less than YARN max allocation size (2048)",
+                     'type': 'configuration'}]
 
     res = self.stackAdvisor.validateTezConfigurations(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
@@ -3354,6 +3426,11 @@ class TestHDP22StackAdvisor(TestCase):
         "yarn-env": {
           "properties": {
             "yarn_cgroups_enabled": "true"
+          }
+        },
+        "core-site": {
+          "properties": {
+            "hadoop.security.authentication": ""
           }
         }
       }

@@ -23,30 +23,7 @@
       <name>STORM</name>
       <displayName>Storm</displayName>
       <version>0.9.3.2.2</version>
-      <components>
-        <component>
-          <name>STORM_REST_API</name>
-          <deleted>true</deleted>
-        </component>
-      </components>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>storm_2_2_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>ubuntu12</osFamily>
-          <packages>
-            <package>
-              <name>storm-2-2-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
+      <extends>common-services/STORM/0.9.3</extends>
     </service>
   </services>
 </metainfo>

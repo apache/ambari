@@ -85,7 +85,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   },
 
   connectOutlets: function (router, context) {
-    console.log('in /installer:connectOutlets');
     router.get('applicationController').connectOutlet('installer');
   },
 
@@ -104,9 +103,40 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     next: function (router) {
       console.time('step0 next');
       var installerController = router.get('installerController');
+      var wizardStep1Controller = router.get('wizardStep1Controller');
       installerController.save('cluster');
       App.db.setStacks(undefined);
+      App.db.setRepos(undefined);
+      App.db.setLocalRepoVDFData(undefined);
+      App.Stack.find().clear();
+
       installerController.set('content.stacks',undefined);
+      wizardStep1Controller.set('skipValidationChecked', false);
+      wizardStep1Controller.set('optionsToSelect', {
+        'usePublicRepo': {
+          index: 0,
+          isSelected: true
+        },
+        'useLocalRepo': {
+          index: 1,
+          isSelected: false,
+          'uploadFile': {
+            index: 0,
+            name: 'uploadFile',
+            file: '',
+            hasError: false,
+            isSelected: true
+          },
+          'enterUrl': {
+            index: 1,
+            name: 'enterUrl',
+            url: '',
+            placeholder: 'Enter URL to Version Definition File',
+            hasError: false,
+            isSelected: false
+          }
+        }
+      });
       router.transitionTo('step1');
       console.timeEnd('step0 next');
     }
@@ -126,10 +156,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     back: Em.Router.transitionTo('step0'),
     next: function (router) {
       console.time('step1 next');
+      if(App.router.nextBtnClickInProgress || router.transitionInProgress){
+        return;
+      }
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
       installerController.validateJDKVersion(function() {
         installerController.checkRepoURL(wizardStep1Controller).done(function () {
+          App.router.nextBtnClickInProgress = true;
+          router.transitionInProgress = true;
           installerController.setDBProperty('service', undefined);
           installerController.setStacks();
           installerController.clearInstallOptions();
@@ -156,11 +191,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     back: Em.Router.transitionTo('step1'),
     next: function (router) {
       console.time('step2 next');
-      var controller = router.get('installerController');
-      controller.save('installOptions');
-      //hosts was saved to content.hosts inside wizardStep2Controller
-      controller.save('hosts');
-      router.transitionTo('step3');
+      if (!router.transitionInProgress) {
+        router.set('transitionInProgress', true);
+        var controller = router.get('installerController');
+        controller.save('installOptions');
+        //hosts was saved to content.hosts inside wizardStep2Controller
+        controller.save('hosts');
+        router.transitionTo('step3');
+      }
       console.timeEnd('step2 next');
     }
   }),
@@ -230,18 +268,21 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     next: function (router) {
       console.time('step4 next');
-      var controller = router.get('installerController');
-      var wizardStep4Controller = router.get('wizardStep4Controller');
-      controller.saveServices(wizardStep4Controller);
-      controller.saveClients(wizardStep4Controller);
-      router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation between steps 4 and 5
-      controller.setDBProperties({
-        recommendations: undefined,
-        masterComponentHosts: undefined
-      });
-      controller.set('stackConfigsLoaded', false);
-      App.configsCollection.clearAll();
-      router.transitionTo('step5');
+      if (!router.transitionInProgress) {
+        router.set('transitionInProgress', true);
+        var controller = router.get('installerController');
+        var wizardStep4Controller = router.get('wizardStep4Controller');
+        controller.saveServices(wizardStep4Controller);
+        controller.saveClients(wizardStep4Controller);
+        router.get('wizardStep5Controller').clearRecommendations(); // Force reload recommendation between steps 4 and 5
+        controller.setDBProperties({
+          recommendations: undefined,
+          masterComponentHosts: undefined
+        });
+        controller.set('stackConfigsLoaded', false);
+        App.configsCollection.clearAll();
+        router.transitionTo('step5');
+      }
       console.timeEnd('step4 next');
     }
   }),
@@ -268,16 +309,19 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     back: Em.Router.transitionTo('step4'),
     next: function (router) {
       console.time('step5 next');
-      var controller = router.get('installerController');
-      var wizardStep5Controller = router.get('wizardStep5Controller');
-      var wizardStep6Controller = router.get('wizardStep6Controller');
-      controller.saveMasterComponentHosts(wizardStep5Controller);
-      controller.setDBProperties({
-        slaveComponentHosts: undefined,
-        recommendations: wizardStep5Controller.get('content.recommendations')
-      });
-      wizardStep6Controller.set('isClientsSet', false);
-      router.transitionTo('step6');
+      if (!router.transitionInProgress) {
+        router.set('transitionInProgress', true);
+        var controller = router.get('installerController');
+        var wizardStep5Controller = router.get('wizardStep5Controller');
+        var wizardStep6Controller = router.get('wizardStep6Controller');
+        controller.saveMasterComponentHosts(wizardStep5Controller);
+        controller.setDBProperties({
+          slaveComponentHosts: undefined,
+          recommendations: wizardStep5Controller.get('content.recommendations')
+        });
+        wizardStep6Controller.set('isClientsSet', false);
+        router.transitionTo('step6');
+      }
       console.timeEnd('step5 next');
     }
   }),
@@ -300,9 +344,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     next: function (router) {
       console.time('step6 next');
+      App.set('router.nextBtnClickInProgress', true);
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
-      var wizardStep7Controller = router.get('wizardStep7Controller');
       if (!wizardStep6Controller.get('submitDisabled')) {
         wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           if (!router.transitionInProgress) {
@@ -315,6 +359,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
               recommendationsConfigs: null
             });
+            App.set('router.nextBtnClickInProgress', false);
             router.transitionTo('step7');
             console.timeEnd('step6 next');
           }
@@ -360,21 +405,17 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
     next: function (router) {
       console.time('step7 next');
-      if(!router.transitionInProgress) {
+      if (!router.transitionInProgress) {
         router.set('transitionInProgress', true);
+        App.set('router.nextBtnClickInProgress', true);
         var controller = router.get('installerController');
         var wizardStep7Controller = router.get('wizardStep7Controller');
         controller.saveServiceConfigProperties(wizardStep7Controller);
         controller.saveServiceConfigGroups(wizardStep7Controller);
         controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
-        App.clusterStatus.setClusterStatus({
-          localdb: App.db.data
-        }, {
-          alwaysCallback: function() {
-            router.transitionTo('step8');
-            console.timeEnd('step7 next');
-          }
-        });
+        App.set('router.nextBtnClickInProgress', false);
+        router.transitionTo('step8');
+        console.timeEnd('step7 next');
       }
     }
   }),
@@ -383,7 +424,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step8',
     connectOutlets: function (router, context) {
       console.time('step8 connectOutlets');
-      console.log('in installer.step8:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('8');
       controller.loadAllPriorSteps().done(function () {
@@ -406,6 +446,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           // We need to do recovery based on whether we are in Add Host or Installer wizard
           installerController.saveClusterState('CLUSTER_INSTALLING_3');
           wizardStep8Controller.set('servicesInstalled', true);
+          router.set('nextBtnClickInProgress', false);
           router.transitionTo('step9');
           console.timeEnd('step8 next');
         });
@@ -455,7 +496,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     unroutePath: function (router, context) {
       // exclusion for transition to Admin view or Views view
       if (context === '/adminView' ||
-          context === '/main/views.index') {
+          context === '/main/views.index' || context === '/main/view.index') {
         this._super(router, context);
       } else {
         return false;

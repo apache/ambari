@@ -39,7 +39,7 @@ public class ActionExecutionContext {
   private Short timeout;
   private String expectedServiceName;
   private String expectedComponentName;
-  private boolean ignoreMaintenance = false;
+  private boolean hostsInMaintenanceModeExcluded = true;
   private boolean allowRetry = false;
 
   /**
@@ -178,25 +178,33 @@ public class ActionExecutionContext {
       ", parameters=" + parameters +
       ", targetType=" + targetType +
       ", timeout=" + timeout +
-      ", ignoreMaintenance=" + ignoreMaintenance +
+      ", isMaintenanceModeHostExcluded=" + hostsInMaintenanceModeExcluded +
       ", allowRetry=" + allowRetry +
       ", autoSkipFailures=" + autoSkipFailures +
       '}';
   }
 
   /**
-   * @return {@code true} if the action context should schedule even if maintenance mode is
-   * enabled
+   * Gets whether hosts in maintenance mode should be excluded from the command.
+   *
+   * @return {@code true} to exclude any hosts in maintenance mode from the
+   *         command, {@code false} to include hosts which are in maintenance
+   *         mode.
    */
-  public boolean isMaintenanceModeIgnored() {
-    return ignoreMaintenance;
+  public boolean isMaintenanceModeHostExcluded() {
+    return hostsInMaintenanceModeExcluded;
   }
 
   /**
-   * @param ignore  {@code true} to ignore maintenace mode
+   * Sets whether hosts in maintenance mode should be excluded from the command.
+   *
+   * @param excluded
+   *          {@code true} to exclude any hosts in maintenance mode from the
+   *          command, {@code false} to include hosts which are in maintenance
+   *          mode.
    */
-  public void setMaintenanceModeIgnored(boolean ignore) {
-    ignoreMaintenance = ignore;
+  public void setMaintenanceModeHostExcluded(boolean excluded) {
+    hostsInMaintenanceModeExcluded = excluded;
   }
 
 }

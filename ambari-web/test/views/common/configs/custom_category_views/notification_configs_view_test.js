@@ -20,32 +20,42 @@ var App = require('app');
 require('views/common/configs/custom_category_views/notification_configs_view');
 var view;
 
+function getView() {
+  return App.NotificationsConfigsView.create({
+    $: function() {
+      return {show: Em.K, hide: Em.K};
+    },
+    category: {
+      name: 'name'
+    },
+    serviceConfigs: [],
+    categoryConfigs: [],
+    categoryConfigsAll: [],
+    parentView: Em.View.create({
+      filter: '',
+      columns: []
+    })
+  });
+}
+
 describe('App.NotificationsConfigsView', function () {
 
   beforeEach(function () {
-    view = App.NotificationsConfigsView.create({
-      $: function() {
-        return {show: Em.K, hide: Em.K};
-      },
-      category: {
-        name: 'name'
-      },
-      serviceConfigs: [],
-      parentView: Em.View.create({
-        filter: '',
-        columns: []
-      })
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedFindBy(getView(), 'useAuthConfig', 'categoryConfigs', 'name', 'smtp_use_auth');
 
   describe('#didInsertElement', function () {
 
     beforeEach(function () {
       sinon.stub(view, 'updateCategoryConfigs', Em.K);
+      sinon.stub(view, 'onTlsOrSslChanged');
     });
 
     afterEach(function () {
       view.updateCategoryConfigs.restore();
+      view.onTlsOrSslChanged.restore();
     });
 
     it('should not do nothing if no configs', function () {
@@ -56,6 +66,183 @@ describe('App.NotificationsConfigsView', function () {
 
     });
 
+    describe('should update category configs', function () {
+      var configs = [
+        Em.Object.create({
+          name: "create_notification",
+          value: 'yes'
+        }),
+        Em.Object.create({
+          name: 'mail.smtp.starttls.enable',
+          value: false
+        }),
+        Em.Object.create({
+          name: 'smtp_use_auth',
+          value: 'true'
+        })
+      ];
+
+      beforeEach(function () {
+        view.set('categoryConfigsAll', configs);
+        view.didInsertElement();
+      });
+
+      it('createNotification = yes', function () {
+        expect(view.get('createNotification')).to.equal('yes');
+      });
+      it('tlsOrSsl = ssl', function () {
+        expect(view.get('tlsOrSsl')).to.equal('ssl');
+      });
+      it('updateCategoryConfigs is called once', function () {
+        expect(view.updateCategoryConfigs.called).to.be.true;
+      });
+
+    });
   });
 
+  describe("#onTlsOrSslChanged()", function () {
+
+    var configs = [
+      Em.Object.create({
+        name: "mail.smtp.starttls.enable",
+        value: 'yes'
+      }),
+      Em.Object.create({
+        name: 'mail.smtp.startssl.enable',
+        value: false
+      })
+    ];
+
+    it("tls", function () {
+      view.set('categoryConfigsAll', configs);
+      view.set('tlsOrSsl', 'tls');
+      view.onTlsOrSslChanged();
+      expect(configs.findProperty('name', 'mail.smtp.starttls.enable').get('value')).to.be.true;
+      expect(configs.findProperty('name', 'mail.smtp.startssl.enable').get('value')).to.be.false;
+    });
+
+    it("ssl", function () {
+      view.set('categoryConfigsAll', configs);
+      view.set('tlsOrSsl', 'ssl');
+      view.onTlsOrSslChanged();
+      expect(configs.findProperty('name', 'mail.smtp.starttls.enable').get('value')).to.be.false;
+      expect(configs.findProperty('name', 'mail.smtp.startssl.enable').get('value')).to.be.true;
+    });
+  });
+
+  describe("#onUseAuthConfigChange()", function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'updateConfig');
+      view.set('categoryConfigs', [
+        Em.Object.create({name: 'ambari.dispatch.credential.username'}),
+        Em.Object.create({name: 'smtp_use_auth'})
+      ]);
+    });
+
+    afterEach(function () {
+      view.updateConfig.restore();
+    });
+
+    it("auth config is not editable", function () {
+      view.get('categoryConfigs').findProperty('name', 'smtp_use_auth').setProperties({
+        value: true,
+        isEditable: false
+      });
+      view.onUseAuthConfigChange();
+      expect(view.updateConfig.calledWith(
+        Em.Object.create({name: 'ambari.dispatch.credential.username'}),
+        false
+      )).to.be.true;
+    });
+
+    it("auth config is editable", function () {
+      view.get('categoryConfigs').findProperty('name', 'smtp_use_auth').setProperties({
+        value: true,
+        isEditable: true
+      });
+      view.onUseAuthConfigChange();
+      expect(view.updateConfig.calledWith(
+        Em.Object.create({name: 'ambari.dispatch.credential.username'}),
+        true
+      )).to.be.true;
+    });
+  });
+
+  describe("#updateCategoryConfigs()", function () {
+
+    beforeEach(function () {
+      sinon.stub(view, 'updateConfig');
+      sinon.stub(view, 'onUseAuthConfigChange');
+      view.set('categoryConfigs', [
+        Em.Object.create({name: 'ambari.dispatch.credential.username'})
+      ]);
+      view.set('categoryConfigsAll', [
+        Em.Object.create({
+          name: 'create_notification'
+        })
+      ]);
+    });
+
+    afterEach(function () {
+      view.updateConfig.restore();
+      view.onUseAuthConfigChange.restore();
+    });
+
+    it("createNotification is 'yes'", function () {
+      view.set('createNotification', 'yes');
+      view.updateCategoryConfigs();
+      expect(view.onUseAuthConfigChange.called).to.be.true;
+      expect(view.get('categoryConfigsAll').findProperty('name', 'create_notification').get('value')).to.equal('yes');
+      expect(view.updateConfig.calledWith(
+        Em.Object.create({name: 'ambari.dispatch.credential.username'}),
+        true
+      )).to.be.true;
+    });
+
+    it("createNotification is 'no'", function () {
+      view.set('createNotification', 'no');
+      view.updateCategoryConfigs();
+      expect(view.onUseAuthConfigChange.called).to.be.true;
+      expect(view.get('categoryConfigsAll').findProperty('name', 'create_notification').get('value')).to.equal('no');
+      expect(view.updateConfig.calledWith(
+        Em.Object.create({name: 'ambari.dispatch.credential.username'}),
+        false
+      )).to.be.true;
+    });
+  });
+
+  describe("#updateConfig()", function () {
+
+    var config;
+
+    beforeEach(function () {
+      config = Em.Object.create();
+    });
+
+    describe("flag is true", function () {
+
+      beforeEach(function () {
+        view.updateConfig(config, true);
+      });
+      it('isRequired is true', function () {
+        expect(config.get('isRequired')).to.be.true;
+      });
+      it('isEditable is true', function () {
+        expect(config.get('isEditable')).to.be.true;
+      });
+    });
+
+    describe("flag is false", function () {
+      beforeEach(function () {
+        view.updateConfig(config, false);
+      });
+      it('isRequired is false', function () {
+        expect(config.get('isRequired')).to.be.false;
+      });
+      it('isEditable is false', function () {
+        expect(config.get('isEditable')).to.be.false;
+      });
+    });
+  });
 });

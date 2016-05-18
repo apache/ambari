@@ -26,9 +26,11 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -60,6 +62,7 @@ public class InstallPackagesCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
   private final ClusterVersionDAO clusterVersionDAO = Mockito.mock(ClusterVersionDAO.class);
   private final HostVersionDAO hostVersionDAO = Mockito.mock(HostVersionDAO.class);
+  private final RepositoryVersionDAO repositoryVersionDAO = Mockito.mock(RepositoryVersionDAO.class);
   private AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
   private StackId sourceStackId = new StackId("HDP", "2.2");
   private StackId targetStackId = new StackId("HDP", "2.2");
@@ -81,6 +84,7 @@ public class InstallPackagesCheckTest {
 
   @Test
   public void testPerform() throws Exception {
+    StackId stackId = new StackId("HDP", "2.2");
     PowerMockito.mockStatic(HostComponentSummary.class);
 
     final InstallPackagesCheck installPackagesCheck = new InstallPackagesCheck();
@@ -113,10 +117,22 @@ public class InstallPackagesCheckTest {
       }
     };
 
+    installPackagesCheck.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
+      @Override
+      public RepositoryVersionDAO get() {
+        return repositoryVersionDAO;
+      }
+    };
+    StackEntity stack = new StackEntity();
+    stack.setStackName(stackId.getStackName());
+    stack.setStackVersion(stackId.getStackVersion());
+    RepositoryVersionEntity rve = new RepositoryVersionEntity(stack, repositoryVersion, repositoryVersion, "rhel6");
+    Mockito.when(repositoryVersionDAO.findByStackNameAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(rve);
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterName()).thenReturn(clusterName);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
-    Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
+
+    Mockito.when(cluster.getCurrentStackVersion()).thenReturn(stackId);
     Mockito.when(clusters.getCluster(clusterName)).thenReturn(cluster);
     ClusterVersionEntity clusterVersionEntity = Mockito.mock(ClusterVersionEntity.class);
     Mockito.when(clusterVersionEntity.getState()).thenReturn(RepositoryVersionState.INSTALLED);
@@ -126,8 +142,6 @@ public class InstallPackagesCheckTest {
     hostNames.add("host1");
     hostNames.add("host2");
     hostNames.add("host3");
-    RepositoryVersionEntity rve = Mockito.mock(RepositoryVersionEntity.class);
-    Mockito.when(rve.getVersion()).thenReturn(repositoryVersion);
 
     final List<Host> hosts = new ArrayList<Host>();
     final List<HostVersionEntity> hostVersionEntities = new ArrayList<HostVersionEntity>();

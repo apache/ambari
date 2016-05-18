@@ -28,7 +28,7 @@ import javax.persistence.*;
 @TableGenerator(name = "principal_type_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "principal_type_id_seq"
-    , initialValue = 3
+    , initialValue = 100
 )
 public class PrincipalTypeEntity {
 
@@ -37,9 +37,19 @@ public class PrincipalTypeEntity {
    */
   public static final int USER_PRINCIPAL_TYPE  = 1;
   public static final int GROUP_PRINCIPAL_TYPE = 2;
+  public static final int CLUSTER_ADMINISTRATOR_PRINCIPAL_TYPE = 3;
+  public static final int CLUSTER_OPERATOR_PRINCIPAL_TYPE = 4;
+  public static final int CLUSTER_USER_PRINCIPAL_TYPE = 5;
+  public static final int SERVICE_ADMINISTRATOR_PRINCIPAL_TYPE = 6;
+  public static final int SERVICE_OPERATOR_PRINCIPAL_TYPE = 7;
 
   public static final String USER_PRINCIPAL_TYPE_NAME  = "USER";
   public static final String GROUP_PRINCIPAL_TYPE_NAME = "GROUP";
+  public static final String CLUSTER_ADMINISTRATOR_PRINCIPAL_TYPE_NAME = "ALL.CLUSTER.ADMINISTRATOR";
+  public static final String CLUSTER_OPERATOR_PRINCIPAL_TYPE_NAME = "ALL.CLUSTER.OPERATOR";
+  public static final String CLUSTER_USER_PRINCIPAL_TYPE_NAME = "ALL.CLUSTER.USER";
+  public static final String SERVICE_ADMINISTRATOR_PRINCIPAL_TYPE_NAME = "ALL.SERVICE.ADMINISTRATOR";
+  public static final String SERVICE_OPERATOR_PRINCIPAL_TYPE_NAME = "ALL.SERVICE.OPERATOR";
 
   /**
    * The type id.

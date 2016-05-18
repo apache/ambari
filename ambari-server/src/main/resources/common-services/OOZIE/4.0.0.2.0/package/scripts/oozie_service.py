@@ -20,6 +20,7 @@ limitations under the License.
 import os
 from resource_management import *
 from resource_management.core.shell import as_user
+from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -124,15 +125,23 @@ def oozie_service(action = 'start', upgrade_type=None):
         params.HdfsResource(None, action="execute")
         
 
-    # start oozie
-    Execute( start_cmd, environment=environment, user = params.oozie_user,
-      not_if = no_op_test )
+    try:
+      # start oozie
+      Execute( start_cmd, environment=environment, user = params.oozie_user,
+        not_if = no_op_test )
+    except:
+      show_logs(params.oozie_log_dir, params.oozie_user)
+      raise
 
   elif action == 'stop':
     stop_cmd  = format("cd {oozie_tmp_dir} && {oozie_home}/bin/oozie-stop.sh")
 
-    # stop oozie
-    Execute(stop_cmd, environment=environment, only_if  = no_op_test,
-      user = params.oozie_user)
+    try:
+      # stop oozie
+      Execute(stop_cmd, environment=environment, only_if  = no_op_test,
+        user = params.oozie_user)
+    except:
+      show_logs(params.oozie_log_dir, params.oozie_user)
+      raise
 
     File(params.pid_file, action = "delete")

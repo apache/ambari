@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration supports_final="false" supports_adding_forbidden="true">
+
+  <property>
+    <name>content</name>
+    <description>PXF profiles definition file</description>
+    <value><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<!--
+    PXF profiles definition file.
+    New profiles can be added in the form:
+        <profile>
+            <name>...</name>
+            <description>...</description>
+            <plugins>
+                <plugin_A>...</plugin_A>
+                <plugin_B>...</plugin_B>
+                ...
+            </plugins>
+         </profile>
+-->
+<profiles>
+    <profile>
+        <name>HBase</name>
+        <description>This profile is suitable for using when connecting to an HBase data store engine</description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hbase.HBaseDataFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hbase.HBaseAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hbase.HBaseResolver</resolver>
+        </plugins>
+    </profile>
+    <profile>
+        <name>Hive</name>
+        <description>This profile is suitable for using when connecting to Hive</description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveDataFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hive.HiveAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hive.HiveResolver</resolver>
+            <metadata>org.apache.hawq.pxf.plugins.hive.HiveMetadataFetcher</metadata>
+        </plugins>
+    </profile>
+    <profile>
+        <name>HiveRC</name>
+        <description>This profile is suitable only for Hive tables stored in RC files
+            and serialized with either the ColumnarSerDe or the LazyBinaryColumnarSerDe.
+            It is much faster than the general purpose Hive profile.
+            DELIMITER parameter is mandatory.
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveInputFormatFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hive.HiveRCFileAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hive.HiveColumnarSerdeResolver</resolver>
+            <metadata>org.apache.hawq.pxf.plugins.hive.HiveMetadataFetcher</metadata>
+        </plugins>
+    </profile>
+    <profile>
+        <name>HiveText</name>
+        <description>This profile is suitable only for Hive tables stored as Text files.
+            It is much faster than the general purpose Hive profile.
+            DELIMITER parameter is mandatory.
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveInputFormatFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hive.HiveLineBreakAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hive.HiveStringPassResolver</resolver>
+            <metadata>org.apache.hawq.pxf.plugins.hive.HiveMetadataFetcher</metadata>
+        </plugins>
+    </profile>
+    <profile>
+        <name>HdfsTextSimple</name>
+        <description>This profile is suitable for using when reading delimited single line records from plain text files
+            on HDFS
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hdfs.LineBreakAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hdfs.StringPassResolver</resolver>
+        </plugins>
+    </profile>
+    <profile>
+        <name>HdfsTextMulti</name>
+        <description>This profile is suitable for using when reading delimited single or multi line records (with quoted
+            linefeeds) from plain text files on HDFS. It is not splittable (non parallel) and slower than HdfsTextSimple.
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hdfs.QuotedLineBreakAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hdfs.StringPassResolver</resolver>
+        </plugins>
+    </profile>
+    <profile>
+        <name>Avro</name>
+        <description>This profile is suitable for using when reading Avro files (i.e fileName.avro)</description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hdfs.AvroFileAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hdfs.AvroResolver</resolver>
+        </plugins>
+    </profile>
+    <profile>
+        <name>SequenceWritable</name>
+        <description>
+            Profile for accessing Sequence files serialized with a custom Writable class
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hdfs.SequenceFileAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hdfs.WritableResolver</resolver>
+        </plugins>
+    </profile>
+    <profile>
+        <name>GemFireXD</name>
+        <description>This profile is suitable for using when connecting to GemFireXD</description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.gemfirexd.GemFireXDFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.gemfirexd.GemFireXDAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.gemfirexd.GemFireXDResolver</resolver>
+        </plugins>
+    </profile>
+</profiles>
+    ]]>
+    </value>
+    <value-attributes>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+  </property>
+
+</configuration>

@@ -29,7 +29,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
 import org.apache.ambari.server.stack.Validable;
+import org.apache.ambari.server.state.RepositoryInfo;
 
 /**
  * Represents the repository file <code>$STACK_VERSION/repos/repoinfo.xml</code>.
@@ -47,7 +49,7 @@ public class RepositoryXml implements Validable{
   private boolean valid = true;
 
   /**
-   * 
+   *
    * @return valid xml flag
    */
   @Override
@@ -56,46 +58,46 @@ public class RepositoryXml implements Validable{
   }
 
   /**
-   * 
+   *
    * @param valid set validity flag
    */
   @Override
   public void setValid(boolean valid) {
     this.valid = valid;
-  }    
-  
+  }
+
   @XmlTransient
   private Set<String> errorSet = new HashSet<String>();
-  
+
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errorSet.add(error);
   }
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
-  } 
- 
+  }
+
   @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
-  }  
-  
+  public void addErrors(Collection<String> errors) {
+    this.errorSet.addAll(errors);
+  }
+
   /**
    * @return the latest URI defined, if any.
    */
   public String getLatestURI() {
     return latestUri;
   }
-  
+
   /**
    * @return the list of <code>os</code> elements.
    */
   public List<Os> getOses() {
     return oses;
   }
-  
+
   /**
    * The <code>os</code> tag.
    */
@@ -103,20 +105,20 @@ public class RepositoryXml implements Validable{
   public static class Os {
     @XmlAttribute(name="family")
     private String family;
-    
+
     @XmlElement(name="repo")
     private List<Repo> repos;
 
     private Os() {
     }
-    
+
     /**
      * @return the os family
      */
     public String getFamily() {
       return family;
     }
-    
+
     /**
      * @return the list of repo elements
      */
@@ -138,7 +140,7 @@ public class RepositoryXml implements Validable{
 
     private Repo() {
     }
-    
+
     /**
      * @return the base url
      */
@@ -152,27 +154,56 @@ public class RepositoryXml implements Validable{
     public String getMirrorsList() {
       return (null == mirrorslist || mirrorslist.isEmpty()) ? null : mirrorslist;
     }
-    
+
     /**
      * @return the repo id
      */
     public String getRepoId() {
       return repoid;
     }
-    
+
     /**
      * @return the repo name
      */
     public String getRepoName() {
       return reponame;
     }
-    
+
     public String getLatestUri() {
       return latest;
     }
-    
-    
-  }  
-  
+
+
+  }
+
+  /**
+   * @return the list of repositories consumable by the web service.
+   */
+  public List<RepositoryInfo> getRepositories() {
+    List<RepositoryInfo> repos = new ArrayList<>();
+
+    for (RepositoryXml.Os o : getOses()) {
+      String osFamily = o.getFamily();
+      for (String os : osFamily.split(",")) {
+        for (RepositoryXml.Repo r : o.getRepos()) {
+
+          RepositoryInfo ri = new RepositoryInfo();
+          ri.setBaseUrl(r.getBaseUrl());
+          ri.setDefaultBaseUrl(r.getBaseUrl());
+          ri.setMirrorsList(r.getMirrorsList());
+          ri.setOsType(os.trim());
+          ri.setRepoId(r.getRepoId());
+          ri.setRepoName(r.getRepoName());
+          ri.setLatestBaseUrl(r.getBaseUrl());
+
+          repos.add(ri);
+        }
+      }
+    }
+
+    return repos;
+  }
+
+
 }
 

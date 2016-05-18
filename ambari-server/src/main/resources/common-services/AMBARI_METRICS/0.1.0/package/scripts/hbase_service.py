@@ -18,7 +18,8 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions.format import format
 
 def hbase_service(
   name,
@@ -45,7 +46,7 @@ def hbase_service(
         user = params.hbase_user,
         # BUGFIX: hbase regionserver sometimes hangs when nn is in safemode
         timeout = 30,
-        on_timeout = format("{no_op_test} && kill -9 `cat {pid_file}`")
+        on_timeout = format("{no_op_test} && {sudo} -H -E kill -9 `{sudo} cat {pid_file}`")
       )
       
       File(pid_file,

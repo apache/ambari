@@ -95,7 +95,7 @@ public class ServiceInfo implements Validable{
 
   @JsonIgnore
   private Boolean monitoringService;
-  
+
   @JsonIgnore
   @XmlElement(name = "restartRequiredAfterChange")
   private Boolean restartRequiredAfterChange;
@@ -129,7 +129,13 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private Map<String, Map<String, List<MetricDefinition>>> metrics = null;
-  
+
+  @XmlTransient
+  private File advisorFile = null;
+
+  @XmlTransient
+  private String advisorName = null;
+
   @XmlTransient
   private File alertsFile = null;
 
@@ -138,7 +144,7 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private File widgetsDescriptorFile = null;
-  
+
   @XmlTransient
   private boolean valid = true;
 
@@ -161,7 +167,7 @@ public class ServiceInfo implements Validable{
   }
 
   /**
-   * 
+   *
    * @param valid set validity flag
    */
   @Override
@@ -171,20 +177,20 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private Set<String> errorSet = new HashSet<String>();
-  
+
   @Override
-  public void setErrors(String error) {
+  public void addError(String error) {
     errorSet.add(error);
   }
 
   @Override
-  public Collection getErrors() {
+  public Collection<String> getErrors() {
     return errorSet;
-  }   
-  
+  }
+
   @Override
-  public void setErrors(Collection error) {
-    this.errorSet.addAll(error);
+  public void addErrors(Collection<String> errors) {
+    this.errorSet.addAll(errors);
   }
   /**
    * Internal list of os-specific details (loaded from xml). Added at schema ver 2
@@ -193,7 +199,7 @@ public class ServiceInfo implements Validable{
   @XmlElementWrapper(name="osSpecifics")
   @XmlElements(@XmlElement(name="osSpecific"))
   private List<ServiceOsSpecific> serviceOsSpecifics;
-  
+
   @JsonIgnore
   @XmlElement(name="configuration-dir")
   private String configDir = AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME;
@@ -210,6 +216,17 @@ public class ServiceInfo implements Validable{
   @XmlTransient
   private volatile Map<String, ThemeInfo> themesMap;
 
+  @JsonIgnore
+  @XmlElement(name = "quickLinksConfigurations-dir")
+  private String quickLinksConfigurationsDir = AmbariMetaInfo.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME;
+
+  @JsonIgnore
+  @XmlElementWrapper(name = "quickLinksConfigurations")
+  @XmlElements(@XmlElement(name = "quickLinksConfiguration"))
+  private List<QuickLinksConfigurationInfo> quickLinksConfigurations;
+
+  @XmlTransient
+  private volatile Map<String, QuickLinksConfigurationInfo> quickLinksConfigurationsMap;
 
   /**
    * Map of of os-specific details that is exposed (and initialised from list)
@@ -230,7 +247,7 @@ public class ServiceInfo implements Validable{
   @XmlElementWrapper(name="customCommands")
   @XmlElements(@XmlElement(name="customCommand"))
   private List<CustomCommandDefinition> customCommands;
-  
+
   @XmlElementWrapper(name="requiredServices")
   @XmlElement(name="service")
   private List<String> requiredServices = new ArrayList<String>();
@@ -275,7 +292,7 @@ public class ServiceInfo implements Validable{
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
-  
+
   public String getServiceType() {
 	return serviceType;
   }
@@ -370,13 +387,29 @@ public String getVersion() {
     return client;
   }
 
+  public File getAdvisorFile() {
+    return advisorFile;
+  }
+
+  public void setAdvisorFile(File advisorFile) {
+    this.advisorFile = advisorFile;
+  }
+
+  public String getAdvisorName() {
+    return advisorName;
+  }
+
+  public void setAdvisorName(String advisorName) {
+    this.advisorName = advisorName;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("Service name:");
     sb.append(name);
     sb.append("\nService type:");
-    sb.append(serviceType); 
+    sb.append(serviceType);
     sb.append("\nversion:");
     sb.append(version);
     sb.append("\ncomment:");
@@ -464,7 +497,7 @@ public String getVersion() {
    * This can be used in determining if a property is stale.
 
    * @param type the config type
-   * @param keyNames the names of all the config keys for the given type 
+   * @param keyNames the names of all the config keys for the given type
    * @return <code>true</code> if the config is stale
    */
   public boolean hasDependencyAndPropertyFor(String type, Collection<String> keyNames) {
@@ -478,7 +511,7 @@ public String getVersion() {
       if (keys != null && keys.contains(staleCheck))
         return true;
     }
-    
+
     return false;
   }
 
@@ -601,7 +634,7 @@ public String getVersion() {
   public void setMetricsFile(File file) {
     metricsFile = file;
   }
-  
+
   /**
    * @return the metrics file, or <code>null</code> if none exists
    */
@@ -615,14 +648,14 @@ public String getVersion() {
   public Map<String, Map<String, List<MetricDefinition>>> getMetrics() {
     return metrics;
   }
-  
+
   /**
    * @param map the metrics for this service
    */
   public void setMetrics(Map<String, Map<String, List<MetricDefinition>>> map) {
     metrics = map;
   }
-  
+
   /**
    * @return the configuration directory name
    */
@@ -769,6 +802,43 @@ public String getVersion() {
     this.themesMap = themesMap;
   }
 
+  //Quick links configurations
+  public String getQuickLinksConfigurationsDir() {
+    return quickLinksConfigurationsDir;
+  }
+
+  public void setQuickLinksConfigurationsDir(String quickLinksConfigurationsDir) {
+    this.quickLinksConfigurationsDir = quickLinksConfigurationsDir;
+  }
+
+  public List<QuickLinksConfigurationInfo> getQuickLinksConfigurations() {
+    return quickLinksConfigurations;
+  }
+
+  public void setQuickLinksConfigurations(List<QuickLinksConfigurationInfo> quickLinksConfigurations) {
+    this.quickLinksConfigurations = quickLinksConfigurations;
+  }
+
+  public Map<String, QuickLinksConfigurationInfo> getQuickLinksConfigurationsMap() {
+    if (quickLinksConfigurationsMap == null) {
+      synchronized (this) {
+      }
+      if (quickLinksConfigurationsMap == null) {
+        Map<String, QuickLinksConfigurationInfo> tmp = new TreeMap<String, QuickLinksConfigurationInfo>();
+        if (quickLinksConfigurations != null) {
+          for (QuickLinksConfigurationInfo quickLinksConfiguration : quickLinksConfigurations) {
+            tmp.put(quickLinksConfiguration.getFileName(), quickLinksConfiguration);
+          }
+        }
+        quickLinksConfigurationsMap = tmp;
+      }
+    }
+    return quickLinksConfigurationsMap;
+  }
+
+  public void setQuickLinksConfigurationsMap(Map<String, QuickLinksConfigurationInfo> quickLinksConfigurationsMap) {
+    this.quickLinksConfigurationsMap = quickLinksConfigurationsMap;
+  }
 
   public List<ServicePropertyInfo> getServicePropertyList() {
     return servicePropertyList;
@@ -851,7 +921,19 @@ public String getVersion() {
     for (String propertyName: servicePropsByName.keySet()) {
       if (servicePropsByName.get(propertyName).size() > 1) {
         setValid(false);
-        setErrors("Duplicate service property with name '" + propertyName + "' found in " + getName() + ":" + getVersion() + " service definition !");
+        addError("Duplicate service property with name '" + propertyName + "' found in " + getName() + ":" + getVersion() + " service definition !");
+      }
+    }
+
+    for (ComponentInfo component : getComponents()) {
+      int primaryLogs = 0;
+      for (LogDefinition log : component.getLogs()) {
+        primaryLogs += log.isPrimary() ? 1 : 0;
+      }
+
+      if (primaryLogs > 1) {
+        setValid(false);
+        addError("More than one primary log exists for the component " + component.getName());
       }
     }
   }

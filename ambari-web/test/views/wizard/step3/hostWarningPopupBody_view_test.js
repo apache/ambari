@@ -21,18 +21,26 @@ var lazyloading = require('utils/lazy_loading');
 require('views/wizard/step3/hostWarningPopupBody_view');
 var view;
 
+function getView() {
+  return App.WizardStep3HostWarningPopupBody.create({
+    didInsertElement: Em.K,
+    $: function() {
+      return Em.Object.create({
+        toggle: Em.K
+      })
+    }
+  });
+}
+
 describe('App.WizardStep3HostWarningPopupBody', function() {
 
   beforeEach(function() {
-    view = App.WizardStep3HostWarningPopupBody.create({
-      didInsertElement: Em.K,
-      $: function() {
-        return Em.Object.create({
-          toggle: Em.K
-        })
-      }
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'warningsByHost', 'bodyController.warningsByHost', 'array');
+
+  App.TestAliases.testAsComputedAlias(getView(), 'warnings', 'bodyController.warnings', 'array');
 
   describe('#onToggleBlock', function() {
     it('should toggle', function() {
@@ -45,11 +53,18 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
   });
 
   describe('#showHostsPopup', function() {
-    it('should call App.ModalPopup.show', function() {
+
+    beforeEach(function () {
       sinon.stub(App.ModalPopup, 'show', Em.K);
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
+    it('should call App.ModalPopup.show', function() {
       view.showHostsPopup({context: []});
       expect(App.ModalPopup.show.calledOnce).to.equal(true);
-      App.ModalPopup.show.restore();
     });
   });
 
@@ -107,6 +122,15 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
     });
 
     describe('#click', function() {
+
+      beforeEach(function () {
+        sinon.spy(lazyloading, 'run');
+      });
+
+      afterEach(function () {
+        lazyloading.run.restore();
+      });
+
       Em.A([
           {
             isLoaded: false,
@@ -134,7 +158,6 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
               isLoaded: test.isLoaded,
               isLazyLoading: test.isLazyLoading
             });
-            sinon.spy(lazyloading, 'run');
             v.click();
             if (test.e) {
               expect(lazyloading.run.calledOnce).to.equal(true);
@@ -142,7 +165,6 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
             else {
               expect(lazyloading.run.called).to.equal(false);
             }
-            lazyloading.run.restore();
           });
         });
     });
@@ -173,47 +195,40 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
     ];
     beforeEach(function() {
       view.reopen({content: content, warningsByHost: [], hostNamesWithWarnings: ['c', 'd']});
+      this.newContent = view.get('contentInDetails');
     });
     it('should map hosts', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('c d')).to.equal(true);
+      expect(this.newContent.contains('c d')).to.equal(true);
     });
     it('should map firewall warnings', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('n1<br>n2<br>n3')).to.equal(true);
+      expect(this.newContent.contains('n1<br>n2<br>n3')).to.equal(true);
     });
     it('should map fileFolders warnings', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('n4 n5 n6')).to.equal(true);
+      expect(this.newContent.contains('n4 n5 n6')).to.equal(true);
     });
     it('should map process warnings', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('(h1,u1,pid1)')).to.equal(true);
-      expect(newContent.contains('(h2,u1,pid1)')).to.equal(true);
-      expect(newContent.contains('(h2,u2,pid2)')).to.equal(true);
-      expect(newContent.contains('(h3,u1,pid3)')).to.equal(true);
+      expect(this.newContent.contains('(h1,u1,pid1)')).to.equal(true);
+      expect(this.newContent.contains('(h2,u1,pid1)')).to.equal(true);
+      expect(this.newContent.contains('(h2,u2,pid2)')).to.equal(true);
+      expect(this.newContent.contains('(h3,u1,pid3)')).to.equal(true);
     });
     it('should map package warnings', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('n10 n11 n12')).to.equal(true);
+      expect(this.newContent.contains('n10 n11 n12')).to.equal(true);
     });
     it('should map service warnings', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('n13 n14 n15')).to.equal(true);
+      expect(this.newContent.contains('n13 n14 n15')).to.equal(true);
     });
     it('should map user warnings', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('n16 n17 n18')).to.equal(true);
+      expect(this.newContent.contains('n16 n17 n18')).to.equal(true);
     });
     it('should map reverse lookup warnings', function() {
-      var newContent = view.get('contentInDetails');
-      expect(newContent.contains('h1')).to.equal(true);
+      expect(this.newContent.contains('h1')).to.equal(true);
     });
   });
 
   describe('#content', function () {
 
-    it('should return array with warning objects', function () {
+    beforeEach(function () {
       view.set('bodyController', Em.Object.create({
         hostCheckWarnings: [
           {
@@ -325,23 +340,67 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
           }
         ]
       });
-      var content = view.get('content');
-      expect(content.mapProperty('isCollapsed').uniq()).to.eql([true]);
-      expect(content.findProperty('category', 'hostNameResolution').get('warnings')[0].hostsList).
+      this.content = view.get('content');
+    });
+
+    it('isCollapsed', function () {
+      expect(this.content.mapProperty('isCollapsed').uniq()).to.eql([true]);
+    });
+
+    it('hostNameResolution', function () {
+      expect(this.content.findProperty('category', 'hostNameResolution').get('warnings')[0].hostsList).
         to.equal('h0<br>h1<br>h2<br>h3<br>h4<br>h5<br>h5<br>h7<br>h8<br>h9<br> ' + Em.I18n.t('installer.step3.hostWarningsPopup.moreHosts').format(1));
-      expect(content.findProperty('category', 'repositories').get('warnings')[0].hostsList).to.equal('h11<br>h12');
-      expect(content.findProperty('category', 'disk').get('warnings')[0].hostsList).to.equal('h13');
-      expect(content.findProperty('category', 'jdk').get('warnings')[0].hostsList).to.equal('h14');
-      expect(content.findProperty('category', 'thp').get('warnings')[0].hostsList).to.equal('h15');
-      expect(content.findProperty('category', 'firewall').get('warnings').mapProperty('hostsList')).to.eql(['h16', 'h17']);
-      expect(content.findProperty('category', 'process').get('warnings')[0].hostsList).to.equal('h18');
-      expect(content.findProperty('category', 'package').get('warnings')[0].hostsList).to.equal('h19');
-      expect(content.findProperty('category', 'fileFolders').get('warnings')[0].hostsList).to.equal('h20');
-      expect(content.findProperty('category', 'service').get('warnings')[0].hostsList).to.equal('h21');
-      expect(content.findProperty('category', 'user').get('warnings')[0].hostsList).to.equal('h22');
-      expect(content.findProperty('category', 'misc').get('warnings')[0].hostsList).to.equal('h23');
-      expect(content.findProperty('category', 'alternatives').get('warnings')[0].hostsList).to.equal('h24');
-      expect(content.findProperty('category', 'reverseLookup').get('warnings').mapProperty('hostsList')).to.eql([
+    });
+
+    it('repositories', function () {
+      expect(this.content.findProperty('category', 'repositories').get('warnings')[0].hostsList).to.equal('h11<br>h12');
+    });
+
+    it('disk', function () {
+      expect(this.content.findProperty('category', 'disk').get('warnings')[0].hostsList).to.equal('h13');
+    });
+
+    it('jdk', function () {
+      expect(this.content.findProperty('category', 'jdk').get('warnings')[0].hostsList).to.equal('h14');
+    });
+
+    it('thp', function () {
+      expect(this.content.findProperty('category', 'thp').get('warnings')[0].hostsList).to.equal('h15');
+    });
+
+    it('firewall', function () {
+      expect(this.content.findProperty('category', 'firewall').get('warnings').mapProperty('hostsList')).to.eql(['h16', 'h17']);
+    });
+
+    it('process', function () {
+      expect(this.content.findProperty('category', 'process').get('warnings')[0].hostsList).to.equal('h18');});
+
+    it('package', function () {
+      expect(this.content.findProperty('category', 'package').get('warnings')[0].hostsList).to.equal('h19');
+    });
+
+    it('fileFolders', function () {
+      expect(this.content.findProperty('category', 'fileFolders').get('warnings')[0].hostsList).to.equal('h20');
+    });
+
+    it('service', function () {
+      expect(this.content.findProperty('category', 'service').get('warnings')[0].hostsList).to.equal('h21');
+    });
+
+    it('user', function () {
+      expect(this.content.findProperty('category', 'user').get('warnings')[0].hostsList).to.equal('h22');
+    });
+
+    it('misc', function () {
+      expect(this.content.findProperty('category', 'misc').get('warnings')[0].hostsList).to.equal('h23');
+    });
+
+    it('alternatives', function () {
+      expect(this.content.findProperty('category', 'alternatives').get('warnings')[0].hostsList).to.equal('h24');
+    });
+
+    it('reverseLookup', function () {
+      expect(this.content.findProperty('category', 'reverseLookup').get('warnings').mapProperty('hostsList')).to.eql([
         'h25', 'h26', 'h27', 'h28', 'h29', 'h30', 'h31', 'h32', 'h33', 'h34', 'h35<br>h36'
       ]);
     });

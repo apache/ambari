@@ -76,7 +76,7 @@ public class CachedAlertFlushService extends AbstractScheduledService {
   protected void startUp() throws Exception {
     boolean enabled = m_configuration.isAlertCacheEnabled();
     if (!enabled) {
-      stop();
+      stopAsync();
     }
   }
 

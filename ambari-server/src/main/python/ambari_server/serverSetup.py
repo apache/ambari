@@ -24,6 +24,7 @@ import re
 import shutil
 import sys
 import subprocess
+import getpass
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
@@ -45,7 +46,9 @@ from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
 from ambari_server.utils import locate_file
 from ambari_server.serverClassPath import ServerClassPath
+from ambari_server.ambariPath import AmbariPath
 
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = locate_file('sestatus', '/usr/sbin')
@@ -307,14 +310,14 @@ class AmbariUserChecksLinux(AmbariUserChecks):
 
     self.NR_USER_CHANGE_PROMPT = "Ambari-server daemon is configured to run under user '{0}'. Change this setting [y/n] ({1})? "
     self.NR_USER_CUSTOMIZE_PROMPT = "Customize user account for ambari-server daemon [y/n] ({0})? "
-    self.NR_DEFAULT_USER = "root"
+    self.NR_DEFAULT_USER = getpass.getuser()
 
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
-                          '--shell %s -d /var/lib/ambari-server/keys/ {0}' % locate_file('nologin', '/sbin')
+                          '--shell %s ' % locate_file('nologin', '/sbin') + '-d ' + AmbariPath.get('/var/lib/ambari-server/keys/') + ' {0}'
 
   def _create_custom_user(self):
     user = get_validated_string_input(
-      "Enter user account for ambari-server daemon (root):",
+      "Enter user account for ambari-server daemon ({0}):".format(self.user),
       self.user,
       "^[a-z_][a-z0-9_-]{1,31}$",
       "Invalid username.",
@@ -431,23 +434,6 @@ class JDKSetup(object):
       progress_func = None
     else:
       progress_func = download_progress
-
-    if get_silent():
-      if not java_home_var:
-        #No java_home_var set, detect if java is already installed
-        if os.environ.has_key(JAVA_HOME):
-          args.java_home = os.environ[JAVA_HOME]
-
-          properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
-          properties.removeOldProp(JDK_NAME_PROPERTY)
-          properties.removeOldProp(JCE_NAME_PROPERTY)
-
-          self._ensure_java_home_env_var_is_set(args.java_home)
-          self.jdk_index = self.custom_jdk_number
-          return
-        else:
-          # For now, changing the existing JDK to make sure we use a supported one
-          pass
 
     if java_home_var:
       change_jdk = get_YN_input("Do you want to change Oracle JDK [y/n] (n)? ", False)
@@ -748,7 +734,7 @@ class JDKSetupLinux(JDKSetup):
       JDKRelease("jdk1.8", "Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8",
                  "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u60-linux-x64.tar.gz", "jdk-8u60-linux-x64.tar.gz",
                  "http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip", "jce_policy-8.zip",
-                 "/usr/jdk64/jdk1.8.0_40",
+                 AmbariPath.get("/usr/jdk64/jdk1.8.0_40"),
                  "(jdk.*)/jre")
     ]
 
@@ -883,16 +869,9 @@ def _cache_jdbc_driver(args):
     raise FatalException(-1, err)
 
   resources_dir = get_resources_location(properties)
-
-  if args.jdbc_driver.endswith(TAR_GZ_ARCHIVE_TYPE):
-    symlink_name = args.jdbc_db + "-jdbc-driver" + TAR_GZ_ARCHIVE_TYPE
-  else:
-    symlink_name = args.jdbc_db + "-jdbc-driver.jar"
-  jdbc_symlink = os.path.join(resources_dir, symlink_name)
   path, jdbc_name = os.path.split(args.jdbc_driver)
 
-  if os.path.lexists(jdbc_symlink):
-    os.remove(jdbc_symlink)
+  properties.process_pair("custom." + args.jdbc_db + ".jdbc.name", jdbc_name)
 
   if os.path.isfile(os.path.join(resources_dir, jdbc_name)):
     os.remove(os.path.join(resources_dir, jdbc_name))
@@ -905,7 +884,7 @@ def _cache_jdbc_driver(args):
           "permissions and free disk space.".format(args.jdbc_driver, resources_dir, str(e))
     raise FatalException(1, err)
 
-  os.symlink(os.path.join(resources_dir, jdbc_name), jdbc_symlink)
+  update_properties(properties)
   print "JDBC driver was successfully initialized."
 
 #
@@ -936,7 +915,7 @@ def _setup_database(options):
   factory = DBMSConfigFactory()
 
   dbmsAmbari = factory.create(options, properties, "Ambari")
-  resultA = dbmsAmbari.configure_database(properties)
+  resultA = dbmsAmbari.configure_database(properties, options)
 
   # Now save the properties file
   if resultA:
@@ -977,7 +956,7 @@ def _reset_database(options):
   if persistence_type == "remote":
       err = 'Ambari doesn\'t support resetting exernal DB automatically. ' \
             'To reset Ambari Server schema you must first drop and then create it ' \
-            'using DDL scripts from "/var/lib/ambari-server/resources/"'
+            'using DDL scripts from "{0}"'.format(AmbariPath.get("/var/lib/ambari-server/resources/"))
       raise FatalException(1, err)
   else:
     factory = DBMSConfigFactory()
@@ -1082,8 +1061,8 @@ def setup(options):
     raise FatalException(1, None)
 
   if not is_root():
-    err = configDefaults.MESSAGE_ERROR_SETUP_NOT_ROOT
-    raise FatalException(4, err)
+    warn_msg = configDefaults.MESSAGE_WARN_SETUP_NOT_ROOT
+    print warn_msg
 
   # proceed jdbc properties if they were set
   if _check_jdbc_options(options):

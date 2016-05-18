@@ -21,12 +21,14 @@ import os
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import File
 from resource_management.core import shell
 from resource_management.core.shell import as_user
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.functions import Direction, SafeMode
+from utils import get_dfsadmin_base_command
 
 from namenode_ha_state import NamenodeHAState
 
@@ -34,6 +36,7 @@ from namenode_ha_state import NamenodeHAState
 safemode_to_instruction = {SafeMode.ON: "enter",
                            SafeMode.OFF: "leave"}
 
+NAMENODE_UPGRADE_IN_PROGRESS_MARKER_FILE = "namenode-upgrade-in-progress"
 
 def prepare_upgrade_check_for_previous_dir():
   """
@@ -71,7 +74,8 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
   """
   import params
 
-  safe_mode_enter_cmd = format("{hdfs_binary} dfsadmin -safemode enter")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  safe_mode_enter_cmd = dfsadmin_base_command + " -safemode enter"
   try:
     # Safe to call if already in Safe Mode
     desired_state = SafeMode.ON
@@ -91,7 +95,8 @@ def prepare_upgrade_save_namespace(hdfs_binary):
   """
   import params
 
-  save_namespace_cmd = format("{hdfs_binary} dfsadmin -saveNamespace")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  save_namespace_cmd = dfsadmin_base_command + " -saveNamespace"
   try:
     Logger.info("Checkpoint the current namespace.")
     as_user(save_namespace_cmd, params.hdfs_user, env={'PATH': params.hadoop_bin_dir})
@@ -139,7 +144,8 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
   """
   import params
 
-  finalize_command = format("{hdfs_binary} dfsadmin -rollingUpgrade finalize")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  finalize_command = dfsadmin_base_command + " -rollingUpgrade finalize"
   try:
     Logger.info("Attempt to Finalize if there are any in-progress upgrades. "
                 "This will return 255 if no upgrades are in progress.")
@@ -167,11 +173,8 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
   import params
   original_state = SafeMode.UNKNOWN
 
-  safemode_base_command = ""
-  if params.dfs_ha_enabled:
-    safemode_base_command = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc} -safemode ")
-  else:
-    safemode_base_command = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode ")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  safemode_base_command = dfsadmin_base_command + " -safemode "
   safemode_check_cmd = safemode_base_command + " get"
 
   grep_pattern = format("Safe mode is {safemode_state}")
@@ -233,8 +236,9 @@ def prepare_rolling_upgrade(hdfs_binary):
       if not safemode_transition_successful:
         raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(desired_state))
 
-    prepare = format("{hdfs_binary} dfsadmin -rollingUpgrade prepare")
-    query = format("{hdfs_binary} dfsadmin -rollingUpgrade query")
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+    prepare = dfsadmin_base_command + " -rollingUpgrade prepare"
+    query = dfsadmin_base_command + " -rollingUpgrade query"
     Execute(prepare,
             user=params.hdfs_user,
             logoutput=True)
@@ -255,8 +259,9 @@ def finalize_upgrade(upgrade_type, hdfs_binary):
     kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}") 
     Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
-  finalize_cmd = format("{hdfs_binary} dfsadmin -rollingUpgrade finalize")
-  query_cmd = format("{hdfs_binary} dfsadmin -rollingUpgrade query")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  finalize_cmd = dfsadmin_base_command + " -rollingUpgrade finalize"
+  query_cmd = dfsadmin_base_command + " -rollingUpgrade query"
 
   Execute(query_cmd,
         user=params.hdfs_user,
@@ -267,3 +272,51 @@ def finalize_upgrade(upgrade_type, hdfs_binary):
   Execute(query_cmd,
           user=params.hdfs_user,
           logoutput=True)
+
+  # upgrade is finalized; remove the upgrade marker
+  delete_upgrade_marker()
+
+
+def get_upgrade_in_progress_marker():
+  """
+  Gets the full path of the file which indicates that NameNode has begun its stack upgrade.
+  :return:
+  """
+  from resource_management.libraries.script.script import Script
+  return os.path.join(Script.get_tmp_dir(), NAMENODE_UPGRADE_IN_PROGRESS_MARKER_FILE)
+
+
+def create_upgrade_marker():
+  """
+  Creates the marker file indicating that NameNode has begun participating in a stack upgrade.
+  If the file already exists, nothing will be done. This will silently log exceptions on failure.
+  :return:
+  """
+  # create the marker file which indicates
+  try:
+    namenode_upgrade_in_progress_marker = get_upgrade_in_progress_marker()
+    if not os.path.isfile(namenode_upgrade_in_progress_marker):
+      File(namenode_upgrade_in_progress_marker)
+  except:
+    Logger.warning("Unable to create NameNode upgrade marker file {0}".format(namenode_upgrade_in_progress_marker))
+
+
+def delete_upgrade_marker():
+  """
+  Removes the marker file indicating that NameNode has begun participating in a stack upgrade.
+  If the file does not exist, then nothing will be done.
+  Failure to remove this file could cause problems with restarts in the future. That's why
+  checking to see if there is a suspended upgrade is also advised. This function will raise
+  an exception if the file can't be removed.
+  :return:
+  """
+  # create the marker file which indicates
+  try:
+    namenode_upgrade_in_progress_marker = get_upgrade_in_progress_marker()
+    if os.path.isfile(namenode_upgrade_in_progress_marker):
+      File(namenode_upgrade_in_progress_marker, action='delete')
+  except:
+    error_message = "Unable to remove NameNode upgrade marker file {0}".format(namenode_upgrade_in_progress_marker)
+    Logger.error(error_message)
+    raise Fail(error_message)
+

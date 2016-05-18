@@ -18,6 +18,21 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.Role;
@@ -47,6 +62,7 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -60,19 +76,10 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.Nullable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+
 
 /**
  * Provides topology related information as well as access to the core Ambari functionality.
@@ -144,15 +151,22 @@ public class AmbariContext {
     return getController().getActionManager().getTaskById(id);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
+  public Collection<HostRoleCommand> getPhysicalTasks(Collection<Long> ids) {
+    return getController().getActionManager().getTasks(ids);
+  }
+
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersion) {
     Stack stack = topology.getBlueprint().getStack();
-    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
+
+    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType, repoVersion);
     createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
-  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
+  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType, String repoVersion) {
     String stackInfo = String.format("%s-%s", stackName, stackVersion);
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
+    clusterRequest.setRepositoryVersion(repoVersion);
+
     try {
       RetryHelper.executeWithRetry(new Callable<Object>() {
         @Override
@@ -182,13 +196,14 @@ public class AmbariContext {
     for (String service : services) {
       serviceRequests.add(new ServiceRequest(clusterName, service, null));
       for (String component : topology.getBlueprint().getComponents(service)) {
-        componentRequests.add(new ServiceComponentRequest(clusterName, service, component, null));
+        String recoveryEnabled = String.valueOf(topology.getBlueprint().isRecoveryEnabled(service, component));
+        componentRequests.add(new ServiceComponentRequest(clusterName, service, component, null, recoveryEnabled));
       }
     }
     try {
       getServiceResourceProvider().createServices(serviceRequests);
       getComponentResourceProvider().createComponents(componentRequests);
-    } catch (AmbariException e) {
+    } catch (AmbariException | AuthorizationException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
     // set all services state to INSTALLED->STARTED
@@ -333,9 +348,9 @@ public class AmbariContext {
     }
   }
 
-  public RequestStatusResponse startHost(String hostName, String clusterName) {
+  public RequestStatusResponse startHost(String hostName, String clusterName, Collection<String> installOnlyComponents) {
     try {
-      return getHostComponentResourceProvider().start(clusterName, hostName);
+      return getHostComponentResourceProvider().start(clusterName, hostName, installOnlyComponents);
     } catch (Exception e) {
       e.printStackTrace();
       throw new RuntimeException("START Host request submission failed: " + e, e);
@@ -605,9 +620,28 @@ public class AmbariContext {
       groupHosts = topology.getHostGroupInfo().
           get(groupName).getHostNames();
 
+      // remove hosts that are not assigned to the cluster yet
+      String clusterName = null;
+      try {
+        clusterName = getClusterName(topology.getClusterId());
+      } catch (AmbariException e) {
+        LOG.error("Cannot get cluster name for clusterId = " + topology.getClusterId(), e);
+        throw new RuntimeException(e);
+      }
+
+      final Map<String, Host> clusterHosts = getController().getClusters().getHostsForCluster(clusterName);
+      Iterable<String> filteredGroupHosts = Iterables.filter(groupHosts, new com.google.common.base.Predicate<String>() {
+        @Override
+        public boolean apply(@Nullable String groupHost) {
+          return clusterHosts.containsKey(groupHost);
+        }
+      });
+
+
+
       ConfigGroupRequest request = new ConfigGroupRequest(
-          null, getClusterName(topology.getClusterId()), absoluteGroupName, service, "Host Group Configuration",
-          new HashSet<String>(groupHosts), serviceConfigs);
+          null, clusterName, absoluteGroupName, service, "Host Group Configuration",
+        Sets.newHashSet(filteredGroupHosts), serviceConfigs);
 
       // get the config group provider and create config group resource
       ConfigGroupResourceProvider configGroupProvider = (ConfigGroupResourceProvider)

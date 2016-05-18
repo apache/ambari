@@ -301,6 +301,60 @@ public class ServiceInfoTest {
 
   }
 
+
+  @Test
+  public void testMultiplePimaryLogsValidationAfterXmlDeserialization() throws Exception
+  {
+    // Given
+    String serviceInfoXml =
+        "<metainfo>" +
+        "  <schemaVersion>2.0</schemaVersion>" +
+        "  <services>" +
+        "    <service>" +
+        "      <version>1.0</version>" +
+        "      <name>WITH_MULTIPLE_PRIMARY_LOGS</name>" +
+        "      <displayName>WITH_MULTIPLE_PRIMARY_LOGS</displayName>" +
+        "      <properties>" +
+        "        <property>" +
+        "          <name>managed</name>" +
+        "          <value>false</value>" +
+        "        </property>" +
+        "      </properties>" +
+        "      <components> " +
+        "        <component> " +
+        "          <name>COMPONENT_WITH_MULTIPLE_PRIMARY_LOG</name> " +
+        "          <displayName>COMPONENT_WITH_MULTIPLE_PRIMARY_LOG</displayName> " +
+        "          <category>MASTER</category> " +
+        "          <cardinality>0-1</cardinality> " +
+        "          <versionAdvertised>true</versionAdvertised> " +
+        "          <logs> " +
+        "            <log> " +
+        "              <logId>log1</logId> " +
+        "              <primary>true</primary> " +
+        "            </log> " +
+        "            <log> " +
+        "              <logId>log2</logId> " +
+        "              <primary>true</primary> " +
+        "            </log> " +
+        "          </logs> " +
+        "       </component> " +
+        "      </components> " +
+        "    </service>" +
+        "  </services>" +
+        "</metainfo>";
+
+    // When
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+    ServiceInfo serviceInfo = serviceInfoMap.get("WITH_MULTIPLE_PRIMARY_LOGS");
+
+    // Then
+    assertFalse("Service info should be in invalid state due to multiple primary logs at one of it's components!", serviceInfo.isValid());
+
+    assertTrue("Service info error collection should contain the name of the component with the multiple primary logs!",
+        serviceInfo.getErrors().contains("More than one primary log exists for the component COMPONENT_WITH_MULTIPLE_PRIMARY_LOG"));
+  }
+
+
   @Test
   public void testSetServicePropertiesAfterPropertyListSet() {
     // Given

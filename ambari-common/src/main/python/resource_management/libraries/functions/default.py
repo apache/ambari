@@ -29,6 +29,8 @@ def default(name, default_value):
   subdicts = filter(None, name.split('/'))
 
   curr_dict = Script.get_config()
+  if not curr_dict:
+    return default_value
   for x in subdicts:
     if x in curr_dict:
       curr_dict = curr_dict[x]

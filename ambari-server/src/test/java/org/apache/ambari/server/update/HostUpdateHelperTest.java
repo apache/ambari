@@ -18,11 +18,14 @@
 package org.apache.ambari.server.update;
 
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -502,6 +505,31 @@ public class HostUpdateHelperTest {
     easyMockSupport.replayAll();
     hostUpdateHelper.updateHostsForAlertsInDB();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testInitHostChangesFileMap_SUCCESS() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final Configuration mockConfiguration = easyMockSupport.createNiceMock(Configuration.class);
+    JsonObject cluster = new JsonObject();
+    JsonObject hostPairs = new JsonObject();
+    hostPairs.add("Host1", new JsonPrimitive("Host11"));
+    hostPairs.add("Host2", new JsonPrimitive("Host22"));
+    cluster.add("cl1", hostPairs);
+
+    expect(mockConfiguration.getHostChangesJson(null)).andReturn(cluster).once();
+
+    HostUpdateHelper hostUpdateHelper = new HostUpdateHelper(null, mockConfiguration, null);
+
+    easyMockSupport.replayAll();
+    hostUpdateHelper.initHostChangesFileMap();
+    easyMockSupport.verifyAll();
+
+    Map<String, Map<String,String>> hostChangesFileMap = hostUpdateHelper.getHostChangesFileMap();
+    Assert.assertTrue(hostChangesFileMap.get("cl1").containsKey("host1"));
+    Assert.assertTrue(hostChangesFileMap.get("cl1").containsKey("host2"));
+    Assert.assertTrue(hostChangesFileMap.get("cl1").get("host1").equals("host11"));
+    Assert.assertTrue(hostChangesFileMap.get("cl1").get("host2").equals("host22"));
   }
 
 

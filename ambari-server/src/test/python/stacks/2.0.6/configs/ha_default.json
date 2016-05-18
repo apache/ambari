@@ -4,6 +4,9 @@
     "hostname": "c6401.ambari.apache.org", 
     "passiveInfo": [], 
     "hostLevelParams": {
+        "not_managed_hdfs_path_list": "[\"/apps/hive/warehouse\",\"/apps/falcon\",\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agent_stack_retry_count": "5",
+        "agent_stack_retry_on_unavailability": "false",
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
@@ -166,8 +169,9 @@
             "dfs.namenode.stale.datanode.interval": "30000", 
             "dfs.datanode.ipc.address": "0.0.0.0:8010", 
             "dfs.namenode.name.dir": "/hadoop/hdfs/namenode", 
-            "dfs.nameservices": "ns1", 
-            "dfs.datanode.data.dir": "/hadoop/hdfs/data", 
+            "dfs.internal.nameservices": "ns1",
+            "dfs.nameservices": "ns1,ns2",
+            "dfs.datanode.data.dir": "/hadoop/hdfs/data",
             "dfs.namenode.https-address.ns1.nn2": "c6402.ambari.apache.org:50470", 
             "dfs.webhdfs.enabled": "true", 
             "dfs.namenode.https-address.ns1.nn1": "c6401.ambari.apache.org:50470", 
@@ -371,6 +375,7 @@
             "min_user_id": "1000"
         },
         "cluster-env": {
+            "managed_hdfs_resource_property_names": "",
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
             "smokeuser": "ambari-qa",
@@ -378,6 +383,7 @@
             "user_group": "hadoop"
         },
         "hadoop-env": {
+            "hdfs_tmp_dir": "/tmp",
             "namenode_opt_maxnewsize": "200m",
             "hdfs_log_dir_prefix": "/var/log/hadoop",
             "namenode_heapsize": "1024m", 

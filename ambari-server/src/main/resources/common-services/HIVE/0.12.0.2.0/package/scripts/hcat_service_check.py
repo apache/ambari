@@ -27,7 +27,7 @@ from ambari_commons import OSConst
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hcat_service_check():
   import params
-  smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
+  smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
   service = "HCatalog"
   Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hcat_user, logoutput=True)
 
@@ -53,8 +53,8 @@ def hcat_service_check():
     prepare_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} prepare {purge_tables}")
 
     exec_path = params.execute_path
-    if params.version and params.stack_name:
-      upgrade_hive_bin = format("/usr/hdp/{version}/hive/bin") 
+    if params.version and params.stack_root:
+      upgrade_hive_bin = format("{stack_root}/{version}/hive/bin")
       exec_path =  os.environ['PATH'] + os.pathsep + params.hadoop_bin_dir + os.pathsep + upgrade_hive_bin
 
     Execute(prepare_cmd,
@@ -65,25 +65,16 @@ def hcat_service_check():
             logoutput=True)
 
     if params.security_enabled:
-      ExecuteHadoop(test_cmd,
-                    user=params.hdfs_user,
-                    logoutput=True,
-                    conf_dir=params.hadoop_conf_dir,
-                    security_enabled=params.security_enabled,
-                    kinit_path_local=params.kinit_path_local,
-                    keytab=params.hdfs_user_keytab,
-                    principal=params.hdfs_principal_name,
-                    bin_dir=params.execute_path)
-    else:
-      ExecuteHadoop(test_cmd,
-                    user=params.hdfs_user,
-                    logoutput=True,
-                    conf_dir=params.hadoop_conf_dir,
-                    security_enabled=params.security_enabled,
-                    kinit_path_local=params.kinit_path_local,
-                    keytab=params.hdfs_user_keytab,
-                    bin_dir=params.execute_path
+      Execute (format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+               user = params.hdfs_user,
       )
+
+    ExecuteHadoop(test_cmd,
+                  user=params.hdfs_user,
+                  logoutput=True,
+                  conf_dir=params.hadoop_conf_dir,
+                  bin_dir=params.execute_path
+    )
 
     cleanup_cmd = format("{kinit_cmd} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} cleanup {purge_tables}")
 

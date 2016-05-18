@@ -42,9 +42,13 @@
           {{#view view.ConfigVersionView contentBinding="item"}}
             <td class="first">
               <span class="label label-info">{{item.versionText}}</span>
-              <a {{action goToServiceConfigs item}} class="service-name">
+              {{#if view.isServiceLinkDisabled}}
                 {{item.displayName}}
-              </a>
+              {{else}}
+                <a {{action goToServiceConfigs item}} class="service-name">
+                  {{item.displayName}}
+                </a>
+              {{/if}}
               <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}
                 rel="Tooltip" {{translateAttr data-original-title="dashboard.configHistory.table.restart.tooltip"}}></i>
             </td>
@@ -80,7 +84,7 @@
         </tr>
       {{/if}}
     {{else}}
-      <tr><td colspan="5"><div class="spinner"></div></td></tr>
+      <tr><td colspan="5">{{view App.SpinnerView}}</td></tr>
     {{/if}}
     </tbody>
 </table>

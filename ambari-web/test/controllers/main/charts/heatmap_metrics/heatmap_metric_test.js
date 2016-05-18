@@ -38,7 +38,7 @@ describe('MainChartHeatmapMetric', function () {
         expect(mainChartHeatmapMetric.formatLegendNumber(test.i)).to.equal(test.e);
       });
     });
-    it('NaN to NaN' + ' ', function () {
+    it('NaN to NaN', function () {
       expect(isNaN(mainChartHeatmapMetric.formatLegendNumber(NaN))).to.equal(true);
     });
   });
@@ -47,68 +47,122 @@ describe('MainChartHeatmapMetric', function () {
   describe('#slotDefinitions', function () {
     beforeEach(function () {
       sinon.stub(mainChartHeatmapMetric, 'generateSlot', Em.K);
+      mainChartHeatmapMetric.set('maximumValue', 100);
+      mainChartHeatmapMetric.set('minimumValue', 0);
     });
     afterEach(function () {
       mainChartHeatmapMetric.generateSlot.restore();
     });
-    it('one slot', function () {
-      mainChartHeatmapMetric.set('numberOfSlots', 1);
-      mainChartHeatmapMetric.set('maximumValue', 100);
-      mainChartHeatmapMetric.set('minimumValue', 0);
 
-      mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+    describe('one slot', function () {
 
-      expect(mainChartHeatmapMetric.get('slotDefinitions').length).to.equal(3);
-      expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 100, '', {r: 0, g: 204, b: 0}]);
-      expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(1);
+      beforeEach(function () {
+        mainChartHeatmapMetric.set('numberOfSlots', 1);
+        mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+        this.slotDefinitions = mainChartHeatmapMetric.get('slotDefinitions');
+      });
+
+      it('3 slotDefinitions', function () {
+        expect(this.slotDefinitions.length).to.equal(3);
+      });
+      it('generateSlot is called 1 time', function () {
+        expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(1);
+      });
+      it('generateSlot is called with correct arguments', function () {
+        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 100, '', {r: 0, g: 204, b: 0}]);
+      });
+
     });
-    it('two slots', function () {
-      mainChartHeatmapMetric.set('numberOfSlots', 2);
-      mainChartHeatmapMetric.set('maximumValue', 100);
-      mainChartHeatmapMetric.set('minimumValue', 0);
 
-      mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+    describe('two slots', function () {
 
-      expect(mainChartHeatmapMetric.get('slotDefinitions').length).to.equal(4);
-      expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 50, '', {r: 0, g: 204, b: 0}]);
-      expect(mainChartHeatmapMetric.generateSlot.getCall(1).args).to.eql([50, 100, '', {r: 159, g: 238, b: 0}]);
-      expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(2);
+      beforeEach(function () {
+        mainChartHeatmapMetric.set('numberOfSlots', 2);
+        mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+        this.slotDefinitions = mainChartHeatmapMetric.get('slotDefinitions');
+      });
+
+      it('4 slotDefinitions', function () {
+        expect(this.slotDefinitions.length).to.equal(4);
+      });
+      it('generateSlot is called 2 times', function () {
+        expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(2);
+      });
+      it('generateSlot 1st call has valid arguments', function () {
+        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 50, '', {r: 0, g: 204, b: 0}]);
+      });
+      it('generateSlot 2nd call has valid arguments', function () {
+        expect(mainChartHeatmapMetric.generateSlot.getCall(1).args).to.eql([50, 100, '', {r: 159, g: 238, b: 0}]);
+      });
+
     });
   });
 
   describe('#generateSlot()', function () {
+
     beforeEach(function () {
       sinon.stub(mainChartHeatmapMetric, 'formatLegendNumber').returns('val');
       sinon.stub(date, 'timingFormat').returns('time');
     });
+
     afterEach(function () {
       mainChartHeatmapMetric.formatLegendNumber.restore();
       date.timingFormat.restore();
     });
-    it('label suffix is empty', function () {
-      expect(mainChartHeatmapMetric.generateSlot(0, 1, '', {r: 0, g: 0, b: 0})).to.eql(Em.Object.create({
-        "from": "val",
-        "to": "val",
-        "label": "val - val",
-        "cssStyle": "background-color:rgb(0,0,0)"
-      }));
 
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
-    });
-    it('label suffix is "ms"', function () {
-      expect(mainChartHeatmapMetric.generateSlot(0, 1, 'ms', {r: 0, g: 0, b: 0})).to.eql(Em.Object.create({
-        "from": "val",
-        "to": "val",
-        "label": "time - time",
-        "cssStyle": "background-color:rgb(0,0,0)"
-      }));
+    describe('label suffix is empty', function () {
 
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
-      expect(date.timingFormat.getCall(0).args).to.eql(['val', 'zeroValid']);
-      expect(date.timingFormat.getCall(1).args).to.eql(['val', 'zeroValid']);
+      beforeEach(function () {
+        this.result = mainChartHeatmapMetric.generateSlot(0, 1, '', {r: 0, g: 0, b: 0});
+      });
+
+      it('generateSlot result is valid', function () {
+        expect(this.result).to.eql(Em.Object.create({
+          "from": "val",
+          "to": "val",
+          "label": "val - val",
+          "cssStyle": "background-color:rgb(0,0,0)"
+        }));
+      });
+
+      it('formatLegendNumber 1st call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
+      });
+
+      it('formatLegendNumber 2nd call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
+      });
     });
+
+    describe('label suffix is "ms"', function () {
+
+      beforeEach(function () {
+        this.result = mainChartHeatmapMetric.generateSlot(0, 1, 'ms', {r: 0, g: 0, b: 0});
+      });
+
+      it('generateSlot result is valid', function () {
+        expect(this.result).to.eql(Em.Object.create({
+          "from": "val",
+          "to": "val",
+          "label": "time - time",
+          "cssStyle": "background-color:rgb(0,0,0)"
+        }));
+      });
+      it('formatLegendNumber 1st call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
+      });
+      it('formatLegendNumber 2nd call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
+      });
+      it('timingFormat 1st call with valid arguments', function () {
+        expect(date.timingFormat.getCall(0).args).to.eql(['val', 'zeroValid']);
+      });
+      it('timingFormat 2nd call with valid arguments', function () {
+        expect(date.timingFormat.getCall(1).args).to.eql(['val', 'zeroValid']);
+      });
+
+    });
+
   });
 
   describe('#getHatchStyle()', function () {
@@ -148,7 +202,7 @@ describe('MainChartHeatmapMetric', function () {
         },
         result: 'background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)'
       }
-    ]
+    ];
 
     testCases.forEach(function(test){
       it(test.title, function () {
@@ -159,6 +213,15 @@ describe('MainChartHeatmapMetric', function () {
   });
 
   describe('#hostToSlotMap', function () {
+
+    beforeEach(function () {
+      this.stub = sinon.stub(mainChartHeatmapMetric, 'calculateSlot');
+    });
+
+    afterEach(function () {
+      this.stub.restore();
+    });
+
     it('hostToValueMap is null', function () {
       mainChartHeatmapMetric.set('hostToValueMap', null);
       mainChartHeatmapMetric.set('hostNames', []);
@@ -174,20 +237,18 @@ describe('MainChartHeatmapMetric', function () {
     it('slot greater than -1', function () {
       mainChartHeatmapMetric.set('hostToValueMap', {});
       mainChartHeatmapMetric.set('hostNames', ['host1']);
-      sinon.stub(mainChartHeatmapMetric, 'calculateSlot').returns(0);
+      this.stub.returns(0);
       mainChartHeatmapMetric.propertyDidChange('hostToSlotMap');
       expect(mainChartHeatmapMetric.get('hostToSlotMap')).to.eql({'host1': 0});
       expect(mainChartHeatmapMetric.calculateSlot.calledWith({}, 'host1')).to.be.true;
-      mainChartHeatmapMetric.calculateSlot.restore();
     });
     it('slot equal to -1', function () {
       mainChartHeatmapMetric.set('hostToValueMap', {});
       mainChartHeatmapMetric.set('hostNames', ['host1']);
-      sinon.stub(mainChartHeatmapMetric, 'calculateSlot').returns('-1');
+      this.stub.returns('-1');
       mainChartHeatmapMetric.propertyDidChange('hostToSlotMap');
       expect(mainChartHeatmapMetric.get('hostToSlotMap')).to.be.empty;
       expect(mainChartHeatmapMetric.calculateSlot.calledWith({}, 'host1')).to.be.true;
-      mainChartHeatmapMetric.calculateSlot.restore();
     });
   });
 
@@ -272,10 +333,20 @@ describe('MainChartHeatmapMetric', function () {
     ];
 
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        sinon.stub(mainChartHeatmapMetric, 'get').withArgs('slotDefinitions').returns(test.data.slotDefinitions);
-        expect(mainChartHeatmapMetric.calculateSlot(test.data.hostToValueMap, test.data.hostName)).to.equal(test.result);
-        mainChartHeatmapMetric.get.restore();
+      describe(test.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(mainChartHeatmapMetric, 'get').withArgs('slotDefinitions').returns(test.data.slotDefinitions);
+        });
+
+        afterEach(function () {
+          mainChartHeatmapMetric.get.restore();
+        });
+
+        it('calculateSlot result is valid', function () {
+          expect(mainChartHeatmapMetric.calculateSlot(test.data.hostToValueMap, test.data.hostName)).to.equal(test.result);
+        });
+
       });
     });
   });

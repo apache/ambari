@@ -66,6 +66,26 @@ public abstract class KerberosOperationHandler {
   public final static String KERBEROS_ENV_PRINCIPAL_CONTAINER_DN = "container_dn";
 
   /**
+   * Kerberos-env configuration property name: group
+   */
+  public final static String KERBEROS_ENV_USER_PRINCIPAL_GROUP = "group";
+
+  /**
+   * Kerberos-env configuration property name: password_chat_timeout
+   */
+  public final static String KERBEROS_ENV_PASSWORD_CHAT_TIMEOUT = "password_chat_timeout";
+
+  /**
+   * Default timeout for password chat
+   */
+  public final static int DEFAULT_PASSWORD_CHAT_TIMEOUT = 5;
+
+  /**
+   * Kerberos-env configuration property name: set_password_expiry
+   */
+  public final static String KERBEROS_ENV_SET_PASSWORD_EXPIRY = "set_password_expiry";
+
+  /**
    * Kerberos-env configuration property name: ad_create_attributes_template
    */
   public final static String KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE = "ad_create_attributes_template";
@@ -81,9 +101,9 @@ public abstract class KerberosOperationHandler {
   public final static String KERBEROS_ENV_ENCRYPTION_TYPES = "encryption_types";
 
   /**
-   * Kerberos-env configuration property name: kdc_host
+   * Kerberos-env configuration property name: kdc_hosts
    */
-  public final static String KERBEROS_ENV_KDC_HOST = "kdc_host";
+  public final static String KERBEROS_ENV_KDC_HOSTS = "kdc_hosts";
 
   /**
    * Kerberos-env configuration property name: admin_server_host
@@ -246,6 +266,7 @@ public abstract class KerberosOperationHandler {
    * @param service   a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
    * @throws KerberosOperationException
+   * @throws KerberosPrincipalAlreadyExistsException if the principal already exists
    */
   public abstract Integer createPrincipal(String principal, String password, boolean service)
       throws KerberosOperationException;
@@ -259,6 +280,7 @@ public abstract class KerberosOperationHandler {
    * @param password  a String containing the password to set
    * @return an Integer declaring the new key number
    * @throws KerberosOperationException
+   * @throws KerberosPrincipalDoesNotExistException if the principal does not exist
    */
   public abstract Integer setPrincipalPassword(String principal, String password)
       throws KerberosOperationException;
@@ -695,20 +717,21 @@ public abstract class KerberosOperationHandler {
   /**
    * Executes a shell command.
    * <p/>
-   * See {@link org.apache.ambari.server.utils.ShellCommandUtil#runCommand(String[])}
+   * See {@link org.apache.ambari.server.utils.ShellCommandUtil#runCommand(String[], Map<String,String>)}
    *
    * @param command an array of String value representing the command and its arguments
+   * @param envp a map of string, string of environment variables
    * @return a ShellCommandUtil.Result declaring the result of the operation
    * @throws KerberosOperationException
    */
-  protected ShellCommandUtil.Result executeCommand(String[] command)
+  protected ShellCommandUtil.Result executeCommand(String[] command, Map<String, String> envp)
       throws KerberosOperationException {
 
     if ((command == null) || (command.length == 0)) {
       return null;
     } else {
       try {
-        return ShellCommandUtil.runCommand(command);
+        return ShellCommandUtil.runCommand(command, envp);
       } catch (IOException e) {
         String message = String.format("Failed to execute the command: %s", e.getLocalizedMessage());
         LOG.error(message, e);
@@ -719,6 +742,20 @@ public abstract class KerberosOperationHandler {
         throw new KerberosOperationException(message, e);
       }
     }
+  }
+
+  /**
+   * Executes a shell command.
+   * <p/>
+   * See {@link org.apache.ambari.server.utils.ShellCommandUtil#runCommand(String[])}
+   *
+   * @param command an array of String value representing the command and its arguments
+   * @return a ShellCommandUtil.Result declaring the result of the operation
+   * @throws KerberosOperationException
+   */
+  protected ShellCommandUtil.Result executeCommand(String[] command)
+          throws KerberosOperationException {
+    return executeCommand(command, null);
   }
 
   /**

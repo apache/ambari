@@ -22,6 +22,7 @@ from mock.mock import MagicMock, call, patch
 from resource_management import *
 from stacks.utils.RMFTestCase import *
 import getpass
+import json
 
 @patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
@@ -40,6 +41,23 @@ class TestHookBeforeInstall(RMFTestCase):
         repo_file_name='HDP',
         repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0'
     )
-    self.assertResourceCalled('Package', 'unzip',)
-    self.assertResourceCalled('Package', 'curl',)
+    self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertNoMoreResources()
+
+  def test_hook_no_repos(self):
+
+    config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      command_json = json.load(f)
+
+    command_json['hostLevelParams']['repo_info'] = "[]"
+
+    self.executeScript("2.0.6/hooks/before-INSTALL/scripts/hook.py",
+                       classname="BeforeInstallHook",
+                       command="hook",
+                       config_dict=command_json)
+
+    self.assertResourceCalled('Package', 'unzip', retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'curl', retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()

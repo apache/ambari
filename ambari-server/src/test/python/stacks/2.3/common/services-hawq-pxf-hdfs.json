@@ -1,0 +1,3490 @@
+{
+  "href" : "/api/v1/stacks/HDP/versions/2.3/?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy,services/configurations/StackConfigurations/property_depends_on,services/configurations/dependencies/StackConfigurationDependency/dependency_name,services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type&services/StackServices/service_name.in(HDFS,HAWQ,PXF)",
+  "Versions" : {
+    "parent_stack_version" : "2.2",
+    "stack_name" : "HDP",
+    "stack_version" : "2.3"
+  },
+  "services" : [
+    {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ",
+      "StackServices" : {
+        "service_name" : "HAWQ",
+        "service_version" : "2.0.0",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3"
+      },
+      "components" : [
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQMASTER",
+          "StackServiceComponents" : {
+            "advertise_version" : false,
+            "cardinality" : "1",
+            "component_category" : "MASTER",
+            "component_name" : "HAWQMASTER",
+            "custom_commands" : [ ],
+            "display_name" : "HAWQ Master",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQMASTER/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "HAWQMASTER",
+                "dependent_service_name" : "HAWQ",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            },
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQMASTER/dependencies/NAMENODE",
+              "Dependencies" : {
+                "component_name" : "NAMENODE",
+                "dependent_component_name" : "HAWQMASTER",
+                "dependent_service_name" : "HAWQ",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQSEGMENT",
+          "StackServiceComponents" : {
+            "advertise_version" : false,
+            "cardinality" : "1+",
+            "component_category" : "SLAVE",
+            "component_name" : "HAWQSEGMENT",
+            "custom_commands" : [ ],
+            "display_name" : "HAWQ Segment",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQSTANDBY",
+          "StackServiceComponents" : {
+            "advertise_version" : false,
+            "cardinality" : "0-1",
+            "component_category" : "MASTER",
+            "component_name" : "HAWQSTANDBY",
+            "custom_commands" : [ ],
+            "display_name" : "HAWQ Standby Master",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQSTANDBY/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "HAWQSTANDBY",
+                "dependent_service_name" : "HAWQ",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        }
+      ],
+      "configurations" : [
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/content",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "content",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-check-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.client.failover.max.attempts",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.client.failover.max.attempts",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.client.log.severity",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.client.log.severity",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.client.read.shortcircuit",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.client.read.shortcircuit",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.client.use.legacy.blockreader.local",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.client.use.legacy.blockreader.local",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.default.blocksize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.default.blocksize",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.default.replica",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.default.replica",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.domain.socket.path",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.domain.socket.path",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/dfs.prefetchsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.prefetchsize",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/fs.nr_open",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "fs.nr_open",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hard_nofile",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hard_nofile",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-limits-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hard_nproc",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hard_nproc",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-limits-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_dfs_url",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_dfs_url",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_global_rm_type",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_global_rm_type",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_address_host",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_master_address_host",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_address_port",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_master_address_port",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_directory",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_master_directory",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_temp_directory",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_master_temp_directory",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_password",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cgroup_hierarchy_name",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_re_cgroup_hierarchy_name",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cgroup_mount_point",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_re_cgroup_mount_point",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cpu_enable",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_re_cpu_enable",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_memory_limit_perseg",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_rm_memory_limit_perseg",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_nvcore_limit_perseg",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_rm_nvcore_limit_perseg",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_rm_yarn_address",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_app_name",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_rm_yarn_app_name",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_queue_name",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_rm_yarn_queue_name",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_scheduler_address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_rm_yarn_scheduler_address",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_segment_address_port",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_segment_address_port",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_segment_directory",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_segment_directory",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_segment_temp_directory",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_segment_temp_directory",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_standby_address_host",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hawq_standby_address_host",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/input.connect.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "input.connect.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/input.localread.blockinfo.cachesize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "input.localread.blockinfo.cachesize",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/input.localread.default.buffersize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "input.localread.default.buffersize",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/input.read.getblockinfo.retry",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "input.read.getblockinfo.retry",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/input.read.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "input.read.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/input.write.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "input.write.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.core_uses_pid",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.core_uses_pid",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.msgmax",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.msgmax",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.msgmnb",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.msgmnb",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.msgmni",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.msgmni",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.pid_max",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.pid_max",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.sem",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.sem",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.shmall",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.shmall",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.shmmax",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.shmmax",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.shmmni",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.shmmni",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.sysrq",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.sysrq",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/kernel.threads-max",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "kernel.threads-max",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.core.netdev_max_backlog",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.core.netdev_max_backlog",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.core.rmem_max",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.core.rmem_max",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.core.wmem_max",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.core.wmem_max",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.ipv4.conf.all.arp_filter",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.ipv4.conf.all.arp_filter",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.ipv4.conf.default.accept_source_route",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.ipv4.conf.default.accept_source_route",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.ipv4.ip_forward",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.ipv4.ip_forward",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.ipv4.ip_local_port_range",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.ipv4.ip_local_port_range",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.ipv4.tcp_max_syn_backlog",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.ipv4.tcp_max_syn_backlog",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.ipv4.tcp_syncookies",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.ipv4.tcp_syncookies",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/net.ipv4.tcp_tw_recycle",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.ipv4.tcp_tw_recycle",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.close.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.close.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.connect.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.connect.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.default.chunksize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.default.chunksize",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.default.packetsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.default.packetsize",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.default.write.retry",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.default.write.retry",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.packetpool.size",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.packetpool.size",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.read.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.read.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.replace-datanode-on-failure",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.replace-datanode-on-failure",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/output.write.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "output.write.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.connect.retry",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.connect.retry",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.connect.retry",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.connect.retry",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.connect.tcpnodelay",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.connect.tcpnodelay",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.connect.tcpnodelay",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.connect.tcpnodelay",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.connect.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.connect.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.connect.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.connect.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.max.idle",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.max.idle",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.max.idle",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.max.idle",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.ping.interval",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.ping.interval",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.ping.interval",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.ping.interval",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.read.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.read.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.read.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.read.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.socket.linger.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.socket.linger.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.socket.linger.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.socket.linger.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.write.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.write.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/rpc.client.write.timeout",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "rpc.client.write.timeout",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/soft_nofile",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "soft_nofile",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-limits-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/soft_nproc",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "soft_nproc",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-limits-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/vm.overcommit_memory",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "vm.overcommit_memory",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hawq-sysctl-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/yarn.client.failover.max.attempts",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "yarn.client.failover.max.attempts",
+            "service_name" : "HAWQ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "yarn-client.xml"
+          },
+          "dependencies" : [ ]
+        }
+      ]
+    },
+    {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS",
+      "StackServices" : {
+        "service_name" : "HDFS",
+        "service_version" : "2.7.1.2.3",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3"
+      },
+      "components" : [
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/DATANODE",
+          "StackServiceComponents" : {
+            "advertise_version" : true,
+            "cardinality" : "1+",
+            "component_category" : "SLAVE",
+            "component_name" : "DATANODE",
+            "custom_commands" : [ ],
+            "display_name" : "DataNode",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/HDFS_CLIENT",
+          "StackServiceComponents" : {
+            "advertise_version" : true,
+            "cardinality" : "1+",
+            "component_category" : "CLIENT",
+            "component_name" : "HDFS_CLIENT",
+            "custom_commands" : [ ],
+            "display_name" : "HDFS Client",
+            "is_client" : true,
+            "is_master" : false,
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/JOURNALNODE",
+          "StackServiceComponents" : {
+            "advertise_version" : true,
+            "cardinality" : "0+",
+            "component_category" : "SLAVE",
+            "component_name" : "JOURNALNODE",
+            "custom_commands" : [ ],
+            "display_name" : "JournalNode",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/JOURNALNODE/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "JOURNALNODE",
+                "dependent_service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/NAMENODE",
+          "StackServiceComponents" : {
+            "advertise_version" : true,
+            "cardinality" : "1-2",
+            "component_category" : "MASTER",
+            "component_name" : "NAMENODE",
+            "custom_commands" : [
+              "DECOMMISSION",
+              "REBALANCEHDFS"
+            ],
+            "display_name" : "NameNode",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/NFS_GATEWAY",
+          "StackServiceComponents" : {
+            "advertise_version" : false,
+            "cardinality" : "0+",
+            "component_category" : "SLAVE",
+            "component_name" : "NFS_GATEWAY",
+            "custom_commands" : [ ],
+            "display_name" : "NFSGateway",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/NFS_GATEWAY/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "NFS_GATEWAY",
+                "dependent_service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/SECONDARY_NAMENODE",
+          "StackServiceComponents" : {
+            "advertise_version" : true,
+            "cardinality" : "1",
+            "component_category" : "MASTER",
+            "component_name" : "SECONDARY_NAMENODE",
+            "custom_commands" : [ ],
+            "display_name" : "SNameNode",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/ZKFC",
+          "StackServiceComponents" : {
+            "advertise_version" : false,
+            "cardinality" : "0+",
+            "component_category" : "SLAVE",
+            "component_name" : "ZKFC",
+            "custom_commands" : [ ],
+            "display_name" : "ZKFailoverController",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [ ]
+        }
+      ],
+      "configurations" : [
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/REPOSITORY_CONFIG_PASSWORD",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "REPOSITORY_CONFIG_PASSWORD",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-plugin-properties.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/REPOSITORY_CONFIG_USERNAME",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "REPOSITORY_CONFIG_USERNAME",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-plugin-properties.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/common.name.for.certificate",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "common.name.for.certificate",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-plugin-properties.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/content",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "content",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/content",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "content",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-log4j.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.block.access.token.enable",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.block.access.token.enable",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.blockreport.initialDelay",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.blockreport.initialDelay",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.blocksize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.blocksize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.client.read.shortcircuit",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.client.read.shortcircuit",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.client.read.shortcircuit.streams.cache.size",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.client.read.shortcircuit.streams.cache.size",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.client.retry.policy.enabled",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.client.retry.policy.enabled",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.cluster.administrators",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.cluster.administrators",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.content-summary.limit",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.content-summary.limit",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.balance.bandwidthPerSec",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.balance.bandwidthPerSec",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.data.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.data.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.data.dir/dependencies/dfs.datanode.failed.volumes.tolerated",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "dfs.datanode.failed.volumes.tolerated",
+                "dependency_type" : "hdfs-site",
+                "property_name" : "dfs.datanode.data.dir",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            },
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.data.dir/dependencies/namenode_heapsize",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "namenode_heapsize",
+                "dependency_type" : "hadoop-env",
+                "property_name" : "dfs.datanode.data.dir",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.data.dir.perm",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.data.dir.perm",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.du.reserved",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.du.reserved",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.failed.volumes.tolerated",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "hdfs-site",
+                "name" : "dfs.datanode.data.dir"
+              }
+            ],
+            "property_name" : "dfs.datanode.failed.volumes.tolerated",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.http.address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.http.address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.https.address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.https.address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.ipc.address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.ipc.address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.datanode.max.transfer.threads",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.datanode.max.transfer.threads",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.domain.socket.path",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.domain.socket.path",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.encrypt.data.transfer.cipher.suites",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.encrypt.data.transfer.cipher.suites",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.encryption.key.provider.uri",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "hadoop-env",
+                "name" : "keyserver_port"
+              },
+              {
+                "type" : "kms-env",
+                "name" : "kms_port"
+              },
+              {
+                "type" : "hadoop-env",
+                "name" : "keyserver_host"
+              },
+              {
+                "type" : "ranger-kms-site",
+                "name" : "ranger.service.https.attrib.ssl.enabled"
+              }
+            ],
+            "property_name" : "dfs.encryption.key.provider.uri",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.heartbeat.interval",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.heartbeat.interval",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.hosts.exclude",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.hosts.exclude",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.http.policy",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.http.policy",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.https.port",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.https.port",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.journalnode.edits.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.journalnode.edits.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.journalnode.http-address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.journalnode.http-address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.journalnode.https-address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.journalnode.https-address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.accesstime.precision",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.accesstime.precision",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.audit.log.async",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.audit.log.async",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.avoid.read.stale.datanode",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.avoid.read.stale.datanode",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.avoid.write.stale.datanode",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.avoid.write.stale.datanode",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.checkpoint.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.checkpoint.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.checkpoint.edits.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.checkpoint.edits.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.checkpoint.period",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.checkpoint.period",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.checkpoint.txns",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.checkpoint.txns",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.fslock.fair",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.fslock.fair",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.handler.count",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.handler.count",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.http-address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.http-address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.https-address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.https-address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.inode.attributes.provider.class",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-hdfs-plugin-properties",
+                "name" : "ranger-hdfs-plugin-enabled"
+              }
+            ],
+            "property_name" : "dfs.namenode.inode.attributes.provider.class",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.name.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.name.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.name.dir.restore",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.name.dir.restore",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.rpc-address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.rpc-address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.safemode.threshold-pct",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.safemode.threshold-pct",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.secondary.http-address",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.secondary.http-address",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.stale.datanode.interval",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.stale.datanode.interval",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.startup.delay.block.deletion.sec",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.startup.delay.block.deletion.sec",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.namenode.write.stale.datanode.ratio",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.namenode.write.stale.datanode.ratio",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.permissions.enabled",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.permissions.enabled",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.permissions.superusergroup",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.permissions.superusergroup",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.replication",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.replication",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.replication.max",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.replication.max",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.support.append",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.support.append",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dfs.webhdfs.enabled",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dfs.webhdfs.enabled",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/dtnode_heapsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "dtnode_heapsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/fs.defaultFS",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "fs.defaultFS",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/fs.defaultFS/dependencies/xasecure.audit.destination.hdfs.dir",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "xasecure.audit.destination.hdfs.dir",
+                "dependency_type" : "ranger-env",
+                "property_name" : "fs.defaultFS",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/fs.permissions.umask-mode",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "fs.permissions.umask-mode",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/fs.trash.interval",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "fs.trash.interval",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ha.failover-controller.active-standby-elector.zk.op.retries",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ha.failover-controller.active-standby-elector.zk.op.retries",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop.http.authentication.simple.anonymous.allowed",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop.http.authentication.simple.anonymous.allowed",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop.rpc.protection",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop.rpc.protection",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-plugin-properties.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop.security.auth_to_local",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop.security.auth_to_local",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop.security.authentication",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop.security.authentication",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop.security.authorization",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop.security.authorization",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop.security.key.provider.path",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "hadoop-env",
+                "name" : "keyserver_port"
+              },
+              {
+                "type" : "kms-env",
+                "name" : "kms_port"
+              },
+              {
+                "type" : "hadoop-env",
+                "name" : "keyserver_host"
+              },
+              {
+                "type" : "ranger-kms-site",
+                "name" : "ranger.service.https.attrib.ssl.enabled"
+              }
+            ],
+            "property_name" : "hadoop.security.key.provider.path",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop_heapsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop_heapsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop_pid_dir_prefix",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop_pid_dir_prefix",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hadoop_root_logger",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hadoop_root_logger",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hdfs_log_dir_prefix",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hdfs_log_dir_prefix",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hdfs_principal_name",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hdfs_principal_name",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hdfs_user",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hdfs_user",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hdfs_user_keytab",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hdfs_user_keytab",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hdfs_user_nofile_limit",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hdfs_user_nofile_limit",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/hdfs_user_nproc_limit",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "hdfs_user_nproc_limit",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/io.compression.codecs",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "io.compression.codecs",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/io.file.buffer.size",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "io.file.buffer.size",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/io.serializations",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "io.serializations",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ipc.client.connect.max.retries",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ipc.client.connect.max.retries",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ipc.client.connection.maxidletime",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ipc.client.connection.maxidletime",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ipc.client.idlethreshold",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ipc.client.idlethreshold",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ipc.server.tcpnodelay",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ipc.server.tcpnodelay",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/keyserver_host",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "keyserver_host",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/keyserver_host/dependencies/dfs.encryption.key.provider.uri",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "dfs.encryption.key.provider.uri",
+                "dependency_type" : "hdfs-site",
+                "property_name" : "keyserver_host",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            },
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/keyserver_host/dependencies/hadoop.security.key.provider.path",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "hadoop.security.key.provider.path",
+                "dependency_type" : "core-site",
+                "property_name" : "keyserver_host",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/keyserver_port",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "keyserver_port",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/keyserver_port/dependencies/dfs.encryption.key.provider.uri",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "dfs.encryption.key.provider.uri",
+                "dependency_type" : "hdfs-site",
+                "property_name" : "keyserver_port",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            },
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/keyserver_port/dependencies/hadoop.security.key.provider.path",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "hadoop.security.key.provider.path",
+                "dependency_type" : "core-site",
+                "property_name" : "keyserver_port",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/mapreduce.jobtracker.webinterface.trusted",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "mapreduce.jobtracker.webinterface.trusted",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/namenode_heapsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "hdfs-site",
+                "name" : "dfs.datanode.data.dir"
+              }
+            ],
+            "property_name" : "namenode_heapsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/namenode_heapsize/dependencies/namenode_opt_maxnewsize",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "namenode_opt_maxnewsize",
+                "dependency_type" : "hadoop-env",
+                "property_name" : "namenode_heapsize",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            },
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/namenode_heapsize/dependencies/namenode_opt_newsize",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "namenode_opt_newsize",
+                "dependency_type" : "hadoop-env",
+                "property_name" : "namenode_heapsize",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/namenode_opt_maxnewsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "hadoop-env",
+                "name" : "namenode_heapsize"
+              }
+            ],
+            "property_name" : "namenode_opt_maxnewsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/namenode_opt_maxpermsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "namenode_opt_maxpermsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/namenode_opt_newsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "hadoop-env",
+                "name" : "namenode_heapsize"
+              }
+            ],
+            "property_name" : "namenode_opt_newsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/namenode_opt_permsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "namenode_opt_permsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/net.topology.script.file.name",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "net.topology.script.file.name",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "core-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/nfs.exports.allowed.hosts",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "nfs.exports.allowed.hosts",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/nfs.file.dump.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "nfs.file.dump.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hdfs-site.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/nfsgateway_heapsize",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "nfsgateway_heapsize",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/policy_user",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "policy_user",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-plugin-properties.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/proxyuser_group",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "proxyuser_group",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-env.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger-hdfs-plugin-enabled",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-env",
+                "name" : "ranger-hdfs-plugin-enabled"
+              }
+            ],
+            "property_name" : "ranger-hdfs-plugin-enabled",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-plugin-properties.xml"
+          },
+          "dependencies" : [
+            {
+              "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger-hdfs-plugin-enabled/dependencies/dfs.namenode.inode.attributes.provider.class",
+              "StackConfigurationDependency" : {
+                "dependency_name" : "dfs.namenode.inode.attributes.provider.class",
+                "dependency_type" : "hdfs-site",
+                "property_name" : "ranger-hdfs-plugin-enabled",
+                "service_name" : "HDFS",
+                "stack_name" : "HDP",
+                "stack_version" : "2.3"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger.plugin.hdfs.policy.cache.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ranger.plugin.hdfs.policy.cache.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-security.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger.plugin.hdfs.policy.pollIntervalMs",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ranger.plugin.hdfs.policy.pollIntervalMs",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-security.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger.plugin.hdfs.policy.rest.ssl.config.file",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ranger.plugin.hdfs.policy.rest.ssl.config.file",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-security.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger.plugin.hdfs.policy.rest.url",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ranger.plugin.hdfs.policy.rest.url",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-security.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger.plugin.hdfs.policy.source.impl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ranger.plugin.hdfs.policy.source.impl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-security.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ranger.plugin.hdfs.service.name",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ranger.plugin.hdfs.service.name",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-security.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.admin.operations.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.admin.operations.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.client.datanode.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.client.datanode.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.client.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.client.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.datanode.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.datanode.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.inter.datanode.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.inter.datanode.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.inter.tracker.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.inter.tracker.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.job.client.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.job.client.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.job.task.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.job.task.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.namenode.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.namenode.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.refresh.policy.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.refresh.policy.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/security.refresh.usertogroups.mappings.protocol.acl",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "security.refresh.usertogroups.mappings.protocol.acl",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "hadoop-policy.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.client.keystore.location",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.client.keystore.location",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.client.keystore.password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.client.keystore.password",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.client.keystore.type",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.client.keystore.type",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.client.truststore.location",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.client.truststore.location",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.client.truststore.password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.client.truststore.password",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.client.truststore.reload.interval",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.client.truststore.reload.interval",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.client.truststore.type",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.client.truststore.type",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-client.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.keystore.keypassword",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.keystore.keypassword",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.keystore.location",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.keystore.location",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.keystore.password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.keystore.password",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.keystore.type",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.keystore.type",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.truststore.location",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.truststore.location",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.truststore.password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.truststore.password",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.truststore.reload.interval",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.truststore.reload.interval",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/ssl.server.truststore.type",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "ssl.server.truststore.type",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ssl-server.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.add-hadoop-authorization",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.add-hadoop-authorization",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-security.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.credential.provider.file",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.credential.provider.file",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.db",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-env",
+                "name" : "xasecure.audit.destination.db"
+              }
+            ],
+            "property_name" : "xasecure.audit.destination.db",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.db.batch.filespool.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.destination.db.batch.filespool.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.db.jdbc.driver",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.destination.db.jdbc.driver",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.db.jdbc.url",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.destination.db.jdbc.url",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.db.password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.destination.db.password",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.db.user",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.destination.db.user",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.hdfs",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-env",
+                "name" : "xasecure.audit.destination.hdfs"
+              }
+            ],
+            "property_name" : "xasecure.audit.destination.hdfs",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.hdfs.batch.filespool.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.destination.hdfs.batch.filespool.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.hdfs.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-env",
+                "name" : "xasecure.audit.destination.hdfs.dir"
+              }
+            ],
+            "property_name" : "xasecure.audit.destination.hdfs.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.solr",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-env",
+                "name" : "xasecure.audit.destination.solr"
+              }
+            ],
+            "property_name" : "xasecure.audit.destination.solr",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.solr.batch.filespool.dir",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.destination.solr.batch.filespool.dir",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.solr.urls",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-admin-site",
+                "name" : "ranger.audit.solr.urls"
+              }
+            ],
+            "property_name" : "xasecure.audit.destination.solr.urls",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.destination.solr.zookeepers",
+          "StackConfigurations" : {
+            "property_depends_on" : [
+              {
+                "type" : "ranger-admin-site",
+                "name" : "ranger.audit.solr.zookeepers"
+              }
+            ],
+            "property_name" : "xasecure.audit.destination.solr.zookeepers",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.is.enabled",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.is.enabled",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.audit.provider.summary.enabled",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.audit.provider.summary.enabled",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-audit.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.policymgr.clientssl.keystore",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.policymgr.clientssl.keystore",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-policymgr-ssl.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.policymgr.clientssl.keystore.credential.file",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.policymgr.clientssl.keystore.credential.file",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-policymgr-ssl.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.policymgr.clientssl.keystore.password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.policymgr.clientssl.keystore.password",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-policymgr-ssl.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.policymgr.clientssl.truststore",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.policymgr.clientssl.truststore",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-policymgr-ssl.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.policymgr.clientssl.truststore.credential.file",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.policymgr.clientssl.truststore.credential.file",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-policymgr-ssl.xml"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/configurations/xasecure.policymgr.clientssl.truststore.password",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "xasecure.policymgr.clientssl.truststore.password",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "ranger-hdfs-policymgr-ssl.xml"
+          },
+          "dependencies" : [ ]
+        }
+      ]
+    },
+    {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/PXF",
+      "StackServices" : {
+        "service_name" : "PXF",
+        "service_version" : "3.0.0",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3"
+      },
+      "components" : [
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/PXF/components/PXF",
+          "StackServiceComponents" : {
+            "advertise_version" : false,
+            "cardinality" : "1+",
+            "component_category" : "SLAVE",
+            "component_name" : "PXF",
+            "custom_commands" : [ ],
+            "display_name" : "PXF",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "PXF",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "hostnames" : [ ]
+          },
+          "dependencies" : [ ]
+        }
+      ],
+      "configurations" : [
+        {
+          "href" : "/api/v1/stacks/HDP/versions/2.3/services/PXF/configurations/pxf.service.kerberos.keytab",
+          "StackConfigurations" : {
+            "property_depends_on" : [ ],
+            "property_name" : "pxf.service.kerberos.keytab",
+            "service_name" : "PXF",
+            "stack_name" : "HDP",
+            "stack_version" : "2.3",
+            "type" : "pxf-site.xml"
+          },
+          "dependencies" : [ ]
+        }
+      ]
+    }
+  ]
+}

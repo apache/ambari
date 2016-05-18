@@ -19,65 +19,79 @@
 var App = require('app');
 
 describe('App.ConfigsSaverMixin', function() {
-  var mixinObject =  Em.Controller.extend(App.ConfigsSaverMixin, {});
+  var mixinObject = Em.Controller.extend(App.ConfigsSaverMixin, {});
   var instanceObject = mixinObject.create({});
 
-  describe('#allowSaveSite()', function() {
+  describe('#allowSaveCoreSite()', function () {
+    var allowedType = 'CORETYPE';
+    var allowedService = ['S1'];
     var stackServices = [
       Em.Object.create({
-        serviceName: 'HDFS',
-        serviceType: 'NONHCFS'
+        serviceName: 'S4',
+        serviceType: 'CORETYPE'
       }),
       Em.Object.create({
         serviceName: 'S1',
-        serviceType: 'HCFS'
+        serviceType: 'SOMEOTHERTYPE'
       }),
       Em.Object.create({
         serviceName: 'S2',
-        serviceType: 'NONHCFS'
-      }),
-      Em.Object.create({
-        serviceName: 'S3'
+        serviceType: 'SOMEOTHERTYPE'
       })
     ];
-    beforeEach(function() {
-      instanceObject.set('content', {});
-      sinon.stub(App.StackService, 'find', function () {
-        return stackServices;
+    beforeEach(function () {
+      instanceObject.setProperties({
+        'content': {},
+        'coreSiteServiceType': allowedType,
+        'coreSiteServiceNames': allowedService
       });
     });
 
-    afterEach(function() {
-      App.StackService.find.restore();
-    });
+    [{
+      currentServices: stackServices[0],
+      res: true,
+      m: 'service type is ok'
+    }, {
+      currentServices: stackServices[1],
+      res: true,
+      m: 'service name is ok'
+    }, {
+      currentServices: stackServices[2],
+      res: false,
+      m: 'not ok'
+    }].forEach(function (c, index) {
+        describe(c.m, function () {
+          beforeEach(function () {
+            instanceObject.reopen({
+              currentServices: c.currentServices
+            });
+            it('test #' + index, function () {
+              expect(instanceObject.allowSaveCoreSite()).to.be.equal(c.res);
+            });
+          });
+        });
+      });
+  });
 
-    it('returns true by default', function() {
-      expect(instanceObject.allowSaveSite('some-site')).to.be.true
-    });
-
-    it('returns true for core-site and proper service', function() {
-      instanceObject.set('content.serviceName', 'HDFS');
-      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.true
-    });
-
-    it('returns true for core-site and serviceType HCFS', function() {
-      instanceObject.set('content.serviceName', 'S1');
-      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.true
-    });
-
-    it('returns false for core-site and serviceType not HCFS', function() {
-      instanceObject.set('content.serviceName', 'S2');
-      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.false
-    });
-
-    it('returns false for core-site but serviceType undefined', function() {
-      instanceObject.set('content.serviceName', 'S3');
-      expect(instanceObject.allowSaveSite('core-site.xml')).to.be.false
-    });
-
-    it('returns false for mapred-queue-acls.xml', function() {
-      expect(instanceObject.allowSaveSite('mapred-queue-acls.xml')).to.be.false
-    });
+  describe('allowSaveSite', function() {
+    [
+      { fName: 'mapred-queue-acls', res: false, m: 'file name is restricted to be saved' },
+      { fName: 'core-site', res: true, allowSaveCoreSite: true, m: 'core site is allowed to be saved' },
+      { fName: 'core-site', res: false, allowSaveCoreSite: false, m: 'core site is not allowed to be saved' },
+      { fName: 'other-file-name', res: true, m: 'file name has not restriction rule, so can be saved' }
+    ].forEach(function (c, index) {
+        describe(c.m, function () {
+          beforeEach(function() {
+            sinon.stub(instanceObject, 'allowSaveCoreSite').returns(c.allowSaveCoreSite);
+          });
+          afterEach(function() {
+            instanceObject.allowSaveCoreSite.restore();
+          });
+          it('test #' + index, function () {
+            expect(instanceObject.allowSaveSite(c.fName)).to.equal(c.res);
+          });
+        });
+      });
   });
 
   describe('#createDesiredConfig()', function() {

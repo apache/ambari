@@ -29,6 +29,7 @@ public class ServiceComponentHostResponse {
   private String clusterName; // REF
   private String serviceName;
   private String componentName;
+  private String displayName;
   private String hostname;
   // type -> desired config
   private Map<String, HostConfig> actualConfigs;
@@ -43,13 +44,14 @@ public class ServiceComponentHostResponse {
 
 
   public ServiceComponentHostResponse(String clusterName, String serviceName,
-                                      String componentName, String hostname,
+                                      String componentName, String displayName, String hostname,
                                       String liveState, String stackVersion,
                                       String desiredState, String desiredStackVersion,
                                       HostComponentAdminState adminState) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
+    this.displayName = displayName;
     this.hostname = hostname;
     this.liveState = liveState;
     this.stackVersion = stackVersion;
@@ -86,6 +88,13 @@ public class ServiceComponentHostResponse {
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
+  }
+
+  /**
+   * @return the displayName
+   */
+  public String getDisplayName() {
+    return displayName;
   }
 
   /**

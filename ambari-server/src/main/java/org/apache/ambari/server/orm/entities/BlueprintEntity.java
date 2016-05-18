@@ -71,6 +71,9 @@ public class BlueprintEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
   private Collection<BlueprintConfigEntity> configurations;
 
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
+  private Collection<BlueprintSettingEntity> settings;
+
 
   /**
    * Get the blueprint name.
@@ -143,6 +146,24 @@ public class BlueprintEntity {
    */
   public void setConfigurations(Collection<BlueprintConfigEntity> configurations) {
     this.configurations = configurations;
+  }
+
+  /**
+   * Get the collection of associated setting.
+   *
+   * @return collection of setting
+   */
+  public Collection<BlueprintSettingEntity> getSettings() {
+    return settings;
+  }
+
+  /**
+   * Set the settings collection.
+   *
+   * @param settings collection of associated setting
+   */
+  public void setSettings(Collection<BlueprintSettingEntity> settings) {
+    this.settings = settings;
   }
 
   public SecurityType getSecurityType() {
