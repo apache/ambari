@@ -22,6 +22,7 @@ from mock.mock import Mock, MagicMock, patch
 
 from resource_management.libraries.functions import dfs_datanode_helper
 from resource_management.core.logger import Logger
+from resource_management import Directory
 
 
 class StubParams(object):
@@ -61,11 +62,14 @@ class TestDatanodeHelper(TestCase):
   params = StubParams()
   params.data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
   params.dfs_data_dir = "{0},{1},{2}".format(grid0, grid1, grid2)
+  params.hdfs_user = "hdfs_test"
+  params.user_group = "hadoop_test"
 
 
+  @patch.object(Logger, "warning")
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  def test_normalized(self, log_error, log_info):
+  def test_normalized(self, log_error, log_info, warning_info):
     """
     Test that the data dirs are normalized by removing leading and trailing whitespace, and case sensitive.
     """
@@ -93,7 +97,8 @@ class TestDatanodeHelper(TestCase):
   @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
-  def test_grid_becomes_unmounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point, mock_get_data_dir_to_mount_from_file, log_error, log_info):
+  def test_grid_becomes_unmounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point,
+                                  mock_get_data_dir_to_mount_from_file, log_error, log_info):
     """
     Test when grid2 becomes unmounted
     """
@@ -126,7 +131,8 @@ class TestDatanodeHelper(TestCase):
   @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
-  def test_grid_becomes_remounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point, mock_get_data_dir_to_mount_from_file, log_error, log_info):
+  def test_grid_becomes_remounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point,
+                                  mock_get_data_dir_to_mount_from_file, log_error, log_info):
     """
     Test when grid2 becomes remounted
     """
