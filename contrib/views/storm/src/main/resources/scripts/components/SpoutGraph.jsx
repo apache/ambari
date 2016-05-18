@@ -22,6 +22,9 @@ define(['react',
 	'use strict';
 	return React.createClass({
 		displayName: 'SpoutGraph',
+		propTypes: {
+			spout: React.PropTypes.object.isRequired
+		},
 		getInitialState: function(){
 			this.syncData();
 			this.fields = ['', 'Acked', 'Failed', 'Emitted', 'Transferred'];

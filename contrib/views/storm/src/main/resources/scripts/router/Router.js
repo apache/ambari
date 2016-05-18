@@ -73,12 +73,12 @@ define([
 		},
 		topologyDetailsAction: function(id){
 			require(['jsx!views/TopologyDetailView'], function(TopologyDetailView){
-				ReactDOM.render(React.createElement(TopologyDetailView, Object.assign({}, this.props, {id: id})), App.Container);
+				ReactDOM.render(React.createElement(TopologyDetailView, _.extend({}, this.props, {id: id})), App.Container);
 			}.bind(this));
 		},
 		componentDetailsAction: function(id, name){
 			require(['jsx!views/ComponentDetailView'], function(ComponentDetailView){
-				ReactDOM.render(React.createElement(ComponentDetailView, Object.assign({}, this.props, {id: id, name: name})), App.Container);
+				ReactDOM.render(React.createElement(ComponentDetailView, _.extend({}, this.props, {id: id, name: name})), App.Container);
 			}.bind(this));
 		},
 		nimbusAction: function(){

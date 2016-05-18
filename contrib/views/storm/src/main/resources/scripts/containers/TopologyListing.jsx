@@ -30,6 +30,9 @@ define(['react',
 
 	return React.createClass({
 		displayName: 'TopologyListing',
+		propTypes: {
+			fromDashboard: React.PropTypes.bool
+		},
 		getInitialState: function(){
 			this.initializeCollection();
 			return null;
@@ -59,11 +62,17 @@ define(['react',
 		getColumns: function(){
 			var columns = [
 				{name: 'name', title: 'Topology Name', tooltip:'The name given to the topology by when it was submitted. Click the name to view the Topology\'s information.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						return ( <a href={"#!/topology/"+this.props.model.get('id')}> {this.props.model.get('name')} </a>);
 					}
 				})},
 				{name: 'status', title: 'Status', tooltip:'The status can be one of ACTIVE, INACTIVE, KILLED, or REBALANCING.', component: React.createClass({
+					propTypes: {
+						model: React.PropTypes.object.isRequired
+					},
 					render: function(){
 						var classname="label ";
 						switch(this.props.model.get("status")){
@@ -98,6 +107,9 @@ define(['react',
 				Array.prototype.push.apply(columns, additionalColumns);
 			}
 			columns.push({name: 'uptime', title: 'Uptime', tooltip:'The time since the Topology was submitted.', component: React.createClass({
+				propTypes: {
+					model: React.PropTypes.object.isRequired
+				},
 				render: function(){
 					return (<small>{this.props.model.get('uptime')}</small>);
 				}
@@ -151,7 +163,7 @@ define(['react',
 		        var bodyElem = (
 		        	<div className="box-body">
 		        		<div className="input-group col-sm-4">
-								<input type="text"  onKeyUp={this.handleFilter} className="form-control" placeholder="Search By Key" />
+								<input type="text"  onKeyUp={this.handleFilter} className="form-control" placeholder="Search By Topology Name" />
 								<span className="input-group-btn">
 								<button className="btn btn-primary" type="button"><i className="fa fa-search"></i></button>
 								</span>

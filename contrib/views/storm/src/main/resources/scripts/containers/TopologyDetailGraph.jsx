@@ -23,6 +23,10 @@ define(['react',
 	'use strict';
 	return React.createClass({
 		displayName: 'TopologyDetailGraph',
+		propTypes: {
+			model: React.PropTypes.object.isRequired,
+			graphData: React.PropTypes.object.isRequired
+		},
 		getInitialState: function(){
 			return null;
 		},

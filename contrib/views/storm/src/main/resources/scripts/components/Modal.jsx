@@ -20,6 +20,12 @@ define(['react', 'react-dom', 'bootstrap'], function(React, ReactDOM) {
 	'use strict';
 	return React.createClass({
 		displayName: 'Modal',
+		propTypes: {
+			modalId: React.PropTypes.string.isRequired,
+			header: React.PropTypes.node,
+			content: React.PropTypes.node,
+			footer: React.PropTypes.node
+		},
 		getInitialState: function(){
 			
 			return null;

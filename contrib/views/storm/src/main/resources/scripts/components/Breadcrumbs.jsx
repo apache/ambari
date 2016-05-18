@@ -22,6 +22,9 @@ define(['react',
 	'use strict';
     return React.createClass({
 		displayName: 'Breadcrumbs',
+        propTypes: {
+            links: React.PropTypes.array.isRequired
+        },
 		getInitialState: function() {
 			return null;
 		},
