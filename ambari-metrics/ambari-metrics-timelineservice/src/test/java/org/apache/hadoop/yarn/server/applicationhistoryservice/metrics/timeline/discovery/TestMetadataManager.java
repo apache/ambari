@@ -23,29 +23,14 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.AbstractMiniHBaseClusterTest;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.easymock.EasyMock;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType.GAUGE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_INIT_DELAY;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_SCHEDULE_DELAY;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
   TimelineMetricMetadataManager metadataManager;
@@ -115,11 +100,13 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     Assert.assertEquals(value2, savedData.get(key2));
 
     Map<String, Set<String>> cachedHostData = metadataManager.getHostedAppsCache();
-    Map<String, Set<String>> savedHostData = metadataManager.getHostedAppsFromStore();
+    Map<String, Set<String>> savedHostData = metadataManager.getPersistedHostedAppsData();
     Assert.assertEquals(cachedData.size(), savedData.size());
     Assert.assertEquals("dummy_app1", cachedHostData.get("dummy_host1").iterator().next());
     Assert.assertEquals("dummy_app2", cachedHostData.get("dummy_host2").iterator().next());
     Assert.assertEquals("dummy_app1", savedHostData.get("dummy_host1").iterator().next());
     Assert.assertEquals("dummy_app2", savedHostData.get("dummy_host2").iterator().next());
   }
+
+
 }

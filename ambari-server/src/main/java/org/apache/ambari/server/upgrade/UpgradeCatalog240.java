@@ -1160,10 +1160,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    */
   protected void updateAlertCurrentTable() throws SQLException {
     dbAccessor.addColumn(ALERT_CURRENT_TABLE,
-      new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Long.class, null, 1, false));
+            new DBColumnInfo(ALERT_CURRENT_OCCURRENCES_COLUMN, Long.class, null, 1, false));
 
     dbAccessor.addColumn(ALERT_CURRENT_TABLE, new DBColumnInfo(ALERT_CURRENT_FIRMNESS_COLUMN,
-      String.class, 255, AlertFirmness.HARD.name(), false));
+            String.class, 255, AlertFirmness.HARD.name(), false));
   }
 
   /**
@@ -1188,15 +1188,15 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeUpdate(String.format(updateStatement,
         2, PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-      3, PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME));
+            3, PermissionEntity.CLUSTER_OPERATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-      4, PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME));
+            4, PermissionEntity.SERVICE_ADMINISTRATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-      5, PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME));
+            5, PermissionEntity.SERVICE_OPERATOR_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-      6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
+            6, PermissionEntity.CLUSTER_USER_PERMISSION_NAME));
     dbAccessor.executeUpdate(String.format(updateStatement,
-      7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
+            7, PermissionEntity.VIEW_USER_PERMISSION_NAME));
   }
 
   /**
@@ -1584,13 +1584,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
           Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
           if (amsSite != null) {
-            String metadataFilters = amsSite.getProperties().get("timeline.metrics.service.metadata.filters");
-            if (StringUtils.isEmpty(metadataFilters) ||
-                !metadataFilters.contains("ContainerResource")) {
-              updateConfigurationProperties("ams-site",
-                Collections.singletonMap("timeline.metrics.service.metadata.filters", "ContainerResource"), true, false);
-            }
-
             Map<String, String> amsSiteProperties = amsSite.getProperties();
             Map<String, String> newProperties = new HashMap<>();
 

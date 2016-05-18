@@ -228,6 +228,7 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_TABLES_DURABILITY =
     "timeline.metrics.tables.durability";
 
+<<<<<<< HEAD
   public static final String TIMELINE_METRIC_METADATA_FILTERS =
     "timeline.metrics.service.metadata.filters";
 
@@ -237,6 +238,8 @@ public class TimelineMetricConfiguration {
   public static final String DEFAULT_TOPN_HOSTS_LIMIT =
     "timeline.metrics.default.topn.hosts.limit";
 
+=======
+>>>>>>> parent of e3c9816... AMBARI-15902. Refactor Metadata manager for supporting distributed collector. (swagle)
   public static final String HOST_APP_ID = "HOST";
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";

@@ -577,13 +577,5 @@
       Enable Linear interpolation for missing slices of data, while aggregating.
     </description>
   </property>
-  <property>
-    <name>timeline.metrics.service.metadata.filters</name>
-    <value>ContainerResource</value>
-    <description>
-      Commas separated list of regular expressions that match metric names
-      which prevents certain metrics from ending up in metadata cache.
-    </description>
-  </property>
 
 </configuration>
