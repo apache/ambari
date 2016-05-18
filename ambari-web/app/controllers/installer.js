@@ -605,6 +605,7 @@ App.InstallerController = App.WizardController.extend({
       var data = _data.resources[0];
       var self = this;
       // load the data info to display for details and contents panel
+      data.VersionDefinition.id = dataInfo.data.VersionDefinition.available;
       var response = {
         id : data.VersionDefinition.id,
         stackVersion : data.VersionDefinition.stack_version,
@@ -733,7 +734,8 @@ App.InstallerController = App.WizardController.extend({
           this.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
             self.mergeChanges(data.stackInfo.repos, data.stackInfo.stacks);
             App.Stack.find().setEach('isSelected', false);
-            App.Stack.find().findProperty('id', versionInfo.stackNameVersion + "-" + versionInfo.actualVersion).set('isSelected', true);
+            var stackId = versionData.data.VersionDefinition.available || versionInfo.stackNameVersion + "-" + versionInfo.actualVersion;
+            App.Stack.find().findProperty('id', stackId).set('isSelected', true);
             self.setSelected(data.stackInfo.isStacksExistInDb);
           });
         } else {
