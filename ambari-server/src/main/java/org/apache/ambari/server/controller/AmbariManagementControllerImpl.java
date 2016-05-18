@@ -2155,6 +2155,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               retryEnabled = commandMayBeRetried;
             }
           }
+          LOG.info("Auto retry setting for {}-{} on {} is retryEnabled={} and retryMaxTime={}", serviceName, componentName, scHost.getHostName(), retryEnabled, retryMaxTime);
         }
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
