@@ -132,7 +132,7 @@ class ActionQueue(threading.Thread):
 
       while not queue.empty():
         queued_command = queue.get(False)
-        if queued_command['task_id'] != task_id:
+        if queued_command['taskId'] != task_id:
           self.commandQueue.put(queued_command)
         else:
           logger.info("Canceling " + queued_command['commandType'] + \
