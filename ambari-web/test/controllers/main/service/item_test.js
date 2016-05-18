@@ -1552,4 +1552,41 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
+  [
+    {
+      m: 'should call only restartLLAPRequest',
+      isRestartRequired: false,
+      toCall: 'restartLLAPRequest'
+    },
+    {
+      m: 'should call only restartLLAPAndRefreshQueueRequest',
+      isRestartRequired: true,
+      toCall: 'restartLLAPAndRefreshQueueRequest'
+    }
+  ].forEach(function (test) {
+        describe("#restartLLAP()", function () {
+          var mainServiceItemController;
+
+          beforeEach(function () {
+            mainServiceItemController = App.MainServiceItemController.create();
+            sinon.stub(mainServiceItemController, 'restartLLAPAndRefreshQueueRequest', Em.K);
+            sinon.stub(mainServiceItemController, 'restartLLAPRequest', Em.K);
+            sinon.stub(App.Service, 'find').returns([Em.Object.create({
+                serviceName: 'YARN',
+                isRestartRequired: test.isRestartRequired
+              })]);
+          });
+          afterEach(function () {
+            mainServiceItemController.restartLLAPAndRefreshQueueRequest.restore();
+            mainServiceItemController.restartLLAPRequest.restore();
+            App.Service.find.restore();
+          });
+
+          it(test.m, function () {
+            var confirmationPopup = mainServiceItemController.restartLLAP();
+            confirmationPopup.onPrimary();
+            expect(mainServiceItemController[test.toCall].calledOnce).to.be.true;
+          });
+        });
+      });
 });

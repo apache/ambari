@@ -596,35 +596,90 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
   },
 
-  restartLLAP: function(event) {
-    var context = Em.I18n.t('services.service.actions.run.restartLLAP');
-    this.manageLLAP('RESTART_LLAP', context);
-  },
-  manageLLAP: function(command, context) {
-    var controller = this;
-    var host = App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE').get('hostName');
-    return App.showConfirmationPopup(function() {
-      App.ajax.send({
-        name: 'service.item.executeCustomCommand',
-        sender: controller,
-        data: {
-          command: command,
-          context: context,
-          hosts: host,
-          serviceName: "HIVE",
-          componentName: "HIVE_SERVER_INTERACTIVE"
-        },
-        success: 'manageLLAPSuccessCallback',
-        error: 'manageLLAPErrorCallback'
-      });
+  restartLLAP: function () {
+    var isRefreshQueueRequired, self = this;
+    return App.showConfirmationPopup(function () {
+      // regresh queue request is sending only if YARN service has stale configs
+      isRefreshQueueRequired = App.Service.find().findProperty('serviceName', 'YARN').get('isRestartRequired');
+      if (isRefreshQueueRequired) {
+        self.restartLLAPAndRefreshQueueRequest();
+      } else {
+        self.restartLLAPRequest();
+      }
     });
   },
-  manageLLAPSuccessCallback : function(data, ajaxOptions, params) {
-    if (data.Requests.id) {
-      App.router.get('backgroundOperationsController').showPopup();
-    }
+
+  restartLLAPRequest: function () {
+    var host = App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE').get('hostName');
+    App.ajax.send({
+      name: 'service.item.executeCustomCommand',
+      sender: this,
+      data: {
+        command: 'RESTART_LLAP',
+        context: Em.I18n.t('services.service.actions.run.restartLLAP'),
+        hosts: host,
+        serviceName: "HIVE",
+        componentName: "HIVE_SERVER_INTERACTIVE"
+      },
+      success: 'requestSuccessCallback',
+      error: 'requestErrorCallback'
+    });
   },
-  manageLLAPErrorCallback : function(data) {
+
+  restartLLAPAndRefreshQueueRequest: function () {
+    var hiveServerInteractiveHost = App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE').get('hostName');
+    var resourceManagerHost = App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName');
+    var batches = [{
+      "order_id": 1,
+      "type": "POST",
+      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+      "RequestBodyInfo": {
+        "RequestInfo": {
+          "context": "Refresh YARN Capacity Scheduler",
+          "command": "REFRESHQUEUES",
+          "parameters/forceRefreshConfigTags": "capacity-scheduler"
+        },
+        "Requests/resource_filters": [{
+          "service_name": "YARN",
+          "component_name": "RESOURCEMANAGER",
+          "hosts": resourceManagerHost
+        }]
+      }
+    }, {
+      "order_id": 2,
+      "type": "POST",
+      "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+      "RequestBodyInfo": {
+        "RequestInfo": {"context": "Restart LLAP", "command": "RESTART_LLAP"},
+        "Requests/resource_filters": [{
+          "service_name": "HIVE",
+          "component_name": "HIVE_SERVER_INTERACTIVE",
+          "hosts": hiveServerInteractiveHost
+        }]
+      }
+    }];
+    App.ajax.send({
+      name: 'common.batch.request_schedules',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        tolerateSize: 0,
+        batches: batches
+      },
+      success: 'requestSuccessCallback',
+      error: 'requestErrorCallback'
+    });
+  },
+
+  requestSuccessCallback: function () {
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
+
+  requestErrorCallback : function(data) {
     var error = Em.I18n.t('services.service.actions.run.executeCustomCommand.error');
     if (data && data.responseText) {
       try {
