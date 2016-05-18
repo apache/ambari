@@ -65,3 +65,27 @@ def cint(obj):
 
   return int(obj)
 
+def split_on_chunks(text, chunk_max_size):
+  """
+  This function splits text on a chunks of size ~ chunk_max_size.
+  Function tries not to split a single line between multiple chunks.
+  This will only in one case when len(line) > chunk_max_size.
+  """
+  lines = text.splitlines()
+  chunks = []
+  chunk = ""
+  while len(lines) != 0:
+    if len(chunk) + len(lines[0]) > chunk_max_size:
+      chunks.append(chunk[:-1])
+      chunk = ""
+      # if a single line itself is bigger than the max chunk size, split the line.
+      if len(lines[0]) > chunk_max_size:
+        line_fragments = [lines[0][x:x+chunk_max_size] for x in xrange(0, len(lines[0]), chunk_max_size)]
+        for line_fragment in line_fragments:
+          chunks.append(line_fragment)
+        lines.pop(0)
+    else:
+      chunk += lines.pop(0) + "\n"
+  chunks.append(chunk[:-1])
+  return chunks
+
