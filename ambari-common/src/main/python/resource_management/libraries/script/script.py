@@ -655,9 +655,14 @@ class Script(object):
         else:
           self.pre_rolling_restart(env)
 
+      service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
       try:
-        self.status(env)
-        raise Fail("Stop command finished but process keep running.")
+        #TODO Once the logic for pid is available from Ranger code, will remove the below if block.
+        if service_name == 'RANGER' and service_name is not None:
+          Logger.info('Temporary Skipping status check for RANGER service only.')
+        else:
+          self.status(env)
+          raise Fail("Stop command finished but process keep running.")
       except ComponentIsNotRunning as e:
         pass  # expected
       except ClientComponentHasNoStatus as e:

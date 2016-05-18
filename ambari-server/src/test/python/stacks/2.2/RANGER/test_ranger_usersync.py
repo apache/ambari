@@ -153,7 +153,7 @@ class TestRangerUsersync(RMFTestCase):
                               sudo = True)
     self.assertResourceCalledIgnoreEarlier("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'ranger-usersync', '2.3.0.0-1234'), sudo=True)
 
-    self.assertEquals(3, mocks_dict['call'].call_count)
+    self.assertEquals(2, mocks_dict['call'].call_count)
     self.assertEquals(1, mocks_dict['checked_call'].call_count)
     self.assertEquals(
       ('ambari-python-wrap', '/usr/bin/conf-select', 'set-conf-dir', '--package', 'ranger-usersync', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
