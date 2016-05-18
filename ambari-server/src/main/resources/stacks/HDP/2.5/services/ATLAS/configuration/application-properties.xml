@@ -81,4 +81,9 @@
     <value>{{atlas_policy_store_file}}</value>
     <description>Path for the Atlas policy file.</description>
   </property>
+  <property>
+    <name>atlas.kafka.auto.commit.enable</name>
+    <value>false</value>
+    <description>Kafka auto commit setting for Atlas notifications.</description>
+  </property>
 </configuration>

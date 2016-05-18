@@ -63,21 +63,21 @@ class TestAtlasServer(RMFTestCase):
                               cd_access='a',
                               mode=0755
                               )
-    self.assertResourceCalled('Directory', '/var/lib/atlas/data',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/data',
                               owner='atlas',
                               group='hadoop',
                               create_parents = True,
                               cd_access='a',
                               mode=0644
                               )
-    self.assertResourceCalled('Directory', '/var/lib/atlas/server/webapp',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/server/webapp',
                               owner='atlas',
                               group='hadoop',
                               create_parents = True,
                               cd_access='a',
                               mode=0644
                               )
-    self.assertResourceCalled('File', '/var/lib/atlas/server/webapp/atlas.war',
+    self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/server/webapp/atlas.war',
                               content = StaticFile('/usr/hdp/current/atlas-server/server/webapp/atlas.war'),
                               )
     appprops =  dict(self.getConfig()['configurations'][
