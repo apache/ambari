@@ -32,8 +32,6 @@ import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
@@ -43,21 +41,17 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
 public class HBaseTimelineMetricStore extends AbstractService implements TimelineMetricStore {
 
@@ -65,10 +59,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private final TimelineMetricConfiguration configuration;
   private PhoenixHBaseAccessor hBaseAccessor;
   private static volatile boolean isInitialized = false;
-  private final ScheduledExecutorService watchdogExecutorService = Executors.newSingleThreadScheduledExecutor();
-  private final Map<AGGREGATOR_NAME, ScheduledExecutorService> scheduledExecutors = new HashMap<>();
+  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
   private TimelineMetricMetadataManager metricMetadataManager;
-  private TimelineMetricHAController haController;
   private Integer defaultTopNHostsLimit;
 
   /**
@@ -97,18 +89,6 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       metricMetadataManager.initializeMetadata();
       // Initialize policies before TTL update
       hBaseAccessor.initPoliciesAndTTL();
-      // Start HA service
-      if (configuration.isDistributedOperationModeEnabled()) {
-        // Start the controller
-        haController = new TimelineMetricHAController(configuration);
-        try {
-          haController.initializeHAController();
-        } catch (Exception e) {
-          LOG.error(e);
-          throw new MetricsSystemInitializationException("Unable to " +
-            "initialize HA controller", e);
-        }
-      }
 
       defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
@@ -117,53 +97,46 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
       // Start the cluster aggregator second
       TimelineMetricAggregator secondClusterAggregator =
-        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(
-          hBaseAccessor, metricsConf, metricMetadataManager, haController);
+        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hBaseAccessor, metricsConf, metricMetadataManager);
       scheduleAggregatorThread(secondClusterAggregator);
 
       // Start the minute cluster aggregator
       TimelineMetricAggregator minuteClusterAggregator =
-        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(
-          hBaseAccessor, metricsConf, haController);
+        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hBaseAccessor, metricsConf);
       scheduleAggregatorThread(minuteClusterAggregator);
 
       // Start the hourly cluster aggregator
       TimelineMetricAggregator hourlyClusterAggregator =
-        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(
-          hBaseAccessor, metricsConf, haController);
+        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hBaseAccessor, metricsConf);
       scheduleAggregatorThread(hourlyClusterAggregator);
 
       // Start the daily cluster aggregator
       TimelineMetricAggregator dailyClusterAggregator =
-        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(
-          hBaseAccessor, metricsConf, haController);
+        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(hBaseAccessor, metricsConf);
       scheduleAggregatorThread(dailyClusterAggregator);
 
       // Start the minute host aggregator
       TimelineMetricAggregator minuteHostAggregator =
-        TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(
-          hBaseAccessor, metricsConf, haController);
+        TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hBaseAccessor, metricsConf);
       scheduleAggregatorThread(minuteHostAggregator);
 
       // Start the hourly host aggregator
       TimelineMetricAggregator hourlyHostAggregator =
-        TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(
-          hBaseAccessor, metricsConf, haController);
+        TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hBaseAccessor, metricsConf);
       scheduleAggregatorThread(hourlyHostAggregator);
 
       // Start the daily host aggregator
       TimelineMetricAggregator dailyHostAggregator =
-        TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(
-          hBaseAccessor, metricsConf, haController);
+        TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(hBaseAccessor, metricsConf);
       scheduleAggregatorThread(dailyHostAggregator);
 
       if (!configuration.isTimelineMetricsServiceWatcherDisabled()) {
         int initDelay = configuration.getTimelineMetricsServiceWatcherInitDelay();
         int delay = configuration.getTimelineMetricsServiceWatcherDelay();
         // Start the watchdog
-        watchdogExecutorService.scheduleWithFixedDelay(
-          new TimelineMetricStoreWatcher(this, configuration),
-          initDelay, delay, TimeUnit.SECONDS);
+        executorService.scheduleWithFixedDelay(
+          new TimelineMetricStoreWatcher(this, configuration), initDelay, delay,
+          TimeUnit.SECONDS);
         LOG.info("Started watchdog for timeline metrics store with initial " +
           "delay = " + initDelay + ", delay = " + delay);
       }
@@ -349,30 +322,13 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     return metricMetadataManager.getHostedAppsCache();
   }
 
-  @Override
-  public List<String> getLiveInstances() {
-    return haController.getLiveInstanceHostNames();
-  }
-
-  private void scheduleAggregatorThread(final TimelineMetricAggregator aggregator) {
+  private void scheduleAggregatorThread(TimelineMetricAggregator aggregator) {
+    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     if (!aggregator.isDisabled()) {
-      ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(
-        new ThreadFactory() {
-          @Override
-          public Thread newThread(Runnable r) {
-            return new Thread(r, ACTUAL_AGGREGATOR_NAMES.get(aggregator.getName()));
-          }
-        }
-      );
-      scheduledExecutors.put(aggregator.getName(), executorService);
       executorService.scheduleAtFixedRate(aggregator,
         0l,
         aggregator.getSleepIntervalMillis(),
         TimeUnit.MILLISECONDS);
-      LOG.info("Scheduled aggregator thread " + aggregator.getName() + " every " +
-        + aggregator.getSleepIntervalMillis() + " milliseconds.");
-    } else {
-      LOG.info("Skipped scheduling " + aggregator.getName() + " since it is disabled.");
     }
   }
 }

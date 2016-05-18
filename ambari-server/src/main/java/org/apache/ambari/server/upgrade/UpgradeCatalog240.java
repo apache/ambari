@@ -299,7 +299,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(CLUSTER_TABLE, new DBColumnInfo(CLUSTER_UPGRADE_ID_COLUMN, Long.class, null, null, true));
 
     dbAccessor.addFKConstraint(CLUSTER_TABLE, "FK_clusters_upgrade_id",
-      CLUSTER_UPGRADE_ID_COLUMN, UPGRADE_TABLE, "upgrade_id", false);
+        CLUSTER_UPGRADE_ID_COLUMN, UPGRADE_TABLE, "upgrade_id", false);
   }
 
   @Override

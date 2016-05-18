@@ -18,7 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.HBaseTimelineMetricStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicLong;
-
 import static junit.framework.Assert.assertEquals;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
@@ -45,7 +44,7 @@ public class AbstractTimelineAggregatorTest {
 
   @Before
   public void setUp() throws Exception {
-    sleepIntervalMillis = 5 * 60 * 1000l; //5 minutes
+    sleepIntervalMillis = 5*60*1000l; //5 minutes
     checkpointCutOffMultiplier = 2;
 
     Configuration metricsConf = new Configuration();
@@ -57,7 +56,7 @@ public class AbstractTimelineAggregatorTest {
     checkPoint = new AtomicLong(-1);
     actualRuns = 0;
 
-    agg = new AbstractTimelineAggregator(AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND, null, metricsConf) {
+    agg = new AbstractTimelineAggregator("TimelineAggregatorTest", null, metricsConf) {
       @Override
       public boolean doWork(long startTime, long endTime) {
         startTimeInDoWork.set(startTime);

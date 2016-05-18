@@ -23,11 +23,9 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 /**
  * Configuration class that reads properties from ams-site.xml. All values
@@ -40,7 +38,6 @@ public class TimelineMetricConfiguration {
 
   public static final String HBASE_SITE_CONFIGURATION_FILE = "hbase-site.xml";
   public static final String METRICS_SITE_CONFIGURATION_FILE = "ams-site.xml";
-  public static final String METRICS_ENV_CONFIGURATION_FILE = "ams-env.xml";
 
   public static final String TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR =
     "timeline.metrics.aggregator.checkpoint.dir";
@@ -228,25 +225,16 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_TABLES_DURABILITY =
     "timeline.metrics.tables.durability";
 
-<<<<<<< HEAD
-  public static final String TIMELINE_METRIC_METADATA_FILTERS =
-    "timeline.metrics.service.metadata.filters";
-
   public static final String HBASE_BLOCKING_STORE_FILES =
     "hbase.hstore.blockingStoreFiles";
 
   public static final String DEFAULT_TOPN_HOSTS_LIMIT =
     "timeline.metrics.default.topn.hosts.limit";
 
-=======
->>>>>>> parent of e3c9816... AMBARI-15902. Refactor Metadata manager for supporting distributed collector. (swagle)
   public static final String HOST_APP_ID = "HOST";
-
-  public static final String DEFAULT_INSTANCE_PORT = "12001";
 
   private Configuration hbaseConf;
   private Configuration metricsConf;
-  private Configuration amsEnvConf;
   private volatile boolean isInitialized = false;
 
   public void initialize() throws URISyntaxException, MalformedURLException {
@@ -273,7 +261,6 @@ public class TimelineMetricConfiguration {
     hbaseConf.addResource(hbaseResUrl.toURI().toURL());
     metricsConf = new Configuration(true);
     metricsConf.addResource(amsResUrl.toURI().toURL());
-
     isInitialized = true;
   }
 
@@ -289,37 +276,6 @@ public class TimelineMetricConfiguration {
       initialize();
     }
     return metricsConf;
-  }
-
-  public String getZKClientPort() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return hbaseConf.getTrimmed("hbase.zookeeper.property.clientPort", "2181");
-  }
-
-  public String getZKQuorum() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return hbaseConf.getTrimmed("hbase.zookeeper.quorum");
-  }
-
-  public String getInstanceHostnameFromEnv() throws UnknownHostException {
-    String amsInstanceName = System.getProperty("AMS_INSTANCE_NAME");
-    if (amsInstanceName == null) {
-      amsInstanceName = InetAddress.getLocalHost().getHostName();
-    }
-    return amsInstanceName;
-  }
-
-  public String getInstancePort() throws MalformedURLException, URISyntaxException {
-    String amsInstancePort = System.getProperty("AMS_INSTANCE_PORT");
-    if (amsInstancePort == null) {
-      // Check config
-      return getMetricsConf().get("timeline.metrics.availability.instance.port", DEFAULT_INSTANCE_PORT);
-    }
-    return DEFAULT_INSTANCE_PORT;
   }
 
   public String getWebappAddress() {
@@ -378,13 +334,5 @@ public class TimelineMetricConfiguration {
       return metricsConf.get(TIMELINE_SERVICE_RPC_ADDRESS, defaultRpcAddress);
     }
     return defaultRpcAddress;
-  }
-
-  public boolean isDistributedOperationModeEnabled() {
-    try {
-      return getMetricsConf().get("timeline.metrics.service.operation.mode").equals("distributed");
-    } catch (Exception e) {
-      return false;
-    }
   }
 }

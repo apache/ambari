@@ -85,10 +85,4 @@ public interface TimelineMetricStore {
    * @throws IOException
    */
   Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException;
-
-  /**
-   * Return a list of known live collector nodes
-   * @return [ hostname ]
-   */
-  List<String> getLiveInstances();
 }

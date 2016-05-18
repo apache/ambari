@@ -1,7 +1,5 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,38 +20,22 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 public interface TimelineMetricAggregator extends Runnable {
   /**
    * Aggregate metric data within the time bounds.
-   *
    * @param startTime start time millis
-   * @param endTime   end time millis
+   * @param endTime end time millis
    * @return success
    */
-  boolean doWork(long startTime, long endTime);
+  public boolean doWork(long startTime, long endTime);
 
   /**
    * Is aggregator is disabled by configuration.
-   *
    * @return true/false
    */
-  boolean isDisabled();
+  public boolean isDisabled();
 
   /**
    * Return aggregator Interval
-   *
    * @return Interval in Millis
    */
-  Long getSleepIntervalMillis();
+  public Long getSleepIntervalMillis();
 
-  /**
-   * Get aggregator name
-   * @return @AGGREGATOR_NAME
-   */
-  AGGREGATOR_NAME getName();
-
-  /**
-   * Known aggregator types
-   */
-  enum AGGREGATOR_TYPE {
-    CLUSTER,
-    HOST
   }
-}

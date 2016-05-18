@@ -20,9 +20,6 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.slf4j.LoggerFactory;
@@ -37,7 +34,6 @@ import java.util.Date;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
 /**
  * Base class for all runnable aggregators. Provides common functions like
@@ -56,12 +52,11 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   protected String tableName;
   protected String outputTableName;
   protected Long nativeTimeRangeDelay;
-  protected AggregationTaskRunner taskRunner;
 
   // Explicitly name aggregators for logging needs
-  private final AGGREGATOR_NAME aggregatorName;
+  private final String aggregatorName;
 
-  AbstractTimelineAggregator(AGGREGATOR_NAME aggregatorName,
+  AbstractTimelineAggregator(String aggregatorName,
                              PhoenixHBaseAccessor hBaseAccessor,
                              Configuration metricsConf) {
     this.aggregatorName = aggregatorName;
@@ -69,10 +64,10 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     this.metricsConf = metricsConf;
     this.checkpointDelayMillis = SECONDS.toMillis(metricsConf.getInt(AGGREGATOR_CHECKPOINT_DELAY, 120));
     this.resultsetFetchSize = metricsConf.getInt(RESULTSET_FETCH_SIZE, 2000);
-    this.LOG = LoggerFactory.getLogger(ACTUAL_AGGREGATOR_NAMES.get(aggregatorName));
+    this.LOG = LoggerFactory.getLogger(aggregatorName);
   }
 
-  public AbstractTimelineAggregator(AGGREGATOR_NAME aggregatorName,
+  public AbstractTimelineAggregator(String aggregatorName,
                                     PhoenixHBaseAccessor hBaseAccessor,
                                     Configuration metricsConf,
                                     String checkpointLocation,
@@ -81,8 +76,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
                                     String aggregatorDisableParam,
                                     String tableName,
                                     String outputTableName,
-                                    Long nativeTimeRangeDelay,
-                                    TimelineMetricHAController haController) {
+                                    Long nativeTimeRangeDelay) {
     this(aggregatorName, hBaseAccessor, metricsConf);
     this.checkpointLocation = checkpointLocation;
     this.sleepIntervalMillis = sleepIntervalMillis;
@@ -90,9 +84,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     this.aggregatorDisableParam = aggregatorDisableParam;
     this.tableName = tableName;
     this.outputTableName = outputTableName;
-    this.nativeTimeRangeDelay = nativeTimeRangeDelay;
-    this.taskRunner = haController != null && haController.isInitialized() ?
-      haController.getAggregationTaskRunner() : null;
+    this.nativeTimeRangeDelay =  nativeTimeRangeDelay;
   }
 
   @Override
@@ -106,39 +98,25 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
    * Access relaxed for tests
    */
   public void runOnce(Long SLEEP_INTERVAL) {
-    boolean performAggregationFunction = true;
-    if (taskRunner != null) {
-      switch (getAggregatorType()) {
-        case HOST:
-          performAggregationFunction = taskRunner.performsHostAggregation();
-          break;
-        case CLUSTER:
-          performAggregationFunction = taskRunner.performsClusterAggregation();
-      }
-    }
 
-    if (performAggregationFunction) {
-      long currentTime = System.currentTimeMillis();
-      long lastCheckPointTime = readLastCheckpointSavingOnFirstRun(currentTime);
+    long currentTime = System.currentTimeMillis();
+    long lastCheckPointTime = readLastCheckpointSavingOnFirstRun(currentTime);
 
-      if (lastCheckPointTime != -1) {
-        LOG.info("Last check point time: " + lastCheckPointTime + ", lagBy: "
-          + ((currentTime - lastCheckPointTime) / 1000)
-          + " seconds.");
+    if (lastCheckPointTime != -1) {
+      LOG.info("Last check point time: " + lastCheckPointTime + ", lagBy: "
+        + ((currentTime - lastCheckPointTime) / 1000)
+        + " seconds.");
 
-        boolean success = doWork(lastCheckPointTime, lastCheckPointTime + SLEEP_INTERVAL);
+      boolean success = doWork(lastCheckPointTime, lastCheckPointTime + SLEEP_INTERVAL);
 
-        if (success) {
-          try {
-            saveCheckPoint(lastCheckPointTime + SLEEP_INTERVAL);
-          } catch (IOException io) {
-            LOG.warn("Error saving checkpoint, restarting aggregation at " +
-              "previous checkpoint.");
-          }
+      if (success) {
+        try {
+          saveCheckPoint(lastCheckPointTime + SLEEP_INTERVAL);
+        } catch (IOException io) {
+          LOG.warn("Error saving checkpoint, restarting aggregation at " +
+            "previous checkpoint.");
         }
       }
-    } else {
-      LOG.info("Skipping aggregation function not owned by this instance.");
     }
   }
 
@@ -196,9 +174,6 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   }
 
   protected long readCheckPoint() {
-    if (taskRunner != null) {
-      return taskRunner.getCheckpointManager().readCheckpoint(aggregatorName);
-    }
     try {
       File checkpoint = new File(getCheckpointLocation());
       if (checkpoint.exists()) {
@@ -214,23 +189,15 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   }
 
   protected void saveCheckPoint(long checkpointTime) throws IOException {
-    if (taskRunner != null) {
-      boolean success = taskRunner.getCheckpointManager().writeCheckpoint(aggregatorName, checkpointTime);
-      if (!success) {
-        LOG.error("Error saving checkpoint with AggregationTaskRunner, " +
-          "aggregator = " + aggregatorName + "value = " + checkpointTime);
+    File checkpoint = new File(getCheckpointLocation());
+    if (!checkpoint.exists()) {
+      boolean done = checkpoint.createNewFile();
+      if (!done) {
+        throw new IOException("Could not create checkpoint at location, " +
+          getCheckpointLocation());
       }
-    } else {
-      File checkpoint = new File(getCheckpointLocation());
-      if (!checkpoint.exists()) {
-        boolean done = checkpoint.createNewFile();
-        if (!done) {
-          throw new IOException("Could not create checkpoint at location, " +
-            getCheckpointLocation());
-        }
-      }
-      FileUtils.writeStringToFile(checkpoint, String.valueOf(checkpointTime));
     }
+    FileUtils.writeStringToFile(checkpoint, String.valueOf(checkpointTime));
   }
 
   /**
@@ -350,21 +317,4 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     return currentTime - (currentTime % aggregatorPeriod);
   }
 
-  /**
-   * Get @AGGREGATOR_TYPE based on the output table.
-   * This is solely used by the HAController to determine which lock to acquire.
-   */
-  public AGGREGATOR_TYPE getAggregatorType() {
-    if (outputTableName.contains("RECORD")) {
-      return AGGREGATOR_TYPE.HOST;
-    } else if (outputTableName.contains("AGGREGATE")) {
-      return AGGREGATOR_TYPE.CLUSTER;
-    }
-    return null;
-  }
-
-  @Override
-  public AGGREGATOR_NAME getName() {
-    return aggregatorName;
-  }
 }

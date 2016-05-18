@@ -80,9 +80,6 @@
     <value>
 # Set environment variables here.
 
-# AMS instance name
-export AMS_INSTANCE_NAME={{hostname}}
-
 # The java implementation to use. Java 1.6 required.
 export JAVA_HOME={{java64_home}}
 
