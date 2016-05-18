@@ -30,9 +30,7 @@ export default application.extend({
   uploadFiles: function (path, files, extras) {
     var uploadUrl = this.buildUploadURL(path);
 
-    console.log("uplaoder : uploadURL : ", uploadUrl);
-    console.log("uploader : extras : ", extras);
-    console.log("uploader : files : ", files);
+    console.log("uplaoder : uploadURL : ", uploadUrl, " extras : ", extras , "files : ", files);
 
     var hdrs = Ember.$.extend(true, {},this.get('headers'));
     delete hdrs['Content-Type'];
@@ -72,10 +70,8 @@ export default application.extend({
                      headers: self.get('headers'),
                      dataType : 'json'
                  }).done(function(data) {
-                     console.log( "inside done : data : ", data );
                      resolve(data);
                  }).fail(function(error) {
-                     console.log( "inside fail error :  ", error );
                      reject(error);
                  });
               });
