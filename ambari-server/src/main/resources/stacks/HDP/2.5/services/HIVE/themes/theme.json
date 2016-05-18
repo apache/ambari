@@ -86,6 +86,28 @@
           ]
         },
         {
+          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
+          "subsection-name": "interactive-query-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "hive-interactive-env/enable_hive_interactive"
+              ],
+              "if": "${hive-interactive-env/enable_hive_interactive}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
           "config": "hive-interactive-env/num_llap_nodes",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
@@ -172,28 +194,6 @@
               }
             }
           ]
-        },
-        {
-          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
         }
       ]
     },
@@ -231,7 +231,7 @@
       {
         "config": "hive-interactive-env/num_llap_nodes",
         "widget": {
-          "type": "slider",
+          "type": "text-field",
           "units": [
             {
               "unit-name": "int"
@@ -253,10 +253,10 @@
       {
         "config": "hive-interactive-site/hive.llap.daemon.yarn.container.mb",
         "widget": {
-          "type": "slider",
+          "type": "label",
           "units": [
             {
-              "unit-name": "GB"
+              "unit-name": "MB"
             }
           ]
         }
@@ -264,10 +264,10 @@
       {
         "config": "hive-interactive-site/hive.llap.io.memory.size",
         "widget": {
-          "type": "label",
+          "type": "text-field",
           "units": [
             {
-              "unit-name": "GB"
+              "unit-name": "MB"
             }
           ]
         }
@@ -275,7 +275,7 @@
       {
         "config": "hive-interactive-site/hive.llap.daemon.num.executors",
         "widget": {
-          "type": "slider",
+          "type": "text-field",
           "units": [
             {
               "unit-name": "int"
