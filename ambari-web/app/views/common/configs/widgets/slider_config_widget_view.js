@@ -645,7 +645,11 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
           return false;
         }
       }
-      this.updateWarningsForCompatibilityWithWidget('');
+      if (this.get('config.name') === 'llap_queue_capacity') {
+        this.get('config').validate();
+      } else {
+        this.updateWarningsForCompatibilityWithWidget('');
+      }
       return true;
     }
     return false;

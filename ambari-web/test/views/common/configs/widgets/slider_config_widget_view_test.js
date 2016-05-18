@@ -581,7 +581,7 @@ describe('App.SliderConfigWidgetView', function () {
     var stackConfigProperty = null;
 
     beforeEach(function() {
-      viewInt.set('config', {});
+      viewInt.set('config', App.ServiceConfigProperty.create({}));
       stackConfigProperty = {name: 'p1', widget: { units: [ { 'unit-name': "int"}]}, valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}};
       viewInt.set('config.stackConfigProperty', stackConfigProperty);
       viewInt.set('config.isValid', true);
@@ -633,6 +633,29 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewInt.isValueCompatibleWithWidget()).to.be.true;
       expect(viewInt.get('warnMessage')).to.equal('');
       expect(viewInt.get('issueMessage')).to.equal('');
+    });
+
+    describe('llap_queue_capacity property', function() {
+      beforeEach(function() {
+        viewInt.set('config.name', 'llap_queue_capacity');
+      });
+      it('should validate and warn about llap issue when value is 100%', function() {
+        viewInt.set('config.stackConfigProperty.valueAttributes.maximum', 100);
+        viewInt.set('config.value', '100');
+        viewInt.set('config.errorMessage', '');
+        viewInt.set('config.warnMessage', '');
+        assert.isTrue(viewInt.isValueCompatibleWithWidget(), 'value should be compatible with widget');
+        assert.equal(viewInt.get('config.warnMessage'), Em.I18n.t('config.warnMessage.llap_queue_capacity.max'), 'warn message validation');
+      });
+
+      it('should pass validation because llap < 100', function() {
+        viewInt.set('config.stackConfigProperty.valueAttributes.maximum', 100);
+        viewInt.set('config.value', '99');
+        viewInt.set('config.errorMessage', '');
+        viewInt.set('config.warnMessage', '');
+        assert.isTrue(viewInt.isValueCompatibleWithWidget(), 'value should be compatible with widget');
+        assert.equal(viewInt.get('config.warnMessage'), '', 'warn message validation');
+      });
     });
   });
 

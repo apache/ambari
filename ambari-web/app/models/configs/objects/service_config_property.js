@@ -318,6 +318,13 @@ App.ServiceConfigProperty = Em.Object.extend({
       this.set('errorMessage', ''); // do not perform validation for not editable configs
     } else if ((typeof this.get('value') != 'object') && ((this.get('value') + '').length === 0)) {
       this.set('errorMessage', (this.get('isRequired') && this.get('widgetType') != 'test-db-connection') ? Em.I18n.t('errorMessage.config.required') : '');
+    } else if (this.get('name') === 'llap_queue_capacity') {
+      if (!isNaN(parseInt(this.get('value'), 10)) && parseInt(this.get('value'), 10) === 100) {
+        this.set('warnMessage', Em.I18n.t('config.warnMessage.llap_queue_capacity.max'));
+      } else {
+        this.set('warnMessage', '');
+        this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
+      }
     } else {
       this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
     }
