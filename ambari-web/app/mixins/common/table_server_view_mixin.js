@@ -87,44 +87,10 @@ App.TableServerViewMixin = Em.Mixin.create({
     return true;
   },
 
-  updateComboFilter: function(searchCollection) {
-    var self = this;
-    var comboController = App.router.get('mainHostComboSearchBoxController');
+  updateComboFilter: function(filterConditions) {
     clearTimeout(this.get('timeOut'));
     this.set('controller.resetStartIndex', true);
-    this.set('filterConditions', []);
-    searchCollection.models.forEach(function (model) {
-      var tag = model.attributes;
-      var map = App.router.get('mainHostController.labelValueMap');
-      var category = map[tag.category] || tag.category;
-      var value = map[tag.value] || tag.value;
-      var isComponentState = comboController.isComponentStateFacet(category);
-      var iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(isComponentState? 'componentState' : category);
-      var filterCondition = self.get('filterConditions').findProperty('iColumn', iColumn);
-      var filterValue = isComponentState? (category + ':' + value) : value;
-      if (filterCondition) {
-        if (typeof filterCondition.value == 'string') {
-          filterCondition.value = [filterCondition.value, filterValue];
-        } else if (Em.isArray(filterCondition.value) && filterCondition.value.indexOf(filterValue) == -1) {
-          filterCondition.value.push(filterValue);
-        }
-      } else {
-        var type = 'string';
-        if (category === 'cpu') {
-          type = 'number';
-        }
-        if (category === 'memoryFormatted') {
-          type = 'ambari-bandwidth';
-        }
-        filterCondition = {
-          skipFilter: false,
-          iColumn: iColumn,
-          value: filterValue,
-          type: type
-        };
-        self.get('filterConditions').push(filterCondition);
-      }
-    });
+    this.set('filterConditions', filterConditions);
     this.saveAllFilterConditions();
     this.refresh();
   },

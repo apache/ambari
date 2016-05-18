@@ -20,6 +20,8 @@ var App = require('app');
 
 App.MainHostComboSearchBoxView = Em.View.extend({
   templateName: require('templates/main/host/combo_search_box'),
+  healthStatusCategories: require('data/host/categories'),
+
   didInsertElement: function () {
     this.initVS();
     this.restoreComboFilterQuery();
@@ -109,6 +111,68 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     map['Maintenance Mode Off'] = 'OFF';
   },
 
+  createFilterConditions: function(searchCollection) {
+    var self = this;
+    var mainHostController = App.router.get('mainHostController');
+    var filterConditions = Em.A();
+    searchCollection.models.forEach(function (model) {
+      var tag = model.attributes;
+      var map = mainHostController.get('labelValueMap');
+      var category = map[tag.category] || tag.category;
+      var value = map[tag.value] || tag.value;
+
+      var iColumn = self.getFilterColumn(category, value);
+      var filterValue = self.getFilterValue(category, value);
+      var condition = filterConditions.findProperty('iColumn', iColumn);
+      if (condition) {
+        // handle multiple facets with same category
+        if (typeof condition.value == 'string') {
+          condition.value = [condition.value, filterValue];
+        } else if (Em.isArray(condition.value) && condition.value.indexOf(filterValue) == -1) {
+          condition.value.push(filterValue);
+        }
+      } else {
+        var type = 'string';
+        if (category === 'cpu') {
+          type = 'number';
+        }
+        if (category === 'memoryFormatted') {
+          type = 'ambari-bandwidth';
+        }
+        condition = {
+          skipFilter: false,
+          iColumn: iColumn,
+          value: filterValue,
+          type: type
+        };
+        filterConditions.push(condition);
+      }
+    });
+    return filterConditions;
+  },
+
+  getFilterColumn: function(category, value) {
+    var iColumn = -1;
+    if (this.get('controller').isComponentStateFacet(category)) {
+      iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf('componentState');
+    } else if (this.get('controller').isComplexHealthStatusFacet(value)) {
+      iColumn = this.get('healthStatusCategories').findProperty('healthStatus', value).column;
+    } else {
+      iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(category);
+    }
+    return iColumn;
+  },
+
+  getFilterValue: function(category, value) {
+    var filterValue = value;
+    if (this.get('controller').isComponentStateFacet(category)) {
+      filterValue = category + ':' + value;
+    } else if (this.get('controller').isComplexHealthStatusFacet(value)) {
+      filterValue = this.get('healthStatusCategories').findProperty('healthStatus', value).filterValue;
+    }
+    return filterValue;
+  },
+
   initVS: function() {
     var self = this;
     var controller = App.router.get('mainHostComboSearchBoxController');
@@ -126,7 +190,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
         search: function (query, searchCollection) {
           var tableView = self.get('parentView').get('parentView');
           App.db.setComboSearchQuery(tableView.get('controller.name'), query);
-          tableView.updateComboFilter(searchCollection);
+          var filterConditions = self.createFilterConditions(searchCollection);
+          tableView.updateComboFilter(filterConditions);
         },
 
         facetMatches: function (callback) {
@@ -186,16 +251,16 @@ App.MainHostComboSearchBoxView = Em.View.extend({
                 map[App.HostStackVersion.formatStatus(status)] = status;
                 return App.HostStackVersion.formatStatus(status);
               }).reject(function (item) {
-                return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
+                return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
               }));
               break;
             case 'healthClass':
-              var category_mocks = require('data/host/categories');
+              var category_mocks = self.healthStatusCategories;
               callback(category_mocks.slice(1).map(function (category) {
                 map[category.value] = category.healthStatus;
                 return category.value;
               }).reject(function (item) {
-                return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
+                return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
               }), {preserveOrder: true});
               break;
             case 'services':
@@ -203,7 +268,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
                 map[App.format.role(service.get('serviceName'), true)] = service.get('serviceName');
                 return App.format.role(service.get('serviceName'), true);
               }).reject(function (item) {
-                return visualSearch.searchQuery.values(facet).indexOf(item.value) >= 0;
+                return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
               }), {preserveOrder: true});
               break;
             case 'componentState':
