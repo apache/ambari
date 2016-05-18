@@ -56,6 +56,10 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
     return App.HostComponent.find().filterProperty('componentName', facet).length > 0;
   },
 
+  isComplexHealthStatusFacet: function(facet) {
+    return ['health-status-WITH-ALERTS', 'health-status-RESTART', 'health-status-PASSIVE_STATE'].contains(facet);
+  },
+
   generateQueryParam: function(param) {
     var expressions = param.key;
     var pHash = this.createComboParamHash(param);
