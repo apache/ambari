@@ -112,8 +112,8 @@ metadata_env_content = config['configurations']['atlas-env']['content']
 
 metadata_opts = config['configurations']['atlas-env']['metadata_opts']
 metadata_classpath = config['configurations']['atlas-env']['metadata_classpath']
-data_dir = config['configurations']['atlas-env']['metadata_data_dir']
-expanded_war_dir = os.environ['METADATA_EXPANDED_WEBAPP_DIR'] if 'METADATA_EXPANDED_WEBAPP_DIR' in os.environ else '/var/lib/atlas/server/webapp'
+data_dir = format("{stack_root}/current/atlas-server/data")
+expanded_war_dir = os.environ['METADATA_EXPANDED_WEBAPP_DIR'] if 'METADATA_EXPANDED_WEBAPP_DIR' in os.environ else format("{stack_root}/current/atlas-server/server/webapp")
 
 metadata_log4j_content = config['configurations']['atlas-log4j']['content']
 
