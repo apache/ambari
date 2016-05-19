@@ -261,6 +261,12 @@ public class ServiceInfo implements Validable{
   @XmlTransient
   private String servicePackageFolder;
 
+  /**
+   * Stores the path to the upgrades folder which contains the upgrade xmls for the given service.
+   */
+  @XmlTransient
+  private File serviceUpgradesFolder;
+
   public boolean isDeleted() {
     return isDeleted;
   }
@@ -581,6 +587,14 @@ public String getVersion() {
 
   public void setServicePackageFolder(String servicePackageFolder) {
     this.servicePackageFolder = servicePackageFolder;
+  }
+
+  public File getServiceUpgradesFolder() {
+    return serviceUpgradesFolder;
+  }
+
+  public void setServiceUpgradesFolder(File serviceUpgradesFolder) {
+    this.serviceUpgradesFolder = serviceUpgradesFolder;
   }
 
   /**

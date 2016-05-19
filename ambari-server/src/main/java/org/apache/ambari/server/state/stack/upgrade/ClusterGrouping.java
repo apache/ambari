@@ -19,7 +19,9 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
@@ -308,5 +311,72 @@ public class ClusterGrouping extends Grouping {
     obj.add("unhealthy", arr);
 
     mt.structuredOut = obj.toString();
+  }
+
+  /**
+   * Attempts to merge the given cluster groupings.  This merges the execute stages
+   * in an order specific manner.
+   */
+  public void merge(Iterator<Grouping> iterator) throws AmbariException {
+    if (executionStages == null) {
+      executionStages = new ArrayList<ExecuteStage>();
+    }
+    Map<String, List<ExecuteStage>> skippedStages = new HashMap<>();
+    while (iterator.hasNext()) {
+      Grouping next = iterator.next();
+      if (!(next instanceof ClusterGrouping)) {
+        throw new AmbariException("Invalid group type " + next.getClass().getSimpleName() + " expected cluster group");
+      }
+      ClusterGrouping clusterGroup = (ClusterGrouping) next;
+
+      boolean added = addGroupingStages(clusterGroup.executionStages, clusterGroup.addAfterGroupEntry);
+      if (added) {
+        addSkippedStages(skippedStages, clusterGroup.executionStages);
+      }
+      else {
+        // store these services until later
+        if (skippedStages.containsKey(next.addAfterGroupEntry)) {
+          List<ExecuteStage> tmp = skippedStages.get(clusterGroup.addAfterGroupEntry);
+          tmp.addAll(clusterGroup.executionStages);
+        }
+        else {
+          skippedStages.put(clusterGroup.addAfterGroupEntry, clusterGroup.executionStages);
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds the given stages if the stage they are supposed to come after has been added.
+   */
+  private boolean addGroupingStages(List<ExecuteStage> stagesToAdd, String after) {
+    if (after == null) {
+      executionStages.addAll(stagesToAdd);
+      return true;
+    }
+    else {
+      // Check the current stages, if the "after" stage is there then add these
+      for (int index = executionStages.size() - 1; index >= 0; index--) {
+        ExecuteStage stage = executionStages.get(index);
+        if ((stage.service != null && stage.service.equals(after)) || stage.title.equals(after)) {
+          executionStages.addAll(index + 1, stagesToAdd);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Adds the skipped stages if the stage they are supposed to come after has been added.
+   */
+  private void addSkippedStages(Map<String, List<ExecuteStage>> skippedStages, List<ExecuteStage> stagesJustAdded) {
+    for (ExecuteStage stage : stagesJustAdded) {
+      if (skippedStages.containsKey(stage.service)) {
+        List<ExecuteStage> stagesToAdd = skippedStages.remove(stage.service);
+        addGroupingStages(stagesToAdd, stage.service);
+        addSkippedStages(skippedStages, stagesToAdd);
+      }
+    }
   }
 }

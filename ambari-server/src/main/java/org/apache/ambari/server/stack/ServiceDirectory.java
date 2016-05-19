@@ -70,6 +70,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   protected String packageDir;
 
   /**
+   * upgrades directory path
+   */
+  protected File upgradesDir;
+
+  /**
    * service metainfo file object representation
    */
   private ServiceMetainfoXml metaInfoXml;
@@ -83,6 +88,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    * package directory name
    */
   protected static final String PACKAGE_FOLDER_NAME = "package";
+
+  /**
+   * upgrades directory name
+   */
+  protected static final String UPGRADES_FOLDER_NAME = "upgrades";
 
   /**
    * service metainfo file name
@@ -145,6 +155,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   public String getPackageDir() {
     return packageDir;
+  }
+
+  /**
+   * Obtain the upgrades directory path.
+   *
+   * @return upgrades directory path
+   */
+  public File getUpgradesDir() {
+    return upgradesDir;
   }
 
   /**

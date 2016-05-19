@@ -34,15 +34,13 @@ import org.slf4j.LoggerFactory;
 import javax.xml.bind.JAXBException;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Encapsulates IO operations on a stack definition stack directory.
@@ -417,10 +415,11 @@ public class StackDirectory extends StackDefinitionDirectory {
     serviceDirectories = dirs;
   }
 
+
   /**
    * Parse all stack upgrade files for the stack.
    *
-   * @param subDirs  stack sub directories
+   * @param subDirs stack sub directories
    * @throws AmbariException if unable to parse stack upgrade file
    */
   private void parseUpgradePacks(Collection<String> subDirs) throws AmbariException {
@@ -432,27 +431,18 @@ public class StackDirectory extends StackDefinitionDirectory {
         upgradesDir = f.getAbsolutePath();
         for (File upgradeFile : f.listFiles(XML_FILENAME_FILTER)) {
           if (upgradeFile.getName().toLowerCase().startsWith(CONFIG_UPGRADE_XML_FILENAME_PREFIX)) {
-            try { // Parse config upgrade pack
-              if (configUpgradePack == null) {
-                configUpgradePack = unmarshaller.unmarshal(ConfigUpgradePack.class, upgradeFile);
-              } else { // If user messed things up with lower/upper case filenames
-                throw new AmbariException(String.format("There are multiple files with name like %s" +
-                        upgradeFile.getAbsolutePath()));
-              }
-            } catch (JAXBException e) {
-              throw new AmbariException("Unable to parse stack upgrade file at location: " +
-                      upgradeFile.getAbsolutePath(), e);
+            if (configUpgradePack == null) {
+              configUpgradePack = parseConfigUpgradePack(upgradeFile);
             }
-          } else {
-            try {
-              String upgradePackName = FilenameUtils.removeExtension(upgradeFile.getName());
-              UpgradePack pack = unmarshaller.unmarshal(UpgradePack.class, upgradeFile);
-              pack.setName(upgradePackName);
-              upgradeMap.put(upgradePackName, pack);
-            } catch (JAXBException e) {
-              throw new AmbariException("Unable to parse stack upgrade file at location: " +
-                      upgradeFile.getAbsolutePath(), e);
+            else { // If user messed things up with lower/upper case filenames
+              throw new AmbariException(String.format("There are multiple files with name like %s" + upgradeFile.getAbsolutePath()));
             }
+          }
+          else {
+            String upgradePackName = FilenameUtils.removeExtension(upgradeFile.getName());
+            UpgradePack pack = parseUpgradePack(upgradePackName, upgradeFile);
+            pack.setName(upgradePackName);
+            upgradeMap.put(upgradePackName, pack);
           }
         }
       }
@@ -462,7 +452,7 @@ public class StackDirectory extends StackDefinitionDirectory {
       LOG.info("Stack '{}' doesn't contain an upgrade directory ", getPath());
     }
 
-    if (! upgradeMap.isEmpty()) {
+    if (!upgradeMap.isEmpty()) {
       upgradePacks = upgradeMap;
     }
 
@@ -471,7 +461,35 @@ public class StackDirectory extends StackDefinitionDirectory {
     } else {
       LOG.info("Stack '{}' doesn't contain config upgrade pack file", getPath());
     }
+  }
 
+  private UpgradePack parseUpgradePack(final String packName, File upgradeFile) throws AmbariException {
+    UpgradePack pack = null;
+    try {
+      pack = unmarshaller.unmarshal(UpgradePack.class, upgradeFile);
+      pack.setName(packName);
+    }
+    catch (JAXBException e) {
+      if (upgradeFile == null) {
+        throw new AmbariException("Null upgrade pack");
+      }
+      throw new AmbariException("Unable to parse stack upgrade file at location: " + upgradeFile.getAbsolutePath(), e);
+    }
+    return pack;
+  }
+
+  private ConfigUpgradePack parseConfigUpgradePack(File upgradeFile) throws AmbariException {
+    ConfigUpgradePack pack = null;
+    try {
+      pack = unmarshaller.unmarshal(ConfigUpgradePack.class, upgradeFile);
+    }
+    catch (JAXBException e) {
+      if (upgradeFile == null) {
+        throw new AmbariException("Null config upgrade pack");
+      }
+      throw new AmbariException("Unable to parse stack upgrade file at location: " + upgradeFile.getAbsolutePath(), e);
+    }
+    return pack;
   }
 
   /**

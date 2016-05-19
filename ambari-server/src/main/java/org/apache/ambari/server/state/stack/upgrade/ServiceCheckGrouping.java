@@ -19,7 +19,9 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +80,13 @@ public class ServiceCheckGrouping extends Grouping {
    */
   public Set<String> getPriorities() {
     return priorityServices;
+  }
+
+  /**
+   * @return the set of service names that should be excluded
+   */
+  public Set<String> getExcluded() {
+    return excludeServices;
   }
 
   /**
@@ -185,6 +194,75 @@ public class ServiceCheckGrouping extends Grouping {
         }
       }
       return false;
+    }
+  }
+
+  /**
+   * Attempts to merge all the service check groupings.  This merges the excluded list and
+   * the priorities.  The priorities are merged in an order specific manner.
+   */
+  public void merge(Iterator<Grouping> iterator) throws AmbariException {
+    List<String> priorities = new ArrayList<>();
+    priorities.addAll(getPriorities());
+    Map<String, Set<String>> skippedPriorities = new HashMap<>();
+    while (iterator.hasNext()) {
+      Grouping next = iterator.next();
+      if (!(next instanceof ServiceCheckGrouping)) {
+        throw new AmbariException("Invalid group type " + next.getClass().getSimpleName() + " expected service check group");
+      }
+      ServiceCheckGrouping checkGroup = (ServiceCheckGrouping) next;
+      getExcluded().addAll(checkGroup.getExcluded());
+
+      boolean added = addPriorities(priorities, checkGroup.getPriorities(), checkGroup.addAfterGroupEntry);
+      if (added) {
+        addSkippedPriorities(priorities, skippedPriorities, checkGroup.getPriorities());
+      }
+      else {
+        // store these services until later
+        if (skippedPriorities.containsKey(checkGroup.addAfterGroupEntry)) {
+          Set<String> tmp = skippedPriorities.get(checkGroup.addAfterGroupEntry);
+          tmp.addAll(checkGroup.getPriorities());
+        }
+        else {
+          skippedPriorities.put(checkGroup.addAfterGroupEntry, checkGroup.getPriorities());
+        }
+      }
+    }
+    getPriorities().clear();
+    getPriorities().addAll(priorities);
+  }
+
+  /**
+   * Add the given child priorities if the service they are supposed to come after have been added.
+   */
+  private boolean addPriorities(List<String> priorities, Set<String> childPriorities, String after) {
+    if (after == null) {
+      priorities.addAll(childPriorities);
+      return true;
+    }
+    else {
+      // Check the current priorities, if the "after" priority is there then add these
+      for (int index = priorities.size() - 1; index >= 0; index--) {
+        String priority = priorities.get(index);
+        if (after.equals(priority)) {
+          priorities.addAll(index + 1, childPriorities);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Add the skipped priorities if the services they are supposed to come after have been added
+   */
+  private void addSkippedPriorities(List<String> priorities, Map<String, Set<String>> skippedPriorites, Set<String> prioritiesJustAdded) {
+    for (String priority : prioritiesJustAdded) {
+      if (skippedPriorites.containsKey(priority)) {
+        Set<String> prioritiesToAdd = skippedPriorites.remove(priority);
+        addPriorities(priorities, prioritiesToAdd, priority);
+        addSkippedPriorities(priorities, skippedPriorites, prioritiesToAdd);
+      }
     }
   }
 }

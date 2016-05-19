@@ -441,6 +441,72 @@ public class UpgradePackTest {
     assertNull(clusterGroup.parallelScheduler);
   }
 
+
+  /**
+   * Tests that the service level XML merges correctly for 2.0.5/HDFS/HDP/2.2.0.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testServiceLevelUpgradePackMerge() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    assertTrue(upgrades.containsKey("upgrade_test_15388"));
+
+    UpgradePack upgradePack = upgrades.get("upgrade_test_15388");
+
+    List<String> checks = upgradePack.getPrerequisiteChecks();
+    assertEquals(11, checks.size());
+    assertTrue(checks.contains("org.apache.ambari.server.checks.FooCheck"));
+
+    List<Grouping> groups = upgradePack.getGroups(Direction.UPGRADE);
+    assertEquals(8, groups.size());
+    Grouping group = groups.get(0);
+    assertEquals(ClusterGrouping.class, group.getClass());
+    ClusterGrouping cluster_group = (ClusterGrouping) group;
+    assertEquals("Pre {{direction.text.proper}}", cluster_group.title);
+
+    List<ExecuteStage> stages = cluster_group.executionStages;
+    assertEquals(5, stages.size());
+    ExecuteStage stage = stages.get(3);
+    assertEquals("Backup FOO", stage.title);
+
+    group = groups.get(2);
+    assertEquals("Core Masters", group.title);
+    List<UpgradePack.OrderService> services = group.services;
+    assertEquals(3, services.size());
+    UpgradePack.OrderService service = services.get(2);
+    assertEquals("HBASE", service.serviceName);
+
+    group = groups.get(3);
+    assertEquals("Core Slaves", group.title);
+    services = group.services;
+    assertEquals(3, services.size());
+    service = services.get(1);
+    assertEquals("HBASE", service.serviceName);
+
+    group = groups.get(4);
+    assertEquals(ServiceCheckGrouping.class, group.getClass());
+    ServiceCheckGrouping scGroup = (ServiceCheckGrouping) group;
+    Set<String> priorityServices = scGroup.getPriorities();
+    assertEquals(4, priorityServices.size());
+    Iterator serviceIterator = priorityServices.iterator();
+    assertEquals("ZOOKEEPER", serviceIterator.next());
+    assertEquals("HBASE", serviceIterator.next());
+
+    group = groups.get(5);
+    assertEquals("Hive", group.title);
+
+    group = groups.get(6);
+    assertEquals("Foo", group.title);
+    services = group.services;
+    assertEquals(2, services.size());
+    service = services.get(1);
+    assertEquals("FOO2", service.serviceName);
+
+    Map<String, Map<String, ProcessingComponent>> tasks = upgradePack.getTasks();
+    assertTrue(tasks.containsKey("HBASE"));
+  }
+
   private int indexOf(Map<String, ?> map, String keyToFind) {
     int result = -1;
 
