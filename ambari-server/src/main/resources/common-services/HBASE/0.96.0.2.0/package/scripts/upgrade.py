@@ -18,14 +18,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management import *
+import re
 from resource_management.core import shell
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import StackFeature
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.decorator import retry
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import check_process_status
+
 
 def prestart(env, stack_component):
   import params

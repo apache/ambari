@@ -18,8 +18,15 @@ limitations under the License.
 
 """
 import os
-from resource_management import *
 import sys
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.source import Template, InlineTemplate
+from resource_management.core.resources import Package
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.resources.system import Directory, Execute, File
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 

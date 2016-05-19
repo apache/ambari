@@ -18,9 +18,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import os
 import status_params
+from resource_management.libraries.script.script import Script
 
 # server configurations
 config = Script.get_config()

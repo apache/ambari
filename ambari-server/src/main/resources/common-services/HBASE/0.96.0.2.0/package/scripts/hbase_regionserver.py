@@ -19,7 +19,8 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML

@@ -19,10 +19,9 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from hbase import hbase
 from ambari_commons import OSCheck, OSConst
