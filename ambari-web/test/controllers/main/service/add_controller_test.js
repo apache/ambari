@@ -515,4 +515,51 @@ describe('App.AddServiceController', function() {
     });
   });
 
+  describe('#loadClients', function () {
+
+    var cases = [
+      {
+        clients: null,
+        contentClients: [],
+        saveClientsCallCount: 1,
+        title: 'no clients info in local db'
+      },
+      {
+        clients: [{}],
+        contentClients: [{}],
+        saveClientsCallCount: 0,
+        title: 'clients info saved in local db'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(addServiceController, 'getDBProperty').withArgs('clientInfo').returns(item.clients);
+          sinon.stub(addServiceController, 'saveClients', Em.K);
+          addServiceController.set('content.clients', []);
+          addServiceController.loadClients();
+        });
+
+        afterEach(function () {
+          addServiceController.getDBProperty.restore();
+          addServiceController.saveClients.restore();
+        });
+
+        it('content.clients', function () {
+          expect(addServiceController.get('content.clients', [])).to.eql(item.contentClients);
+        });
+
+        it('saveClients call', function () {
+          expect(addServiceController.saveClients.callCount).to.equal(item.saveClientsCallCount);
+        });
+
+      });
+
+    });
+
+  });
+
 });

@@ -385,6 +385,18 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   },
 
   /**
+   * Load information about hosts with clients components
+   */
+  loadClients: function () {
+    var clients = this.getDBProperty('clientInfo');
+    if (clients) {
+      this.set('content.clients', clients);
+    } else {
+      this.saveClients();
+    }
+  },
+
+  /**
    * Remove all loaded data.
    * Created as copy for App.router.clearAllSteps
    */
