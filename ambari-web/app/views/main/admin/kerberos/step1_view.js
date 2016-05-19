@@ -27,18 +27,6 @@ App.KerberosWizardStep1View = Em.View.extend({
     controller.loadStep();
   },
 
-  /**
-   * whenever the KDC type is changed, all checkboxes for the precondition should be unchecked
-   */
-  resetCheckBoxes: function () {
-    var options = this.get('controller.options');
-    options.forEach(function (option) {
-      option.preConditions.forEach(function (_condition) {
-        _condition.set('checked', false);
-      });
-    }, this)
-  }.observes('controller.selectedItem')
-
 });
 
 

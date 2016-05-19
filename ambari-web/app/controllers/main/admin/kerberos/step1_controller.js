@@ -123,15 +123,18 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
 
   /**
    * precondition for the selected KDC option
+   * whenever the KDC type is changed, all checkboxes for the precondition should be unchecked
    */
   selectedOption: function () {
+    var options = this.get('options');
+    options.forEach(function (option) {
+      option.preConditions.setEach('checked', false);
+    })
     return this.get('options').findProperty('value', this.get('selectedItem'));
   }.property('selectedItem'),
 
 
   loadStep: function () {
-    this.set('selectedItem', Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'));
-
     if (App.get('supports.enableIpa')) {
       var ipaOption = this.get('ipaOption');
       var options = this.get('options');
