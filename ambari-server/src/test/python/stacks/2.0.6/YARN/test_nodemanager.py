@@ -156,7 +156,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
                               owner = 'yarn',
                               group = 'hadoop',
-                              mode = 0775,
+                              mode = 0755,
                               create_parents = True,
                               ignore_failures = True,
                               cd_access='a',
@@ -167,7 +167,7 @@ class TestNodeManager(RMFTestCase):
                               create_parents = True,
                               group = 'hadoop',
                               ignore_failures = True,
-                              mode = 0775,
+                              mode = 0755,
                               cd_access='a',
                               recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'}
                               )
@@ -354,7 +354,7 @@ class TestNodeManager(RMFTestCase):
                               group = 'hadoop',
                               create_parents = True,
                               ignore_failures = True,
-                              mode = 0775,
+                              mode = 0755,
                               cd_access='a',
                               recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
                               )
