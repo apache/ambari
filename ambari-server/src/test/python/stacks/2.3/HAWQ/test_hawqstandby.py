@@ -191,3 +191,45 @@ class TestHawqStandby(RMFTestCase):
         )
 
     self.assertNoMoreResources()
+
+
+  @patch ('common.get_local_hawq_site_property_value')
+  def test_activate_hawq_standby(self, get_local_hawq_site_property_value_mock):
+    """Test Activate HAWQ Standby Command"""
+
+    get_local_hawq_site_property_value_mock.return_value = 5432
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
+        classname = 'HawqStandby',
+        command = 'activate_hawq_standby',
+        config_file ='hawq_default.json',
+        stack_version = self.STACK_VERSION,
+        target = RMFTestCase.TARGET_COMMON_SERVICES
+        )
+
+    self.assertResourceCalled('XmlConfig', 'hawq-site.xml',
+        conf_dir = '/usr/local/hawq/etc/',
+        configurations = self.getConfig()['configurations']['hawq-site'],
+        configuration_attributes = self.getConfig()['configuration_attributes']['hawq-site'],
+        group = self.GPADMIN,
+        owner = self.GPADMIN,
+        mode = 0644
+        )
+
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq activate standby -a -M fast -v --ignore-bad-hosts',
+        logoutput = True,
+        not_if = None,
+        only_if = None,
+        user = self.GPADMIN,
+        timeout = 900
+        )
+
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq stop master -M fast -a -v',
+        logoutput = True,
+        not_if = None,
+        only_if = "netstat -tupln | egrep ':5432\\s' | egrep postgres",
+        user = self.GPADMIN,
+        timeout = 900
+        )
+
+    self.assertNoMoreResources()

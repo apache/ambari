@@ -47,7 +47,6 @@ class HawqStandby(Script):
     common.start_component(hawq_constants.STANDBY, params.hawq_master_address_port, params.hawq_master_dir)
 
   def stop(self, env):
-    import params
     common.stop_component(hawq_constants.STANDBY, hawq_constants.FAST)
 
   def status(self, env):
@@ -55,12 +54,16 @@ class HawqStandby(Script):
     assert_component_running(hawq_constants.STANDBY)
 
   def activate_hawq_standby(self, env):
+    import params
     import utils
     Logger.info("Activating HAWQ standby...")
+    params.XmlConfig("hawq-site.xml",
+                     configurations=params.hawq_site,
+                     configuration_attributes=params.config_attrs['hawq-site'])
     utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
 
-    # Stop the newly become master as the process might be running with an old port,
-    # which would cause a failure Start HAWQ Service step in Activate HAWQ Standby Master Wizard
+    # Stop the new HAWQMASTER as the process might be running at an old port,
+    # which might cause a failure in Start HAWQ Service step in the Activate HAWQ Standby Master Wizard
     common.stop_component(hawq_constants.MASTER, hawq_constants.FAST)
 
 if __name__ == "__main__":
