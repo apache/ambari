@@ -27,7 +27,7 @@ public class UserLocalHiveAuthCredentials extends UserLocal<HiveAuthCredentials>
   }
 
   @Override
-  protected synchronized HiveAuthCredentials initialValue(ViewContext context) {
+  protected HiveAuthCredentials initialValue(ViewContext context) {
     return new HiveAuthCredentials();
   }
 }
