@@ -85,6 +85,16 @@ public class CommonServiceDirectory extends ServiceDirectory {
       LOG.debug(String.format("Service package folder %s for common service %s does not exist.",
           absPackageDir, serviceId ));
     }
+
+    File absUpgradesDir = new File(getAbsolutePath() + File.separator + UPGRADES_FOLDER_NAME);
+    if(absUpgradesDir.isDirectory()) {
+      upgradesDir = absUpgradesDir;
+      LOG.debug(String.format("Service upgrades folder for common service %s has been resolved to %s",
+          serviceId, upgradesDir));
+    } else {
+      LOG.debug(String.format("Service upgrades folder %s for common service %s does not exist.",
+          absUpgradesDir, serviceId ));
+    }
     parseMetaInfoFile();
   }
 }

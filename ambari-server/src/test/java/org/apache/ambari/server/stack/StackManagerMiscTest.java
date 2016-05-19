@@ -117,4 +117,35 @@ public class StackManagerMiscTest  {
 
     verify(metaInfoDao, stackDao, actionMetadata, osFamily);
   }
+
+  /**
+   * This test ensures that service upgrade xml that creates circular dependencies
+   * will throw an exception.
+   */
+  @Test
+  public void testCircularDependencyForServiceUpgrade() throws Exception {
+    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
+    StackDAO stackDao = createNiceMock(StackDAO.class);
+    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
+    OsFamily osFamily = createNiceMock(OsFamily.class);
+    StackEntity stackEntity = createNiceMock(StackEntity.class);
+
+    expect(
+        stackDao.find(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
+
+    replay(actionMetadata, stackDao, metaInfoDao, osFamily);
+
+    try {
+      String upgradeCycle = ClassLoader.getSystemClassLoader().getResource("stacks_with_upgrade_cycle").getPath();
+
+      StackManager stackManager = new StackManager(new File(upgradeCycle),
+          null, osFamily, metaInfoDao, actionMetadata, stackDao);
+
+      fail("Expected exception due to cyclic service upgrade xml");
+    } catch (AmbariException e) {
+      // expected
+      assertEquals("Missing groups: [BAR, FOO]", e.getMessage());
+    }
+  }
 }

@@ -154,6 +154,74 @@ public class UpgradePack {
   }
 
   /**
+   * Merges the prerequisite checks section of the upgrade xml with
+   * the prerequisite checks from a service's upgrade xml.
+   * These are added to the end of the current list of checks.
+   *
+   * @param pack
+   *              the service's upgrade pack
+   */
+  public void mergePrerequisiteChecks(UpgradePack pack) {
+    PrerequisiteChecks newPrereqChecks = pack.prerequisiteChecks;
+    if (prerequisiteChecks == null) {
+      prerequisiteChecks = newPrereqChecks;
+      return;
+    }
+
+    if (newPrereqChecks == null) {
+      return;
+    }
+
+    if (prerequisiteChecks.checks == null) {
+      prerequisiteChecks.checks = new ArrayList<String>();
+    }
+    if (newPrereqChecks.checks != null) {
+      prerequisiteChecks.checks.addAll(newPrereqChecks.checks);
+    }
+
+    if (newPrereqChecks.configuration == null) {
+      return;
+    }
+
+    if (prerequisiteChecks.configuration == null) {
+      prerequisiteChecks.configuration = newPrereqChecks.configuration;
+      return;
+    }
+    if (prerequisiteChecks.configuration.globalProperties == null) {
+      prerequisiteChecks.configuration.globalProperties = new ArrayList<PrerequisiteProperty>();
+    }
+    if (prerequisiteChecks.configuration.prerequisiteCheckProperties == null) {
+      prerequisiteChecks.configuration.prerequisiteCheckProperties = new ArrayList<PrerequisiteCheckProperties>();
+    }
+    if (newPrereqChecks.configuration.globalProperties != null) {
+      prerequisiteChecks.configuration.globalProperties.addAll(newPrereqChecks.configuration.globalProperties);
+    }
+    if (newPrereqChecks.configuration.prerequisiteCheckProperties != null) {
+      prerequisiteChecks.configuration.prerequisiteCheckProperties.addAll(newPrereqChecks.configuration.prerequisiteCheckProperties);
+    }
+  }
+
+/**
+ * Merges the processing section of the upgrade xml with
+ * the processing section from a service's upgrade xml.
+ * These are added to the end of the current list of services.
+ *
+ * @param pack
+ *              the service's upgrade pack
+ */
+  public void mergeProcessing(UpgradePack pack) {
+    List<ProcessingService> list = pack.processing;
+    if (list == null) {
+      return;
+    }
+    if (processing == null) {
+      processing = list;
+      return;
+    }
+    processing.addAll(list);
+  }
+
+  /**
    * Gets a list of stacks which are between the current stack version and the
    * target stack version inclusive. For example, if upgrading from HDP-2.2 to
    * HDP-2.4, this should include HDP-2.3 and HDP-2.4.
@@ -193,6 +261,10 @@ public class UpgradePack {
    */
   public boolean isServiceCheckFailureAutoSkipped() {
     return skipServiceCheckFailures;
+  }
+
+  public List<Grouping> getAllGroups() {
+    return groups;
   }
 
   /**

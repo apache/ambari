@@ -133,6 +133,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile(serviceInfo.getName()));
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
+    serviceInfo.setServiceUpgradesFolder(serviceDirectory.getUpgradesDir());
     serviceInfo.setAdvisorFile(serviceDirectory.getAdvisorFile());
     serviceInfo.setAdvisorName(serviceDirectory.getAdvisorName(serviceInfo.getName()));
 
@@ -212,6 +213,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
     if (serviceInfo.getServicePackageFolder() == null) {
       serviceInfo.setServicePackageFolder(parent.getServicePackageFolder());
+    }
+    if (serviceInfo.getServiceUpgradesFolder() == null) {
+      serviceInfo.setServiceUpgradesFolder(parent.getServiceUpgradesFolder());
     }
     if (serviceInfo.getMetricsFile() == null) {
       serviceInfo.setMetricsFile(parent.getMetricsFile());

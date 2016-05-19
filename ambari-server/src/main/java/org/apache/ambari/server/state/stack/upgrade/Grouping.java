@@ -19,7 +19,9 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,9 +30,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.UpgradePack.OrderService;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.utils.SetUtils;
 import org.apache.commons.lang.StringUtils;
@@ -46,6 +50,12 @@ public class Grouping {
 
   @XmlAttribute(name="title")
   public String title;
+
+  @XmlElement(name="add-after-group")
+  public String addAfterGroup;
+
+  @XmlElement(name="add-after-group-entry")
+  public String addAfterGroupEntry;
 
   @XmlElement(name="skippable", defaultValue="false")
   public boolean skippable = false;
@@ -308,6 +318,65 @@ public class Grouping {
           break;
       }
       tasks.add(initial);
+    }
+  }
+
+  /**
+   * Merge the services of all the child groups, with the current services.
+   * Keeping the order specified by the group.
+   */
+  public void merge(Iterator<Grouping> iterator) throws AmbariException {
+    Map<String, List<OrderService>> skippedServices = new HashMap<>();
+    while (iterator.hasNext()) {
+      Grouping group = iterator.next();
+
+      boolean added = addGroupingServices(group.services, group.addAfterGroupEntry);
+      if (added) {
+        addSkippedServices(skippedServices, group.services);
+      } else {
+        // store these services until later
+        if (skippedServices.containsKey(group.addAfterGroupEntry)) {
+          List<OrderService> tmp = skippedServices.get(group.addAfterGroupEntry);
+          tmp.addAll(group.services);
+        } else {
+          skippedServices.put(group.addAfterGroupEntry, group.services);
+        }
+      }
+    }
+  }
+
+  /**
+   * Merge the services to add after a particular service name
+   */
+  private boolean addGroupingServices(List<OrderService> servicesToAdd, String after) {
+    if (after == null) {
+      services.addAll(servicesToAdd);
+      return true;
+    }
+    else {
+      // Check the current services, if the "after" service is there then add these
+      for (int index = services.size() - 1; index >= 0; index--) {
+        OrderService service = services.get(index);
+        if (service.serviceName.equals(after)) {
+          services.addAll(index + 1, servicesToAdd);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Adds services which were previously skipped, if the service they are supposed
+   * to come after has been added.
+   */
+  private void addSkippedServices(Map<String, List<OrderService>> skippedServices, List<OrderService> servicesJustAdded) {
+    for (OrderService service : servicesJustAdded) {
+      if (skippedServices.containsKey(service.serviceName)) {
+        List<OrderService> servicesToAdd = skippedServices.remove(service.serviceName);
+        addGroupingServices(servicesToAdd, service.serviceName);
+        addSkippedServices(skippedServices, servicesToAdd);
+      }
     }
   }
 }
