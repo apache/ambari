@@ -220,24 +220,38 @@ java_share_dir = '/usr/share/java'
 hive_database_name = config['configurations']['hive-env']['hive_database_name']
 hive_database = config['configurations']['hive-env']['hive_database']
 hive_use_existing_db = hive_database.startswith('Existing')
+
+default_connectors_map = { "com.microsoft.sqlserver.jdbc.SQLServerDriver":"sqljdbc4.jar",
+                           "com.mysql.jdbc.Driver":"mysql-connector-java.jar",
+                           "org.postgresql.Driver":"postgresql-jdbc.jar",
+                           "oracle.jdbc.driver.OracleDriver":"ojdbc.jar",
+                           "sap.jdbc4.sqlanywhere.IDriver":"sajdbc4.jar"}
+
 # NOT SURE THAT IT'S A GOOD IDEA TO USE PATH TO CLASS IN DRIVER, MAYBE IT WILL BE BETTER TO USE DB TYPE.
 # BECAUSE PATH TO CLASSES COULD BE CHANGED
 sqla_db_used = False
 target_hive = None
+hive_previous_jdbc_jar_name = None
 if hive_jdbc_driver == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
   jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
 elif hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
 elif hive_jdbc_driver == "org.postgresql.Driver":
   jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
   jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
 elif hive_jdbc_driver == "sap.jdbc4.sqlanywhere.IDriver":
   jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+  hive_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
 
 default_mysql_jar_name = "mysql-connector-java.jar"
 default_mysql_target = format("{hive_lib}/{default_mysql_jar_name}")
+hive_previous_jdbc_jar = format("{hive_lib}/{hive_previous_jdbc_jar_name}")
 if not hive_use_existing_db:
   jdbc_jar_name = default_mysql_jar_name
 
@@ -623,14 +637,17 @@ if has_ranger_admin:
   enable_ranger_hive = (config['configurations']['hive-env']['hive_security_authorization'].lower() == 'ranger')
   repo_config_password = unicode(config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
+  ranger_previous_jdbc_jar_name = None
 
   if stack_supports_ranger_audit_db:
     if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
       ranger_jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      ranger_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "com.mysql.jdbc.Driver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
       ranger_jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      ranger_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
       colon_count = xa_db_host.count(':')
       if colon_count == 2 or colon_count == 0:
         audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
@@ -639,20 +656,24 @@ if has_ranger_admin:
       jdbc_driver = "oracle.jdbc.OracleDriver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
       ranger_jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      ranger_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
       audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "org.postgresql.Driver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'mssql':
       ranger_jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      ranger_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
       jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
       ranger_jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      ranger_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   ranger_driver_curl_target = format("{hive_lib}/{ranger_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  ranger_previous_jdbc_jar = format("{hive_lib}/{ranger_previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   sql_connector_jar = ''
 
   hive_ranger_plugin_config = {

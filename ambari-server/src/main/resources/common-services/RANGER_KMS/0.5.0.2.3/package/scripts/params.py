@@ -93,15 +93,23 @@ if has_ranger_admin:
   admin_uname_password = format("{admin_uname}:{admin_password}")
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
 
-java_share_dir = '/usr/share/java'
+default_connectors_map = { "mssql":"sqljdbc4.jar",
+                           "mysql":"mysql-connector-java.jar",
+                           "postgres":"postgresql-jdbc.jar",
+                           "oracle":"ojdbc.jar",
+                           "sqla":"sajdbc4.jar"}
 
+java_share_dir = '/usr/share/java'
+previous_jdbc_jar_name = None
 if db_flavor == 'mysql':
   jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
   db_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{db_name}')
   db_jdbc_driver = "com.mysql.jdbc.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor == 'oracle':
   jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
     db_jdbc_url = format('jdbc:oracle:thin:@{db_host}')
@@ -111,16 +119,19 @@ elif db_flavor == 'oracle':
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
 elif db_flavor == 'postgres':
   jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
   db_jdbc_url = format('jdbc:postgresql://{db_host}/{db_name}')
   db_jdbc_driver = "org.postgresql.Driver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor == 'mssql':
   jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
   db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={db_name}')
   db_jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor == 'sqla':
   jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   db_jdbc_url = format('jdbc:sqlanywhere:database={db_name};host={db_host}')
   db_jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
@@ -129,6 +140,7 @@ downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 driver_curl_target = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
+previous_jdbc_jar = format("{kms_home}/ews/webapp/lib/{previous_jdbc_jar_name}")
 ews_lib_jar_path = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
 
 if db_flavor == 'sqla':
@@ -139,13 +151,16 @@ if db_flavor == 'sqla':
   ld_library_path = format("{jdbc_libs_dir}")
 
 if has_ranger_admin:
+  xa_previous_jdbc_jar_name = None
   if stack_supports_ranger_audit_db:
     if xa_audit_db_flavor == 'mysql':
       jdbc_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "com.mysql.jdbc.Driver"
     elif xa_audit_db_flavor == 'oracle':
       jdbc_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
       colon_count = xa_db_host.count(':')
       if colon_count == 2 or colon_count == 0:
         audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
@@ -154,20 +169,24 @@ if has_ranger_admin:
       jdbc_driver = "oracle.jdbc.OracleDriver"
     elif xa_audit_db_flavor == 'postgres':
       jdbc_jar = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
       audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "org.postgresql.Driver"
     elif xa_audit_db_flavor == 'mssql':
       jdbc_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
       jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
     elif xa_audit_db_flavor == 'sqla':
       jdbc_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      xa_previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
   driver_source = format("{jdk_location}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
   driver_target = format("{kms_home}/ews/webapp/lib/{jdbc_jar}") if stack_supports_ranger_audit_db else None
+  xa_previous_jdbc_jar_name = format("{kms_home}/ews/webapp/lib/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
 
 repo_config_username = config['configurations']['kms-properties']['REPOSITORY_CONFIG_USERNAME']
 repo_config_password = unicode(config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD'])

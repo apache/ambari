@@ -316,8 +316,11 @@ def download_database_library_if_needed(target_directory = None):
 
   # check to see if the JDBC driver name is in the list of ones that need to
   # be downloaded
-  if params.jdbc_driver_name not in jdbc_drivers:
+  if params.jdbc_driver_name not in jdbc_drivers or not params.jdbc_driver_jar:
     return
+
+  if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
+    File(params.previous_jdbc_jar, action='delete')
 
   # if the target directory is not specified
   if target_directory is None:

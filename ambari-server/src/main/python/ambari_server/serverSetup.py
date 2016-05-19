@@ -77,6 +77,12 @@ UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 JDK_PROMPT = "[{0}] {1}\n"
 JDK_VALID_CHOICES = "^[{0}{1:d}]$"
 
+default_connectors_map = { "mssql":"sqljdbc4.jar",
+                           "mysql":"mysql-connector-java.jar",
+                           "postgres":"postgresql-jdbc.jar",
+                           "oracle":"ojdbc.jar",
+                           "sqlanywhere":"sajdbc4.jar"}
+
 def get_supported_jdbc_drivers():
   factory = DBMSConfigFactory()
   return factory.get_supported_jdbc_drivers()
@@ -870,8 +876,21 @@ def _cache_jdbc_driver(args):
 
   resources_dir = get_resources_location(properties)
   path, jdbc_name = os.path.split(args.jdbc_driver)
+  custom_db_jdbc_property_name = "custom." + args.jdbc_db + ".jdbc.name"
+  custom_db_jdbc_property_value = properties[custom_db_jdbc_property_name]
 
-  properties.process_pair("custom." + args.jdbc_db + ".jdbc.name", jdbc_name)
+  if custom_db_jdbc_property_value:
+    properties.process_pair("previous." + custom_db_jdbc_property_name, custom_db_jdbc_property_value)
+  else:
+    if args.jdbc_driver.endswith(TAR_GZ_ARCHIVE_TYPE):
+      symlink_name = args.jdbc_db + "-jdbc-driver" + TAR_GZ_ARCHIVE_TYPE
+    else:
+      symlink_name = args.jdbc_db + "-jdbc-driver.jar"
+
+    if os.path.lexists(os.path.join(resources_dir, symlink_name)):
+      properties.process_pair("previous." + custom_db_jdbc_property_name, default_connectors_map[args.jdbc_db])
+
+  properties.process_pair(custom_db_jdbc_property_name, jdbc_name)
 
   if os.path.isfile(os.path.join(resources_dir, jdbc_name)):
     os.remove(os.path.join(resources_dir, jdbc_name))
@@ -885,6 +904,9 @@ def _cache_jdbc_driver(args):
     raise FatalException(1, err)
 
   update_properties(properties)
+  print "If you are updating existing jdbc driver jar for " + args.jdbc_db + " with " + jdbc_name + ". Please remove the " \
+        "old driver jar, from all hosts. Restarting services that need the driver, will " \
+        "automatically copy the new jar to the hosts."
   print "JDBC driver was successfully initialized."
 
 #

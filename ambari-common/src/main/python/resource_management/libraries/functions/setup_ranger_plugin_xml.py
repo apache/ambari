@@ -33,7 +33,7 @@ from resource_management.libraries.functions.ranger_functions_v2 import Rangerad
 from resource_management.core.utils import PasswordString
 from resource_management.libraries.script.script import Script
 
-def setup_ranger_plugin(component_select_name, service_name,
+def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         component_downloaded_custom_connector, component_driver_curl_source,
                         component_driver_curl_target, java_home,
                         repo_name, plugin_repo_dict,
@@ -49,7 +49,10 @@ def setup_ranger_plugin(component_select_name, service_name,
                         is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
                         component_user_principal = None, component_user_keytab = None):
 
-  if audit_db_is_enabled:
+  if audit_db_is_enabled and component_driver_curl_source and not component_driver_curl_source.endswith("/None"):
+    if previous_jdbc_jar and os.path.isfile(previous_jdbc_jar):
+      File(previous_jdbc_jar, action='delete')
+
     File(component_downloaded_custom_connector,
       content = DownloadSource(component_driver_curl_source),
       mode = 0644

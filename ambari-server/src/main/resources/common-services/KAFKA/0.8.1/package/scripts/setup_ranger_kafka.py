@@ -50,7 +50,7 @@ def setup_ranger_kafka():
         )
         params.HdfsResource(None, action="execute")
 
-    setup_ranger_plugin('kafka-broker', 'kafka',
+    setup_ranger_plugin('kafka-broker', 'kafka', params.previous_jdbc_jar,
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
                         params.repo_name, params.kafka_ranger_plugin_repo,

@@ -32,24 +32,29 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
 from resource_management.libraries.script.script import Script
 
-def setup_ranger_plugin(component_select_name, service_name,
+def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         downloaded_custom_connector, driver_curl_source,
                         driver_curl_target, java_home,
                         repo_name, plugin_repo_dict, 
                         ranger_env_properties, plugin_properties,
                         policy_user, policymgr_mgr_url,
                         plugin_enabled, component_user, component_group, api_version=None, skip_if_rangeradmin_down = True, **kwargs):
-  File(downloaded_custom_connector,
-      content = DownloadSource(driver_curl_source),
-      mode = 0644
-  )
 
-  Execute(('cp', '--remove-destination', downloaded_custom_connector, driver_curl_target),
-          path=["/bin", "/usr/bin/"],
-          sudo=True
-  )
+  if driver_curl_source and not driver_curl_source.endswith("/None"):
+    if previous_jdbc_jar and os.path.isfile(previous_jdbc_jar):
+      File(previous_jdbc_jar, action='delete')
 
-  File(driver_curl_target, mode=0644)
+    File(downloaded_custom_connector,
+        content = DownloadSource(driver_curl_source),
+        mode = 0644
+    )
+
+    Execute(('cp', '--remove-destination', downloaded_custom_connector, driver_curl_target),
+            path=["/bin", "/usr/bin/"],
+            sudo=True
+    )
+
+    File(driver_curl_target, mode=0644)
 
   stack_root = Script.get_stack_root()
   stack_version = get_stack_version(component_select_name)

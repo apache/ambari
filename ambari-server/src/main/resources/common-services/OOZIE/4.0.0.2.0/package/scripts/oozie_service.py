@@ -62,17 +62,26 @@ def oozie_service(action = 'start', upgrade_type=None):
   
   if action == 'start':
     start_cmd = format("cd {oozie_tmp_dir} && {oozie_home}/bin/oozie-start.sh")
-    
+    path_to_jdbc = params.target
+
     if params.jdbc_driver_name == "com.mysql.jdbc.Driver" or \
        params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
        params.jdbc_driver_name == "org.postgresql.Driver" or \
        params.jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
-      db_connection_check_command = format("{java_home}/bin/java -cp {check_db_connection_jar}:{target} org.apache.ambari.server.DBConnectionVerification '{oozie_jdbc_connection_url}' {oozie_metastore_user_name} {oozie_metastore_user_passwd!p} {jdbc_driver_name}")
+
+      if not params.jdbc_driver_jar:
+        path_to_jdbc = format("{oozie_libext_dir}/") + params.default_connectors_map[params.jdbc_driver_name]
+        if not os.path.isfile(path_to_jdbc):
+          path_to_jdbc = format("{oozie_libext_dir}/") + "*"
+          print "Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.hive_jdbc_driver] + \
+                " in oozie lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
+
+      db_connection_check_command = format("{java_home}/bin/java -cp {check_db_connection_jar}:{path_to_jdbc} org.apache.ambari.server.DBConnectionVerification '{oozie_jdbc_connection_url}' {oozie_metastore_user_name} {oozie_metastore_user_passwd!p} {jdbc_driver_name}")
     else:
       db_connection_check_command = None
 
     if upgrade_type is None:
-      if not os.path.isfile(params.target) and params.jdbc_driver_name == "org.postgresql.Driver":
+      if not os.path.isfile(path_to_jdbc) and params.jdbc_driver_name == "org.postgresql.Driver":
         print format("ERROR: jdbc file {target} is unavailable. Please, follow next steps:\n" \
           "1) Download postgresql-9.0-801.jdbc4.jar.\n2) Create needed directory: mkdir -p {oozie_home}/libserver/\n" \
           "3) Copy postgresql-9.0-801.jdbc4.jar to newly created dir: cp /path/to/jdbc/postgresql-9.0-801.jdbc4.jar " \

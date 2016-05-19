@@ -47,7 +47,7 @@ def setup_ranger_yarn():
       )
       params.HdfsResource(None, action="execute")
 
-    setup_ranger_plugin('hadoop-yarn-resourcemanager', 'yarn',
+    setup_ranger_plugin('hadoop-yarn-resourcemanager', 'yarn', params.previous_jdbc_jar,
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
                         params.repo_name, params.yarn_ranger_plugin_repo,
