@@ -194,7 +194,7 @@ function getConfigs(parameters) {
         timeline: '%@atsproxy/ws/v1/timeline'.fmt(resourcesPrefix),
         appHistory: '%@atsproxy/ws/v1/applicationhistory'.fmt(resourcesPrefix),
         rm: '%@rmproxy/ws/v1/cluster'.fmt(resourcesPrefix),
-        am: '%@rmproxy/proxy/{app_id}/ws/v2/tez'.fmt(resourcesPrefix)
+        am: '%@rmproxy/proxy/{app_id}/ws/v{version:2}/tez'.fmt(resourcesPrefix)
       },
       web: {
         rm: '%@rmredirect/cluster'.fmt(resourcesPrefix)
