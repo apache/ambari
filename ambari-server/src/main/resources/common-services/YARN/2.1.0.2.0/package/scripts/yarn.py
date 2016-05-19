@@ -167,7 +167,7 @@ def yarn(name = None):
                 create_parents = True,
                 cd_access="a",
                 ignore_failures=True,
-                mode=0775,
+                mode=0755,
                 recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
                 )
 
