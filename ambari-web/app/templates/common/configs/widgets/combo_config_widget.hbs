@@ -26,7 +26,7 @@
       <ul {{bindAttr class=":pull-left :dropdown-menu"}}>
         {{#each item in view.content.valuesList}}
           <li>
-            <a href="#" {{bindAttr class="item.widgetValue :btn-dropdown-menu-combo-config"}} {{action setConfigValue item.configValue target="view"}}>{{item.widgetValue}}</a>
+            <a href="#" {{bindAttr class="item.configValue :btn-dropdown-menu-combo-config"}} {{action setConfigValue item.configValue target="view"}}>{{item.widgetValue}}</a>
           </li>
         {{/each}}
       </ul>
