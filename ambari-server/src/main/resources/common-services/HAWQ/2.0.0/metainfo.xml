@@ -186,7 +186,6 @@
         <config-type>yarn-client</config-type>
         <config-type>hawq-limits-env</config-type>
         <config-type>hawq-sysctl-env</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
 
       <themes>
