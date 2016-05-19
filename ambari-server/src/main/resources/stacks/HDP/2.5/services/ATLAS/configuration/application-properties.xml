@@ -86,4 +86,36 @@
     <value>false</value>
     <description>Kafka auto commit setting for Atlas notifications.</description>
   </property>
+  <property>
+    <name>atlas.lineage.table.schema.query.hive_table</name>
+    <value>hive_table where name='%s'\, columns</value>
+  </property>
+  <property>
+    <name>atlas.lineage.table.schema.query.Table</name>
+    <value>Table where name='%s'\, columns</value>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.table.type.name</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.table.schema.query.hive_table</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.table.schema.query.Table</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.process.type.name</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.process.inputs.name</name>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>atlas.lineage.hive.process.outputs.name</name>
+    <deleted>true</deleted>
+  </property>
 </configuration>
