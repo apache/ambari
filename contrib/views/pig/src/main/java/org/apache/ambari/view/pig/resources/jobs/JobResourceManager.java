@@ -168,12 +168,18 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
       // content can be passed from front-end with substituted arguments
       if (job.getForcedContent() != null && !job.getForcedContent().isEmpty()) {
         String forcedContent = job.getForcedContent();
-        URI uri = new URI(context.getProperties().get("webhdfs.url"));
+        String defaultUrl = context.getProperties().get("webhdfs.url");
+        URI uri = new URI(defaultUrl);
+
         // variable for sourceFile can be passed from front-end
         // cannot use webhdfs url as webhcat does not support http authentication
         // using url hdfs://host/sourcefilepath
+        if(uri.getScheme().equals("webhdfs")){
+          defaultUrl = "hdfs://" + uri.getHost();
+        }
+
         forcedContent = forcedContent.replace("${sourceFile}",
-            "hdfs://" + uri.getHost() + newSourceFilePath);
+            defaultUrl + newSourceFilePath);
         job.setForcedContent(null); // we should not store content in DB
         save(job);
 
