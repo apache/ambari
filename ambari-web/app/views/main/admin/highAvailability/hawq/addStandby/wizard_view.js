@@ -60,7 +60,8 @@ App.AddHawqStandbyWizardView = Em.View.extend(App.WizardMenuMixin, {
         memory: item.Hosts.total_mem,
         disk_info: item.Hosts.disk_info,
         bootStatus: "REGISTERED",
-        isInstalled: true
+        isInstalled: true,
+        maintenance_state: item.Hosts.maintenance_state
       };
     });
     App.db.setHosts(hosts);
