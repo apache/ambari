@@ -23,6 +23,7 @@ import re
 import socket
 import sys
 import traceback
+import math
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
@@ -162,13 +163,32 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
             putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
 
     # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
-    if "hawq-sysctl-env" in services["configurations"]:
+    if "hawq-sysctl-env" in services["configurations"] and "vm.overcommit_memory" in services["configurations"]["hawq-sysctl-env"]["properties"]:
       MEM_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
-      hawq_sysctl_env = services["configurations"]["hawq-sysctl-env"]["properties"]
-      if "vm.overcommit_memory" in hawq_sysctl_env:
-        propertyValue = "2" if minHawqHostsMemory >= MEM_THRESHOLD else "1"
-        putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
-        putHawqSysctlEnvProperty("vm.overcommit_memory", propertyValue)
+      vm_overcommit_mem_value = "2" if minHawqHostsMemory >= MEM_THRESHOLD else "1"
+      putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
+      putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_mem_value)
+
+      # Set the value for hawq_rm_memory_limit_perseg based on vm.overcommit value and RAM available on HAWQ Hosts
+      # HAWQ Hosts with the minimum amount of RAM is considered for calculations
+      # Available RAM Formula = SWAP + RAM * vm.overcommit_ratio / 100
+      # Assumption: vm.overcommit_ratio = 50 (default on Linux), SWAP not considered for recommendation
+      host_ram_kb = minHawqHostsMemory / 2 if vm_overcommit_mem_value == "2" else minHawqHostsMemory
+      host_ram_gb = float(host_ram_kb) / (1024 * 1024)
+      recommended_mem_percentage = {
+        host_ram_gb <= 64: .75,
+        64 < host_ram_gb <= 512: .85,
+        host_ram_gb > 512: .95
+      }[True]
+      recommended_mem = math.ceil(host_ram_gb * recommended_mem_percentage)
+      unit = "GB"
+      # If RAM on a host is very low ~ 2 GB, ceil function may result in making it equal to total mem,
+      # in that case we recommend the value in MB not GB
+      if recommended_mem >= host_ram_gb:
+        recommended_mem = math.ceil(float(host_ram_kb)/1024 * recommended_mem_percentage)
+        unit = "MB"
+      # hawq_rm_memory_limit_perseg does not support decimal value so trim decimal using int
+      putHawqSiteProperty("hawq_rm_memory_limit_perseg", "{0}{1}".format(int(recommended_mem), unit))
 
     # set output.replace-datanode-on-failure in HAWQ hdfs-client depending on the cluster size
     if "hdfs-client" in services["configurations"]:
