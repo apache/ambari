@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller.metrics;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -36,15 +35,18 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -58,8 +60,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
@@ -76,15 +79,17 @@ public class RestMetricsPropertyProviderTest {
   protected static final Map<String, String> metricsProperties = new HashMap<String, String>();
   protected static final Map<String, Metric> componentMetrics = new HashMap<String, Metric>();
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
+  private static final String DEFAULT_STORM_UI_PORT = "8745";
   public static final int NUMBER_OF_RESOURCES = 400;
   private static Injector injector;
   private static Clusters clusters;
   private static Cluster c1;
+  private static AmbariManagementController amc;
 
   {
-    metricsProperties.put("default_port", "8745");
+    metricsProperties.put("default_port", DEFAULT_STORM_UI_PORT);
     metricsProperties.put("port_config_type", "storm-site");
-    metricsProperties.put("port_property_name", "storm.port");
+    metricsProperties.put("port_property_name", "ui.port");
     metricsProperties.put("protocol", "http");
     componentMetrics.put("metrics/api/cluster/summary/tasks.total", new Metric("/api/cluster/summary##tasks.total", false, false, false, "unitless"));
     componentMetrics.put("metrics/api/cluster/summary/slots.total", new Metric("/api/cluster/summary##slots.total", false, false, false, "unitless"));
@@ -109,22 +114,46 @@ public class RestMetricsPropertyProviderTest {
 
     // Setting up Mocks for Controller, Clusters etc, queried as part of user's Role context
     // while fetching Metrics.
-    AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
+    amc = createNiceMock(AmbariManagementController.class);
     Field field = AmbariServer.class.getDeclaredField("clusterController");
     field.setAccessible(true);
     field.set(null, amc);
-    Clusters clustersMock = createNiceMock(Clusters.class);
-    Cluster clusterMock = createNiceMock(Cluster.class);
-    expect(amc.getClusters()).andReturn(clustersMock).anyTimes();
-    expect(clustersMock.getCluster(CLUSTER_NAME_PROPERTY_ID)).andReturn(clusterMock).anyTimes();
-    expect(clusterMock.getResourceId()).andReturn(2L).anyTimes();
-    try {
-      expect(clustersMock.getCluster(anyObject(String.class))).andReturn(clusterMock).anyTimes();
-    } catch (AmbariException e) {
-      e.printStackTrace();
-    }
-    replay(amc, clustersMock, clusterMock);
+
+    ConfigHelper configHelperMock = createNiceMock(ConfigHelper.class);
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(amc.findConfigurationTagsWithOverrides(eq(c1), anyString())).andReturn(Collections.singletonMap("storm-site",
+        Collections.singletonMap("tag", "version1"))).anyTimes();
+    expect(amc.getConfigHelper()).andReturn(configHelperMock).anyTimes();
+    expect(configHelperMock.getEffectiveConfigProperties(eq(c1),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(Collections.singletonMap("storm-site",
+        Collections.singletonMap("ui.port", DEFAULT_STORM_UI_PORT))).anyTimes();
+    replay(amc, configHelperMock);
   }
+
+  private RestMetricsPropertyProvider createRestMetricsPropertyProvider(MetricDefinition metricDefinition,
+      HashMap<String, Map<String, PropertyInfo>> componentMetrics, StreamProvider streamProvider,
+      TestMetricsHostProvider metricsHostProvider) throws Exception {
+
+    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
+        injector,
+        metricDefinition.getProperties(),
+        componentMetrics,
+        streamProvider,
+        metricsHostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        "STORM_REST_API"
+    );
+
+    Field field = RestMetricsPropertyProvider.class.getDeclaredField("amc");
+    field.setAccessible(true);
+    field.set(restMetricsPropertyProvider, amc);
+
+    return restMetricsPropertyProvider;
+  }
+
 
   @After
   public void clearAuthentication() {
@@ -181,6 +210,40 @@ public class RestMetricsPropertyProviderTest {
     testPopulateResourcesTimeout();
   }
 
+  @Test
+  public void testResolvePort() throws Exception {
+    MetricDefinition metricDefinition = createNiceMock(MetricDefinition.class);
+    expect(metricDefinition.getMetrics()).andReturn(componentMetrics);
+    expect(metricDefinition.getType()).andReturn("org.apache.ambari.server.controller.metrics.RestMetricsPropertyProvider");
+    expect(metricDefinition.getProperties()).andReturn(metricsProperties);
+    replay(metricDefinition);
+
+    Map<String, PropertyInfo> metrics = StackDefinedPropertyProvider.getPropertyInfo(metricDefinition);
+    HashMap<String, Map<String, PropertyInfo>> componentMetrics = new HashMap<String, Map<String, PropertyInfo>>();
+    componentMetrics.put(WRAPPED_METRICS_KEY, metrics);
+    TestStreamProvider streamProvider = new TestStreamProvider();
+    TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
+
+    RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
+        metricsHostProvider);
+
+    // a property with a port doesn't exist, should return a default
+    Map<String, String> customMetricsProperties = new HashMap<>(metricsProperties);
+    customMetricsProperties.put("port_property_name", "wrong_property");
+    String resolvedPort = restMetricsPropertyProvider.resolvePort(c1, "domu-12-31-39-0e-34-e1.compute-1.internal",
+        "STORM_REST_API", customMetricsProperties);
+    Assert.assertEquals(DEFAULT_STORM_UI_PORT, resolvedPort);
+
+    // a port property exists (8745). Should return it, not a default_port (8746)
+    customMetricsProperties = new HashMap<>(metricsProperties);
+    // custom default
+    customMetricsProperties.put("default_port", "8746");
+    resolvedPort = restMetricsPropertyProvider.resolvePort(c1, "domu-12-31-39-0e-34-e1.compute-1.internal",
+        "STORM_REST_API", customMetricsProperties);
+    Assert.assertEquals(DEFAULT_STORM_UI_PORT, resolvedPort);
+
+  }
+
   public void testPopulateResources() throws Exception {
     MetricDefinition metricDefinition = createNiceMock(MetricDefinition.class);
     expect(metricDefinition.getMetrics()).andReturn(componentMetrics);
@@ -194,18 +257,8 @@ public class RestMetricsPropertyProviderTest {
     TestStreamProvider streamProvider = new TestStreamProvider();
     TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
 
-    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
-      injector,
-      metricDefinition.getProperties(),
-      componentMetrics,
-      streamProvider,
-      metricsHostProvider,
-      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-      PropertyHelper.getPropertyId("HostRoles", "host_name"),
-      PropertyHelper.getPropertyId("HostRoles", "component_name"),
-      PropertyHelper.getPropertyId("HostRoles", "state"),
-      "STORM_REST_API");
-
+    RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
+        metricsHostProvider);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -242,18 +295,8 @@ public class RestMetricsPropertyProviderTest {
     TestStreamProvider streamProvider = new TestStreamProvider();
     TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
 
-    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
-      injector,
-      metricDefinition.getProperties(),
-      componentMetrics,
-      streamProvider,
-      metricsHostProvider,
-      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-      PropertyHelper.getPropertyId("HostRoles", "host_name"),
-      PropertyHelper.getPropertyId("HostRoles", "component_name"),
-      PropertyHelper.getPropertyId("HostRoles", "state"),
-      "STORM_REST_API");
-
+    RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
+        metricsHostProvider);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -283,18 +326,8 @@ public class RestMetricsPropertyProviderTest {
     TestStreamProvider streamProvider = new TestStreamProvider();
     TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
 
-    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
-      injector,
-      metricDefinition.getProperties(),
-      componentMetrics,
-      streamProvider,
-      metricsHostProvider,
-      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-      PropertyHelper.getPropertyId("HostRoles", "host_name"),
-      PropertyHelper.getPropertyId("HostRoles", "component_name"),
-      PropertyHelper.getPropertyId("HostRoles", "state"),
-      "STORM_REST_API");
-
+    RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
+        metricsHostProvider);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -328,18 +361,8 @@ public class RestMetricsPropertyProviderTest {
     TestStreamProvider streamProvider = new TestStreamProvider();
     TestMetricsHostProvider metricsHostProvider = new TestMetricsHostProvider();
 
-    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
-      injector,
-      metricDefinition.getProperties(),
-      componentMetrics,
-      streamProvider,
-      metricsHostProvider,
-      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-      PropertyHelper.getPropertyId("HostRoles", "host_name"),
-      PropertyHelper.getPropertyId("HostRoles", "component_name"),
-      PropertyHelper.getPropertyId("HostRoles", "state"),
-      "STORM_REST_API");
-
+    RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
+        metricsHostProvider);
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -371,17 +394,8 @@ public class RestMetricsPropertyProviderTest {
 
     Set<Resource> resources = new HashSet<Resource>();
 
-    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
-      injector,
-      metricDefinition.getProperties(),
-      componentMetrics,
-      streamProvider,
-      metricsHostProvider,
-      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-      PropertyHelper.getPropertyId("HostRoles", "host_name"),
-      PropertyHelper.getPropertyId("HostRoles", "component_name"),
-      PropertyHelper.getPropertyId("HostRoles", "state"),
-      "STORM_REST_API");
+    RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
+        metricsHostProvider);
 
     for (int i = 0; i < NUMBER_OF_RESOURCES; ++i) {
       // strom_rest_api
@@ -425,17 +439,8 @@ public class RestMetricsPropertyProviderTest {
 
     Set<Resource> resources = new HashSet<Resource>();
 
-    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
-      injector,
-      metricDefinition.getProperties(),
-      componentMetrics,
-      streamProvider,
-      metricsHostProvider,
-      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-      PropertyHelper.getPropertyId("HostRoles", "host_name"),
-      PropertyHelper.getPropertyId("HostRoles", "component_name"),
-      PropertyHelper.getPropertyId("HostRoles", "state"),
-      "STORM_REST_API");
+    RestMetricsPropertyProvider restMetricsPropertyProvider = createRestMetricsPropertyProvider(metricDefinition, componentMetrics, streamProvider,
+        metricsHostProvider);
 
     // set the provider timeout to 50 millis
     restMetricsPropertyProvider.setPopulateTimeout(50L);
