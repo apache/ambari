@@ -27,6 +27,7 @@ require('controllers/experimental');
 require('controllers/global/background_operations_controller');
 require('controllers/global/wizard_watcher_controller');
 require('controllers/global/user_settings_controller');
+require('controllers/global/errors_handler_controller');
 require('controllers/main');
 require('controllers/main/dashboard');
 require('controllers/main/dashboard/config_history_controller');
