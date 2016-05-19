@@ -99,6 +99,22 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     };
 
+    RemoteCluster.affectedViews = function(clustername) {
+      var deferred = $q.defer();
+
+      $http.get(Settings.baseUrl + '/views?'
+          + 'fields=versions%2Finstances/ViewInstanceInfo/cluster_handle,versions%2Finstances/ViewInstanceInfo/cluster_type&versions%2FViewVersionInfo%2Fsystem=false&versions%2Finstances/ViewInstanceInfo/cluster_type=REMOTE_AMBARI&versions%2Finstances/ViewInstanceInfo/cluster_handle=' + clustername
+
+        )
+        .success(function(response) {
+          deferred.resolve(response);
+        })
+        .error(function(data) {
+          deferred.reject(data);
+        });
+      return deferred.promise;
+    };
+
     RemoteCluster.listAll = function() {
       var deferred = $q.defer();
 

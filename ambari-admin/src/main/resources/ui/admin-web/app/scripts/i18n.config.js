@@ -74,6 +74,8 @@ angular.module('ambariAdminConsole')
       'settings': 'Settings',
       'authentication': 'Authentication',
       'deleteConfirmation': 'Are you sure you want to delete {{instanceType}} {{instanceName}}?',
+      'remoteClusterDelConfirmation':'Are you sure you want to delete {{instanceType}} {{instanceName}}? This operation cannot be undone.',
+      'messageInstanceAffected':'The following View Instances are using this Remote Cluster for configuration, and will need to be reconfigured: {{viewInstance}}',
       'local': 'Local',
       'ldap': 'LDAP',
       'jwt': 'JWT',
