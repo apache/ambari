@@ -77,6 +77,8 @@ public class JMXHostProviderTest {
   private static final String NODEMANAGER_PORT = "yarn.nodemanager.webapp.address";
   private static final String JOURNALNODE_HTTPS_PORT = "dfs.journalnode.https-address";
   private static final String HDFS_HTTPS_POLICY = "dfs.http.policy";
+  private static final String MAPREDUCE_HTTPS_POLICY = "mapreduce.jobhistory.http.policy";
+  private static final String MAPREDUCE_HTTPS_PORT = "mapreduce.jobhistory.webapp.https.address";
 
   @Before
   public void setup() throws Exception {
@@ -223,13 +225,18 @@ public class JMXHostProviderTest {
     cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceName = "HDFS";
     String serviceName2 = "YARN";
+    String serviceName3 = "MAPREDUCE2";
+    
     createService(clusterName, serviceName, null);
     createService(clusterName, serviceName2, null);
+    createService(clusterName, serviceName3, null);
+
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
     String componentName4 = "RESOURCEMANAGER";
     String componentName5 = "JOURNALNODE";
+    String componentName6 = "HISTORYSERVER";
 
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);
@@ -240,6 +247,8 @@ public class JMXHostProviderTest {
     createServiceComponent(clusterName, serviceName2, componentName4,
       State.INIT);
     createServiceComponent(clusterName, serviceName, componentName5,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName3, componentName6,
         State.INIT);
 
     String host1 = "h1";
@@ -275,6 +284,8 @@ public class JMXHostProviderTest {
       host2, null);
     createServiceComponentHost(clusterName, serviceName2, componentName4,
       host2, null);
+    createServiceComponentHost(clusterName, serviceName3, componentName6,
+      host2, null);
 
     // Create configs
     Map<String, String> configs = new HashMap<String, String>();
@@ -289,6 +300,10 @@ public class JMXHostProviderTest {
     yarnConfigs.put(NODEMANAGER_PORT, "8042");
     yarnConfigs.put(RESOURCEMANAGER_HTTPS_PORT, "8090");
     yarnConfigs.put(YARN_HTTPS_POLICY, "HTTPS_ONLY");
+    
+    Map<String, String> mapreduceConfigs = new HashMap<String, String>();
+    mapreduceConfigs.put(MAPREDUCE_HTTPS_PORT, "19889");
+    mapreduceConfigs.put(MAPREDUCE_HTTPS_POLICY, "HTTPS_ONLY");
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
       "hdfs-site", "versionN", configs, null);
@@ -304,6 +319,11 @@ public class JMXHostProviderTest {
       "yarn-site", "versionN", yarnConfigs, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
+    
+    ConfigurationRequest cr3 = new ConfigurationRequest(clusterName,
+        "mapred-site", "versionN", mapreduceConfigs, null);
+      crReq.setDesiredConfig(Collections.singletonList(cr3));
+      controller.updateClusters(Collections.singleton(crReq), null);
 
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("yarn-site")
       .getTag());
@@ -498,6 +518,20 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "RESOURCEMANAGER"));
     Assert.assertEquals("8090", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost", true));
+
+  }
+  
+  @Test
+  public void testJMXHistoryServerHttpsPort() throws
+    NoSuchParentResourceException,
+    ResourceAlreadyExistsException, UnsupportedPropertyException,
+    SystemException, AmbariException, NoSuchResourceException {
+    createConfigs();
+    JMXHostProviderModule providerModule = new JMXHostProviderModule();
+    providerModule.registerResourceProvider(Resource.Type.Cluster);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "HISTORYSERVER"));
+    Assert.assertEquals("19889", providerModule.getPort("c1", "HISTORYSERVER", "localhost", true));
 
   }
 
