@@ -254,6 +254,19 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         valueMetric: units,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
+      }),
+      App.AlertConfigProperties.Parameter.create({
+        value: alertDefinition.get('uri.connectionTimeout'),
+        threshold: "CRITICAL",
+        name: 'connection_timeout',
+        label: 'Connection Timeout',
+        displayType: 'parameter',
+        apiProperty: 'source.uri.connection_timeout',
+        units: 'Seconds',
+        isValid: function () {
+          var value = this.get('value');
+          return numericUtils.isPositiveNumber(value);
+        }.property('value')
       })
     ]);
 
