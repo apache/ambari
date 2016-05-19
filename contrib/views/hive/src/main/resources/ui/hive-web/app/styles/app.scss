@@ -468,6 +468,7 @@ body {
   .input-group-addon {
     text-align: justify;
     width: 50%;
+    vertical-align: top;
   }
 }
 
@@ -475,11 +476,15 @@ body {
   line-height: 30px;
   font-size: 18px;
   cursor: pointer;
+  position: absolute;
 }
 
 .setting .setting-input-value {
   width: calc(100% - 30px);
   display: inline-block;
+  input {
+    height: 33px;
+  }
 }
 .setting .global-setting-value {
   width: calc(100% - 25px);
