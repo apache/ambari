@@ -33,7 +33,6 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
-from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.show_logs import show_logs
 
 from zkfc_slave import ZkfcSlave

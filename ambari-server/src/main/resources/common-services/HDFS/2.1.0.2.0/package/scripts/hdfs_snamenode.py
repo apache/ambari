@@ -17,8 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
 from utils import service
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import Template
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from ambari_commons import OSConst
 

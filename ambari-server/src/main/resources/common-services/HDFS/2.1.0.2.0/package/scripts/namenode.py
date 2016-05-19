@@ -25,7 +25,7 @@ import tempfile
 from datetime import datetime
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
-from resource_management import Script
+from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
 from resource_management.libraries.functions import conf_select

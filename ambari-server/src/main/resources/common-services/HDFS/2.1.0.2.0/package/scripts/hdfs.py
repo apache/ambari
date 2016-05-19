@@ -19,7 +19,12 @@ Ambari Agent
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.core.resources.system import Directory, File, Link
+from resource_management.core.resources import Package
+from resource_management.core.source import Template
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.libraries.resources.xml_config import XmlConfig
 import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst

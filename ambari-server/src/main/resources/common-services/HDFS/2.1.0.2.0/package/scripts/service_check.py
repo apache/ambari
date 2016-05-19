@@ -17,12 +17,18 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
 from resource_management.core.shell import as_user
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries import functions
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.core.logger import Logger
+from resource_management.core.source import StaticFile
+from resource_management.core.resources.system import Execute, File
+
 
 class HdfsServiceCheck(Script):
   pass

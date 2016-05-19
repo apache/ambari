@@ -20,6 +20,9 @@ limitations under the License.
 import os
 
 #Used in subsequent imports from params
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
 from install_params import exclude_packages
 from status_params import *
 
