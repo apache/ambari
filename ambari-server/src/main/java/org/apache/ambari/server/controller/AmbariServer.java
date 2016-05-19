@@ -19,9 +19,6 @@
 package org.apache.ambari.server.controller;
 
 
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
@@ -33,6 +30,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.LogManager;
+
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
@@ -556,6 +556,7 @@ public class AmbariServer {
 
         HttpConfiguration httpConfigurationSSL = new HttpConfiguration();
         httpConfigurationSSL.setSecurePort(configs.getClientSSLApiPort());
+        httpConfigurationSSL.addCustomizer(new SecureRequestCustomizer());
         setHeaderSize(httpConfigurationSSL);
 
         ServerConnector https = new ServerConnector(server, new SslConnectionFactory(contextFactoryApi, "http/1.1"),
@@ -747,7 +748,7 @@ public class AmbariServer {
     // by default all protocols should be available
     factory.setExcludeProtocols();
     factory.setIncludeProtocols(new String[] { "SSLv2Hello","TLSv1"});
-    
+
     if (!configs.getSrvrDisabledCiphers().isEmpty()) {
       String[] masks = configs.getSrvrDisabledCiphers().split(DISABLED_ENTRIES_SPLITTER);
       factory.setExcludeCipherSuites(masks);
