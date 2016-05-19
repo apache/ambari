@@ -28,17 +28,22 @@ describe('App.KerberosWizardStep1Controller', function() {
   beforeEach(function() {
     controller = getController();
   });
-
+  
   describe("#selectedOption", function () {
-
+  	 
     it("test", function() {
-      controller.setProperties({
-        options: [{value: 'item1'}],
-        selectedItem: 'item1'
-      });
+      var options=controller.get('options');
       controller.propertyDidChange('selectedOption');
-      expect(controller.get('selectedOption')).to.be.eql({value: 'item1'});
+      options.forEach(function(option) {
+        if (option.value === controller.get('selectedItem')) {
+          var preConditions=option.preConditions;
+          preConditions.forEach(function(condition) {
+            expect(condition.get('checked')).to.be.false;
+          });
+        }          
+      }, this);
     });
+    
   });
 
   describe("#loadStep()", function () {
@@ -59,6 +64,12 @@ describe('App.KerberosWizardStep1Controller', function() {
       controller.loadStep();
       expect(controller.get('selectedItem')).to.be.equal(Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'));
       expect(controller.get('options')).to.be.empty;
+    });
+    
+    it("on load selected item should not change", function() {
+      controller.set('selectedItem',Em.I18n.t('admin.kerberos.wizard.step3.option.kdc'));	
+      controller.loadStep();
+      expect(controller.get('selectedItem')).to.be.equal(Em.I18n.t('admin.kerberos.wizard.step3.option.kdc'));
     });
   });
 
