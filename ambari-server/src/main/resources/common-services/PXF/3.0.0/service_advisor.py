@@ -17,10 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-import fnmatch
 import imp
-import socket
-import sys
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -52,8 +49,6 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
   def getComponentLayoutValidations(self, stackAdvisor, services, hosts):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    hostsCount = len(hostsList)
 
     pxfHosts = self.getHosts(componentsList, "PXF")
     expectedPxfHosts = set(self.getHosts(componentsList, "NAMENODE") + self.getHosts(componentsList, "DATANODE"))
@@ -68,4 +63,32 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
                 "The following {0} host(s) do not satisfy the colocation recommendation: {1}".format(len(mismatchHosts), hostsString)
       items.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'PXF' } )
 
+    return items
+
+  def getServiceConfigurationRecommendations(self, stackAdvisor, configurations, clusterData, services, hosts):
+    if "hbase-env" in services["configurations"]:
+      hbase_env = services["configurations"]["hbase-env"]["properties"]
+      if "content" in hbase_env:
+        content = hbase_env["content"]
+        PXF_PATH = "export HBASE_CLASSPATH=${HBASE_CLASSPATH}:/usr/lib/pxf/pxf-hbase.jar"
+        if "pxf-hbase.jar" not in content:
+          PXF_PATH = "#Add pxf-hbase.jar to HBASE_CLASSPATH\n" + PXF_PATH
+          content = "\n\n".join((content, PXF_PATH))
+          putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
+          putHbaseEnvProperty("content", content)
+
+  def validatePXFHBaseEnvConfigurations(self, stackAdvisor, properties, recommendedDefaults, configurations, services, hosts):
+    # Check if HBASE_CLASSPATH should has the location of pxf-hbase.jar
+    hbase_env = properties
+    validationItems = []
+    if "content" in hbase_env and "pxf-hbase.jar" not in hbase_env["content"]:
+      message = "HBASE_CLASSPATH must contain the location of pxf-hbase.jar"
+      validationItems.append({"config-name": "content", "item": self.getWarnItem(message)})
+
+    return stackAdvisor.toConfigurationValidationProblems(validationItems, "hbase-env")
+
+  def getConfigurationsValidationItems(self, stackAdvisor, configurations, recommendedDefaults, services, hosts):
+    siteName = "hbase-env"
+    method = self.validatePXFHBaseEnvConfigurations
+    items = self.validateConfigurationsForSite(stackAdvisor, configurations, recommendedDefaults, services, hosts, siteName, method)
     return items
