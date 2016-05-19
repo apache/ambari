@@ -33,7 +33,7 @@ import ConfigParser
 
 logger = logging.getLogger('AmbariTakeoverConfigMerge')
 
-LOG4J_HELP_TEXT = """
+CONFIG_MAPPING_HELP_TEXT = """
 JSON file should content map with {regex_path : <service>-log4j}
 Example:
 {".+/hadoop/.+/log4j.properties" : "hdfs-log4j",
@@ -158,13 +158,6 @@ class ConfigMerge:
   SUPPORTED_EXTENSIONS = ['.xml', '.yaml', '.properties', '.sh']
   SUPPORTED_FILENAME_ENDINGS = {".sh" : "-env"}
   UNKNOWN_FILES_MAPPING_FILE = None
-  SERVICE_TO_AMBARI_CONFIG_NAME = {
-    "storm.yaml": "storm-site",
-    "runtime.properties" : "falcon-runtime",
-    "startup.properties" : "falcon-startup",
-    "flume-conf.properties" : "flume-conf",
-    "pig.properties" : "pig-properties"
-  }
 
   CONFIGS_WITH_CONTENT = ['pig-properties', '-log4j']
 
@@ -188,11 +181,8 @@ class ConfigMerge:
             logger.warn("File {0} is not configurable by Ambari. Skipping...".format(file_path))
             continue
           config_name = None
-          if file in ConfigMerge.SERVICE_TO_AMBARI_CONFIG_NAME:
-            config_name = ConfigMerge.SERVICE_TO_AMBARI_CONFIG_NAME[file]
 
-          #hack for log4j.properties files
-          elif ConfigMerge.UNKNOWN_FILES_MAPPING_FILE:
+          if ConfigMerge.UNKNOWN_FILES_MAPPING_FILE:
             for path_regex, name in ConfigMerge.CONTENT_UNKNOWN_FILES_MAPPING_FILE.iteritems():
               match = re.match(path_regex, os.path.relpath(file_path, ConfigMerge.INPUT_DIR))
               if match:
@@ -364,8 +354,8 @@ def main():
                     metavar="FILE", help="Output directory. [default: /tmp]")
   parser.add_option("-i", "--inputdir", dest="inputDir", help="Input directory.")
 
-  parser.add_option("-u", '--unknown-files-mapping-file',dest="unknown_files_mapping_file", default=None,
-                    metavar="FILE", help=LOG4J_HELP_TEXT)
+  parser.add_option("-u", '--unknown-files-mapping-file',dest="unknown_files_mapping_file",
+                    metavar="FILE", help=CONFIG_MAPPING_HELP_TEXT, default="takeover_files_mapping.json")
 
   (options, args) = parser.parse_args()
 
@@ -377,12 +367,6 @@ def main():
 
   ConfigMerge.INPUT_DIR = options.inputDir
   ConfigMerge.OUTPUT_DIR = options.outputDir
-
-  #hack for logf4.properties files
-  if options.unknown_files_mapping_file:
-    ConfigMerge.UNKNOWN_FILES_MAPPING_FILE = options.unknown_files_mapping_file
-    with open(options.unknown_files_mapping_file) as f:
-      ConfigMerge.CONTENT_UNKNOWN_FILES_MAPPING_FILE = json.load(f)
 
   if not os.path.exists(ConfigMerge.OUTPUT_DIR):
     os.makedirs(ConfigMerge.OUTPUT_DIR)
@@ -397,6 +381,15 @@ def main():
   stdout_handler.setLevel(logging.INFO)
   stdout_handler.setFormatter(formatter)
   logger.addHandler(stdout_handler)
+
+  #unknown file mapping
+  if options.unknown_files_mapping_file and os.path.exists(options.unknown_files_mapping_file):
+    ConfigMerge.UNKNOWN_FILES_MAPPING_FILE = options.unknown_files_mapping_file
+    with open(options.unknown_files_mapping_file) as f:
+      ConfigMerge.CONTENT_UNKNOWN_FILES_MAPPING_FILE = json.load(f)
+  else:
+    logger.warning("Config mapping file was not found at {0}. "
+                   "Please provide it at the given path or provide a different path to it using -u option.".format(options.unknown_files_mapping_file))
 
   filePaths = ConfigMerge.get_all_supported_files_grouped_by_name()
   logger.info("Writing logs into '{0}' file".format(logegr_file_name))
