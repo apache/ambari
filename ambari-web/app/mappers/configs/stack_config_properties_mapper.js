@@ -85,7 +85,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
 
           var attributes = config.StackConfigurations.property_value_attributes;
           if (attributes) {
-            config.is_required = !attributes.empty_value_valid;
+            config.is_required = this._isRequired(attributes.empty_value_valid, config.StackConfigurations.property_value);
             config.is_reconfigurable = !(attributes.editable_only_at_install || config.StackConfigurations.type === 'cluster-env.xml');
             config.is_editable = !attributes.read_only;
             config.is_required_by_agent = !attributes.ui_only_property;
@@ -156,6 +156,18 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   },
 
   /******************* METHODS TO MERGE STACK PROPERTIES WITH STORED ON UI *********************************/
+
+  /**
+   * Config should not be required if value from stack is null
+   *
+   * @param allowEmpty
+   * @param propertyValue
+   * @returns {*|boolean}
+   * @private
+   */
+  _isRequired: function (allowEmpty, propertyValue) {
+    return !allowEmpty && !Em.isNone(propertyValue);
+  },
 
   /**
    * find UI config with current name and fileName

@@ -274,4 +274,31 @@ describe.skip('App.stackConfigPropertiesMapper', function () {
     });
   });
 
+  describe('#_isRequired', function() {
+    [
+      {
+        allow_empty: true,
+        property_value: 'some',
+        is_required: false,
+        message: 'false for value "some" and "allow_empty" true'
+      },
+      {
+        allow_empty: false,
+        property_value: '',
+        is_required: true,
+        message: 'true for value "" and "allow_empty" false'
+      },
+      {
+        allow_empty: false,
+        property_value: null,
+        is_required: false,
+        message: 'false for value null" and "allow_empty" false'
+      }
+    ].forEach(function(c) {
+        it(c.message, function() {
+          expect(App.stackConfigPropertiesMapper._isRequired(c.allow_empty, c.property_value)).to.equal(c.is_required);
+        })
+      });
+  });
+
 });
