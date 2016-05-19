@@ -868,8 +868,9 @@ App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSuppo
 
   classNames: ['master-host', 'span6'],
   valueBinding: 'serviceConfig.value',
+  unitBinding: 'serviceConfig.unit',
 
-  template: Ember.Handlebars.compile('<i>{{view.value}}</i>')
+  template: Ember.Handlebars.compile('<i>{{view.value}}&nbsp;{{view.unit}}</i>')
 });
 
 /**
