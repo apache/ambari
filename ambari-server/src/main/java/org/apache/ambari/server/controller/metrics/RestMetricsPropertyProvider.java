@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -267,7 +268,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
    *
    * @return determines REST port for service
    */
-  private String resolvePort(Cluster cluster, String hostname, String componentName,
+  protected String resolvePort(Cluster cluster, String hostname, String componentName,
                           Map<String, String> metricsProperties)
       throws AmbariException {
     String portConfigType = null;
@@ -283,15 +284,18 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
         Map<String, Map<String, String>> configTags =
             amc.findConfigurationTagsWithOverrides(cluster, hostname);
         if (configTags.containsKey(portConfigType)) {
-          Map<String, String> config = configTags.get(portConfigType);
-          if (config.containsKey(portPropertyName)) {
+          Map<String, Map<String, String>> properties = amc.getConfigHelper().getEffectiveConfigProperties(cluster,
+              Collections.singletonMap(portConfigType, configTags.get(portConfigType)));
+          Map<String, String> config = properties.get(portConfigType);
+          if (config != null && config.containsKey(portPropertyName)) {
             portStr = config.get(portPropertyName);
           }
         }
       } catch (AmbariException e) {
-        String message = String.format("Can not extract config tags for " +
-            "cluster = %s, hostname = %s", componentName, hostname);
-        LOG.warn(message);
+        String message = String.format("Can not extract configs for " +
+            "component = %s, hostname = %s, config type = %s, property name = %s", componentName,
+            hostname, portConfigType, portPropertyName);
+        LOG.warn(message, e);
       }
       if (portStr == null) {
         String message = String.format(
