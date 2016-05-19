@@ -657,9 +657,10 @@ class Script(object):
 
       service_name = config['serviceName'] if config is not None and 'serviceName' in config else None
       try:
-        #TODO Once the logic for pid is available from Ranger code, will remove the below if block.
-        if service_name == 'RANGER' and service_name is not None:
-          Logger.info('Temporary Skipping status check for RANGER service only.')
+        #TODO Once the logic for pid is available from Ranger and Ranger KMS code, will remove the below if block.
+        services_to_skip = ['RANGER', 'RANGER_KMS']
+        if service_name in services_to_skip:
+          Logger.info('Temporarily skipping status check for {0} service only.'.format(service_name))
         else:
           self.status(env)
           raise Fail("Stop command finished but process keep running.")
