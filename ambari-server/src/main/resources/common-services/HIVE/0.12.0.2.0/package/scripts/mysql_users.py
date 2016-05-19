@@ -18,7 +18,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import StaticFile
+from resource_management.libraries.functions.format import format
 
 # Used to add hive access to the needed components
 def mysql_adduser():

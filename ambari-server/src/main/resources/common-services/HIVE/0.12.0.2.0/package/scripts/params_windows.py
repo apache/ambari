@@ -18,7 +18,8 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.script.script import Script
 from status_params import *
 
 # server configurations

@@ -18,8 +18,11 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import sys
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 

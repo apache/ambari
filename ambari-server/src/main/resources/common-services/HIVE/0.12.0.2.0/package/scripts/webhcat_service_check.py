@@ -19,7 +19,12 @@ limitations under the License.
 """
 import urllib2
 
-from resource_management import *
+from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import StaticFile, Template
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 import time

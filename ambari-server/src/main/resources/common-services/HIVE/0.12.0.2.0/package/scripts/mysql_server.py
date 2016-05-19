@@ -21,8 +21,7 @@ limitations under the License.
 import sys
 import os
 import mysql_users
-from resource_management import *
-
+from resource_management.libraries.script.script import Script
 from mysql_service import mysql_service
 from mysql_utils import mysql_configure
 

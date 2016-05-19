@@ -20,9 +20,13 @@ Ambari Agent
 """
 import sys
 import os.path
-from resource_management import *
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions import StackFeature
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.source import InlineTemplate, StaticFile
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.constants import StackFeature
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst

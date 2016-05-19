@@ -29,7 +29,6 @@ from resource_management.core.resources.system import File, Execute
 from resource_management.core.resources.service import Service
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_user
-from resource_management.libraries.functions.hive_check import check_thrift_port_sasl
 from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions import StackFeature

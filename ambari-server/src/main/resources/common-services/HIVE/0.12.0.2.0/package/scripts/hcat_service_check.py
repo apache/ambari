@@ -19,8 +19,11 @@ limitations under the License.
 """
 
 import os
-from resource_management import *
 from resource_management.libraries.functions import get_unique_id_and_date
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.core.source import StaticFile
+from resource_management.core.resources.system import Execute, File
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 

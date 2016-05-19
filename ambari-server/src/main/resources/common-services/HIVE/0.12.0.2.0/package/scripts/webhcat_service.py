@@ -18,11 +18,15 @@ limitations under the License.
 Ambari Agent
 
 """
-from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.resources.service import Service
 from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.core.resources.system import Execute, File
 import traceback
 
 

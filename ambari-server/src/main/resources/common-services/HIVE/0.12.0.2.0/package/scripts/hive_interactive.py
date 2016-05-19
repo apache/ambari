@@ -31,13 +31,12 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.core.resources.service import ServiceConfig
-from resource_management.core.resources.system import File, Execute, Directory
-from resource_management.core.source import StaticFile, Template, DownloadSource, InlineTemplate
+from resource_management.core.resources.system import File, Directory
+from resource_management.core.source import Template, DownloadSource, InlineTemplate
 from resource_management.core.shell import as_user
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.format import format
-from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_sudo
 from resource_management.core.shell import quote_bash_args
 from resource_management.core.logger import Logger
