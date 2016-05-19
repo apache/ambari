@@ -151,7 +151,15 @@ def kms(upgrade_type=None):
     if params.db_flavor.lower() == 'sqla':
       cp = cp + os.pathsep + format("{kms_home}/ews/webapp/lib/sajdbc4.jar")
     else:
-      cp = cp + os.pathsep + format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
+      path_to_jdbc = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
+      if not params.jdbc_jar_name:
+        path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + params.default_connectors_map[params.db_flavor]
+        if not os.path.isfile(path_to_jdbc):
+          path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + "*"
+          print "Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.hive_jdbc_driver] + \
+                " in oozie lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
+
+      cp = cp + os.pathsep + path_to_jdbc
 
     db_connection_check_command = format(
       "{java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_kms_jdbc_connection_url}' {db_user} {db_password!p} {ranger_kms_jdbc_driver}")
@@ -162,7 +170,10 @@ def kms(upgrade_type=None):
 
     Execute(db_connection_check_command, path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10, environment=env_dict)
 
-    if params.xa_audit_db_is_enabled:
+    if params.xa_audit_db_is_enabled and params.jdbc_jar:
+      if params.xa_previous_jdbc_jar and os.path.isfile(params.xa_previous_jdbc_jar):
+        File(params.xa_previous_jdbc_jar, action='delete')
+
       File(params.downloaded_connector_path,
         content = DownloadSource(params.driver_source),
         mode = 0644
@@ -288,6 +299,12 @@ def kms(upgrade_type=None):
 
 def copy_jdbc_connector(stack_version=None):
   import params
+
+  if not params.jdbc_jar_name:
+    return
+
+  if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
+    File(params.previous_jdbc_jar, action='delete')
 
   kms_home = params.kms_home
   if stack_version is not None:

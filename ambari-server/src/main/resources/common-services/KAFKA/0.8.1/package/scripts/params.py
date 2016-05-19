@@ -219,13 +219,17 @@ if has_ranger_admin and is_supported_kafka_ranger:
   #For curl command in ranger plugin to get db connector
   jdk_location = config['hostLevelParams']['jdk_location']
   java_share_dir = '/usr/share/java'
+  previous_jdbc_jar_name = None
+
   if stack_supports_ranger_audit_db:
     if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
       jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "com.mysql.jdbc.Driver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
       jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
       colon_count = xa_db_host.count(':')
       if colon_count == 2 or colon_count == 0:
         audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
@@ -234,20 +238,24 @@ if has_ranger_admin and is_supported_kafka_ranger:
       jdbc_driver = "oracle.jdbc.OracleDriver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
       jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
       audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "org.postgresql.Driver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'mssql':
       jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
       jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
     elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
       jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   driver_curl_target = format("{kafka_home}/libs/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  previous_jdbc_jar = format("{kafka_home}/libs/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
 
   xa_audit_db_is_enabled = False
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']

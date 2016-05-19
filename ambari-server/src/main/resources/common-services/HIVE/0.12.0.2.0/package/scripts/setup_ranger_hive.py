@@ -58,7 +58,7 @@ def setup_ranger_hive(upgrade_type = None):
       if params.stack_supports_ranger_kerberos:
         api_version='v2'
       from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
-      setup_ranger_plugin('hive-server2', 'hive',
+      setup_ranger_plugin('hive-server2', 'hive', params.ranger_previous_jdbc_jar,
                           params.ranger_downloaded_custom_connector, params.ranger_driver_curl_source,
                           params.ranger_driver_curl_target, params.java64_home,
                           params.repo_name, params.hive_ranger_plugin_repo,
@@ -79,7 +79,7 @@ def setup_ranger_hive(upgrade_type = None):
                           component_user_keytab=params.hive_server2_keytab if params.security_enabled else None)
     else:
       from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin
-      setup_ranger_plugin('hive-server2', 'hive',
+      setup_ranger_plugin('hive-server2', 'hive', params.ranger_previous_jdbc_jar,
                         params.ranger_downloaded_custom_connector, params.ranger_driver_curl_source,
                         params.ranger_driver_curl_target, params.java64_home,
                         params.repo_name, params.hive_ranger_plugin_repo,

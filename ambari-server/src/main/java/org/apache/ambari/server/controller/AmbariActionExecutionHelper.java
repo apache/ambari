@@ -421,6 +421,9 @@ public class AmbariActionExecutionHelper {
       for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
         hostLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
       }
+      for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
+        hostLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
+      }
       addRepoInfoToHostLevelParams(cluster, hostLevelParams, hostName);
 
       Map<String, String> roleParams = execCmd.getRoleParams();

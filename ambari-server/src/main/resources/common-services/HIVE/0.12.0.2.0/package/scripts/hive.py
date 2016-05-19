@@ -422,10 +422,16 @@ def jdbc_connector(target):
   """
   import params
 
+  if not params.jdbc_jar_name:
+    return
+
   if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }
+
+    if params.hive_previous_jdbc_jar and os.path.isfile(params.hive_previous_jdbc_jar):
+      File(params.hive_previous_jdbc_jar, action='delete')
 
     # TODO: should be removed after ranger_hive_plugin will not provide jdbc
     Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),

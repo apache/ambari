@@ -240,14 +240,17 @@ if has_ranger_admin:
   xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
   repo_config_password = unicode(config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
+  previous_jdbc_jar_name = None
 
   if stack_supports_ranger_audit_db:
     if xa_audit_db_flavor == 'mysql':
       jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "com.mysql.jdbc.Driver"
     elif xa_audit_db_flavor == 'oracle':
       jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
       colon_count = xa_db_host.count(':')
       if colon_count == 2 or colon_count == 0:
         audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
@@ -256,20 +259,24 @@ if has_ranger_admin:
       jdbc_driver = "oracle.jdbc.OracleDriver"
     elif xa_audit_db_flavor == 'postgres':
       jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
       audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
       jdbc_driver = "org.postgresql.Driver"
     elif xa_audit_db_flavor == 'mssql':
       jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
       jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
     elif xa_audit_db_flavor == 'sqla':
       jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+      previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
       audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
       jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   driver_curl_target = format("{storm_component_home_dir}/lib/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  previous_jdbc_jar = format("{storm_component_home_dir}/lib/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   sql_connector_jar = ''
 
   storm_ranger_plugin_config = {

@@ -1204,6 +1204,9 @@ public class AmbariCustomCommandExecutionHelper {
     for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
       hostLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
     }
+    for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
+      hostLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
+    }
 
     if (clusterVersionEntity != null) {
       hostLevelParams.put("current_version", clusterVersionEntity.getRepositoryVersion().getVersion());

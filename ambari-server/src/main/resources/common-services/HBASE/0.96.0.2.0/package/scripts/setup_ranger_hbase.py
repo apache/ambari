@@ -67,8 +67,8 @@ def setup_ranger_hbase(upgrade_type=None):
       if params.stack_supports_ranger_kerberos:
         api_version='v2'
       from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
-      setup_ranger_plugin('hbase-client', 'hbase', params.downloaded_custom_connector, params.driver_curl_source,
-                          params.driver_curl_target, params.java64_home,
+      setup_ranger_plugin('hbase-client', 'hbase', params.previous_jdbc_jar, params.downloaded_custom_connector,
+                          params.driver_curl_source, params.driver_curl_target, params.java64_home,
                           params.repo_name, params.hbase_ranger_plugin_repo,
                           params.ranger_env, params.ranger_plugin_properties,
                           params.policy_user, params.policymgr_mgr_url,
@@ -88,7 +88,8 @@ def setup_ranger_hbase(upgrade_type=None):
 
     else:
       from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin
-      setup_ranger_plugin('hbase-client', 'hbase', params.downloaded_custom_connector, params.driver_curl_source,
+      setup_ranger_plugin('hbase-client', 'hbase', params.previous_jdbc_jar,
+                        params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
                         params.repo_name, params.hbase_ranger_plugin_repo,
                         params.ranger_env, params.ranger_plugin_properties,

@@ -203,32 +203,47 @@ if stack_version_formatted and check_stack_feature(StackFeature.OOZIE_SETUP_SHAR
 else: 
   put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
 
+default_connectors_map = { "com.microsoft.sqlserver.jdbc.SQLServerDriver":"sqljdbc4.jar",
+                           "com.mysql.jdbc.Driver":"mysql-connector-java.jar",
+                           "org.postgresql.Driver":"postgresql-jdbc.jar",
+                           "oracle.jdbc.driver.OracleDriver":"ojdbc.jar",
+                           "sap.jdbc4.sqlanywhere.IDriver":"sajdbc4.jar"}
+
 jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.driver", "")
 # NOT SURE THAT IT'S A GOOD IDEA TO USE PATH TO CLASS IN DRIVER, MAYBE IT WILL BE BETTER TO USE DB TYPE.
 # BECAUSE PATH TO CLASSES COULD BE CHANGED
 sqla_db_used = False
+previous_jdbc_jar_name = None
 if jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
   jdbc_driver_jar = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
 elif jdbc_driver_name == "com.mysql.jdbc.Driver":
   jdbc_driver_jar = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
 elif jdbc_driver_name == "org.postgresql.Driver":
   jdbc_driver_jar = format("{oozie_home}/libserver/postgresql-9.0-801.jdbc4.jar")  #oozie using it's own postgres jdbc
+  previous_jdbc_jar_name = None
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
   jdbc_driver_jar = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
 elif jdbc_driver_name == "sap.jdbc4.sqlanywhere.IDriver":
   jdbc_driver_jar = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   sqla_db_used = True
 else:
   jdbc_driver_jar = ""
   jdbc_symlink_name = ""
+  previous_jdbc_jar_name = None
 
 default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
 driver_curl_source = format("{jdk_location}/{jdbc_driver_jar}")
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 if jdbc_driver_name == "org.postgresql.Driver":
   target = jdbc_driver_jar
+  previous_jdbc_jar = None
 else:
   target = format("{oozie_libext_dir}/{jdbc_driver_jar}")
+  previous_jdbc_jar = format("{oozie_libext_dir}/{previous_jdbc_jar_name}")
 
 #constants for type2 jdbc
 jdbc_libs_dir = format("{oozie_libext_dir}/native/lib64")

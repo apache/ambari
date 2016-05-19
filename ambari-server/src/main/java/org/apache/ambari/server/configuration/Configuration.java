@@ -729,8 +729,10 @@ public class Configuration {
   private volatile boolean credentialProviderInitialized = false;
   private Properties customDbProperties = null;
   private Properties customPersistenceProperties = null;
-  private Long configLastModifiedDate = 0L;
+  private Long configLastModifiedDateForCustomJDBC = 0L;
+  private Long configLastModifiedDateForCustomJDBCToRemove = 0L;
   private Map<String, String> databaseConnectorNames = new HashMap<>();
+  private Map<String, String> databasePreviousConnectorNames = new HashMap<>();
 
   static {
     if (System.getProperty("os.name").contains("Windows")) {
@@ -1077,9 +1079,9 @@ public class Configuration {
     File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
     Long currentConfigLastModifiedDate = file.lastModified();
     Properties properties = null;
-    if (currentConfigLastModifiedDate.longValue() != configLastModifiedDate.longValue()) {
+    if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBC.longValue()) {
       LOG.info("Ambari properties config file changed.");
-      if (configLastModifiedDate != null) {
+      if (configLastModifiedDateForCustomJDBC != null) {
         properties = readConfigFile();
       } else {
         properties = this.properties;
@@ -1087,15 +1089,41 @@ public class Configuration {
 
       for (String propertyName : dbConnectorPropertyNames) {
         String propertyValue = properties.getProperty(propertyName);
-        if (propertyValue != null) {
+        if (StringUtils.isNotEmpty(propertyValue)) {
           databaseConnectorNames.put(propertyName.replace(".", "_"), propertyValue);
         }
       }
 
-      configLastModifiedDate = currentConfigLastModifiedDate;
+      configLastModifiedDateForCustomJDBC = currentConfigLastModifiedDate;
     }
 
     return databaseConnectorNames;
+  }
+
+  public Map<String, String> getPreviousDatabaseConnectorNames() {
+    File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());
+    Long currentConfigLastModifiedDate = file.lastModified();
+    Properties properties = null;
+    if (currentConfigLastModifiedDate.longValue() != configLastModifiedDateForCustomJDBCToRemove.longValue()) {
+      LOG.info("Ambari properties config file changed.");
+      if (configLastModifiedDateForCustomJDBCToRemove != null) {
+        properties = readConfigFile();
+      } else {
+        properties = this.properties;
+      }
+
+      for (String propertyName : dbConnectorPropertyNames) {
+        propertyName = "previous." + propertyName;
+        String propertyValue = properties.getProperty(propertyName);
+        if (StringUtils.isNotEmpty(propertyValue)) {
+          databasePreviousConnectorNames.put(propertyName.replace(".", "_"), propertyValue);
+        }
+      }
+
+      configLastModifiedDateForCustomJDBCToRemove = currentConfigLastModifiedDate;
+    }
+
+    return databasePreviousConnectorNames;
   }
 
   public JsonObject getHostChangesJson(String hostChangesFile) {

@@ -88,15 +88,19 @@ def jdbc_connector():
   from urllib2 import HTTPError
   from resource_management import Fail
   for jar_name in params.sqoop_jdbc_drivers_dict:
-    if 'mysql-connector-java.jar' in jar_name:
+    if not jar_name or 'mysql' in jar_name:
       continue
     downloaded_custom_connector = format("{sqoop_lib}/{jar_name}")
+    custom_connector_to_remove = format("{sqoop_lib}/" + str(params.sqoop_jdbc_drivers_to_remove[jar_name]))
     jdbc_driver_label = params.sqoop_jdbc_drivers_name_dict[jar_name]
     driver_curl_source = format("{jdk_location}/{jar_name}")
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }
     try:
+      if custom_connector_to_remove and os.path.isfile(custom_connector_to_remove):
+        File(custom_connector_to_remove, action='delete')
+
       File(downloaded_custom_connector,
            content = DownloadSource(driver_curl_source),
            mode = 0644,

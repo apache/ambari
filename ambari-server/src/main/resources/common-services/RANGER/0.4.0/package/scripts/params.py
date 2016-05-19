@@ -144,12 +144,15 @@ oracle_home = default("/configurations/ranger-env/oracle_home", "-")
 #For curl command in ranger to get db connector
 jdk_location = config['hostLevelParams']['jdk_location'] 
 java_share_dir = '/usr/share/java'
+previous_jdbc_jar_name = None
 if db_flavor.lower() == 'mysql':
   jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
   audit_jdbc_url = format('jdbc:mysql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
 elif db_flavor.lower() == 'oracle':
   jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
   colon_count = db_host.count(':')
   if colon_count == 2 or colon_count == 0:
@@ -158,14 +161,17 @@ elif db_flavor.lower() == 'oracle':
     audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}') if stack_supports_ranger_audit_db else None
 elif db_flavor.lower() == 'postgres':
   jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
   audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
 elif db_flavor.lower() == 'mssql':
   jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 elif db_flavor.lower() == 'sqla':
   jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+  previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
   audit_jdbc_url = format('jdbc:sqlanywhere:database={ranger_auditdb_name};host={db_host}') if stack_supports_ranger_audit_db else None
   jdbc_dialect = "org.eclipse.persistence.platform.database.SQLAnywherePlatform"
 
@@ -173,8 +179,10 @@ downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+previous_jdbc_jar = format("{java_share_dir}/{previous_jdbc_jar_name}")
 if stack_supports_config_versioning:
   driver_curl_target = format("{ranger_home}/ews/lib/{jdbc_jar_name}")
+  previous_jdbc_jar = format("{ranger_home}/ews/lib/{previous_jdbc_jar_name}")
 
 if db_flavor.lower() == 'sqla':
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")

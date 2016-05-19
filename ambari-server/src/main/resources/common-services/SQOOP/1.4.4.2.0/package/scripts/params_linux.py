@@ -85,30 +85,38 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 #JDBC driver jar name
 sqoop_jdbc_drivers_dict = []
 sqoop_jdbc_drivers_name_dict = {}
+sqoop_jdbc_drivers_to_remove = {}
 if "jdbc_drivers" in config['configurations']['sqoop-env']:
   sqoop_jdbc_drivers = config['configurations']['sqoop-env']['jdbc_drivers'].split(',')
 
   for driver_name in sqoop_jdbc_drivers:
+    previous_jdbc_jar_name = None
     driver_name = driver_name.strip()
     if driver_name and not driver_name == '':
       if driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
         jdbc_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
         jdbc_driver_name = "mssql"
       elif driver_name == "com.mysql.jdbc.Driver":
         jdbc_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
         jdbc_driver_name = "mysql"
       elif driver_name == "org.postgresql.Driver":
         jdbc_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
         jdbc_driver_name = "postgres"
       elif driver_name == "oracle.jdbc.driver.OracleDriver":
         jdbc_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
         jdbc_driver_name = "oracle"
       elif driver_name == "org.hsqldb.jdbc.JDBCDriver":
         jdbc_name = default("/hostLevelParams/custom_hsqldb_jdbc_name", None)
+        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_hsqldb_jdbc_name", None)
         jdbc_driver_name = "hsqldb"
     else:
       continue
     sqoop_jdbc_drivers_dict.append(jdbc_name)
+    sqoop_jdbc_drivers_to_remove[jdbc_name] = previous_jdbc_jar_name
     sqoop_jdbc_drivers_name_dict[jdbc_name] = jdbc_driver_name
 jdk_location = config['hostLevelParams']['jdk_location']
 

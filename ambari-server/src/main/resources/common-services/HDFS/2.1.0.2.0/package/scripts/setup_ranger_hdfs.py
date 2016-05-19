@@ -48,7 +48,7 @@ def setup_ranger_hdfs(upgrade_type=None):
         api_version=None
         if params.stack_supports_ranger_kerberos:
           api_version='v2'
-        setup_ranger_plugin('hadoop-client', 'hdfs',
+        setup_ranger_plugin('hadoop-client', 'hdfs', params.previous_jdbc_jar,
                              params.downloaded_custom_connector, params.driver_curl_source,
                              params.driver_curl_target, params.java_home,
                              params.repo_name, params.hdfs_ranger_plugin_repo,
@@ -70,7 +70,7 @@ def setup_ranger_hdfs(upgrade_type=None):
     else:
         from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin
 
-        setup_ranger_plugin('hadoop-client', 'hdfs',
+        setup_ranger_plugin('hadoop-client', 'hdfs', params.previous_jdbc_jar,
                             params.downloaded_custom_connector, params.driver_curl_source,
                             params.driver_curl_target, params.java_home,
                             params.repo_name, params.hdfs_ranger_plugin_repo,
