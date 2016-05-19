@@ -95,7 +95,12 @@ public class HostComponentDesiredStateDAO {
 
   @Transactional
   public void remove(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
-    HostEntity hostEntity = hostComponentDesiredStateEntity.getHostEntity();
+    HostEntity hostEntity = hostDAO.findById(hostComponentDesiredStateEntity.getHostId());
+
+    if (hostEntity == null) {
+      throw new IllegalStateException(String.format("Missing hostEntity for host id %1d",
+              hostComponentDesiredStateEntity.getHostId()));
+    }
 
     entityManagerProvider.get().remove(merge(hostComponentDesiredStateEntity));
 
