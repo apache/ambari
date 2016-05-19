@@ -28,14 +28,17 @@ App.TextFieldConfigWidgetView = App.ConfigWidgetView.extend({
   /**
    * Control to edit value.
    *
-   * @type {App.ServiceConfigTextField}
+   * @type {App.ServiceConfigTextField|App.ServiceConfigTextFieldWithUnit}
    * @property configView
    */
-  configView: App.ServiceConfigTextField.extend({
-    isPopoverEnabled: 'false',
-    textFieldClassName: 'span12',
-    serviceConfigBinding: 'parentView.config'
-  }),
+  configView: function() {
+    var fieldView = (this.get('config.unit')) ? App.ServiceConfigTextFieldWithUnit : App.ServiceConfigTextField;
+    return fieldView.extend({
+      isPopoverEnabled: 'false',
+      textFieldClassName: 'span12',
+      serviceConfigBinding: 'parentView.config'
+    });
+  }.property('config.unit'),
 
   didInsertElement: function() {
     this._super();
