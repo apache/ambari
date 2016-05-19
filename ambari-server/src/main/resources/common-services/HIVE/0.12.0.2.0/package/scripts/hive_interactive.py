@@ -95,6 +95,12 @@ def hive_interactive(name=None):
     if item in merged_hive_interactive_site.keys():
       del merged_hive_interactive_site[item]
 
+  '''
+  Hive2 doesn't have support for Atlas, we need to remove the Hook 'org.apache.atlas.hive.hook.HiveHook',
+  which would have come in config 'hive.exec.post.hooks' during the site merge logic, if Atlas is installed.
+  '''
+  remove_atlas_hook_if_exists(merged_hive_interactive_site)
+
   # Anything TODO for attributes
 
   # Merge tez-interactive with tez-site
@@ -217,3 +223,22 @@ def hive_interactive(name=None):
             owner=params.hive_user,
             group=params.user_group,
             mode=0755)
+
+"""
+Remove 'org.apache.atlas.hive.hook.HiveHook' value from Hive2/hive-site.xml config 'hive.exec.post.hooks', if exists.
+"""
+def remove_atlas_hook_if_exists(merged_hive_interactive_site):
+  if 'hive.exec.post.hooks' in merged_hive_interactive_site.keys():
+    existing_hive_exec_post_hooks = merged_hive_interactive_site.get('hive.exec.post.hooks')
+    if existing_hive_exec_post_hooks:
+      hook_splits = existing_hive_exec_post_hooks.split(",")
+      updated_hook_splits = [hook for hook in hook_splits if not hook.strip() == 'org.apache.atlas.hive.hook.HiveHook']
+      updated_hooks_str = ",".join((str(hook)).strip() for hook in updated_hook_splits)
+      if updated_hooks_str != existing_hive_exec_post_hooks:
+        merged_hive_interactive_site['hive.exec.post.hooks'] = updated_hooks_str
+        Logger.info("Updated Hive2/hive-site.xml 'hive.exec.post.hooks' value from : '{0}' to : '{1}'"
+                    .format(existing_hive_exec_post_hooks, updated_hooks_str))
+      else:
+        Logger.info("No change done to Hive2/hive-site.xml 'hive.exec.post.hooks' value.")
+  else:
+      Logger.debug("'hive.exec.post.hooks' doesn't exist in Hive2/hive-site.xml")
