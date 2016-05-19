@@ -17,10 +17,13 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
 from utils import get_property_value, get_unstructured_data
 from ambari_commons.os_check import OSCheck
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.format import format
+
 
 krb5_conf_dir = '/etc'
 krb5_conf_file = 'krb5.conf'

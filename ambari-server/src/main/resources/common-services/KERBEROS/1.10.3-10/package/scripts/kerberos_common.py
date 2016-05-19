@@ -25,7 +25,13 @@ import sys
 import tempfile
 from tempfile import gettempdir
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.source import InlineTemplate, Template, DownloadSource
 from utils import get_property_value
 from ambari_commons.os_utils import remove_file
 from ambari_agent import Constants

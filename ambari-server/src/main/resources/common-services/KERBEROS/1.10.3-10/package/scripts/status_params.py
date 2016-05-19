@@ -17,7 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries import functions
+from resource_management.libraries.functions import default 
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()

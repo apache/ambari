@@ -18,9 +18,13 @@ limitations under the License.
 Ambari Agent
 
 """
+from resource_management.libraries import functions
+from resource_management.libraries.functions.format import format
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.logger import Logger
 
 from kerberos_common import *
-from resource_management import *
+
 
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
 # and other secure hashes.  In 2.6, md5 is deprecated.  Import hashlib if
