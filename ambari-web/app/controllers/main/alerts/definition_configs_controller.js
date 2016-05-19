@@ -159,7 +159,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       	configs = this.renderServerConfigs();
       	break;
       case 'RECOVERY':
-      	configs = this.renderWebConfigs();
+        configs = this.renderRecoveryConfigs();
       	break;
       case 'AMS':
       	configs = this.renderAmsConfigs();
@@ -322,6 +322,48 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
           var value = this.get('value');
           return numericUtils.isPositiveNumber(value);
         }.property('value')
+      })
+    ]);
+
+    return result;
+  },
+
+  /**
+   * Render config properties for recovery-type alert definition
+   * @method renderRecoveryConfigs
+   * @returns {App.AlertConfigProperty[]}
+   */
+  renderRecoveryConfigs: function () {
+    var result = [];
+    var alertDefinition = this.get('content');
+    var isWizard = this.get('isWizard');
+
+    if (this.get('isWizard')) {
+      result = result.concat(this.renderCommonWizardConfigs());
+    }
+
+    result = result.concat([
+      App.AlertConfigProperties.Description.create({
+        value: isWizard ? '' : alertDefinition.get('description')
+      }),
+      App.AlertConfigProperties.Interval.create({
+        value: isWizard ? '' : alertDefinition.get('interval')
+      }),
+      App.AlertConfigProperties.Thresholds.OkThreshold.create({
+        label: 'Thresholds',
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
+      }),
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+      }),
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        showInputForValue: false,
+        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
     ]);
 
