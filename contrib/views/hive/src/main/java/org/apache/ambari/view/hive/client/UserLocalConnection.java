@@ -35,11 +35,14 @@ public class UserLocalConnection extends UserLocal<Connection> {
       new UserLocalHiveAuthCredentials();
 
   @Override
-  protected synchronized Connection initialValue(ViewContext context) {
-    ConnectionFactory hiveConnectionFactory = new ConnectionFactory(context, authCredentialsLocal.get(context));
-    authCredentialsLocal.remove(context);  // we should not store credentials in memory,
-                                          // password is erased after connection established
-    return hiveConnectionFactory.create();
+  protected Connection initialValue(ViewContext context) {
+      LOG.debug("creating connection for context : {}" , context);
+      ConnectionFactory hiveConnectionFactory = new ConnectionFactory(context, authCredentialsLocal.get(context));
+      authCredentialsLocal.remove(context);  // we should not store credentials in memory,
+      // password is erased after connection established
+      Connection connection = hiveConnectionFactory.create();
+      LOG.debug("returning connection : {} for context : {} ", connection,context);
+      return connection;
   }
 
 }
