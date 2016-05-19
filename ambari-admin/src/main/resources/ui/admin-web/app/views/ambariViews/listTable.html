@@ -45,7 +45,7 @@
         <accordion-group ng-repeat="view in filteredViews" is-open="view.isOpened">
             <accordion-heading>
                 <div class="row">
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <i class="glyphicon glyphicon-chevron-right" ng-class="{'opened': view.isOpened}"></i>
                         {{view.view_name}}
                     </div>
@@ -82,8 +82,8 @@
                 </tbody>
                 <tfoot>
                 <tr>
-                    <td class="col-sm-3"></td>
-                    <td class="col-sm-3">
+                    <td class="col-sm-4"></td>
+                    <td class="col-sm-3 padding-left-30">
                         <a tooltip="{{view.canCreateInstance ? '' : constants.unable}}" class="btn btn-default createisntance-btn {{view.canCreateInstance ? '' : 'disabled'}}" href ng-click="gotoCreate(view.view_name, view.canCreateInstance);"><span class="glyphicon glyphicon-plus"></span> {{'views.create' | translate}}</a>
                     </td>
                     <td class="col-sm-3"></td>
