@@ -28,9 +28,6 @@
 </div>
 <hr>
 
-
-
-
 <form class="form-horizontal create-user-form" role="form" novalidate name="form" autocomplete="off">
 
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
@@ -69,7 +66,7 @@
 
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <button class="btn btn-primary pull-right left-margin saveremotecluster" ng-click="editRemoteCluster()">{{'common.controls.save' | translate}}</button>
+      <button class="btn btn-primary pull-right left-margin saveremotecluster" ng-disabled="form.$pristine" ng-click="editRemoteCluster()">{{'common.controls.save' | translate}}</button>
       <a class="btn btn-default pull-right cancel" href ng-click="cancel()">{{'common.controls.cancel' | translate}}</a>
     </div>
   </div>

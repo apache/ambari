@@ -18,10 +18,11 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('RemoteClustersEditCtrl', ['$scope', '$modal', '$routeParams', '$location', 'Alert', '$translate', 'Cluster', 'Settings','RemoteCluster', 'ConfirmationModal', function($scope, $modal, $routeParams, $location, Alert, $translate, Cluster, Settings, RemoteCluster, ConfirmationModal) {
+.controller('RemoteClustersEditCtrl', ['$scope', '$modal', '$routeParams', '$location', 'Alert', '$translate', 'Cluster', 'Settings','RemoteCluster', 'DeregisterClusterModal', function($scope, $modal, $routeParams, $location, Alert, $translate, Cluster, Settings, RemoteCluster, DeregisterClusterModal) {
   var $t = $translate.instant;
 
   $scope.cluster = {};
+  $scope.instancesAffected = [];
 
   $scope.openChangePwdDialog = function() {
     var modalInstance = $modal.open({
@@ -91,19 +92,32 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.deleteCluster = function() {
-      ConfirmationModal.show(
-        $t('common.deregisterCluster', {
-          term: $t('common.cluster')
-        }),
-        $t('common.deleteConfirmation', {
-          instanceType: $t('common.cluster').toLowerCase(),
-          instanceName: '"' + $scope.cluster.cluster_name + '"'
+
+    $scope.instancesAffected = [];
+    RemoteCluster.affectedViews($scope.cluster.cluster_name).then(function(response) {
+
+        response.items.forEach(function(item){
+          item.versions.forEach(function(version){
+            version.instances.forEach(function(instance){
+              $scope.instancesAffected.push(instance.ViewInstanceInfo.instance_name);
+            })
+          })
         })
-      ).then(function() {
-        RemoteCluster.deregister($scope.cluster.cluster_name).then(function() {
-          $location.path('/remoteClusters');
+
+        DeregisterClusterModal.show(
+          $t('common.deregisterCluster',{term: $t('common.cluster')}),
+          $t('common.remoteClusterDelConfirmation', {instanceType: $t('common.cluster').toLowerCase(), instanceName: '"' + $scope.cluster.cluster_name + '"'}),
+          $scope.instancesAffected
+
+        ).then(function() {
+          RemoteCluster.deregister($scope.cluster.cluster_name).then(function() {
+            $location.path('/remoteClusters');
+          });
         });
-      });
+    })
+    .catch(function(data) {
+      console.log(data);
+    });
   };
 
   $scope.editRemoteCluster = function () {
