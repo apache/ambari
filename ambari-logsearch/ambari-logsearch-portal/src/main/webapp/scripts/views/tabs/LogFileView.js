@@ -503,7 +503,7 @@ define(['require',
                                 if (rawValue)
                                     str += "<div style='position:relative'><p style='margin-left:20px'>" + moment(rawValue).format("YYYY-MM-DD HH:mm:ss,SSS") + "</p>";
                                 if (model.get("level"))
-                                    str += "<p style='margin-left:20px'><label class='label label-" + model.get("level") + "'>" + model.get("level") + "</label></p>";
+                                    str += "<p style='margin-left:20px'><label class='label label-" + (""+model.get("level")).toUpperCase() + "'>" + (""+model.get("level")).toUpperCase() + "</label></p>";
                                 str += that.getDropdownQuickMenuHtml()+"</div>";
                                 return str;
                             }
