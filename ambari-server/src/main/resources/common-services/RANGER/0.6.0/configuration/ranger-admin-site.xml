@@ -137,4 +137,20 @@
     <description>Ranger trust-store password</description>
   </property>
 
+  <property>
+    <name>ranger.audit.solr.zookeepers</name>
+    <value>NONE</value>
+    <description>Solr Zookeeper string</description>
+    <depends-on>
+      <property>
+        <type>logsearch-solr-env</type>
+        <name>logsearch_solr_znode</name>
+      </property>
+      <property>
+        <type>ranger-env</type>
+        <name>is_solrCloud_enabled</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>

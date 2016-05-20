@@ -63,6 +63,7 @@ stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature
 stack_supports_ranger_log4j =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, stack_version_formatted)
 stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 stack_supports_usersync_passwd = stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, stack_version_formatted)
+stack_supports_logsearch_dependent = stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOGSEARCH_DEPENDENT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -252,3 +253,16 @@ has_namenode = len(namenode_hosts) > 0
 
 ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.alias"]
 ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.keystore"]
+
+# ranger solr
+ranger_solr_config_set = config['configurations']['ranger-env']['ranger_solr_config_set']
+ranger_solr_collection_name = config['configurations']['ranger-env']['ranger_solr_collection_name']
+ranger_solr_shards = config['configurations']['ranger-env']['ranger_solr_shards']
+zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
+zookeeper_hosts_list.sort()
+zookeeper_hosts = ",".join(zookeeper_hosts_list)
+logsearch_solr_znode = config['configurations']['logsearch-solr-env']['logsearch_solr_znode']
+ranger_solr_conf = format('{ranger_home}/contrib/solr_for_audit_setup/conf')
+logsearch_solr_hosts = default("/clusterHostInfo/logsearch_solr_hosts", [])
+replication_factor = 2 if len(logsearch_solr_hosts) > 1 else 1
+has_logsearch = len(logsearch_solr_hosts) > 0

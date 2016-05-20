@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 import re
+import random
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute, Link
 from resource_management.core.source import DownloadSource, InlineTemplate
@@ -30,6 +31,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
+from resource_management.libraries.functions import solr_cloud_util
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
@@ -524,3 +526,30 @@ def create_core_site_xml(conf_dir):
            group = params.unix_group,
            mode=0644
       )
+
+def setup_ranger_audit_solr():
+  import params
+
+  random_num = random.random()
+  tmp_config_set_folder = format('{tmp_dir}/ranger_config_{ranger_solr_config_set}_{random_num}')
+
+  solr_cloud_util.upload_configuration_to_zk(
+    zookeeper_quorum = params.zookeeper_hosts,
+    solr_znode = params.logsearch_solr_znode,
+    config_set = params.ranger_solr_config_set,
+    config_set_dir = params.ranger_solr_conf,
+    tmp_config_set_dir = tmp_config_set_folder,
+    java64_home = params.java_home,
+    user = params.unix_user,
+    group = params.unix_group)
+
+  solr_cloud_util.create_collection(
+    zookeeper_quorum = params.zookeeper_hosts,
+    solr_znode = params.logsearch_solr_znode,
+    collection = params.ranger_solr_collection_name,
+    config_set = params.ranger_solr_config_set,
+    java64_home = params.java_home,
+    user = params.unix_user,
+    group = params.unix_group,
+    shards = params.ranger_solr_shards,
+    replication_factor = params.replication_factor)

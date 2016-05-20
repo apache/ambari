@@ -25,6 +25,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
+from setup_ranger_xml import setup_ranger_audit_solr
 import upgrade
 import os, errno
 
@@ -73,6 +74,9 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
     self.configure(env, upgrade_type=upgrade_type)
+
+    if params.stack_supports_logsearch_dependent and params.has_logsearch:
+      setup_ranger_audit_solr()
     ranger_service('ranger_admin')
 
 

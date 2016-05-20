@@ -66,7 +66,7 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
     max_shards = replication_factor * shards
 
   create_collection_cmd = format('{solr_cli_prefix} --create-collection -c {collection} -cs {config_set} -s {shards} -r {replication_factor} '\
-    '-m {max_shards} -rt {retry} -i {interval}')
+    '-m {max_shards} -rt {retry} -i {interval} -ns')
 
   if router_name is not None and router_field is not None:
     create_collection_cmd += format(' -rn {router_name} -rf {router_field}')
