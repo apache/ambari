@@ -274,13 +274,12 @@
       </tr>
       </tbody>
     </table>
+    <div class="cluster-inherited-permission">
+      <strong>{{'views.clusterPermissions.label' | translate}}</strong>
+    </div>
     <div ng-show="!isPermissionsEmpty && (data.clusterType == 'LOCAL_AMBARI') && editConfigurationDisabled">
-      <div class="col-sm-12 cluster-inherited-permission">
-        <strong>{{'views.clusterPermissions.label' | translate}}</strong>
-      </div>
       <div class="col-sm-12">
         <span translate="views.clusterPermissions.infoMessage" translate-values="{cluster: cluster}"></span>
-        <div>{{'common.roles' | translate}}:</div>
       </div>
       <div class="col-sm-offset-2 col-sm-10">
         <div class="checkbox col-sm-12" ng-repeat="key in clusterInheritedPermissionKeys">

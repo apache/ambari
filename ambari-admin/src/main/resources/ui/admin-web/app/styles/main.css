@@ -1584,10 +1584,6 @@ thead.view-permission-header > tr > th {
   width: 40%;
 }
 
-.role-actions {
-  width: 400px;
-}
-
 .green-icon {
   color: #5ab400;
 }
@@ -1685,9 +1681,11 @@ legend {
 }
 
 .cluster-inherited-permission {
-    border-bottom: 2px solid #ddd;
-    padding-bottom: 10px;
-    margin-top: 5px;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 10px;
+  padding-left: 8px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .glyphicon-question-sign {

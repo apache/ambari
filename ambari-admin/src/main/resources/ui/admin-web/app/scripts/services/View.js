@@ -194,9 +194,9 @@ angular.module('ambariAdminConsole')
   View.clusterInheritedPermissionKeys = [
     "ALL.CLUSTER.ADMINISTRATOR",
     "ALL.CLUSTER.OPERATOR",
-    "ALL.CLUSTER.USER",
     "ALL.SERVICE.OPERATOR",
-    "ALL.SERVICE.ADMINISTRATOR"
+    "ALL.SERVICE.ADMINISTRATOR",
+    "ALL.CLUSTER.USER"
   ];
 
   View.getInstance = function(viewName, version, instanceName) {
