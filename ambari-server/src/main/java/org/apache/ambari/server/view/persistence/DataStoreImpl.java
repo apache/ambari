@@ -25,10 +25,14 @@ import org.apache.ambari.view.PersistenceException;
 import org.eclipse.persistence.dynamic.DynamicClassLoader;
 import org.eclipse.persistence.dynamic.DynamicEntity;
 import org.eclipse.persistence.dynamic.DynamicType;
+import org.eclipse.persistence.exceptions.DynamicException;
 import org.eclipse.persistence.internal.helper.DatabaseField;
+import org.eclipse.persistence.jpa.JpaHelper;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicHelper;
 import org.eclipse.persistence.jpa.dynamic.JPADynamicTypeBuilder;
 import org.eclipse.persistence.mappings.DirectToFieldMapping;
+import org.eclipse.persistence.sequencing.TableSequence;
+import org.eclipse.persistence.sessions.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,14 +48,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 
 
 /**
@@ -141,8 +138,20 @@ public class DataStoreImpl implements DataStore {
     try {
       em.getTransaction().begin();
       try {
-        persistEntity(entity, em, new HashSet<DynamicEntity>());
+        DynamicEntity dynamicEntity = persistEntity(entity, em, new HashSet<DynamicEntity>());
         em.getTransaction().commit();
+        Map<String, Object> props = getEntityProperties(entity);
+        List<String> keys = new ArrayList<String>(props.keySet());
+        for( String key : keys){
+          String attribute = getAttributeName(key);
+          try {
+            props.put(key, dynamicEntity.get(attribute));
+          }catch(DynamicException de){
+            LOG.debug("Error occurred while copying entity property : {} : {}", key, de);
+            // ignore - the property was not found in Dynamic entity.
+          }
+        }
+        setEntityProperties(entity,props);
       } catch (Exception e) {
         rollbackTransaction(em.getTransaction());
         throwPersistenceException("Caught exception trying to store view entity " + entity, e);
@@ -283,19 +292,22 @@ public class DataStoreImpl implements DataStore {
       typeBuilderMap.put(entityName, typeBuilder);
     }
 
+    Session session = JpaHelper.getEntityManager(getEntityManager()).getServerSession();
     // add the direct mapped properties to the dynamic type builders
     for (Map.Entry<Class, String> entry: entityClassMap.entrySet()) {
 
       Class                 clazz       = entry.getKey();
       String                entityName  = entry.getValue();
       JPADynamicTypeBuilder typeBuilder = typeBuilderMap.get(entityName);
+      String seqName = new String(entityName + "_id_seq").toLowerCase();
+      TableSequence tableSequence = new TableSequence(seqName,50, "ambari_sequences", "sequence_name","sequence_value");
+      session.getLogin().addSequence(tableSequence);
 
       Map<String, PropertyDescriptor> descriptorMap = getDescriptorMap(clazz);
 
       long totalLength = 0L;
 
       for (Map.Entry<String, PropertyDescriptor> descriptorEntry : descriptorMap.entrySet()) {
-
         String fieldName     = descriptorEntry.getKey();
         String attributeName = getAttributeName(fieldName);
 
@@ -303,6 +315,7 @@ public class DataStoreImpl implements DataStore {
 
         if (fieldName.equals(entityMap.get(entityName).getIdProperty())) {
           typeBuilder.setPrimaryKeyFields(attributeName);
+          typeBuilder.configureSequencing(tableSequence,seqName,attributeName);
         }
 
         Class<?> propertyType = descriptor.getPropertyType();
@@ -340,12 +353,7 @@ public class DataStoreImpl implements DataStore {
         String fieldName     = descriptorEntry.getKey();
         String attributeName = getAttributeName(fieldName);
 
-
         PropertyDescriptor descriptor = descriptorEntry.getValue();
-        if (fieldName.equals(entityMap.get(entityName).getIdProperty())) {
-          typeBuilder.setPrimaryKeyFields(attributeName);
-        }
-
         Class<?> propertyType = descriptor.getPropertyType();
         String refEntityName = entityClassMap.get(propertyType);
 
@@ -398,7 +406,9 @@ public class DataStoreImpl implements DataStore {
     DynamicType type = getDynamicEntityType(clazz);
 
     if (type != null) {
-      dynamicEntity  = em.find(type.getJavaClass(), properties.get(id));
+      if (null != properties.get(id)) {
+        dynamicEntity = em.find(type.getJavaClass(), properties.get(id));
+      }
 
       boolean create = dynamicEntity == null;
 

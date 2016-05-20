@@ -56,33 +56,14 @@ public class DataStoreStorage implements Storage {
 
   @Override
   public synchronized void store(Class model, Indexed obj) {
-    assignId(model, obj);
-
-    Indexed newBean;
-    try {
-      newBean = (Indexed) BeanUtils.cloneBean(obj);
-    } catch (IllegalAccessException e) {
-      throw new ServiceFormattedException("S010 Data storage error", e);
-    } catch (InstantiationException e) {
-      throw new ServiceFormattedException("S010 Data storage error", e);
-    } catch (InvocationTargetException e) {
-      throw new ServiceFormattedException("S010 Data storage error", e);
-    } catch (NoSuchMethodException e) {
-      throw new ServiceFormattedException("S010 Data storage error", e);
-    }
-    preprocessEntity(newBean);
 
     try {
+      Indexed newBean = (Indexed) BeanUtils.cloneBean(obj);
+      preprocessEntity(newBean);
       context.getDataStore().store(newBean);
-    } catch (PersistenceException e) {
+      obj.setId(newBean.getId());
+    } catch (Exception e) {
       throw new ServiceFormattedException("S020 Data storage error", e);
-    }
-  }
-
-  public void assignId(Class model, Indexed obj) {
-    if (obj.getId() == null) {
-      String id = nextIdForEntity(context, model);
-      obj.setId(id);
     }
   }
 
@@ -103,19 +84,6 @@ public class DataStoreStorage implements Storage {
         }
       }
     }
-  }
-
-  private static synchronized String nextIdForEntity(ViewContext context, Class aClass) {
-    // auto increment id implementation
-    String lastId = context.getInstanceData(aClass.getName());
-    int newId;
-    if (lastId == null) {
-      newId = 1;
-    } else {
-      newId = Integer.parseInt(lastId) + 1;
-    }
-    context.putInstanceData(aClass.getName(), String.valueOf(newId));
-    return String.valueOf(newId);
   }
 
   @Override

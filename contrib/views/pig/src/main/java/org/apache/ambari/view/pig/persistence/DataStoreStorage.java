@@ -22,6 +22,7 @@ import org.apache.ambari.view.PersistenceException;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.pig.persistence.utils.*;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,27 +49,12 @@ public class DataStoreStorage implements Storage {
   @Override
   public synchronized void store(Indexed obj) {
     try {
-      if (obj.getId() == null) {
-        int id = nextIdForEntity(context, obj.getClass());
-        obj.setId(String.valueOf(id));
-      }
-      context.getDataStore().store(obj);
-    } catch (PersistenceException e) {
+      Indexed newBean = (Indexed) BeanUtils.cloneBean(obj);
+      context.getDataStore().store(newBean);
+      obj.setId(newBean.getId());
+    } catch (Exception e) {
       throw new ServiceFormattedException("Error while saving object to DataStorage", e);
     }
-  }
-
-  private static synchronized int nextIdForEntity(ViewContext context, Class aClass) {
-    // auto increment id implementation
-    String lastId = context.getInstanceData(aClass.getName());
-    int newId;
-    if (lastId == null) {
-      newId = 1;
-    } else {
-      newId = Integer.parseInt(lastId) + 1;
-    }
-    context.putInstanceData(aClass.getName(), String.valueOf(newId));
-    return newId;
   }
 
   @Override

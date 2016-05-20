@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AlertFirmness;
@@ -92,6 +93,10 @@ import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 /**
  * Upgrade catalog for version 2.4.0.
@@ -318,6 +323,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateHIVEConfigs();
     updateAMSConfigs();
     updateClusterEnv();
+    updateSequenceForView();
     updateHostRoleCommandTableDML();
     updateKerberosConfigs();
     updateYarnEnv();
@@ -347,6 +353,71 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     PrincipalEntity principalEntity = new PrincipalEntity();
     principalEntity.setPrincipalType(principalTypeEntity);
     principalDAO.create(principalEntity);
+  }
+  private static final String NAME_PREFIX = "DS_";
+
+  private String getEntityName(ViewEntityEntity entity) {
+    String className = entity.getClassName();
+    String[] parts = className.split("\\.");
+    String simpleClassName = parts[parts.length - 1];
+
+    if (entity.getViewInstance().alterNames()) {
+      return NAME_PREFIX + simpleClassName + "_" + entity.getId();
+    }
+    return simpleClassName + entity.getId();
+  }
+
+  /**
+   * get all entries of viewentity
+   * find all the table names by parsing class_name
+   * create all the sequence names by appending _id_seq
+   * query each dynamic table to find the max of id
+   * insert into ambari_sequence name and counter for each item
+   */
+  private void updateSequenceForView() {
+    LOG.info("updateSequenceForView called.");
+    EntityManager entityManager = getEntityManagerProvider().get();
+    TypedQuery<ViewEntityEntity> viewEntityQuery = entityManager.createQuery("SELECT vee FROM ViewEntityEntity vee", ViewEntityEntity.class);
+    List<ViewEntityEntity> viewEntities = viewEntityQuery.getResultList();
+    LOG.info("Received view Entities : {}, length : {}", viewEntities, viewEntities.size());
+
+    // as the id fields are string in these entities we will have to get all ids and convert to int and find max.
+    String selectIdsFormat = "select %s from %s";
+    String insertQuery = "insert into ambari_sequences values ('%s',%d)";
+    for (ViewEntityEntity viewEntity : viewEntities) {
+      LOG.info("Working with viewEntity : {} : {} ", viewEntity, viewEntity.getViewName() + viewEntity.getViewInstance());
+      String tableName = getEntityName(viewEntity);
+      String seqName = tableName.toLowerCase() + "_id_seq";
+      try {
+        entityManager.getTransaction().begin();
+        String selectIdsQueryString = String.format(selectIdsFormat, NAME_PREFIX + viewEntity.getIdProperty(), tableName).toLowerCase();
+        LOG.info("executing max query string {}", selectIdsQueryString);
+        Query selectIdsQuery = entityManager.createNativeQuery(selectIdsQueryString);
+        List<String> ids = selectIdsQuery.getResultList();
+        LOG.info("Received ids : {}", ids);
+        int maxId = 0;
+        if (null != ids && ids.size() != 0) {
+          for (String id : ids) {
+            try {
+              Integer intId = Integer.parseInt(id);
+              maxId = Math.max(intId, maxId);
+            } catch (NumberFormatException e) {
+              LOG.error("the id was non integer : id : {}. So ignoring.", id);
+            }
+          }
+        }
+
+        String insertQueryString = String.format(insertQuery, seqName, maxId).toLowerCase();
+        LOG.info("Executing insert query : {}", insertQueryString);
+        Query insertQ = entityManager.createNativeQuery(insertQueryString);
+        int rowsChanged = insertQ.executeUpdate();
+        entityManager.getTransaction().commit();
+        LOG.info("executing insert resulted in {} row changes.", rowsChanged);
+      } catch (Exception e) { // when the entity table is not yet created or other exception.
+        entityManager.getTransaction().rollback();
+        LOG.error("Error --> can be ignored.", e);
+      }
+    }
   }
 
   private void createSettingTable() throws SQLException {
