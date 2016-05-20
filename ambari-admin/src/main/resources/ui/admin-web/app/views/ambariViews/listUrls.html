@@ -16,7 +16,7 @@
 * limitations under the License.
 -->
 
-<div class="views-list-table" data-ng-init="initViewUrls()">
+<div class="users-pane views-list-table" data-ng-init="initViewUrls()">
 
 
     <div class="clearfix">
@@ -25,7 +25,7 @@
         </ol>
         <div class="pull-right top-margin-4">
             <div class="tooltip-wrapper"  tooltip="{{(createUrlDisabled)? ('urls.noViewInstances' | translate) : ''}}">
-            <link-to ng-disabled="createUrlDisabled" route="views.createViewUrl" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> {{'views.urlCreate' | translate}}</link-to>
+            <link-to ng-disabled="createUrlDisabled" route="views.createViewUrl" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> {{'urls.createNewUrl' | translate}}</link-to>
         </div>
         </div>
     </div>

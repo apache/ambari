@@ -145,8 +145,8 @@ angular.module('ambariAdminConsole')
         'clusterRenamed': 'The cluster has been renamed to {{clusterName}}.',
         'remoteClusterRegistered': 'The cluster has been registered as {{clusterName}}.',
         'cannotRenameCluster': 'Cannot rename cluster to {{clusterName}}',
-        'tooShort': 'Too short',
-        'tooLong': 'Too long',
+        'minimumTwoChars': 'Minimum length is 2 characters.',
+        'maxTwentyFiveChars': 'Maximum length is 25 characters.',
         'onlyText': 'Only lowercase alphanumeric characters are allowed.',
         'onlyAnScore': 'Invalid input, only alphanumerics allowed eg: My_default_view',
         'passwordRequired':'Password Required',
@@ -222,7 +222,6 @@ angular.module('ambariAdminConsole')
       'pending': 'Pending...',
       'deploying': 'Deploying...',
       'properties': 'properties',
-      'urlCreate':'Create new URL',
       'urlDelete':'Delete URL',
 
       'clusterPermissions': {

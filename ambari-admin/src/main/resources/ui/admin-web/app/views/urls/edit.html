@@ -60,8 +60,8 @@
       <span id="basic-addon1" class="input-group-addon">/main/view/{{url.view_instance_common_name}}/</span><input aria-describedby="basic-addon1" type="text" class="form-control" id="urlsuffixin" name="url_view_suffix" placeholder="{{'views.shortUrl' | translate}}" ng-model="url.url_suffix" ng-pattern="/^[a-z0-9-_]+$/" ng-minlength="3" ng-maxlength="25" required autocomplete="off">
         </div>
       <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.required   && url_form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
-      <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.minlength   && url_form.submitted">{{'common.alerts.tooShort' | translate}}</div>
-      <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.maxlength   && url_form.submitted">{{'common.alerts.tooLong' | translate}}</div>
+      <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.minlength   && url_form.submitted">{{'common.alerts.minimumTwoChars' | translate}}</div>
+      <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.maxlength   && url_form.submitted">{{'common.alerts.maxTwentyFiveChars' | translate}}</div>
       <div class="alert alert-danger top-margin" ng-show="url_form.url_view_suffix.$error.pattern   && url_form.submitted">{{'common.alerts.onlyText' | translate}}</div>
 
     </div>
