@@ -658,19 +658,19 @@
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
             <type>ranger-admin-site</type>
-            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_CLIENT_AUTH"
+            <transfer operation="copy" from-type="ranger-site" from-key="https.attrib.clientAuth"
                       to-key="ranger.service.https.attrib.clientAuth" default-value=""/>
-            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_FILE"
+            <transfer operation="copy" from-type="ranger-site" from-key="https.attrib.keystoreFile"
                       to-key="ranger.https.attrib.keystore.file" default-value=""/>
-            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_PASS"
+            <transfer operation="copy" from-type="ranger-site" from-key="https.attrib.keystorePass"
                       to-key="ranger.service.https.attrib.keystore.pass" default-value="" mask="true"/>
-            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEY_ALIAS"
+            <transfer operation="copy" from-type="ranger-site" from-key="https.attrib.keyAlias"
                       to-key="ranger.service.https.attrib.keystore.keyalias" default-value=""/>
-            <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_SERVICE_PORT"
+            <transfer operation="copy" from-type="ranger-site" from-key="https.service.port"
                       to-key="ranger.service.https.port" default-value=""/>
-            <transfer operation="copy" from-type="ranger-site" from-key="HTTP_ENABLED"
+            <transfer operation="copy" from-type="ranger-site" from-key="http.enabled"
                       to-key="ranger.service.http.enabled" default-value=""/>
-            <transfer operation="copy" from-type="ranger-site" from-key="HTTP_SERVICE_PORT"
+            <transfer operation="copy" from-type="ranger-site" from-key="http.service.port"
                       to-key="ranger.service.http.port" default-value=""/>
 
             <transfer operation="copy" from-type="admin-properties" from-key="authServiceHostName"
@@ -775,16 +775,6 @@
             <transfer operation="copy" from-type="usersync-properties" from-key="POLICY_MGR_URL"
                       to-key="ranger.usersync.policymanager.baseURL" default-value="{{ranger_external_url}}"/>
 
-            <set key="ranger.usersync.source.impl.class" value=""/>
-            <set key="ranger.usersync.ldap.searchBase" value=""/>
-            <set key="ranger.usersync.group.memberattributename" value=""/>
-            <set key="ranger.usersync.group.nameattribute" value=""/>
-            <set key="ranger.usersync.group.objectclass" value=""/>
-            <set key="ranger.usersync.group.searchbase" value=""/>
-            <set key="ranger.usersync.group.searchenabled" value=""/>
-            <set key="ranger.usersync.group.searchfilter" value=""/>
-            <set key="ranger.usersync.group.searchscope" value=""/>
-            <set key="ranger.usersync.group.usermapsyncenabled" value=""/>
             <set key="ranger.usersync.sleeptimeinmillisbetweensynccycle" value="60000"/>
           </definition>
 
