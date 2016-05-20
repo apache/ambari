@@ -41,6 +41,8 @@ class AMSServiceCheck(Script):
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
   AMS_CONNECT_TRIES = 30
   AMS_CONNECT_TIMEOUT = 15
+  AMS_READ_TRIES = 10
+  AMS_READ_TIMEOUT = 5
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def service_check(self, env):
@@ -131,41 +133,51 @@ class AMSServiceCheck(Script):
     Logger.info("Connecting (GET) to %s:%s%s" % (params.metric_collector_host,
                                                  params.metric_collector_port,
                                               self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters))
+    for i in xrange(0, self.AMS_READ_TRIES):
+      conn = network.get_http_connection(params.metric_collector_host,
+                                         int(params.metric_collector_port),
+                                         params.metric_collector_https_enabled,
+                                         ca_certs)
+      conn.request("GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
+      response = conn.getresponse()
+      Logger.info("Http response: %s %s" % (response.status, response.reason))
 
-    conn = network.get_http_connection(params.metric_collector_host,
-                                       int(params.metric_collector_port),
-                                       params.metric_collector_https_enabled,
-                                       ca_certs)
-    conn.request("GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
-    response = conn.getresponse()
-    Logger.info("Http response: %s %s" % (response.status, response.reason))
+      data = response.read()
+      Logger.info("Http data: %s" % data)
+      conn.close()
 
-    data = response.read()
-    Logger.info("Http data: %s" % data)
-    conn.close()
+      if response.status == 200:
+        Logger.info("Metrics were retrieved.")
+      else:
+        Logger.info("Metrics were not retrieved. Service check has failed.")
+        raise Fail("Metrics were not retrieved. Service check has failed. GET request status: %s %s \n%s" %
+                   (response.status, response.reason, data))
+      data_json = json.loads(data)
 
-    if response.status == 200:
-      Logger.info("Metrics were retrieved.")
-    else:
-      Logger.info("Metrics were not retrieved. Service check has failed.")
-      raise Fail("Metrics were not retrieved. Service check has failed. GET request status: %s %s \n%s" %
-                 (response.status, response.reason, data))
-    data_json = json.loads(data)
+      def floats_eq(f1, f2, delta):
+        return abs(f1-f2) < delta
 
-    def floats_eq(f1, f2, delta):
-      return abs(f1-f2) < delta
+      values_are_present = False
+      for metrics_data in data_json["metrics"]:
+        if (str(current_time) in metrics_data["metrics"] and str(current_time + 1000) in metrics_data["metrics"]
+            and floats_eq(metrics_data["metrics"][str(current_time)], random_value1, 0.0000001)
+            and floats_eq(metrics_data["metrics"][str(current_time + 1000)], current_time, 1)):
+          Logger.info("Values %s and %s were found in the response." % (random_value1, current_time))
+          values_are_present = True
+          break
+          pass
 
-    for metrics_data in data_json["metrics"]:
-      if (str(current_time) in metrics_data["metrics"] and str(current_time + 1000) in metrics_data["metrics"]
-          and floats_eq(metrics_data["metrics"][str(current_time)], random_value1, 0.0000001)
-          and floats_eq(metrics_data["metrics"][str(current_time + 1000)], current_time, 1)):
-        Logger.info("Values %s and %s were found in the response." % (random_value1, current_time))
+      if not values_are_present:
+        if i < self.AMS_READ_TRIES - 1:  #range/xrange returns items from start to end-1
+          Logger.info("Values weren't stored yet. Retrying in %s seconds."
+                    % (self.AMS_READ_TIMEOUT))
+          time.sleep(self.AMS_READ_TIMEOUT)
+        else:
+          Logger.info("Values %s and %s were not found in the response." % (random_value1, current_time))
+          raise Fail("Values %s and %s were not found in the response." % (random_value1, current_time))
+      else:
         break
-      pass
-    else:
-      Logger.info("Values %s and %s were not found in the response." % (random_value1, current_time))
-      raise Fail("Values %s and %s were not found in the response." % (random_value1, current_time))
-
+        pass
     Logger.info("Ambari Metrics service check is finished.")
 
 if __name__ == "__main__":

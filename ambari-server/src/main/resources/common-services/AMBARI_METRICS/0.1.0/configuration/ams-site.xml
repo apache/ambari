@@ -553,6 +553,30 @@
     </description>
   </property>
   <property>
+    <name>timeline.metrics.cache.commit.interval</name>
+    <value>3</value>
+    <description>
+      Time in seconds between committing metrics from cache
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>timeline.metrics.cache.size</name>
+    <value>150</value>
+    <description>
+      Size of array blocking queue used to cache metrics
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cache.enabled</name>
+    <value>true</value>
+    <description>
+      If set to true PhoenixHBaseAccessor will use cache to store metrics before committing them
+    </description>
+  </property>
+  <property>
     <name>timeline.metrics.service.http.policy</name>
     <value>HTTP_ONLY</value>
     <description>
