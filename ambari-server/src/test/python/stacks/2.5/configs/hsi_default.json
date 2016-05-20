@@ -403,7 +403,8 @@
             "hive.server2.authentication": "NOSASL",
             "hive.server2.transport.mode": "binary",
             "hive.optimize.mapjoin.mapreduce": "true",
-            "hive.exec.scratchdir" : "/custompath/tmp/hive"
+            "hive.exec.scratchdir" : "/custompath/tmp/hive",
+            "hive.exec.post.hooks" : "a, org.apache.atlas.hive.hook.HiveHook,org.apache.atlas.hive.hook.HiveHook , b , org.apache.atlas.hive.hook.HiveHook ,org.apache.hadoop.hive.ql.hooks.ATSHook"
         },
         "hive-interactive-env": {
           "content" : "con\ntent",

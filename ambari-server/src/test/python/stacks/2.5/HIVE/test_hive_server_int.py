@@ -231,6 +231,7 @@ class TestHiveServerInteractive(RMFTestCase):
     hive_site_conf = {}
     hive_site_conf.update(self.getConfig()['configurations']['hive-site'])
     hive_site_conf.update(self.getConfig()['configurations']['hive-interactive-site'])
+    hive_site_conf['hive.exec.post.hooks'] = 'a,b,org.apache.hadoop.hive.ql.hooks.ATSHook'
     del hive_site_conf['hive.enforce.bucketing']
     del hive_site_conf['hive.enforce.sorting']
 
