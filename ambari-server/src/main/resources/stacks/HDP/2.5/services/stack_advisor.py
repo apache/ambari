@@ -930,13 +930,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     putTagsyncAppProperty = self.putProperty(configurations, "tagsync-application-properties", services)
     putTagsyncSiteProperty = self.putProperty(configurations, "ranger-tagsync-site", services)
+    putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
+    putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
 
     has_ranger_tagsync = False
     if 'RANGER' in servicesList:
       ranger_tagsync_host = self.__getHostsForComponent(services, "RANGER", "RANGER_TAGSYNC")
       has_ranger_tagsync = len(ranger_tagsync_host) > 0
 
-    if 'ATLAS' in servicesList:
+    if 'ATLAS' in servicesList and has_ranger_tagsync:
       putTagsyncSiteProperty('ranger.tagsync.source.atlas', 'true')
     else:
       putTagsyncSiteProperty('ranger.tagsync.source.atlas', 'false')
@@ -962,6 +964,60 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', final_kafka_host)
     else:
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', 'localhost:6667')
+
+    if 'LOGSEARCH' in servicesList and zookeeper_host_port:
+      putRangerEnvProperty('is_solrCloud_enabled', 'true')
+      zookeeper_host_port = zookeeper_host_port.split(',')
+      zookeeper_host_port.sort()
+      zookeeper_host_port = ",".join(zookeeper_host_port)
+      logsearch_solr_znode = '/logsearch'
+      ranger_audit_zk_port = ''
+      if 'logsearch-solr-env' in services['configurations'] and \
+        ('logsearch_solr_znode' in services['configurations']['logsearch-solr-env']['properties']):
+        logsearch_solr_znode = services['configurations']['logsearch-solr-env']['properties']['logsearch_solr_znode']
+        ranger_audit_zk_port = '{0}{1}'.format(zookeeper_host_port, logsearch_solr_znode)
+      putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
+    else:
+      putRangerEnvProperty('is_solrCloud_enabled', 'false')
+
+    if 'ranger-env' in configurations and configurations["ranger-env"]["properties"]["is_solrCloud_enabled"]:
+      isSolrCloudEnabled = configurations and configurations["ranger-env"]["properties"]["is_solrCloud_enabled"] == "true"
+    elif 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']["ranger-env"]["properties"]:
+      isSolrCloudEnabled = services['configurations']["ranger-env"]["properties"]["is_solrCloud_enabled"]  == "true"
+    else:
+      isSolrCloudEnabled = False
+
+    if not isSolrCloudEnabled:
+      putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
+
+    ranger_services = [
+      {'service_name': 'HDFS', 'audit_file': 'ranger-hdfs-audit'},
+      {'service_name': 'YARN', 'audit_file': 'ranger-yarn-audit'},
+      {'service_name': 'HBASE', 'audit_file': 'ranger-hbase-audit'},
+      {'service_name': 'HIVE', 'audit_file': 'ranger-hive-audit'},
+      {'service_name': 'KNOX', 'audit_file': 'ranger-knox-audit'},
+      {'service_name': 'KAFKA', 'audit_file': 'ranger-kafka-audit'},
+      {'service_name': 'STORM', 'audit_file': 'ranger-storm-audit'},
+      {'service_name': 'RANGER_KMS', 'audit_file': 'ranger-kms-site'}
+    ]
+
+    for item in range(len(ranger_services)):
+      if ranger_services[item]['service_name'] in servicesList:
+        component_audit_file =  ranger_services[item]['audit_file']
+        if component_audit_file in services["configurations"]:
+          ranger_audit_dict = [
+            {'filename': 'ranger-admin-site', 'configname': 'ranger.audit.solr.urls', 'target_configname': 'xasecure.audit.destination.solr.urls'},
+            {'filename': 'ranger-admin-site', 'configname': 'ranger.audit.solr.zookeepers', 'target_configname': 'xasecure.audit.destination.solr.zookeepers'}
+          ]
+          putRangerAuditProperty = self.putProperty(configurations, component_audit_file, services)
+
+          for item in ranger_audit_dict:
+            if item['filename'] in services["configurations"] and item['configname'] in  services["configurations"][item['filename']]["properties"]:
+              if item['filename'] in configurations and item['configname'] in  configurations[item['filename']]["properties"]:
+                rangerAuditProperty = configurations[item['filename']]["properties"][item['configname']]
+              else:
+                rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
+              putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
 
   def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = getSiteProperties(configurations, "ranger-tagsync-site")

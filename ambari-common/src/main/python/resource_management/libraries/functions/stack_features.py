@@ -238,6 +238,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "ranger_usersync_password_jceks",
       "description": "Saving Ranger Usersync credentials in jceks",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_logsearch_dependent",
+      "description": "Ranger audit properties should be configured to use Ambari installed LogSearch (AMBARI-16446)",
+      "min_version": "2.5.0.0"
     }
   ]
 }

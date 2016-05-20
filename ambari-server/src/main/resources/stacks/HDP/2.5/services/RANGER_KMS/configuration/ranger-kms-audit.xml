@@ -55,4 +55,31 @@
     <deleted>true</deleted>
   </property>
 
+  <property>
+    <name>xasecure.audit.destination.solr.urls</name>
+    <value>{{ranger_audit_solr_urls}}</value>
+    <description>Solr URL</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.audit.solr.urls</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.solr.zookeepers</name>
+    <value>none</value>
+    <description>Solr Zookeeper string</description>
+    <depends-on>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.audit.solr.zookeepers</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>
