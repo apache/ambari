@@ -1090,6 +1090,10 @@ button.btn.btn-xs{
   word-wrap:break-word;
 }
 
+a.alert-link, a.alert-link:hover, a.alert-link:visited{
+  color: #a94442;
+}
+
 .alert-info {
   background-color: #E6F1F6;
   border-color: #D2D9DD;

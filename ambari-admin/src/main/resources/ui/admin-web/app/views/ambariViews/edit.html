@@ -84,15 +84,15 @@
           <div class="col-sm-9">
             <div ng-if="settings.shortUrl">
             <p class="form-control-static"><a target="_blank" href="/#/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}" ng-if="settings.shortUrl">/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
-             &nbsp; <a ng-hide="editDetailsSettingsDisabled" href="#/urls/edit/{{settings.shortUrlName}}" class="btn btn-xs btn-primary">{{'urls.change' | translate}}</a>
-            </p>
+             &nbsp;<a ng-hide="editDetailsSettingsDisabled" href="javascript:void(0)" ng-click="deleteShortURL(settings.shortUrlName)" class="alert-link">{{'common.delete' | translate }}</a>
+             </p>
           </div>
             <div ng-if="!settings.shortUrl">
               <p ng-hide="!editDetailsSettingsDisabled" class="form-control-static">
-                <span class="label label-block label-default">{{'urls.none' | translate}}</span>
+                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
               <p class="form-control-static" ng-hide="editDetailsSettingsDisabled">
-                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}" class="btn btn-primary createuser-btn"><span class="glyphicon glyphicon-plus"></span> {{'views.urlCreate' | translate}}</a>
+                <a href="#/urls/link/{{instance.ViewInstanceInfo.view_name}}/{{instance.ViewInstanceInfo.version}}/{{instance.ViewInstanceInfo.instance_name}}">{{'urls.createNewUrl' | translate}}</a>
               </p>
             </div>
           </div>

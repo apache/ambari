@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('ViewsEditCtrl', ['$scope', '$routeParams', 'RemoteCluster', 'Cluster', 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', '$translate', function($scope, $routeParams, RemoteCluster, Cluster, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog, $translate) {
+  .controller('ViewsEditCtrl', ['$scope','$route', '$templateCache', '$routeParams', 'RemoteCluster', 'Cluster', 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', '$translate', function($scope, $route, $templateCache , $routeParams, RemoteCluster, Cluster, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog, $translate) {
     var $t = $translate.instant;
     $scope.identity = angular.identity;
     $scope.isConfigurationEmpty = true;
@@ -429,6 +429,24 @@ angular.module('ambariAdminConsole')
           .catch(function(data) {
             Alert.error($t('views.alerts.cannotDeleteInstance'), data.data.message);
           });
+      });
+    };
+
+    $scope.deleteShortURL = function(shortUrlName) {
+      ConfirmationModal.show(
+        $t('common.delete', {
+          term: $t('urls.url')
+        }),
+        $t('common.deleteConfirmation', {
+          instanceType: $t('urls.url').toLowerCase(),
+          instanceName: '"' + shortUrlName + '"'
+        })
+      ).then(function() {
+        View.deleteUrl(shortUrlName).then(function() {
+          var currentPageTemplate = $route.current.templateUrl;
+          $templateCache.remove(currentPageTemplate);
+          $route.reload();
+        });
       });
     };
 
