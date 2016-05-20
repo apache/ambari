@@ -179,7 +179,7 @@ define(['require',
 		if(attrs.logtime)
 			str += moment(attrs.logtime).format("YYYY-MM-DD HH:mm:ss,SSS")+" "; 
 		if(attrs.level)
-			str += "<span class='"+attrs.level+"'>"+attrs.level+"</span> ";
+			str += "<span class='"+(""+attrs.level).toUpperCase()+"'>"+(""+attrs.level).toUpperCase()+"</span> ";
 		if(attrs.thread_name)
 			str += $.trim(attrs.thread_name)+" ";
 		if(attrs.logger_name)
