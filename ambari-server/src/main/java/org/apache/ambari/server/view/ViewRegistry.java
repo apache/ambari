@@ -107,6 +107,9 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.beans.IntrospectionException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -115,6 +118,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -138,6 +142,9 @@ public class ViewRegistry {
   protected static final int DEFAULT_REQUEST_READ_TIMEOUT    = 10000;
   private static final String VIEW_AMBARI_VERSION_REGEXP = "^((\\d+\\.)?)*(\\*|\\d+)$";
   private static final String VIEW_LOG_FILE = "view.log4j.properties";
+  private static final String AMBARI_LOG_FILE = "log4j.properties";
+  private static final String LOG4J = "log4j.";
+
   public static final String API_PREFIX = "/api/v1/clusters/";
 
   /**
@@ -1657,11 +1664,43 @@ public class ViewRegistry {
     }
   }
 
-  private void configureViewLogging(ViewEntity viewDefinition,ClassLoader cl) {
-    URL resourceURL = cl.getResource(VIEW_LOG_FILE);
-    if( null != resourceURL ){
-      LOG.info("setting up logging for view {} as per property file {}",viewDefinition.getName(), resourceURL);
-      PropertyConfigurator.configure(resourceURL);
+  /**
+   * copies non-log4j properties (like ambari.log.dir) from ambari's log4j.properties into view's log4j properties
+   * and removes log4j specific properties (log4j.rootLogger) inside ambari's log4j.properties from view's log4j properties
+   * It then configures the log4j with view's properties.
+   *
+   * @param viewDefinition
+   * @param cl
+   */
+  private void configureViewLogging(ViewEntity viewDefinition, ClassLoader cl) {
+    InputStream viewLog4jStream = cl.getResourceAsStream(VIEW_LOG_FILE);
+    if (null != viewLog4jStream) {
+      try {
+        Properties viewLog4jConfig = new Properties();
+        viewLog4jConfig.load(viewLog4jStream);
+        LOG.info("setting up logging for view {} as per property file {}", viewDefinition.getName(), VIEW_LOG_FILE);
+
+        InputStream ambariLog4jStream = cl.getResourceAsStream(AMBARI_LOG_FILE);
+        if (null != ambariLog4jStream) {
+          Properties ambariLog4jConfig = new Properties();
+          ambariLog4jConfig.load(ambariLog4jStream);
+
+          // iterate through all the ambari configs and get the once not starting from log4j
+          // set them into view properties and remove any log4j property which view might be overriding.
+          for (Object property : ambariLog4jConfig.keySet()) {
+            String prop = (String) property;
+            if (prop.startsWith(LOG4J)) {
+              viewLog4jConfig.remove(prop);
+            } else {
+              viewLog4jConfig.put(prop, ambariLog4jConfig.getProperty(prop));
+            }
+          }
+        }
+
+        PropertyConfigurator.configure(viewLog4jConfig);
+      } catch (IOException e) {
+        LOG.error("Error occurred while configuring logs for {}", viewDefinition.getName());
+      }
     }
   }
 
