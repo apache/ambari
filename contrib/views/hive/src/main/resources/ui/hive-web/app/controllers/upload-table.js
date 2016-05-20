@@ -712,7 +712,6 @@ export default Ember.Controller.extend({
     },
     filesUploaded: function (files) {
       console.log("upload-table.js : uploaded new files : ", files);
-
       this.clearFields();
 
       this.set('files', files);
