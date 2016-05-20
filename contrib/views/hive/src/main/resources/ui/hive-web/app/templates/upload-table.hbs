@@ -72,7 +72,7 @@
 
         {{#if isLocalUpload }}
           <td class="data-upload-form-label"><label>{{t "hive.ui.selectFromLocal"}}</label></td>
-          <td class="data-upload-form-field">{{file-upload  filesUploaded="filesUploaded"}}</td>
+          <td class="data-upload-form-field">{{file-upload  filesUploaded="filesUploaded"  uploadFiles=files}}</td>
         {{else}}
           <td class="data-upload-form-label"><label>{{t "hive.ui.hdfsPath"}}</label></td>
           <td class="data-upload-form-field" id="hdfs-param">{{input type="text" class="form-control" placeholder="Enter full HDFS path" value=hdfsPath }}

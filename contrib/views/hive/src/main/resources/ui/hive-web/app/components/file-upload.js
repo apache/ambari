@@ -19,7 +19,16 @@
 import EmberUploader from 'ember-uploader';
 
 export default EmberUploader.FileField.extend({
+  onChangeUploadFiles : function(){
+    if(!this.get("uploadFiles")){
+      // files were cleared by the controller so clear here as well.
+      this.set("files");
+      this.set("value");
+    }
+  }.observes("uploadFiles"),
   filesDidChange: function(files) {
-    this.sendAction('filesUploaded',files); // sends this action to controller.
+    if( files ) {
+      this.sendAction('filesUploaded', files); // sends this action to controller.
+    }
   }
 });
