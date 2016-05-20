@@ -35,7 +35,7 @@ public class DataParser implements IParser {
 
   private IParser parser;
 
-  public DataParser(Reader reader, ParseOptions parseOptions) throws IOException {
+  public DataParser(Reader reader, ParseOptions parseOptions) throws Exception {
     if (parseOptions.getOption(ParseOptions.OPTIONS_FILE_TYPE).equals(ParseOptions.InputFileType.CSV.toString())) {
       parser = new CSVParser(reader, parseOptions);
     } else if (parseOptions.getOption(ParseOptions.OPTIONS_FILE_TYPE).equals(ParseOptions.InputFileType.JSON.toString())) {
@@ -61,7 +61,7 @@ public class DataParser implements IParser {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() throws Exception {
     parser.close();
   }
 

@@ -34,7 +34,7 @@ import java.io.StringReader;
 public class DataParserJSONTest {
 
   @Test
-  public void testParsePreviewJSON() throws IOException {
+  public void testParsePreviewJSON() throws Exception {
     String str = "[ {\"col1\" : \"a\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"4.4\" },"
             + "{\"col1\": \"b\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"5.4\" },"
             + "{\"col1\": \"c\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"6.4\" },"
@@ -55,16 +55,16 @@ public class DataParserJSONTest {
             + "{\"col1\": \"r\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"64.4\" }"
             + "]";
 
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_NUMBER_OF_PREVIEW_ROWS, 7);
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp =  new DataParser(sr, parseOptions)
+    ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -98,11 +98,6 @@ public class DataParserJSONTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -112,31 +107,26 @@ public class DataParserJSONTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreviewCSVMoreColumns() throws IOException {
+  public void testParsePreviewCSVMoreColumns() throws Exception {
     String str = "[ {\"col1\" : \"a\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"4.4\" },"
             + "{\"col1\": \"b\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" , \"col14\" : \"43.4\" ,\"col15\" : \"asafsfa\" },"
             + "{\"col1\": \"c\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"6.4\" },"
             + "{\"col1\": \"d\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"7.4\" }"
             + "]";
 
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp =  new DataParser(sr, parseOptions)
+    ) {
 
       PreviewData pd = dp.parsePreview();
 
       Row row2 = new Row(new Object[]{"b", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "abcd", "43.4"});
       Assert.assertArrayEquals("More number of columns do not give correct result.", row2.getRow(), pd.getPreviewRows().get(1).getRow());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -146,7 +136,7 @@ public class DataParserJSONTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreviewCSVLessColumns() throws IOException {
+  public void testParsePreviewCSVLessColumns() throws Exception {
     String str = "[ " +
             "{\"col1\" : \"a\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"4.4\" },"
             + "{\"col1\": \"b\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\"  },"
@@ -154,23 +144,17 @@ public class DataParserJSONTest {
             + "{\"col1\": \"d\", \n\"col2\": \"abcd\" ,\"col3\": \"abcd\" ,\"col4\": \"abcd\" ,\"col5\": \"abcd\" ,\"col6\": \"abcd\" ,\"col7\": \"abcd\" ,\"col8\": \"abcd\" ,\"col9\": \"abcd\" ,\"col10\": \"abcd\" ,\"col11\": \"abcd\" ,\"col12\" : \"abcd\" ,\"col13\" : \"abcd\" ,\"col14\" : \"7.4\" }"
             + "]";
 
-    StringReader sr = new StringReader(str);
-    DataParser dp = null;
-    try {
-      ParseOptions parseOptions = new ParseOptions();
-      parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
-      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
 
-      dp = new DataParser(sr, parseOptions);
-
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp =  new DataParser(sr, parseOptions)
+    ) {
       PreviewData pd = dp.parsePreview();
 
       Assert.assertNull(pd.getPreviewRows().get(1).getRow()[13]);
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -180,29 +164,22 @@ public class DataParserJSONTest {
    * @throws IOException
    */
   @Test(expected = IllegalArgumentException.class)
-  public void testWrongJsonFormat() throws IOException {
+  public void testWrongJsonFormat() throws Exception {
     String str = "[ " +
             "{\"col1\" : \"a\", \n\"col2\": \"abcd\" },"
             + "{\"col1\": \"b\", \n\"col2\": \"abcd\" },"
             + "{\"col1\": \"c\", \n\"col2\": \"abcd\"  },"
             + "{\"col1\": \"d\",, \n\"col2\": \"abcd\"  }"       // extra comma in this line
             + "]";
-    DataParser dp = null;
-    StringReader sr = new StringReader(str);
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
 
-    try {
-      ParseOptions parseOptions = new ParseOptions();
-      parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
-      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
-
-      dp = new DataParser(sr, parseOptions);
-
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions);
+    ) {
       PreviewData pd = dp.parsePreview();
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -211,19 +188,19 @@ public class DataParserJSONTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreview1RowJSON() throws IOException {
+  public void testParsePreview1RowJSON() throws Exception {
     String str = "[ "
       + "{\"col1\": \"d\", \n\"col2\": \"abcd\"  }"       // extra comma in this line
       + "]";
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions);
+    ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -242,11 +219,6 @@ public class DataParserJSONTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -255,19 +227,19 @@ public class DataParserJSONTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreview1RowJSONHeaderProvided() throws IOException {
+  public void testParsePreview1RowJSONHeaderProvided() throws Exception {
     String str = "[ "
       + "{\"col1\": \"d\", \n\"col2\": \"abcd\"  }"       // extra comma in this line
       + "]";
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.JSON.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.PROVIDED_BY_USER.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions);
+    ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -286,12 +258,6 @@ public class DataParserJSONTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
-
 }

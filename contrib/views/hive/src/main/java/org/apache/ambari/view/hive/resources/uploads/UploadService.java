@@ -390,7 +390,7 @@ public class UploadService extends BaseService {
     out.close();
   }
 
-  private PreviewData generatePreview(Boolean isFirstRowHeader, String inputFileType, InputStream uploadedInputStream) throws IOException {
+  private PreviewData generatePreview(Boolean isFirstRowHeader, String inputFileType, InputStream uploadedInputStream) throws Exception {
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, inputFileType);
     if (inputFileType.equals(ParseOptions.InputFileType.CSV.toString())){
@@ -432,7 +432,7 @@ public class UploadService extends BaseService {
           String tableName,
           String databaseName
 
-  ) throws IOException {
+  ) throws Exception {
     LOG.info(" uploading file into databaseName {}, tableName {}", databaseName, tableName);
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, inputFileType);

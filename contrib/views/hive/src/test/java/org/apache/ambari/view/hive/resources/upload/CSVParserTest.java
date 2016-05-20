@@ -37,24 +37,14 @@ public class CSVParserTest {
    * @throws IOException
    */
   @Test
-  public void testEmptyStream() throws IOException {
+  public void testEmptyStream() throws Exception {
     String csv = "";
 
-    StringReader sr = new StringReader(csv);
-
-    CSVParser jp = null;
-
-    try {
-
-      jp = new CSVParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, null);
+      ) {
       Assert.assertEquals("There should not be any rows.",false, jp.iterator().hasNext());
-
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
@@ -63,38 +53,28 @@ public class CSVParserTest {
    * @throws IOException
    */
   @Test
-  public void testEmptyRow() throws IOException {
+  public void testEmptyRow() throws Exception {
     String csv = "       ";
-    StringReader sr = new StringReader(csv);
 
-    CSVParser jp = null;
-
-    try {
-      jp = new CSVParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, null);
+      ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Iterator should be Empty", true, iterator.hasNext());
       Assert.assertArrayEquals("Row should not be empty",new Object[]{"       "},iterator.next().getRow());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
   @Test
-  public void testParse1Row() throws IOException {
+  public void testParse1Row() throws Exception {
     String csv = "value1,c,10,10.1";
 
-    StringReader sr = new StringReader(csv);
-
-    CSVParser jp = null;
-
-    try {
-      jp = new CSVParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, null);
+      ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Iterator Empty!", true, iterator.hasNext());
@@ -103,26 +83,19 @@ public class CSVParserTest {
       Assert.assertEquals("Row not equal!", expected, row);
 
       Assert.assertEquals("Should report no more rows!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
   @Test
-  public void testParseMultipleRow() throws IOException {
+  public void testParseMultipleRow() throws Exception {
 
     String csv = "value1,c,10,10.1\n" +
             "value2,c2,102,true";
 
-    StringReader sr = new StringReader(csv);
-
-    CSVParser jp = null;
-
-    try {
-      jp = new CSVParser(sr, null);
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, null);
+    ) {
 
       Iterator<Row> iterator = jp.iterator();
 
@@ -134,11 +107,6 @@ public class CSVParserTest {
 
       Assert.assertEquals("Failed to detect end of rows!", false, iterator.hasNext());
       Assert.assertEquals("Failed to detect end of rows 2nd time!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 }
