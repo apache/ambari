@@ -312,7 +312,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     // Error indicated by the Sql exception
     TimelinePutResponse response = new TimelinePutResponse();
 
-    hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics, false);
+    hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics);
 
     return response;
   }
