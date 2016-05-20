@@ -117,6 +117,39 @@ describe('App.MainAlertDefinitionDetailsView', function () {
     });
   });
 
+  describe("#nameValidation", function() {
+
+    view = getView();
+    
+    var tests = [
+     {
+       it: "Should display no error if user inputs valid characters in alert name",
+       errorMessage: "", 
+       alert: Ember.Object.create ({
+          label: Ember.Object.create ({
+            value: 'validAlertName'
+          })
+       })
+     },    
+     {
+       it: "Should display an error if user inputs invalid characters in alert name",
+       errorMessage: Em.I18n.t("alert.definition.name.invalid"), 
+       alert: Ember.Object.create ({
+          label: Ember.Object.create ({
+            value: 'invalidAlertName\\?<'
+          })
+       })
+     }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.it, function() {
+        view.set('controller.editing',test.alert);
+        expect(view.get('controller.errorMessage')).to.equal(test.errorMessage);
+      })
+    });
+  });
+
   describe("#didInsertElement()", function() {
 
     beforeEach(function() {

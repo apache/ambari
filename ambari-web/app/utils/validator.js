@@ -312,5 +312,16 @@ module.exports = {
   isValidWidgetDescription: function(value) {
     var widgetDescriptionRegex = /^[\s0-9a-z_\-%]+$/i;
     return widgetDescriptionRegex.test(value);
+  },
+
+  /**
+   * Validate alert name
+   * @param {string} value
+   * @returns {boolean}
+   */
+  isValidAlertName: function(value) {
+    var alertNameRegex = /^[\s0-9a-z_\-%]+$/i;
+    return alertNameRegex.test(value);
   }
+
 };

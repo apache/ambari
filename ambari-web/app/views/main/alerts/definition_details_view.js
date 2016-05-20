@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 
@@ -41,6 +42,11 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
 
   colPropAssoc: ['serviceName', 'hostName', 'state'],
+
+  /**
+   * @type {string}
+   */
+  errorMessage: '',
 
   /**
    * return filtered number of all content number information displayed on the page footer bar
@@ -80,6 +86,17 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       });
     });
   },
+
+  nameValidation: function () {
+     var alertName = this.get('controller.editing.label.value').trim();
+     var errorMessage = '';
+     this.set('controller.editing.label.isError',false);
+     if(alertName && !validator.isValidAlertName(alertName)){
+      errorMessage = Em.I18n.t("alert.definition.name.invalid");
+      this.set('controller.editing.label.isError',true);
+    }
+    this.set('controller.errorMessage',errorMessage);            
+  }.observes('controller.editing.label.value'),
 
   didInsertElement: function () {
     this.filter();

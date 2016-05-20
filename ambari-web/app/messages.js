@@ -1080,6 +1080,7 @@ Em.I18n.translations = {
   'alerts.definition.name': 'Alert Definition Name',
   'alerts.saveChanges': 'You have unsaved changes',
 
+  'alert.definition.name.invalid': 'Invalid input. Only alphanumerics, underscores, hyphens, percentage and spaces are allowed.',
   'alerts.definition.details.enable': 'Enable',
   'alerts.definition.details.disable': 'Disable',
   'alerts.definition.details.enableDisable': 'Enable / Disable',
