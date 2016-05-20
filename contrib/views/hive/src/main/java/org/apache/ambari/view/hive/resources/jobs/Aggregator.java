@@ -80,8 +80,8 @@ public class Aggregator {
       Set<String> addedOperationIds = new HashSet<String>();
 
     List<Job> allJobs = new LinkedList<Job>();
-    for (HiveQueryId atsHiveQuery : ats.getHiveQueryIdsList(username)) {
-
+    List<HiveQueryId> queries = ats.getHiveQueryIdsList(username);
+    for (HiveQueryId atsHiveQuery : queries) {
       TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
 
       JobImpl atsJob;
@@ -102,12 +102,11 @@ public class Aggregator {
 
       addedOperationIds.add(atsHiveQuery.operationId);
     }
-
     //cover case when operationId is present, but not exists in ATS
     //e.g. optimized queries without executing jobs, like "SELECT * FROM TABLE"
-    for (Job job : viewJobResourceManager.readAll(new OnlyOwnersFilteringStrategy(username))) {
+    List<Job> jobs = viewJobResourceManager.readAll(new OnlyOwnersFilteringStrategy(username));
+    for (Job job : jobs ) {
       List<StoredOperationHandle> operationHandles = operationHandleResourceManager.readJobRelatedHandles(job);
-      assert operationHandles.size() <= 1;
 
       if (operationHandles.size() > 0) {
         StoredOperationHandle operationHandle = operationHandles.get(0);
@@ -116,6 +115,8 @@ public class Aggregator {
           //e.g. query without hadoop job: select * from table
           allJobs.add(job);
         }
+      }else{
+        LOG.error("operationHandle not found for job : {}", job.getId());
       }
     }
 

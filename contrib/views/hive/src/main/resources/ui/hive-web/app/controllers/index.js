@@ -141,8 +141,16 @@ export default Ember.Controller.extend({
         defer = Ember.RSVP.defer(),
         originalModel = this.get('model');
 
+    var title = "";
+    if(shouldGetVisualExplain){
+      title += "Visual Explain "
+    }else if(shouldExplain){
+      title += "Explain "
+    }
+
+    title += originalModel.get('title');
     job = this.store.createRecord(constants.namingConventions.job, {
-      title: originalModel.get('title'),
+      title: title,
       sessionTag: originalModel.get('sessionTag'),
       dataBase: this.get('selectedDatabase.name'),
       referrer: referrer
