@@ -34,7 +34,7 @@
     </value-attributes>
   </property>
   <property>
-    <name>atlas.server.host.id1</name>
+    <name>atlas.server.address.id1</name>
     <value>{{server_hosts}}</value>
     <description>Mapping of Atlas server ids to hosts.</description>
     <value-attributes>
@@ -88,11 +88,11 @@
   </property>
   <property>
     <name>atlas.lineage.table.schema.query.hive_table</name>
-    <value>hive_table where name='%s'\, columns</value>
+    <value>hive_table where __guid='%s'\, columns</value>
   </property>
   <property>
     <name>atlas.lineage.table.schema.query.Table</name>
-    <value>Table where name='%s'\, columns</value>
+    <value>Table where __guid='%s'\, columns</value>
   </property>
   <property>
     <name>atlas.lineage.hive.table.type.name</name>
