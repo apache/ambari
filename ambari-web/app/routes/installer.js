@@ -433,7 +433,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         console.timeEnd('step8 connectOutlets');
       });
     },
-    back: Em.Router.transitionTo('step7'),
+    back: function (router) {
+      if(router.get('wizardStep8Controller.isBackBtnDisabled') == false){
+        router.transitionTo('step7');
+      }
+    },
     next: function (router) {
       console.time('step8 next');
       if (!router.transitionInProgress) {
