@@ -87,3 +87,7 @@ def should_install_ranger_tagsync():
   has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
 
   return has_ranger_tagsync or ranger_tagsync_enabled
+
+def should_install_rpcbind():
+  config = Script.get_config()
+  return 'role' in config and config['role'] == "NFS_GATEWAY"

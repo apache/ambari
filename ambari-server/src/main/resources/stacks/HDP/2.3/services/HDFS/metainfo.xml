@@ -52,6 +52,7 @@
           <packages>
             <package>
               <name>rpcbind</name>
+              <condition>should_install_rpcbind</condition>
             </package>
           </packages>
         </osSpecific>
