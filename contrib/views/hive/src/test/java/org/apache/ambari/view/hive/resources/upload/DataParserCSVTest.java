@@ -38,19 +38,21 @@ import java.io.StringReader;
 
 public class DataParserCSVTest {
   @Test
-  public void testParsePreviewCSV() throws IOException {
+  public void testParsePreviewCSV() throws Exception {
     String str = "1,a\n" +
             "2,b\n" +
             "3,c\n";
-    StringReader sr = new StringReader(str);
+
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+
+    try (
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions);
+    ){
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -74,11 +76,93 @@ public class DataParserCSVTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
+    }
+  }
 
-      sr.close();
+  /**
+   * even if in one of the preview rows, datatype is not correct, then it should be assigned that datatype.
+   * but if first row is header then first row should not be acconted for detecting datatype
+   * @throws IOException
+   */
+  @Test
+  public void testParsePreviewDataTypeDetectionCSV() throws Exception {
+    String str = "1,a,10,k\n" +
+      "2,b,6,8\n" +
+      "2.2,b,7,9\n" +
+      "2,b,abc,1\n" +
+      "2,b,9,3\n" +
+      "2,b,8,5\n" +
+      "2,b,7,3\n" +
+      "2,b,6,3\n" +
+      "3,c,c,3\n";
+
+
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+
+    try(StringReader sr = new StringReader(str);
+      DataParser dp= new DataParser(sr, parseOptions)) {
+
+      PreviewData pd = dp.parsePreview();
+      Assert.assertNotNull(pd.getHeader());
+      Assert.assertEquals(4, pd.getHeader().size());
+      ColumnDescription[] cd = {
+        // as row 3 contains 2.2
+        new ColumnDescriptionImpl("1", ColumnDescriptionShort.DataTypes.DOUBLE.toString(), 0),
+        // as all are chars
+        new ColumnDescriptionImpl("a", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1),
+        // as row 4 contains abc
+        new ColumnDescriptionImpl("10", ColumnDescriptionShort.DataTypes.STRING.toString(), 2),
+        // although row 1 contains k but it is in header and not counted in detecting datatype
+        new ColumnDescriptionImpl("k", ColumnDescriptionShort.DataTypes.INT.toString(), 3)};
+
+      Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
+    }
+  }
+
+  /**
+   * even if in one of the preview rows, datatype is not correct, then it should be assigned that datatype.
+   * but if first row is header then first row should not be acconted for detecting datatype
+   * @throws IOException
+   */
+  @Test
+  public void testParsePreviewDataTypeDetection2CSV() throws Exception {
+    String str = "1,a,10,k\n" +
+      "2,b,6,p\n" +
+      "2.2,b,7,9\n" +
+      "2,b,2.2,1\n" +
+      "2,b,9,3\n" +
+      "2,b,8,5\n" +
+      "2,b,7,3\n" +
+      "2,b,6,3\n" +
+      "3,c,c,3\n";
+
+
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+
+
+    try(StringReader sr = new StringReader(str);
+        DataParser dp = new DataParser(sr, parseOptions)) {
+
+
+      PreviewData pd = dp.parsePreview();
+      Assert.assertNotNull(pd.getHeader());
+      Assert.assertEquals(4, pd.getHeader().size());
+      ColumnDescription[] cd = {
+        // as row 3 contains 2.2
+        new ColumnDescriptionImpl("1", ColumnDescriptionShort.DataTypes.DOUBLE.toString(), 0),
+        // as all are chars
+        new ColumnDescriptionImpl("a", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1),
+        // some are int, char and some double .. nothing other than 'string' satisfies all the rows
+        new ColumnDescriptionImpl("10", ColumnDescriptionShort.DataTypes.STRING.toString(), 2),
+        // although row 1 contains k but it is in header and not counted in detecting datatype
+        // but row 2 also has a char p which will be acconted for datatype detection
+        new ColumnDescriptionImpl("k", ColumnDescriptionShort.DataTypes.CHAR.toString(), 3)};
+
+      Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
     }
   }
 
@@ -87,17 +171,18 @@ public class DataParserCSVTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreview1RowCSV() throws IOException {
+  public void testParsePreview1RowCSV() throws Exception {
     String str = "1,a\n" ;
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.PROVIDED_BY_USER.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions)
+    ) {
+
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -116,11 +201,6 @@ public class DataParserCSVTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -129,24 +209,22 @@ public class DataParserCSVTest {
    * @throws IOException
    */
   @Test(expected = java.util.NoSuchElementException.class)
-  public void testParsePreview1RowCSVFirstRowHeader() throws IOException {
+  public void testParsePreview1RowCSVFirstRowHeader() throws Exception {
     String str = "col1,col2\n" ;
-    StringReader sr = new StringReader(str);
+
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions)
+    ) {
+
 
       PreviewData pd = dp.parsePreview();
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -157,30 +235,25 @@ public class DataParserCSVTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreviewCSVMoreColumns() throws IOException {
+  public void testParsePreviewCSVMoreColumns() throws Exception {
     String str = "1,a\n" +
             "2,b,x\n" +  // contains 3 cols, more number of columns
             "3,c\n";
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+
+    try(
+        StringReader sr = new StringReader(str);
+        DataParser dp = new DataParser(sr, parseOptions)
+    ) {
 
       PreviewData pd = dp.parsePreview();
       Row row = new Row(new Object[]{"2","b"});
 
       Assert.assertArrayEquals("Additional columns not properly handled.", row.getRow(),pd.getPreviewRows().get(0).getRow());
-    } finally {
-      if (null != dp) {
-        dp.close();
-      }
-
-      sr.close();
     }
   }
 
@@ -190,26 +263,21 @@ public class DataParserCSVTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreviewCSVLessColumns() throws IOException {
+  public void testParsePreviewCSVLessColumns() throws Exception {
     String str = "1,a\n" +
             "2\n" +  // contains 1 col, less number of columns
             "3,c\n";
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp =  new DataParser(sr, parseOptions)
+      ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertEquals("Missing value not detected as null.",pd.getPreviewRows().get(1).getRow()[1],null);
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -218,27 +286,21 @@ public class DataParserCSVTest {
    * @throws IOException
    */
   @Test
-  public void testEmptyColumn() throws IOException {
+  public void testEmptyColumn() throws Exception {
     String str = "1,a,x\n" +
             "2,,y\n" +  // contains 1 col, less number of columns
             "3,c,z\n";
-    StringReader sr = new StringReader(str);
-
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions)
+    ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(0).getRow()[1],"");
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -247,28 +309,23 @@ public class DataParserCSVTest {
    * @throws IOException
    */
   @Test
-  public void testLastEmptyColumn() throws IOException {
+  public void testLastEmptyColumn() throws Exception {
     String str = "1,a,x\n" +
             "2,,\n" +  // contains 1 col, less number of columns
             "3,c,z\n";
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.CSV.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions)
+    ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(0).getRow()[1],"");
       Assert.assertEquals("Empty column not detected properly.",pd.getPreviewRows().get(0).getRow()[2],"");
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 }

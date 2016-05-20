@@ -31,7 +31,7 @@ import java.util.List;
  * Interface defining methods for Parsers that can used for generating preview
  * and uploading table into hive.
  */
-public interface IParser extends Iterable<Row> {
+public interface IParser extends Iterable<Row>, AutoCloseable{
 
   /**
    * @return returns the Reader that can be read to get the table data as CSV Text Data that can be uploaded directly
@@ -42,7 +42,4 @@ public interface IParser extends Iterable<Row> {
   PreviewData parsePreview();
 
   Row extractHeader();
-
-  void close() throws IOException;
-
 }

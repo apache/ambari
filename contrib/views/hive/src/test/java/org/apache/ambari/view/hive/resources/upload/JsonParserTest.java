@@ -33,77 +33,53 @@ import java.util.Iterator;
 public class JsonParserTest {
 
   @Test(expected = IOException.class)
-  public void testEmptyStream() throws IOException {
+  public void testEmptyStream() throws Exception {
     String json = "";
 
-    StringReader sr = new StringReader(json);
-
-    JSONParser jp = null;
-
-    try {
-
-      jp = new JSONParser(sr, null);
-
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
+    try(
+      StringReader sr = new StringReader(json);
+      JSONParser jp =  new JSONParser(sr, null);
+    ) {
+      // PARSING WILL THROW ERROR
     }
   }
 
   @Test
-  public void testEmptyRow() throws IOException {
+  public void testEmptyRow() throws Exception {
     JsonObject jo = new JsonObject();
     JsonArray ja = new JsonArray();
     ja.add(jo);
     String json = ja.toString();
 
-    StringReader sr = new StringReader(json);
-
-    JSONParser jp = null;
-
-    try {
-      jp = new JSONParser(sr, null);
+    try(
+      StringReader sr = new StringReader(json);
+      JSONParser jp = new JSONParser(sr, null)
+      ) {
 
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Iterator should not be Empty", true, iterator.hasNext());
       Assert.assertArrayEquals("Row should be empty",new Object[]{},iterator.next().getRow());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
 
   @Test
-  public void testEmptyTable() throws IOException {
+  public void testEmptyTable() throws Exception {
     JsonArray ja = new JsonArray();
     String json = ja.toString();
 
-    StringReader sr = new StringReader(json);
-
-    JSONParser jp = null;
-
-    try {
-      jp = new JSONParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(json);
+      JSONParser jp =  new JSONParser(sr, null);
+    ) {
       Iterator<Row> iterator = jp.iterator();
-
       Assert.assertEquals("Iterator Empty!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
   @Test
-  public void testParse1Row() throws IOException {
+  public void testParse1Row() throws Exception {
     JsonObject jo = new JsonObject();
     jo.addProperty("key1","value1");
     jo.addProperty("key2",'c');
@@ -114,13 +90,10 @@ public class JsonParserTest {
     ja.add(jo);
     String json = ja.toString();
 
-    StringReader sr = new StringReader(json);
+    try(StringReader sr = new StringReader(json);
 
-    JSONParser jp = null;
-
-    try {
-      jp = new JSONParser(sr, null);
-
+        JSONParser jp  = new JSONParser(sr, null)
+    ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Iterator Empty!", true, iterator.hasNext());
@@ -129,16 +102,11 @@ public class JsonParserTest {
       Assert.assertEquals("Row not equal!", expected, row);
 
       Assert.assertEquals("Should report no more rows!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
   @Test
-  public void testParseMultipleRow() throws IOException {
+  public void testParseMultipleRow() throws Exception {
     JsonObject jo1 = new JsonObject();
     jo1.addProperty("key1","value1");
     jo1.addProperty("key2","c");
@@ -157,13 +125,13 @@ public class JsonParserTest {
     ja.add(jo2);
 
     String json = ja.toString();
-    StringReader sr = new StringReader(json);
 
-    JSONParser jp = null;
 
-    try {
-      jp = new JSONParser(sr, null);
 
+    try(
+      StringReader sr = new StringReader(json);
+      JSONParser jp = new JSONParser(sr, null)
+    ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
@@ -174,11 +142,6 @@ public class JsonParserTest {
 
       Assert.assertEquals("Failed to detect end of rows!", false, iterator.hasNext());
       Assert.assertEquals("Failed to detect end of rows 2nd time!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 }

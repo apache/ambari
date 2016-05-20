@@ -33,72 +33,48 @@ import java.util.Iterator;
 public class XMLParserTest {
 
   @Test(expected = IOException.class)
-  public void testEmptyStream() throws IOException {
+  public void testEmptyStream() throws Exception {
     String xml = "";
 
-    StringReader sr = new StringReader(xml);
-
-    XMLParser jp = null;
-
-    try {
-
-      jp = new XMLParser(sr, null);
-
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
+    try(
+      StringReader sr = new StringReader(xml);
+      XMLParser jp = new XMLParser(sr, null);
+      ) {
+        // creation of XMLParser will throw exception.
     }
   }
 
   @Test
-  public void testEmptyRow() throws IOException {
+  public void testEmptyRow() throws Exception {
     String xml = "<table><row></row></table>";
-
-    StringReader sr = new StringReader(xml);
-
-    XMLParser jp = null;
-
-    try {
-      jp = new XMLParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(xml);
+      XMLParser jp = new XMLParser(sr, null);
+      ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Iterator should not be Empty", true, iterator.hasNext());
       Assert.assertArrayEquals("Row should be empty",new Object[]{},iterator.next().getRow());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
 
   @Test
-  public void testEmptyTable() throws IOException {
+  public void testEmptyTable() throws Exception {
     String xml = "<table></table>";
-    StringReader sr = new StringReader(xml);
 
-    XMLParser jp = null;
-
-    try {
-      jp = new XMLParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(xml);
+      XMLParser jp = new XMLParser(sr, null);
+      ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Iterator Empty!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
   @Test
-  public void testParse1Row() throws IOException {
+  public void testParse1Row() throws Exception {
 
     String xml =
     "<table>"
@@ -110,13 +86,10 @@ public class XMLParserTest {
     + "</row>"
     + "</table>"  ;
 
-    StringReader sr = new StringReader(xml);
-
-    XMLParser jp = null;
-
-    try {
-      jp = new XMLParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(xml);
+      XMLParser jp = new XMLParser(sr, null)
+    ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Iterator Empty!", true, iterator.hasNext());
@@ -125,16 +98,11 @@ public class XMLParserTest {
       Assert.assertEquals("Row not equal!", expected, row);
 
       Assert.assertEquals("Should report no more rows!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 
   @Test
-  public void testParseMultipleRow() throws IOException {
+  public void testParseMultipleRow() throws Exception {
     String xml =
     "<table>"
     + "<row>"
@@ -151,15 +119,10 @@ public class XMLParserTest {
     + "</row>"
     + "</table>"  ;
 
-
-
-    StringReader sr = new StringReader(xml);
-
-    XMLParser jp = null;
-
-    try {
-      jp = new XMLParser(sr, null);
-
+    try(
+      StringReader sr = new StringReader(xml);
+      XMLParser jp = new XMLParser(sr, null)
+    ) {
       Iterator<Row> iterator = jp.iterator();
 
       Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
@@ -170,11 +133,6 @@ public class XMLParserTest {
 
       Assert.assertEquals("Failed to detect end of rows!", false, iterator.hasNext());
       Assert.assertEquals("Failed to detect end of rows 2nd time!", false, iterator.hasNext());
-    }finally{
-      if( null != jp )
-        jp.close();
-
-      sr.close();
     }
   }
 }

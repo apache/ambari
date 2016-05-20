@@ -34,7 +34,7 @@ import java.io.StringReader;
 public class DataParserXMLTest {
 
   @Test
-  public void testParsePreviewXML() throws IOException {
+  public void testParsePreviewXML() throws Exception {
     String str = "<table>" +
             "<row>" +
             "<col name=\"col1\">row1-col1-Value</col>" +
@@ -52,15 +52,16 @@ public class DataParserXMLTest {
             "</row>" +
             "</table>";
 
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions);
+      ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -81,11 +82,6 @@ public class DataParserXMLTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -96,7 +92,7 @@ public class DataParserXMLTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreviewCSVMoreColumns() throws IOException {
+  public void testParsePreviewCSVMoreColumns() throws Exception {
     String str ="<table>" +
             "<row>" +
             "<col name=\"col1\">row1-col1-Value</col>" +
@@ -116,24 +112,19 @@ public class DataParserXMLTest {
             "</row>" +
             "</table>";
 
-    StringReader sr = new StringReader(str);
-
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+
+    try(    StringReader sr = new StringReader(str);
+            DataParser dp = new DataParser(sr, parseOptions);
+    ) {
+
 
       PreviewData pd = dp.parsePreview();
 
       Row row2 = new Row(new Object[]{"row2-col1-Value","row2-col2-Value","row2-col3-Value","20","21"});
       Assert.assertArrayEquals("More number of columns do not give correct result.", row2.getRow(), pd.getPreviewRows().get(1).getRow());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -144,7 +135,7 @@ public class DataParserXMLTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreviewCSVLessColumns() throws IOException {
+  public void testParsePreviewCSVLessColumns() throws Exception {
     String str = "<table>" +
             "<row>" +
             "<col name=\"col1\">row1-col1-Value</col>" +
@@ -164,24 +155,18 @@ public class DataParserXMLTest {
             "</row>" +
             "</table>";
 
-    StringReader sr = new StringReader(str);
-    DataParser dp = null;
-    try {
-      ParseOptions parseOptions = new ParseOptions();
-      parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
-      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
 
-      dp = new DataParser(sr, parseOptions);
-
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions);
+      ) {
       PreviewData pd = dp.parsePreview();
 
       Row row2 = new Row(new Object[]{"row2-col1-Value","row2-col2-Value","row2-col3-Value",null,null,"20","21"});
       Assert.assertArrayEquals("Less number of columns do not give correct result.", row2.getRow(), pd.getPreviewRows().get(1).getRow());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -191,7 +176,7 @@ public class DataParserXMLTest {
    * @throws IOException
    */
   @Test(expected = IllegalArgumentException.class)
-  public void testWrongXMLFormat() throws IOException {
+  public void testWrongXMLFormat() throws Exception {
     String str = "<table>" +
             "<row>" +
             "<ccc></ccc>" +   // illegal tag.
@@ -211,22 +196,15 @@ public class DataParserXMLTest {
             "<col name=\"col5\">21</col>" +
             "</row>" +
             "</table>";
-    DataParser dp = null;
-    StringReader sr = new StringReader(str);
 
-    try {
-      ParseOptions parseOptions = new ParseOptions();
-      parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
-      parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
-
-      dp = new DataParser(sr, parseOptions);
-
+    ParseOptions parseOptions = new ParseOptions();
+    parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
+    parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.FIRST_RECORD.toString());
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser  dp = new DataParser(sr, parseOptions);
+      ) {
       PreviewData pd = dp.parsePreview();
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -235,22 +213,23 @@ public class DataParserXMLTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreview1RowXML() throws IOException {
+  public void testParsePreview1RowXML() throws Exception {
     String str = "<table>" +
                       "<row>" +
                       "<col name=\"col1\">row1-col1-Value</col>" +
                       "<col name=\"col2\">11</col>" +
                       "</row>" +
                  "</table>";
-    StringReader sr = new StringReader(str);
+
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.EMBEDDED.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions);
+      ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -269,11 +248,6 @@ public class DataParserXMLTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 
@@ -282,22 +256,22 @@ public class DataParserXMLTest {
    * @throws IOException
    */
   @Test
-  public void testParsePreview1RowXMLHeaderProvided() throws IOException {
+  public void testParsePreview1RowXMLHeaderProvided() throws Exception {
     String str = "<table>" +
                     "<row>" +
                     "<col name=\"col1\">row1-col1-Value</col>" +
                     "<col name=\"col2\">11</col>" +
                     "</row>" +
                  "</table>";
-    StringReader sr = new StringReader(str);
 
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setOption(ParseOptions.OPTIONS_FILE_TYPE, ParseOptions.InputFileType.XML.toString());
     parseOptions.setOption(ParseOptions.OPTIONS_HEADER, ParseOptions.HEADER.PROVIDED_BY_USER.toString());
 
-    DataParser dp = null;
-    try {
-      dp = new DataParser(sr, parseOptions);
+    try(
+      StringReader sr = new StringReader(str);
+      DataParser dp = new DataParser(sr, parseOptions)
+      ) {
 
       PreviewData pd = dp.parsePreview();
       Assert.assertNotNull(pd.getPreviewRows());
@@ -316,11 +290,6 @@ public class DataParserXMLTest {
 
       Assert.assertArrayEquals("Header Not Correct.", cd, pd.getHeader().toArray());
       Assert.assertArrayEquals("Rows Not Correct.", rows, pd.getPreviewRows().toArray());
-    } finally {
-      if (null != dp)
-        dp.close();
-
-      sr.close();
     }
   }
 }

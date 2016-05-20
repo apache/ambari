@@ -45,7 +45,7 @@ public class CSVParser extends Parser {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() throws Exception {
     this.parser.close();
   }
 
