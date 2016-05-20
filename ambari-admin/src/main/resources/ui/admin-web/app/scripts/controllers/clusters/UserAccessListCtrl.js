@@ -97,7 +97,7 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
     } else {
       return angular.copy($scope.NONE_ROLE);
     }
-  }
+  };
 
   $scope.loadRoles = function() {
     Cluster.getPermissions().then(function(data) {

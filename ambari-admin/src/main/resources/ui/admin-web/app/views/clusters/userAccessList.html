@@ -50,7 +50,7 @@
           </button>
         </div>
       </th>
-      <th colspan="2">
+      <th>
         <label for="">{{'clusters.role' | translate}}</label>&nbsp;
         <i class="glyphicon glyphicon-question-sign green-icon cursor-pointer" ng-click="showHelpPage()"></i>
         <select class="form-control statusfilter"
@@ -71,16 +71,14 @@
         <select class="role-select" ng-show="user.editable" ng-model="user.permission_name"
                 ng-options="role.permission_name as role.permission_label for role in roleValueOptions">
         </select>
-      </td>
-      <td class="role-actions">
-        <div class="pull-left" ng-show="user.permission_name != user.original_perm">
+        <span ng-show="user.permission_name != user.original_perm">
           <button class="btn btn-default btn-xs cancel" ng-click="cancel(user)">
             <span class="glyphicon glyphicon-remove cancel"></span>
           </button>
           <button class="btn btn-primary btn-xs" ng-click="save(user)">
             <span class="glyphicon glyphicon-ok"></span>
           </button>
-        </div>
+        </span>
       </td>
     </tr>
     </tbody>

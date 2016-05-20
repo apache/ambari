@@ -206,7 +206,7 @@ angular.module('ambariAdminConsole')
       'shortUrl':'Short URL',
       'instanceDescription': 'Instance Description',
       'clusterConfiguration': 'Cluster Configuration',
-      'localCluster': 'Local Ambari Managed Cluster',
+      'localCluster': 'Local Cluster',
       'remoteCluster': 'Remote Cluster',
       'registerRemoteCluster' : 'Register Remote Cluster',
       'clusterName': 'Cluster Name',
@@ -231,7 +231,7 @@ angular.module('ambariAdminConsole')
         'allclusteruser': 'Cluster User',
         'allserviceadministrator': 'Service Administrator',
         'allserviceoperator': 'Service Operator',
-        'infoMessage': 'Grant <strong>Use</strong> permission for the following <strong>{{cluster}}</strong>',
+        'infoMessage': 'Grant <strong>Use</strong> permission for the following <strong>{{cluster}}</strong> Roles:',
         'nonLocalClusterMessage': 'The ability to inherit view <strong>Use</strong> permission based on Cluster Roles is only available when using a Local Cluster configuration.'
       },
 
@@ -347,7 +347,7 @@ angular.module('ambariAdminConsole')
         'clusterOperator': 'Cluster Operator',
         'serviceAdministrator': 'Service Administrator',
         'serviceOperator': 'Service Operator',
-        'ambariAdmin': 'Administrator',
+        'ambariAdmin': 'Ambari Administrator',
         'viewUser': 'View User',
         'none': 'None',
         'oneRolePerUser': 'Only 1 role allowed per user'
