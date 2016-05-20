@@ -18,11 +18,14 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ambari.server.controller.spi.Resource;
+import org.junit.Test;
 
 /**
  * ResourceInstanceFactoryImpl unit tests.
@@ -47,6 +50,17 @@ public class ResourceInstanceFactoryImplTest {
     assertEquals("artifact", resourceDefinition.getSingularName());
     assertEquals("artifacts", resourceDefinition.getPluralName());
     assertEquals(Resource.Type.Artifact, resourceDefinition.getType());
+  }
+
+  @Test
+  public void testGetHostDefinition() {
+    ResourceInstanceFactoryImpl resourceInstanceFactory = new ResourceInstanceFactoryImpl();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
+    mapIds.put(Resource.Type.Host, "TeSTHost1");
+    ResourceInstance resourceInstance = resourceInstanceFactory.createResource(
+            Resource.Type.Host, mapIds);
+
+    assertEquals(mapIds.get(Resource.Type.Host), "testhost1");
   }
 
   @Test

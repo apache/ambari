@@ -28,12 +28,20 @@ import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Factory for creating resource instances.
  */
 public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
+
+  /**
+   * The logger.
+   */
+  private final static Logger LOG =
+          LoggerFactory.getLogger(ResourceInstanceFactoryImpl.class);
 
   /**
    * Map of external resource definitions (added through views).
@@ -48,6 +56,19 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
     /**
      * The resource definition for the specified type.
      */
+
+    // this code changes hot name to lower case
+    try {
+      if (mapIds.containsKey(Resource.Type.Host)) {
+        String hostName = mapIds.get(Resource.Type.Host);
+        if (hostName != null) {
+          mapIds.put(Resource.Type.Host, hostName.toLowerCase());
+        }
+      }
+    } catch(Exception e) {
+      LOG.error("Lowercase host name value in resource failed with error:" + e);
+    }
+
     ResourceDefinition resourceDefinition = getResourceDefinition(type, mapIds);
 
     return new QueryImpl(mapIds, resourceDefinition, ClusterControllerHelper.getClusterController());
