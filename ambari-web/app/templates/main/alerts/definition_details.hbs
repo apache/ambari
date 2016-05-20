@@ -26,7 +26,7 @@
       <div class="definition-name row-fluid">
         {{#if controller.editing.label.isEditing}}
           <div {{bindAttr class="controller.editing.label.isError:error :span5 :name-text-field :control-group"}}>
-            {{view Em.TextField valueBinding="controller.editing.label.value"}}
+            {{view Em.TextField valueBinding="controller.editing.label.value" maxlength="255"}}
           </div>
           <div class="edit-buttons">
             <button {{action cancelEdit controller.editing.label target="controller"}}
@@ -48,7 +48,7 @@
         {{/unless}}
       </div>
       {{! Alert Definition Name end }}
-
+      <div class="error-msg"> {{controller.errorMessage}} </div>
       <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i
           class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a>
       </div>
