@@ -34,13 +34,13 @@
               <div class="col-md-5 col-sm-5">
                 {{tooltip-label
                   label='Capacity'
-                  message= 'The minimum guaranteed capacity as a percentage of total capacity that is allocated to the queue.'
+                  message='The minimum guaranteed capacity as a percentage of total capacity that is allocated to the queue.'
                 }}
               </div>
               <div class="col-md-5 col-sm-5">
                 {{tooltip-label
                   label='Max Capacity'
-                  message= 'The cap (maximum capacity) as a percentage of total capacity that this queue can utilize.'
+                  message='The cap (maximum capacity) as a percentage of total capacity that this queue can utilize.'
                 }}
               </div>
             </div>
@@ -54,19 +54,26 @@
               <div class="col-sm-5 col-md-5">
                 <div class="progress total-capacity-progress">
                   <div role="progressbar" {{bind-attr class=":progress-bar warnInvalidCapacity:progress-bar-danger:progress-bar-success" style="totalCapacityBarWidth"}}>
-                    Used:{{childrenQueuesTotalCapacity}}%
+                    {{childrenQueuesTotalCapacity}}%
                   </div>
                 </div>
               </div>
-          </div>
+            </div>
+            {{#if warnInvalidCapacity}}
+              <div class="row">
+                <div class="col-sm-6 col-md-6">
+                  <span class="text-danger">Total capacity must be equal to 100%</span>
+                </div>
+              </div>
+            {{/if}}
           {{else}}
             <div class="row">
               <div class="col-md-6 col-md-6">
-                <label>Capacity: </label>
+                <label>Configured Capacity: </label>
                 <span>{{content.capacity}}%</span>
               </div>
               <div class="col-md-5 col-md-5">
-                <label>Maximum Capacity: </label>
+                <label>Configured Maximum Capacity: </label>
                 <span>{{content.maximum_capacity}}%</span>
               </div>
             </div>
@@ -80,11 +87,11 @@
         {{else}}
           <div class="row">
             <div class="col-md-6 col-md-6">
-              <label>Capacity: </label>
+              <label>Configured Capacity: </label>
               <span>{{content.capacity}}%</span>
             </div>
             <div class="col-md-5 col-sm-5">
-              <label>Maximum Capacity: </label>
+              <label>Configured Maximum Capacity: </label>
               <span>{{content.maximum_capacity}}%</span>
             </div>
           </div>

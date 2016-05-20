@@ -71,9 +71,9 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
         this.set('newQueue', newQueue);
       }
 
-      store.saveAndUpdateQueue(newQueue).then(function() {
-        Em.run.bind(this, 'set', 'newQueue', null);
-      }).catch(Em.run.bind(this, 'saveQueuesConfigError', 'createQueue'));
+      store.saveAndUpdateQueue(newQueue)
+      .then(Em.run.bind(this, 'saveAndUpdateQueueSuccess', newQueue))
+      .catch(Em.run.bind(this, 'saveQueuesConfigError', 'createQueue'));
     },
     saveQueuesConfig: function() {
       var store = this.get('store'),
@@ -137,5 +137,14 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
      var response = (error && error.responseJSON)? error.responseJSON : {};
      response.simpleMessage = operation.capitalize() + ' failed!';
      this.set('alertMessage', response);
+   },
+   saveAndUpdateQueueSuccess: function(newQ) {
+     var parentPath = newQ.get('parentPath'),
+     parentQ = this.store.getById('queue', parentPath.toLowerCase()),
+     pQueues = parentQ.get('queues') ? parentQ.get('queues').split(",") : [];
+     pQueues.addObject(newQ.get('name'));
+     pQueues.sort();
+     parentQ.set('queues', pQueues.join(","));
+     this.set('newQueue', null);
    }
 });

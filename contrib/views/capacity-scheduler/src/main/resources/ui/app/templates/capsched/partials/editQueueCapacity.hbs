@@ -35,7 +35,7 @@
     {{/if}}
   </div>
   <div class="col-md-5 col-sm-5">
-    <div class="form-group input-group capacity-input-percent">
+    <div {{bind-attr class=":form-group :input-group :capacity-input-percent view.isInvalidQueueMaximumCapacity:has-error"}}>
       {{max-capacity-input class='input-sm' value=this.maximum_capacity queue=this maxVal=100}}
       <span class="input-group-addon">%</span>
     </div>
@@ -45,6 +45,13 @@
     {{#if view.isQueueMaximumCapacityDirty}}
       <div class="btn-group btn-group-xs">
         <a {{action 'rollbackProp' 'maximum_capacity' this}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+      </div>
+    {{/if}}
+    {{#if view.isInvalidQueueMaximumCapacity}}
+      <div class="row">
+        <div class="col-md-12 col-sm-12">
+          <span class="text-danger">Maximum capacity must be greater than or equal to capacity</span>
+        </div>
       </div>
     {{/if}}
   </div>
