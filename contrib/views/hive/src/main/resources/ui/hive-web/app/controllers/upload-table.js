@@ -22,15 +22,16 @@ import constants from 'hive/utils/constants';
 
 
 export default Ember.Controller.extend({
-  COLUMN_NAME_REGEX:"^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
-  TABLE_NAME_REGEX:"^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
-  isLocalUpload : Ember.computed.equal("uploadSource","local"),
-  uploadSource : "local",
+  COLUMN_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
+  TABLE_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
+  isLocalUpload: Ember.computed.equal("uploadSource", "local"),
+  uploadSource: "local",
   COLUMN_NAME_PREFIX : "column",
-  hdfsPath : "",
+  hdfsPath: "",
   jobService: Ember.inject.service(constants.namingConventions.job),
   notifyService: Ember.inject.service(constants.namingConventions.notify),
-  needs: ['databases'],
+  databaseService : Ember.inject.service(constants.namingConventions.database),
+  databases : Ember.computed.alias("databaseService.databases"),
   showErrors: false,
   uploader: Uploader.create(),
   baseUrl: "/resources/upload",
@@ -44,10 +45,26 @@ export default Ember.Controller.extend({
   filePath: null,
   tableName: null,
   uploadProgressInfos : [],
+  DEFAULT_DB_NAME : 'default',
   showPreview : false,
   onChangeUploadSource : function(){
     this.clearFields();
   }.observes("uploadSource"),
+  setDefaultDB : function(){
+    var self = this;
+    var defaultDatabase = this.get('databases').find(
+      function(item,index){
+        if(item.id == self.DEFAULT_DB_NAME )
+          return true;
+      }
+    );
+
+    console.log("setting the initial database to : " + defaultDatabase);
+    self.set("selectedDatabase",defaultDatabase);
+  },
+  init: function() {
+    this.setDefaultDB();
+  },
   uploadProgressInfo : Ember.computed("uploadProgressInfos.[]",function(){
     var info = "";
     for( var i = 0 ; i < this.get('uploadProgressInfos').length ; i++)
@@ -149,6 +166,7 @@ export default Ember.Controller.extend({
     this.set("filePath");
     this.set('tableName');
     this.clearUploadProgressModal();
+    this.setDefaultDB();
     this.printValues();
   },
 
