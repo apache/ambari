@@ -74,12 +74,10 @@ App.WizardStep3HostLogPopupBody = Em.View.extend({
     $(this.get('element')).find('.content-area')
       .mouseenter(
       function () {
-        $(this).css('border', '1px solid #dcdcdc');
         button.css('visibility', 'visible');
       })
       .mouseleave(
       function () {
-        $(this).css('border', 'none');
         button.css('visibility', 'hidden');
       });
   }
