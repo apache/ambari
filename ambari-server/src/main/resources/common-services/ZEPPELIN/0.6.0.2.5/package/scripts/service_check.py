@@ -26,7 +26,6 @@ class ZeppelinServiceCheck(Script):
         import params
         env.set_params(params)
 
-        print ()
         Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {zeppelin_host}:{zeppelin_port} | grep 200"),
                 tries = 10,
                 try_sleep=3,
