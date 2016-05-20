@@ -42,15 +42,6 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR =
     "timeline.metrics.aggregator.checkpoint.dir";
 
-  public static final String TIMELINE_METRICS_CACHE_SIZE =
-    "timeline.metrics.cache.size";
-
-  public static final String TIMELINE_METRICS_CACHE_COMMIT_INTERVAL =
-    "timeline.metrics.cache.commit.interval";
-
-  public static final String TIMELINE_METRICS_CACHE_ENABLED =
-    "timeline.metrics.cache.enabled";
-
   public static final String DEFAULT_CHECKPOINT_LOCATION =
     System.getProperty("java.io.tmpdir");
 

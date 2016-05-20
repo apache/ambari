@@ -69,7 +69,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     }});
     timelineMetrics.getMetrics().add(metric2);
 
-    hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics, true);
+    hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics);
   }
 
   @Test(timeout = 180000)

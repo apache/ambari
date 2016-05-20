@@ -21,10 +21,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
@@ -41,7 +41,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -201,41 +204,6 @@ public class PhoenixHBaseAccessorTest {
       //NOP
     }
     PowerMock.verifyAll();
-  }
-
-  @Test
-  public void testMetricsCacheCommittingWhenFull() throws IOException, SQLException {
-    Configuration hbaseConf = new Configuration();
-    hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
-    Configuration metricsConf = new Configuration();
-    metricsConf.setStrings(TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_SIZE, "1");
-    metricsConf.setStrings(TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, "100");
-    final Connection connection = EasyMock.createNiceMock(Connection.class);
-
-
-    PhoenixHBaseAccessor accessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf) {
-      @Override
-      public void commitMetrics(Collection<TimelineMetrics> timelineMetricsCollection) {
-        try {
-          connection.commit();
-        } catch (SQLException e) {
-          e.printStackTrace();
-        }
-      }
-    };
-
-    TimelineMetrics timelineMetrics = EasyMock.createNiceMock(TimelineMetrics.class);
-    EasyMock.expect(timelineMetrics.getMetrics()).andReturn(Collections.singletonList(new TimelineMetric())).anyTimes();
-    connection.commit();
-    EasyMock.expectLastCall().once();
-
-    EasyMock.replay(timelineMetrics, connection);
-
-    accessor.insertMetricRecords(timelineMetrics);
-    accessor.insertMetricRecords(timelineMetrics);
-    accessor.insertMetricRecords(timelineMetrics);
-
-    EasyMock.verify(timelineMetrics, connection);
   }
 
 }
