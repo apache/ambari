@@ -25,5 +25,9 @@ App.CapschedPartialsEditQueueCapacityView = Ember.View.extend({
 
   isQueueMaximumCapacityDirty: function() {
     return this.get('controller.content').changedAttributes().hasOwnProperty('maximum_capacity');
-  }.property('controller.content.maximum_capacity')
+  }.property('controller.content.maximum_capacity'),
+
+  isInvalidQueueMaximumCapacity: function() {
+    return this.get('controller.content.maximum_capacity') < this.get('controller.content.capacity');
+  }.property('controller.content.capacity', 'controller.content.maximum_capacity')
 });
