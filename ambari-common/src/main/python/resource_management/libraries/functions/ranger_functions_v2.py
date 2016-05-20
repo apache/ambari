@@ -98,9 +98,9 @@ class RangeradminV2:
 
   def create_ranger_repository(self, component, repo_name, repo_properties,
                                ambari_ranger_admin, ambari_ranger_password,
-                               admin_uname, admin_password, policy_user, is_security_enabled = False, component_user = None,
-                               component_user_principal = None, component_user_keytab = None):
-    if not is_security_enabled :
+                               admin_uname, admin_password, policy_user, is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
+                               component_user = None, component_user_principal = None, component_user_keytab = None):
+    if not is_stack_supports_ranger_kerberos :
       response_code = self.check_ranger_login_urllib2(self.base_url)
       repo_data = json.dumps(repo_properties)
       ambari_ranger_password = unicode(ambari_ranger_password)
@@ -134,7 +134,7 @@ class RangeradminV2:
           Logger.error('Ambari admin user creation failed')
       elif not self.skip_if_rangeradmin_down:
         Logger.error("Connection failed to Ranger Admin !")
-    else:
+    elif is_stack_supports_ranger_kerberos and is_security_enabled:
       response = self.check_ranger_login_curl(component_user,component_user_keytab,component_user_principal,self.base_url,True)
 
       if response and response[0] == 200:
