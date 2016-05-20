@@ -159,7 +159,7 @@ for host in atlas_hosts:
     server_hosts = server_host
   else:
     server_ids += "," + server_id
-    server_hosts += "\n" + "atlas.server.host." + server_id + "=" + server_host
+    server_hosts += "\n" + "atlas.server.address." + server_id + "=" + server_host
 
   id += 1
   first_id = False
