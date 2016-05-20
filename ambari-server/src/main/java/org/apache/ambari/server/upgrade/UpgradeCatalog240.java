@@ -1573,6 +1573,13 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
                 updateConfigurationProperties("hdfs-site", Collections.singletonMap("dfs.internal.nameservices", nameservices), true, false);
               }
             }
+            Config hadoopEnv = cluster.getDesiredConfigByType("hadoop-env");
+            if (hadoopEnv != null) {
+              String keyServerPort = hadoopEnv.getProperties().get("keyserver_port");
+              if (null != keyServerPort && " ".equals(keyServerPort)) {
+                updateConfigurationProperties("hadoop-env", Collections.singletonMap("keyserver_port", ""), true, false);
+              }
+            }
           }
         }
       }

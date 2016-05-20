@@ -693,6 +693,16 @@ public class UpgradeCatalog240Test {
         put("dfs.internal.nameservices", "nnha");
       }
     };
+    Map<String, String> oldPropertiesHadoopEnv = new HashMap<String, String>() {
+      {
+        put("keyserver_port", " ");
+      }
+    };
+    Map<String, String> newPropertiesHadoopEnv = new HashMap<String, String>() {
+      {
+        put("keyserver_port", "");
+      }
+    };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
 
     Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
@@ -700,12 +710,15 @@ public class UpgradeCatalog240Test {
     final Service service = createStrictMock(Service.class);
     final Map<String, Service> services = Collections.singletonMap("HDFS", service);
     Config mockHdfsSite = easyMockSupport.createNiceMock(Config.class);
+    Config mockHadoopEnv = easyMockSupport.createNiceMock(Config.class);
 
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
     }}).anyTimes();
     expect(cluster.getDesiredConfigByType("hdfs-site")).andReturn(mockHdfsSite).atLeastOnce();
+    expect(cluster.getDesiredConfigByType("hadoop-env")).andReturn(mockHadoopEnv).atLeastOnce();
     expect(mockHdfsSite.getProperties()).andReturn(oldPropertiesHdfsSite).anyTimes();
+    expect(mockHadoopEnv.getProperties()).andReturn(oldPropertiesHadoopEnv).anyTimes();
     expect(cluster.getServices()).andReturn(services).once();
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
@@ -713,7 +726,7 @@ public class UpgradeCatalog240Test {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
 
-    replay(injector, clusters, mockHdfsSite, cluster);
+    replay(injector, clusters, mockHdfsSite, mockHadoopEnv, cluster);
 
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
         .addMockedMethod("createConfiguration")
@@ -723,19 +736,25 @@ public class UpgradeCatalog240Test {
         .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
+    Capture<Map> propertiesCaptureHdfsSite = EasyMock.newCapture();
+    Capture<Map> propertiesCaptureHadoopEnv = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), eq("hdfs-site"), capture(propertiesCaptureHdfsSite), anyString(),
                                    anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+    expect(controller.createConfig(anyObject(Cluster.class), eq("hadoop-env"), capture(propertiesCaptureHadoopEnv), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
     new UpgradeCatalog240(injector2).updateHDFSConfigs();
     easyMockSupport.verifyAll();
 
-    Map<String, String> updatedProperties = propertiesCapture.getValue();
-    assertTrue(Maps.difference(newPropertiesHdfsSite, updatedProperties).areEqual());
+    Map<String, String> updatedPropertiesHdfsSite = propertiesCaptureHdfsSite.getValue();
+    assertTrue(Maps.difference(newPropertiesHdfsSite, updatedPropertiesHdfsSite).areEqual());
+
+    Map<String, String> updatedPropertiesHadoopEnv = propertiesCaptureHadoopEnv.getValue();
+    assertTrue(Maps.difference(newPropertiesHadoopEnv, updatedPropertiesHadoopEnv).areEqual());
   }
 
   @Test
