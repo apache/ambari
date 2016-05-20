@@ -42,6 +42,11 @@
             "hbase.coprocessor.regionserver.classes": "{{hbase_coprocessor_regionserver_classes}}",
             "hbase.bulkload.staging.dir": "/apps/hbase/staging"
           }
+        },
+        {
+          "core-site": {
+            "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/phoenix_query_server_hosts}"
+          }
         }
       ],
       "components": [
@@ -104,23 +109,11 @@
           "name": "PHOENIX_QUERY_SERVER",
           "identities": [
             {
-              "name": "hbase_queryserver_hbase",
+              "name": "/spnego",
               "principal": {
-                "value": "hbase/_HOST@${realm}",
-                "type" : "service",
-                "configuration": "hbase-site/phoenix.queryserver.kerberos.principal",
-                "local_username": "${hbase-env/hbase_user}"
+                "configuration": "hbase-site/phoenix.queryserver.kerberos.principal"
               },
               "keytab": {
-                "file": "${keytab_dir}/hbase.service.keytab",
-                "owner": {
-                  "name": "${hbase-env/hbase_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                },
                 "configuration": "hbase-site/phoenix.queryserver.keytab.file"
               }
             }
