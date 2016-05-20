@@ -19,14 +19,24 @@
 
 package org.apache.ambari.server.api.predicate;
 
-import org.apache.ambari.server.controller.predicate.*;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.apache.ambari.server.controller.predicate.AndPredicate;
+import org.apache.ambari.server.controller.predicate.CategoryIsEmptyPredicate;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.apache.ambari.server.controller.predicate.FilterPredicate;
+import org.apache.ambari.server.controller.predicate.GreaterEqualsPredicate;
+import org.apache.ambari.server.controller.predicate.LessEqualsPredicate;
+import org.apache.ambari.server.controller.predicate.LessPredicate;
+import org.apache.ambari.server.controller.predicate.NotPredicate;
+import org.apache.ambari.server.controller.predicate.OrPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.junit.Test;
 
 /**
  * QueryParser unit tests.
@@ -171,6 +181,44 @@ public class QueryParserTest {
     OrPredicate orPredicate = new OrPredicate(ep1, ep2, ep3);
 
     assertEquals(orPredicate, p);
+  }
+
+  @Test
+  public void testParse_InOp__HostName() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    // foo.in(one,two,3)
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".in("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "HostRoles/host_name"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "Host1,HOST2,HoSt3"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryParser parser = new QueryParser();
+    Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+
+    EqualsPredicate ep1 = new EqualsPredicate("HostRoles/host_name", "host1");
+    EqualsPredicate ep2 = new EqualsPredicate("HostRoles/host_name", "host2");
+    EqualsPredicate ep3 = new EqualsPredicate("HostRoles/host_name", "host3");
+
+    OrPredicate orPredicate = new OrPredicate(ep1, ep2, ep3);
+
+    assertEquals(orPredicate, p);
+  }
+
+  @Test
+  public void testParse_EquOp_HostName() throws Exception {
+    List<Token> listTokens = new ArrayList<Token>();
+    //a=1&!b=2
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "HostRoles/host_name"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "HOST1"));
+
+
+    QueryParser parser = new QueryParser();
+    Predicate p = parser.parse(listTokens.toArray(new Token[listTokens.size()]));
+    EqualsPredicate equalsPred = new EqualsPredicate<String>("HostRoles/host_name", "host1");
+
+
+    assertEquals(equalsPred, p);
   }
 
   @Test
