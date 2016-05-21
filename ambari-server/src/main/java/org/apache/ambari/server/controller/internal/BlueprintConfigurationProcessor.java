@@ -77,6 +77,9 @@ public class BlueprintConfigurationProcessor {
   private final static String HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES = "hbase.coprocessor.master.classes";
   private final static String HBASE_SITE_HBASE_COPROCESSOR_REGION_CLASSES = "hbase.coprocessor.region.classes";
 
+  private final static String HAWQ_SITE_HAWQ_STANDBY_ADDRESS_HOST = "hawq_standby_address_host";
+  private final static String HAWQSTANDBY = "HAWQSTANDBY";
+
   /**
    * Single host topology updaters
    */
@@ -187,7 +190,8 @@ public class BlueprintConfigurationProcessor {
   private static final PropertyFilter[] clusterUpdatePropertyFilters =
     { new DependencyEqualsFilter("hbase.security.authorization", "hbase-site", "true"),
       new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE"),
-      new HDFSNameNodeHAFilter() };
+      new HDFSNameNodeHAFilter(),
+      new HawqHAFilter() };
 
   private ClusterTopology clusterTopology;
 
@@ -3052,6 +3056,41 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
+  /**
+   * Filter implementation that scans for HAWQ HA properties that should be
+   * removed/ignored when HAWQ HA is not enabled.
+   */
+  private static class HawqHAFilter implements PropertyFilter {
+
+    /**
+     * Set of HAWQ Property names that are only valid in a HA scenario.
+     */
+    private final Set<String> setOfHawqPropertyNamesNonHA =
+            Collections.unmodifiableSet( new HashSet<String>(Arrays.asList(HAWQ_SITE_HAWQ_STANDBY_ADDRESS_HOST)));
+
+
+    /**
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+      int matchingGroupCount = topology.getHostGroupsForComponent(HAWQSTANDBY).size();
+      if (matchingGroupCount == 0) {
+        if (setOfHawqPropertyNamesNonHA.contains(propertyName)) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
 
 
 }
