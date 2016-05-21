@@ -37,7 +37,6 @@ from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import Fail
 from resource_management.core.source import StaticFile
 
-
 class HiveServiceCheck(Script):
   pass
 
@@ -88,7 +87,9 @@ class HiveServiceCheckDefault(HiveServiceCheck):
 
       Logger.info("Running LLAP checks")
       Logger.info("-------------------\n")
-      self.check_llap(env, kinit_cmd)
+      self.check_llap(env, kinit_cmd, params.hive_interactive_hosts, int(format("{hive_server_interactive_port}")),
+                      params.hive_server_principal, params.hive_server2_authentication, params.hive_transport_mode,
+                      params.hive_http_endpoint)
 
 
     Logger.info("Running HCAT checks")
@@ -143,27 +144,49 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     Logger.info("Successfully stayed connected to '{0}' on host: {1} and port {2} after {3} seconds"
                 .format(server_component_name, params.hostname, server_port, elapsed_time))
 
-  def check_llap(self, env, kinit_cmd):
+  """
+  Performs Service check for LLAP app
+  """
+  def check_llap(self, env, kinit_cmd, address, port, key, hive_auth="NOSASL", transport_mode="binary", http_endpoint="cliservice"):
     import params
     env.set_params(params)
 
-    File(format("{tmp_dir}/hiveLlapSmoke.sh"),
-         content=StaticFile("hiveLlapSmoke.sh"),
-         mode=0755
-         )
     unique_id = get_unique_id_and_date()
-    llap_cmd = format("{kinit_cmd}env JAVA_HOME={java64_home} {tmp_dir}/hiveLlapSmoke.sh {stack_root} llap_smoke_{unique_id} prepare")
+
+    beeline_url = ['jdbc:hive2://{address}:{port}/', "transportMode={transport_mode}"]
+
+    # Currently, HSI is supported on a single node only. The address list should be of size 1,
+    # thus picking the 1st node value.
+    address = address[0]
+
+    # append url according to used transport
+    if transport_mode == "http":
+      beeline_url.append('httpPath={http_endpoint}')
+
+    # append url according to used auth
+    if hive_auth == "NOSASL":
+      beeline_url.append('auth=noSasl')
+
+    # append url according to principal
+    if kinit_cmd:
+      beeline_url.append('principal={key}')
 
     exec_path = params.execute_path
     if params.version and params.stack_root:
       upgrade_hive_bin = format("{stack_root}/{version}/hive2/bin")
       exec_path =  os.environ['PATH'] + os.pathsep + params.hadoop_bin_dir + os.pathsep + upgrade_hive_bin
 
+    # beeline path
+    llap_cmd = "! beeline -u '%s'" % format(";".join(beeline_url))
+    # Append LLAP SQL script path
+    llap_cmd += format(" --hiveconf \"hiveLlapServiceCheck={unique_id}\" -f {stack_root}/current/hive-server2-hive2/scripts/llap/sql/serviceCheckScript.sql")
+    # Append grep patterns for detecting failure
+    llap_cmd += " -e '' 2>&1| awk '{print}'|grep -i -e 'Invalid status\|Invalid URL\|command not found\|Connection refused'"
+
     Execute(llap_cmd,
             user=params.hive_user,
             path=['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin', exec_path],
             tries=1,
-            try_sleep=5,
             wait_for_finish=True,
             stderr=subprocess.PIPE,
             logoutput=True)
