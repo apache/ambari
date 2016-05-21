@@ -7213,6 +7213,38 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testHawqNonHaConfigClusterUpdate() throws Exception {
+    final String expectedHostNameHawqMaster = "c6401.apache.ambari.org";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hawqSite = new HashMap<String, String>();
+    properties.put("hawq-site", hawqSite);
+
+    // setup properties that include host information
+    hawqSite.put("hawq_master_address_host", "localhost");
+    hawqSite.put("hawq_standby_address_host", "localhost");
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    //Host group which has HAWQMASTER
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("HAWQMASTER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton(expectedHostNameHawqMaster));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals(expectedHostNameHawqMaster, hawqSite.get("hawq_master_address_host"));
+    assertFalse("hawq_standby_address_host should have been filtered out of this non-HAWQ HA configuration",
+            hawqSite.containsKey("hawq_standby_address_host"));
+  }
+
+  @Test
   public void testDoUpdateForBlueprintExport_NonTopologyProperty__AtlasClusterName() throws Exception {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
 
