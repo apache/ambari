@@ -23,6 +23,7 @@ import sys
 from hbase import hbase
 from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
+from resource_management.libraries.functions.check_process_status import check_process_status
 
          
 class HbaseMaster(Script):

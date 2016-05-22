@@ -20,6 +20,7 @@ limitations under the License.
 from utils import service
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import Template
+from resource_management.libraries.functions.check_process_status import check_process_status
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from ambari_commons import OSConst
 

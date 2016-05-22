@@ -22,6 +22,7 @@ import sys
 
 from hbase import hbase
 from hbase_service import hbase_service
+from resource_management.libraries.functions.check_process_status import check_process_status
 
          
 class HbaseRegionServer(Script):

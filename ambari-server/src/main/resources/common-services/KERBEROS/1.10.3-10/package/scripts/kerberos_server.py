@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from kerberos_common import *
+from resource_management.libraries.functions.check_process_status import check_process_status
 from ambari_commons.os_check import OSCheck
 
 class KerberosServer(KerberosScript):
