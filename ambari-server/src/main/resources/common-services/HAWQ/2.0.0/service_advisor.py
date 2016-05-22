@@ -17,11 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-import fnmatch
 import imp
 import re
 import socket
-import sys
 import traceback
 import math
 
@@ -39,10 +37,23 @@ except Exception as e:
 class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
 
   def getHostsForMasterComponent(self, stackAdvisor, services, hosts, component, hostsList, hostsComponentsMap):
-    componentName = component["StackServiceComponents"]["component_name"]
+    if component["StackServiceComponents"]["component_name"] == 'HAWQSTANDBY':
+      # Do not recommend HAWQSTANDBY on single node cluster, or cluster with no active hosts
+      if len(hostsList) <= 1:
+        return []
+      
+      componentsListList = [service["components"] for service in services["services"]]
+      componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+      hawqMasterHosts = self.getHosts(componentsList, "HAWQMASTER")
 
-    if componentName == 'HAWQSTANDBY' and len(hostsList) == 1:
-      return []
+      # if HAWQMASTER has already been assigned, try to ensure HAWQSTANDBY is not placed on the same host
+      if len(hawqMasterHosts) > 0:
+        ambariServerHost = socket.getfqdn()
+        availableHosts = [host for host in hostsList if host not in (hawqMasterHosts[0], ambariServerHost)]
+        # Return list containing first available host if there are available hosts
+        if len(availableHosts) > 0:
+          return availableHosts[:1]
+        return [ambariServerHost]
 
     return stackAdvisor.getHostsForMasterComponent(services, hosts, component, hostsList, hostsComponentsMap)
 

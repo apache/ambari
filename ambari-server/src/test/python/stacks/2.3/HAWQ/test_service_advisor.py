@@ -17,13 +17,14 @@ limitations under the License.
 """
 
 import os
+import imp
 from unittest import TestCase
+from mock.mock import patch, MagicMock
 
 
 class TestHAWQ200ServiceAdvisor(TestCase):
 
   def setUp(self):
-    import imp
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
     stackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
     hawq200ServiceAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/common-services/HAWQ/2.0.0/service_advisor.py')
@@ -38,6 +39,80 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     serviceAdvisorClass = getattr(service_advisor, 'HAWQ200ServiceAdvisor')
     self.serviceAdvisor = serviceAdvisorClass()
+
+
+  @patch("socket.getfqdn")
+  def test_getHostsForMasterComponent(self, getfqdn_mock):
+    getfqdn_mock.return_value = "c6401.ambari.apache.org"
+
+    services = {
+      "services": [
+        {
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "HAWQMASTER",
+                "hostnames": [
+                  "c6403.ambari.apache.org"
+                ]
+              }
+            },
+            {
+              "StackServiceComponents": {
+                "component_name": "HAWQSTANDBY",
+                "hostnames": [
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+
+    hostsList = ["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org", "c6404.ambari.apache.org"]
+
+    component = {
+      "StackServiceComponents": {
+        "component_name": "HAWQSTANDBY"
+      }
+    }
+
+    # Case 1:
+    # Ambari Server is placed on c6401.ambari.apache.org
+    # HAWQMASTER is placed on c6403.ambari.apache.org
+    # There are 4 available hosts in the cluster
+    # Recommend HAWQSTANDBY on next available host, c6402.ambari.apache.org
+    standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(self.stackAdvisor, services, None, component, hostsList, None)
+    self.assertEquals(standbyHosts, ["c6402.ambari.apache.org"])
+
+    # Case 2:
+    # Ambari Server is placed on c6401.ambari.apache.org
+    # HAWQMASTER is placed on c6402.ambari.apache.org
+    # There are 4 available hosts in the cluster
+    # Recommend HAWQSTANDBY on next available host, c6403.ambari.apache.org
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6402.ambari.apache.org"]
+    standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(self.stackAdvisor, services, None, component, hostsList, None)
+    self.assertEquals(standbyHosts, ["c6403.ambari.apache.org"])
+
+    # Case 3:
+    # Ambari Server is placed on c6401.ambari.apache.org
+    # HAWQMASTER is placed on c6402.ambari.apache.org
+    # There are 2 available hosts in the cluster
+    # Recommend HAWQSTANDBY on a host which does not have HAWQMASTER, c6401.ambari.apache.org
+    hostsList = ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+    standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(self.stackAdvisor, services, None, component, hostsList, None)
+    self.assertEquals(standbyHosts, ["c6401.ambari.apache.org"])
+
+    # Case 4:
+    # Ambari Server is placed on c6401.ambari.apache.org
+    # HAWQMASTER is placed on c6401.ambari.apache.org
+    # There is 1 available host in the cluster
+    # Do not recommend HAWQSTANDBY on a single node cluster
+    hostsList = ["c6401.ambari.apache.org"]
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6401.ambari.apache.org"]
+    standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(self.stackAdvisor, services, None, component, hostsList, None)
+    self.assertEquals(standbyHosts, [])
+
 
   def test_getServiceConfigurationRecommendations(self):
 
