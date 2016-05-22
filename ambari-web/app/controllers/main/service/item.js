@@ -1060,8 +1060,19 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (this.get('content.serviceName') == 'HAWQ' && this.get('content.hostComponents').filterProperty('componentName', 'HAWQMASTER').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
+    if (this.get('content.serviceName') == 'PXF' && App.HostComponent.find().filterProperty('componentName', 'PXF').someProperty('workStatus', App.HostComponentStatus.started)) {
+      return false;
+    }
     return (this.get('content.healthStatus') != 'green');
   }.property('content.healthStatus','isPending', 'App.isHaEnabled'),
+
+  isSmokeTestDisabled: function () {
+    if (this.get('isClientsOnlyService')) return false;
+    // Disable PXF service check if at least one PXF is down
+    if (this.get('content.serviceName') === 'PXF')
+      return App.HostComponent.find().filterProperty('componentName', 'PXF').someProperty('workStatus','INSTALLED');
+    return this.get('isStopDisabled');
+  }.property('content.serviceName'),
 
   /**
    * Determine if service has than one service client components

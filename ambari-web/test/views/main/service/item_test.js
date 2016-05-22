@@ -550,7 +550,8 @@ describe('App.MainServiceItemView', function () {
               }),
               isSeveralClients: false,
               clientComponents: [],
-              isStopDisabled: false
+              isStopDisabled: false,
+              isSmokeTestDisabled: false
             }),
             mastersExcludedCommands: mastersExcludedCommands,
             hasConfigTab: hasConfigTab
