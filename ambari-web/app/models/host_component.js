@@ -278,6 +278,7 @@ App.HostComponentActionMap = {
     var HS = ctx.get('controller.content.hostComponents').findProperty('componentName', 'HAWQSTANDBY');
     var HMComponent = App.MasterComponent.find('HAWQMASTER');
     var HSComponent = App.MasterComponent.find('HAWQSTANDBY');
+
     return {
       RESTART_ALL: {
         action: 'restartAllHostComponents',
@@ -290,7 +291,7 @@ App.HostComponentActionMap = {
         action: 'runSmokeTest',
         label: Em.I18n.t('services.service.actions.run.smoke'),
         cssClass: 'icon-thumbs-up-alt',
-        disabled: ctx.get('controller.isClientsOnlyService') ? false : ctx.get('controller.isStopDisabled')
+        disabled: ctx.get('controller.isSmokeTestDisabled')
       },
       REFRESH_CONFIGS: {
         action: 'refreshConfigs',

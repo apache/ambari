@@ -404,7 +404,7 @@ describe('App.MainServiceItemController', function () {
     });
 
     describe("modal messages", function() {
-      
+
       beforeEach(function () {
         sinon.stub(App.StackService, 'find').returns([
           Em.Object.create({
@@ -412,7 +412,7 @@ describe('App.MainServiceItemController', function () {
             displayName: 'HDFS',
             isInstalled: true,
             isSelected: true,
-            requiredServices:["ZOOKEEPER"] 
+            requiredServices:["ZOOKEEPER"]
           }),
           Em.Object.create({
             serviceName: 'HIVE',
@@ -443,7 +443,7 @@ describe('App.MainServiceItemController', function () {
           })
         ]);
       });
-      
+
       it ("should confirm stop if serviceHealth is INSTALLED", function() {
         mainServiceItemController.startStopPopup(event, "INSTALLED");
         expect(Em.I18n.t.calledWith('services.service.stop.confirmMsg')).to.be.ok;
@@ -455,14 +455,14 @@ describe('App.MainServiceItemController', function () {
         expect(Em.I18n.t.calledWith('services.service.start.confirmMsg')).to.be.ok;
         expect(Em.I18n.t.calledWith('services.service.start.confirmButton')).to.be.ok;
       });
-      
+
       it ("should not display a dependent list if it is to start a service", function() {
         var _mainServiceItemController = App.MainServiceItemController.create(
             {content: {serviceName: "HDFS", passiveState:'OFF'}});
         _mainServiceItemController.startStopPopup(event, "");
         expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.not.be.ok;
       });
-      
+
       describe ("should display dependent list if other services depend on the one to be stopped", function() {
         beforeEach(function () {
           var _mainServiceItemController = App.MainServiceItemController.create(
@@ -510,7 +510,7 @@ describe('App.MainServiceItemController', function () {
           expect(this.fullMsg).to.be.equal(this.msg + " " + this.dependencies);
         });
       });
-      
+
       afterEach(function () {
         App.StackService.find.restore();
       });
@@ -1001,6 +1001,55 @@ describe('App.MainServiceItemController', function () {
     ];
     tests.forEach(function (test) {
       it(test.m, function () {
+        var mainServiceItemController = App.MainServiceItemController.create({content: test.content, isPending: test.isPending});
+        expect(mainServiceItemController.get('isStopDisabled')).to.equal(test.disabled);
+      });
+    });
+  });
+
+  describe("#isPXFStopDisabled", function () {
+
+    var hostComponentStub;
+
+    before(function () {
+      hostComponentStub = sinon.stub(App.HostComponent.find(), 'filterProperty');
+    });
+    after(function () {
+      hostComponentStub.restore();
+    });
+
+    var tests = [
+      {
+        content: {
+          serviceName: 'PXF',
+        },
+        isPending: false,
+        pxfWorkstatus: [{"workStatus": "STARTED"}, {"workStatus": "STARTED"}],
+        disabled: false,
+        m: "Enabled because all agents are started."
+      },
+      {
+        content: {
+          serviceName: 'PXF',
+        },
+        isPending: false,
+        pxfWorkstatus: [{"workStatus": "INSTALLED"}, {"workStatus": "STARTED"}],
+        disabled: false,
+        m: "Enabled because atleast one agent is started."
+      },
+      {
+        content: {
+          serviceName: 'PXF',
+        },
+        isPending: false,
+        pxfWorkstatus: [{"workStatus": "INSTALLED"}, {"workStatus": "INSTALLED"}],
+        disabled: true,
+        m: "Disabled because all PXF agents are down."
+      }
+    ];
+    tests.forEach(function (test) {
+      it(test.m, function () {
+        hostComponentStub.withArgs('componentName', 'PXF').returns(test.pxfWorkstatus);
         var mainServiceItemController = App.MainServiceItemController.create({content: test.content, isPending: test.isPending});
         expect(mainServiceItemController.get('isStopDisabled')).to.equal(test.disabled);
       });
