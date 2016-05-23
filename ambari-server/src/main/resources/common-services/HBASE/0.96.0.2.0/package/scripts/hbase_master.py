@@ -84,7 +84,7 @@ class HbaseMasterDefault(HbaseMaster):
     import params
     env.set_params(params)
     self.configure(env) # for security
-    setup_ranger_hbase(upgrade_type=upgrade_type)
+    setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-master")
     hbase_service('master', action = 'start')
     
   def stop(self, env, upgrade_type=None):

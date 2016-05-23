@@ -19,11 +19,10 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 
-def setup_ranger_hbase(upgrade_type=None):
+def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
   import params
 
   if params.has_ranger_admin:
-
 
     stack_version = None
 
@@ -35,7 +34,7 @@ def setup_ranger_hbase(upgrade_type=None):
     else:
       Logger.info("HBase: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
-    if params.xml_configurations_supported and params.enable_ranger_hbase and params.xa_audit_hdfs_is_enabled:
+    if params.xml_configurations_supported and params.enable_ranger_hbase and params.xa_audit_hdfs_is_enabled and service_name == 'hbase-master' :
       params.HdfsResource("/ranger/audit",
                          type="directory",
                          action="create_on_execute",
