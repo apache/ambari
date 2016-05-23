@@ -390,7 +390,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    * query each dynamic table to find the max of id
    * insert into ambari_sequence name and counter for each item
    */
-  private void updateSequenceForView() {
+  protected void updateSequenceForView() {
     LOG.info("updateSequenceForView called.");
     EntityManager entityManager = getEntityManagerProvider().get();
     TypedQuery<ViewEntityEntity> viewEntityQuery = entityManager.createQuery("SELECT vee FROM ViewEntityEntity vee", ViewEntityEntity.class);
