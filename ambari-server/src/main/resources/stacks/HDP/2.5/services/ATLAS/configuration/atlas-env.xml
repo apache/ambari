@@ -84,6 +84,7 @@
   <!-- metadata-env.sh -->
   <property>
     <name>content</name>
+    <display-name>atlas-env template</display-name>
     <description>This is the jinja template for metadata-env.sh file</description>
     <value>
       # The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path

@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>storm-cluster-log4j template</display-name>
     <description>Custom cluster.xml</description>
     <value>
     <![CDATA[

@@ -62,6 +62,7 @@
   <!-- flume-env.sh -->
   <property>
     <name>content</name>
+    <display-name>flume-env template</display-name>
     <description>This is the jinja template for flume-env.sh file</description>
     <value>
 # Licensed to the Apache Software Foundation (ASF) under one or more

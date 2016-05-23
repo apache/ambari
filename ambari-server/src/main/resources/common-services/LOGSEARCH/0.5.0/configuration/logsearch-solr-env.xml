@@ -138,6 +138,7 @@
   <!-- logsearch-solr-env.sh -->
   <property>
     <name>content</name>
+    <display-name>logsearch-solr-env template</display-name>
     <description>This is the jinja template for logsearch-solr-env.sh file</description>
     <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>

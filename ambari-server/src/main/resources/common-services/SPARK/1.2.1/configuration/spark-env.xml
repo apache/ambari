@@ -63,6 +63,7 @@
   <!-- spark-env.sh -->
   <property>
     <name>content</name>
+    <display-name>spark-env template</display-name>
     <description>This is the jinja template for spark-env.sh file</description>
     <value>
 #!/usr/bin/env bash

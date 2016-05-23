@@ -36,6 +36,7 @@
 
   <property>
     <name>content</name>
+    <display-name>atlas-log4j template</display-name>
     <description>Custom log4j.properties</description>
     <value><![CDATA[<?xml version="1.0" encoding="UTF-8" ?>
 <!--

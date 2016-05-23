@@ -22,6 +22,7 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>content</name>
+    <display-name>spark-log4j-properties template</display-name>
     <description>Spark-log4j-Properties</description>
     <value>
 # Set everything to be logged to the console

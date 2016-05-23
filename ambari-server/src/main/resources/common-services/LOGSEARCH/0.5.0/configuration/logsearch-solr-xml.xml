@@ -23,6 +23,7 @@
 
   <property>
     <name>content</name>
+    <display-name>logsearch-solr-xml template</display-name>
     <description>This is the jinja template for logsearch solr.xml file</description>
     <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>

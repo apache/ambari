@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>pig-properties template</display-name>
     <description>Describe all the Pig agent configurations</description>
     <value>
 # Licensed to the Apache Software Foundation (ASF) under one

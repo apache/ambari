@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>pxf-profiles template</display-name>
     <description>PXF profiles definition file</description>
     <value><![CDATA[
 <?xml version="1.0" encoding="UTF-8"?>

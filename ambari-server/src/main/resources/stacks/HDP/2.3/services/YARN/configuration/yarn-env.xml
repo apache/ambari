@@ -28,6 +28,7 @@
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>
+    <display-name>yarn-env template</display-name>
     <description>This is the jinja template for yarn-env.sh file</description>
     <value>
       export HADOOP_YARN_HOME={{hadoop_yarn_home}}

@@ -24,6 +24,7 @@
   <!-- hcat-env.sh -->
   <property>
     <name>content</name>
+    <display-name>hcat-env template</display-name>
     <description>This is the jinja template for hcat-env.sh file</description>
     <value>
       # Licensed to the Apache Software Foundation (ASF) under one

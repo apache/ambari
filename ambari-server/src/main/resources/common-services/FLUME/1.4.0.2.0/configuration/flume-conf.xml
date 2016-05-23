@@ -23,6 +23,7 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>content</name>
+    <display-name>flume-conf template</display-name>
     <description>Flume agent configurations. 
     Specifying the configuration here applies to all hosts in this configuration-group. Please use host specific configuration-groups to provide different configurations on different hosts. 
     For configuring multiple agents on the same host, provide the combined agent configurations here. Each agent should have a different name.</description>

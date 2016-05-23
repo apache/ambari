@@ -24,6 +24,7 @@
   <!-- slider-env.sh -->
   <property>
     <name>content</name>
+    <display-name>slider-env template</display-name>
     <description>This is the jinja template for slider-env.sh file</description>
     <value>
 # Set Slider-specific environment variables here.

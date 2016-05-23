@@ -58,6 +58,7 @@
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
+    <display-name>hadoop-env template</display-name>
     <description>This is the jinja template for hadoop-env.sh file</description>
     <value>
 # Set Hadoop-specific environment variables here.

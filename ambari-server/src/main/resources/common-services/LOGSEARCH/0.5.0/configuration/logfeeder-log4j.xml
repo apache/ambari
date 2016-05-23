@@ -25,6 +25,7 @@
   <!-- solrconfig.xml -->
   <property>
     <name>content</name>
+    <display-name>logfeeder-log4j template</display-name>
     <description>This is the jinja template for log4j.xml file for logfeeder</description>
     <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>

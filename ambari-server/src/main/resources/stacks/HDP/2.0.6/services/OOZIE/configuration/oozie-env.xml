@@ -25,6 +25,7 @@
   <!-- oozie-env.sh -->
   <property>
     <name>content</name>
+    <display-name>oozie-env template</display-name>
     <description>This is the jinja template for oozie-env.sh file</description>
     <value>
 #!/bin/bash

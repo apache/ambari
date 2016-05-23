@@ -42,6 +42,7 @@
 
   <property>
     <name>content</name>
+    <display-name>logsearch-admin-json template</display-name>
     <description>This is the jinja template for logsearch-admin.json file</description>
     <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>

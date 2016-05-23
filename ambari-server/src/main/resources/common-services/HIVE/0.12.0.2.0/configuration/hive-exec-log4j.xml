@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>hive-exec-log4j template</display-name>
     <description>Custom hive-exec-log4j</description>
     <value>
 # Licensed to the Apache Software Foundation (ASF) under one

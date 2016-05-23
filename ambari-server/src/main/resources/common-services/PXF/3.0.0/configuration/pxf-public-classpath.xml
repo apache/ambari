@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>pxf-public-classpath template</display-name>
     <description>Classpath file for the PXF service.</description>
     <value>
 #

@@ -105,6 +105,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
   <!-- hbase-env.sh -->
   <property>
     <name>content</name>
+    <display-name>hbase-env template</display-name>
     <description>This is the jinja template for hbase-env.sh file</description>
     <value>
 # Set environment variables here.

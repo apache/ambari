@@ -36,6 +36,7 @@
   <!-- tez-env.sh -->
   <property>
     <name>content</name>
+    <display-name>tez-env template</display-name>
     <description>This is the jinja template for tez-env.sh file</description>
     <value>
 # Tez specific configuration

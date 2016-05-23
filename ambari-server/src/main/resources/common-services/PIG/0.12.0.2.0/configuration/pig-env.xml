@@ -24,6 +24,7 @@
   <!-- pig-env.sh -->
   <property>
     <name>content</name>
+    <display-name>pig-env template</display-name>
     <description>This is the jinja template for pig-env.sh file</description>
     <value>
 JAVA_HOME={{java64_home}}
