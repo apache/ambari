@@ -146,6 +146,7 @@ public class ComponentResourceProviderTest {
 
     expect(ambariMetaInfo.isValidServiceComponent("HDP", "99", "Service100", "Component100")).andReturn(true).anyTimes();
 
+    expect(componentInfo.getName()).andReturn("Component100").anyTimes();
     expect(componentInfo.isRecoveryEnabled()).andReturn(true).anyTimes();
     expect(ambariMetaInfo.getComponent("HDP", "99", "Service100", "Component100")).andReturn(componentInfo).anyTimes();
 
@@ -153,7 +154,7 @@ public class ComponentResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters, cluster, service, stackId, ambariMetaInfo,
-        serviceComponentFactory, serviceComponent);
+        serviceComponentFactory, serviceComponent, componentInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
