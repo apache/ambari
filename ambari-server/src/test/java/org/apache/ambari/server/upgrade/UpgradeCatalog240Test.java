@@ -451,6 +451,7 @@ public class UpgradeCatalog240Test {
     Method updateHIVEConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateHIVEConfigs");
     Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
     Method updateClusterEnv = UpgradeCatalog240.class.getDeclaredMethod("updateClusterEnv");
+    Method updateSequenceForView = UpgradeCatalog240.class.getDeclaredMethod("updateSequenceForView");
     Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
     Method updateKerberosEnv = UpgradeCatalog240.class.getDeclaredMethod("updateKerberosConfigs");
     Method updateYarnEnv = UpgradeCatalog240.class.getDeclaredMethod("updateYarnEnv");
@@ -481,6 +482,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateHIVEConfigs)
             .addMockedMethod(updateAmsConfigs)
             .addMockedMethod(updateClusterEnv)
+            .addMockedMethod(updateSequenceForView)
             .addMockedMethod(updateHostRoleCommandTableDML)
             .addMockedMethod(updateKerberosEnv)
             .addMockedMethod(updateYarnEnv)
@@ -506,6 +508,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateHIVEConfigs();
     upgradeCatalog240.updateAMSConfigs();
     upgradeCatalog240.updateClusterEnv();
+    upgradeCatalog240.updateSequenceForView();
     upgradeCatalog240.updateHostRoleCommandTableDML();
     upgradeCatalog240.updateKerberosConfigs();
     upgradeCatalog240.updateYarnEnv();
