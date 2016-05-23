@@ -86,6 +86,12 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
   isInstalled: Em.computed.notExistsIn('clusterState', ['CLUSTER_NOT_CREATED_1', 'CLUSTER_DEPLOY_PREP_2', 'CLUSTER_INSTALLING_3', 'SERVICE_STARTING_3']),
 
   /**
+   * Stores instance of <code>App.ModalPopup</code> created by <code>postUserPrefErrorCallback</code>
+   * @property {App.ModalPopup|null}
+   */
+  persistErrorModal: null,
+
+  /**
    * General info about cluster
    * @type {{clusterName: string, clusterState: string, wizardControllerName: string, localdb: object}}
    */
@@ -277,7 +283,16 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
       msg += JSON.parse(request.responseText).message;
     }
 
-    App.ModalPopup.show({
+    if (this.get('persistErrorModal')) {
+      if (this.get('persistErrorModal').get('state') === 'destroyed') {
+        this.set('persistErrorModal', null);
+      } else {
+        this.get('persistErrorModal').onPrimary();
+        this.set('persistErrorModal', null);
+      }
+    }
+
+    var modal = App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
       secondary: false,
       response: msg,
@@ -285,6 +300,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         template: Em.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
       })
     });
+    this.set('persistErrorModal', modal);
   }
 
 });
