@@ -18,16 +18,7 @@
 
 package org.apache.ambari.server.utils;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import junit.framework.TestCase;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.CertGenerationTest;
-import org.apache.ambari.server.security.CertificateManager;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.RandomStringUtils;
+import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,27 +26,14 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.security.ProtectionDomain;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.Random;
 
-public class TestShellCommandUtil extends TestCase {
+public class TestShellCommandUtil {
 
   public TemporaryFolder temp = new TemporaryFolder();
-
-  protected Constructor<Configuration> getConfigurationConstructor() {
-    try {
-      return Configuration.class.getConstructor(Properties.class);
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(
-          "Expected constructor not found in Configuration.java", e);
-    }
-  }
 
   @Before
   public void setUp() throws IOException {
@@ -74,9 +52,9 @@ public class TestShellCommandUtil extends TestCase {
   @Test
   public void testOSDetection() throws Exception {
     // At least check, that only one OS is selected
-    assertTrue(ShellCommandUtil.LINUX ^ ShellCommandUtil.WINDOWS
+    Assert.assertTrue(ShellCommandUtil.LINUX ^ ShellCommandUtil.WINDOWS
             ^ ShellCommandUtil.MAC);
-    assertTrue(ShellCommandUtil.LINUX || ShellCommandUtil.MAC ==
+    Assert.assertTrue(ShellCommandUtil.LINUX || ShellCommandUtil.MAC ==
             ShellCommandUtil.UNIX_LIKE);
   }
 
@@ -89,19 +67,19 @@ public class TestShellCommandUtil extends TestCase {
               dummyFile.getAbsolutePath());
       String p = ShellCommandUtil.getUnixFilePermissions(
               dummyFile.getAbsolutePath());
-      assertEquals("600", p);
+      Assert.assertEquals("600", p);
 
       ShellCommandUtil.setUnixFilePermissions("444",
               dummyFile.getAbsolutePath());
       p = ShellCommandUtil.getUnixFilePermissions(
               dummyFile.getAbsolutePath());
-      assertEquals("444", p);
+      Assert.assertEquals("444", p);
 
       ShellCommandUtil.setUnixFilePermissions("777",
               dummyFile.getAbsolutePath());
       p = ShellCommandUtil.getUnixFilePermissions(
               dummyFile.getAbsolutePath());
-      assertEquals("777", p);
+      Assert.assertEquals("777", p);
 
     } else {
       // Next command is silently ignored, it's OK
@@ -110,26 +88,26 @@ public class TestShellCommandUtil extends TestCase {
       // On Windows/Mac, output is always MASK_EVERYBODY_RWX
       String p = ShellCommandUtil.getUnixFilePermissions(
               dummyFile.getAbsolutePath());
-      assertEquals(p, ShellCommandUtil.MASK_EVERYBODY_RWX);
+      Assert.assertEquals(p, ShellCommandUtil.MASK_EVERYBODY_RWX);
     }
   }
 
 
   @Test
   public void testRunCommand() throws Exception {
-    ShellCommandUtil.Result result = null;
+    ShellCommandUtil.Result result;
     if (ShellCommandUtil.LINUX) {
       result = ShellCommandUtil.
               runCommand(new String [] {"echo", "dummy"});
-      assertEquals(0, result.getExitCode());
-      assertEquals("dummy\n", result.getStdout());
-      assertEquals("", result.getStderr());
-      assertTrue(result.isSuccessful());
+      Assert.assertEquals(0, result.getExitCode());
+      Assert.assertEquals("dummy\n", result.getStdout());
+      Assert.assertEquals("", result.getStderr());
+      Assert.assertTrue(result.isSuccessful());
 
       result = ShellCommandUtil.
               runCommand(new String [] {"false"});
-      assertEquals(1, result.getExitCode());
-      assertFalse(result.isSuccessful());
+      Assert.assertEquals(1, result.getExitCode());
+      Assert.assertFalse(result.isSuccessful());
     } else {
       // Skipping this test under Windows/Mac
     }
@@ -143,17 +121,61 @@ public class TestShellCommandUtil extends TestCase {
         "-key 1234 -selfsign -extensions jdk7_ca " +
         "-config /var/lib/ambari-server/keys/ca.config -batch " +
         "-infiles /var/lib/ambari-server/keys/ca.csr";
-    assertFalse(ShellCommandUtil.hideOpenSslPassword(command_pass).contains("1234"));
-    assertFalse(ShellCommandUtil.hideOpenSslPassword(command_key).contains("1234"));
+    Assert.assertFalse(ShellCommandUtil.hideOpenSslPassword(command_pass).contains("1234"));
+    Assert.assertFalse(ShellCommandUtil.hideOpenSslPassword(command_key).contains("1234"));
   }
 
+  @Test
   public void testResultsClassIsPublic() throws Exception {
     Class resultClass = ShellCommandUtil.Result.class;
 
-    assertEquals(Modifier.PUBLIC, resultClass.getModifiers() & Modifier.PUBLIC);
+    Assert.assertEquals(Modifier.PUBLIC, resultClass.getModifiers() & Modifier.PUBLIC);
 
     for(Method method : resultClass.getMethods()) {
-      assertEquals(method.getName(), Modifier.PUBLIC, (method.getModifiers() & Modifier.PUBLIC));
+      Assert.assertEquals(method.getName(), Modifier.PUBLIC, (method.getModifiers() & Modifier.PUBLIC));
     }
+  }
+
+  @Test
+  public void testPathExists() throws Exception {
+    File nonExisting = new File(temp.getRoot(), "i_do_not_exist");
+    File existing = temp.newFolder();
+
+    ShellCommandUtil.Result result;
+
+    result = ShellCommandUtil.pathExists(existing.getAbsolutePath(), false);
+    Assert.assertTrue(existing.exists());
+    Assert.assertTrue(result.isSuccessful());
+
+    result = ShellCommandUtil.pathExists(nonExisting.getAbsolutePath(), false);
+    Assert.assertFalse(nonExisting.exists());
+    Assert.assertFalse(result.isSuccessful());
+  }
+
+  @Test
+  public void testMkdir() throws Exception {
+    File directory = new File(temp.getRoot(), "newdir");
+
+    ShellCommandUtil.Result result = ShellCommandUtil.mkdir(directory.getAbsolutePath(), false);
+
+    Assert.assertTrue(result.isSuccessful());
+    Assert.assertTrue(directory.exists());
+  }
+
+  @Test
+  public void testCopy() throws Exception {
+    File srcFile = temp.newFile();
+    File destFile = new File(srcFile.getParentFile(), "copied_file");
+
+    FileWriter writer = new FileWriter(srcFile);
+    writer.write("Hello World!!!!!");
+    writer.close();
+
+    ShellCommandUtil.Result result = ShellCommandUtil.copyFile(srcFile.getAbsolutePath(), destFile.getAbsolutePath(), false, false);
+
+    Assert.assertTrue(result.isSuccessful());
+    Assert.assertTrue(destFile.exists());
+    Assert.assertTrue(destFile.length() > 0);
+    Assert.assertEquals(destFile.length(), srcFile.length());
   }
 }

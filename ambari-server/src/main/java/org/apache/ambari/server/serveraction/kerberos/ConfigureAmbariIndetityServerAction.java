@@ -28,15 +28,12 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
-import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
-import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.serveraction.ActionLog;
+import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Inject;
 
 /**
  * ConfigureAmbariIndetityServerAction is a ServerAction implementation that creates keytab files as
@@ -55,13 +52,6 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
   private static final String PRINCIPAL_PATTERN = "principal=\"(.+)?\"";
 
   private final static Logger LOG = LoggerFactory.getLogger(ConfigureAmbariIndetityServerAction.class);
-
-  /**
-   * KerberosPrincipalDAO used to set and get Kerberos principal details
-   */
-  @Inject
-  private KerberosPrincipalDAO kerberosPrincipalDAO;
-
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -125,10 +115,13 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
 
         String hostName = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
         if (hostName != null && hostName.equalsIgnoreCase(KerberosHelper.AMBARI_SERVER_HOST_NAME)) {
-          String keytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
-          String keytabOwner = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME);
-          String keytabAccess = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS);
-          createAndConfigureAmbariKeytab(evaluatedPrincipal, operationHandler, keytabFilePath, keytabOwner, keytabAccess, actionLog);
+          String destKeytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
+          File hostDirectory = new File(dataDirectory, hostName);
+          File srcKeytabFile = new File(hostDirectory, DigestUtils.sha1Hex(destKeytabFilePath));
+
+          if(srcKeytabFile.exists()) {
+            installAmbariServerIdentity(evaluatedPrincipal, srcKeytabFile.getAbsolutePath(), destKeytabFilePath, actionLog);
+          }
         }
       }
     }
@@ -136,64 +129,46 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
     return commandReport;
   }
 
-  public boolean createAndConfigureAmbariKeytab(String principal, KerberosOperationHandler operationHandler,
-                                    String keytabFilePath, String keytabOwner, String keytabAccess, ActionLog
-                                      actionLog) throws AmbariException {
+  /**
+   * Installs the Ambari Server Kerberos identity by copying its keytab file to the specified location
+   * and then creating the Ambari Server JAAS File.
+   *
+   * @param principal          the ambari server principal name
+   * @param srcKeytabFilePath  the source location of the ambari server keytab file
+   * @param destKeytabFilePath the destination location of the ambari server keytab file
+   * @param actionLog          the logger
+   * @return true if success; false otherwise
+   * @throws AmbariException
+   */
+  public boolean installAmbariServerIdentity(String principal,
+                                             String srcKeytabFilePath,
+                                             String destKeytabFilePath,
+                                             ActionLog actionLog) throws AmbariException {
 
-    KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(principal);
-    String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
-
-    if (cachedKeytabPath == null) {
-      return false;
-    }
-
-    Keytab keytab = null;
+    // Use sudo to copy the file into place....
     try {
-      keytab = Keytab.read(new File(cachedKeytabPath));
-    } catch (IOException e) {
-      String message = String.format("Failed to read the cached keytab for %s, recreating if possible - %b",
-        principal, e.getMessage());
-      if (LOG.isDebugEnabled()) {
-        LOG.warn(message, e);
-      } else {
-        LOG.warn(message, e);
+      ShellCommandUtil.Result result;
+
+      // Ensure the parent directory exists...
+      File destKeytabFile = new File(destKeytabFilePath);
+      result = ShellCommandUtil.mkdir(destKeytabFile.getParent(), true);
+      if (!result.isSuccessful()) {
+        throw new AmbariException(result.getStderr());
       }
+
+      // Copy the keytab file into place...
+      result = ShellCommandUtil.copyFile(srcKeytabFilePath, destKeytabFilePath, true, true);
+      if (!result.isSuccessful()) {
+        throw new AmbariException(result.getStderr());
+      }
+    } catch (InterruptedException | IOException e) {
+      throw new AmbariException(e.getLocalizedMessage(), e);
     }
 
-    if (keytab == null) {
-      return false;
-    }
+    // Create/update the JAASFile...
+    configureJAAS(principal, destKeytabFilePath, actionLog);
 
-    File keytabFile = new File(keytabFilePath);
-    ensureKeytabFolderExists(keytabFilePath);
-    try {
-      boolean created = operationHandler.createKeytabFile(keytab, keytabFile);
-      String message = String.format("Keytab successfully created: %s for principal %s", created, principal);
-      if (actionLog != null) {
-        actionLog.writeStdOut(message);
-      }
-      if (created) {
-        ensureAmbariOnlyAccess(keytabFile);
-        configureJAAS(principal, keytabFilePath, actionLog);
-      }
-      return created;
-    } catch (KerberosOperationException e) {
-      String message = String.format("Failed to create keytab file for %s - %s", principal, e.getMessage());
-      if (actionLog != null) {
-        actionLog.writeStdErr(message);
-      }
-      LOG.error(message, e);
-    }
-
-    return false;
-  }
-
-  private void ensureKeytabFolderExists(String keytabFilePath) {
-    String keytabFolderPath = keytabFilePath.substring(0, keytabFilePath.lastIndexOf("/"));
-    File keytabFolder = new File(keytabFolderPath);
-    if (!keytabFolder.exists() || !keytabFolder.isDirectory()) {
-      keytabFolder.mkdir();
-    }
+    return true;
   }
 
   private void configureJAAS(String evaluatedPrincipal, String keytabFilePath, ActionLog actionLog) {
@@ -227,42 +202,6 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
         actionLog.writeStdErr(message);
       }
       LOG.error(message);
-    }
-  }
-
-  /**
-   * Ensures that the owner of the Ambari server process is the only local user account able to
-   * read and write to the specified file or read, write to, and execute the specified directory.
-   *
-   * @param file the file or directory for which to modify access
-   */
-  protected void ensureAmbariOnlyAccess(File file) throws AmbariException {
-    if (file.exists()) {
-      if (!file.setReadable(false, false) || !file.setReadable(true, true)) {
-        String message = String.format("Failed to set %s readable only by Ambari", file.getAbsolutePath());
-        LOG.warn(message);
-        throw new AmbariException(message);
-      }
-
-      if (!file.setWritable(false, false) || !file.setWritable(true, true)) {
-        String message = String.format("Failed to set %s writable only by Ambari", file.getAbsolutePath());
-        LOG.warn(message);
-        throw new AmbariException(message);
-      }
-
-      if (file.isDirectory()) {
-        if (!file.setExecutable(false, false) || !file.setExecutable(true, true)) {
-          String message = String.format("Failed to set %s executable by Ambari", file.getAbsolutePath());
-          LOG.warn(message);
-          throw new AmbariException(message);
-        }
-      } else {
-        if (!file.setExecutable(false, false)) {
-          String message = String.format("Failed to set %s not executable", file.getAbsolutePath());
-          LOG.warn(message);
-          throw new AmbariException(message);
-        }
-      }
     }
   }
 

@@ -52,11 +52,13 @@ import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CleanupServerAction;
 import org.apache.ambari.server.serveraction.kerberos.ConfigureAmbariIndetityServerAction;
@@ -732,7 +734,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         KerberosIdentityDescriptor ambariServerIdentity = kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME);
         if (ambariServerIdentity != null) {
           createUserIdentity(ambariServerIdentity, kerberosConfiguration, kerberosOperationHandler, configurations);
-          configureAmbariIdentity(ambariServerIdentity, kerberosOperationHandler, configurations);
+          installAmbariIdentity(ambariServerIdentity, configurations);
           try {
             KerberosChecker.checkJaasConfiguration();
           } catch (AmbariException e) {
@@ -754,34 +756,31 @@ public class KerberosHelperImpl implements KerberosHelper {
     return true;
   }
 
-  private boolean configureAmbariIdentity(KerberosIdentityDescriptor ambariServerIdentity,
-                                          KerberosOperationHandler kerberosOperationHandler,
-                                          Map<String, Map<String, String>> configurations) throws AmbariException {
-    boolean created = false;
-
-
+  /**
+   * Performs tasks needed to install the Kerberos identities created for the Ambari server.
+   *
+   * @param ambariServerIdentity the ambari server's {@link KerberosIdentityDescriptor}
+   * @param configurations       a map of compiled configrations used for variable replacment
+   * @throws AmbariException
+   * @see ConfigureAmbariIndetityServerAction#installAmbariServerIdentity(String, String, String, ActionLog)
+   */
+  private void installAmbariIdentity(KerberosIdentityDescriptor ambariServerIdentity,
+                                     Map<String, Map<String, String>> configurations) throws AmbariException {
     KerberosPrincipalDescriptor principalDescriptor = ambariServerIdentity.getPrincipalDescriptor();
     if (principalDescriptor != null) {
       String principal = variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations);
+      KerberosPrincipalEntity ambariServerPrincipalEntity = kerberosPrincipalDAO.find(principal);
 
-      // If this principal is already in the Ambari database, then don't try to recreate it or it's
-      // keytab file.
-      if (kerberosPrincipalDAO.exists(principal)) {
-
+      if(ambariServerPrincipalEntity != null) {
         KerberosKeytabDescriptor keytabDescriptor = ambariServerIdentity.getKeytabDescriptor();
-        String keytabFilePath = variableReplacementHelper.replaceVariables(keytabDescriptor.getFile(), configurations);
+        if(keytabDescriptor != null) {
+          String keytabFilePath = variableReplacementHelper.replaceVariables(keytabDescriptor.getFile(), configurations);
 
-        if (keytabDescriptor != null) {
           injector.getInstance(ConfigureAmbariIndetityServerAction.class)
-              .createAndConfigureAmbariKeytab(principal, kerberosOperationHandler, keytabFilePath,
-                  keytabDescriptor.getOwnerName(), keytabDescriptor.getOwnerAccess(), null);
-          // throw new AmbariException("Failed to create the keytab for " + principal);
+              .installAmbariServerIdentity(principal, ambariServerPrincipalEntity.getCachedKeytabPath(), keytabFilePath, null);
         }
-
       }
     }
-
-    return created;
   }
 
   @Override
