@@ -196,7 +196,7 @@ public class AmbariContext {
     for (String service : services) {
       serviceRequests.add(new ServiceRequest(clusterName, service, null));
       for (String component : topology.getBlueprint().getComponents(service)) {
-        String recoveryEnabled = String.valueOf(topology.getBlueprint().isRecoveryEnabled(service, component));
+        String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
         componentRequests.add(new ServiceComponentRequest(clusterName, service, component, null, recoveryEnabled));
       }
     }

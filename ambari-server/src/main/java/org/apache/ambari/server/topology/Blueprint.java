@@ -92,9 +92,9 @@ public interface Blueprint {
    * @param serviceName - Service name.
    * @param componentName - Component name.
    *
-   * @return True or false.
+   * @return null if value is not specified; true or false if specified.
    */
-  public boolean isRecoveryEnabled(String serviceName, String componentName);
+  public String getRecoveryEnabled(String serviceName, String componentName);
 
 
   /**
