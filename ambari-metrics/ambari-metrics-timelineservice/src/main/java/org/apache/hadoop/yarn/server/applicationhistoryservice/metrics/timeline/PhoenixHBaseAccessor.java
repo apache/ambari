@@ -60,14 +60,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -91,6 +97,9 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.PRECISION_TABLE_SPLIT_POINTS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.PRECISION_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CONTAINER_METRICS_TTL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_SIZE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_ENABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
@@ -149,6 +158,12 @@ public class PhoenixHBaseAccessor {
   private final RetryCounterFactory retryCounterFactory;
   private final PhoenixConnectionProvider dataSource;
   private final long outOfBandTimeAllowance;
+  private final int cacheSize;
+  private final boolean cacheEnabled;
+  private final BlockingQueue<TimelineMetrics> insertCache;
+  private ScheduledExecutorService scheduledExecutorService;
+  private MetricsCacheCommitterThread metricsCommiterThread;
+  private final int cacheCommitInterval;
   private final boolean skipBlockCacheForAggregatorsEnabled;
   private final String timelineMetricsTablesDurability;
 
@@ -182,9 +197,13 @@ public class PhoenixHBaseAccessor {
     }
     this.dataSource = dataSource;
     this.retryCounterFactory = new RetryCounterFactory(metricsConf.getInt(GLOBAL_MAX_RETRIES, 10),
-      (int) SECONDS.toMillis(metricsConf.getInt(GLOBAL_RETRY_INTERVAL, 5)));
+      (int) SECONDS.toMillis(metricsConf.getInt(GLOBAL_RETRY_INTERVAL, 3)));
     this.outOfBandTimeAllowance = metricsConf.getLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE,
       DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE);
+    this.cacheEnabled = Boolean.valueOf(metricsConf.get(TIMELINE_METRICS_CACHE_ENABLED, "true"));
+    this.cacheSize = Integer.valueOf(metricsConf.get(TIMELINE_METRICS_CACHE_SIZE, "150"));
+    this.cacheCommitInterval = Integer.valueOf(metricsConf.get(TIMELINE_METRICS_CACHE_COMMIT_INTERVAL, "3"));
+    this.insertCache = new ArrayBlockingQueue<TimelineMetrics>(cacheSize);
     this.skipBlockCacheForAggregatorsEnabled = metricsConf.getBoolean(AGGREGATORS_SKIP_BLOCK_CACHE, false);
     this.timelineMetricsTablesDurability = metricsConf.get(TIMELINE_METRICS_TABLES_DURABILITY, "");
 
@@ -197,6 +216,107 @@ public class PhoenixHBaseAccessor {
     tableTTL.put(METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, String.valueOf(30 * 86400))); //30 days
     tableTTL.put(METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, metricsConf.get(CLUSTER_HOUR_TABLE_TTL, String.valueOf(365 * 86400))); //1 year
     tableTTL.put(METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, metricsConf.get(CLUSTER_DAILY_TABLE_TTL, String.valueOf(730 * 86400))); //2 years
+
+    if (cacheEnabled) {
+      LOG.debug("Initialising and starting metrics cache committer thread...");
+      metricsCommiterThread = new MetricsCacheCommitterThread(this);
+      scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+      scheduledExecutorService.scheduleWithFixedDelay(metricsCommiterThread, 0, cacheCommitInterval, TimeUnit.SECONDS);
+    }
+  }
+
+  public boolean isInsertCacheEmpty() {
+    return insertCache.isEmpty();
+  }
+
+  public void commitMetricsFromCache() {
+    LOG.debug("Clearing metrics cache");
+    List<TimelineMetrics> metricsArray = new ArrayList<TimelineMetrics>(insertCache.size());
+    while (!insertCache.isEmpty()) {
+      metricsArray.add(insertCache.poll());
+    }
+    if (metricsArray.size() > 0) {
+      commitMetrics(metricsArray);
+    }
+  }
+
+  public void commitMetrics(TimelineMetrics timelineMetrics) {
+    commitMetrics(Collections.singletonList(timelineMetrics));
+  }
+
+  public void commitMetrics(Collection<TimelineMetrics> timelineMetricsCollection) {
+    LOG.debug("Committing metrics to store");
+    Connection conn = null;
+    PreparedStatement metricRecordStmt = null;
+    long currentTime = System.currentTimeMillis();
+
+    try {
+      conn = getConnection();
+      metricRecordStmt = conn.prepareStatement(String.format(
+              UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
+      for (TimelineMetrics timelineMetrics : timelineMetricsCollection) {
+        for (TimelineMetric metric : timelineMetrics.getMetrics()) {
+          if (Math.abs(currentTime - metric.getStartTime()) > outOfBandTimeAllowance) {
+            // If timeseries start time is way in the past : discard
+            LOG.debug("Discarding out of band timeseries, currentTime = "
+                    + currentTime + ", startTime = " + metric.getStartTime()
+                    + ", hostname = " + metric.getHostName());
+            continue;
+          }
+
+          metricRecordStmt.clearParameters();
+
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("host: " + metric.getHostName() + ", " +
+                    "metricName = " + metric.getMetricName() + ", " +
+                    "values: " + metric.getMetricValues());
+          }
+          double[] aggregates = AggregatorUtils.calculateAggregates(
+                  metric.getMetricValues());
+
+          metricRecordStmt.setString(1, metric.getMetricName());
+          metricRecordStmt.setString(2, metric.getHostName());
+          metricRecordStmt.setString(3, metric.getAppId());
+          metricRecordStmt.setString(4, metric.getInstanceId());
+          metricRecordStmt.setLong(5, currentTime);
+          metricRecordStmt.setLong(6, metric.getStartTime());
+          metricRecordStmt.setString(7, metric.getUnits());
+          metricRecordStmt.setDouble(8, aggregates[0]);
+          metricRecordStmt.setDouble(9, aggregates[1]);
+          metricRecordStmt.setDouble(10, aggregates[2]);
+          metricRecordStmt.setLong(11, (long) aggregates[3]);
+          String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
+          metricRecordStmt.setString(12, json);
+
+          try {
+            metricRecordStmt.executeUpdate();
+          } catch (SQLException sql) {
+            LOG.error("Failed on insert records to store.", sql);
+          }
+        }
+      }
+
+      // commit() blocked if HBase unavailable
+      conn.commit();
+    } catch (Exception exception){
+      exception.printStackTrace();
+    }
+    finally {
+      if (metricRecordStmt != null) {
+        try {
+          metricRecordStmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
   }
 
   private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs)
@@ -553,94 +673,45 @@ public class PhoenixHBaseAccessor {
   }
 
   public void insertMetricRecordsWithMetadata(TimelineMetricMetadataManager metadataManager,
-                                              TimelineMetrics metrics) throws SQLException, IOException {
+                                              TimelineMetrics metrics, boolean skipCache) throws SQLException, IOException {
     List<TimelineMetric> timelineMetrics = metrics.getMetrics();
     if (timelineMetrics == null || timelineMetrics.isEmpty()) {
       LOG.debug("Empty metrics insert request.");
       return;
     }
+    for (TimelineMetric tm: timelineMetrics) {
+      // Write to metadata cache on successful write to store
+      if (metadataManager != null) {
+        metadataManager.putIfModifiedTimelineMetricMetadata(
+                metadataManager.getTimelineMetricMetadata(tm));
 
-    Connection conn = getConnection();
-    PreparedStatement metricRecordStmt = null;
-    long currentTime = System.currentTimeMillis();
-
-    try {
-      metricRecordStmt = conn.prepareStatement(String.format(
-        UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
-
-      for (TimelineMetric metric : timelineMetrics) {
-        if (Math.abs(currentTime - metric.getStartTime()) > outOfBandTimeAllowance) {
-          // If timeseries start time is way in the past : discard
-          LOG.debug("Discarding out of band timeseries, currentTime = "
-            + currentTime + ", startTime = " + metric.getStartTime()
-            + ", hostname = " + metric.getHostName());
-          continue;
-        }
-
-        metricRecordStmt.clearParameters();
-
-        if (LOG.isTraceEnabled()) {
-          LOG.trace("host: " + metric.getHostName() + ", " +
-            "metricName = " + metric.getMetricName() + ", " +
-            "values: " + metric.getMetricValues());
-        }
-        double[] aggregates =  AggregatorUtils.calculateAggregates(
-          metric.getMetricValues());
-
-        metricRecordStmt.setString(1, metric.getMetricName());
-        metricRecordStmt.setString(2, metric.getHostName());
-        metricRecordStmt.setString(3, metric.getAppId());
-        metricRecordStmt.setString(4, metric.getInstanceId());
-        metricRecordStmt.setLong(5, currentTime);
-        metricRecordStmt.setLong(6, metric.getStartTime());
-        metricRecordStmt.setString(7, metric.getUnits());
-        metricRecordStmt.setDouble(8, aggregates[0]);
-        metricRecordStmt.setDouble(9, aggregates[1]);
-        metricRecordStmt.setDouble(10, aggregates[2]);
-        metricRecordStmt.setLong(11, (long) aggregates[3]);
-        String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-        metricRecordStmt.setString(12, json);
-
-        try {
-          metricRecordStmt.executeUpdate();
-
-          if (metadataManager != null) {
-            // Write to metadata cache on successful write to store
-            metadataManager.putIfModifiedTimelineMetricMetadata(
-              metadataManager.getTimelineMetricMetadata(metric));
-
-            metadataManager.putIfModifiedHostedAppsMetadata(
-              metric.getHostName(), metric.getAppId());
-          }
-
-        } catch (SQLException sql) {
-          LOG.error("Failed on insert records to store.", sql);
-        }
+        metadataManager.putIfModifiedHostedAppsMetadata(
+                tm.getHostName(), tm.getAppId());
       }
+    }
 
-      // commit() blocked if HBase unavailable
-      conn.commit();
-
-    } finally {
-      if (metricRecordStmt != null) {
-        try {
-          metricRecordStmt.close();
-        } catch (SQLException e) {
-          // Ignore
-        }
+    if  (!skipCache && cacheEnabled) {
+      LOG.debug("Adding metrics to cache");
+      if (insertCache.size() >= cacheSize) {
+        commitMetricsFromCache();
       }
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (SQLException sql) {
-          // Ignore
-        }
+      try {
+        insertCache.put(metrics); // blocked while the queue is full
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
+    } else {
+      LOG.debug("Skipping metrics cache");
+      commitMetrics(metrics);
     }
   }
 
+  public void insertMetricRecords(TimelineMetrics metrics, boolean skipCache) throws SQLException, IOException {
+    insertMetricRecordsWithMetadata(null, metrics, skipCache);
+  }
+
   public void insertMetricRecords(TimelineMetrics metrics) throws SQLException, IOException {
-    insertMetricRecordsWithMetadata(null, metrics);
+    insertMetricRecords(metrics, false);
   }
 
   @SuppressWarnings("unchecked")
