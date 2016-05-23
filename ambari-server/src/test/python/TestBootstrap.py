@@ -112,7 +112,7 @@ class TestBootstrap(TestCase):
     utime = 1234
     bootstrap_obj.getUtime = MagicMock(return_value=utime)
     ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
-    expected = "sudo -S python /var/lib/ambari-agent/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE " \
+    expected = "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S python /var/lib/ambari-agent/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE " \
                "ambariServer root  8440 < /var/lib/ambari-agent/tmp/host_pass{0}".format(utime)
     self.assertEquals(ret, expected)
 
@@ -353,11 +353,11 @@ class TestBootstrap(TestCase):
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(command,
-                     "sudo mkdir -p /var/lib/ambari-agent/tmp ; "
-                     "sudo chown -R root /var/lib/ambari-agent/tmp ; "
-                     "sudo chmod 755 /var/lib/ambari-agent ; "
-                     "sudo chmod 755 /var/lib/ambari-agent/data ; "
-                     "sudo chmod 1777 /var/lib/ambari-agent/tmp")
+                     "SUDO=$([ \"$EUID\" -eq 0 ] && echo || echo sudo) ; $SUDO mkdir -p /var/lib/ambari-agent/tmp ; "
+                     "$SUDO chown -R root /var/lib/ambari-agent/tmp ; "
+                     "$SUDO chmod 755 /var/lib/ambari-agent ; "
+                     "$SUDO chmod 755 /var/lib/ambari-agent/data ; "
+                     "$SUDO chmod 1777 /var/lib/ambari-agent/tmp")
 
   @patch.object(BootstrapDefault, "getOsCheckScript")
   @patch.object(BootstrapDefault, "getOsCheckScriptRemoteLocation")
@@ -400,12 +400,12 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = False
     getRemoteName_mock.return_value = "RemoteName"
     rf = bootstrap_obj.getMoveRepoFileCommand("target")
-    self.assertEquals(rf, "sudo mv RemoteName target/ambari.repo")
+    self.assertEquals(rf, "/var/lib/ambari-agent/tmp/ambari-sudo.sh mv RemoteName target/ambari.repo")
     # With password
     hasPassword_mock.return_value = True
     getRemoteName_mock.return_value = "RemoteName"
     rf = bootstrap_obj.getMoveRepoFileCommand("target")
-    self.assertEquals(rf, "sudo -S mv RemoteName target/ambari.repo < RemoteName")
+    self.assertEquals(rf, "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S mv RemoteName target/ambari.repo < RemoteName")
 
   @patch("os.path.exists")
   @patch.object(OSCheck, "is_suse_family")
@@ -464,7 +464,7 @@ class TestBootstrap(TestCase):
     self.assertEqual(input_file, "setupAgentFile")
     self.assertEqual(remote_file, "RemoteName")
     command = str(ssh_init_mock.call_args[0][4])
-    self.assertEqual(command, "sudo chmod 644 RepoFile")
+    self.assertEqual(command, "/var/lib/ambari-agent/tmp/ambari-sudo.sh chmod 644 RepoFile")
     # Another order
     expected1 = {"exitstatus": 0, "log": "log0", "errormsg": "errorMsg"}
     expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
@@ -600,7 +600,7 @@ class TestBootstrap(TestCase):
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][4])
-    self.assertEqual(command, "rpm -qa | grep -e '^sudo\-'")
+    self.assertEqual(command, "[ \"$EUID\" -eq 0 ] || rpm -qa | grep -e '^sudo\-'")
 
   @patch.object(OSCheck, "is_suse_family")
   @patch.object(OSCheck, "is_ubuntu_family")
@@ -623,7 +623,7 @@ class TestBootstrap(TestCase):
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][4])
-    self.assertEqual(command, "dpkg --get-selections|grep -e '^sudo\s*install'")
+    self.assertEqual(command, "[ \"$EUID\" -eq 0 ] || dpkg --get-selections|grep -e '^sudo\s*install'")
 
 
   @patch.object(SSH, "__init__")
@@ -747,7 +747,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = False
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 7) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 8) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
@@ -758,7 +758,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = True
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 10) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 11) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
