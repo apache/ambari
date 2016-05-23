@@ -211,7 +211,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
 
     data.items.forEach(function (request) {
       if (this.isUpgradeRequest(request)) {
-        if (!App.get('upgradeIsRunning') && !App.get('testMode')) {
+        if (!App.get('upgradeIsRunning') && !App.get('testMode') && Em.get(request, 'Requests.request_status') !== 'COMPLETED') {
           restoreUpgradeState = true;
         }
         return;
