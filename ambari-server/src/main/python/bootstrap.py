@@ -53,6 +53,8 @@ DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/tmp"
 DEFAULT_AGENT_DATA_FOLDER = "/var/lib/ambari-agent/data"
 DEFAULT_AGENT_LIB_FOLDER = "/var/lib/ambari-agent"
 PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:" + DEFAULT_AGENT_TEMP_FOLDER
+SERVER_AMBARI_SUDO = os.getenv('ROOT','/').rstrip('/') + "/var/lib/ambari-server/ambari-sudo.sh"
+AMBARI_SUDO = os.path.join(DEFAULT_AGENT_TEMP_FOLDER, 'ambari-sudo.sh')
 
 class HostLog:
   """ Provides per-host logging. """
@@ -450,6 +452,19 @@ class BootstrapDefault(Bootstrap):
   def hasPassword(self):
     password_file = self.shared_state.password_file
     return password_file is not None and password_file != 'null'
+  
+  def copyAmbariSudo(self):
+    # Copying the os check script file
+    fileToCopy = SERVER_AMBARI_SUDO
+    target = self.TEMP_FOLDER
+    params = self.shared_state
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying ambari sudo script...")
+    scp = SCP(params.user, params.sshPort, params.sshkey_file, self.host, fileToCopy,
+              target, params.bootdir, self.host_log)
+    result = scp.run()
+    self.host_log.write("\n")
+    return result
 
   def copyOsCheckScript(self):
     # Copying the os check script file
@@ -479,12 +494,12 @@ class BootstrapDefault(Bootstrap):
     return result
 
   def getMoveRepoFileWithPasswordCommand(self, targetDir):
-    return "sudo -S mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) \
+    return "{sudo} -S mv ".format(sudo=AMBARI_SUDO) + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) \
            + " " + os.path.join(str(targetDir), self.AMBARI_REPO_FILENAME) + \
            " < " + str(self.getPasswordFile())
 
   def getMoveRepoFileWithoutPasswordCommand(self, targetDir):
-    return "sudo mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) \
+    return "{sudo} mv ".format(sudo=AMBARI_SUDO) + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) \
            + " " + os.path.join(str(targetDir), self.AMBARI_REPO_FILENAME)
 
   def getMoveRepoFileCommand(self, targetDir):
@@ -494,11 +509,11 @@ class BootstrapDefault(Bootstrap):
       return self.getMoveRepoFileWithoutPasswordCommand(targetDir)
 
   def getAptUpdateCommand(self):
-    return "sudo apt-get update -o Dir::Etc::sourcelist=\"%s/%s\" -o API::Get::List-Cleanup=\"0\" --no-list-cleanup" %\
-          ("sources.list.d", self.AMBARI_REPO_FILENAME)
+    return "%s apt-get update -o Dir::Etc::sourcelist=\"%s/%s\" -o API::Get::List-Cleanup=\"0\" --no-list-cleanup" %\
+          (AMBARI_SUDO, "sources.list.d", self.AMBARI_REPO_FILENAME)
           
   def getRepoFileChmodCommand(self):
-    return "sudo chmod 644 {0}".format(self.getRepoFile())
+    return "{0} chmod 644 {1}".format(AMBARI_SUDO, self.getRepoFile())
 
   def copyNeededFiles(self):
     # get the params
@@ -580,7 +595,7 @@ class BootstrapDefault(Bootstrap):
     version = self.getAmbariVersion()
     port = self.getAmbariPort()
     passwordFile = self.getPasswordFile()
-    return "sudo -S python " + str(setupFile) + " " + str(expected_hostname) + \
+    return "{sudo} -S python ".format(sudo=AMBARI_SUDO) + str(setupFile) + " " + str(expected_hostname) + \
            " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port) + " < " + str(passwordFile)
 
@@ -591,7 +606,7 @@ class BootstrapDefault(Bootstrap):
     user_run_as = self.shared_state.user_run_as
     version=self.getAmbariVersion()
     port=self.getAmbariPort()
-    return "sudo python " + str(setupFile) + " " + str(expected_hostname) + \
+    return "{sudo} python ".format(sudo=AMBARI_SUDO) + str(setupFile) + " " + str(expected_hostname) + \
            " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port)
 
@@ -619,6 +634,7 @@ class BootstrapDefault(Bootstrap):
       command = "dpkg --get-selections|grep -e '^sudo\s*install'"
     else:
       command = "rpm -qa | grep -e '^sudo\-'"
+    command = "[ \"$EUID\" -eq 0 ] || " + command
     ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log,
               errorMessage="Error: Sudo command is not available. "
@@ -676,7 +692,7 @@ class BootstrapDefault(Bootstrap):
     params = self.shared_state
     user = params.user
 
-    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0} ; sudo chmod 755 {3} ; sudo chmod 755 {2} ; sudo chmod 1777 {0}".format(
+    command = "SUDO=$([ \"$EUID\" -eq 0 ] && echo || echo sudo) ; $SUDO mkdir -p {0} ; $SUDO chown -R {1} {0} ; $SUDO chmod 755 {3} ; $SUDO chmod 755 {2} ; $SUDO chmod 1777 {0}".format(
       self.TEMP_FOLDER, quote_bash_args(params.user), DEFAULT_AGENT_DATA_FOLDER, DEFAULT_AGENT_LIB_FOLDER)
 
     ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
@@ -707,6 +723,7 @@ class BootstrapDefault(Bootstrap):
     self.status["start_time"] = time.time()
     # Population of action queue
     action_queue = [self.createTargetDir,
+                    self.copyAmbariSudo,
                     self.copyCommonFunctions,
                     self.copyOsCheckScript,
                     self.runOsCheckScript,
