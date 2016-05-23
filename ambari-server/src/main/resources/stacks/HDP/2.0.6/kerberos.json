@@ -52,11 +52,7 @@
         "configuration": "cluster-env/ambari_principal_name"
       },
       "keytab": {
-        "file": "${keytab_dir}/ambari.server.keytab",
-        "owner": {
-          "name": "root",
-          "access": "r"
-        }
+        "file": "${keytab_dir}/ambari.server.keytab"
       }
     }
   ]

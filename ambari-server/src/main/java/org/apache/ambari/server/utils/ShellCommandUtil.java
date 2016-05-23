@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -34,6 +35,8 @@ public class ShellCommandUtil {
   private static final Object WindowsProcessLaunchLock = new Object();
   private static final String PASS_TOKEN = "pass:";
   private static final String KEY_TOKEN = "-key ";
+  private static final String AMBARI_SUDO = "ambari-sudo.sh";
+
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
     logOpenSslExitCode(command, exitCode);
@@ -61,7 +64,7 @@ public class ShellCommandUtil {
     CharSequence cs = command.subSequence(start, command.indexOf(" ", start));
     return command.replace(cs, "****");
   }
-  
+
   public static String getOpenSslCommandResult(String command, int exitCode) {
     return new StringBuilder().append("Command ").append(hideOpenSslPassword(command)).append(" was finished with exit code: ")
             .append(exitCode).append(" - ").append(getOpenSslExitCodeDescription(exitCode)).toString();
@@ -166,16 +169,110 @@ public class ShellCommandUtil {
   }
 
   /**
+   * Test if a file or directory exists
+   *
+   * @param path the path to test
+   * @param sudo true to execute the command using sudo (ambari-sudo); otherwise false
+   * @return the shell command result, success indicates the file or directory exists
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public static Result pathExists(String path, boolean sudo) throws IOException, InterruptedException {
+    String[] command = {
+        (WINDOWS) ? "dir" : "/bin/ls",
+        path
+    };
+
+    return runCommand(command, null, sudo);
+  }
+
+  /**
+   * Creates the specified directory and any directories in the path
+   *
+   * @param directoryPath the directory to create
+   * @param sudo          true to execute the command using sudo (ambari-sudo); otherwise false
+   * @return the shell command result
+   */
+  public static Result mkdir(String directoryPath, boolean sudo) throws IOException, InterruptedException {
+
+    // If this directory already exists, do not try to create it
+    if (pathExists(directoryPath, sudo).isSuccessful()) {
+      return new Result(0, "The directory already exists, skipping.", ""); // Success!
+    }
+    else {
+      ArrayList<String> command = new ArrayList<String>();
+
+      command.add("/bin/mkdir");
+
+      if (!WINDOWS) {
+        command.add("-p"); // create parent directories
+      }
+
+      command.add(directoryPath);
+
+    return runCommand(command.toArray(new String[command.size()]), null, sudo);
+    }
+  }
+
+
+  /**
+   * Copies a source file to the specified destination.
+   *
+   * @param srcFile  the path to the source file
+   * @param destFile the path to the destination file
+   * @param force    true to force copy even if the file exists
+   * @param sudo     true to execute the command using sudo (ambari-sudo); otherwise false
+   * @return the shell command result
+   */
+  public static Result copyFile(String srcFile, String destFile, boolean force, boolean sudo) throws IOException, InterruptedException {
+    ArrayList<String> command = new ArrayList<String>();
+
+    if (WINDOWS) {
+      command.add("copy");
+
+      if (force) {
+        command.add("/Y"); // force overwrite
+      }
+    } else {
+      command.add("cp");
+      command.add("-p"); // preserve mode, ownership, timestamps
+
+      if (force) {
+        command.add("-f"); // force overwrite
+      }
+    }
+
+    command.add(srcFile);
+    command.add(destFile);
+
+    return runCommand(command.toArray(new String[command.size()]), null, sudo);
+  }
+
+  /**
    * Runs a command with a given set of environment variables
+   *
    * @param args a String[] of the command and its arguments
    * @param vars a Map of String,String setting an environment variable to run the command with
+   * @param sudo true to execute the command using sudo (ambari-sudo); otherwise false
    * @return Result
    * @throws IOException
    * @throws InterruptedException
    */
-  public static Result runCommand(String [] args, Map<String, String> vars) throws IOException,
-          InterruptedException {
-    ProcessBuilder builder = new ProcessBuilder(args);
+  public static Result runCommand(String [] args, Map<String, String> vars, boolean sudo)
+      throws IOException, InterruptedException {
+
+    String[] processArgs;
+
+    if(sudo) {
+      processArgs = new String[args.length + 1];
+      processArgs[0] = AMBARI_SUDO;
+      System.arraycopy(args, 0, processArgs, 1, args.length);
+    }
+    else {
+      processArgs = args;
+    }
+
+    ProcessBuilder builder = new ProcessBuilder(processArgs);
 
     if (vars != null) {
       Map<String, String> env = builder.environment();
@@ -202,6 +299,20 @@ public class ShellCommandUtil {
     String stderr = streamToString(process.getErrorStream());
     int exitCode = process.exitValue();
     return new Result(exitCode, stdout, stderr);
+  }
+
+  /**
+   * Runs a command with a given set of environment variables
+   *
+   * @param args a String[] of the command and its arguments
+   * @param vars a Map of String,String setting an environment variable to run the command with
+   * @return Result
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public static Result runCommand(String[] args, Map<String, String> vars)
+      throws IOException, InterruptedException {
+    return runCommand(args, vars, false);
   }
 
   /**
