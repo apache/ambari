@@ -212,6 +212,7 @@ TRANSLATIONS = {
 
   labels: {
     noTablesMatch: 'No tables match',
+    noColumnsMatch: 'No columns match',
     table: 'Table ',
     hoursShort: "{{hours}} hrs",
     minsShort: "{{minutes}} mins",
