@@ -46,10 +46,11 @@ class NetUtil:
   # Returns true if the application is stopping, false if continuing execution
   stopCallback = None
 
-  def __init__(self, stop_callback=None):
+  def __init__(self, config, stop_callback=None):
     if stop_callback is None:
       stop_callback = HeartbeatStopHandlers()
     self.stopCallback = stop_callback
+    self.config = config
 
   def checkURL(self, url):
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
@@ -60,10 +61,12 @@ class NetUtil:
     logger.info("Connecting to " + url)
     responseBody = ""
 
+    ssl_verify_cert = self.config.get("security","ssl_verify_cert") != "0"
+
     try:
       parsedurl = urlparse(url)
       
-      if sys.version_info >= (2,7,9):
+      if sys.version_info >= (2,7,9) and not ssl_verify_cert:
           import ssl
           ca_connection = httplib.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
       else:

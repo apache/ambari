@@ -72,7 +72,7 @@ class Controller(threading.Thread):
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname
     self.heartbeatUrl = server_secured_url + '/agent/v1/heartbeat/' + self.hostname
     self.componentsUrl = server_secured_url + '/agent/v1/components/'
-    self.netutil = NetUtil(heartbeat_stop_callback)
+    self.netutil = NetUtil(self.config, heartbeat_stop_callback)
     self.responseId = -1
     self.repeatRegistration = False
     self.isRegistered = False
