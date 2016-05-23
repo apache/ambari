@@ -41,7 +41,7 @@ define([
 
         //We get a list of components and their associated metrics.
         AmbariMetricsDatasource.prototype.initMetricAppidMapping = function () {
-          backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
+          return backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
             .then(function (items) {
               allMetrics = {};
               appIds = [];
@@ -123,6 +123,8 @@ define([
           // To speed up querying on templatized dashboards.
           var allHostMetricsData = function (target) {
             var alias = target.alias ? target.alias : target.metric;
+            if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "hbase-users") {
+            alias = alias + ' for ' + target.hbUser; }
             return function (res) {
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
@@ -132,8 +134,15 @@ define([
               var timeSeries = {};
               var metricData = res.metrics;
               _.map(metricData, function (data) {
+                var aliasSuffix = data.hostname ? ' on ' + data.hostname : '';
+                if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "hbase-tables") {
+                  var tableName = "Tables.";
+                  var tableSuffix = data.metricname.substring(data.metricname.indexOf(tableName) + tableName.length,
+                  data.metricname.lastIndexOf("_metric"));
+                  var aliasSuffix = ' on ' + tableSuffix;
+                }
                 timeSeries = {
-                  target: alias + ' on ' + data.hostname,
+                  target: alias + aliasSuffix,
                   datapoints: []
                 };
                 for (var k in data.metrics){
@@ -202,6 +211,17 @@ define([
               getMetricsData(target)
             );
           };
+          var getHbaseAppIdData = function(target) {
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + metricTransform
+              + metricAggregator + '&appId=hbase&startTime=' + from +
+              '&endTime=' + to + precision).then(
+              allHostMetricsData(target)
+            );
+          };
 
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
@@ -236,6 +256,41 @@ define([
                 });
               }
             }
+            // Templatized Dashboard for per-user metrics in HBase.
+            if (templateSrv.variables[0].query === "hbase-users") {
+              var allUsers = templateSrv.variables.filter(function(variable) { return variable.query === "hbase-users";});
+              var selectedUsers = (_.isEmpty(allUsers)) ? "" : allUsers[0].options.filter(function(user)
+              { return user.selected; }).map(function(uName) { return uName.value; });
+              selectedUsers = templateSrv._values.Users.lastIndexOf('}') > 0 ? templateSrv._values.Users.slice(1,-1) :
+                templateSrv._values.Users;
+              var selectedUser = selectedUsers.split(',');
+              _.forEach(selectedUser, function(processUser) {
+                  metricsPromises.push(_.map(options.targets, function(target) {
+                    target.hbUser = processUser;
+                    target.hbMetric = target.metric.replace('*', target.hbUser);
+                    return getHbaseAppIdData(target);
+                  }));
+                });
+            }
+            // Templatized Dashboard for per-table metrics in HBase.
+            if (templateSrv.variables[0].query === "hbase-tables") {
+              var splitTables = [];
+              var allTables = templateSrv._values.Tables.lastIndexOf('}') > 0 ? templateSrv._values.Tables.slice(1,-1) :
+                templateSrv._values.Tables;
+              var allTable = allTables.split(',');
+              while (allTable.length > 0) {
+                splitTables.push(allTable.splice(0,20));
+              }
+              _.forEach(splitTables, function(table) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  var hbMetric = [];
+                  _.map(table, function(tableMetric) { hbMetric.push(target.metric.replace('*', tableMetric)); });
+                  target.hbMetric = _.flatten(hbMetric).join(',');
+                  return getHbaseAppIdData(target);
+                }));
+              });
+            }
+
             // To speed up querying on templatized dashboards.
             if (templateSrv.variables[1] && templateSrv.variables[1].name === "hosts") {
               var splitHosts = [];
@@ -300,21 +355,64 @@ define([
           var tComponents = _.isEmpty(templateSrv.variables) ? '' : templateSrv.variables.filter(function(variable) 
             { return variable.name === "components"});
           var tComponent = _.isEmpty(tComponents) ? '' : tComponents[0].current.value;
+
+          // Templated Variable for HBase Users
+          // It will search the cluster and populate the HBase Users.
+          if(interpolated === "hbase-users") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var hbaseUsers = allMetrics["hbase"];
+                var extractUsers = hbaseUsers.filter(/./.test.bind(new RegExp("regionserver.Users.", 'g')));
+                var removeUser = "regionserver.Users.numUsers";
+                var i = extractUsers.indexOf(removeUser);
+                if(i !== -1) { extractUsers.splice(i, 1);}
+                var userPrefix = "regionserver.Users.";
+                var users = _.map(extractUsers, function(user) {
+                  return user.substring(userPrefix.length);
+                });
+                users = _.map(users, function(userName) {
+                  return userName.substring(0,userName.lastIndexOf("_metric"));
+                });
+                users = _.sortBy(_.uniq(users));
+                return _.map(users, function (users) {
+                  return {
+                    text: users
+                  };
+                });
+              });
+          }
+          // Templated Variable for HBase Tables.
+          // It will search the cluster and populate the hbase-tables.
+          if(interpolated === "hbase-tables") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var hbaseTables = allMetrics["hbase"];
+                var extractTables = hbaseTables.filter(/./.test.bind(new RegExp("regionserver.Tables.", 'g')));
+                var removeTable = "regionserver.Tables.numTables";
+                var i = extractTables.indexOf(removeTable);
+                if(i != -1) { extractTables.splice(i, 1);}
+                var tablePrefix = "regionserver.Tables.";
+                var tables = _.map(extractTables, function(user) {
+                  return user.substring(tablePrefix.length);
+                });
+                tables = _.map(tables, function(userName) {
+                  return userName.substring(0,userName.lastIndexOf("_metric"));
+                });
+                tables = _.sortBy(_.uniq(tables));
+                return _.map(tables, function (tables) {
+                  return {
+                    text: tables
+                  };
+                });
+              });
+          }
+
           // Templated Variable for YARN Queues.
           // It will search the cluster and populate the queues.
           if(interpolated === "yarnqueues") {
-            return backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
-              .then(function (results) {
-                var allM = {};
-                _.forEach(results, function (metric,app) {
-                  metric.forEach(function (component) {
-                    if (!allM[app]) {
-                      allM[app] = [];
-                    }
-                    allM[app].push(component.metricname);
-                  });
-                });
-                var yarnqueues = allM["resourcemanager"];
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var yarnqueues = allMetrics["resourcemanager"];
                 var extractQueues = yarnqueues.filter(/./.test.bind(new RegExp(".=root", 'g')));
                 var queues = _.map(extractQueues, function(metric) {
                   return metric.substring("yarn.QueueMetrics.Queue=".length);
