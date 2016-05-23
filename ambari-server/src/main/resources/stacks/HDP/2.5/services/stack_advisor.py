@@ -121,6 +121,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     parentRecommendConfDict = super(HDP25StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "RANGER": self.recommendRangerConfigurations,
+      "HBASE": self.recommendHBASEConfigurations,
       "HIVE": self.recommendHIVEConfigurations,
       "ATLAS": self.recommendAtlasConfigurations
     }
@@ -135,6 +136,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     include_logsearch = "LOGSEARCH" in servicesList
     if include_logsearch and "logsearch-solr-env" in services["configurations"]:
       putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', '{{solr_zookeeper_url}}')
+
+  def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
+    if "cluster-env" in services["configurations"] and  "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
+          and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
+      putHbaseSiteProperty('hbase.master.ui.readonly', 'true')
+    else:
+      putHbaseSiteProperty('hbase.master.ui.readonly', 'false')
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
