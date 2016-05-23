@@ -71,7 +71,7 @@ module.exports = App.WizardRoute.extend({
                   addServiceController.setCurrentStep('7');
                   break;
                 default:
-                  if(App.db.data.AddService.currentStep != undefined) {
+                  if(App.db.data.AddService.currentStep && App.db.data.AddService.currentStep !== addServiceController.get('currentStep')) {
                     addServiceController.setCurrentStep(App.db.data.AddService.currentStep);
                   }
                   break;
