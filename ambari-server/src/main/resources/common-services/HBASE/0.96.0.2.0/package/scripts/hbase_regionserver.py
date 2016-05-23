@@ -85,7 +85,7 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     import params
     env.set_params(params)
     self.configure(env) # for security
-    setup_ranger_hbase(upgrade_type=upgrade_type)
+    setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-regionserver")
     hbase_service( 'regionserver',
       action = 'start'
     )
