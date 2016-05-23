@@ -31,6 +31,7 @@ import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -1604,6 +1605,25 @@ public class UpgradeCatalog240Test {
     assertTrue(upgradeCatalog240.isAtLeastHdp25(new StackId("HDP-2.5")));
     assertTrue(upgradeCatalog240.isAtLeastHdp25(new StackId("HDP-2.6")));
     assertFalse(upgradeCatalog240.isAtLeastHdp25(new StackId("SOMETHINGELSE-1.4")));
+  }
+
+  @Test
+  public void testUpdateAmsGrafanaIniContent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
+  {
+    Method updateAmsEnvContent = UpgradeCatalog240.class.getDeclaredMethod("updateAmsGrafanaIni", String.class);
+    UpgradeCatalog240 upgradeCatalog240 = new UpgradeCatalog240(injector);
+    String oldContent = "# Path to where grafana can store temp files, sessions, and the sqlite3 db (if that is used)\n" +
+      "#\n" +
+      ";data = /var/lib/grafana\n" +
+      "data = /var/lib/ambari-metrics-grafana";
+
+    String expectedContent = "# Path to where grafana can store temp files, sessions, and the sqlite3 db (if that is used)\n" +
+      "#\n" +
+      ";data = /var/lib/grafana\n" +
+      "data = {{ams_grafana_data_dir}}";
+
+    String result = (String) updateAmsEnvContent.invoke(upgradeCatalog240, oldContent);
+    Assert.assertEquals(expectedContent, result);
   }
 }
 

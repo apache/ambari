@@ -1689,9 +1689,30 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             }
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
           }
+
+          Config amsGrafanaIni = cluster.getDesiredConfigByType("ams-grafana-ini");
+          if (amsGrafanaIni != null) {
+            Map<String, String> amsGrafanaIniProperties = amsGrafanaIni.getProperties();
+            String content = amsGrafanaIniProperties.get("content");
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("content", updateAmsGrafanaIni(content));
+            updateConfigurationPropertiesForCluster(cluster, "ams-grafana-ini", newProperties, true, true);
+          }
         }
       }
     }
+  }
+
+  protected String updateAmsGrafanaIni(String content) {
+
+    if (content == null) {
+      return null;
+    }
+    String regSearch = "/var/lib/ambari-metrics-grafana";
+    String replacement = "{{ams_grafana_data_dir}}";
+    content = content.replaceAll(regSearch, replacement);
+
+    return content;
   }
 
   /**
