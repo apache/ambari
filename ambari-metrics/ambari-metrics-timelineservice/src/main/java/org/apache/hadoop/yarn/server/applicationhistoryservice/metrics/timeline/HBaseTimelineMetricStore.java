@@ -33,7 +33,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
@@ -41,6 +41,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.TopNCondition;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,8 +69,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private final ScheduledExecutorService watchdogExecutorService = Executors.newSingleThreadScheduledExecutor();
   private final Map<AGGREGATOR_NAME, ScheduledExecutorService> scheduledExecutors = new HashMap<>();
   private TimelineMetricMetadataManager metricMetadataManager;
-  private TimelineMetricHAController haController;
   private Integer defaultTopNHostsLimit;
+  private MetricCollectorHAController haController;
 
   /**
    * Construct the service.
@@ -100,7 +101,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       // Start HA service
       if (configuration.isDistributedOperationModeEnabled()) {
         // Start the controller
-        haController = new TimelineMetricHAController(configuration);
+        haController = new MetricCollectorHAController(configuration);
         try {
           haController.initializeHAController();
         } catch (Exception e) {
@@ -351,7 +352,16 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
   @Override
   public List<String> getLiveInstances() {
-    return haController.getLiveInstanceHostNames();
+    List<String> instances = haController.getLiveInstanceHostNames();
+    if (instances == null || instances.isEmpty()) {
+      try {
+        // Always return current host as live (embedded operation mode)
+        instances = Collections.singletonList(configuration.getInstanceHostnameFromEnv());
+      } catch (UnknownHostException e) {
+        LOG.debug("Exception on getting hostname from env.", e);
+      }
+    }
+    return instances;
   }
 
   private void scheduleAggregatorThread(final TimelineMetricAggregator aggregator) {

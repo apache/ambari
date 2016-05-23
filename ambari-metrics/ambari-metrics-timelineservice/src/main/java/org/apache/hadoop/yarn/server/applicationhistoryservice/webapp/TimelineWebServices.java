@@ -409,6 +409,14 @@ public class TimelineWebServices {
     }
   }
 
+  /**
+   * This is a discovery endpoint that advertises known live collector
+   * instances. Note: It will always answer with current instance as live.
+   * This can be utilized as a liveliness pinger endpoint since the instance
+   * names are cached and thereby no synchronous calls result from this API
+   *
+   * @return List<String> hostnames</String>
+   */
   @GET
   @Path("/metrics/livenodes")
   @Produces({ MediaType.APPLICATION_JSON })

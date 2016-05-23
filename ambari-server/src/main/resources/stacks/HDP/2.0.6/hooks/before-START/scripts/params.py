@@ -106,8 +106,11 @@ is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
 is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
+
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
+
+metric_collector_port = None
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
       'metrics_collector_vip_host' in config['configurations']['cluster-env']:
@@ -134,6 +137,24 @@ if has_metric_collector:
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+
+#Collector hosts
+metric_collector_hosts = None
+if ams_collector_hosts:
+  for host in ams_collector_hosts:
+    metric_collector_hosts += host + ':' + metric_collector_port + ','
+  metric_collector_hosts = metric_collector_hosts[:-1]
+
+# Cluster Zookeeper quorum
+zookeeper_quorum = None
+if has_zk_host:
+  if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
+    zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
+  else:
+    zookeeper_clientPort = '2181'
+  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
+  # last port config
+  zookeeper_quorum += ':' + zookeeper_clientPort
 
 #hadoop params
 

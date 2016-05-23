@@ -33,14 +33,14 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.expectNew;
 import static org.powermock.api.easymock.PowerMock.replayAll;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AbstractTimelineMetricsSink.class, URL.class,
-  HttpURLConnection.class})
+@PrepareForTest({AbstractTimelineMetricsSink.class, URL.class, HttpURLConnection.class})
 public class HandleConnectExceptionTest {
   private static final String COLLECTOR_URL = "collector";
   private TestTimelineMetricsSink sink;
@@ -53,7 +53,7 @@ public class HandleConnectExceptionTest {
     URL url = createNiceMock(URL.class);
     AbstractTimelineMetricsSink.NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS = 2;
     try {
-      expectNew(URL.class, "collector").andReturn(url).anyTimes();
+      expectNew(URL.class, anyString()).andReturn(url).anyTimes();
       expect(url.openConnection()).andReturn(connection).anyTimes();
       expect(connection.getOutputStream()).andReturn(os).anyTimes();
       expect(connection.getResponseCode()).andThrow(new IOException()).anyTimes();
@@ -79,17 +79,23 @@ public class HandleConnectExceptionTest {
     try{
       sink.emitMetrics(timelineMetrics);
       Assert.fail();
-    }catch(UnableToConnectException e){
+    } catch (UnableToConnectException e){
       Assert.assertEquals(COLLECTOR_URL, e.getConnectUrl());
-    }catch(Exception e){
+    } catch (Exception e){
+      e.printStackTrace();
       Assert.fail(e.getMessage());
     }
   }
 
-  class TestTimelineMetricsSink extends AbstractTimelineMetricsSink{
+  private class TestTimelineMetricsSink extends AbstractTimelineMetricsSink{
     @Override
-    protected String getCollectorUri() {
+    protected String getCollectorUri(String host) {
       return COLLECTOR_URL;
+    }
+
+    @Override
+    protected String getCollectorProtocol() {
+      return "http";
     }
 
     @Override
@@ -98,8 +104,26 @@ public class HandleConnectExceptionTest {
     }
 
     @Override
+    protected String getZookeeperQuorum() {
+      return "localhost:2181";
+    }
+
+    @Override
+    protected String getConfiguredCollectors() {
+      return "localhost:2181";
+    }
+
+    @Override
+    protected String getHostname() {
+      return "h1";
+    }
+
+    @Override
     public boolean emitMetrics(TimelineMetrics metrics) {
+      super.init();
       return super.emitMetrics(metrics);
     }
+
+
   }
 }

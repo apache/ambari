@@ -16,7 +16,10 @@
 # limitations under the License.
 #}
 
-collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
+collector={{metric_collector_hosts}}
+protocol={{metric_collector_protocol}}
+port={{metric_collector_port}}
+zookeeper.quorum={{zookeeper_quorum}}
 maxRowCacheSize=10000
 sendInterval={{metrics_report_interval}}000
 

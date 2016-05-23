@@ -45,8 +45,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.helix.model.IdealState.RebalanceMode.FULL_AUTO;
 
-public class TimelineMetricHAController {
-  private static final Log LOG = LogFactory.getLog(TimelineMetricHAController.class);
+public class MetricCollectorHAController {
+  private static final Log LOG = LogFactory.getLog(MetricCollectorHAController.class);
 
   static final String CLUSTER_NAME = "ambari-metrics-cluster";
   static final String METRIC_AGGREGATORS = "METRIC_AGGREGATORS";
@@ -68,7 +68,7 @@ public class TimelineMetricHAController {
 
   private volatile boolean isInitialized = false;
 
-  public TimelineMetricHAController(TimelineMetricConfiguration configuration) {
+  public MetricCollectorHAController(TimelineMetricConfiguration configuration) {
     String instancePort;
     try {
       instanceHostname = configuration.getInstanceHostnameFromEnv();

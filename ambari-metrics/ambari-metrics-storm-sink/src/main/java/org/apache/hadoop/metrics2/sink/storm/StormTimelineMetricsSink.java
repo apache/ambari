@@ -45,15 +45,39 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private TimelineMetricsCache metricsCache;
   private String hostname;
   private int timeoutSeconds;
+  private String collectors;
+  private String zkQuorum;
+  private String protocol;
+  private String port;
 
   @Override
-  protected String getCollectorUri() {
-    return collectorUri;
+  protected String getCollectorUri(String host) {
+    return constructTimelineMetricUri(protocol, host, port);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
+  }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return zkQuorum;
+  }
+
+  @Override
+  protected String getConfiguredCollectors() {
+    return collectors;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
   }
 
   @Override
@@ -71,14 +95,21 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     }
     Configuration configuration = new Configuration("/storm-metrics2.properties");
     timeoutSeconds = Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS,
-        String.valueOf(DEFAULT_POST_TIMEOUT_SECONDS)));
+      String.valueOf(DEFAULT_POST_TIMEOUT_SECONDS)));
     int maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,
         String.valueOf(MAX_RECS_PER_NAME_DEFAULT)));
     int metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
-        String.valueOf(MAX_EVICTION_TIME_MILLIS)));
+      String.valueOf(MAX_EVICTION_TIME_MILLIS)));
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
-    collectorUri = configuration.getProperty(COLLECTOR_PROPERTY) + WS_V1_TIMELINE_METRICS;
-    if (collectorUri.toLowerCase().startsWith("https://")) {
+    collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+    zkQuorum = configuration.getProperty("zookeeper.quorum");
+    protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
+    port = configuration.getProperty(COLLECTOR_PORT, "6188");
+
+    // Initialize the collector write strategy
+    super.init();
+
+    if (protocol.contains("https")) {
       String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
       String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
       String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();

@@ -28,14 +28,9 @@ import org.apache.hadoop.metrics2.MetricsSink;
 import org.apache.hadoop.metrics2.MetricsTag;
 import org.apache.hadoop.metrics2.impl.MsInfo;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
-import org.apache.hadoop.metrics2.util.Servers;
 import org.apache.hadoop.net.DNS;
-
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,9 +50,11 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private TimelineMetricsCache metricsCache;
   private String hostName = "UNKNOWN.example.com";
   private String serviceName = "";
-  private List<? extends SocketAddress> metricsServers;
+  private String collectors;
   private String collectorUri;
   private String containerMetricsUri;
+  private String protocol;
+  private String port;
   public static final String WS_V1_CONTAINER_METRICS = "/ws/v1/timeline/containermetrics";
 
   private static final String SERVICE_NAME_PREFIX = "serviceName-prefix";
@@ -91,16 +88,21 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     serviceName = getServiceName(conf);
 
     LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);
+    // Initialize the collector write strategy
+    super.init();
 
     // Load collector configs
-    metricsServers = Servers.parse(conf.getString(COLLECTOR_PROPERTY), 6188);
+    protocol = conf.getString(COLLECTOR_PROTOCOL, "http");
+    collectors = conf.getString(COLLECTOR_PROPERTY, "").trim();
+    port = conf.getString(COLLECTOR_PORT, "6188");
 
-    if (metricsServers == null || metricsServers.isEmpty()) {
+    if (StringUtils.isEmpty(collectors)) {
       LOG.error("No Metric collector configured.");
     } else {
-      collectorUri = conf.getString(COLLECTOR_PROPERTY).trim() + WS_V1_TIMELINE_METRICS;
-      containerMetricsUri = conf.getString(COLLECTOR_PROPERTY).trim() + WS_V1_CONTAINER_METRICS;
-      if (collectorUri.toLowerCase().startsWith("https://")) {
+      String preferredCollectorHost = findPreferredCollectHost();
+      collectorUri = constructTimelineMetricUri(protocol, preferredCollectorHost, port);
+      containerMetricsUri = constructContainerMetricUri(protocol, preferredCollectorHost, port);
+      if (protocol.contains("https")) {
         String trustStorePath = conf.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
         String trustStoreType = conf.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
         String trustStorePwd = conf.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
@@ -155,6 +157,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         }
       }
     }
+
     if (!rpcPortSuffixes.isEmpty()) {
       LOG.info("RPC port properties configured: " + rpcPortSuffixes);
     }
@@ -182,13 +185,33 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   }
 
   @Override
-  protected String getCollectorUri() {
-    return collectorUri;
+  protected String getCollectorUri(String host) {
+    return constructTimelineMetricUri(protocol, host, port);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
+  }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return conf.getString(ZOOKEEPER_QUORUM);
+  }
+
+  @Override
+  protected String getConfiguredCollectors() {
+    return collectors;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostName;
   }
 
   @Override
@@ -359,6 +382,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       LOG.error("Unable to parse container metrics ", e);
     }
     if (jsonData != null) {
+      // TODO: Container metrics should be able to utilize failover mechanism
       emitMetricsJson(containerMetricsUri, jsonData);
     }
   }

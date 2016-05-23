@@ -71,14 +71,18 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private static final String TIMELINE_DEFAULT_PORT = "6188";
   private static final String TIMELINE_DEFAULT_PROTOCOL = "http";
 
-  private boolean initialized = false;
+  private volatile boolean initialized = false;
   private boolean running = false;
   private final Object lock = new Object();
   private String collectorUri;
   private String hostname;
+  private String metricCollectorPort;
+  private String collectors;
+  private String metricCollectorProtocol;
   private TimelineScheduledReporter reporter;
   private TimelineMetricsCache metricsCache;
   private int timeoutSeconds = 10;
+  private String zookeeperQuorum;
 
   private String[] excludedMetricsPrefixes;
   private String[] includedMetricsPrefixes;
@@ -86,8 +90,13 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private Set<String> excludedMetrics = new HashSet<>();
 
   @Override
-  protected String getCollectorUri() {
-    return collectorUri;
+  protected String getCollectorUri(String host) {
+    return constructTimelineMetricUri(metricCollectorProtocol, host, metricCollectorPort);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return metricCollectorProtocol;
   }
 
   @Override
@@ -95,10 +104,26 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
     return timeoutSeconds;
   }
 
+  @Override
+  protected String getZookeeperQuorum() {
+    return zookeeperQuorum;
+  }
+
+  @Override
+  protected String getConfiguredCollectors() {
+    return collectors;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
+  }
+
   public void setMetricsCache(TimelineMetricsCache metricsCache) {
     this.metricsCache = metricsCache;
   }
 
+  @Override
   public void init(VerifiableProperties props) {
     synchronized (lock) {
       if (!initialized) {
@@ -113,25 +138,32 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
           LOG.error("Could not identify hostname.");
           throw new RuntimeException("Could not identify hostname.", e);
         }
+        // Initialize the collector write strategy
+        super.init();
+
         KafkaMetricsConfig metricsConfig = new KafkaMetricsConfig(props);
         timeoutSeconds = props.getInt(METRICS_POST_TIMEOUT_SECONDS, DEFAULT_POST_TIMEOUT_SECONDS);
         int metricsSendInterval = props.getInt(TIMELINE_METRICS_SEND_INTERVAL_PROPERTY, MAX_EVICTION_TIME_MILLIS);
         int maxRowCacheSize = props.getInt(TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY, MAX_RECS_PER_NAME_DEFAULT);
+
+        zookeeperQuorum = props.getString("zookeeper.connect");
+        collectors = props.getString(TIMELINE_HOST_PROPERTY, TIMELINE_DEFAULT_HOST);
+        metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
+
         String metricCollectorHost = props.getString(TIMELINE_HOST_PROPERTY, TIMELINE_DEFAULT_HOST);
-        String metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
-        String metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
+        metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
+
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
 
-        collectorUri = metricCollectorProtocol + "://" + metricCollectorHost +
-                       ":" + metricCollectorPort + WS_V1_TIMELINE_METRICS;
+        collectorUri = constructTimelineMetricUri(metricCollectorProtocol,
+          metricCollectorHost, metricCollectorPort);
 
-        if (collectorUri.toLowerCase().startsWith("https://")) {
+        if (metricCollectorProtocol.contains("https")) {
           String trustStorePath = props.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
           String trustStoreType = props.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
           String trustStorePwd = props.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
           loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
         }
-
 
         // Exclusion policy
         String excludedMetricsStr = props.getString(EXCLUDED_METRICS_PROPERTY, "");

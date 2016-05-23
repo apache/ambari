@@ -71,22 +71,25 @@ resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 *.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 *.sink.timeline.period={{metrics_collection_period}}
 *.sink.timeline.sendInterval={{metrics_report_interval}}000
-*.sink.timeline.slave.host.name = {{hostname}}
+*.sink.timeline.slave.host.name={{hostname}}
+*.sink.timeline.zookeeper.quorum={{zookeeper_quorum}}
+*.sink.timeline.protocol={{metric_collector_protocol}}
+*.sink.timeline.port={{metric_collector_port}}
 
 # HTTPS properties
 *.sink.timeline.truststore.path = {{metric_truststore_path}}
 *.sink.timeline.truststore.type = {{metric_truststore_type}}
 *.sink.timeline.truststore.password = {{metric_truststore_password}}
 
-datanode.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-namenode.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-resourcemanager.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-nodemanager.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-jobhistoryserver.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-journalnode.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-maptask.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-reducetask.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
-applicationhistoryserver.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
+datanode.sink.timeline.collector={{metrics_collector_hosts}}
+namenode.sink.timeline.collector={{metrics_collector_hosts}}
+resourcemanager.sink.timeline.collector={{metrics_collector_hosts}}
+nodemanager.sink.timeline.collector={{metrics_collector_hosts}}
+jobhistoryserver.sink.timeline.collector={{metrics_collector_hosts}}
+journalnode.sink.timeline.collector={{metrics_collector_hosts}}
+maptask.sink.timeline.collector={{metrics_collector_hosts}}
+reducetask.sink.timeline.collector={{metrics_collector_hosts}}
+applicationhistoryserver.sink.timeline.collector={{metrics_collector_hosts}}
 
 resourcemanager.sink.timeline.tagsForPrefix.yarn=Queue
 

@@ -160,6 +160,7 @@ if stack_supports_storm_kerberos:
 
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
+metric_collector_port = None
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
       'metrics_collector_vip_host' in config['configurations']['cluster-env']:
@@ -189,6 +190,20 @@ if has_metric_collector:
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
+
+# Collector hosts
+metric_collector_hosts = None
+if ams_collector_hosts:
+  for host in ams_collector_hosts:
+    metric_collector_hosts += host + ':' + metric_collector_port + ','
+  metric_collector_hosts = metric_collector_hosts[:-1]
+
+# Cluster Zookeeper quorum
+zookeeper_quorum = None
+if storm_zookeeper_servers:
+  for server in storm_zookeeper_servers:
+    zookeeper_quorum += server + ':' + storm_zookeeper_port + ","
+  zookeeper_quorum = zookeeper_quorum[:-1]
 
 jar_jvm_opts = ''
 

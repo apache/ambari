@@ -50,7 +50,7 @@ public class MetricsMgr {
     logger.info("Initializing MetricsMgr()");
     amsClient = new LogFeederAMSClient();
 
-    if (amsClient.getCollectorUri() != null) {
+    if (amsClient.getCollectorUri(null) != null) {
       nodeHostName = LogFeederUtil.getStringProperty("node.hostname");
       if (nodeHostName == null) {
         try {
@@ -77,7 +77,7 @@ public class MetricsMgr {
       } else {
         isMetricsEnabled = true;
         logger.info("LogFeeder Metrics is enabled. Metrics host="
-          + amsClient.getCollectorUri());
+          + amsClient.getCollectorUri(null));
       }
     } else {
       logger.info("LogFeeder Metrics publish is disabled");

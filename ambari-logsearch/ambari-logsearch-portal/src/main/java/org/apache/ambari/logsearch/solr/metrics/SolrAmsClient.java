@@ -22,6 +22,7 @@ package org.apache.ambari.logsearch.solr.metrics;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 
+// TODO: Refactor for failover
 public class SolrAmsClient extends AbstractTimelineMetricsSink {
   private final String collectorHost;
 
@@ -30,7 +31,7 @@ public class SolrAmsClient extends AbstractTimelineMetricsSink {
   }
 
   @Override
-  public String getCollectorUri() {
+  public String getCollectorUri(String host) {
     return collectorHost;
   }
 
@@ -40,7 +41,27 @@ public class SolrAmsClient extends AbstractTimelineMetricsSink {
   }
 
   @Override
+  protected String getZookeeperQuorum() {
+    return null;
+  }
+
+  @Override
+  protected String getConfiguredCollectors() {
+    return null;
+  }
+
+  @Override
+  protected String getHostname() {
+    return null;
+  }
+
+  @Override
   protected boolean emitMetrics(TimelineMetrics metrics) {
     return super.emitMetrics(metrics);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return null;
   }
 }
