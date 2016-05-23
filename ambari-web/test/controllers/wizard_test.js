@@ -1138,11 +1138,34 @@ describe('App.WizardController', function () {
             isFinal: true,
             defaultIsFinal: true,
             supportsFinal: true,
-            filename: 'filename',
+            filename: 'hdfs-site',
             displayType: 'string',
             isRequiredByAgent: true,
             hasInitialValue: true,
             isRequired: true,
+            isUserProperty: true,
+            showLabel: true,
+            category: 'some_category'
+          }),
+          Em.Object.create({
+            id: 'id',
+            name: 'name2',
+            value: 'value',
+            defaultValue: 'defaultValue',
+            description: 'description',
+            serviceName: 'serviceName',
+            domain: 'domain',
+            isVisible: true,
+            isNotDefaultValue: true,
+            isFinal: true,
+            defaultIsFinal: true,
+            supportsFinal: true,
+            filename: 'hdfs-site',
+            displayType: 'string',
+            isRequiredByAgent: true,
+            hasInitialValue: true,
+            isRequired: false,
+            isUserProperty: false,
             showLabel: true,
             category: 'some_category'
           })
@@ -1168,6 +1191,7 @@ describe('App.WizardController', function () {
             isRequiredByAgent: true,
             hasInitialValue: true,
             isRequired: true,
+            isUserProperty: false,
             group: {name: 'group'},
             showLabel: true,
             category: 'some_category'
@@ -1179,7 +1203,7 @@ describe('App.WizardController', function () {
     it('should save configs from default config group to content.serviceConfigProperties', function () {
       c.saveServiceConfigProperties(stepController);
       var saved = c.get('content.serviceConfigProperties');
-      expect(saved.length).to.equal(1);
+      expect(saved.length).to.equal(2);
       expect(saved[0].category).to.equal('some_category');
     });
 
@@ -1187,6 +1211,17 @@ describe('App.WizardController', function () {
       c.saveServiceConfigProperties(kerberosStepController);
       var saved = c.get('content.serviceConfigProperties');
       expect(saved.everyProperty('value', '')).to.be.true;
+    });
+
+    it('should save `isUserProperty` and `isRequired` attributes correctly', function() {
+      c.saveServiceConfigProperties(stepController);
+      var saved = c.get('content.serviceConfigProperties'),
+          nameProp = saved.filterProperty('filename', 'hdfs-site.xml').findProperty('name', 'name'),
+          name2Prop = saved.filterProperty('filename', 'hdfs-site.xml').findProperty('name', 'name2');
+      assert.isTrue(Em.get(nameProp, 'isRequired'), 'hdfs-site.xml:name isRequired validation');
+      assert.isTrue(Em.get(nameProp, 'isUserProperty'), 'hdfs-site.xml:name isUserProperty validation');
+      assert.isFalse(Em.get(name2Prop, 'isRequired'), 'hdfs-site.xml:name2 isRequired validation');
+      assert.isFalse(Em.get(name2Prop, 'isUserProperty'), 'hdfs-site.xml:name2 isUserProperty validation');
     });
   });
 
