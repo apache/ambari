@@ -38,14 +38,14 @@ public class UserConfigSolrDao extends SolrDaoBase {
   @PostConstruct
   public void postConstructor() {
 
-    String solrUrl = PropertiesUtil.getProperty("solr.url");
-    String zkHosts = PropertiesUtil.getProperty("solr.zkhosts");
-    String collection = PropertiesUtil.getProperty("solr.core.history",
+    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
+    String zkHosts = PropertiesUtil.getProperty("logsearch.solr.zkhosts");
+    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.history",
       "history");
     String configName = PropertiesUtil.getProperty(
-      "solr.history.config_name", "history");
+      "logsearch.solr.history.config.name", "history");
     int replicationFactor = PropertiesUtil.getIntProperty(
-      "solr.history.replication_factor", 2);
+      "logsearch.collection.history.replication.factor", 2);
     String splitInterval = "none";
     int numberOfShards = 1;
 

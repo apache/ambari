@@ -30,7 +30,7 @@ public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
 
   public LogFeederAMSClient() {
     collectorHosts = LogFeederUtil
-      .getStringProperty("metrics.collector.hosts");
+      .getStringProperty("logfeeder.metrics.collector.hosts");
     if (collectorHosts != null && collectorHosts.trim().length() == 0) {
       collectorHosts = null;
     }

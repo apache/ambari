@@ -1661,7 +1661,7 @@ public class LogsMgr extends MgrBase {
 
   public String getServiceLogsFieldsName() {
     String fieldsNameStrArry[] = PropertiesUtil
-      .getPropertyStringList("solr.servicelogs.fields");
+      .getPropertyStringList("logsearch.service.logs.fields");
     if (fieldsNameStrArry.length > 0) {
 
       List<String> uiFieldNames = new ArrayList<String>();
@@ -1687,9 +1687,9 @@ public class LogsMgr extends MgrBase {
   public String getServiceLogsSchemaFieldsName() {
 
     List<String> fieldNames = new ArrayList<String>();
-    String suffix = PropertiesUtil.getProperty("solr.core.logs");
+    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs");
     String excludeArray[] = PropertiesUtil
-        .getPropertyStringList("servicelogs.exclude.columnlist");
+        .getPropertyStringList("logsearch.solr.service.logs.exclude.columnlist");
 
     HashMap<String, String> uiFieldColumnMapping = new LinkedHashMap<String, String>();
     ConfigUtil.getSchemaFieldsName(suffix, excludeArray, fieldNames);
@@ -1756,7 +1756,7 @@ public class LogsMgr extends MgrBase {
 
   public String getAnyGraphData(SearchCriteria searchCriteria) {
     searchCriteria.addParam("fieldTime", LogSearchConstants.LOGTIME);
-    String suffix = PropertiesUtil.getProperty("solr.core.logs");
+    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs");
     searchCriteria.addParam("suffix", suffix);
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     VBarDataList result = graphDataGenerator.getAnyGraphData(searchCriteria,
