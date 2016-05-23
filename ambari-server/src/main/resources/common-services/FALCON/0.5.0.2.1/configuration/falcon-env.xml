@@ -117,6 +117,7 @@
   <!-- falcon-env.sh -->
   <property>
     <name>content</name>
+    <display-name>falcon-env template</display-name>
     <description>This is the jinja template for falcon-env.sh file</description>
     <value>
 # The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path

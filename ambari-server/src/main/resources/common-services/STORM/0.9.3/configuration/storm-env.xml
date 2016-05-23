@@ -24,6 +24,7 @@
   <!-- storm-env.sh -->
   <property>
     <name>content</name>
+    <display-name>storm-env template</display-name>
     <description>This is the jinja template for storm-env.sh file</description>
     <value>
 #!/bin/bash

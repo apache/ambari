@@ -22,6 +22,7 @@
 
   <property>
     <name>content</name>
+    <display-name>ams-log4j template</display-name>
     <description>Custom log4j.properties</description>
     <value>
 #

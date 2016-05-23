@@ -42,6 +42,7 @@
 
   <property>
     <name>content</name>
+    <display-name>ams-grafana-ini template</display-name>
     <value>
 ##################### Grafana Configuration Example #####################
 #

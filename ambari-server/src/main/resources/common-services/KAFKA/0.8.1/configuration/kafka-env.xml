@@ -70,6 +70,7 @@
   <!-- kafka-env.sh -->
   <property>
     <name>content</name>
+    <display-name>kafka-env template</display-name>
     <description>This is the jinja template for kafka-env.sh file</description>
     <value>
 #!/bin/bash

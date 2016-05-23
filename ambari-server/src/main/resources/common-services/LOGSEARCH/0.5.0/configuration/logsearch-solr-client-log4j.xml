@@ -26,6 +26,7 @@
   <!-- log4j.xml -->
   <property>
     <name>content</name>
+    <display-name>log4j template</display-name>
     <description>This is the jinja template for log4j.properties file for logsearch solr client</description>
     <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>

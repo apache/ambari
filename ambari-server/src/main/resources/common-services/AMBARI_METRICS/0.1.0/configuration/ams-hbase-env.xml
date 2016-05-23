@@ -152,6 +152,7 @@
   <!-- hbase-env.sh -->
   <property>
     <name>content</name>
+    <display-name>ams-hbase-env template</display-name>
     <description>This is the jinja template for hbase-env.sh file</description>
     <value>
 # Set environment variables here.

@@ -23,6 +23,7 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
   <name>content</name>
+  <display-name>llap-deamon-log4j template</display-name>
   <description>Custom llap-daemon-log4j2.properties</description>
   <value>
 # Licensed to the Apache Software Foundation (ASF) under one

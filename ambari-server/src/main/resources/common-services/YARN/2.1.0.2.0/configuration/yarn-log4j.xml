@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>yarn-log4j template</display-name>
     <description>Custom log4j.properties</description>
     <value>
 #Relative to Yarn Log Dir Prefix

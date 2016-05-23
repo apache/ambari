@@ -39,6 +39,7 @@
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
+    <display-name>hive-env template</display-name>
     <description>This is the jinja template for hive-env.sh file</description>
     <value>
  if [ "$SERVICE" = "cli" ]; then

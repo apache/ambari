@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>hbase-log4j template</display-name>
     <description>Custom log4j.properties</description>
     <value>
 # Licensed to the Apache Software Foundation (ASF) under one

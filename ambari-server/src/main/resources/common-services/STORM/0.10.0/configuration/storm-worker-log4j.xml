@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>storm-worker-log4j template</display-name>
     <description>Custom worker.xml</description>
     <value>
     <![CDATA[

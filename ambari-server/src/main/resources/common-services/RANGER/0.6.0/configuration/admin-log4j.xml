@@ -22,6 +22,7 @@
 
     <property>
         <name>content</name>
+        <display-name>admin-log4j template</display-name>
         <description>admin-log4j.properties</description>
         <value>
 #

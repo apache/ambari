@@ -24,6 +24,7 @@
 
   <property>
     <name>content</name>
+    <display-name>gateway-log4j template</display-name>
     <value>
 
       # Licensed to the Apache Software Foundation (ASF) under one

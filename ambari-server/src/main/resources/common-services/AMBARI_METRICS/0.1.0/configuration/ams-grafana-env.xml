@@ -68,6 +68,7 @@
   </property>
   <property>
     <name>content</name>
+    <display-name>ams-grafana-env template</display-name>
     <value>
 # Set environment variables here.
 

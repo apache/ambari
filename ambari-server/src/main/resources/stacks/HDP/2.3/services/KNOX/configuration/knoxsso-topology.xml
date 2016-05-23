@@ -25,6 +25,7 @@
 
     <property>
     <name>content</name>
+    <display-name>knoxsso-topology template</display-name>
     <value>
       &lt;topology&gt;
       
