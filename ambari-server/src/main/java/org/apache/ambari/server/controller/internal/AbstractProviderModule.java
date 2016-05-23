@@ -155,6 +155,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.resourcemanager.webapp.address"});
     initPropMap.put("RESOURCEMANAGER-HTTPS", new String[]{"yarn.resourcemanager.webapp.https.address"});
     initPropMap.put("NODEMANAGER", new String[]{"yarn.nodemanager.webapp.address"});
+    initPropMap.put("NODEMANAGER-HTTPS", new String[]{"yarn.nodemanager.webapp.https.address"});
     serviceDesiredProperties.put(Service.Type.YARN, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
@@ -178,6 +179,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
 
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("NODEMANAGER", new String[]{"yarn.http.policy"});
+    jmxDesiredProperties.put("NODEMANAGER", initPropMap);
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("HISTORYSERVER", new String[]{"mapreduce.jobhistory.http.policy"});
     jmxDesiredProperties.put("HISTORYSERVER", initPropMap);
