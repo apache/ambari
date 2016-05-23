@@ -147,6 +147,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.resourcemanager.webapp.address"});
     initPropMap.put("RESOURCEMANAGER-HTTPS", new String[]{"yarn.resourcemanager.webapp.https.address"});
     initPropMap.put("NODEMANAGER", new String[]{"yarn.nodemanager.webapp.address"});
+    initPropMap.put("NODEMANAGER-HTTPS", new String[]{"yarn.nodemanager.webapp.https.address"});
     serviceDesiredProperties.put(Service.Type.YARN, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
@@ -165,6 +166,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("NODEMANAGER", new String[]{"yarn.http.policy"});
+    jmxDesiredProperties.put("NODEMANAGER", initPropMap);
     
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("HISTORYSERVER", new String[]{"mapreduce.jobhistory.http.policy"});
@@ -1159,7 +1164,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     String jmxProtocolString = clusterJmxProtocolMap.get(clusterName);
 
     try {
-      if (componentName.equals("NAMENODE") || componentName.equals("RESOURCEMANAGER") || componentName.equals("JOURNALNODE") || componentName.equals("HISTORYSERVER")) {
+      if (componentName.equals("NAMENODE") || componentName.equals("RESOURCEMANAGER") || componentName.equals("NODEMANAGER") || componentName.equals("JOURNALNODE") || componentName.equals("HISTORYSERVER")) {
         Service.Type service = componentServiceMap.get(componentName);
         String config = serviceConfigTypes.get(service);
         String newSiteConfigVersion = getDesiredConfigVersion(clusterName, config);

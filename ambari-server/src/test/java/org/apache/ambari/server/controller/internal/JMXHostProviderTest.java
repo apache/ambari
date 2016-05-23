@@ -75,6 +75,7 @@ public class JMXHostProviderTest {
   private static final String RESOURCEMANAGER_HTTPS_PORT = "yarn.resourcemanager.webapp.https.address";
   private static final String YARN_HTTPS_POLICY = "yarn.http.policy";
   private static final String NODEMANAGER_PORT = "yarn.nodemanager.webapp.address";
+  private static final String NODEMANAGER_HTTPS_PORT = "yarn.nodemanager.webapp.https.address";
   private static final String JOURNALNODE_HTTPS_PORT = "dfs.journalnode.https-address";
   private static final String HDFS_HTTPS_POLICY = "dfs.http.policy";
   private static final String MAPREDUCE_HTTPS_POLICY = "mapreduce.jobhistory.http.policy";
@@ -237,6 +238,7 @@ public class JMXHostProviderTest {
     String componentName4 = "RESOURCEMANAGER";
     String componentName5 = "JOURNALNODE";
     String componentName6 = "HISTORYSERVER";
+    String componentName7 = "NODEMANAGER";
 
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);
@@ -250,6 +252,8 @@ public class JMXHostProviderTest {
         State.INIT);
     createServiceComponent(clusterName, serviceName3, componentName6,
         State.INIT);
+    createServiceComponent(clusterName, serviceName2, componentName7,
+      State.INIT);
 
     String host1 = "h1";
     clusters.addHost(host1);
@@ -286,6 +290,8 @@ public class JMXHostProviderTest {
       host2, null);
     createServiceComponentHost(clusterName, serviceName3, componentName6,
       host2, null);
+    createServiceComponentHost(clusterName, serviceName2, componentName7,
+      host2, null);
 
     // Create configs
     Map<String, String> configs = new HashMap<String, String>();
@@ -299,6 +305,7 @@ public class JMXHostProviderTest {
     yarnConfigs.put(RESOURCEMANAGER_PORT, "8088");
     yarnConfigs.put(NODEMANAGER_PORT, "8042");
     yarnConfigs.put(RESOURCEMANAGER_HTTPS_PORT, "8090");
+    yarnConfigs.put(NODEMANAGER_HTTPS_PORT, "8044");
     yarnConfigs.put(YARN_HTTPS_POLICY, "HTTPS_ONLY");
     
     Map<String, String> mapreduceConfigs = new HashMap<String, String>();
@@ -518,7 +525,8 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "RESOURCEMANAGER"));
     Assert.assertEquals("8090", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost", true));
-
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "NODEMANAGER"));
+    Assert.assertEquals("8044", providerModule.getPort("c1", "NODEMANAGER", "localhost", true));
   }
   
   @Test
