@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -166,14 +165,14 @@ public class BlueprintImpl implements Blueprint {
    * @param serviceName - Service name.
    * @param componentName - Component name.
    *
-   * @return True or false.
+   * @return null if value is not specified; true or false if specified.
    */
   @Override
-  public boolean isRecoveryEnabled(String serviceName, String componentName) {
-    if (setting == null)
-      return false;
-
+  public String getRecoveryEnabled(String serviceName, String componentName) {
     Set<HashMap<String, String>> settingValue;
+
+    if (setting == null)
+      return null;
 
     // If component name was specified in the list of "component_settings",
     // determine if recovery_enabled is true or false and return it.
@@ -181,7 +180,9 @@ public class BlueprintImpl implements Blueprint {
     for (Map<String, String> setting : settingValue) {
       String name = setting.get(Setting.SETTING_NAME_NAME);
       if (StringUtils.equals(name, componentName)) {
-        return Boolean.parseBoolean(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED));
+        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
+          return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
+        }
       }
     }
 
@@ -190,17 +191,21 @@ public class BlueprintImpl implements Blueprint {
     for ( Map<String, String> setting : settingValue){
       String name = setting.get(Setting.SETTING_NAME_NAME);
       if (StringUtils.equals(name, serviceName)) {
-        return Boolean.parseBoolean(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED));
+        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
+          return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
+        }
       }
     }
 
     // If service name is not specified, look up the cluster setting.
     settingValue = setting.getSettingValue(Setting.SETTING_NAME_RECOVERY_SETTINGS);
     for (Map<String, String> setting : settingValue) {
-      return Boolean.parseBoolean(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED));
+      if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED))) {
+        return setting.get(Setting.SETTING_NAME_RECOVERY_ENABLED);
+      }
     }
 
-    return false;
+    return null;
   }
 
   @Override

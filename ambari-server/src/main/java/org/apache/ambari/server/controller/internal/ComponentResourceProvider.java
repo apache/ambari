@@ -359,6 +359,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       if (StringUtils.isNotEmpty(request.getRecoveryEnabled())) {
         boolean recoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
         sc.setRecoveryEnabled(recoveryEnabled);
+        LOG.info("Component: {}, recovery_enabled from request: {}", request.getComponentName(), recoveryEnabled);
       } else {
         StackId stackId = s.getDesiredStackVersion();
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
@@ -368,6 +369,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 stackId.toString() + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
         }
         sc.setRecoveryEnabled(componentInfo.isRecoveryEnabled());
+        LOG.info("Component: {}, recovery_enabled from stack definition:{}", componentInfo.getName(),
+                componentInfo.isRecoveryEnabled());
       }
 
       s.addServiceComponent(sc);
@@ -548,6 +551,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
         boolean newRecoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
         boolean oldRecoveryEnabled = sc.isRecoveryEnabled();
+        LOG.info("Component: {}, oldRecoveryEnabled: {}, newRecoveryEnabled {}",
+                componentName, oldRecoveryEnabled, newRecoveryEnabled);
         if (newRecoveryEnabled != oldRecoveryEnabled) {
           if (newRecoveryEnabled) {
             recoveryEnabledComponents.add(sc);
