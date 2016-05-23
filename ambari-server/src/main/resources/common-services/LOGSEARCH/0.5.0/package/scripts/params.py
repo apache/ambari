@@ -103,8 +103,8 @@ logsearch_solr_jmx_port = config['configurations']['logsearch-solr-env']['logsea
 
 logsearch_service_logs_fields = config['configurations']['logsearch-properties']['logsearch.service.logs.fields']
 
-audit_logs_collection_splits_interval_mins = config['configurations']['logsearch-properties']['logsearch.audit.logs.split.interval.mins']
-service_logs_collection_splits_interval_mins = config['configurations']['logsearch-properties']['logsearch.service.logs.split.interval.mins']
+logsearch_audit_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.audit.logs.split.interval.mins']
+logsearch_service_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.service.logs.split.interval.mins']
 
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
 # get comma separated list of zookeeper hosts from clusterHostInfo
@@ -141,57 +141,60 @@ solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4
 #####################################
 logsearch_dir = '/usr/lib/ambari-logsearch-portal'
 
-logsearch_service_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.service.logs.numshards']
-logsearch_audit_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.numshards']
+logsearch_collection_service_logs_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.service.logs.numshards']
+logsearch_collection_audit_logs_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.numshards']
 
-if logsearch_service_numshards_config > 0:
-  logsearch_service_logs_numshards = str(logsearch_service_numshards_config)
+if logsearch_collection_service_logs_numshards_config > 0:
+  logsearch_collection_service_logs_numshards = str(logsearch_collection_service_logs_numshards_config)
 else:
-  logsearch_service_logs_numshards = format(str(logsearch_solr_instance_count))
+  logsearch_collection_service_logs_numshards = format(str(logsearch_solr_instance_count))
 
-if logsearch_audit_numshards_config > 0:
-  logsearch_audit_logs_numshards = str(logsearch_audit_numshards_config)
+if logsearch_collection_audit_logs_numshards_config > 0:
+  logsearch_collection_audit_logs_numshards = str(logsearch_collection_audit_logs_numshards_config)
 else:
-  logsearch_audit_logs_numshards = format(str(logsearch_audit_numshards_config))
+  logsearch_collection_audit_logs_numshards = format(str(logsearch_solr_instance_count))
 
-logsearch_service_logs_repfactor = str(config['configurations']['logsearch-properties']['logsearch.collection.service.logs.replication.factor'])
-logsearch_audit_logs_repfactor = str(config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.replication.factor'])
+logsearch_collection_service_logs_replication_factor = str(config['configurations']['logsearch-properties']['logsearch.collection.service.logs.replication.factor'])
+logsearch_collection_audit_logs_replication_factor = str(config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.replication.factor'])
 
 logsearch_solr_collection_service_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.service.logs', 'hadoop_logs')
 logsearch_solr_collection_audit_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.audit.logs','audit_logs')
-logsearch_logfeeder_log_level_include = default('/configurations/logsearch-properties/logsearch.logfeeder.include.default.level', 'fatal,error,warn')
+logsearch_logfeeder_include_default_level = default('/configurations/logsearch-properties/logsearch.logfeeder.include.default.level', 'fatal,error,warn')
 
-solr_audit_logs_use_ranger = default('/configurations/logsearch-env/logsearch_solr_audit_logs_use_ranger', False)
-solr_audit_logs_url = ''
+logsearch_solr_audit_logs_use_ranger = default('/configurations/logsearch-env/logsearch_solr_audit_logs_use_ranger', False)
+logsearch_solr_audit_logs_url = ''
 
-if solr_audit_logs_use_ranger:
+if logsearch_solr_audit_logs_use_ranger:
   # In Ranger, this contain the /zkNode also
   ranger_audit_solr_zookeepers = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', None)
   # TODO: ranger property already has zk node appended. We need to remove it.
   # For now, let's assume it is going to be URL
-  solr_audit_logs_url = default('/configurations/ranger-admin-site/ranger.audit.solr.urls', solr_audit_logs_url)
+  logsearch_solr_audit_logs_url = default('/configurations/ranger-admin-site/ranger.audit.solr.urls', solr_audit_logs_url)
 else:
-  solr_audit_logs_zk_node = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_node', None)
-  solr_audit_logs_zk_quorum = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_quorum', None)
+  logsearch_solr_audit_logs_zk_node = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_node', None)
+  logsearch_solr_audit_logs_zk_quorum = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_quorum', None)
 
-  if not (solr_audit_logs_zk_quorum):
-    solr_audit_logs_zk_quorum = zookeeper_quorum
-  if not (solr_audit_logs_zk_node):
-    solr_audit_logs_zk_node = logsearch_solr_znode
+  if not (logsearch_solr_audit_logs_zk_quorum):
+    logsearch_solr_audit_logs_zk_quorum = zookeeper_quorum
+  if not (logsearch_solr_audit_logs_zk_node):
+    logsearch_solr_audit_logs_zk_node = logsearch_solr_znode
 
-  solr_audit_logs_zk_node = format(solr_audit_logs_zk_node)
-  solr_audit_logs_zk_quorum = format(solr_audit_logs_zk_quorum)
+  logsearch_solr_audit_logs_zk_node = format(logsearch_solr_audit_logs_zk_node)
+  logsearch_solr_audit_logs_zk_quorum = format(logsearch_solr_audit_logs_zk_quorum)
 
 # create custom properties - remove defaults
 logsearch_custom_properties = dict(config['configurations']['logsearch-properties'])
-logsearch_custom_properties.pop("logsearch.collection.numshards", None)
-logsearch_custom_properties.pop("logsearch.collection.replication.factor", None)
-logsearch_custom_properties.pop("logsearch.solr.collection.service.logs", None)
-logsearch_custom_properties.pop("logsearch.solr.collection.audit.logs", None)
 logsearch_custom_properties.pop("logsearch.service.logs.fields", None)
-logsearch_custom_properties.pop("logsearch.service.logs.split.interval.mins", None)
 logsearch_custom_properties.pop("logsearch.audit.logs.split.interval.mins", None)
+logsearch_custom_properties.pop("logsearch.collection.service.logs.replication.factor", None)
+logsearch_custom_properties.pop("logsearch.solr.collection.service.logs", None)
+logsearch_custom_properties.pop("logsearch.solr.metrics.collector.hosts", None)
+logsearch_custom_properties.pop("logsearch.solr.collection.audit.logs", None)
 logsearch_custom_properties.pop("logsearch.logfeeder.include.default.level", None)
+logsearch_custom_properties.pop("logsearch.collection.audit.logs.replication.factor", None)
+logsearch_custom_properties.pop("logsearch.collection.service.logs.numshards", None)
+logsearch_custom_properties.pop("logsearch.service.logs.split.interval.mins", None)
+logsearch_custom_properties.pop("logsearch.collection.audit.logs.numshards", None)
 
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']

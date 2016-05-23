@@ -172,15 +172,15 @@ public class SolrMetricsLoader extends TimerTask {
 
   public static void startSolrMetricsLoaderTasks() {
     try {
-      String collectorHosts = PropertiesUtil.getProperty("metrics.collector.hosts");
+      String collectorHosts = PropertiesUtil.getProperty("logsearch.solr.metrics.collector.hosts");
       if (StringUtils.isEmpty(collectorHosts)) {
         LOG.warn("No Ambari Metrics service is available, no Solr metrics will be loaded!");
         return;
       }
 
-      int solrJmxPort = PropertiesUtil.getIntProperty("solr.jmx.port");
+      int solrJmxPort = PropertiesUtil.getIntProperty("logsearch.solr.jmx.port");
 
-      String zkHosts = PropertiesUtil.getProperty("solr.zkhosts");
+      String zkHosts = PropertiesUtil.getProperty("logsearch.solr.zkhosts");
       AmbariSolrCloudClient ambariSolrCloudClient = new AmbariSolrCloudClientBuilder()
           .withZookeeperHosts(zkHosts)
           .build();

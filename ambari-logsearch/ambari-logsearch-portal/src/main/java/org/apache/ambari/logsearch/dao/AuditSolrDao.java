@@ -37,18 +37,18 @@ public class AuditSolrDao extends SolrDaoBase {
 
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = PropertiesUtil.getProperty("auditlog.solr.url");
-    String zkHosts = PropertiesUtil.getProperty("auditlog.solr.zkhosts");
+    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.audit.logs.url");
+    String zkHosts = PropertiesUtil.getProperty("logsearch.solr.audit.logs.zkhosts");
     String collection = PropertiesUtil.getProperty(
-      "auditlog.solr.core.logs", "audit_logs");
+      "logsearch.solr.collection.audit.logs", "audit_logs");
     String splitInterval = PropertiesUtil.getProperty(
-      "solr.audit_logs.split_interval_mins", "none");
+      "logsearch.audit.logs.split.interval.mins", "none");
     String configName = PropertiesUtil.getProperty(
-      "solr.audit_logs.config_name", "audit_logs");
+      "logsearch.solr.audit.logs.config.name", "audit_logs");
     int numberOfShards = PropertiesUtil.getIntProperty(
-      "solr.audit_logs.shards", 1);
+      "logsearch.collection.audit.logs.numshards", 1);
     int replicationFactor = PropertiesUtil.getIntProperty(
-      "solr.audit_logs.replication_factor", 1);
+      "logsearch.collection.audit.logs.replication.factor", 1);
 
     try {
       connectToSolr(solrUrl, zkHosts, collection);

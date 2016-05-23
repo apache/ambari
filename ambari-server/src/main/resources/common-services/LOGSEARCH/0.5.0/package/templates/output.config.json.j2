@@ -23,8 +23,8 @@
       "destination":"solr",
       "zk_hosts":"{{zookeeper_quorum}}{{logsearch_solr_znode}}",
       "collection":"{{logsearch_solr_collection_service_logs}}",
-      "number_of_shards": "{{logsearch_service_logs_numshards}}",
-      "splits_interval_mins": "{{service_logs_collection_splits_interval_mins}}",
+      "number_of_shards": "{{logsearch_collection_service_logs_numshards}}",
+      "splits_interval_mins": "{{logsearch_service_logs_split_interval_mins}}",
       "conditions":{
         "fields":{
           "rowtype":[
@@ -42,8 +42,8 @@
       "destination":"solr",
       "zk_hosts":"{{zookeeper_quorum}}{{logsearch_solr_znode}}",
       "collection":"{{logsearch_solr_collection_audit_logs}}",
-      "number_of_shards": "{{logsearch_audit_logs_numshards}}",
-      "splits_interval_mins": "{{audit_logs_collection_splits_interval_mins}}",
+      "number_of_shards": "{{logsearch_collection_audit_logs_numshards}}",
+      "splits_interval_mins": "{{logsearch_audit_logs_split_interval_mins}}",
       "conditions":{
         "fields":{
           "rowtype":[

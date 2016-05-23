@@ -102,9 +102,9 @@ public class ConfigUtil {
 
   private static void initializeColumnMapping() {
     String serviceLogsColumnMappingArray[] = PropertiesUtil
-      .getPropertyStringList("servicelog.column.mapping");
+      .getPropertyStringList("logsearch.solr.service.logs.column.mapping");
     String auditLogsColumnMappingArray[] = PropertiesUtil
-      .getPropertyStringList("auditlog.column.mapping");
+      .getPropertyStringList("logsearch.solr.audit.logs.column.mapping");
 
     // Initializing column mapping for Service Logs
     intializeUISolrColumnMapping(serviceLogsColumnMappingArray,

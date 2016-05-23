@@ -38,18 +38,18 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   @PostConstruct
   public void postConstructor() {
     logger.info("postConstructor() called.");
-    String solrUrl = PropertiesUtil.getProperty("solr.url");
-    String zkHosts = PropertiesUtil.getProperty("solr.zkhosts");
-    String collection = PropertiesUtil.getProperty("solr.core.logs",
+    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
+    String zkHosts = PropertiesUtil.getProperty("logsearch.solr.zkhosts");
+    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",
       "hadoop_logs");
     String splitInterval = PropertiesUtil.getProperty(
-      "solr.service_logs.split_interval_mins", "none");
+      "logsearch.service.logs.split.interval.mins", "none");
     String configName = PropertiesUtil.getProperty(
-      "solr.service_logs.config_name", "hadoop_logs");
+      "logsearch.solr.service.logs.config.name", "hadoop_logs");
     int numberOfShards = PropertiesUtil.getIntProperty(
-      "solr.service_logs.shards", 1);
+      "logsearch.collection.service.logs.numshards", 1);
     int replicationFactor = PropertiesUtil.getIntProperty(
-      "solr.service_logs.replication_factor", 1);
+      "logsearch.collection.service.logs.replication.factor", 1);
 
     try {
       connectToSolr(solrUrl, zkHosts, collection);

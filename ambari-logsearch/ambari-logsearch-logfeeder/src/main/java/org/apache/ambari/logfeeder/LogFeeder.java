@@ -79,12 +79,12 @@ public class LogFeeder {
 
     // loop the properties and load them
     // Load the configs
-    String configFiles = LogFeederUtil.getStringProperty("config.files");
+    String configFiles = LogFeederUtil.getStringProperty("logfeeder.config.files");
     if (configFiles == null) {
       configFiles = LogFeederUtil.getStringProperty("config.file",
         "config.json");
     }
-    logger.info("config.files=" + configFiles);
+    logger.info("logfeeder.config.files=" + configFiles);
     String[] configFileList = configFiles.split(",");
     for (String configFileName : configFileList) {
       logger.info("Going to load config file:" + configFileName);
