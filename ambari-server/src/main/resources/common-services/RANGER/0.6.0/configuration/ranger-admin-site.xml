@@ -122,5 +122,19 @@
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
+  <property>
+    <name>ranger.truststore.file</name>
+    <value>/etc/ranger/admin/conf/ranger-admin-keystore.jks</value>
+    <display-name>ranger.truststore.file</display-name>
+    <description>Ranger trust-store file-path</description>
+  </property>
+
+  <property>
+    <name>ranger.truststore.password</name>
+    <value>changeit</value>
+    <property-type>PASSWORD</property-type>
+    <display-name>ranger.truststore.password</display-name>
+    <description>Ranger trust-store password</description>
+  </property>
 
 </configuration>
