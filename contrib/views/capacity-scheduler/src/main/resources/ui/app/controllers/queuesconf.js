@@ -31,19 +31,23 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       this.set('showQueueNameInput', true);
     },
     createNewQueue: function() {
+      if (this.validateQueueName()) {
+        return;
+      }
       var store = this.get('store'),
       queueName = this.get('newQueueName'),
       parentPath = this.get('selectedQueue.path'),
-      queuePath = parentPath + "." + queueName,
+      queuePath = [parentPath, queueName].join('.'),
       depth = parentPath.split('.').length,
+      queueAlreadyExists = store.hasRecordForId('queue', queuePath.toLowerCase()),
       leafQueueNames = store.getById('queue', parentPath.toLowerCase()).get('queuesArray'),
-      newInLeaf = Em.isEmpty(leafQueueNames),
-      existed = store.get('deletedQueues').findBy('path', [parentPath, queueName].join('.')),
+      newInLeaf = Ember.isEmpty(leafQueueNames),
+      existed = store.get('deletedQueues').findBy('path', queuePath),
       totalLeafCapacity,
       freeLeafCapacity,
       newQueue;
 
-      this.send('cancelCreateQueue');
+      this.send('clearCreateQueue');
 
       if (existed) {
         newQueue = store.createFromDeleted(existed);
@@ -52,9 +56,9 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
           totalLeafCapacity = leafQueueNames.reduce(function (capacity, qName) {
             return store.getById('queue', [parentPath, qName].join('.').toLowerCase()).get('capacity') + capacity;
           }, 0);
-
           freeLeafCapacity = (totalLeafCapacity < 100) ? 100 - totalLeafCapacity : 0;
         }
+
         var qCapacity = (newInLeaf) ? 100 : freeLeafCapacity;
 
         newQueue = store.createRecord('queue', {
@@ -88,11 +92,13 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       }).catch(Em.run.bind(this, 'saveQueuesConfigError', opt));
 
     },
-    cancelCreateQueue: function() {
+    clearCreateQueue: function() {
       this.set('newQueueName', '');
       this.set('showQueueNameInput', false);
+      this.set('isInvalidQueueName', false);
+      this.set('invalidQueueNameMessage', '');
     },
-    clearAlert:function () {
+    clearAlert: function () {
       this.set('alertMessage', null);
     }
   },
@@ -101,6 +107,30 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
   newQueue: null,
   newQueueName: '',
   showQueueNameInput: false,
+  isInvalidQueueName: false,
+  invalidQueueNameMessage: '',
+
+  validateQueueName: function() {
+    var parentPath = this.get('selectedQueue.path'),
+    queueName = this.get('newQueueName'),
+    queuePath = [parentPath, queueName].join('.'),
+    qAlreadyExists = this.store.hasRecordForId('queue', queuePath.toLowerCase());
+    if (Ember.isBlank(queueName)) {
+      this.set('isInvalidQueueName', true);
+      this.set('invalidQueueNameMessage', 'Enter queue name');
+    } else if (qAlreadyExists) {
+      this.set('isInvalidQueueName', true);
+      this.set('invalidQueueNameMessage', 'Queue already exists');
+    } else {
+      this.set('isInvalidQueueName', false);
+      this.set('invalidQueueNameMessage', '');
+    }
+    return this.get('isInvalidQueueName');
+  },
+
+  queueNameDidChange: function() {
+    this.validateQueueName();
+  }.observes('newQueueName', 'newQueueName.length'),
 
   /**
    * True if newQueue is not empty.

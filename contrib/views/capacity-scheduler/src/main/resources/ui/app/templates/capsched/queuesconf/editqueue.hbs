@@ -19,17 +19,45 @@
 <div class="edit-queue-wrapper">
 
   <div class="row edit-queuename-wrapper">
-    <div class="col-md-8 col-sm-8">
-      <label>Queue Name</label>
-      {{input type="text" name="queueName" class="form-control input-sm input-queue-name" value=content.name readonly=isRoot}}
-      {{#if queueDirtyFields.name}}
-        <div class="btn-group btn-group-xs" >
-          <a {{action 'rollbackProp' 'name' content}} href="#" class="btn btn-default btn-warning">
-            <i class="fa fa-undo"></i>
-          </a>
+    {{#if isOperator}}
+      {{#if enableEditQName}}
+        <div {{bind-attr class="isInvalidQName:has-error :col-md-10 :col-sm-10"}} class="">
+          {{input type="text" name="queueName" class="form-control input-sm input-queue-name" value=updatedQName}}
+          <div class="btn-group btn-group-sm">
+            <button type="button" name="renameQ" class="btn btn-primary" {{action "renameQueue"}} {{bind-attr disabled=isInvalidQName}}>Rename</button>
+            <button type="button" name="cancelQEdit" class="btn btn-default" {{action "cancelQNameEdit"}}>Cancel</button>
+          </div>
+          {{#if isInvalidQName}}
+            <div class="tooltip bottom invalid-qname-tooltip" role="tooltip">
+              <div class="tooltip-arrow"></div>
+              <div class="tooltip-inner">
+                {{invalidQNameMessage}}
+              </div>
+            </div>
+          {{/if}}
+        </div>
+      {{else}}
+        <div class="col-md-8 col-sm-8">
+          <label>Queue Name: </label>
+          <span>{{content.name}}</span>
+          {{#unless isRoot}}
+            <a href="#" class="edit-qname-btn" {{action "editQueueName"}}>
+              <i class="fa fa-pencil-square-o"></i>
+            </a>
+          {{/unless}}
+          {{#if queueDirtyFields.name}}
+            <div class="btn-group btn-group-xs">
+              <a {{action 'rollbackProp' 'name' content}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+            </div>
+          {{/if}}
         </div>
       {{/if}}
-    </div>
+    {{else}}
+      <div class="col-md-8 col-sm-8">
+        <label>Queue Name: </label>
+        <span>{{content.name}}</span>
+      </div>
+    {{/if}}
   </div>
 
   <div class="queue-capacity-wrapper">
