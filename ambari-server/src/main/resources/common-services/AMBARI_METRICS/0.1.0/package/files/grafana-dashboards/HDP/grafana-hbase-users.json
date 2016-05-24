@@ -63,7 +63,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -134,7 +134,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -214,7 +214,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -285,7 +285,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -365,7 +365,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -436,7 +436,7 @@
             "current": false,
             "max": false,
             "min": false,
-            "show": true,
+            "show": false,
             "total": false,
             "values": false
           },
@@ -519,10 +519,10 @@
   "templating": {
     "list": [
       {
-        "allFormat": "wildcard",
+        "allFormat": "glob",
         "current": {
           "text": "All",
-          "value": "*"
+          "value": ""
         },
         "datasource": null,
         "hideLabel": true,
@@ -533,7 +533,7 @@
         "options": [
           {
             "text": "All",
-            "value": "*",
+            "value": "",
             "selected": true
           }
         ],
