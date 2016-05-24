@@ -45,9 +45,10 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       componentsListList = [service["components"] for service in services["services"]]
       componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
       hawqMasterHosts = self.getHosts(componentsList, "HAWQMASTER")
+      hawqStandbyHosts = self.getHosts(componentsList, "HAWQSTANDBY")
 
-      # if HAWQMASTER has already been assigned, try to ensure HAWQSTANDBY is not placed on the same host
-      if len(hawqMasterHosts) > 0:
+      # if HAWQMASTER has already been assigned and HAWQSTANDBY has not been assigned, try to ensure HAWQSTANDBY is not placed on the same host
+      if len(hawqMasterHosts) > 0 and len(hawqStandbyHosts) == 0:
         ambariServerHost = socket.getfqdn()
         availableHosts = [host for host in hostsList if host not in (hawqMasterHosts[0], ambariServerHost)]
         # Return list containing first available host if there are available hosts

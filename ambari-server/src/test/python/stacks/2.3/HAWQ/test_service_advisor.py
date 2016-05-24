@@ -113,6 +113,18 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(self.stackAdvisor, services, None, component, hostsList, None)
     self.assertEquals(standbyHosts, [])
 
+    # Case 5:
+    # Ambari Server is placed on c6401.ambari.apache.org
+    # HAWQMASTER is placed on c6402.ambari.apache.org
+    # HAWQSTANDBY is placed on c6401.ambari.apache.org
+    # There are 3 available host in the cluster
+    # Do not change HAWQSTANDBY host according to recommendation since HAWQSTANDBY has already been assigned a host
+    hostsList = ["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = ["c6402.ambari.apache.org"]
+    services["services"][0]["components"][1]["StackServiceComponents"]["hostnames"] = ["c6401.ambari.apache.org"]
+    standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(self.stackAdvisor, services, None, component, hostsList, None)
+    self.assertEquals(standbyHosts, ["c6401.ambari.apache.org"])
+
 
   def test_getServiceConfigurationRecommendations(self):
 
