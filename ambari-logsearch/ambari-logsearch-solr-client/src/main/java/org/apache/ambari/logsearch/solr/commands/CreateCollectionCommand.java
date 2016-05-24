@@ -45,10 +45,12 @@ public class CreateCollectionCommand extends AbstractSolrRetryCommand<Collection
     request.setNumShards(client.getShards());
     request.setReplicationFactor(client.getReplication());
     request.setMaxShardsPerNode(client.getMaxShardsPerNode());
-    if (client.isSplitting()) {
-      request.setShards(ShardUtils.generateShardListStr(client.getMaxShardsPerNode()));
+    if (client.getRouterField() != null && client.getRouterName()!= null) {
       request.setRouterName(client.getRouterName());
       request.setRouterField(client.getRouterField());
+    }
+    if (client.isSplitting()) {
+      request.setShards(ShardUtils.generateShardListStr(client.getMaxShardsPerNode()));
     }
     return request;
   }
