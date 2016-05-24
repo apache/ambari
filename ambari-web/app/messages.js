@@ -227,7 +227,7 @@ Em.I18n.translations = {
   'common.process': 'Process',
   'common.property': 'Property',
   'common.installed': 'Installed',
-  'common.persist.error' : 'Error in persisting web client state at ambari server:',
+  'common.persist.error' : 'Error in persisting web client state at ambari server. Server respond with following error message:',
   'common.update.error' : 'Error in retrieving web client state from ambari server',
   'common.tags': 'Tags',
   'common.important': 'Important',
