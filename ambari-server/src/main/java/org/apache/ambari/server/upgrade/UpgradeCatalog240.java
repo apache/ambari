@@ -805,6 +805,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         atlasMetadataServerWebUI.setSource(sourceJson.toString());
         alertDefinitionDAO.merge(atlasMetadataServerWebUI);
       }
+
+      AlertDefinitionEntity stormRestApiAlertDefinition = alertDefinitionDAO.findByName(clusterID, "storm_rest_api");
+      if (stormRestApiAlertDefinition != null) {
+        LOG.info("Removing alert : storm_rest_api");
+        alertDefinitionDAO.remove(stormRestApiAlertDefinition);
+      }
     }
   }
 

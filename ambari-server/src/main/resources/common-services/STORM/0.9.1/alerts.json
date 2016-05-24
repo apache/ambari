@@ -136,33 +136,6 @@
         }
       }
     ],
-    "STORM_REST_API": [
-      {
-        "name": "storm_rest_api",
-        "label": "Storm REST API",
-        "interval": 1,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "PORT",
-          "uri": "8745",
-          "default_port": 8745,
-          "reporting": {
-            "ok": {
-              "text": "TCP OK - {0:.3f}s response on port {1}"
-            },
-            "warning": {
-              "text": "TCP OK - {0:.3f}s response on port {1}",
-              "value": 1.5
-            },
-            "critical": {
-              "text": "Connection failed: {0} to {1}:{2}",
-              "value": 5.0
-            }
-          }
-        }
-      }
-    ],
     "SUPERVISOR": [
       {
         "name": "storm_supervisor_process",
