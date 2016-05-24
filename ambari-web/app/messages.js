@@ -2543,7 +2543,7 @@ Em.I18n.translations = {
   'hosts.delete.popup.unknownComponents':'The following components have unknown status:',
   'hosts.cant.do.popup.title':'Unable to Delete Host',
   'hosts.cant.do.popup.masterList.body':'This host cannot be deleted since it has the following master components:',
-  'hosts.cant.do.popup.masterList.body.end':'To delete this host, you must first move all the master components listed above to another host.',
+  'hosts.cant.do.popup.masterList.body.end':'To delete this host, you must first move or delete all the master components listed above.',
   'hosts.cant.do.popup.nonDeletableList.body':'Deletion of the following {0} components is not supported. ',
   'hosts.cant.do.popup.runningList.body':'This host cannot be deleted since the following components are running:',
   'hosts.cant.do.popup.runningList.body.end':'To delete this host, you must first stop all the running components listed above. ' +

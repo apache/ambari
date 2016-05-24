@@ -2092,7 +2092,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           container.lastComponents.push(cInstance.get('displayName'));
         }
         var workStatus = cInstance.get('workStatus');
-        if (cInstance.get('isMaster') && !cInstance.get('isDeletable')) {
+        if (cInstance.get('isMaster')) {
           container.masterComponents.push(cInstance.get('displayName'));
         }
         if (stoppedStates.indexOf(workStatus) < 0) {
