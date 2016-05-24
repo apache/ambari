@@ -329,7 +329,7 @@ def main(heartbeat_stop_callback=None):
         logger.warn("Unable to determine the IP address of the Ambari server '%s'", server_hostname)
 
       # Wait until MAX_RETRIES to see if server is reachable
-      netutil = NetUtil(heartbeat_stop_callback)
+      netutil = NetUtil(config, heartbeat_stop_callback)
       (retries, connected, stopped) = netutil.try_to_connect(server_url, MAX_RETRIES, logger)
 
       # if connected, launch controller
