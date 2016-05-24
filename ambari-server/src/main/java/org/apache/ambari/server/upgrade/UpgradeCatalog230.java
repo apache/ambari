@@ -254,7 +254,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     String serviceOperatorPermissionId = permissionDAO.findPermissionByNameAndType("SERVICE.OPERATOR", resourceTypeDAO.findByName("CLUSTER")).getId().toString();
 
     // Create role groups
-    List<String> viewUserOnly = Arrays.asList(viewPermissionId);
+    List<String> viewUserAndAdministrator = Arrays.asList(viewPermissionId, administratorPermissionId);
     List<String> clusterUserAndUp = Arrays.asList(
         clusterUserPermissionId,
         serviceOperatorPermissionId,
@@ -284,7 +284,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
 
     // A map of the authorizations to the relevant roles
     Map<String, List<String>> map = new HashMap<String, List<String>>();
-    map.put("VIEW.USE", viewUserOnly);
+    map.put("VIEW.USE", viewUserAndAdministrator);
     map.put("SERVICE.VIEW_METRICS", clusterUserAndUp);
     map.put("SERVICE.VIEW_STATUS_INFO", clusterUserAndUp);
     map.put("SERVICE.VIEW_CONFIGS", clusterUserAndUp);
