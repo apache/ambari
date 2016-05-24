@@ -65,7 +65,12 @@ public @interface TransactionalLock {
      * Joinpoint lock around work performed on caching the host role command
      * status in a given stage and request.
      */
-    HRC_STATUS_CACHE(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED);
+    HRC_STATUS_CACHE(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED),
+
+    /**
+     * Joinpoint lock around work performed on caching config staleness.
+     */
+    STALE_CONFIG_CACHE(Configuration.SERVER_STALE_CONFIG_CACHE_ENABLED_KEY);
 
     /**
      * Logger.

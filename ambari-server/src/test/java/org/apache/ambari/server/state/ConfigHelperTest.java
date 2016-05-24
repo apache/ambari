@@ -723,7 +723,7 @@ public class ConfigHelperTest {
       expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").anyTimes();
       replay(sch);
       // Cluster level config changes
-      Assert.assertTrue(configHelper.isStaleConfigs(sch));
+      Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
 
       HostConfig hc2 = new HostConfig();
       hc2.setDefaultVersionTag("version1");
@@ -731,7 +731,7 @@ public class ConfigHelperTest {
       // invalidate cache to test new sch
       configHelper.invalidateStaleConfigsCache();
       // Cluster level same configs
-      Assert.assertFalse(configHelper.isStaleConfigs(sch));
+      Assert.assertFalse(configHelper.isStaleConfigs(sch, null));
 
       // Cluster level same configs but group specific configs for host have been updated
       List<String> hosts = new ArrayList<String>();
@@ -743,7 +743,7 @@ public class ConfigHelperTest {
       addConfigGroup("configGroup1", "FLUME", hosts, configs);
 
       // config group added for host - expect staleness
-      Assert.assertTrue(configHelper.isStaleConfigs(sch));
+      Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
 
       HostConfig hc3 = new HostConfig();
       hc3.setDefaultVersionTag("version1");
@@ -752,7 +752,7 @@ public class ConfigHelperTest {
       configHelper.invalidateStaleConfigsCache();
 
       // version1 and FLUME1 - stale=false
-      Assert.assertFalse(configHelper.isStaleConfigs(sch));
+      Assert.assertFalse(configHelper.isStaleConfigs(sch, null));
 
       HostConfig hc4 = new HostConfig();
       hc4.setDefaultVersionTag("version1");
@@ -761,7 +761,7 @@ public class ConfigHelperTest {
       configHelper.invalidateStaleConfigsCache();
 
       // version1 and FLUME2 - stale=true
-      Assert.assertTrue(configHelper.isStaleConfigs(sch));
+      Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
 
       HostConfig hc5 = new HostConfig();
       hc5.setDefaultVersionTag("version3");
@@ -770,7 +770,7 @@ public class ConfigHelperTest {
       configHelper.invalidateStaleConfigsCache();
 
       // version3 and FLUME1 - stale=true
-      Assert.assertTrue(configHelper.isStaleConfigs(sch));
+      Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
 
       verify(sch);
     }
@@ -828,7 +828,7 @@ public class ConfigHelperTest {
           while(!finished.get()){
             checkLock.lock();
             try {
-              boolean isStale = configHelper.isStaleConfigs(sch);
+              boolean isStale = configHelper.isStaleConfigs(sch, null);
               if(mustBeStale.get() != isStale){
                 failed.set(true);
                 break;

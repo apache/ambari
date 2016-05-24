@@ -18,7 +18,21 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Inject;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
+import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
+
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -54,23 +68,11 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
-import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
+import com.google.inject.Inject;
 
 /**
  * An abstract provider module implementation.
@@ -291,6 +293,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * Get type of Metrics system installed.
    * @return @MetricsService, null if none found.
    */
+  @Override
   public MetricsService getMetricsServiceType() {
     try {
       checkInit();
@@ -545,7 +548,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
         // Since concurrent thread access is expected we err on the side of
         // performance with a ConcurrentHashMap and maybe get default/existing
         // ports for a few calls.
-        if (!currVersion.equals(oldVersion) ||
+        if (!StringUtils.equals(currVersion, oldVersion) ||
             !(clusterJmxPorts.containsKey(hostName) && clusterJmxPorts.get(hostName).containsKey(componentName))) {
 
           serviceConfigVersions.put(configType, currVersion);
@@ -1204,10 +1207,11 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   private String getJMXProtocolString(String value) {
-    if (value.equals(PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY))
+    if (value.equals(PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY)) {
       return "https";
-    else
+    } else {
       return "http";
+    }
   }
 
   @Override

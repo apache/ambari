@@ -136,6 +136,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
@@ -1164,6 +1165,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       checkState = true;
     }
 
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
 
     for (Service s : services) {
@@ -1218,7 +1220,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
 
-            ServiceComponentHostResponse r = sch.convertToResponse();
+            ServiceComponentHostResponse r = sch.convertToResponse(desiredConfigs);
             if (null == r || (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig)) {
               continue;
             }
@@ -1269,7 +1271,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               }
             }
 
-            ServiceComponentHostResponse r = sch.convertToResponse();
+            ServiceComponentHostResponse r = sch.convertToResponse(desiredConfigs);
             if (null == r || (filterBasedConfigStaleness && r.isStaleConfig() != staleConfig)) {
               continue;
             }

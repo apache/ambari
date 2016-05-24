@@ -780,5 +780,4 @@ public class ConfigurationTest {
     Assert.assertEquals("FooChannel", properties.getProperty("eclipselink.cache.coordination.channel"));
     Assert.assertEquals("commit", properties.getProperty("eclipselink.persistence-context.flush-mode"));
   }
-
 }

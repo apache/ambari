@@ -450,7 +450,7 @@ public class Configuration {
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
   private static final String SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT = "true";
-  private static final String SERVER_STALE_CONFIG_CACHE_EXPIRATION_DEFAULT = "60";
+  private static final String SERVER_STALE_CONFIG_CACHE_EXPIRATION_DEFAULT = "300";
   private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari";
   private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
   private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";

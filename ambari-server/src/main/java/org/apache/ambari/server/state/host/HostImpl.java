@@ -1330,29 +1330,21 @@ public class HostImpl implements Host {
   }
 
   /**
-   * Get a map of configType with all applicable config tags.
-   *
-   * @param cluster  the cluster
-   *
-   * @return Map of configType -> HostConfig
+   * {@inheritDoc}
    */
   @Override
-  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException {
-    return getDesiredHostConfigs(cluster, false);
-  }
-
-  /**
-   * Get a map of configType with all applicable config tags.
-   *
-   * @param cluster  the cluster
-   * @param bypassCache don't use cached values
-   *
-   * @return Map of configType -> HostConfig
-   */
-  @Override
-  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster, boolean bypassCache) throws AmbariException {
+  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster,
+      Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException {
     Map<String, HostConfig> hostConfigMap = new HashMap<String, HostConfig>();
-    Map<String, DesiredConfig> clusterDesiredConfigs = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs(bypassCache);
+
+    if( null == cluster ){
+      clusterDesiredConfigs = new HashMap<String, DesiredConfig>();
+    }
+
+    // per method contract, fetch if not supplied
+    if (null == clusterDesiredConfigs) {
+      clusterDesiredConfigs = cluster.getDesiredConfigs();
+    }
 
     if (clusterDesiredConfigs != null) {
       for (Map.Entry<String, DesiredConfig> desiredConfigEntry

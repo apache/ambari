@@ -457,13 +457,6 @@ public interface Cluster {
   Map<String, DesiredConfig> getDesiredConfigs();
 
   /**
-   * Gets the active desired configurations for the cluster.
-   * @param bypassCache don't use cached values
-   * @return a map of type-to-configuration information.
-   */
-  Map<String, DesiredConfig> getDesiredConfigs(boolean bypassCache);
-
-  /**
    * Gets all versions of the desired configurations for the cluster.
    * @return a map of type-to-configuration information.
    */

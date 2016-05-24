@@ -166,7 +166,19 @@ public interface ServiceComponentHost {
 
   void setComponentAdminState(HostComponentAdminState attribute);
 
-  ServiceComponentHostResponse convertToResponse();
+  /**
+   * Builds a {@link ServiceComponentHostResponse}.
+   *
+   * @param desiredConfigs
+   *          the desired configurations for the cluster. Obtaining these can be
+   *          expensive and since this method operates on SCH's, it could be
+   *          called 10,000's of times when generating cluster/host responses.
+   *          Therefore, the caller should build these once and pass them in. If
+   *          {@code null}, then this method will retrieve them at runtime,
+   *          incurring a performance penality.
+   * @return
+   */
+  ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs);
 
   boolean isPersisted();
 

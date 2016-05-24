@@ -41,6 +41,9 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
+import org.apache.ambari.annotations.TransactionalLock;
+import org.apache.ambari.annotations.TransactionalLock.LockArea;
+import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -2346,21 +2349,13 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions() {
-    return getDesiredConfigs(true, false);
+    return getDesiredConfigs(true);
   }
 
-  /**
-   * Gets the active desired configurations for the cluster.
-   * @return a map of type-to-configuration information.
-   */
+
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
-    return getDesiredConfigs(false);
-  }
-
-  @Override
-  public Map<String, DesiredConfig> getDesiredConfigs(boolean bypassCache) {
-    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false, bypassCache);
+    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false);
     return Maps.transformEntries(
         activeConfigsByType,
         new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
@@ -2378,16 +2373,14 @@ public class ClusterImpl implements Cluster {
    *                    desired configuration per config type.
    * @return a map of type-to-configuration information.
    */
-  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions, boolean bypassCache) {
+  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions) {
     loadConfigurations();
     clusterGlobalLock.readLock().lock();
     try {
       Map<String, Set<DesiredConfig>> map = new HashMap<>();
       Collection<String> types = new HashSet<>();
-      Collection<ClusterConfigMappingEntity> entities =
-          bypassCache ?
-              clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId()) :
-              getClusterEntity().getConfigMappingEntities();
+      Collection<ClusterConfigMappingEntity> entities = getClusterEntity().getConfigMappingEntities();
+
       for (ClusterConfigMappingEntity e : entities) {
         if (allVersions || e.isSelected() > 0) {
           DesiredConfig c = new DesiredConfig();
@@ -2801,6 +2794,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
+  @TransactionalLock(lockArea = LockArea.STALE_CONFIG_CACHE, lockType = LockType.WRITE)
   void selectConfig(String type, String tag, String user) {
     Collection<ClusterConfigMappingEntity> entities =
         clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
@@ -2829,6 +2823,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
+  @TransactionalLock(lockArea = LockArea.STALE_CONFIG_CACHE, lockType = LockType.WRITE)
   ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
 
     String serviceName = null;
@@ -3145,6 +3140,9 @@ public class ClusterImpl implements Cluster {
     int alertStatusHosts = 0;
     int heartbeatLostStateHosts = 0;
 
+    // look this up once so it can be reused in the loop for every SCH
+    Map<String, DesiredConfig> desiredConfigs = getDesiredConfigs();
+
     Collection<Host> hosts = clusterHosts.values();
     Iterator<Host> iterator = hosts.iterator();
     while (iterator.hasNext()) {
@@ -3186,7 +3184,7 @@ public class ClusterImpl implements Cluster {
 
       if (serviceComponentHostsByHost.containsKey(hostName)) {
         for (ServiceComponentHost sch : serviceComponentHostsByHost.get(hostName)) {
-          staleConfig = staleConfig || configHelper.isStaleConfigs(sch);
+          staleConfig = staleConfig || configHelper.isStaleConfigs(sch, desiredConfigs);
           maintenanceState = maintenanceState ||
             maintenanceStateHelper.getEffectiveState(sch) != MaintenanceState.OFF;
         }
