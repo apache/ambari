@@ -44,7 +44,7 @@ public class HdfsUtil {
     try {
       synchronized (hdfs) {
         stream = hdfs.create(filePath, true);
-        stream.writeBytes(content);
+        stream.write(content.getBytes());
         stream.close();
       }
     } catch (IOException e) {
