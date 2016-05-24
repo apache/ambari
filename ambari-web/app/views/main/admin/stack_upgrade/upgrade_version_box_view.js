@@ -169,7 +169,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }
     else if (status === 'INIT') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
-      element.set('isDisabled', this.get('controller.requestInProgress') || isInstalling);
+      element.set('isDisabled', this.isDisabledOnInit() || isInstalling);
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
@@ -236,6 +236,14 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'controller.requestInProgressRepoId',
     'parentView.repoVersions.@each.status'
   ),
+
+  /**
+   * check if actions of stack version disabled
+   * @returns {boolean}
+   */
+  isDisabledOnInit: function() {
+    return this.get('controller.requestInProgress') || (App.get('upgradeIsRunning') && !App.get('upgradeSuspended'));
+  },
 
   didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
