@@ -24,18 +24,25 @@ __all__ = ["get_lzo_packages"]
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.script.script import Script
 
 # TODO: Make list of lzo packages stack driven
 def get_lzo_packages(stack_version_unformatted):
   lzo_packages = []
- 
+  script_instance = Script.get_instance()
+
   if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
     lzo_packages += ["lzo", "hadoop-lzo-native"]
   elif OSCheck.is_ubuntu_family():
     lzo_packages += ["liblzo2-2"]
 
   if stack_version_unformatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_unformatted):
-    lzo_packages += ["hadooplzo_*"]
+    if OSCheck.is_ubuntu_family():
+      lzo_packages += [script_instance.format_package_name("hadooplzo-${stack_version}") ,
+                       script_instance.format_package_name("hadooplzo-${stack_version}-native")]
+    else:
+      lzo_packages += [script_instance.format_package_name("hadooplzo_${stack_version}"),
+                       script_instance.format_package_name("hadooplzo_${stack_version}-native")]
   else:
     lzo_packages += ["hadoop-lzo"]
 

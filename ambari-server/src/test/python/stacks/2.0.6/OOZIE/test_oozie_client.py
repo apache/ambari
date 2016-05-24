@@ -19,8 +19,10 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.script.script import Script
 import json
 
+@patch.object(Script, 'format_package_name', new = MagicMock())
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestOozieClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"

@@ -115,6 +115,7 @@ class RMFTestCase(TestCase):
     try:
       with patch.object(platform, 'linux_distribution', return_value=os_type):
         script_module = imp.load_source(classname, script_path)
+        Script.instance = None
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
         script_class_inst.log_out_files = log_out_files
         method = RMFTestCase._get_attr(script_class_inst, command)

@@ -20,12 +20,13 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 import json
 from mock.mock import MagicMock, patch
-from resource_management.libraries.script import Script
+from resource_management.libraries.script.script import Script
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 import resource_management.libraries.functions.dfs_datanode_helper
 
 @patch.object(resource_management.libraries.functions, 'check_process_status', new = MagicMock())
+@patch.object(Script, 'format_package_name', new = MagicMock())
 class TestDatanode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
