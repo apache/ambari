@@ -41,7 +41,7 @@ class TestNetUtil(unittest.TestCase):
     httpsConMock.return_value = ca_connection
 
     # test 200
-    netutil = NetUtil.NetUtil()
+    netutil = NetUtil.NetUtil(MagicMock())
     self.assertTrue(netutil.checkURL("url")[0])
 
     # test fail
@@ -59,7 +59,7 @@ class TestNetUtil(unittest.TestCase):
   def test_try_to_connect(self, event_mock,
                             sleepMock):
     event_mock.return_value = False
-    netutil = NetUtil.NetUtil()
+    netutil = NetUtil.NetUtil(MagicMock())
     checkURL = MagicMock(name="checkURL")
     checkURL.return_value = True, "test"
     netutil.checkURL = checkURL
