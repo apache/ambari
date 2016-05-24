@@ -139,7 +139,7 @@ metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sin
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 
 #Collector hosts
-metric_collector_hosts = None
+metric_collector_hosts = ""
 if ams_collector_hosts:
   for host in ams_collector_hosts:
     metric_collector_hosts += host + ':' + metric_collector_port + ','

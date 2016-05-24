@@ -192,14 +192,14 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
 
 # Collector hosts
-metric_collector_hosts = None
+metric_collector_hosts = ""
 if ams_collector_hosts:
   for host in ams_collector_hosts:
     metric_collector_hosts += host + ':' + metric_collector_port + ','
   metric_collector_hosts = metric_collector_hosts[:-1]
 
 # Cluster Zookeeper quorum
-zookeeper_quorum = None
+zookeeper_quorum = ""
 if storm_zookeeper_servers:
   for server in storm_zookeeper_servers:
     zookeeper_quorum += server + ':' + storm_zookeeper_port + ","
