@@ -39,7 +39,7 @@ public class PropertyValidator implements Validator {
     // no properties
 
     // 2. if associated with cluster, no need to validate associated properties
-    String cluster = viewInstanceDefinition.getClusterHandle();
+    Long cluster = viewInstanceDefinition.getClusterHandle();
     if (cluster != null) {
       return ValidationResult.SUCCESS;
     }

@@ -121,7 +121,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * The associated cluster handle.
    */
   @Column(name = "cluster_handle", nullable = true)
-  private String clusterHandle;
+  private Long clusterHandle;
 
   /**
    *  Cluster Type for cluster Handle
@@ -360,7 +360,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   }
 
   @Override
-  public String getClusterHandle() {
+  public Long getClusterHandle() {
     return clusterHandle;
   }
 
@@ -443,11 +443,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   /**
    * Set a cluster association for this view instance with the Ambari cluster
    * identified by the given cluster handle.  For a local cluster reference,
-   * the cluster handle is simply the unique cluster name.
+   * the cluster handle is simply the unique cluster id.
    *
    * @param clusterHandle  the cluster identifier
    */
-  public void setClusterHandle(String clusterHandle) {
+  public void setClusterHandle(Long clusterHandle) {
     this.clusterHandle = clusterHandle;
   }
 

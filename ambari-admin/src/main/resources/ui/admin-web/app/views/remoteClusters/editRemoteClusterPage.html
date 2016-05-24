@@ -33,7 +33,7 @@
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
     <label for="clustername" class="col-sm-2 control-label">{{'views.clusterName' | translate}}</label>
     <div class="col-sm-10">
-      <input type="text" id="clustername" disabled class="form-control" name="cluster_name" ng-pattern="/[a-zA-Z0-9\-]*/" placeholder="Cluster Name" ng-model="cluster.cluster_name" required autocomplete="off">
+      <input type="text" id="clustername" class="form-control" name="cluster_name" ng-pattern="/[a-zA-Z0-9\-]*/" placeholder="Cluster Name" ng-model="cluster.cluster_name" required autocomplete="off">
       <div class="alert alert-danger top-margin" ng-show="form.cluster_name.$error.required && form.submitted"> {{'common.alerts.fieldIsRequired' | translate}}</div>
     </div>
   </div>

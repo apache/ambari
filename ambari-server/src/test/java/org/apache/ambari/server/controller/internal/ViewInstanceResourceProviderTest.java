@@ -91,7 +91,7 @@ public class ViewInstanceResourceProviderTest {
     expect(viewregistry.checkAdmin()).andReturn(true);
     expect(viewregistry.checkAdmin()).andReturn(false);
 
-    expect(viewInstanceEntity.getClusterHandle()).andReturn("c1");
+    expect(viewInstanceEntity.getClusterHandle()).andReturn(1L);
 
     replay(viewregistry, viewEntity, viewInstanceEntity);
 
@@ -102,7 +102,7 @@ public class ViewInstanceResourceProviderTest {
     Map<String, Object> props = properties.get("ViewInstanceInfo");
     assertNotNull(props);
     assertEquals(1, props.size());
-    assertEquals("c1", props.get("cluster_handle"));
+    assertEquals(1L, props.get("cluster_handle"));
 
     props = properties.get("ViewInstanceInfo/properties");
     assertNotNull(props);

@@ -24,4 +24,8 @@ public class ClusterNotFoundException extends ObjectNotFoundException {
   public ClusterNotFoundException(String clusterName) {
     super("Cluster not found, clusterName=" + clusterName);
   }
+
+  public ClusterNotFoundException(Long clusterId) {
+    super("Cluster not found, clusterId=" + clusterId);
+  }
 }

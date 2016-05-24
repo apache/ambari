@@ -352,7 +352,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
     }
 
     if (properties.containsKey(CLUSTER_HANDLE_PROPERTY_ID)) {
-      viewInstanceEntity.setClusterHandle((String) properties.get(CLUSTER_HANDLE_PROPERTY_ID));
+      viewInstanceEntity.setClusterHandle(Long.valueOf((String) properties.get(CLUSTER_HANDLE_PROPERTY_ID)));
     }
 
     if (properties.containsKey(CLUSTER_TYPE_PROPERTY_ID)) {

@@ -72,6 +72,19 @@ public class RemoteAmbariClusterDAO {
   }
 
   /**
+   * Find Cluster by Id
+   * @param clusterId
+   * @return
+   */
+  @RequiresSession
+  public RemoteAmbariClusterEntity findById(Long clusterId) {
+    TypedQuery<RemoteAmbariClusterEntity> query = entityManagerProvider.get().
+      createNamedQuery("remoteAmbariClusterById", RemoteAmbariClusterEntity.class);
+    query.setParameter("clusterId", clusterId);
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
    * Save a Cluster entity
    * @param entity
      */

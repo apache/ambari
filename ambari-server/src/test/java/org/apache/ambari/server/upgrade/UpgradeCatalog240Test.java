@@ -261,6 +261,17 @@ public class UpgradeCatalog240Test {
     expect(dbAccessor.getConnection()).andReturn(connection);
     expect(connection.createStatement()).andReturn(statement);
 
+    // Test viewInstance update
+    dbAccessor.addColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), anyObject(DBAccessor.DBColumnInfo.class));
+
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.createStatement()).andReturn(statement);
+
+    dbAccessor.dropColumn(UpgradeCatalog240.VIEWINSTANCE_TABLE,UpgradeCatalog240.CLUSTER_HANDLE_COLUMN);
+
+    Capture<DBAccessor.DBColumnInfo> capturedClusterHandleColumn = EasyMock.newCapture();
+    dbAccessor.renameColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), anyString() , capture(capturedClusterHandleColumn));
+
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Module module = new Module() {
@@ -418,7 +429,7 @@ public class UpgradeCatalog240Test {
 
     List<DBAccessor.DBColumnInfo> capturedViewUrlColumsValue = capturedViewUrlColums.getValue();
     Assert.assertNotNull(capturedViewUrlColumsValue);
-    Assert.assertEquals(capturedViewUrlColumsValue.size(),3);
+    Assert.assertEquals(3, capturedViewUrlColumsValue.size());
 
     // Verify cluster_type column
     DBAccessor.DBColumnInfo viewInstanceEntityClusterTypeValue = viewInstanceClusterType.getValue();
@@ -428,11 +439,15 @@ public class UpgradeCatalog240Test {
 
     List<DBAccessor.DBColumnInfo> capturedRemoteAmbariClusterColumnsValue = capturedRemoteAmbariClusterColumns.getValue();
     Assert.assertNotNull(capturedRemoteAmbariClusterColumnsValue);
-    Assert.assertEquals(capturedRemoteAmbariClusterColumnsValue.size(),5);
+    Assert.assertEquals(5, capturedRemoteAmbariClusterColumnsValue.size());
 
     List<DBAccessor.DBColumnInfo> capturedRemoteClusterServiceColumnsValue = capturedRemoteClusterServiceColumns.getValue();
     Assert.assertNotNull(capturedRemoteClusterServiceColumnsValue);
-    Assert.assertEquals(capturedRemoteClusterServiceColumnsValue.size(),3);
+    Assert.assertEquals(3, capturedRemoteClusterServiceColumnsValue.size());
+
+    DBAccessor.DBColumnInfo clusterHandleColumn = capturedClusterHandleColumn.getValue();
+    Assert.assertEquals(UpgradeCatalog240.CLUSTER_HANDLE_COLUMN, clusterHandleColumn.getName());
+    Assert.assertEquals(Long.class, clusterHandleColumn.getType());
 
     verify(dbAccessor);
   }

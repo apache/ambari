@@ -307,7 +307,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
   @Override
   public AmbariStreamProvider getAmbariClusterStreamProvider() {
 
-    String clusterHandle = viewInstanceEntity.getClusterHandle();
+    Long clusterHandle = viewInstanceEntity.getClusterHandle();
     ClusterType clusterType = viewInstanceEntity.getClusterType();
 
     AmbariStreamProvider clusterStreamProvider = null;
