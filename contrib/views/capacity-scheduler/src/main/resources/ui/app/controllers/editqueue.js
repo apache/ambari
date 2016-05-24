@@ -47,8 +47,52 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     },
     mouseUp: function(){
       return false;
+    },
+    editQueueName: function() {
+      this.set('enableEditQName', true);
+      this.set('updatedQName', this.get('content.name'));
+    },
+    cancelQNameEdit: function() {
+      this.set('enableEditQName', false);
+      this.set('isInvalidQName', false);
+      this.set('invalidQNameMessage', '');
+    },
+    renameQueue: function() {
+      if (this.validateQName()) {
+        return;
+      }
+      this.set('content.name', this.get('updatedQName'));
+      this.set('enableEditQName', false);
     }
   },
+
+  updatedQName: '',
+  enableEditQName: false,
+  isInvalidQName: false,
+  invalidQNameMessage: '',
+
+  validateQName: function() {
+    var qName = this.get('updatedQName'),
+    originalQName = this.get('content.name'),
+    qParentPath = this.get('content.parentPath'),
+    qPath = [qParentPath, qName].join('.'),
+    qAlreadyExists = this.store.hasRecordForId('queue', qPath.toLowerCase());
+    if (Ember.isBlank(qName)) {
+      this.set('isInvalidQName', true);
+      this.set('invalidQNameMessage', 'Enter queue name');
+    } else if (qAlreadyExists && qName !== originalQName) {
+      this.set('isInvalidQName', true);
+      this.set('invalidQNameMessage', 'Queue already exists');
+    } else {
+      this.set('isInvalidQName', false);
+      this.set('invalidQNameMessage', '');
+    }
+    return this.get('isInvalidQName');
+  },
+
+  qNameDidChage: function() {
+    this.validateQName();
+  }.observes('updatedQName', 'updatedQName.length'),
 
   /**
    * Collection of modified fields in queue.
@@ -292,7 +336,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
       return totalCapacity;
     }.property('childrenQueues.length', 'childrenQueues.@each.capacity'),
 
-    pattern: 'width: %@%',
+    widthPattern: 'width: %@%',
 
     warnInvalidCapacity: function() {
       var totalCap = this.get('childrenQueuesTotalCapacity');
@@ -307,7 +351,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
       if (totalCap > 100) {
         totalCap = 100;
       }
-      return this.get('pattern').fmt(totalCap);
+      return this.get('widthPattern').fmt(totalCap);
     }.property('childrenQueuesTotalCapacity'),
 
    /**

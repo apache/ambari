@@ -125,7 +125,7 @@
      }.property('selection')
    }),
 
-   isCollapsed: true,
+   isCollapsed: false,
    doExpandCollapse: function(){
      var that = this;
      this.$('#collapseQueueMappingsBtn').on('click', function(e){

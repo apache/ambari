@@ -42,13 +42,21 @@
                 </div>
               </div>
               {{#if showQueueNameInput}}
-              <div class="add-newqueuename-wrapper">
-                {{input type="text" name="addNewQueueName" class="form-control input-sm new-queue-name" value=newQueueName placeholder="Enter queue name..."}}
-                <div class="btn-group btn-group-sm pull-right">
-                  <button type="button" class="btn btn-primary" name="createNewQueueBtn" {{action "createNewQueue"}}>Create</button>
-                  <button type="button" class="btn btn-default" name="cancelNewQueueBtn" {{action "cancelCreateQueue"}}>Cancel</button>
+                <div {{bind-attr class=":add-newqueuename-wrapper isInvalidQueueName:has-error"}} class="add-newqueuename-wrapper">
+                  {{input type="text" name="addNewQueueName" class="form-control input-sm new-queue-name" value=newQueueName placeholder="Enter queue name..."}}
+                  <div class="btn-group btn-group-sm pull-right">
+                    <button type="button" class="btn btn-primary" name="createNewQueueBtn" {{action "createNewQueue"}}>Create</button>
+                    <button type="button" class="btn btn-default" name="cancelNewQueueBtn" {{action "clearCreateQueue"}}>Cancel</button>
+                  </div>
+                  {{#if isInvalidQueueName}}
+                    <div class="tooltip bottom invalid-qname-tooltip" role="tooltip">
+                      <div class="tooltip-arrow"></div>
+                      <div class="tooltip-inner">
+                        {{invalidQueueNameMessage}}
+                      </div>
+                    </div>
+                  {{/if}}
                 </div>
-              </div>
               {{/if}}
             {{/if}}
           {{/if}}
@@ -65,8 +73,10 @@
       </div>
     </div>
   </div>
-  <div class="btn btn-group-sm col-sm-offset-3">
-    <button type="button" class="btn btn-success" name="saveQueuesconfBtn" {{action "showSaveConfigDialog" target="view"}}>Save And Refresh Queues</button>
+  <div class="btn btn-group-sm col-sm-offset-2">
+    <button type="button" class="btn btn-success" name="saveOnly">Save Only</button>
+    <button type="button" class="btn btn-success" name="saveAndRefresh" {{action "showSaveConfigDialog" target="view"}}>Save And Refresh Queues</button>
+    <button type="button" class="btn btn-warning" name="saveAndRestart">Save And Restart RM</button>
     <button type="button" class="btn btn-danger" name="cancelQueuesconfBtn">Cancel Changes</button>
   </div>
 </div>
