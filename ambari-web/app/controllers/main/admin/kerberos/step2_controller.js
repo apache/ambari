@@ -340,5 +340,12 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     if (kdcTypeProperty) {
       Em.set(kdcTypeProperty, 'value', kdcValuesMap[kdcTypeValue]);
     }
-  }
+  },
+
+  /**
+   * Override App.WizardStep7Controller#overrideConfigIsRequired
+   *
+   * @override
+   */
+  overrideConfigIsRequired: function() {}
 });
