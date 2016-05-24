@@ -262,7 +262,7 @@ class ResourcemanagerDefault(Resourcemanager):
 
       if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
         # check with webhdfs is much faster than executing hdfs dfs -test
-        util = WebHDFSUtil(params.hdfs_site, params.yarn_user, params.security_enabled)
+        util = WebHDFSUtil(params.hdfs_site, params.hdfs_user, params.security_enabled)
         list_status = util.run_command(dir_path, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
         dir_exists = ('FileStatus' in list_status)
       else:
