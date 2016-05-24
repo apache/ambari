@@ -555,11 +555,12 @@ div.columnmanager-visibilitycontrol {
     position: absolute;
    /* top: -4px;*/
     /* left: 1px; */
-    right: -5px;
+    right: 0;
     background: none;
     color: #808080;
     top: -3px;
     font-size: 16px;
+    padding: 0 ;
 }
   
 .loading {
@@ -2142,4 +2143,7 @@ input.filterInput{
 }
 [data-id=tabTitle] {
   font-weight : bold;
+}
+.nvd3 rect[height="1"] {
+  display: none !important;
 }

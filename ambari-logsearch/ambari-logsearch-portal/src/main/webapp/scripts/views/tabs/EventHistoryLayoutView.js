@@ -430,7 +430,13 @@ define(['require',
                     
                 }
 
-                content.selectedCollectionObject.get("params")["time"] = content.$("input[name='radio']:checked").parents("[data-id]").data('id');
+                var timeType = content.$("input[name='radio']:checked").parents("[data-id]").data('id');
+
+                if(timeType === "absolute"){
+                    content.selectedCollectionObject.get("params")["dateRangeLabel"] = "Custom Range";
+                }
+
+                content.selectedCollectionObject.get("params")["time"] = timeType;
                 var postObject = {
                     userName: "admin",
                     filterName: content.ui.filterName.val(),
