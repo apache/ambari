@@ -375,6 +375,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         setup: function () {
           this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.initMock.returns(false);
         },
         expected: {
           status: 'INIT',
@@ -396,6 +397,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         setup: function () {
           this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.initMock.returns(true);
         },
         expected: {
           status: 'INIT',
@@ -878,10 +880,12 @@ describe('App.UpgradeVersionBoxView', function () {
     beforeEach(function () {
       this.getMock = sinon.stub(App, 'get');
       this.isAccessibleMock = sinon.stub(App, 'isAuthorized');
+      this.initMock = sinon.stub(view, 'isDisabledOnInit');
     });
     afterEach(function () {
       this.getMock.restore();
       this.isAccessibleMock.restore();
+      this.initMock.restore();
     });
 
     cases.forEach(function (item) {
@@ -936,6 +940,54 @@ describe('App.UpgradeVersionBoxView', function () {
         });
         view.set('content.status', item.status);
         expect(view.get('isRepoUrlsEditDisabled')).to.equal(item.isRepoUrlsEditDisabled);
+      });
+    });
+  });
+
+  describe("#isDisabledOnInit()", function () {
+    var testCases = [
+      {
+        requestInProgress: true,
+        upgradeIsRunning: true,
+        upgradeSuspended: true,
+        expected: true
+      },
+      {
+        requestInProgress: false,
+        upgradeIsRunning: true,
+        upgradeSuspended: false,
+        expected: true
+      },
+      {
+        requestInProgress: false,
+        upgradeIsRunning: true,
+        upgradeSuspended: true,
+        expected: false
+      },
+      {
+        requestInProgress: false,
+        upgradeIsRunning: false,
+        upgradeSuspended: false,
+        expected: false
+      }
+    ];
+
+    beforeEach(function() {
+      this.mock = sinon.stub(App, 'get');
+    });
+
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    testCases.forEach(function(test) {
+      it("requestInProgress: " + test.requestInProgress +
+         "upgradeIsRunning: " + test.upgradeIsRunning +
+         "upgradeSuspended: " + test.upgradeSuspended , function() {
+        this.mock.withArgs('upgradeSuspended').returns(test.upgradeSuspended);
+        this.mock.withArgs('upgradeIsRunning').returns(test.upgradeIsRunning);
+        view.set('controller.requestInProgress', test.requestInProgress);
+        expect(view.isDisabledOnInit()).to.be.equal(test.expected);
       });
     });
   });
