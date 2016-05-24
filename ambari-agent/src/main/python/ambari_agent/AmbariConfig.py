@@ -157,7 +157,7 @@ class AmbariConfig:
   def __init__(self):
     global content
     self.config = ConfigParser.RawConfigParser()
-    self.net = NetUtil(self)
+    self.net = NetUtil()
     self.config.readfp(StringIO.StringIO(content))
 
   def get(self, section, value, default=None):
