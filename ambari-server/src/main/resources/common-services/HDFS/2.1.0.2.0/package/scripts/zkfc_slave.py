@@ -40,8 +40,12 @@ class ZkfcSlave(Script):
     import params
     env.set_params(params)
     self.install_packages(env)
-
-  def configure(self, env):
+    
+  def configure(env):
+    ZkfcSlave.configure_static(env)
+    
+  @staticmethod
+  def configure_static(env):
     import params
     env.set_params(params)
     hdfs("zkfc_slave")
@@ -51,10 +55,14 @@ class ZkfcSlave(Script):
 class ZkfcSlaveDefault(ZkfcSlave):
 
   def start(self, env, upgrade_type=None):
+    ZkfcSlaveDefault.start_static(env, upgrade_type)
+    
+  @staticmethod
+  def start_static(env, upgrade_type=None):
     import params
 
     env.set_params(params)
-    self.configure(env)
+    ZkfcSlave.configure_static(env)
     Directory(params.hadoop_pid_dir_prefix,
               mode=0755,
               owner=params.hdfs_user,
@@ -75,8 +83,12 @@ class ZkfcSlaveDefault(ZkfcSlave):
       action="start", name="zkfc", user=params.hdfs_user, create_pid_dir=True,
       create_log_dir=True
     )
-
+  
   def stop(self, env, upgrade_type=None):
+    ZkfcSlaveDefault.stop_static(env, upgrade_type)
+
+  @staticmethod
+  def stop_static(env, upgrade_type=None):
     import params
 
     env.set_params(params)
@@ -87,6 +99,10 @@ class ZkfcSlaveDefault(ZkfcSlave):
 
 
   def status(self, env):
+    ZkfcSlaveDefault.status_static(env, upgrade_type)
+    
+  @staticmethod
+  def status_static(env):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.zkfc_pid_file)

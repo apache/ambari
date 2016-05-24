@@ -21,8 +21,9 @@ import json
 import os
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch
+from resource_management.libraries.script.script import Script
 
-
+@patch.object(Script, 'format_package_name', new = MagicMock())
 class TestJournalnode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"

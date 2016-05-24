@@ -36,7 +36,7 @@ from resource_management.libraries.functions.namenode_ha_utils import get_nameno
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.show_logs import show_logs
 
-from zkfc_slave import ZkfcSlave
+from zkfc_slave import ZkfcSlaveDefault
 
 def safe_zkfc_op(action, env):
   """
@@ -48,21 +48,17 @@ def safe_zkfc_op(action, env):
   zkfc = None
   if action == "start":
     try:
-      zkfc = ZkfcSlave()
-      zkfc.status(env)
+      ZkfcSlaveDefault.status_static(env)
     except ComponentIsNotRunning:
-      if zkfc:
-        zkfc.start(env)
+      ZkfcSlaveDefault.start_static(env)
 
   if action == "stop":
     try:
-      zkfc = ZkfcSlave()
-      zkfc.status(env)
+      ZkfcSlaveDefault.status_static(env)
     except ComponentIsNotRunning:
       pass
     else:
-      if zkfc:
-        zkfc.stop(env)
+      ZkfcSlaveDefault.stop_static(env)
 
 def initiate_safe_zkfc_failover():
   """

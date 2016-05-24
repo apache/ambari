@@ -24,8 +24,9 @@ import tarfile
 import contextlib
 from resource_management import *
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.script.script import Script
 
-
+@patch.object(Script, 'format_package_name', new = MagicMock())
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(tarfile,"open", new = MagicMock())
 @patch.object(tempfile,"mkdtemp", new = MagicMock(return_value='/tmp/123'))

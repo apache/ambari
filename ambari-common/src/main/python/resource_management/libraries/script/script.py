@@ -92,6 +92,9 @@ def get_path_from_configuration(name, configuration):
   return configuration
 
 class Script(object):
+
+  instance = None
+
   """
   Executes a command for custom service. stdout and stderr are written to
   tmpoutfile and to tmperrfile respectively.
@@ -790,3 +793,13 @@ class Script(object):
 
     finally:
       Directory(conf_tmp_dir, action="delete")
+
+  @staticmethod
+  def get_instance():
+    if Script.instance is None:
+      Script.instance = Script()
+    return Script.instance
+
+  def __init__(self):
+    if Script.instance is not None:
+      raise Fail("An instantiation already exists! Use, get_instance() method.")
