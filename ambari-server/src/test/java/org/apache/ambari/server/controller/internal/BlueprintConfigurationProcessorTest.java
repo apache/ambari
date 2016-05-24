@@ -2874,6 +2874,42 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testHiveInteractiveLlapZookeeperConfigExported() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String llapZkProperty = "hive.llap.zk.sm.connectionString";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hiveInteractiveSiteProperties = new HashMap<String, String>();
+
+    configProperties.put("hive-interactive-site", hiveInteractiveSiteProperties);
+
+    hiveInteractiveSiteProperties.put(llapZkProperty, createHostAddress(expectedHostName, "2181") + "," + createHostAddress(expectedHostNameTwo, "2181"));
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("ZOOKEEPER_SERVER");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+    updater.doUpdateForBlueprintExport();
+
+    final String expectedPropertyValue = createExportedAddress("2181", expectedHostGroupName) + "," + createExportedAddress("2181", expectedHostGroupNameTwo);
+    assertEquals("hive.llap.zk.sm.connectionString property not updated correctly", expectedPropertyValue, hiveInteractiveSiteProperties.get(llapZkProperty));
+  }
+
+  @Test
   public void testOozieConfigClusterUpdateHAEnabledSpecifyingHostNamesDirectly() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedHostNameTwo = "c6402.ambari.apache.org";
@@ -7543,5 +7579,4 @@ public class BlueprintConfigurationProcessorTest {
       this.configuration = configuration;
     }
   }
-
 }

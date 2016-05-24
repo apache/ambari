@@ -2239,6 +2239,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveInteractiveEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> hiveInteractiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
@@ -2310,6 +2311,7 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("core-site", multiCoreSiteMap);
     multiHostTopologyUpdaters.put("hdfs-site", multiHdfsSiteMap);
     multiHostTopologyUpdaters.put("hive-site", multiHiveSiteMap);
+    multiHostTopologyUpdaters.put("hive-interactive-site", hiveInteractiveSiteMap);
     multiHostTopologyUpdaters.put("kafka-broker", multiKafkaBrokerMap);
     multiHostTopologyUpdaters.put("slider-client", multiSliderClientMap);
     multiHostTopologyUpdaters.put("yarn-site", multiYarnSiteMap);
@@ -2390,6 +2392,7 @@ public class BlueprintConfigurationProcessor {
 
     // HIVE Interactive Server
     hiveInteractiveEnvMap.put("hive_server_interactive_host", new SingleHostTopologyUpdater("HIVE_SERVER_INTERACTIVE"));
+    hiveInteractiveSiteMap.put("hive.llap.zk.sm.connectionString", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // HIVE Atlas integration
     hiveSiteNonTopologyMap.put("hive.exec.post.hooks", new NonTopologyUpdater() {
