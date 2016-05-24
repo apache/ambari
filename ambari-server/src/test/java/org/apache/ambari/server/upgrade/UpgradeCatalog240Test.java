@@ -1239,6 +1239,8 @@ public class UpgradeCatalog240Test {
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
     final AlertDefinitionEntity namenodeWebUiAlertDefinitionEntity = new AlertDefinitionEntity();
+    final AlertDefinitionEntity mockStormRestApiAlertDefinitionEntity = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
     namenodeWebUiAlertDefinitionEntity.setDefinitionName("namenode_webui");
     namenodeWebUiAlertDefinitionEntity.setSource("{\"uri\": {\"high_availability\": {\"nameservice\": \"{{hdfs-site/dfs.nameservices}}\",\"alias_key\" : \"{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}\",\"http_pattern\" : \"{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}\",\"https_pattern\" : \"{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}\"}}}");
 
@@ -1263,6 +1265,12 @@ public class UpgradeCatalog240Test {
 
     expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("namenode_webui")))
         .andReturn(namenodeWebUiAlertDefinitionEntity).atLeastOnce();
+
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("storm_rest_api")))
+            .andReturn(mockStormRestApiAlertDefinitionEntity).atLeastOnce();
+
+    mockAlertDefinitionDAO.remove(mockStormRestApiAlertDefinitionEntity);
+    expectLastCall().once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog240.class).updateAlerts();
