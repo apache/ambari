@@ -42,7 +42,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
@@ -53,7 +52,6 @@ import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
@@ -76,18 +74,9 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.view.ClusterType;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
-import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,8 +138,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String SHORT_URL_COLUMN = "short_url";
   protected static final String CLUSTER_VERSION_TABLE = "cluster_version";
   protected static final String HOST_VERSION_TABLE = "host_version";
-  protected static final String PHOENIX_QUERY_SERVER_PRINCIPAL_KEY = "phoenix.queryserver.kerberos.principal";
-  protected static final String PHOENIX_QUERY_SERVER_KEYTAB_KEY = "phoenix.queryserver.keytab.file";
 
   private static final String OOZIE_ENV_CONFIG = "oozie-env";
   private static final String HIVE_ENV_CONFIG = "hive-env";
@@ -160,7 +147,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String URL_ID_COLUMN = "url_id";
   private static final String PRINCIPAL_TYPE_TABLE = "adminprincipaltype";
   private static final String PRINCIPAL_TABLE = "adminprincipal";
-  protected static final String HBASE_SITE_CONFIG = "hbase-site";
 
   private static final Map<String, Integer> ROLE_ORDER;
 
@@ -341,8 +327,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateHostRoleCommandTableDML();
     updateKerberosConfigs();
     updateYarnEnv();
-    updatePhoenixConfigs();
-    updateKerberosDescriptorArtifacts();
     removeHiveOozieDBConnectionConfigs();
     updateClustersAndHostsVersionStateTableDML();
     removeStandardDeviationAlerts();
@@ -2013,69 +1997,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
-    if (artifactEntity != null) {
-      Map<String, Object> data = artifactEntity.getArtifactData();
-
-      if (data != null) {
-        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
-
-        if (kerberosDescriptor != null) {
-          // Get the service that needs to be updated
-          KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService("HBASE");
-
-          if(serviceDescriptor != null) {
-            KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent("PHOENIX_QUERY_SERVER");
-
-            if (componentDescriptor != null) {
-              // Get the identity that needs to be updated
-              KerberosIdentityDescriptor origIdentityDescriptor = componentDescriptor.getIdentity("hbase_queryserver_hbase");
-
-              if (origIdentityDescriptor != null) {
-
-                // Create the new principal descriptor
-                KerberosPrincipalDescriptor origPrincipalDescriptor = origIdentityDescriptor.getPrincipalDescriptor();
-                KerberosPrincipalDescriptor newPrincipalDescriptor = new KerberosPrincipalDescriptor(
-                    null,
-                    null,
-                    (origPrincipalDescriptor == null)
-                        ? "hbase-site/phoenix.queryserver.kerberos.principal"
-                        : origPrincipalDescriptor.getConfiguration(),
-                    null);
-
-                // Create the new keytab descriptor
-                KerberosKeytabDescriptor origKeytabDescriptor = origIdentityDescriptor.getKeytabDescriptor();
-                KerberosKeytabDescriptor newKeytabDescriptor = new KerberosKeytabDescriptor(
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    (origKeytabDescriptor == null)
-                        ? "hbase-site/phoenix.queryserver.keytab.file"
-                        : origKeytabDescriptor.getConfiguration(),
-                    false);
-
-                // Remove the old identity
-                componentDescriptor.removeIdentity("hbase_queryserver_hbase");
-
-                // Add the new identity
-                componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/spnego", newPrincipalDescriptor, newKeytabDescriptor));
-
-                artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-                artifactDAO.merge(artifactEntity);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Given a {@link ResourceEntity}, attempts to find the relevant cluster's name.
    *
    * @param resourceEntity a {@link ResourceEntity}
@@ -2180,80 +2101,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               } else {
                 LOG.warn("Unable to find widget layout info for " + widgetName +
                   " in the stack: " + stackId);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * @return True if the stack is >=HDP-2.5, false otherwise.
-   */
-  protected boolean isAtLeastHdp25(StackId stackId) {
-    if (null == stackId) {
-      return false;
-    }
-
-    try {
-      return stackId.compareTo(new StackId("HDP-2.5")) >= 0;
-    } catch (Exception e) {
-      // Different stack names throw an exception.
-      return false;
-    }
-  }
-
-  /**
-   * Update Phoenix Query Server Kerberos configurations. Ambari 2.4 will alter the Phoenix Query Server to
-   * supporting SPNEGO authentication which requires that the "HTTP/_HOST" principal and corresponding
-   * keytab file instead of the generic HBase service keytab and principal it previously had.
-   */
-  protected void updatePhoenixConfigs() throws AmbariException {
-    final AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-    final Clusters clusters = controller.getClusters();
-
-    if (null != clusters) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (null != clusterMap && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
-          StackId stackId = cluster.getCurrentStackVersion();
-
-          // HBase is installed and Kerberos is enabled
-          if (installedServices.contains("HBASE") && SecurityType.KERBEROS == cluster.getSecurityType() && isAtLeastHdp25(stackId)) {
-            Config hbaseSite = cluster.getDesiredConfigByType(HBASE_SITE_CONFIG);
-            if (null != hbaseSite) {
-              Map<String, String> hbaseSiteProperties = hbaseSite.getProperties();
-              // Get Phoenix Query Server kerberos config properties
-              String pqsKrbPrincipal = hbaseSiteProperties.get(PHOENIX_QUERY_SERVER_PRINCIPAL_KEY);
-              String pqsKrbKeytab = hbaseSiteProperties.get(PHOENIX_QUERY_SERVER_KEYTAB_KEY);
-
-              // Principal and Keytab are set
-              if (null != pqsKrbPrincipal && null != pqsKrbKeytab) {
-                final Map<String, String> updatedKerberosProperties = new HashMap<>();
-                final KerberosDescriptor defaultDescriptor = getKerberosDescriptor(cluster);
-
-                KerberosIdentityDescriptor spnegoDescriptor = defaultDescriptor.getIdentity("spnego");
-                if (null != spnegoDescriptor) {
-                  // Add the SPNEGO config for the principal
-                  KerberosPrincipalDescriptor principalDescriptor = spnegoDescriptor.getPrincipalDescriptor();
-                  if (null != principalDescriptor) {
-                    updatedKerberosProperties.put(PHOENIX_QUERY_SERVER_PRINCIPAL_KEY, principalDescriptor.getValue());
-                  }
-
-                  // Add the SPNEGO config for the keytab
-                  KerberosKeytabDescriptor keytabDescriptor = spnegoDescriptor.getKeytabDescriptor();
-                  if (null != keytabDescriptor) {
-                    updatedKerberosProperties.put(PHOENIX_QUERY_SERVER_KEYTAB_KEY, keytabDescriptor.getFile());
-                  }
-
-                  // Update the configuration if we changed anything
-                  if (!updatedKerberosProperties.isEmpty()) {
-                    updateConfigurationProperties(HBASE_SITE_CONFIG, updatedKerberosProperties, true, false);
-                  }
-                }
               }
             }
           }
