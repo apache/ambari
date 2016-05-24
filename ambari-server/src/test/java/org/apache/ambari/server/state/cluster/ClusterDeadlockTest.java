@@ -548,8 +548,8 @@ public class ClusterDeadlockTest {
           service.convertToResponse();
           nameNodeComponent.convertToResponse();
           dataNodeComponent.convertToResponse();
-          nameNodeSCH.convertToResponse();
-          dataNodeSCH.convertToResponse();
+          nameNodeSCH.convertToResponse(null);
+          dataNodeSCH.convertToResponse(null);
 
           cluster.setProvisioningState(org.apache.ambari.server.state.State.INIT);
           service.setMaintenanceState(MaintenanceState.OFF);

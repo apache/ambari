@@ -30,6 +30,30 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+
+import org.apache.ambari.annotations.TransactionalLock;
+import org.apache.ambari.annotations.TransactionalLock.LockArea;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.orm.TransactionalLocks;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.upgrade.UpgradeCatalog170;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -85,6 +109,15 @@ public class ConfigHelper {
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
 
+  /**
+   * Used to ensure that methods which rely on the completion of
+   * {@link Transactional} can detect when they are able to run.
+   *
+   * @see TransactionalLock
+   */
+  @Inject
+  private final TransactionalLocks transactionLocks = null;
+
   @Inject
   public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo, Configuration configuration, ClusterDAO clusterDAO) {
     clusters = c;
@@ -107,38 +140,61 @@ public class ConfigHelper {
   public Map<String, Map<String, String>> getEffectiveDesiredTags(
       Cluster cluster, String hostName) throws AmbariException {
 
-    return getEffectiveDesiredTags(cluster, hostName, false);
+    return getEffectiveDesiredTags(cluster, hostName, null);
   }
 
   /**
    * Gets the desired tags for a cluster and host
    *
-   * @param cluster  the cluster
-   * @param hostName the host name
-   * @param bypassCache don't use cached values
+   * @param cluster
+   *          the cluster
+   * @param hostName
+   *          the host name
    * @return a map of tag type to tag names with overrides
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, String hostName, boolean bypassCache) throws AmbariException {
+  public Map<String, Map<String, String>> getEffectiveDesiredTags(Cluster cluster, String hostName,
+      Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
 
     Host host = (hostName == null) ? null : clusters.getHost(hostName);
-    Map<String, HostConfig> desiredHostConfigs = (host == null) ? null : host.getDesiredHostConfigs(cluster, bypassCache);
-    return getEffectiveDesiredTags(cluster, desiredHostConfigs, bypassCache);
+    Map<String, HostConfig> desiredHostConfigs = (host == null) ? null
+        : host.getDesiredHostConfigs(cluster, desiredConfigs);
+
+    return getEffectiveDesiredTags(cluster, desiredConfigs, desiredHostConfigs);
   }
 
   /**
    * Gets the desired tags for a cluster and overrides for a host
    *
-   * @param cluster             the cluster
-   * @param hostConfigOverrides the host overrides applied using config groups
-   * @param bypassCache         don't use cached values
+   * @param cluster
+   *          the cluster
+   * @param hostConfigOverrides
+   *          the host overrides applied using config groups
+   * @param desiredConfigs
+   *          the desired configurations for the cluster. Obtaining these can be
+   *          expensive, ans since this method could be called 10,000's of times
+   *          when generating cluster/host responses. Therefore, the caller
+   *          should build these once and pass them in. If {@code null}, then
+   *          this method will retrieve them at runtime, incurring a performance
+   *          penality.
    * @return a map of tag type to tag names with overrides
    */
   private Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, Map<String, HostConfig> hostConfigOverrides, boolean bypassCache) {
+      Cluster cluster, Map<String, DesiredConfig> clusterDesired,
+      Map<String, HostConfig> hostConfigOverrides) {
 
-    Map<String, DesiredConfig> clusterDesired = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs(bypassCache);
+    if (null == cluster) {
+      clusterDesired = new HashMap<>();
+    }
+
+    // per method contract, lookup if not supplied
+    if (null == clusterDesired) {
+      clusterDesired = cluster.getDesiredConfigs();
+    }
+
+    if (null == clusterDesired) {
+      clusterDesired = new HashMap<>();
+    }
 
     Map<String, Map<String, String>> resolved = new TreeMap<String, Map<String, String>>();
 
@@ -364,18 +420,18 @@ public class ConfigHelper {
   }
 
   /**
-   * The purpose of this method is to determine if a {@link ServiceComponentHost}'s
-   * known actual configs are different than what is set on the cluster (the desired).
-   * The following logic is applied:
+   * The purpose of this method is to determine if a
+   * {@link ServiceComponentHost}'s known actual configs are different than what
+   * is set on the cluster (the desired). The following logic is applied:
    * <ul>
    * <li>Desired type does not exist on the SCH (actual)
    * <ul>
    * <li>Type does not exist on the stack: <code>false</code></li>
-   * <li>Type exists on the stack: <code>true</code> if the config key is on the stack.
-   * otherwise <code>false</code></li>
+   * <li>Type exists on the stack: <code>true</code> if the config key is on the
+   * stack. otherwise <code>false</code></li>
    * </ul>
    * </li>
-   * <li> Desired type exists for the SCH
+   * <li>Desired type exists for the SCH
    * <ul>
    * <li>Desired tags already set for the SCH (actual): <code>false</code></li>
    * <li>Desired tags DO NOT match SCH: <code>true</code> if the changed keys
@@ -384,22 +440,40 @@ public class ConfigHelper {
    * </li>
    * </ul>
    *
-   * @param @ServiceComponentHost
+   * @param sch
+   *          the SCH to calcualte config staleness for (not {@code null}).
+   * @param desiredConfigs
+   *          the desired configurations for the cluster. Obtaining these can be
+   *          expensive and since this method operates on SCH's, it could be
+   *          called 10,000's of times when generating cluster/host responses.
+   *          Therefore, the caller should build these once and pass them in. If
+   *          {@code null}, then this method will retrieve them at runtime,
+   *          incurring a performance penality.
+   *
    * @return <code>true</code> if the actual configs are stale
    */
-  public boolean isStaleConfigs(ServiceComponentHost sch) throws AmbariException {
+  public boolean isStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs)
+      throws AmbariException {
     Boolean stale = null;
 
+    // try the cache
     if (STALE_CONFIGS_CACHE_ENABLED) {
       stale = staleConfigsCache.getIfPresent(sch);
     }
 
     if (stale == null) {
-      stale = calculateIsStaleConfigs(sch);
-      staleConfigsCache.put(sch, stale);
-      if(LOG.isDebugEnabled()) {
-        LOG.debug("Config staleness for " +
-                  sch.getServiceComponentName() + " on host " + sch.getHostName() + " - " + stale);
+      ReadWriteLock lock = transactionLocks.getLock(LockArea.STALE_CONFIG_CACHE);
+      lock.readLock().lock();
+
+      try {
+        stale = calculateIsStaleConfigs(sch, desiredConfigs);
+        staleConfigsCache.put(sch, stale);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Cache configuration staleness for host {} and component {} as {}",
+              sch.getHostName(), sch.getServiceComponentName(), stale);
+        }
+      } finally {
+        lock.readLock().unlock();
       }
     }
     return stale;
@@ -985,7 +1059,23 @@ public class ConfigHelper {
     return defaultPropertiesByType;
   }
 
-  private boolean calculateIsStaleConfigs(ServiceComponentHost sch) throws AmbariException {
+  /**
+   * Gets whether configurations are stale for a given service host component.
+   *
+   * @param sch
+   *          the SCH to calcualte config staleness for (not {@code null}).
+   * @param desiredConfigs
+   *          the desired configurations for the cluster. Obtaining these can be
+   *          expensive and since this method operates on SCH's, it could be
+   *          called 10,000's of times when generating cluster/host responses.
+   *          Therefore, the caller should build these once and pass them in. If
+   *          {@code null}, then this method will retrieve them at runtime,
+   *          incurring a performance penality.
+   * @return
+   * @throws AmbariException
+   */
+  private boolean calculateIsStaleConfigs(ServiceComponentHost sch,
+      Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
 
     if (sch.isRestartRequired()) {
       return true;
@@ -999,10 +1089,12 @@ public class ConfigHelper {
     Cluster cluster = clusters.getClusterById(sch.getClusterId());
     StackId stackId = cluster.getDesiredStackVersion();
 
-    Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster, sch.getHostName(), true);
+    Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster, sch.getHostName(),
+        desiredConfigs);
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), sch.getServiceName());
+
     ComponentInfo componentInfo = serviceInfo.getComponentByName(sch.getServiceComponentName());
     // Configs are considered stale when:
     // - desired type DOES NOT exist in actual

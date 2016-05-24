@@ -100,7 +100,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String HOST_CPU_COUNT_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "cpu_count");
   public static final String HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID =
-      PropertyHelper.getPropertyId("Hosts", "ph_cpu_count");  
+      PropertyHelper.getPropertyId("Hosts", "ph_cpu_count");
   public static final String HOST_OS_ARCH_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "os_arch");
   public static final String HOST_OS_TYPE_PROPERTY_ID =
@@ -115,8 +115,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       PropertyHelper.getPropertyId("Hosts", "last_registration_time");
   public static final String HOST_DISK_INFO_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "disk_info");
-  
-  
+
+
   public static final String HOST_HOST_STATUS_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_status");
   public static final String HOST_MAINTENANCE_STATE_PROPERTY_ID =
@@ -259,7 +259,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, HOST_CPU_COUNT_PROPERTY_ID,
           (long) response.getCpuCount(), requestedIds);
       setResourceProperty(resource, HOST_PHYSICAL_CPU_COUNT_PROPERTY_ID,
-          (long) response.getPhCpuCount(), requestedIds);      
+          (long) response.getPhCpuCount(), requestedIds);
       setResourceProperty(resource, HOST_OS_ARCH_PROPERTY_ID,
           response.getOsArch(), requestedIds);
       setResourceProperty(resource, HOST_OS_TYPE_PROPERTY_ID,
@@ -295,13 +295,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           response.getHostState(), requestedIds);
       setResourceProperty(resource, HOST_DESIRED_CONFIGS_PROPERTY_ID,
           response.getDesiredHostConfigs(), requestedIds);
-      
+
       // only when a cluster request
       if (null != response.getMaintenanceState()) {
         setResourceProperty(resource, HOST_MAINTENANCE_STATE_PROPERTY_ID,
             response.getMaintenanceState(), requestedIds);
       }
-      
+
       resources.add(resource);
     }
     return resources;
@@ -420,14 +420,14 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     hostRequest.setRackInfo(rackInfo);
     hostRequest.setBlueprintName((String) properties.get(BLUEPRINT_PROPERTY_ID));
     hostRequest.setHostGroupName((String) properties.get(HOSTGROUP_PROPERTY_ID));
-    
+
     Object o = properties.get(HOST_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
       hostRequest.setMaintenanceState(o.toString());
     }
-    
+
     List<ConfigurationRequest> cr = getConfigurationRequests("Hosts", properties);
-    
+
     hostRequest.setDesiredConfigs(cr);
 
     return hostRequest;
@@ -643,13 +643,19 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     }
 
+    // retrieve the cluster desired configs once instead of per host
+    Map<String, DesiredConfig> desiredConfigs = null;
+    if (null != cluster) {
+      cluster.getDesiredConfigs();
+    }
+
     for (Host h : hosts) {
       if (clusterName != null) {
         if (clusters.getClustersForHost(h.getHostName()).contains(cluster)) {
           HostResponse r = h.convertToResponse();
-          
+
           r.setClusterName(clusterName);
-          r.setDesiredHostConfigs(h.getDesiredHostConfigs(cluster));
+          r.setDesiredHostConfigs(h.getDesiredHostConfigs(cluster, desiredConfigs));
           r.setMaintenanceState(h.getMaintenanceState(cluster.getClusterId()));
 
           response.add(r);
@@ -664,7 +670,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (clustersForHost != null && clustersForHost.size() != 0) {
           Cluster clusterForHost = clustersForHost.iterator().next();
           r.setClusterName(clusterForHost.getClusterName());
-          r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost));
+          r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost, desiredConfigs));
           r.setMaintenanceState(h.getMaintenanceState(clusterForHost.getClusterId()));
         }
 
@@ -736,7 +742,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
         host.setPublicHostName(request.getPublicHostName());
       }
-      
+
       if (null != clusterName && null != request.getMaintenanceState()) {
         if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_TOGGLE_MAINTENANCE)) {
           throw new AuthorizationException("The authenticated user is not authorized to update host maintenance state");

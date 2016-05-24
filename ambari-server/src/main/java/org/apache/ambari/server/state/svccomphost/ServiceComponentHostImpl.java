@@ -56,6 +56,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
@@ -1323,7 +1324,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public ServiceComponentHostResponse convertToResponse() {
+  public ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs) {
     clusterGlobalLock.readLock().lock();
     try {
       readLock.lock();
@@ -1364,7 +1365,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         r.setUpgradeState(upgradeState);
 
         try {
-          r.setStaleConfig(helper.isStaleConfigs(this));
+          r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs));
         } catch (Exception e) {
           LOG.error("Could not determine stale config", e);
         }

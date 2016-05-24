@@ -18,27 +18,31 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.easymock.EasyMockSupport;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.easymock.EasyMock.*;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.EasyMockSupport;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
@@ -66,6 +70,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
         bind(AmbariManagementController.class).toInstance(controller);
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(AuditLogger.class).toInstance(createNiceMock(AuditLogger.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     });
 
