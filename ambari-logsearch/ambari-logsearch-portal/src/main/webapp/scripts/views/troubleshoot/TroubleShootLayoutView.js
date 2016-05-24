@@ -376,29 +376,30 @@ define(['backbone',
             		}
             		data.push(d);
             	});
-            	nv.addGraph(function() {
-            		  var chart = nv.models.discreteBarChart()
-            		    .x(function(d) { return d.label })
-            		    .y(function(d) { return d.value })
-			    .staggerLabels(false)
-            		    .width(700)
-            		    .showValues(false)
-            		    chart.tooltip.enabled();
-            		  chart.yAxis
-				      .tickFormat(d3.format('d'));
-            		  
-            		  chart.margin({
-                          right: 100,
-                          left: 120,
-                      });
-            		  d3.select(that.$("[data-id='serviceGraph'] svg")[0])
-            		    .datum(data)
-            		    .transition().duration(500)
-            		    .call(chart)
-            		    ;
-            		  d3.selectAll
-            		  return chart;
-            	});
+                nv.addGraph(function() {
+                    var chart = nv.models.discreteBarChart()
+                        .x(function(d) {
+                            return d.label })
+                        .y(function(d) {
+                            return d.value })
+                        .staggerLabels(false)
+                        .width(700)
+                        .showValues(true)
+                    chart.tooltip.enabled(false);
+                    chart.yAxis
+                        .tickFormat(d3.format('d'));
+                    chart.valueFormat(d3.format('d'));
+
+                    chart.margin({
+                        right: 100,
+                        left: 120,
+                    });
+                    d3.select(that.$("[data-id='serviceGraph'] svg")[0])
+                        .datum(data)
+                        .transition().duration(500)
+                        .call(chart);
+                    return chart;
+                });
             },
             renderLogLevelTable : function(){
             	var that = this;

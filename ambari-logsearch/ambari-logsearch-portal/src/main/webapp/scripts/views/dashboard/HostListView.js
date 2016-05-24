@@ -315,7 +315,7 @@ define(['require',
 			this.$('.nodebar').popover('destroy');
 			this.addSpinner();
 			this.$(".hostNodes").empty().html("Loading.....");
-			this.fetchHosts({hostName:name});
+			this.fetchHosts({hostName:$.trim(name)});
 		},
 		onSearchHostKeypress : function(e){
 			if(e.which == 13){

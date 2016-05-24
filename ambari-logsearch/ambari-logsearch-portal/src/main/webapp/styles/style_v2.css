@@ -1317,7 +1317,9 @@ button.btn.btn-xs{
   color: #d44950;
 }
 .radio, .checkbox, .radio-inline, .checkbox-inline {
-  position: relative; padding-left: 20px;
+  position: relative;
+  padding-left: 20px;
+  display: inline-block;
 }
 .radio label, .checkbox label, .radio-inline label, .checkbox-inline label {
   font-weight: normal;

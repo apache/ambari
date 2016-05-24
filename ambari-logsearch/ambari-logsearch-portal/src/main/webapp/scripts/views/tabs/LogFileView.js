@@ -392,7 +392,7 @@ define(['require',
                         includeColumnManager: false,
                         gridOpts: {
                         	row: that.getIdRowForTableLayout(),
-                            className: "table table-bordered table-striped table-hover table-condensed backgrid logFileFont table-quickMenu",
+                            className: "table table-bordered table-hover table-condensed backgrid logFileFont table-quickMenu",
                         },
                     })));
                 });
