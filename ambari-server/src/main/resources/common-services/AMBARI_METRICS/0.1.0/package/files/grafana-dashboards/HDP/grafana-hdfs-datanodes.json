@@ -40,7 +40,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -89,8 +89,8 @@
               "metric": "dfs.datanode.BlocksWritten",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -111,7 +111,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -160,8 +160,8 @@
               "metric": "dfs.datanode.BlocksRead",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -191,7 +191,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -261,7 +261,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -310,8 +310,8 @@
               "metric": "dfs.datanode.FsyncNanosNumOps",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -341,7 +341,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -411,7 +411,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -460,8 +460,8 @@
               "metric": "dfs.datanode.SendDataPacketBlockedOnNetworkNanosNumOps",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -491,7 +491,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -561,7 +561,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -610,8 +610,8 @@
               "metric": "dfs.datanode.SendDataPacketTransferNanosNumOps",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -641,7 +641,159 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 15,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "PacketAckRoundTripTime",
+              "app": "datanode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.datanode.PacketAckRoundTripTimeNanosAvgTime",
+              "precision": "default",
+              "refId": "A",
+              "templatedHost": "",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Packet Ack Round Trip Time",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ns",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 16,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false,
+            "hideEmpty": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "PacketAckRoundTripNumOps",
+              "app": "datanode",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "dfs.datanode.PacketAckRoundTripTimeNanosNumOps",
+              "precision": "default",
+              "refId": "A",
+              "templatedHost": "",
+              "transform": "diff"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Packet Round Trip Num Ops",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Packet Round Trip"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -690,8 +842,8 @@
               "metric": "dfs.datanode.DatanodeNetworkErrors",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -712,7 +864,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -761,8 +913,8 @@
               "metric": "jvm.JvmMetrics.GcCount",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -792,7 +944,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -841,8 +993,8 @@
               "metric": "jvm.JvmMetrics.GcTimeMillis",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -863,7 +1015,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "AMBARI_METRICS",
+          "datasource": null,
           "editable": true,
           "error": false,
           "fill": 0,
@@ -912,8 +1064,8 @@
               "metric": "jvm.JvmMetrics.GcTimeMillisParNew",
               "precision": "default",
               "refId": "A",
-              "transform": "rate",
-              "templatedHost": ""
+              "templatedHost": "",
+              "transform": "rate"
             }
           ],
           "timeFrom": null,
@@ -998,7 +1150,7 @@
           "text": "All",
           "value": ""
         },
-        "datasource": "AMBARI_METRICS",
+        "datasource": null,
         "includeAll": true,
         "multi": true,
         "multiFormat": "glob",
@@ -1022,7 +1174,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 69,
+  "version": 6,
   "links": [
     {
       "asDropdown": true,
