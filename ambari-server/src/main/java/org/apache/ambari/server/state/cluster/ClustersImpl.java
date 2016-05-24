@@ -297,6 +297,22 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  public Cluster getCluster(Long clusterId)
+    throws AmbariException {
+    checkLoaded();
+
+    Cluster cluster = null;
+    if (clusterId != null) {
+      cluster = clustersById.get(clusterId);
+    }
+    if (null == cluster) {
+      throw new ClusterNotFoundException(clusterId);
+    }
+    RetryHelper.addAffectedCluster(cluster);
+    return cluster;
+  }
+
+  @Override
   public Cluster getClusterById(long id) throws AmbariException {
     checkLoaded();
 

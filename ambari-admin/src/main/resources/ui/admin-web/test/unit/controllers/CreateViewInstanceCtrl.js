@@ -68,7 +68,7 @@ describe('#CreateViewInstanceCtrl', function () {
     scope.version = '1.0.0';
     $httpBackend.expectGET('template/modal/backdrop.html');
     $httpBackend.expectGET('template/modal/window.html');
-    $httpBackend.whenGET(/\/api\/v1\/clusters\?_=\d+/).respond(200, {
+    $httpBackend.whenGET(/\/api\/v1\/clusters\?fields=Clusters\/cluster_id&_=\d+/).respond(200, {
       "items" : [
         {
           "Clusters" : {
@@ -78,7 +78,7 @@ describe('#CreateViewInstanceCtrl', function () {
         }
       ]
     });
-    $httpBackend.whenGET(/\/api\/v1\/remoteclusters\?fields=ClusterInfo\/services&_=\d+/).respond(200, {
+    $httpBackend.whenGET(/\/api\/v1\/remoteclusters\?fields=ClusterInfo\/services,ClusterInfo\/cluster_id&_=\d+/).respond(200, {
       "items" : [
          {
            "ClusterInfo" : {

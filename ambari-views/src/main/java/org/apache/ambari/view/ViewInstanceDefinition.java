@@ -54,12 +54,12 @@ public interface ViewInstanceDefinition {
   public String getDescription();
 
   /**
-   * Get the cluster handle associated with this view instance.  For a local cluster reference,
-   * the cluster handle is simply the unique cluster name.
+   * Get the Id of cluster associated with this view instance.  For a local cluster reference,
+   * the cluster handle is simply the unique cluster id.
    *
    * @return the associated cluster handle; <code>null</code> if no cluster is associated
    */
-  public String getClusterHandle();
+  public Long getClusterHandle();
 
   /**
    *  Get the type of cluster the view instance is attached to

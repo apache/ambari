@@ -82,7 +82,7 @@ angular.module('ambariAdminConsole')
 
     getAllClusters: function() {
       var deferred = $q.defer();
-      $http.get(Settings.baseUrl + '/clusters', {mock: 'cluster/clusters.json'})
+      $http.get(Settings.baseUrl + '/clusters?fields=Clusters/cluster_id', {mock: 'cluster/clusters.json'})
       .then(function(data, status, headers) {
         deferred.resolve(data.data.items);
       })

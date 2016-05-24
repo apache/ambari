@@ -119,7 +119,7 @@ angular.module('ambariAdminConsole')
       var deferred = $q.defer();
 
       /* TODO :: Add params like RemoteCluster.matches and &from , &page_size */
-      $http.get(Settings.baseUrl + "/remoteclusters?fields=ClusterInfo/services")
+      $http.get(Settings.baseUrl + "/remoteclusters?fields=ClusterInfo/services,ClusterInfo/cluster_id")
         .success(function(response) {
           deferred.resolve(response.items);
         })

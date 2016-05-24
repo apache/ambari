@@ -327,8 +327,8 @@ angular.module('ambariAdminConsole')
     data.properties = settings;
     data.cluster_type = instanceInfo.clusterType;
 
-    if(instanceInfo.clusterName != null) {
-      data.cluster_handle = instanceInfo.clusterName;
+    if(instanceInfo.clusterId != null) {
+      data.cluster_handle = instanceInfo.clusterId;
     } else {
       angular.extend(data.properties, properties);
     }

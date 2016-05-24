@@ -53,7 +53,11 @@ import java.util.Collection;
   @NamedQuery(name = "remoteAmbariClusterByName", query =
     "SELECT remoteAmbariCluster " +
       "FROM RemoteAmbariClusterEntity remoteAmbariCluster " +
-      "WHERE remoteAmbariCluster.name=:clusterName")})
+      "WHERE remoteAmbariCluster.name=:clusterName"),
+  @NamedQuery(name = "remoteAmbariClusterById", query =
+    "SELECT remoteAmbariCluster " +
+      "FROM RemoteAmbariClusterEntity remoteAmbariCluster " +
+      "WHERE remoteAmbariCluster.id=:clusterId")})
 @Entity
 public class RemoteAmbariClusterEntity {
 
@@ -67,7 +71,7 @@ public class RemoteAmbariClusterEntity {
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "remote_cluster_id_generator")
   private Long id;
 
-  @Column(name = "name", nullable = false, insertable = true, updatable = false)
+  @Column(name = "name", nullable = false, insertable = true, updatable = true)
   private String name;
 
   @Column(name = "url", nullable = false, insertable = true, updatable = true)

@@ -563,7 +563,7 @@ CREATE TABLE viewinstance (
   icon64 VARCHAR(255),
   xml_driven CHAR(1),
   alter_names BIT NOT NULL DEFAULT 1,
-  cluster_handle VARCHAR(255),
+  cluster_handle BIGINT,
   cluster_type VARCHAR(100) NOT NULL DEFAULT 'LOCAL_AMBARI',
   short_url NUMERIC,
   CONSTRAINT PK_viewinstance PRIMARY KEY (view_instance_id),

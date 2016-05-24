@@ -28,6 +28,9 @@ angular.module('ambariAdminConsole')
     var modalInstance = $modal.open({
       templateUrl: 'views/remoteClusters/modals/changePassword.html',
       resolve: {
+        clusterId: function() {
+          return $scope.cluster.cluster_id;
+        },
         clusterName: function() {
           return $scope.cluster.cluster_name;
         },
@@ -38,7 +41,7 @@ angular.module('ambariAdminConsole')
           return $scope.cluster.cluster_user;
         }
       },
-      controller: ['$scope', 'clusterName', 'clusterUrl', 'clusterUser', 'Settings','Alert',  function($scope, clusterName, clusterUrl , clusterUser , Settings, Alert) {
+      controller: ['$scope', 'clusterId' ,'clusterName', 'clusterUrl', 'clusterUser', 'Settings','Alert',  function($scope, clusterId, clusterName, clusterUrl , clusterUser , Settings, Alert) {
         $scope.passwordData = {
           password: '',
           currentUserName: clusterUser || ''
@@ -46,6 +49,7 @@ angular.module('ambariAdminConsole')
 
         $scope.form = {};
 
+        $scope.clusterId = clusterId;
         $scope.currentUser = clusterUser;
         $scope.clusterName = clusterName;
         $scope.clusterUrl = clusterUrl;
@@ -58,10 +62,11 @@ angular.module('ambariAdminConsole')
 
             var payload = {
               "ClusterInfo" :{
+                "cluster_id" : $scope.clusterId,
                 "name" : $scope.clusterName,
                 "url" : $scope.clusterUrl,
                 "username" : $scope.passwordData.currentUserName,
-                "password" : $scope.passwordData.password //This field will go once backend API changes are done.
+                "password" : $scope.passwordData.password
               }
             };
 
@@ -125,6 +130,7 @@ angular.module('ambariAdminConsole')
     if ($scope.form.$valid){
       var payload = {
         "ClusterInfo" :{
+          "cluster_id" : $scope.cluster.cluster_id,
           "name" : $scope.cluster.cluster_name,
           "url" : $scope.cluster.cluster_url,
           "username" : $scope.cluster.cluster_user
@@ -157,7 +163,8 @@ angular.module('ambariAdminConsole')
   $scope.fetchRemoteClusterDetails = function (clusterName) {
 
     RemoteCluster.getDetails(clusterName).then(function(response) {
-        $scope.cluster.cluster_name = response.ClusterInfo.name
+        $scope.cluster.cluster_id = response.ClusterInfo.cluster_id;
+        $scope.cluster.cluster_name = response.ClusterInfo.name;
         $scope.cluster.cluster_url = response.ClusterInfo.url;
         $scope.cluster.cluster_user = response.ClusterInfo.username;
       })

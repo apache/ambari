@@ -63,12 +63,21 @@ angular.module('ambariAdminConsole')
 
     function initCtrlVariables(instance) {
        $scope.data.clusterType = instance.ViewInstanceInfo.cluster_type;
+       var clusterId = instance.ViewInstanceInfo.cluster_handle;
        switch($scope.data.clusterType) {
           case 'LOCAL_AMBARI':
-            $scope.cluster = instance.ViewInstanceInfo.cluster_handle;
+            $scope.clusters.forEach(function(cluster){
+              if(cluster.id == clusterId){
+                $scope.cluster = cluster;
+              }
+            })
             break;
           case 'REMOTE_AMBARI':
-            $scope.data.remoteCluster = instance.ViewInstanceInfo.cluster_handle;
+            $scope.remoteClusters.forEach(function(cluster){
+              if(cluster.id == clusterId){
+                $scope.data.remoteCluster = cluster;
+              }
+            })
             break;
        }
       $scope.originalClusterType = $scope.data.clusterType;
@@ -203,7 +212,10 @@ angular.module('ambariAdminConsole')
     Cluster.getAllClusters().then(function (clusters) {
       if(clusters.length >0){
         clusters.forEach(function(cluster) {
-          $scope.clusters.push(cluster.Clusters.cluster_name)
+          $scope.clusters.push({
+            "name" : cluster.Clusters.cluster_name,
+            "id" : cluster.Clusters.cluster_id
+          })
         });
         $scope.noLocalClusterAvailible = false;
       }else{
@@ -218,7 +230,10 @@ angular.module('ambariAdminConsole')
       RemoteCluster.listAll().then(function (clusters) {
         if(clusters.length >0){
           clusters.forEach(function(cluster) {
-            $scope.remoteClusters.push(cluster.ClusterInfo.name)
+            $scope.remoteClusters.push({
+              "name" : cluster.ClusterInfo.name,
+              "id" : cluster.ClusterInfo.cluster_id
+            })
           });
           $scope.noRemoteClusterAvailible = false;
           }else{
@@ -319,10 +334,11 @@ angular.module('ambariAdminConsole')
 
         switch($scope.data.clusterType) {
           case 'LOCAL_AMBARI':
-            data.ViewInstanceInfo.cluster_handle = $scope.cluster;
+            data.ViewInstanceInfo.cluster_handle = $scope.cluster.id;
             break;
           case 'REMOTE_AMBARI':
-            data.ViewInstanceInfo.cluster_handle = $scope.data.remoteCluster;
+            data.ViewInstanceInfo.cluster_handle = $scope.data.remoteCluster.id;
+            break;
             break;
           default :
             data.ViewInstanceInfo.cluster_handle = null;

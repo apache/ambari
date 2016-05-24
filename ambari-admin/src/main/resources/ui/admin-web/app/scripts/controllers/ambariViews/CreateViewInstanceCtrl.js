@@ -105,7 +105,10 @@ angular.module('ambariAdminConsole')
        Cluster.getAllClusters().then(function (clusters) {
          if(clusters.length >0){
            clusters.forEach(function(cluster) {
-             $scope.clusters.push(cluster.Clusters.cluster_name)
+             $scope.clusters.push({
+              "name" : cluster.Clusters.cluster_name,
+              "id" : cluster.Clusters.cluster_id
+             })
            });
            $scope.noLocalClusterAvailible = false;
            if($scope.clusterConfigurable){
@@ -122,7 +125,10 @@ angular.module('ambariAdminConsole')
          RemoteCluster.listAll().then(function (clusters) {
            if(clusters.length >0){
              clusters.forEach(function(cluster) {
-               $scope.remoteClusters.push(cluster.ClusterInfo.name)
+               $scope.remoteClusters.push({
+                "name" : cluster.ClusterInfo.name,
+                "id" : cluster.ClusterInfo.cluster_id
+               })
              });
              $scope.noRemoteClusterAvailible = false;
            }else{
@@ -153,16 +159,17 @@ angular.module('ambariAdminConsole')
       switch($scope.instance.clusterType) {
         case 'LOCAL_AMBARI':
           console.log($scope.cluster);
-          $scope.instance.clusterName = $scope.cluster;
+          $scope.instance.clusterId = $scope.cluster.id;
           break;
         case 'REMOTE_AMBARI':
           console.log($scope.data.remoteCluster);
-          $scope.instance.clusterName = $scope.data.remoteCluster;
+          $scope.instance.clusterId = $scope.data.remoteCluster.id;
+
           break;
         default:
-          $scope.instance.clusterName = null;
+          $scope.instance.clusterId = null;
       }
-      console.log($scope.instance.clusterName);
+      console.log($scope.instance.clusterId);
       View.createInstance($scope.instance)
         .then(function(data) {
           Alert.success($t('views.alerts.instanceCreated', {instanceName: $scope.instance.instance_name}));

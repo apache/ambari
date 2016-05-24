@@ -360,7 +360,7 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
     PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
 
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
-    expect(viewInstanceEntity.getClusterHandle()).andReturn("c1").anyTimes();
+    expect(viewInstanceEntity.getClusterHandle()).andReturn(1L).anyTimes();
 
     PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
     PrincipalEntity principalEntity = createNiceMock(PrincipalEntity.class);

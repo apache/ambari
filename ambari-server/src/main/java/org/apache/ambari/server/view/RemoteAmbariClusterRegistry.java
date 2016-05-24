@@ -46,11 +46,11 @@ public class RemoteAmbariClusterRegistry {
   @Inject
   private Configuration configuration;
 
-  public RemoteAmbariCluster get(String clusterName){
-    RemoteAmbariCluster remoteAmbariCluster = clusterMap.get(clusterName);
+  public RemoteAmbariCluster get(Long clusterId){
+    RemoteAmbariCluster remoteAmbariCluster = clusterMap.get(clusterId);
     if(remoteAmbariCluster == null){
-      RemoteAmbariCluster cluster = getCluster(clusterName);
-      RemoteAmbariCluster oldCluster = clusterMap.putIfAbsent(clusterName, cluster);
+      RemoteAmbariCluster cluster = getCluster(clusterId);
+      RemoteAmbariCluster oldCluster = clusterMap.putIfAbsent(cluster.getName(), cluster);
       if(oldCluster == null) remoteAmbariCluster = cluster;
       else remoteAmbariCluster = oldCluster;
     }
@@ -58,8 +58,8 @@ public class RemoteAmbariClusterRegistry {
   }
 
 
-  private RemoteAmbariCluster getCluster(String clusterName) {
-    RemoteAmbariClusterEntity remoteAmbariClusterEntity = remoteAmbariClusterDAO.findByName(clusterName);
+  private RemoteAmbariCluster getCluster(Long clusterId) {
+    RemoteAmbariClusterEntity remoteAmbariClusterEntity = remoteAmbariClusterDAO.findById(clusterId);
     RemoteAmbariCluster remoteAmbariCluster = new RemoteAmbariCluster(remoteAmbariClusterEntity, configuration);
     return remoteAmbariCluster;
   }

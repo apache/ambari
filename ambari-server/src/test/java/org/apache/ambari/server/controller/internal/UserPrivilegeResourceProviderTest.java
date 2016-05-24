@@ -360,7 +360,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
     ViewInstanceEntity viewInstanceEntity = createMock(ViewInstanceEntity.class);
     expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).atLeastOnce();
     expect(viewInstanceEntity.getName()).andReturn("Test View").atLeastOnce();
-    expect(viewInstanceEntity.getClusterHandle()).andReturn("c1").atLeastOnce();
+    expect(viewInstanceEntity.getClusterHandle()).andReturn(1L).atLeastOnce();
     expect(viewInstanceEntity.getResource()).andReturn(resourceEntity).atLeastOnce();
 
     PrivilegeEntity privilegeEntityViewWithClusterAdminAccess = createMock(PrivilegeEntity.class);

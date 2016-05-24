@@ -918,7 +918,7 @@ public class ViewRegistry {
    */
   public Cluster getCluster(ViewInstanceDefinition viewInstance) {
     if (viewInstance != null) {
-      String clusterId = viewInstance.getClusterHandle();
+      Long clusterId = viewInstance.getClusterHandle();
 
       if (clusterId != null && viewInstance.getClusterType() == ClusterType.LOCAL_AMBARI) {
         try {
@@ -965,7 +965,7 @@ public class ViewRegistry {
 
             LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
             ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoConfig);
-            viewInstanceEntity.setClusterHandle(clusterName);
+            viewInstanceEntity.setClusterHandle(clusterId);
             installViewInstance(viewInstanceEntity);
           }
         } catch (Exception e) {
@@ -1720,6 +1720,7 @@ public class ViewRegistry {
     for (org.apache.ambari.server.state.Cluster cluster : allClusters.values()) {
 
       String clusterName = cluster.getClusterName();
+      Long clusterId= cluster.getClusterId();
       StackId stackId = cluster.getCurrentStackVersion();
       Set<String> serviceNames = cluster.getServices().keySet();
 
@@ -1729,7 +1730,7 @@ public class ViewRegistry {
           if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
             LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
             ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoInstanceConfig);
-            viewInstanceEntity.setClusterHandle(clusterName);
+            viewInstanceEntity.setClusterHandle(clusterId);
             installViewInstance(viewInstanceEntity);
             addClusterInheritedPermissions(viewInstanceEntity, permissions);
           }
@@ -1946,11 +1947,11 @@ public class ViewRegistry {
   /**
    * Get Remote Ambari Cluster Stream provider
    *
-   * @param clusterName
+   * @param clusterId
    * @return
    */
-  protected AmbariStreamProvider createRemoteAmbariStreamProvider(String clusterName){
-    RemoteAmbariClusterEntity clusterEntity = remoteAmbariClusterDAO.findByName(clusterName);
+  protected AmbariStreamProvider createRemoteAmbariStreamProvider(Long clusterId){
+    RemoteAmbariClusterEntity clusterEntity = remoteAmbariClusterDAO.findById(clusterId);
     if(clusterEntity != null) {
       return new RemoteAmbariStreamProvider(getBaseurl(clusterEntity.getUrl()),
         clusterEntity.getUsername(),clusterEntity.getPassword(),

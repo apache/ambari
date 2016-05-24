@@ -62,6 +62,14 @@ public interface Clusters {
       throws AmbariException;
 
   /**
+   * Gets the Cluster given the cluster id
+   * @param clusterId Id of the Cluster to retrieve
+   * @return  <code>Cluster</code> identified by the given id
+   */
+  Cluster getCluster(Long clusterId)
+    throws AmbariException;
+
+  /**
    * Get all clusters
    * @return <code>Map</code> of clusters with cluster name as key
    */
