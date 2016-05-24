@@ -26,6 +26,8 @@ import Ember from 'ember';
  * {{/validated-text-field}}
  */
 export default Ember.Component.extend({
+  classNameBindings: ['tagClassName'],
+  tagClassName : false, // set it to non false value if you want a specific class to be assigned
   allowEmpty: true,
   valid: true,
   setValid: function () {

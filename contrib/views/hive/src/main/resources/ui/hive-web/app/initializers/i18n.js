@@ -303,6 +303,9 @@ TRANSLATIONS = {
       'isFirstRowHeader':"Is first row header ?",
       'columnNameTooltip':"Enter valid (alphanumeric + underscore) column name.",
       'columnNameErrorMessage':"Only alphanumeric and underscore characters are allowed in column names.",
+      'hdfsFieldTooltip':"Enter full HDFS path",
+      'hdfsFieldPlaceholder':"Enter full HDFS path",
+      'hdfsFieldErrorMessage':"Please enter complete path of hdfs file to upload."
 
     }
   },
