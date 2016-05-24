@@ -222,6 +222,10 @@ def new_cached_exec(key, file_path, kinit_path, temp_dir, exec_user, keytab_file
   os.close(temp_kinit_cache_fd)
 
   try:
+    # Ensure the proper user owns this file
+    File(temp_kinit_cache_filename, owner=exec_user, mode=0600)
+
+    # Execute the kinit
     Execute(command, user=exec_user)
 
     with open(file_path, 'w+') as cache_file:

@@ -23,7 +23,6 @@ import sys
 from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from resource_management.libraries.functions.security_commons import cached_kinit_executor
 
 
 class MapReduce2ServiceCheck(Script):
@@ -136,8 +135,8 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
 
     # initialize the ticket
     if params.security_enabled:
-      cached_kinit_executor(params.kinit_path_local, params.smokeuser, params.smoke_user_keytab,
-                            params.smokeuser_principal, params.hostname, params.tmp_dir)
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      Execute(kinit_cmd, user=params.smokeuser)
 
     ExecuteHadoop(run_wordcount_job,
                   tries=1,
@@ -147,10 +146,10 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
                   conf_dir=params.hadoop_conf_dir,
                   logoutput=True)
 
-    # the ticket may have expired, so re-initialize if needed
+    # the ticket may have expired, so re-initialize
     if params.security_enabled:
-      cached_kinit_executor(params.kinit_path_local, params.smokeuser, params.smoke_user_keytab,
-                            params.smokeuser_principal, params.hostname, params.tmp_dir)
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      Execute(kinit_cmd, user=params.smokeuser)
 
     ExecuteHadoop(test_cmd,
                   user=params.smokeuser,
