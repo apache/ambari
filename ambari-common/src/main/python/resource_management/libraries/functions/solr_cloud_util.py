@@ -49,18 +49,27 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
   )
 
 def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java64_home, user, group,
-                      shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10):
+                      shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10,
+                      router_name = None, router_field = None):
   """
   Create Solr collection based on a configuration set in zookeeper.
   If this method called again the with higher shard number (or max_shard number), then it will indicate
   the cli tool to add new shards to the Solr collection. This can be useful after added a new Solr Cloud
   instance to the cluster.
+
+  If you would like to add shards later to a collection, then use implicit routing, e.g.:
+  router_name = "implicit", router_field = "_router_field_"
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home)
 
   if max_shards == 1: # if max shards is not specified use this strategy
     max_shards = replication_factor * shards
 
-  Execute(format('{solr_cli_prefix} --create-collection -c {collection} -cs {config_set} -s {shards} -r {replication_factor} '\
-    '-m {max_shards} -rt {retry} -i {interval}'), user=user, group=group
+  create_collection_cmd = format('{solr_cli_prefix} --create-collection -c {collection} -cs {config_set} -s {shards} -r {replication_factor} '\
+    '-m {max_shards} -rt {retry} -i {interval}')
+
+  if router_name is not None and router_field is not None:
+    create_collection_cmd += format(' -rn {router_name} -rf {router_field}')
+
+  Execute(create_collection_cmd, user=user, group=group
   )

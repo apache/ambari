@@ -241,8 +241,8 @@ public class AmbariSolrCloudCLI {
       int retry = cli.hasOption("rt") ? Integer.parseInt(cli.getOptionValue("rt")) : 5;
       int interval = cli.hasOption('i') ? Integer.parseInt(cli.getOptionValue('i')) : 10;
       int maxShards = cli.hasOption('m') ? Integer.parseInt(cli.getOptionValue('m')) : shards * replication;
-      String routerName = cli.hasOption("rn") ? cli.getOptionValue("rn") : "implicit";
-      String routerField = cli.hasOption("rf") ? cli.getOptionValue("rf") : "_router_field_";
+      String routerName = cli.hasOption("rn") ? cli.getOptionValue("rn") : null;
+      String routerField = cli.hasOption("rf") ? cli.getOptionValue("rf") : null;
       String shardName = cli.hasOption("sn") ? cli.getOptionValue("sn") : null;
       boolean isSplitting = !cli.hasOption("ns");
 
