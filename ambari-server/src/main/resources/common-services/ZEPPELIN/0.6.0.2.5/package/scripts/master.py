@@ -147,6 +147,10 @@ class Master(Script):
     File(format("{params.conf_dir}/shiro.ini"), content=shiro_ini_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
+    # write out log4j.properties
+    File(format("{params.conf_dir}/log4j.properties"), content=params.log4j_properties_content,
+         owner=params.zeppelin_user, group=params.zeppelin_group)
+
   def stop(self, env):
     import params
     self.create_zeppelin_log_dir(env)
