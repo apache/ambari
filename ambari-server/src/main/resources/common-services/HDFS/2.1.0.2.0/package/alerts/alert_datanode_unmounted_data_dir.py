@@ -22,7 +22,7 @@ import os
 import logging
 
 from resource_management.libraries.functions import file_system
-from resource_management.libraries.functions import dfs_datanode_helper
+from resource_management.libraries.functions import mounted_dirs_helper
 
 RESULT_STATE_OK = 'OK'
 RESULT_STATE_WARNING = 'WARNING'
@@ -123,20 +123,13 @@ def execute(configurations={}, parameters={}, host_name=None):
     errors.append("Cannot find mount point for data dir(s): {0} .".format(", ".join(data_dirs_unknown)))
 
   if data_dir_mount_file_exists:
-    # Make a precise determination on which data dirs have become unmounted.
-
-    class Params:
-      def __init__(self, mount_file):
-        self.data_dir_mount_file = mount_file
-    params = Params(DATA_DIR_MOUNT_FILE)
-
     # This dictionary contains the expected values of <data_dir, mount_point>
     # Hence, we only need to analyze the data dirs that are currently on the root partition
     # and report an error if they were expected to be on a mount.
     #
     # If one of the data dirs is not present in the file, it means that DataNode has not been restarted after
     # the configuration was changed on the server, so we cannot make any assertions about it.
-    expected_data_dir_to_mount = dfs_datanode_helper.get_data_dir_to_mount_from_file(params)
+    expected_data_dir_to_mount = mounted_dirs_helper.get_dir_to_mount_from_file(DATA_DIR_MOUNT_FILE)
     for data_dir in data_dirs_on_root:
       if data_dir in expected_data_dir_to_mount and expected_data_dir_to_mount[data_dir] != "/":
         data_dirs_unmounted.append(data_dir)

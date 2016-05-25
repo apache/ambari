@@ -190,6 +190,9 @@ if hostname and nm_address and nm_address.startswith("0.0.0.0:"):
 nm_local_dirs = default("/configurations/yarn-site/yarn.nodemanager.local-dirs", "")
 nm_log_dirs = default("/configurations/yarn-site/yarn.nodemanager.log-dirs", "")
 
+nm_log_dir_to_mount_file = "/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist"
+nm_local_dir_to_mount_file = "/var/lib/ambari-agent/data/yarn/yarn_local_dir_mount.hist"
+
 # If Hive Interactive Server is present, then default value will be ${yarn.nodemanager.local-dirs}
 # During kerberization, kerberos.json changes the value to "/hadoop/llap/local".
 # This is a comma separated list of directories.

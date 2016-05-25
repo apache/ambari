@@ -36,6 +36,8 @@ from resource_management.core.logger import Logger
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
+from resource_management.libraries.functions.mounted_dirs_helper import handle_mounted_dirs
+
 # Local Imports
 
 
@@ -70,6 +72,28 @@ def yarn(name = None):
                   username = params.yarn_user,
                   password = Script.get_password(params.yarn_user))
 
+def create_log_dir(dir_name):
+  import params
+  Directory(dir_name,
+            create_parents = True,
+            cd_access="a",
+            mode=0775,
+            owner=params.yarn_user,
+            group=params.user_group,
+            ignore_failures=True,
+  )
+  
+def create_local_dir(dir_name):
+  import params
+  Directory(dir_name,
+            create_parents = True,
+            cd_access="a",
+            mode=0755,
+            owner=params.yarn_user,
+            group=params.user_group,
+            ignore_failures=True,
+            recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
+  )
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def yarn(name = None):
@@ -154,22 +178,22 @@ def yarn(name = None):
 
 
     if not params.security_enabled or params.toggle_nm_security:
-      Directory(params.nm_log_dirs_list,
-                owner=params.yarn_user,
-                group=params.user_group,
-                create_parents = True,
-                cd_access="a",
-                ignore_failures=True,
-                mode=0775)
-      Directory(params.nm_local_dirs_list,
-                owner=params.yarn_user,
-                group=params.user_group,
-                create_parents = True,
-                cd_access="a",
-                ignore_failures=True,
-                mode=0755,
-                recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
-                )
+      # handle_mounted_dirs ensures that we don't create dirs which are temporary unavailable (unmounted), and intended to reside on a different mount.
+      nm_log_dir_to_mount_file_content = handle_mounted_dirs(create_log_dir, params.nm_log_dirs, params.nm_log_dir_to_mount_file, params)
+      # create a history file used by handle_mounted_dirs
+      File(params.nm_log_dir_to_mount_file,
+           owner=params.hdfs_user,
+           group=params.user_group,
+           mode=0644,
+           content=nm_log_dir_to_mount_file_content
+      )
+      nm_local_dir_to_mount_file_content = handle_mounted_dirs(create_local_dir, params.nm_local_dirs, params.nm_local_dir_to_mount_file, params)
+      File(params.nm_local_dir_to_mount_file,
+           owner=params.hdfs_user,
+           group=params.user_group,
+           mode=0644,
+           content=nm_local_dir_to_mount_file_content
+      )
 
     create_hive_llap_work_dir(params)
   #</editor-fold>

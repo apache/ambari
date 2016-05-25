@@ -336,8 +336,6 @@ class TestDatanode(RMFTestCase):
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
-                              owner = 'hdfs',
-                              group = 'hadoop',
                               mode = 0755,
                               create_parents = True
     )
@@ -349,7 +347,7 @@ class TestDatanode(RMFTestCase):
                               create_parents = True,
                               cd_access='a'
                               )
-    content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
+    content = resource_management.libraries.functions.dfs_datanode_helper.DIR_TO_MOUNT_HEADER
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -414,8 +412,6 @@ class TestDatanode(RMFTestCase):
                               create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
-                              owner = 'hdfs',
-                              group = 'hadoop',
                               mode = 0755,
                               create_parents = True
     )
@@ -427,7 +423,7 @@ class TestDatanode(RMFTestCase):
                               create_parents = True,
                               cd_access='a'
                               )
-    content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
+    content = resource_management.libraries.functions.dfs_datanode_helper.DIR_TO_MOUNT_HEADER
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist',
                               owner = 'hdfs',
                               group = 'hadoop',
