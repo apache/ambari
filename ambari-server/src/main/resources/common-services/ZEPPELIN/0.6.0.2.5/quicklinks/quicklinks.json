@@ -1,0 +1,28 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"HTTP_ONLY"
+    },
+
+    "links": [
+      {
+        "name": "zeppelin_ui",
+        "label": "Zeppelin UI",
+        "requires_user_name": "false",
+        "component_name": "ZEPPELIN_MASTER",
+        "url":"%@://%@:%@/",
+        "port":{
+          "http_property": "zeppelin_host",
+          "http_default_port": "9995",
+          "https_property": "zeppelin_host",
+          "https_default_port": "9995",
+          "regex": "^(\\d+)$",
+          "site": "zeppelin-site"
+        }
+      }
+    ]
+  }
+}
