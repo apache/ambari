@@ -190,48 +190,29 @@ class Master(Script):
 
   def update_zeppelin_interpreter(self):
     import params
-    import json, urllib2
-    zeppelin_int_url = 'http://' + params.zeppelin_host + ':' + str(
-      params.zeppelin_port) + '/api/interpreter/setting/'
+    import json
 
-    # fetch current interpreter settings for spark, hive, phoenix
-    data = json.load(urllib2.urlopen(zeppelin_int_url))
-    print data
-    for body in data['body']:
-      if body['group'] == 'spark':
-        sparkbody = body
-      elif body['group'] == 'hive':
-        hivebody = body
-      elif body['group'] == 'phoenix':
-        phoenixbody = body
+    interpreter_config = params.conf_dir + "/interpreter.json"
+    interpreter_config_file = open(interpreter_config, "r")
+    config_data = json.load(interpreter_config_file)
+    interpreter_config_file.close()
+    interpreter_settings = config_data['interpreterSettings']
 
-    # if hive installed, update hive settings and post to hive interpreter
-    if (params.hive_server_host):
-      hivebody['properties']['hive.hiveserver2.url'] = 'jdbc:hive2://' \
-                                                       + params.hive_server_host \
-                                                       + ':' + params.hive_server_port
-      self.post_request(zeppelin_int_url + hivebody['id'], hivebody)
+    for notebooks in interpreter_settings:
+        notebook = interpreter_settings[notebooks]
+        if notebook['group'] == 'hive' and params.hive_server_host:
+            notebook['properties']['hive.hiveserver2.url'] = 'jdbc:hive2://' +\
+                                                             params.hive_server_host +\
+                                                             ':' + params.hive_server_port
+        elif notebook['group'] == 'phoenix' and params.zookeeper_znode_parent \
+                and params.hbase_zookeeper_quorum:
+            notebook['properties']['phoenix.jdbc.url'] = "jdbc:phoenix:" +\
+                                                         params.hbase_zookeeper_quorum + ':' +\
+                                                         params.zookeeper_znode_parent
 
-    # if hbase installed, update hbase settings and post to phoenix interpreter
-    if (params.zookeeper_znode_parent and params.hbase_zookeeper_quorum):
-      phoenixbody['properties'][
-        'phoenix.jdbc.url'] = "jdbc:phoenix:" + params.hbase_zookeeper_quorum + ':' \
-                              + params.zookeeper_znode_parent
-      self.post_request(zeppelin_int_url + phoenixbody['id'], phoenixbody)
-
-  def post_request(self, url, body):
-    import json, urllib2
-    encoded_body = json.dumps(body)
-    req = urllib2.Request(str(url), encoded_body)
-    req.get_method = lambda: 'PUT'
-    try:
-      response = urllib2.urlopen(req, encoded_body).read()
-    except urllib2.HTTPError, error:
-      print 'Exception: ' + error.read()
-
-    jsonresp = json.loads(response.decode('utf-8'))
-    print jsonresp['status']
-
+    interpreter_config_file = open(interpreter_config, "w+")
+    interpreter_config_file.write(json.dumps(config_data, indent=2))
+    interpreter_config_file.close()
 
 if __name__ == "__main__":
   Master().execute()
