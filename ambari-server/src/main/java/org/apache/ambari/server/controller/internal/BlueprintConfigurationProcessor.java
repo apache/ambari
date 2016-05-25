@@ -169,6 +169,8 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
       new SimplePropertyNameExportFilter("container_dn", "kerberos-env"),
       new SimplePropertyNameExportFilter("domains", "krb5-conf"),
+      new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", "hadoop-env"),
+      new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", "hadoop-env"),
       new StackPasswordPropertyFilter()
     };
 
@@ -240,7 +242,7 @@ public class BlueprintConfigurationProcessor {
    * @return Set of config type names that were updated by this update call
    */
   public Set<String> doUpdateForClusterCreate() throws ConfigurationTopologyException {
-    Set<String> configTypesUpdated = new HashSet<String>();
+      Set<String> configTypesUpdated = new HashSet<String>();
     Configuration clusterConfig = clusterTopology.getConfiguration();
     Map<String, HostGroupInfo> groupInfoMap = clusterTopology.getHostGroupInfo();
 
@@ -2235,7 +2237,8 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> kafkaBrokerNonTopologyMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> atlasPropsMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hadoopEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> mHadoopEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> shHadoopEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveInteractiveEnvMap = new HashMap<String, PropertyUpdater>();
@@ -2268,8 +2271,6 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hawqSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<String, PropertyUpdater>();
 
-
-
     singleHostTopologyUpdaters.put("ams-site", amsSiteMap);
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
     singleHostTopologyUpdaters.put("mapred-site", mapredSiteMap);
@@ -2295,12 +2296,13 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("ranger-knox-audit", rangerKnoxAuditPropsMap);
     singleHostTopologyUpdaters.put("ranger-kafka-audit", rangerKafkaAuditPropsMap);
     singleHostTopologyUpdaters.put("ranger-storm-audit", rangerStormAuditPropsMap);
+    singleHostTopologyUpdaters.put("hadoop-env", shHadoopEnvMap);
 
     singleHostTopologyUpdaters.put("hawq-site", hawqSiteMap);
     singleHostTopologyUpdaters.put("zookeeper-env", zookeeperEnvMap);
 
 
-    mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
+    mPropertyUpdaters.put("hadoop-env", mHadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
     mPropertyUpdaters.put("mapred-env", mapredEnvMap);
     mPropertyUpdaters.put("oozie-env", oozieEnvHeapSizeMap);
@@ -2345,6 +2347,9 @@ public class BlueprintConfigurationProcessor {
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
     multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false, false, true));
     multiHdfsSiteMap.put("dfs.encryption.key.provider.uri", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false, false, false));
+    // Explicit initial primary/secondary node assignment in HA
+    shHadoopEnvMap.put("dfs_ha_initial_namenode_active", new SingleHostTopologyUpdater("NAMENODE"));
+    shHadoopEnvMap.put("dfs_ha_initial_namenode_standby", new SingleHostTopologyUpdater("NAMENODE"));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
@@ -2593,12 +2598,12 @@ public class BlueprintConfigurationProcessor {
       new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
-    hadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());
-    hadoopEnvMap.put("namenode_opt_newsize", new MPropertyUpdater());
-    hadoopEnvMap.put("namenode_opt_maxnewsize", new MPropertyUpdater());
-    hadoopEnvMap.put("namenode_opt_permsize", new MPropertyUpdater());
-    hadoopEnvMap.put("namenode_opt_maxpermsize", new MPropertyUpdater());
-    hadoopEnvMap.put("dtnode_heapsize", new MPropertyUpdater());
+    mHadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());
+    mHadoopEnvMap.put("namenode_opt_newsize", new MPropertyUpdater());
+    mHadoopEnvMap.put("namenode_opt_maxnewsize", new MPropertyUpdater());
+    mHadoopEnvMap.put("namenode_opt_permsize", new MPropertyUpdater());
+    mHadoopEnvMap.put("namenode_opt_maxpermsize", new MPropertyUpdater());
+    mHadoopEnvMap.put("dtnode_heapsize", new MPropertyUpdater());
     mapredEnvMap.put("jtnode_opt_newsize", new MPropertyUpdater());
     mapredEnvMap.put("jtnode_opt_maxnewsize", new MPropertyUpdater());
     mapredEnvMap.put("jtnode_heapsize", new MPropertyUpdater());
