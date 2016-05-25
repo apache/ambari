@@ -93,7 +93,7 @@ class TestHawqSegment(RMFTestCase):
                               timeout = 600
                               )
 
-    self.assertResourceCalled('Directory', '/tmp/hawq/segment',
+    self.assertResourceCalled('Directory', '/data/hawq/tmp/segment',
         owner = self.GPADMIN,
         group = self.GPADMIN,
         create_parents = True
