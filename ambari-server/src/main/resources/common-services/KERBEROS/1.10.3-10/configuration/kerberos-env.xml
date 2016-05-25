@@ -146,7 +146,7 @@
     </value-attributes>
   </property>
 
-  <property>
+  <property require-input="true">
     <name>admin_server_host</name>
     <display-name>Kadmin host</display-name>
     <description>
