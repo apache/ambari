@@ -113,5 +113,5 @@ hbase.sink.ganglia.servers={{ganglia_server_host}}:8663
 {% endif %}
 
 # Disable HBase metrics for regions/tables/regionservers by default.
-*.source.filter.class=org.apache.hadoop.metrics2.filter.GlobFilter
-hbase.*.source.filter.exclude=*Regions*
+*.source.filter.class=org.apache.hadoop.metrics2.filter.RegexFilter
+hbase.*.source.filter.exclude=.*(Regions|Users|Tables).*

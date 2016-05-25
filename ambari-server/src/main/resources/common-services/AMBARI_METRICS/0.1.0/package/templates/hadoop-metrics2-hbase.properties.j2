@@ -64,5 +64,5 @@ hbase.sink.timeline.truststore.type = {{metric_truststore_type}}
 hbase.sink.timeline.truststore.password = {{metric_truststore_password}}
 
 # Switch off metrics generation on a per region basis
-*.source.filter.class=org.apache.hadoop.metrics2.filter.GlobFilter
-hbase.*.source.filter.exclude=*Regions*
+*.source.filter.class=org.apache.hadoop.metrics2.filter.RegexFilter
+hbase.*.source.filter.exclude=.*(Regions|Users|Tables).*
