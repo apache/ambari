@@ -1468,7 +1468,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }, this);
 
     if (Em.isArray(data) && data.length) {
-      this.putChangedConfigurations(data, 'onSaveConfigs');
+      this.putChangedConfigurations(data, 'confirmServiceDeletion');
     } else {
       this.confirmServiceDeletion();
     }

@@ -1601,41 +1601,73 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
-  [
-    {
-      m: 'should call only restartLLAPRequest',
-      isRestartRequired: false,
-      toCall: 'restartLLAPRequest'
-    },
-    {
-      m: 'should call only restartLLAPAndRefreshQueueRequest',
-      isRestartRequired: true,
-      toCall: 'restartLLAPAndRefreshQueueRequest'
-    }
-  ].forEach(function (test) {
-        describe("#restartLLAP()", function () {
-          var mainServiceItemController;
+  describe("#restartLLAP()", function () {
+    var mainServiceItemController;
 
-          beforeEach(function () {
-            mainServiceItemController = App.MainServiceItemController.create();
-            sinon.stub(mainServiceItemController, 'restartLLAPAndRefreshQueueRequest', Em.K);
-            sinon.stub(mainServiceItemController, 'restartLLAPRequest', Em.K);
-            sinon.stub(App.Service, 'find').returns([Em.Object.create({
-                serviceName: 'YARN',
-                isRestartRequired: test.isRestartRequired
-              })]);
-          });
-          afterEach(function () {
-            mainServiceItemController.restartLLAPAndRefreshQueueRequest.restore();
-            mainServiceItemController.restartLLAPRequest.restore();
-            App.Service.find.restore();
-          });
+    beforeEach(function () {
+      mainServiceItemController = App.MainServiceItemController.create();
+      sinon.stub(mainServiceItemController, 'restartLLAPAndRefreshQueueRequest', Em.K);
+      sinon.stub(mainServiceItemController, 'restartLLAPRequest', Em.K);
+      this.mockService = sinon.stub(App.Service, 'find');
+    });
+    afterEach(function () {
+      mainServiceItemController.restartLLAPAndRefreshQueueRequest.restore();
+      mainServiceItemController.restartLLAPRequest.restore();
+      this.mockService.restore();
+    });
 
-          it(test.m, function () {
-            var confirmationPopup = mainServiceItemController.restartLLAP();
-            confirmationPopup.onPrimary();
-            expect(mainServiceItemController[test.toCall].calledOnce).to.be.true;
-          });
+    [
+      {
+        m: 'should call only restartLLAPRequest',
+        isRestartRequired: false,
+        toCall: 'restartLLAPRequest'
+      },
+      {
+        m: 'should call only restartLLAPAndRefreshQueueRequest',
+        isRestartRequired: true,
+        toCall: 'restartLLAPAndRefreshQueueRequest'
+      }
+    ].forEach(function (test) {
+        it(test.m, function () {
+          this.mockService.returns([Em.Object.create({
+            serviceName: 'YARN',
+            isRestartRequired: test.isRestartRequired
+          })]);
+          var confirmationPopup = mainServiceItemController.restartLLAP();
+          confirmationPopup.onPrimary();
+          expect(mainServiceItemController[test.toCall].calledOnce).to.be.true;
         });
       });
+  });
+
+  describe("#saveConfigs()", function () {
+    var mainServiceItemController;
+
+    beforeEach(function () {
+      mainServiceItemController = App.MainServiceItemController.create();
+      sinon.stub(mainServiceItemController, 'getServiceConfigToSave').returns({});
+      sinon.stub(mainServiceItemController, 'putChangedConfigurations');
+      sinon.stub(mainServiceItemController, 'confirmServiceDeletion');
+    });
+
+    afterEach(function () {
+      mainServiceItemController.getServiceConfigToSave.restore();
+      mainServiceItemController.putChangedConfigurations.restore();
+      mainServiceItemController.confirmServiceDeletion.restore();
+    });
+
+    it("empty stepConfigs", function() {
+      mainServiceItemController.set('stepConfigs', []);
+      mainServiceItemController.saveConfigs();
+      expect(mainServiceItemController.confirmServiceDeletion.calledOnce).to.be.true;
+      expect(mainServiceItemController.putChangedConfigurations.called).to.be.false;
+    });
+
+    it("stepConfigs has configs", function() {
+      mainServiceItemController.set('stepConfigs', [Em.Object.create({serviceName: 'S1'})]);
+      mainServiceItemController.saveConfigs();
+      expect(mainServiceItemController.putChangedConfigurations.calledWith([{}], 'confirmServiceDeletion')).to.be.true;
+      expect(mainServiceItemController.confirmServiceDeletion.called).to.be.false;
+    });
+  });
 });
