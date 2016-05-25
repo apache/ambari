@@ -48,6 +48,7 @@ var files = [
   'test/controllers/global/configuration_controller_test',
   'test/controllers/global/wizard_watcher_controller_test',
   'test/controllers/global/user_settings_controller_test',
+  'test/controllers/global/errors_handler_controller_test',
   'test/controllers/main/alert_definitions_controller_test',
   'test/controllers/main/alerts/alert_definitions_actions_controller_test',
   'test/controllers/main/alerts/definitions_configs_controller_test',

@@ -190,6 +190,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       return;
     }
     App.router.get('userSettingsController').getAllUserSettings();
+    App.router.get('errorsHandlerController').loadErrorLogs();
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var hostsController = App.router.get('mainHostController');
     hostsController.set('isCountersUpdating', true);
