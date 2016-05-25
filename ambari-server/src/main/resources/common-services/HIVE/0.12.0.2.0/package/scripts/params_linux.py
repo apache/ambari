@@ -378,6 +378,8 @@ jars_in_hive_lib = format("{hive_lib}/*.jar")
 start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")
 start_metastore_path = format("{tmp_dir}/start_metastore_script")
 
+yarn_scheduler_allocation_minimum_mb = config['configurations']['yarn-site']['properties']['yarn.scheduler.minimum-allocation-mb']
+
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:

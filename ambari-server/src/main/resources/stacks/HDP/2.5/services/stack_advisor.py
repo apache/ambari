@@ -227,6 +227,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     llap_queue_selected_in_current_call = None
     LLAP_MAX_CONCURRENCY = 32 # Allow a max of 32 concurrency.
 
+    # initial memory setting to make sure hive.llap.daemon.yarn.container.mb >= yarn.scheduler.minimum-allocation-mb
+    Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size as initial size (" + str(self.get_yarn_min_container_size(services)) + " MB).")
+    putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', long(self.get_yarn_min_container_size(services)))
+
     try:
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
           'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
@@ -246,8 +250,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             Logger.debug("Selected YARN queue is '{0}'. Setting LLAP queue capacity slider visibility to True".format(llap_queue_name))
         else:
           putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "false")
-          Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size (" + str(self.get_yarn_min_container_size(services)) + " MB).")
-          putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', long(self.get_yarn_min_container_size(services)))
           Logger.debug("Queue selected for LLAP app is : '{0}'. Current YARN queues : {1}. "
                     "Setting LLAP queue capacity slider visibility to False. "
                     "Skipping updating values for LLAP related configs".format(llap_daemon_selected_queue_name, list(leafQueueNames)))
