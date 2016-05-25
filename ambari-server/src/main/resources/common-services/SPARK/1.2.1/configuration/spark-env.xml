@@ -60,6 +60,17 @@
     </value-attributes>
   </property>
 
+  <property>
+    <name>spark_daemon_memory</name>
+    <value>1024</value>
+    <description>Memory for Master, Worker and history server (default: 1G)</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+   </property>
+
+
   <!-- spark-env.sh -->
   <property>
     <name>content</name>
@@ -104,6 +115,9 @@ export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
 
 # The java implementation to use.
 export JAVA_HOME={{java_home}}
+
+#Memory for Master, Worker and history server (default: 1024MB)
+export SPARK_DAEMON_MEMORY={{spark_daemon_memory}}
 
 if [ -d "/etc/tez/conf/" ]; then
   export TEZ_CONF_DIR=/etc/tez/conf
