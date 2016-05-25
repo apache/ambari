@@ -140,37 +140,6 @@ def perform_grafana_post_call(url, payload, server):
 
   return (response, data)
 
-def perform_grafana_delete_call(url, server):
-  grafana_https_enabled = server.protocol.lower() == 'https'
-  response = None
-
-  for i in xrange(0, GRAFANA_CONNECT_TRIES):
-    try:
-      conn = network.get_http_connection(server.host,
-                                         int(server.port),
-                                         grafana_https_enabled)
-
-      userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
-      headers = { 'Authorization' : 'Basic %s' %  userAndPass }
-
-      Logger.info("Connecting (DELETE) to %s:%s%s" % (server.host, server.port, url))
-
-      conn.request("DELETE", url, headers = headers)
-      response = conn.getresponse()
-      Logger.info("Http response: %s %s" % (response.status, response.reason))
-      break
-    except (httplib.HTTPException, socket.error) as ex:
-      if i < GRAFANA_CONNECT_TRIES - 1:
-        time.sleep(GRAFANA_CONNECT_TIMEOUT)
-        Logger.info("Connection to Grafana failed. Next retry in %s seconds."
-                    % (GRAFANA_CONNECT_TIMEOUT))
-        continue
-      else:
-        raise Fail("Ambari Metrics Grafana update failed due to: %s" % str(ex))
-      pass
-
-  return response
-
 def is_unchanged_datasource_url(datasource_url):
   import params
   parsed_url = urlparse(datasource_url)
@@ -283,21 +252,18 @@ def create_ams_dashboards():
   if response and response.status == 200:
     data = response.read()
     try:
-      dashboards = json.loads(data)
+      datasources = json.loads(data)
     except:
       Logger.error("Unable to parse JSON response from grafana request: %s" %
                    GRAFANA_SEARCH_BULTIN_DASHBOARDS)
       Logger.info(data)
       return
 
-    for dashboard in dashboards:
-      if dashboard['title'] == 'HBase - Performance':
-        perform_grafana_delete_call("/api/dashboards/" + dashboard['uri'], server)
-      else:
-        existing_dashboards.append(
-            Dashboard(uri = dashboard['uri'], id = dashboard['id'],
-                    title = dashboard['title'], tags = dashboard['tags'])
-          )
+    for datasource in datasources:
+      existing_dashboards.append(
+          Dashboard(uri = datasource['uri'], id = datasource['id'],
+                    title = datasource['title'], tags = datasource['tags'])
+        )
     pass
   else:
     Logger.error("Failed to execute search query on Grafana dashboards. "
