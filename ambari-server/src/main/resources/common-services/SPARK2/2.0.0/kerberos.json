@@ -1,0 +1,64 @@
+{
+  "services": [
+    {
+      "name": "SPARK2",
+      "identities": [
+        {
+          "name": "/smokeuser"
+        },
+        {
+          "name": "sparkuser",
+          "principal": {
+            "value": "${spark2-env/spark_user}-${cluster_name|toLower()}@${realm}",
+            "type" : "user",
+            "configuration": "spark2-defaults/spark.history.kerberos.principal",
+            "local_username" : "${spark-env/spark_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/spark.headless.keytab",
+            "owner": {
+              "name": "${spark2-env/spark_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+               "access": ""
+            },
+            "configuration": "spark2-defaults/spark.history.kerberos.keytab"
+           }
+        }
+      ],
+      "configurations": [
+        {
+          "spark2-defaults": {
+            "spark.history.kerberos.enabled": "true"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "SPARK2_JOBHISTORYSERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        },
+        {
+          "name": "SPARK2_CLIENT"
+        },
+        {
+          "name": "SPARK2_THRIFTSERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
