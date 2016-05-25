@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 from resource_management import *
-from resource_management.libraries.functions.dfs_datanode_helper import handle_mounted_dirs
+from resource_management.libraries.functions.mounted_dirs_helper import handle_mounted_dirs
 from utils import service
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from ambari_commons import OSConst

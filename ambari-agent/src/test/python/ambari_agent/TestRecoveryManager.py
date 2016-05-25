@@ -456,7 +456,7 @@ class _TestRecoveryManager(TestCase):
     pass
 
   @patch.object(RecoveryManager, "update_config")
-  def test_update_rm_config(self, mock_uc):
+  def _test_update_rm_config(self, mock_uc):
     rm = RecoveryManager(tempfile.mktemp())
     rm.update_configuration_from_registration(None)
     mock_uc.assert_has_calls([call(6, 60, 5, 12, False, True, "", -1)])
