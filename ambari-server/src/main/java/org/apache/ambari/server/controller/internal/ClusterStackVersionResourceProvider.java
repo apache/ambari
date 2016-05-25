@@ -81,7 +81,9 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -337,6 +339,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       stackId = currentStackVersion;
     }
 
+
     // why does the JSON body parser convert JSON primitives into strings!?
     Float successFactor = INSTALL_PACKAGES_SUCCESS_FACTOR;
     String successFactorProperty = (String) propertyMap.get(CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR);
@@ -351,6 +354,58 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       throw new IllegalArgumentException(String.format(
               "Repo version %s is not available for stack %s",
               desiredRepoVersion, stackId));
+    }
+
+    VersionDefinitionXml desiredVersionDefinition = null;
+    try {
+      desiredVersionDefinition = repoVersionEnt.getRepositoryXml();
+    } catch (Exception e) {
+      throw new IllegalArgumentException(
+          String.format("Version %s is backed by a version definition, but it could not be parsed", desiredRepoVersion), e);
+    }
+
+    /*
+    If there is a repository that is already ATTEMPTED to be installed and the version
+    is GREATER than the one trying to install, we must fail (until we can support that via Patch Upgrades)
+
+    For example:
+
+    1. Install 2.3.0.0
+    2. Register and Install 2.5.0.0 (with or without package-version; it gets computed correctly)
+    3. Register 2.4 (without package-version)
+
+    Installation of 2.4 will fail because the way agents invoke installation is to
+    install by name.  if the package-version is not known, then the 'newest' is ALWAYS installed.
+    In this case, 2.5.0.0.  2.4 is never picked up.
+    */
+    for (ClusterVersionEntity clusterVersion : clusterVersionDAO.findByCluster(clName)) {
+      RepositoryVersionEntity clusterRepoVersion = clusterVersion.getRepositoryVersion();
+
+      int compare = compareVersions(clusterRepoVersion.getVersion(), desiredRepoVersion);
+
+      // ignore earlier versions
+      if (compare <= 0) {
+        continue;
+      }
+
+      // !!! the version is greater to the one to install
+
+      // if the stacks are different, then don't fail (further check same-stack version strings)
+      if (!StringUtils.equals(clusterRepoVersion.getStackName(), repoVersionEnt.getStackName())) {
+        continue;
+      }
+
+      // if there is no backing VDF for the desired version, allow the operation (legacy behavior)
+      if (null == desiredVersionDefinition) {
+        continue;
+      }
+
+      // backing VDF does not define the package version, cannot install (allows a VDF with package-version)
+      if (null == desiredVersionDefinition.release.packageVersion) {
+        String msg = String.format("Ambari cannot install version %s.  Version %s is already installed.",
+          desiredRepoVersion, clusterRepoVersion.getVersion());
+        throw new IllegalArgumentException(msg);
+      }
     }
 
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
@@ -828,5 +883,36 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     hostVersionDAO.updateVersions(target, current);
     clusterVersionDAO.updateVersions(clusterId, target, current);
   }
+
+  /**
+   * Additional check over {@link VersionUtils#compareVersions(String, String)} that
+   * compares build numbers
+   */
+  private static int compareVersions(String version1, String version2) {
+    // check _exact_ equality
+    if (StringUtils.equals(version1, version2)) {
+      return 0;
+    }
+
+    int compare = VersionUtils.compareVersions(version1, version2);
+    if (0 != compare) {
+      return compare;
+    }
+
+    int v1 = 0;
+    int v2 = 0;
+    if (version1.indexOf('-') > -1) {
+      v1 = NumberUtils.toInt(version1.substring(version1.indexOf('-')), 0);
+    }
+
+    if (version2.indexOf('-') > -1) {
+      v2 = NumberUtils.toInt(version2.substring(version2.indexOf('-')), 0);
+    }
+
+    compare = v2 - v1;
+
+    return (compare == 0) ? 0 : (compare < 0) ? -1 : 1;
+  }
+
 
 }
