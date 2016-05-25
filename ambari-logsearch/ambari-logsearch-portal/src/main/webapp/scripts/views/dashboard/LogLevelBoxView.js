@@ -136,7 +136,7 @@ define(['require',
 			_.each(this.$(".server-info a.active"),function(e){
 				params.push($(e).find("strong").data("total"));
 			});
-			//this.fetchLogLevelCounts({level:params.toString()});
+			this.fetchLogLevelCounts({level:params.toString()});
 			this.vent.trigger("level:filter",{level:params.toString()});
 		},
 		reinitializeFilter : function(value){
