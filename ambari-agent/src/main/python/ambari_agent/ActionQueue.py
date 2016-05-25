@@ -135,13 +135,13 @@ class ActionQueue(threading.Thread):
 
       while not queue.empty():
         queued_command = queue.get(False)
-        if queued_command['task_id'] != task_id:
+        if queued_command['taskId'] != task_id:
           self.commandQueue.put(queued_command)
         else:
           logger.info("Canceling " + queued_command['commandType'] + \
                       " for service " + queued_command['serviceName'] + \
-                      " of cluster " +  queued_command['clusterName'] + \
-                      " to the queue.")
+                      " and role " +  queued_command['role'] + \
+                      " with taskId " + queued_command['taskId'])
 
       # Kill if in progress
       self.customServiceOrchestrator.cancel_command(task_id, reason)
