@@ -93,7 +93,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("File not found, {0}".format(DATA_DIR_MOUNT_HIST_FILE_PATH) in messages[0])
 
-  @patch("resource_management.libraries.functions.dfs_datanode_helper.get_data_dir_to_mount_from_file")
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
@@ -119,7 +119,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("Data dir(s) are fine" in messages[0])
 
-  @patch("resource_management.libraries.functions.dfs_datanode_helper.get_data_dir_to_mount_from_file")
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
@@ -144,7 +144,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("Data dir(s) are fine" in messages[0])
 
-  @patch("resource_management.libraries.functions.dfs_datanode_helper.get_data_dir_to_mount_from_file")
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")
@@ -168,7 +168,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue("Detected at least one data dir on a mount point, but these are writing to the root partition: /grid/0/data, /grid/1/data" in messages[0])
 
-  @patch("resource_management.libraries.functions.dfs_datanode_helper.get_data_dir_to_mount_from_file")
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
   @patch("os.path.exists")
   @patch("os.path.isdir")

@@ -20,7 +20,7 @@ import logging
 from unittest import TestCase
 from mock.mock import Mock, MagicMock, patch
 
-from resource_management.libraries.functions import dfs_datanode_helper
+from resource_management.libraries.functions import mounted_dirs_helper
 from resource_management.core.logger import Logger
 from resource_management import Directory
 
@@ -42,7 +42,7 @@ class StubParams(object):
     return "<StubParams: {0}; mocks: {1}>".format(name, str(mocks))
 
 
-def fake_create_dir(directory, other):
+def fake_create_dir(directory):
   """
   Fake function used as function pointer.
   """
@@ -66,10 +66,11 @@ class TestDatanodeHelper(TestCase):
   params.user_group = "hadoop_test"
 
 
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.Directory")
   @patch.object(Logger, "warning")
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  def test_normalized(self, log_error, log_info, warning_info):
+  def test_normalized(self, log_error, log_info, warning_info, dir_mock):
     """
     Test that the data dirs are normalized by removing leading and trailing whitespace, and case sensitive.
     """
@@ -78,7 +79,7 @@ class TestDatanodeHelper(TestCase):
     params.dfs_data_dir = "/grid/0/data  ,  /grid/1/data  ,/GRID/2/Data/"
 
     # Function under test
-    dfs_datanode_helper.handle_dfs_data_dir(fake_create_dir, params, update_cache=False)
+    mounted_dirs_helper.handle_mounted_dirs(fake_create_dir, params.dfs_data_dir, params.data_dir_mount_file, update_cache=False)
 
     for (name, args, kwargs) in log_info.mock_calls:
       print args[0]
@@ -91,14 +92,15 @@ class TestDatanodeHelper(TestCase):
 
     self.assertEquals(0, log_error.call_count)
 
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.Directory")
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch.object(dfs_datanode_helper, "get_data_dir_to_mount_from_file")
-  @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
+  @patch.object(mounted_dirs_helper, "get_dir_to_mount_from_file")
+  @patch.object(mounted_dirs_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
   def test_grid_becomes_unmounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point,
-                                  mock_get_data_dir_to_mount_from_file, log_error, log_info):
+                                  mock_get_data_dir_to_mount_from_file, log_error, log_info, dir_mock):
     """
     Test when grid2 becomes unmounted
     """
@@ -110,10 +112,8 @@ class TestDatanodeHelper(TestCase):
     # Grid2 then becomes unmounted
     mock_get_mount_point.side_effect = ["/dev0", "/dev1", "/"] * 2
     mock_os_isdir.side_effect = [False, False, False] + [True, True, True]
-
     # Function under test
-    dfs_datanode_helper.handle_dfs_data_dir(fake_create_dir, self.params, update_cache=False)
-
+    mounted_dirs_helper.handle_mounted_dirs(fake_create_dir, self.params.dfs_data_dir, self.params.data_dir_mount_file, update_cache=False)
     for (name, args, kwargs) in log_info.mock_calls:
       print args[0]
 
@@ -125,14 +125,15 @@ class TestDatanodeHelper(TestCase):
     self.assertEquals(1, log_error.call_count)
     self.assertTrue("Directory /grid/2/data does not exist and became unmounted from /dev2" in error_msg)
 
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.Directory")
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
-  @patch.object(dfs_datanode_helper, "get_data_dir_to_mount_from_file")
-  @patch.object(dfs_datanode_helper, "get_mount_point_for_dir")
+  @patch.object(mounted_dirs_helper, "get_dir_to_mount_from_file")
+  @patch.object(mounted_dirs_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
   def test_grid_becomes_remounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point,
-                                  mock_get_data_dir_to_mount_from_file, log_error, log_info):
+                                  mock_get_data_dir_to_mount_from_file, log_error, log_info, dir_mock):
     """
     Test when grid2 becomes remounted
     """
@@ -146,7 +147,7 @@ class TestDatanodeHelper(TestCase):
     mock_os_isdir.side_effect = [False, False, False] + [True, True, True]
 
     # Function under test
-    dfs_datanode_helper.handle_dfs_data_dir(fake_create_dir, self.params, update_cache=False)
+    mounted_dirs_helper.handle_mounted_dirs(fake_create_dir, self.params.data_dir_mount_file, self.params.data_dir_mount_file, update_cache=False)
 
     for (name, args, kwargs) in log_info.mock_calls:
       print args[0]
