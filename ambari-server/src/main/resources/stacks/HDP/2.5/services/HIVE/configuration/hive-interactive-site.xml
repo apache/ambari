@@ -430,7 +430,7 @@ limitations under the License.
     <name>hive.llap.daemon.yarn.container.mb</name>
     <display-name>YARN Memory per Daemon</display-name>
     <description>The total YARN memory per node to be used by Hive LLAP daemons. This includes memory for cache as well as for memory for query processing.</description>
-    <value>341</value>
+    <value>{{yarn_scheduler_allocation_minimum_mb}}</value>
     <value-attributes>
       <type>int</type>
       <unit>MB</unit>
