@@ -791,5 +791,120 @@ describe('#Cluster', function () {
       });
 
     });
+
+    describe('#pickEffectivePrivilege()', function() {
+      var cases = [{
+          "test" : [{
+            "href" : "http://abc.com:8080/api/v1/groups/mygroup1",
+            "PrivilegeInfo" : {
+              "instance_name" : "jobs_view",
+              "permission_label" : "View User",
+              "permission_name" : "VIEW.USER",
+              "principal_name" : "mygroup1",
+              "principal_type" : "GROUP",
+              "privilege_id" : 111,
+              "type" : "VIEW",
+              "user_name" : "mygroup1",
+              "view_name" : "JOBS"
+            }
+          }],
+          "result":{
+            "permission_name": "CLUSTER.NONE"
+          }
+        }, {
+          "test": [{
+            "href" : "http://abc.com:8080/api/v1/groups/mygroup2",
+            "PrivilegeInfo" : {
+              "cluster_name":"mycluster",
+              "permission_label" : "Cluster User",
+              "permission_name" : "CLUSTER.USER",
+              "principal_name" : "mygroup2",
+              "principal_type" : "GROUP",
+              "privilege_id" : 222,
+              "type" : "CLUSTER",
+              "user_name":"mygroup2"
+            }
+          }],
+          "result":{
+            "permission_name": "CLUSTER.USER"
+          }
+        }, {
+          "test":[{
+            "href" : "http://abc.com:8080/api/v1/groups/mygroup3",
+            "PrivilegeInfo" : {
+              "cluster_name":"mycluster",
+              "permission_label" : "Cluster User",
+              "permission_name" : "CLUSTER.USER",
+              "principal_name" : "mygroup3",
+              "principal_type" : "GROUP",
+              "privilege_id" : 333,
+              "type" : "CLUSTER",
+              "user_name":"mygroup3"
+            }
+          }, {
+            "href" : "http://abc.com:8080/api/v1/groups/mygroup3",
+            "PrivilegeInfo" : {
+              "instance_name": "jobs_view",
+              "permission_label" : "View User",
+              "permission_name" : "VIEW.USER",
+              "principal_name" : "mygroup3",
+              "principal_type" : "GROUP",
+              "privilege_id" : 3333,
+              "type" : "VIEW",
+              "user_name":"mygroup3",
+              "view_name":"JOBS"
+            }
+          }],
+          "result":{
+            "permission_name": "CLUSTER.USER"
+          }
+        }, {
+          "test": [{
+            "href" : "http://abc.com:8080/api/v1/users/myuser1/privileges/11",
+            "PrivilegeInfo" : {
+              "instance_name": "jobs_view",
+              "permission_label" : "View User",
+              "permission_name" : "VIEW.USER",
+              "principal_name" : "myuser1",
+              "principal_type" : "USER",
+              "privilege_id" : 11,
+              "type" : "VIEW",
+              "user_name":"myuser1",
+              "view_name":"JOBS"
+            }
+          }],
+          "result":{
+            "permission_name": "CLUSTER.NONE"
+          }
+        }, {
+          "test":[{
+            "href" : "http://abc.com:8080/api/v1/users/myuser2/privileges/22",
+            "PrivilegeInfo" : {
+              "cluster_name":"mycluster",
+              "permission_label" : "Cluster Administrator",
+              "permission_name" : "CLUSTER.ADMINISTRATOR",
+              "principal_name" : "myuser2",
+              "principal_type" : "USER",
+              "privilege_id" : 22,
+              "type" : "CLUSTER",
+              "user_name":"myuser2"
+            }
+          }],
+          "result":{
+            "permission_name": "CLUSTER.ADMINISTRATOR"
+          }
+        }
+      ];
+
+      it('User/Group with only View User permission must show \'None\' as the Cluster Permission, otherwise show the effective privilege', function(){
+        var effectivePrivilege;
+        cases.forEach(function (item){
+          effectivePrivilege = scope.pickEffectivePrivilege(item.test);
+          scope.$apply();
+          expect(effectivePrivilege.permission_name).toEqual(item.result.permission_name);
+        });
+      });
+    });
+
   });
 });

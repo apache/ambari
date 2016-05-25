@@ -88,12 +88,14 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
   };
 
   $scope.pickEffectivePrivilege = function(privileges) {
-    if (privileges && privileges.length > 0) {
+    if (privileges && privileges.length > 1) {
       return privileges.reduce(function(prev, cur) {
         var prevIndex = $scope.getRoleRank(prev.PrivilegeInfo.permission_name);
         var curIndex = $scope.getRoleRank(cur.PrivilegeInfo.permission_name)
         return (prevIndex < curIndex) ? prev : cur;
       }).PrivilegeInfo;
+    } else if (privileges && privileges.length == 1 && privileges[0].PrivilegeInfo.permission_name !== "VIEW.USER") {
+      return privileges[0].PrivilegeInfo;
     } else {
       return angular.copy($scope.NONE_ROLE);
     }
