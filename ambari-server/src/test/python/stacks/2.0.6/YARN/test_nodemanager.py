@@ -157,22 +157,6 @@ class TestNodeManager(RMFTestCase):
         mode = 0775,
         owner = 'yarn',
     )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              create_parents = True,
-                              ignore_failures = True,
-                              mode = 0775,
-                              cd_access='a'
-                              )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              create_parents = True,
-                              ignore_failures = True,
-                              mode = 0775,
-                              cd_access='a'
-                              )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist',
         content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
         owner = 'hdfs',
@@ -201,24 +185,6 @@ class TestNodeManager(RMFTestCase):
                               cd_access='a',
                               recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'}
                               )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-        group = 'hadoop',
-        cd_access = 'a',
-        recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
-        create_parents = True,
-        ignore_failures = True,
-        mode = 0755,
-        owner = 'yarn',
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
-        group = 'hadoop',
-        cd_access = 'a',
-        recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
-        create_parents = True,
-        ignore_failures = True,
-        mode = 0755,
-        owner = 'yarn',
-    )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_local_dir_mount.hist',
         content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
         owner = 'hdfs',
