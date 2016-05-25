@@ -171,6 +171,23 @@ shiro.loginUrl = /api/login
   </property>
 
   <property>
+  <name>log4j_properties_content</name>
+  <description>This is the content for log4j.properties file</description>
+  <value>
+log4j.rootLogger = INFO, dailyfile
+log4j.appender.stdout = org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout = org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n
+log4j.appender.dailyfile.DatePattern=.yyyy-MM-dd
+log4j.appender.dailyfile.Threshold = INFO
+log4j.appender.dailyfile = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.dailyfile.File = ${zeppelin.log.file}
+log4j.appender.dailyfile.layout = org.apache.log4j.PatternLayout
+log4j.appender.dailyfile.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m%n
+  </value>
+  </property>
+
+  <property>
     <name>zeppelin.executor.mem</name>
     <value>512m</value>
     <description>Executor memory to use (e.g. 512m or 1g)</description>

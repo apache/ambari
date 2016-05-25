@@ -86,6 +86,9 @@ zeppelin_env_content = config['configurations']['zeppelin-env']['zeppelin_env_co
 # shiro.ini
 shiro_ini_content = config['configurations']['zeppelin-env']['shiro_ini_content']
 
+# log4j.properties
+log4j_properties_content = config['configurations']['zeppelin-env']['log4j_properties_content']
+
 # detect configs
 master_configs = config['clusterHostInfo']
 java64_home = config['hostLevelParams']['java_home']
