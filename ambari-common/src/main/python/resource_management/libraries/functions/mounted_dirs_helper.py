@@ -111,11 +111,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
   error_messages = []                 # list of error messages to report at the end
   dirs_unmounted = set()         # set of dirs that have become unmounted
 
-  print 20*"="
-  print dirs_string
   dirs_string = ",".join([re.sub(r'^\[.+\]', '', dfs_dir.strip()) for dfs_dir in dirs_string.split(",")])
-  print dirs_string
-  print 20*"="
   for dir in dirs_string.split(","):
     if dir is None or dir.strip() == "":
       continue
