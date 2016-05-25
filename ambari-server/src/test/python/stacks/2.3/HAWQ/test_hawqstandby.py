@@ -108,7 +108,7 @@ class TestHawqStandby(RMFTestCase):
         timeout = 600
         )
 
-    self.assertResourceCalled('Directory', '/tmp/hawq/master',
+    self.assertResourceCalled('Directory', '/data/hawq/tmp/master',
         group = self.GPADMIN,
         owner = self.GPADMIN,
         create_parents = True

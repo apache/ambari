@@ -116,11 +116,11 @@
   <property>
     <name>hawq_master_temp_directory</name>
     <display-name>HAWQ Master Temp Directories</display-name>
-    <value>/tmp/hawq/master</value>
+    <value>/data/hawq/tmp/master</value>
     <description>
       Used as temporary filespace to store workfile cache, sort/join temp files etc.
       The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
-      excluding system disk. Separate multiple entries with commas. The default is /tmp/hawq/master.
+      excluding system disk. Separate multiple entries with commas. The default is /data/hawq/tmp/master.
     </description>
     <value-attributes>
       <type>directory</type>
@@ -130,11 +130,11 @@
   <property>
     <name>hawq_segment_temp_directory</name>
     <display-name>HAWQ Segment Temp Directories</display-name>
-    <value>/tmp/hawq/segment</value>
+    <value>/data/hawq/tmp/segment</value>
     <description>
       Used as temporary filespace to store workfile cache, sort/join temp files etc.
       The recommended number of temp directories is equal to the number of disks per node, one directory on each disk,
-      excluding system disk. Separate multiple entries with commas. The default is /tmp/hawq/segment.
+      excluding system disk. Separate multiple entries with commas. The default is /data/hawq/tmp/segment.
     </description>
     <value-attributes>
       <type>directory</type>
