@@ -65,6 +65,13 @@ limitations under the License.
         <config-type>zeppelin-config</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>false</restartRequiredAfterChange>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>
