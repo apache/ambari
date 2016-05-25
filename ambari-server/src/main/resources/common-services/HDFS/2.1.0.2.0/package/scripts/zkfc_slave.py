@@ -99,7 +99,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
 
 
   def status(self, env):
-    ZkfcSlaveDefault.status_static(env, upgrade_type)
+    ZkfcSlaveDefault.status_static(env)
     
   @staticmethod
   def status_static(env):
