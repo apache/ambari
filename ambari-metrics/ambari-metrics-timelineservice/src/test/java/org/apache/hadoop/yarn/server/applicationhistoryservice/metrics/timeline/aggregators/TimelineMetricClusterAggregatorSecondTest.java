@@ -76,11 +76,11 @@ public class TimelineMetricClusterAggregatorSecondTest {
 
     timelineClusterMetric.setTimestamp(roundedStartTime + 2*sliceInterval);
     Assert.assertTrue(timelineClusterMetricMap.containsKey(timelineClusterMetric));
-    Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 4.5);
+    Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 6.0);
 
     timelineClusterMetric.setTimestamp(roundedStartTime + 4*sliceInterval);
     Assert.assertTrue(timelineClusterMetricMap.containsKey(timelineClusterMetric));
-    Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 7.5);
+    Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 12.0);
 
   }
 
