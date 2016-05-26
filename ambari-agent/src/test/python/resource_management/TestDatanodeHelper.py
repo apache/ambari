@@ -23,6 +23,7 @@ from mock.mock import Mock, MagicMock, patch
 from resource_management.libraries.functions import mounted_dirs_helper
 from resource_management.core.logger import Logger
 from resource_management import Directory
+from resource_management.libraries.script.script import Script
 
 
 class StubParams(object):
@@ -49,6 +50,7 @@ def fake_create_dir(directory):
   print "Fake function to create directory {0}".format(directory)
 
 
+@patch.object(Script, "get_config", new=MagicMock(return_value={'configurations':{'cluster-env': {'ignore_bad_mounts': False}}}))
 class TestDatanodeHelper(TestCase):
   """
   Test the functionality of the dfs_datanode_helper.py
@@ -94,13 +96,14 @@ class TestDatanodeHelper(TestCase):
 
   @patch("resource_management.libraries.functions.mounted_dirs_helper.Directory")
   @patch.object(Logger, "info")
+  @patch.object(Logger, "warning")
   @patch.object(Logger, "error")
   @patch.object(mounted_dirs_helper, "get_dir_to_mount_from_file")
   @patch.object(mounted_dirs_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
   def test_grid_becomes_unmounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point,
-                                  mock_get_data_dir_to_mount_from_file, log_error, log_info, dir_mock):
+                                  mock_get_data_dir_to_mount_from_file, log_error, log_warning, log_info, dir_mock):
     """
     Test when grid2 becomes unmounted
     """
@@ -127,13 +130,14 @@ class TestDatanodeHelper(TestCase):
 
   @patch("resource_management.libraries.functions.mounted_dirs_helper.Directory")
   @patch.object(Logger, "info")
+  @patch.object(Logger, "warning")
   @patch.object(Logger, "error")
   @patch.object(mounted_dirs_helper, "get_dir_to_mount_from_file")
   @patch.object(mounted_dirs_helper, "get_mount_point_for_dir")
   @patch.object(os.path, "isdir")
   @patch.object(os.path, "exists")
   def test_grid_becomes_remounted(self, mock_os_exists, mock_os_isdir, mock_get_mount_point,
-                                  mock_get_data_dir_to_mount_from_file, log_error, log_info, dir_mock):
+                                  mock_get_data_dir_to_mount_from_file, log_error, log_warning, log_info, dir_mock):
     """
     Test when grid2 becomes remounted
     """

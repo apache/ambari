@@ -26,6 +26,8 @@ import re
 from resource_management.libraries.functions.file_system import get_mount_point_for_dir, get_and_cache_mount_points
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.script.script import Script
 
 DIR_TO_MOUNT_HEADER = """
 # This file keeps track of the last known mount-point for each dir.
@@ -110,6 +112,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
   valid_dirs = []                # dirs that have been normalized
   error_messages = []                 # list of error messages to report at the end
   dirs_unmounted = set()         # set of dirs that have become unmounted
+  valid_existing_dirs = []
 
   dirs_string = ",".join([re.sub(r'^\[.+\]', '', dfs_dir.strip()) for dfs_dir in dirs_string.split(",")])
   for dir in dirs_string.split(","):
@@ -118,10 +121,22 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
 
     dir = dir.strip()
     valid_dirs.append(dir)
+    
+    if os.path.isdir(dir):
+      valid_existing_dirs.append(dir)
 
-    if not os.path.isdir(dir):
+  used_mounts = set([get_mount_point_for_dir(dir) for dir in valid_existing_dirs])
+  
+  for dir in valid_dirs:
+    if not dir in valid_existing_dirs:
       may_create_this_dir = allowed_to_create_any_dir
       last_mount_point_for_dir = None
+      
+      curr_mount_point = get_mount_point_for_dir(dir)
+
+      # This means that create_this_dir will stay false if the directory became unmounted.
+      # In other words, allow creating if it was already on /, or it's currently not on /
+      is_non_root_dir = (curr_mount_point is not None and curr_mount_point != "/")
 
       # Determine if should be allowed to create the dir directory.
       # Either first time, became unmounted, or was just mounted on a drive
@@ -129,16 +144,21 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
         last_mount_point_for_dir = prev_dir_to_mount_point[dir] if dir in prev_dir_to_mount_point else None
 
         if last_mount_point_for_dir is None:
-          # Couldn't retrieve any information about where this dir used to be mounted, so allow creating the directory to be safe.
-          may_create_this_dir = True
+          may_create_this_dir = (is_non_root_dir or Script.get_config()['configurations']['cluster-env']['create_dirs_on_root'])
         else:
-          curr_mount_point = get_mount_point_for_dir(dir)
+          may_create_this_dir = (last_mount_point_for_dir == "/" or is_non_root_dir)
 
-          # This means that create_this_dir will stay false if the directory became unmounted.
-          # In other words, allow creating if it was already on /, or it's currently not on /
-          if last_mount_point_for_dir == "/" or (curr_mount_point is not None and curr_mount_point != "/"):
-            may_create_this_dir = True
-
+      if may_create_this_dir and Script.get_config()['configurations']['cluster-env']['ignore_bad_mounts']:
+        Logger.warning("Not creating {0} as cluster-env/ignore_bad_mounts is enabled.".format(dir))
+        may_create_this_dir = False
+        
+      if may_create_this_dir and curr_mount_point in used_mounts:
+        message = "Trying to create another directory on the following mount: " + curr_mount_point
+        if Script.get_config()['configurations']['cluster-env']['one_dir_per_partition']:
+          raise Fail(message + " . Please turn off cluster-env/one_dir_per_partition or handle the situation manually.")
+        else:
+          Logger.warning(message)
+          
       if may_create_this_dir:
         Logger.info("Forcefully creating directory: {0}".format(dir))
 
