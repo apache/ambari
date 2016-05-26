@@ -411,8 +411,10 @@ class ActionQueue(threading.Thread):
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
+      component = {'serviceName':command['serviceName'],'componentName':command['role']}
       if 'roleCommand' in command and \
           (command['roleCommand'] == self.ROLE_COMMAND_START or
+             (command['roleCommand'] == self.ROLE_COMMAND_INSTALL and component in LiveStatus.CLIENT_COMPONENTS) or
                (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and
                   'custom_command' in command['hostLevelParams'] and
                       command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):

@@ -25,6 +25,11 @@ logger = logging.getLogger()
 
 
 class LiveStatus:
+
+  SERVICES = []
+  CLIENT_COMPONENTS = []
+  COMPONENTS = []
+
   LIVE_STATUS = "STARTED"
   DEAD_STATUS = "INSTALLED"
 
