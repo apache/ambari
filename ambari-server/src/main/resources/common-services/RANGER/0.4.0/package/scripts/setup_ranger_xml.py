@@ -519,12 +519,14 @@ def create_core_site_xml(conf_dir):
                 mode=0644
       )
     else:
-      Logger.warning('HDFS service not installed. Creating blank core-site.xml file.')
-      File(format('{conf_dir}/core-site.xml'),
-           content = '<configuration></configuration>',
-           owner = params.unix_user,
-           group = params.unix_group,
-           mode=0644
+      Logger.warning('HDFS service not installed. Creating core-site.xml file.')
+      XmlConfig("core-site.xml",
+        conf_dir=conf_dir,
+        configurations=params.core_site_property,
+        configuration_attributes={},
+        owner=params.unix_user,
+        group=params.unix_group,
+        mode=0644
       )
 
 def setup_ranger_audit_solr():

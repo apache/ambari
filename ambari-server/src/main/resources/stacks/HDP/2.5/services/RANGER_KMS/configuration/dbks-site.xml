@@ -53,7 +53,7 @@
 
   <property>
     <name>ranger.ks.hsm.partition.name</name>
-    <display-name>HSM partition name</display-name>
+    <display-name>HSM partition name. In case of HSM HA enter the group name</display-name>
     <value>par19</value>
     <description></description>
   </property>
