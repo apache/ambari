@@ -34,6 +34,7 @@
      <xs:element name="compatible-with" type="xs:string" minOccurs="0"/>
      <xs:element name="release-notes" type="xs:string" maxOccurs="1" />
      <xs:element name="display" type="xs:string" minOccurs="0" />
+     <!-- deprecated and will be removed -->
      <xs:element name="package-version" type="xs:string" minOccurs="0" />
     </xs:all>
   </xs:complexType>
@@ -113,6 +114,7 @@
       <xs:element name="os" maxOccurs="unbounded">
         <xs:complexType>
           <xs:sequence>
+            <xs:element name="package-version" minOccurs="0" />
             <xs:element name="repo" maxOccurs="unbounded">
               <xs:complexType>
                 <xs:sequence>

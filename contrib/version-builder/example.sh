@@ -36,9 +36,13 @@ python version_builder.py --file $filename --manifest --manifest-id HBASE-132 --
 #call any number of times for the target services to upgrade
 python version_builder.py --file $filename --available --manifest-id HDFS-271
 
+# must be before repo calls
+python version_builder.py --file $filename --os --os-family redhat6 --os-package-version 2_4_1_1_12345
+
 #call any number of times for repo per os
 python version_builder.py --file $filename --repo --repo-os redhat6 --repo-id HDP-2.4 --repo-name HDP --repo-url http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.1.1
 python version_builder.py --file $filename --repo --repo-os redhat6 --repo-id HDP-UTILS-1.1.0.20 --repo-name HDP-UTILS --repo-url http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6
+
 
 python version_builder.py --file $filename --finalize --xsd ../../ambari-server/src/main/resources/version_definition.xsd
 
