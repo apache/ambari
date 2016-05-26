@@ -162,7 +162,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Update 'hive.llap.daemon.queue.name' if capacity scheduler is changed.
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
           'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
-        self.setLlapDaemonQueueName(services, configurations)
+        self.setLlapDaemonQueueNamePropAttributes(services, configurations)
 
       # Check to see if 'cache' config HS2 'hive.llap.io.memory.size' has been modified by user.
       # 'cache' size >= 64m implies config 'hive.llap.io.enabled' set to true, else false
@@ -241,10 +241,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         llap_queue_selected_in_current_call = configurations[self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
 
       # Update Visibility of 'llap_queue_capacity' slider.
-      capacitySchedulerProperties = self.getCapacitySchedulerProperties(services)
-      if capacitySchedulerProperties:
+      capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
+      if capacity_scheduler_properties:
         # Get all leaf queues.
-        leafQueueNames = self.getAllYarnLeafQueues(capacitySchedulerProperties)
+        leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
         if (llap_daemon_selected_queue_name != None and llap_daemon_selected_queue_name == llap_queue_name) or \
           (llap_queue_selected_in_current_call != None and llap_queue_selected_in_current_call == llap_queue_name):
             putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "true")
@@ -278,6 +278,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
         if not changed_configs_in_hive_int_env \
           and llap_daemon_selected_queue_name != llap_queue_name \
+          and llap_queue_selected_in_current_call != llap_queue_name \
           and not llap_concurrency_in_changed_configs:
           Logger.info("LLAP parameters not modified. Not adjusting LLAP configs.")
           Logger.debug("Current changed-configuration received is : {0}".format(services["changed-configurations"]))
@@ -301,9 +302,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         # Read 'hive.server2.tez.sessions.per.default.queue' prop if it's in changed-configs, else calculate it.
         if not llap_concurrency_in_changed_configs:
           # Calculate llap concurrency (i.e. Number of Tez AM's)
-          llap_concurrency = long(total_llap_queue_size * 0.25 / tez_am_container_size)
-          assert (llap_concurrency >= 1), "'hive.server2.tez.sessions.per.default.queue' calculated value : {0}. Expected value : >= 1" \
-            .format(llap_concurrency)
+          llap_concurrency = float(total_llap_queue_size * 0.25 / tez_am_container_size)
+          llap_concurrency = max(long(llap_concurrency), 1)
+          Logger.info("Calculated llap_concurrency : {0}, using following : total_llap_queue_size : {1}, "
+                      "tez_am_container_size : {2}".format(llap_concurrency, total_llap_queue_size, tez_am_container_size))
           # Limit 'llap_concurrency' to reach a max. of 32.
           if llap_concurrency > LLAP_MAX_CONCURRENCY:
             llap_concurrency = LLAP_MAX_CONCURRENCY
@@ -673,14 +675,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
              (2). Updates 'llap' queue capacity and state, if 'llap' queue exists.
   """
   def checkAndManageLlapQueue(self, services, configurations, hosts, llap_queue_name):
+    Logger.info("Determining creation/adjustment of 'capacity-scheduler' for 'llap' queue.")
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
     putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
     putCapSchedProperty = self.putProperty(configurations, "capacity-scheduler", services)
 
-    capacitySchedulerProperties = self.getCapacitySchedulerProperties(services)
-
-    if capacitySchedulerProperties:
+    capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
+    if capacity_scheduler_properties:
       # Get the llap Cluster percentage used for 'llap' Queue creation
       if 'llap_queue_capacity' in services['configurations']['hive-interactive-env']['properties']:
         llap_slider_cap_percentage = int(
@@ -693,30 +695,30 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       else:
         Logger.error("Problem retrieving LLAP Queue Capacity. Skipping creating {0} queue".format(llap_queue_name))
         return
-      leafQueueNames = self.getAllYarnLeafQueues(capacitySchedulerProperties)
-      capSchedConfigKeys = capacitySchedulerProperties.keys()
+      leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+      cap_sched_config_keys = capacity_scheduler_properties.keys()
 
       yarn_default_queue_capacity = -1
-      if 'yarn.scheduler.capacity.root.default.capacity' in capSchedConfigKeys:
-        yarn_default_queue_capacity = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.default.capacity')
+      if 'yarn.scheduler.capacity.root.default.capacity' in cap_sched_config_keys:
+        yarn_default_queue_capacity = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.default.capacity')
 
       # Get 'llap' queue state
       currLlapQueueState = ''
-      if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.state' in capSchedConfigKeys:
-        currLlapQueueState = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.state')
+      if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.state' in cap_sched_config_keys:
+        currLlapQueueState = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.state')
 
       # Get 'llap' queue capacity
       currLlapQueueCap = -1
-      if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity' in capSchedConfigKeys:
-        currLlapQueueCap = int(capacitySchedulerProperties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity'))
+      if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity' in cap_sched_config_keys:
+        currLlapQueueCap = int(capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity'))
 
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
           'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
         llap_daemon_selected_queue_name =  services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
       else:
-        Logger.debug("Couldn't retrive 'hive.llap.daemon.queue.name' property. Skipping adjusting queues.")
+        Logger.error("Couldn't retrive 'hive.llap.daemon.queue.name' property. Skipping adjusting queues.")
         return
-      updated_cap_sched_configs = ''
+      updated_cap_sched_configs_str = ''
 
       enabled_hive_int_in_changed_configs = self.are_config_props_in_changed_configs(services, "hive-interactive-env",
                                                                                    set(['enable_hive_interactive']), False)
@@ -733,45 +735,83 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         ((len(leafQueueNames) == 2 and llap_queue_name in leafQueueNames) and \
            ((currLlapQueueState == 'STOPPED' and enabled_hive_int_in_changed_configs) or (currLlapQueueState == 'RUNNING' and currLlapQueueCap != llap_slider_cap_percentage)))):
         adjusted_default_queue_cap = str(100 - llap_slider_cap_percentage)
-        for prop, val in capacitySchedulerProperties.items():
-          if llap_queue_name not in prop:
-            if prop == 'yarn.scheduler.capacity.root.queues':
-              updated_cap_sched_configs = updated_cap_sched_configs \
-                                          + prop + "=default,llap\n"
-            elif prop == 'yarn.scheduler.capacity.root.default.capacity':
-              updated_cap_sched_configs = updated_cap_sched_configs \
-                                          + prop + "=" + adjusted_default_queue_cap + "\n"
-            elif prop == 'yarn.scheduler.capacity.root.default.maximum-capacity':
-              updated_cap_sched_configs = updated_cap_sched_configs \
-                                          + prop + "=" + adjusted_default_queue_cap + "\n"
-            elif prop.startswith('yarn.') and '.llap.' not in prop:
-              updated_cap_sched_configs = updated_cap_sched_configs + prop + "=" + val + "\n"
 
-        llap_slider_cap_percentage = str(llap_slider_cap_percentage)
         hive_user = '*'  # Open to all
         if 'hive_user' in services['configurations']['hive-env']['properties']:
           hive_user = services['configurations']['hive-env']['properties']['hive_user']
 
-        # Now, append the 'llap' queue related properties
-        updated_cap_sched_configs = updated_cap_sched_configs \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".user-limit-factor=1\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".state=RUNNING\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".ordering-policy=fifo\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".minimum-user-limit-percent=100\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-capacity=" \
-                                    + llap_slider_cap_percentage + "\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".capacity=" \
-                                    + llap_slider_cap_percentage + "\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".acl_submit_applications=" \
-                                    + hive_user + "\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".acl_administer_queue=" \
-                                    + hive_user + "\n" \
-                                    + "yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-am-resource-percent=1"
+        llap_slider_cap_percentage = str(llap_slider_cap_percentage)
 
-        if updated_cap_sched_configs:
-          putCapSchedProperty("capacity-scheduler", updated_cap_sched_configs)
+        # If capacity-scheduler configs are received as one concatenated string, we deposit the changed configs back as
+        # one concatenated string.
+        updated_cap_sched_configs_as_dict = False
+        if not received_as_key_value_pair:
+          for prop, val in capacity_scheduler_properties.items():
+            if llap_queue_name not in prop:
+              if prop == 'yarn.scheduler.capacity.root.queues':
+                updated_cap_sched_configs_str = updated_cap_sched_configs_str \
+                                            + prop + "=default,llap\n"
+              elif prop == 'yarn.scheduler.capacity.root.default.capacity':
+                updated_cap_sched_configs_str = updated_cap_sched_configs_str \
+                                            + prop + "=" + adjusted_default_queue_cap + "\n"
+              elif prop == 'yarn.scheduler.capacity.root.default.maximum-capacity':
+                updated_cap_sched_configs_str = updated_cap_sched_configs_str \
+                                            + prop + "=" + adjusted_default_queue_cap + "\n"
+              elif prop.startswith('yarn.') and '.llap.' not in prop:
+                updated_cap_sched_configs_str = updated_cap_sched_configs_str + prop + "=" + val + "\n"
+
+          # Now, append the 'llap' queue related properties
+          updated_cap_sched_configs_str = updated_cap_sched_configs_str \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".user-limit-factor=1\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".state=RUNNING\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".ordering-policy=fifo\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".minimum-user-limit-percent=100\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-capacity=" \
+                                      + llap_slider_cap_percentage + "\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".capacity=" \
+                                      + llap_slider_cap_percentage + "\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".acl_submit_applications=" \
+                                      + hive_user + "\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".acl_administer_queue=" \
+                                      + hive_user + "\n" \
+                                      + "yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-am-resource-percent=1"
+
+          putCapSchedProperty("capacity-scheduler", updated_cap_sched_configs_str)
+          Logger.info("Updated 'capacity-scheduler' configs as one concatenated string.")
+        else:
+          # If capacity-scheduler configs are received as a  dictionary (generally 1st time), we deposit the changed
+          # values back as dictionary itself.
+
+          # Update existing configs in 'capacity-scheduler'.
+          for prop, val in capacity_scheduler_properties.items():
+            if llap_queue_name not in prop:
+              if prop == 'yarn.scheduler.capacity.root.queues':
+                putCapSchedProperty(prop, 'default,llap')
+              elif prop == 'yarn.scheduler.capacity.root.default.capacity':
+                putCapSchedProperty(prop, adjusted_default_queue_cap)
+              elif prop == 'yarn.scheduler.capacity.root.default.maximum-capacity':
+                putCapSchedProperty(prop, adjusted_default_queue_cap)
+              elif prop.startswith('yarn.') and '.llap.' not in prop:
+                putCapSchedProperty(prop, val)
+
+          # Add new 'llap' queue related configs.
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".user-limit-factor", "1")
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".state", "RUNNING")
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".ordering-policy", "fifo")
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".minimum-user-limit-percent", "100")
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-capacity", llap_slider_cap_percentage)
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".capacity", llap_slider_cap_percentage)
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".acl_submit_applications", hive_user)
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".acl_administer_queue", hive_user)
+          putCapSchedProperty("yarn.scheduler.capacity.root." + llap_queue_name + ".maximum-am-resource-percent", "1")
+
+
+          Logger.info("Updated 'capacity-scheduler' configs as a dictionary.")
+          updated_cap_sched_configs_as_dict = True
+
+        if updated_cap_sched_configs_str or updated_cap_sched_configs_as_dict:
           if len(leafQueueNames) == 1: # 'llap' queue didn't exist before
-            Logger.info("Created YARN Queue : '{0}' with capacity : {1}%. Adjusted default queue capacity to : {2}%" \
+            Logger.info("Created YARN Queue : '{0}' with capacity : {1}%. Adjusted 'default' queue capacity to : {2}%" \
                       .format(llap_queue_name, llap_slider_cap_percentage, adjusted_default_queue_cap))
           else: # Queue existed, only adjustments done.
             Logger.info("Adjusted YARN Queue : '{0}'. Current capacity : {1}%. State: RUNNING.".format(llap_queue_name, llap_slider_cap_percentage))
@@ -783,7 +823,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "maximum", 100)
 
           # Update 'hive.llap.daemon.queue.name' prop combo entries.
-          self.setLlapDaemonQueueName(services, configurations)
+          self.setLlapDaemonQueueNamePropAttributes(services, configurations)
       else:
         Logger.debug("Not creating {0} queue. Current YARN queues : {1}".format(llap_queue_name, list(leafQueueNames)))
     else:
@@ -800,25 +840,25 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def checkAndStopLlapQueue(self, services, configurations, llap_queue_name):
     putCapSchedProperty = self.putProperty(configurations, "capacity-scheduler", services)
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
-    capacitySchedulerProperties = self.getCapacitySchedulerProperties(services)
+    capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
     updated_default_queue_configs = ''
     updated_llap_queue_configs = ''
-    if capacitySchedulerProperties:
+    if capacity_scheduler_properties:
       # Get all leaf queues.
-      leafQueueNames = self.getAllYarnLeafQueues(capacitySchedulerProperties)
+      leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
 
       if len(leafQueueNames) == 2 and llap_queue_name in leafQueueNames and 'default' in leafQueueNames:
         # Get 'llap' queue state
         currLlapQueueState = 'STOPPED'
-        if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.state' in capacitySchedulerProperties.keys():
-          currLlapQueueState = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.state')
+        if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.state' in capacity_scheduler_properties.keys():
+          currLlapQueueState = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.state')
         else:
           Logger.error("{0} queue 'state' property not present in capacity scheduler. Skipping adjusting queues.".format(llap_queue_name))
           return
         if currLlapQueueState == 'RUNNING':
           DEFAULT_MAX_CAPACITY = '100'
-          for prop, val in capacitySchedulerProperties.items():
-            # Update 'default' related configs in 'updated_cap_sched_configs'
+          for prop, val in capacity_scheduler_properties.items():
+            # Update 'default' related configs in 'updated_default_queue_configs'
             if llap_queue_name not in prop:
               if prop == 'yarn.scheduler.capacity.root.default.capacity':
                 # Set 'default' capacity back to maximum val
@@ -830,7 +870,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                                             + prop + "="+DEFAULT_MAX_CAPACITY + "\n"
               elif prop.startswith('yarn.'):
                 updated_default_queue_configs = updated_default_queue_configs + prop + "=" + val + "\n"
-            else: # Update 'llap' related configs in 'updated_cap_sched_configs'
+            else: # Update 'llap' related configs in 'updated_llap_queue_configs'
               if prop == 'yarn.scheduler.capacity.root.'+llap_queue_name+'.state':
                 updated_llap_queue_configs = updated_llap_queue_configs \
                                             + prop + "=STOPPED\n"
@@ -859,28 +899,39 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.error("Couldn't retrieve 'capacity-scheduler' properties while doing YARN queue adjustment for Hive Server Interactive.")
 
   """
-  Checks and sets the 'Hive Server Interactive' 'hive.llap.daemon.queue.name' config.
+  Checks and sets the 'Hive Server Interactive' 'hive.llap.daemon.queue.name' config Property Attributes.  Takes into
+  account that 'capacity-scheduler' may have changed in current Stack Advisor invocation.
   """
-  def setLlapDaemonQueueName(self, services, configurations):
+  def setLlapDaemonQueueNamePropAttributes(self, services, configurations):
+    Logger.info("Determing 'hive.llap.daemon.queue.name' config Property Attributes.")
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, self.HIVE_INTERACTIVE_SITE)
-    capacitySchedulerProperties = dict()
+    capacity_scheduler_properties = dict()
 
     # Read 'capacity-scheduler' from configurations if we modified and added recommendation to it, as part of current
     # StackAdvisor invocation.
-    if 'capacity-scheduler' in configurations and \
-        'capacity-scheduler' in configurations['capacity-scheduler']['properties']:
-      properties = str(configurations['capacity-scheduler']['properties']['capacity-scheduler']).split('\n')
-      for property in properties:
-        key, sep, value = property.partition("=")
-        capacitySchedulerProperties[key] = value
+    if 'capacity-scheduler' in configurations:
+      # Dictionary and having a length > 1, implies that we are dealing with 1st invocation, else all configs for
+      # capacity-scheduler will come as "\n" separated single string.
+      if isinstance(configurations['capacity-scheduler']['properties'], dict) \
+        and len(configurations['capacity-scheduler']['properties']) > 1:
+        capacity_scheduler_properties = configurations['capacity-scheduler']['properties']
+        Logger.info("'capacity-scheduler' changed in current Stack Advisor invocation. Retrieved the configs as dictionary from configurations.")
+      elif 'capacity-scheduler' in configurations['capacity-scheduler']['properties']:
+        properties = str(configurations['capacity-scheduler']['properties']['capacity-scheduler']).split('\n')
+        for property in properties:
+          key, sep, value = property.partition("=")
+          capacity_scheduler_properties[key] = value
+        Logger.info("'capacity-scheduler' changed in current Stack Advisor invocation. Retrieved the configs as '\\n' "
+                    "separated single string from configurations.")
     else: # read from input : services
-      capacitySchedulerProperties = self.getCapacitySchedulerProperties(services)
-
-    leafQueueNames = self.getAllYarnLeafQueues(capacitySchedulerProperties)
+      capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
+      Logger.info("'capacity-scheduler' not changed in current Stack Advisor invocation. Retrieved the configs from services.")
+    leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
     if leafQueueNames:
       leafQueues = [{"label": str(queueName), "value": queueName} for queueName in leafQueueNames]
       leafQueues = sorted(leafQueues, key=lambda q:q['value'])
       putHiveInteractiveSitePropertyAttribute("hive.llap.daemon.queue.name", "entries", leafQueues)
+      Logger.info("'hive.llap.daemon.queue.name' config Property Attributes set to : {0}".format(leafQueues))
     else:
       Logger.error("Problem retrieving YARN queues. Skipping updating HIVE Server Interactve "
                    "'hive.server2.tez.default.queues' property.")
@@ -912,20 +963,25 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return leafQueueNames
 
   """
-  Returns the dictionary of 'capacity-scheduler' related configs.
+  Returns the dictionary of configs for 'capacity-scheduler'.
   """
   def getCapacitySchedulerProperties(self, services):
-    capacitySchedulerProperties = dict()
+    capacity_scheduler_properties = dict()
+    received_as_key_value_pair = True
     if "capacity-scheduler" in services['configurations']:
       if "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
-        properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"])\
-          .split('\n')
-
+        properties = str(services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]).split('\n')
         if properties:
-          for property in properties:
-            key, sep, value = property.partition("=")
-            capacitySchedulerProperties[key] = value
-    return capacitySchedulerProperties
+          if properties[0] != 'null':
+            # Received confgs as one "\n" separated string
+            for property in properties:
+              key, sep, value = property.partition("=")
+              capacity_scheduler_properties[key] = value
+            received_as_key_value_pair = False
+          else:
+            # Received configs as a dictionary (Generally on 1st invocation).
+            capacity_scheduler_properties = services['configurations']["capacity-scheduler"]["properties"]
+    return capacity_scheduler_properties, received_as_key_value_pair
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
