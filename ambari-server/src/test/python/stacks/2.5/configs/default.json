@@ -171,6 +171,9 @@
       "log.index.interval.bytes": "4096",
       "log.retention.hours": "168"
     },
+    "logsearch-solr-env": {
+      "logsearch_solr_znode": "/logsearch"
+    },
     "application-properties": {
       "atlas.cluster.name" : "c2",
       "atlas.graph.storage.backend": "berkeleyje",
@@ -210,8 +213,7 @@
       "metadata_log_dir": "/var/log/atlas",
       "metadata_data_dir": "/var/lib/atlas/data",
       "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp",
-      "metadata_conf_file": "atlas-application.properties",
-      "has_embedded_hbase":"true"
+      "metadata_conf_file": "atlas-application.properties"
     },
     "atlas-log4j": {
       "content": "<property><name>content</name><description>Custom log4j.properties</description><value></value></property>",

@@ -51,12 +51,51 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP25StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
+      "ATLAS": {"application-properties": self.validateAtlasConfigurations},
       "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations},
       "YARN": {"yarn-site": self.validateYarnConfigurations},
       "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
+
+  def validateAtlasConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    application_properties = getSiteProperties(configurations, "application-properties")
+    validationItems = []
+
+    if application_properties['atlas.graph.index.search.backend'] == 'solr5' and \
+            not application_properties['atlas.graph.index.search.solr.zookeeper-url']:
+      validationItems.append({"config-name": "atlas.graph.index.search.solr.zookeeper-url",
+                              "item": self.getErrorItem(
+                                  "If LOGSEARCH is not installed then the SOLR zookeeper url configuration must be specified.")})
+
+    if not application_properties['atlas.kafka.bootstrap.servers']:
+      validationItems.append({"config-name": "atlas.kafka.bootstrap.servers",
+                              "item": self.getErrorItem(
+                                  "If KAFKA is not installed then the Kafka bootstrap servers configuration must be specified.")})
+
+    if not application_properties['atlas.kafka.zookeeper.connect']:
+      validationItems.append({"config-name": "atlas.kafka.zookeeper.connect",
+                              "item": self.getErrorItem(
+                                  "If KAFKA is not installed then the Kafka zookeeper quorum configuration must be specified.")})
+
+    if application_properties['atlas.graph.storage.backend'] == 'hbase':
+      if not application_properties['atlas.graph.storage.hostname']:
+        validationItems.append({"config-name": "atlas.graph.storage.hostname",
+                                "item": self.getErrorItem(
+                                    "If HBASE is not installed then the hbase zookeeper quorum configuration must be specified.")})
+      elif application_properties['atlas.graph.storage.hostname'] == '{{hbase_zookeeper_quorum}}':
+        validationItems.append({"config-name": "atlas.graph.storage.hostname",
+                                "item": self.getWarnItem(
+                                    "Note that Atlas is configured to use the HBASE instance being installed for this cluster.")})
+
+      if not application_properties['atlas.audit.hbase.zookeeper.quorum']:
+        validationItems.append({"config-name": "atlas.audit.hbase.zookeeper.quorum",
+                                "item": self.getErrorItem(
+                                    "If HBASE is not installed then the audit hbase zookeeper quorum configuration must be specified.")})
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "application-properties")
+    return validationProblems
 
   def validateYarnConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     parentValidationProblems = super(HDP25StackAdvisor, self).validateYARNConfigurations(properties, recommendedDefaults, configurations, services, hosts)
@@ -134,9 +173,24 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    include_logsearch = "LOGSEARCH" in servicesList
-    if include_logsearch and "logsearch-solr-env" in services["configurations"]:
+    if "LOGSEARCH" in servicesList:
       putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', '{{solr_zookeeper_url}}')
+    else:
+      putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', "")
+
+    if "KAFKA" in servicesList:
+      putAtlasApplicationProperty('atlas.kafka.bootstrap.servers', '{{kafka_bootstrap_servers}}')
+      putAtlasApplicationProperty('atlas.kafka.zookeeper.connect', '{{kafka_zookeeper_connect}}')
+    else:
+      putAtlasApplicationProperty('atlas.kafka.bootstrap.servers', "")
+      putAtlasApplicationProperty('atlas.kafka.zookeeper.connect', "")
+
+    if "HBASE" in servicesList:
+      putAtlasApplicationProperty('atlas.graph.storage.hostname', '{{hbase_zookeeper_quorum}}')
+      putAtlasApplicationProperty('atlas.audit.hbase.zookeeper.quorum', '{{hbase_zookeeper_quorum}}')
+    else:
+      putAtlasApplicationProperty('atlas.graph.storage.hostname', "")
+      putAtlasApplicationProperty('atlas.audit.hbase.zookeeper.quorum', "")
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)

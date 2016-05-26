@@ -103,7 +103,7 @@ export METADATA_DATA_DIR={{data_dir}}
 export METADATA_PID_DIR={{pid_dir}}
 
 # hbase conf dir
-export HBASE_CONF_DIR={{atlas_hbase_conf_dir}}
+export HBASE_CONF_DIR={{hbase_conf_dir}}
 
 # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
 export METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}

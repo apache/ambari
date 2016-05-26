@@ -28,6 +28,7 @@ import status_params
 # server configurations
 config = Script.get_config()
 stack_root = Script.get_stack_root()
+tmp_dir = Script.get_tmp_dir()
 
 cluster_name = config['clusterName']
 
@@ -63,13 +64,6 @@ conf_file = status_params.conf_file
 
 atlas_login_credentials_file = os.path.join(conf_dir, "users-credentials.properties")
 atlas_policy_store_file = os.path.join(conf_dir, "policy-store.txt")
-
-atlas_hbase_conf_dir = os.path.join(metadata_home, "hbase", "conf")
-atlas_hbase_log_dir = os.path.join(metadata_home, "hbase", "logs")
-atlas_hbase_data_dir = os.path.join(metadata_home, "data")
-atlas_hbase_zk_port = default("/configurations/atlas-hbase-site/hbase.zookeeper.property.clientPort", None)
-
-atlas_has_embedded_hbase = default("/configurations/atlas-env/has_embedded_hbase", False)
 
 # service locations
 hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf") if 'HADOOP_HOME' in os.environ else '/etc/hadoop/conf'
@@ -143,6 +137,10 @@ if not len(kafka_broker_hosts) == 0:
 
 kafka_zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)
 
+# hbase
+hbase_zookeeper_quorum = default('/configurations/hbase-site/hbase.zookeeper.quorum', None)
+hbase_conf_dir = "/etc/hbase/conf"
+
 # atlas HA
 atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
 
@@ -163,9 +161,17 @@ for host in atlas_hosts:
   id += 1
   first_id = False
 
+# logsearch solr
+logsearch_solr_znode = default("/configurations/logsearch-solr-env/logsearch_solr_znode", None)
+logsearch_solr_dir = '/usr/lib/ambari-logsearch-solr'
+logsearch_solr_hosts = default("/clusterHostInfo/logsearch_solr_hosts", [])
+logsearch_solr_replication_factor = 2 if len(logsearch_solr_hosts) > 1 else 1
+atlas_solr_shards = default("/configurations/atlas-env/atlas_solr-shards", 1)
+has_logsearch_solr = len(logsearch_solr_hosts) > 0
+
+# zookeeper
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-logsearch_solr_znode = default("/configurations/logsearch-solr-env/logsearch_solr_znode", None)
 
 # get comma separated lists of zookeeper hosts from clusterHostInfo
 index = 0
@@ -173,7 +179,9 @@ zookeeper_quorum = ""
 solr_zookeeper_url = ""
 
 for host in zookeeper_hosts:
-  zookeeper_host = host + ":" + str(zookeeper_port)
+  zookeeper_host = host
+  if zookeeper_port is not None:
+    zookeeper_host = host + ":" + str(zookeeper_port)
 
   if logsearch_solr_znode is not None:
     solr_zookeeper_url += zookeeper_host + logsearch_solr_znode

@@ -136,31 +136,6 @@
     <description>Indicates whether or not the notification service should be embedded.</description>
   </property>
   <property>
-    <name>atlas.kafka.data</name>
-    <value>{{metadata_home}}/data/kafka</value>
-    <description>The Kafka data directory.</description>
-  </property>
-  <property>
-    <name>atlas.kafka.bootstrap.servers</name>
-    <value>{{kafka_bootstrap_servers}}</value>
-    <description>Comma separated list of Kafka broker endpoints in host:port form</description>
-  </property>
-  <property>
-    <name>atlas.kafka.zookeeper.connect</name>
-    <value>{{kafka_zookeeper_connect}}</value>
-    <description>Comma separated list of servers forming Zookeeper quorum used by Kafka.</description>
-  </property>
-  <property>
-    <name>atlas.kafka.hook.group.id</name>
-    <value>atlas</value>
-    <description>Kafka group id for the hook topic.</description>
-  </property>
-  <property>
-    <name>atlas.kafka.entities.group.id</name>
-    <value>entities</value>
-    <description>Kafka group id for the entity topic.</description>
-  </property>
-  <property>
     <name>atlas.cluster.name</name>
     <value>{{cluster_name}}</value>
     <description>The cluster name.</description>
@@ -218,11 +193,6 @@
   <property>
     <name>atlas.audit.zookeeper.session.timeout.ms</name>
     <value>1000</value>
-    <description></description>
-  </property>
-  <property>
-    <name>atlas.audit.hbase.zookeeper.quorum</name>
-    <value>localhost:{{atlas_hbase_zk_port}}</value>
     <description></description>
   </property>
 </configuration>
