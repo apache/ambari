@@ -92,7 +92,7 @@ def upload_conf_set(config_set, random_num):
   tmp_config_set_folder = format('{tmp_dir}/solr_config_{config_set}_{random_num}')
 
   solr_cloud_util.upload_configuration_to_zk(
-    zookeeper_quorum=params.zookeeper_hosts,
+    zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.logsearch_solr_znode,
     config_set_dir=format("{logsearch_server_conf}/solr_configsets/{config_set}/conf"),
     config_set=config_set,

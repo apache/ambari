@@ -536,7 +536,7 @@ def setup_ranger_audit_solr():
   tmp_config_set_folder = format('{tmp_dir}/ranger_config_{ranger_solr_config_set}_{random_num}')
 
   solr_cloud_util.upload_configuration_to_zk(
-    zookeeper_quorum = params.zookeeper_hosts,
+    zookeeper_quorum = params.zookeeper_quorum,
     solr_znode = params.logsearch_solr_znode,
     config_set = params.ranger_solr_config_set,
     config_set_dir = params.ranger_solr_conf,
@@ -546,7 +546,7 @@ def setup_ranger_audit_solr():
     group = params.unix_group)
 
   solr_cloud_util.create_collection(
-    zookeeper_quorum = params.zookeeper_hosts,
+    zookeeper_quorum = params.zookeeper_quorum,
     solr_znode = params.logsearch_solr_znode,
     collection = params.ranger_solr_collection_name,
     config_set = params.ranger_solr_config_set,
