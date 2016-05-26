@@ -100,7 +100,7 @@ class RangeradminV2:
                                ambari_ranger_admin, ambari_ranger_password,
                                admin_uname, admin_password, policy_user, is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
                                component_user = None, component_user_principal = None, component_user_keytab = None):
-    if not is_stack_supports_ranger_kerberos :
+    if not is_stack_supports_ranger_kerberos or not is_security_enabled:
       response_code = self.check_ranger_login_urllib2(self.base_url)
       repo_data = json.dumps(repo_properties)
       ambari_ranger_password = unicode(ambari_ranger_password)
@@ -378,8 +378,9 @@ class RangeradminV2:
         if 'name' in response_json and response_json['name'].lower() == name.lower():
           Logger.info('Repository created Successfully')
           return response_json
-        elif 'exists'.lower() in response_json.lower():
+        elif 'exists' in response.lower():
           Logger.info('Repository {name} already exists'.format(name=name))
+          return response_json
         else:
           Logger.info('Repository creation failed')
           return None
