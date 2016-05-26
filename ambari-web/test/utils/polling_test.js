@@ -515,8 +515,7 @@ describe('App.Poll', function () {
         ajaxCallArguments: [{
           name: 'background_operations.get_by_request',
           data: {
-            requestId: 0,
-            errorLogMessage: 'Install services all retries failed'
+            requestId: 0
           },
           success: 'reloadSuccessCallback',
           error: 'reloadErrorCallback'
@@ -530,8 +529,7 @@ describe('App.Poll', function () {
         ajaxCallArguments: [{
           name: 'background_operations.get_by_request',
           data: {
-            requestId: 1,
-            errorLogMessage: 'Install services all retries failed'
+            requestId: 1
           },
           success: 'reloadSuccessCallback',
           error: 'reloadErrorCallback'

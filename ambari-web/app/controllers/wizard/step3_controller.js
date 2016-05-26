@@ -534,6 +534,16 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   }.observes('isBackDisabled'),
 
   /**
+   * Close reload popup on exit from Confirm Hosts step
+   * @method closeReloadPopupOnExit
+   */
+  closeReloadPopupOnExit: function () {
+    if (this.get('stopBootstrap')) {
+      this.closeReloadPopup();
+    }
+  }.observes('stopBootstrap'),
+
+  /**
    * Do bootstrap calls
    * @method doBootstrap
    * @return {$.ajax|null}
@@ -550,8 +560,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       data: {
         bootRequestId: this.get('content.installOptions.bootRequestId'),
         numPolls: this.get('numPolls'),
-        errorLogMessage: 'Bootstrap failed',
         callback: this.doBootstrap,
+        timeout: 3000,
         shouldUseDefaultHandler: true
       },
       success: 'doBootstrapSuccessCallback',
@@ -640,8 +650,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       success: 'isHostsRegisteredSuccessCallback',
       error: 'reloadErrorCallback',
       data: {
-        errorLogMessage: 'Error: Getting registered host information from the server',
         callback: this.isHostsRegistered,
+        timeout: 3000,
         shouldUseDefaultHandler: true
       }
     });
