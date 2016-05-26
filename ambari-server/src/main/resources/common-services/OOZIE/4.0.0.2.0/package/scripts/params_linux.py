@@ -111,6 +111,7 @@ execute_path = oozie_bin_dir + os.pathsep + hadoop_bin_dir
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
+smoke_hdfs_user_mode = 0770
 
 # This config actually contains {oozie_user}
 oozie_admin_users = format(config['configurations']['oozie-env']['oozie_admin_users'])

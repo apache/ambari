@@ -38,6 +38,13 @@ class MahoutServiceCheck(Script):
         content = "Test text which will be converted to sequence file.",
         mode = 0755
     )
+
+    params.HdfsResource(format("/user/{smokeuser}"),
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.smokeuser,
+                        mode=params.smoke_hdfs_user_mode,
+                        )
     
     params.HdfsResource(format("/user/{smokeuser}/mahoutsmokeoutput"),
                        action="delete_on_execute",

@@ -41,6 +41,21 @@ class TestMahoutClient(RMFTestCase):
         content = 'Test text which will be converted to sequence file.',
         mode = 0755,
     )
+    self.maxDiff=None
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+                              security_enabled = False,
+                              hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              keytab = UnknownConfigurationMock(),
+                              kinit_path_local = '/usr/bin/kinit',
+                              user = 'hdfs',
+                              dfs_type = '',
+                              mode = 0770,
+                              owner = 'ambari-qa',
+                              action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+                              hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              type = 'directory',
+                              )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeoutput',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
