@@ -144,6 +144,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   private static final String HIVE_ENV_CONFIG = "hive-env";
   private static final String AMS_SITE = "ams-site";
   public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD = "timeline.metrics.sink.collection.period";
+  public static final String ONE_DIR_PER_PARITION_PROPERTY = "one_dir_per_partition";
   public static final String VIEWURL_TABLE = "viewurl";
   public static final String URL_ID_COLUMN = "url_id";
   private static final String PRINCIPAL_TYPE_TABLE = "adminprincipaltype";
@@ -1744,6 +1745,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    * Updates {@code cluster-env} in the following ways:
    * <ul>
    * <li>Adds {@link ConfigHelper#CLUSTER_ENV_ALERT_REPEAT_TOLERANCE} = 1</li>
+   * <li>Adds {@link UpgradeCatalog240#ONE_DIR_PER_PARITION_PROPERTY} = false</li>
    * </ul>
    *
    * @throws Exception
@@ -1751,6 +1753,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected void updateClusterEnv() throws AmbariException {
     Map<String, String> propertyMap = new HashMap<>();
     propertyMap.put(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "1");
+    propertyMap.put(ONE_DIR_PER_PARITION_PROPERTY, "false");
 
     AmbariManagementController ambariManagementController = injector.getInstance(
         AmbariManagementController.class);

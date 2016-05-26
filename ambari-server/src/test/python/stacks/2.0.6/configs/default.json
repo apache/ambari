@@ -596,7 +596,9 @@
           "metrics_collector_vip_host": "c6402.ambari.apache.org",
           "metrics_collector_vip_port": "6189",
           "override_uid" : "true",
-          "fetch_nonlocal_groups": "true"
+          "fetch_nonlocal_groups": "true",
+          "create_dirs_on_root": "true",
+          "ignore_bad_mounts": "false"
       },
       "hbase-env": {
             "hbase_pid_dir": "/var/run/hbase",
