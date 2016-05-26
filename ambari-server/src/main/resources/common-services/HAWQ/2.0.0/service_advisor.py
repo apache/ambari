@@ -177,15 +177,16 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
     if "hawq-sysctl-env" in services["configurations"] and "vm.overcommit_memory" in services["configurations"]["hawq-sysctl-env"]["properties"]:
       MEM_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
-      vm_overcommit_mem_value = "2" if minHawqHostsMemory >= MEM_THRESHOLD else "1"
-      putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
-      putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_mem_value)
-
       # Set the value for hawq_rm_memory_limit_perseg based on vm.overcommit value and RAM available on HAWQ Hosts
-      # HAWQ Hosts with the minimum amount of RAM is considered for calculations
-      # Available RAM Formula = SWAP + RAM * vm.overcommit_ratio / 100
-      # Assumption: vm.overcommit_ratio = 50 (default on Linux), SWAP not considered for recommendation
-      host_ram_kb = minHawqHostsMemory / 2 if vm_overcommit_mem_value == "2" else minHawqHostsMemory
+      # Available RAM Formula = SWAP + RAM * vm.overcommit_ratio / 100. (SWAP not considered for recommendation here)
+      # Default value of vm.overcommit_ratio from configuration is '', so first time during install it will be blank, for subsequent calls it will have the recommended value.
+      if "vm.overcommit_ratio" in services["configurations"]["hawq-sysctl-env"]["properties"] and len(str(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"])) > 0:
+        vm_overcommit_ratio = int(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"])
+        vm_overcommit_mem_value = int(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"])
+      else:
+        vm_overcommit_ratio = 50
+        vm_overcommit_mem_value = 2 if minHawqHostsMemory >= MEM_THRESHOLD else 1
+      host_ram_kb = minHawqHostsMemory * vm_overcommit_ratio / 100 if vm_overcommit_mem_value == 2 else minHawqHostsMemory
       host_ram_gb = float(host_ram_kb) / (1024 * 1024)
       recommended_mem_percentage = {
         host_ram_gb <= 64: .75,
@@ -201,6 +202,9 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         unit = "MB"
       # hawq_rm_memory_limit_perseg does not support decimal value so trim decimal using int
       putHawqSiteProperty("hawq_rm_memory_limit_perseg", "{0}{1}".format(int(recommended_mem), unit))
+      putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
+      putHawqSysctlEnvProperty("vm.overcommit_ratio", vm_overcommit_ratio)
+      putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_mem_value)
 
     # set output.replace-datanode-on-failure in HAWQ hdfs-client depending on the cluster size
     if "hdfs-client" in services["configurations"]:
@@ -328,3 +332,14 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(MIN_NUM_SEGMENT_THRESHOLD)))})
 
     return stackAdvisor.toConfigurationValidationProblems(validationItems, "hdfs-client")
+
+  def putPropertyAttribute(self, config, configType):
+    if configType not in config:
+      config[configType] = {}
+    def appendPropertyAttribute(key, attribute, attributeValue):
+      if "property_attributes" not in config[configType]:
+        config[configType]["property_attributes"] = {}
+      if key not in config[configType]["property_attributes"]:
+        config[configType]["property_attributes"][key] = {}
+      config[configType]["property_attributes"][key][attribute] = attributeValue if isinstance(attributeValue, list) else str(attributeValue)
+    return appendPropertyAttribute
