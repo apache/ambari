@@ -40,12 +40,12 @@ public class ServiceConfigVersionResponse {
   /**
    * Name used for default config group.
    */
-  public static final String DEFAULT_CONFIG_GROUP_NAME = "default";
+  public static final String DEFAULT_CONFIG_GROUP_NAME = "Default";
 
   /**
    * Name used for config groups that were deleted in the service config version response.
    */
-  public static final String DELETED_CONFIG_GROUP_NAME = "deleted";
+  public static final String DELETED_CONFIG_GROUP_NAME = "Deleted";
 
 
   @JsonProperty("cluster_name")
