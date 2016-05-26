@@ -657,7 +657,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
           notifier_plugin_value = ",".join(application_classes)
         else:
           notifier_plugin_value = " "
-      putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
+
+      if notifier_plugin_value != " ":
+        putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
 
   def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
 
