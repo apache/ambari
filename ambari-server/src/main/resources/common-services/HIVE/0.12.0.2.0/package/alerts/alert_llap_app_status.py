@@ -33,10 +33,10 @@ from resource_management.core.resources import Execute
 from resource_management.core import global_lock
 
 
-OK_MESSAGE = "APP is in : '{0}' state. Check took {1:.3f}s"
-MESSAGE_WITH_STATE_AND_INSTANCES = "APP is in : '{0}' state. Instances 'live' : {1}, 'desired' : {2}. Check took {3:.3f}s"
-CRITICAL_MESSAGE_WITH_STATE = "APP is in : '{0}' state. Check took {1:.3f}s"
-CRITICAL_MESSAGE = "APP information couldn't be retrieved. Check took {0:.3f}s"
+OK_MESSAGE = "The application reported a '{0}' state in {1:.3f}s"
+MESSAGE_WITH_STATE_AND_INSTANCES = "The application reported a '{0}' state in {1:.3f}s. [Live: {2}, Desired: {3}]"
+CRITICAL_MESSAGE_WITH_STATE = "The application reported a '{0}' state. Check took {1:.3f}s"
+CRITICAL_MESSAGE = "Application information could not be retrieved"
 
 # results codes
 CRITICAL_RESULT_CODE = 'CRITICAL'
@@ -68,9 +68,15 @@ KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}
 
 
 CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
-CHECK_COMMAND_TIMEOUT_DEFAULT = 15.0
+CHECK_COMMAND_TIMEOUT_DEFAULT = 120.0
 
 
+# Mapping of LLAP app states to 'user friendly' state names.
+llap_app_state_dict = {'RUNNING_ALL': 'RUNNING',
+                       'RUNNING_PARTIAL': 'RUNNING',
+                       'COMPLETE': 'NOT RUNNING',
+                       'LAUNCHING': 'LAUNCHING',
+                       'APP_NOT_FOUND': 'APP NOT FOUND'}
 
 logger = logging.getLogger('ambari_alerts')
 
@@ -163,11 +169,12 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = UKNOWN_STATUS_CODE
       return (result_code, [alert_label])
 
-    if llap_app_info['state'].upper() in ['RUNNING_ALL']:
+    retrieved_llap_app_state = llap_app_info['state'].upper()
+    if retrieved_llap_app_state in ['RUNNING_ALL']:
       result_code = OK_RESULT_CODE
       total_time = time.time() - start_time
-      alert_label = OK_MESSAGE.format(llap_app_info['state'], total_time)
-    elif llap_app_info['state'].upper() in ['RUNNING_PARTIAL']:
+      alert_label = OK_MESSAGE.format(llap_app_state_dict.get(retrieved_llap_app_state, retrieved_llap_app_state), total_time)
+    elif retrieved_llap_app_state in ['RUNNING_PARTIAL']:
       live_instances = 0
       desired_instances = 0
       percentInstancesUp = 0
@@ -176,7 +183,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       if 'liveInstances' not in llap_app_info or 'desiredInstances' not in llap_app_info:
         result_code = CRITICAL_RESULT_CODE
         total_time = time.time() - start_time
-        alert_label = CRITICAL_MESSAGE_WITH_STATE.format(llap_app_info['state'], total_time)
+        alert_label = CRITICAL_MESSAGE_WITH_STATE.format(llap_app_state_dict.get(retrieved_llap_app_state, retrieved_llap_app_state), total_time)
         return (result_code, [alert_label])
 
       live_instances = llap_app_info['liveInstances']
@@ -184,28 +191,28 @@ def execute(configurations={}, parameters={}, host_name=None):
       if live_instances < 0 or desired_instances <= 0:
         result_code = CRITICAL_RESULT_CODE
         total_time = time.time() - start_time
-        alert_label = MESSAGE_WITH_STATE_AND_INSTANCES.format(llap_app_info['state'], total_time)
+        alert_label = CRITICAL_MESSAGE_WITH_STATE.format(llap_app_state_dict.get(retrieved_llap_app_state, retrieved_llap_app_state), total_time)
         return (result_code, [alert_label])
 
       percentInstancesUp = float(live_instances) / desired_instances * 100
       if percentInstancesUp >= percent_desired_instances_to_be_up:
         result_code = OK_RESULT_CODE
         total_time = time.time() - start_time
-        alert_label = MESSAGE_WITH_STATE_AND_INSTANCES.format(llap_app_info['state'],
+        alert_label = MESSAGE_WITH_STATE_AND_INSTANCES.format(llap_app_state_dict.get(retrieved_llap_app_state, retrieved_llap_app_state),
+                                                              total_time,
                                                               llap_app_info['liveInstances'],
-                                                              llap_app_info['desiredInstances'],
-                                                              total_time)
+                                                              llap_app_info['desiredInstances'])
       else:
         result_code = CRITICAL_RESULT_CODE
         total_time = time.time() - start_time
-        alert_label = MESSAGE_WITH_STATE_AND_INSTANCES.format(llap_app_info['state'],
+        alert_label = MESSAGE_WITH_STATE_AND_INSTANCES.format(llap_app_state_dict.get(retrieved_llap_app_state, retrieved_llap_app_state),
+                                                              total_time,
                                                               llap_app_info['liveInstances'],
-                                                              llap_app_info['desiredInstances'],
-                                                              total_time)
+                                                              llap_app_info['desiredInstances'])
     else:
       result_code = CRITICAL_RESULT_CODE
       total_time = time.time() - start_time
-      alert_label = CRITICAL_MESSAGE_WITH_STATE.format(llap_app_info['state'], total_time)
+      alert_label = CRITICAL_MESSAGE_WITH_STATE.format(llap_app_state_dict.get(retrieved_llap_app_state, retrieved_llap_app_state), total_time)
   except:
     alert_label = traceback.format_exc()
     traceback.format_exc()

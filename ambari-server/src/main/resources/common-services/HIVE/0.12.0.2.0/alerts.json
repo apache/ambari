@@ -161,7 +161,7 @@
             {
               "name": "check.command.timeout",
               "display_name": "Command Timeout",
-              "value": 15.0,
+              "value": 120.0,
               "type": "NUMERIC",
               "description": "The maximum time before check command will be killed by timeout",
               "units": "seconds",
