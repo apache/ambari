@@ -2067,7 +2067,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   getHostComponentsInfo: function () {
     var componentsOnHost = this.get('content.hostComponents');
-    var allComponents = App.HostComponent.find();
     var stoppedStates = [App.HostComponentStatus.stopped,
       App.HostComponentStatus.install_failed,
       App.HostComponentStatus.upgrade_failed,
@@ -2082,13 +2081,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       unknownComponents: [],
       toDecommissionComponents: []
     };
-    var self = this;
     if (componentsOnHost && componentsOnHost.get('length') > 0) {
       componentsOnHost.forEach(function (cInstance) {
         if (cInstance.get('componentName') === 'ZOOKEEPER_SERVER') {
           container.zkServerInstalled = true;
         }
-        if (allComponents.filterProperty('componentName', cInstance.get('componentName')).get('length') === 1) {
+        if (this.getTotalComponent(cInstance) === 1) {
           container.lastComponents.push(cInstance.get('displayName'));
         }
         var workStatus = cInstance.get('workStatus');
@@ -2107,7 +2105,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         if (App.get('components.decommissionAllowed').contains(cInstance.get('componentName')) && !cInstance.get('view.isComponentRecommissionAvailable')) {
           container.toDecommissionComponents.push(cInstance.get('displayName'));
         }
-      });
+      }, this);
     }
     return container;
   },

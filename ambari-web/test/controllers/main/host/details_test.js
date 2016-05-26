@@ -1998,10 +1998,13 @@ describe('App.MainHostDetailsController', function () {
         id: 'TASKTRACKER_host1',
         componentName: 'TASKTRACKER'
       }]);
+      this.mockTotal = sinon.stub(controller, 'getTotalComponent');
+      this.mockTotal.returns(2);
     });
 
     afterEach(function () {
       this.stub.restore();
+      this.mockTotal.restore();
     });
 
     it('content.hostComponents is null', function () {
@@ -2035,6 +2038,7 @@ describe('App.MainHostDetailsController', function () {
           isDeletable: true
         })]
       });
+      this.mockTotal.returns(1);
       expect(controller.getHostComponentsInfo().lastComponents).to.eql(['TaskTracker']);
     });
 
