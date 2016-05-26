@@ -1215,10 +1215,14 @@ public class ClusterImpl implements Cluster {
       return upgradeInProgress;
     }
 
-    // perform a search for any upgrade which shoudl also return upgrades which
+    // perform a search for any upgrade which should also return upgrades which
     // are suspended
     UpgradeEntity mostRecentUpgrade = upgradeDAO.findLastUpgradeOrDowngradeForCluster(getClusterId());
     if (mostRecentUpgrade != null) {
+      if (mostRecentUpgrade.isSuspended()) {
+        return mostRecentUpgrade;
+      }
+
       List<HostRoleStatus> UNFINISHED_STATUSES = new ArrayList<>();
       UNFINISHED_STATUSES.add(HostRoleStatus.PENDING);
       UNFINISHED_STATUSES.add(HostRoleStatus.ABORTED);
