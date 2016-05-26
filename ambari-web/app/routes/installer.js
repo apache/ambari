@@ -163,8 +163,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       var installerController = router.get('installerController');
       installerController.validateJDKVersion(function() {
         installerController.checkRepoURL(wizardStep1Controller).done(function () {
-          App.router.nextBtnClickInProgress = true;
-          router.transitionInProgress = true;
+          App.set('router.nextBtnClickInProgress', true);
+          router.set('transitionInProgress', true);
           installerController.setDBProperty('service', undefined);
           installerController.setStacks();
           installerController.clearInstallOptions();
@@ -279,8 +279,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           recommendations: undefined,
           masterComponentHosts: undefined
         });
-        controller.set('stackConfigsLoaded', false);
-        App.configsCollection.clearAll();
+        controller.clearEnhancedConfigs();
         router.transitionTo('step5');
       }
       console.timeEnd('step4 next');
@@ -299,7 +298,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         servicesMasters: [],
         isInitialLayout: true
       });
-      controller.set('stackConfigsLoaded', false);
       controller.setCurrentStep('5');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep5', controller.get('content'));

@@ -1675,15 +1675,15 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       return App.showConfirmationPopup(
         function () {
           self.set('confirmedHosts', self.get('bootHosts'));
-          App.router.nextBtnClickInProgress = true;
-          App.router.send('next');
+          App.set('router.nextBtnClickInProgress', true);
+          App.get('router').send('next');
         },
         Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
     }
     else {
       this.set('confirmedHosts', this.get('bootHosts'));
-      App.router.nextBtnClickInProgress = true;
-      App.router.send('next');
+      App.set('router.nextBtnClickInProgress', true);
+      App.get('router').send('next');
     }
     return null;
   },
