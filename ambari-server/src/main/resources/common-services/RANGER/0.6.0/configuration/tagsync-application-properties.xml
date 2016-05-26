@@ -38,10 +38,6 @@
         <type>kafka-broker</type>
         <name>port</name>
       </property>
-      <property>
-        <type>ranger-tagsync-site</type>
-        <name>ranger.tagsync.enabled</name>
-      </property>
     </depends-on>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
@@ -57,10 +53,6 @@
       <property>
         <type>zoo.cfg</type>
         <name>clientPort</name>
-      </property>
-      <property>
-        <type>ranger-tagsync-site</type>
-        <name>ranger.tagsync.enabled</name>
       </property>
     </depends-on>
     <value-attributes>

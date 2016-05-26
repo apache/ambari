@@ -82,6 +82,9 @@
     <name>hadoop.kms.authentication.kerberos.name.rules</name>
     <value>DEFAULT</value>
     <description>Rules used to resolve Kerberos principal names.</description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
 
   <property>

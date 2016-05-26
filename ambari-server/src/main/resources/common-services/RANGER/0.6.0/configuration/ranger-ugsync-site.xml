@@ -54,4 +54,48 @@
     <description></description>
   </property>
 
+  <property>
+    <name>ranger.usersync.group.search.first.enabled</name>
+    <display-name>Enable Group Search First</display-name>
+    <value>false</value>
+    <description></description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.usersync.user.searchenabled</name>
+    <display-name>Enable User Search</display-name>
+    <value>false</value>
+    <description></description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+     </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
 </configuration>
