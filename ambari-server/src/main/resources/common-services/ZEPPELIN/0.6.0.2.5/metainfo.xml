@@ -63,8 +63,9 @@ limitations under the License.
 
       <configuration-dependencies>
         <config-type>zeppelin-config</config-type>
+        <config-type>zeppelin-env</config-type>
       </configuration-dependencies>
-      <restartRequiredAfterChange>false</restartRequiredAfterChange>
+      <restartRequiredAfterChange>true</restartRequiredAfterChange>
 
       <quickLinksConfigurations>
         <quickLinksConfiguration>

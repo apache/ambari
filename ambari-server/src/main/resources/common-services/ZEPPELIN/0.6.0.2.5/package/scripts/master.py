@@ -184,8 +184,11 @@ class Master(Script):
     import status_params
     env.set_params(status_params)
 
-    pid_file = glob.glob(status_params.zeppelin_pid_dir + '/zeppelin-'
-                         + status_params.zeppelin_user + '*.pid')[0]
+    try:
+        pid_file = glob.glob(status_params.zeppelin_pid_dir + '/zeppelin-' +
+                             status_params.zeppelin_user + '*.pid')[0]
+    except IndexError:
+        pid_file = ''
     check_process_status(pid_file)
 
   def update_zeppelin_interpreter(self):
