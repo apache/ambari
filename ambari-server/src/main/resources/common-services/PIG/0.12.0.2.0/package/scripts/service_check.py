@@ -45,6 +45,13 @@ class PigServiceCheckLinux(PigServiceCheck):
     input_file = format('/user/{smokeuser}/passwd')
     output_dir = format('/user/{smokeuser}/pigsmoke.out')
 
+    params.HdfsResource(format("/user/{smokeuser}"),
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.smokeuser,
+                        mode=params.smoke_hdfs_user_mode,
+                        )
+
     params.HdfsResource(output_dir,
                         type="directory",
                         action="delete_on_execute",

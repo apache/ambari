@@ -86,6 +86,13 @@ class ServiceCheckDefault(ServiceCheck):
     import params
     env.set_params(params)
 
+    params.HdfsResource(format("/user/{smokeuser}"),
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.smokeuser,
+                        mode=params.smoke_hdfs_user_mode,
+                        )
+
     if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):
       path_to_distributed_shell_jar = format("{stack_root}/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar")
     else:

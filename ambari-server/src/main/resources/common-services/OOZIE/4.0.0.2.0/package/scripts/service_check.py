@@ -82,6 +82,13 @@ class OozieServiceCheckDefault(OozieServiceCheck):
             logoutput=True
     )
 
+    params.HdfsResource(format("/user/{smokeuser}"),
+        type="directory",
+        action="create_on_execute",
+        owner=params.smokeuser,
+        mode=params.smoke_hdfs_user_mode,
+        )
+
     examples_dir = format('/user/{smokeuser}/examples')
     params.HdfsResource(examples_dir,
                         action = "delete_on_execute",

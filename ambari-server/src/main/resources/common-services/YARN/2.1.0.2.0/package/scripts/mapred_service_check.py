@@ -23,6 +23,7 @@ import sys
 from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.logger import Logger
 
 
 class MapReduce2ServiceCheck(Script):
@@ -120,6 +121,12 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
     test_cmd = format("fs -test -e {output_file}")
     run_wordcount_job = format("jar {jar_path} wordcount {input_file} {output_file}")
 
+    params.HdfsResource(format("/user/{smokeuser}"),
+                      type="directory",
+                      action="create_on_execute",
+                      owner=params.smokeuser,
+                      mode=params.smoke_hdfs_user_mode,
+    )
     params.HdfsResource(output_file,
                         action = "delete_on_execute",
                         type = "directory",
