@@ -279,7 +279,7 @@
     </div>
     <div ng-show="!isPermissionsEmpty && (data.clusterType == 'LOCAL_AMBARI') && editConfigurationDisabled">
       <div class="col-sm-12">
-        <span translate="views.clusterPermissions.infoMessage" translate-values="{cluster: cluster}"></span>
+        <span translate="views.clusterPermissions.infoMessage" translate-values="{cluster: cluster.name}"></span>
       </div>
       <div class="col-sm-offset-2 col-sm-10">
         <div class="checkbox col-sm-12" ng-repeat="key in clusterInheritedPermissionKeys">
