@@ -24,7 +24,7 @@ def main(args):
 
   vb.set_release(type='STANDARD', stack="HDP-2.4", version="2.4.2.0", build="2468",
     notes="http://example.com", display="HDP-2.4.2.0-2468", compatible="2.4.[0-9]+")
-  vb.set_release(package_version="2_4_2_0_*")
+  vb.set_os("redhat6", package_version="2_4_2_0_12345")
 
   vb.add_manifest("HDFS-271", "HDFS", "2.7.1.2.4.0")
 

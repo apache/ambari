@@ -75,7 +75,7 @@ class VersionBuilder:
       print(stderr.decode("UTF-8"))
 
   def set_release(self, type=None, stack=None, version=None, build=None, notes=None, display=None,
-    compatible=None, package_version=None):
+    compatible=None):
     """
     Create elements of the 'release' parent
     """
@@ -105,8 +105,21 @@ class VersionBuilder:
     if display:
       update_simple(release_element, "display", display)
 
+  def set_os(self, os_family, package_version=None):
+    repo_parent = self.root_element.find("./repository-info")
+    if repo_parent is None:
+      raise Exception("'repository-info' element is not found")
+
+    os_element = self.findByAttributeValue(repo_parent, "./os", "family", os_family)
+    if os_element is None:
+      os_element = ET.SubElement(repo_parent, 'os')
+      os_element.set('family', os_family)
+
     if package_version:
-      update_simple(release_element, "package-version", package_version)
+      pv_element = os_element.find("package-version")
+      if pv_element is None:
+        pv_element = ET.SubElement(os_element, "package-version")
+      pv_element.text = package_version
 
 
   def add_manifest(self, id, service_name, version, version_id = None):
@@ -291,6 +304,12 @@ def process_available(vb, options):
   vb.add_available(options.manifest_id, options.available_components)
 
 
+def process_os(vb, options):
+  if not options.os:
+    return
+
+  vb.set_os(options.os_family, options.os_package_version)
+
 def process_repo(vb, options):
   """
   Processes repository options.  This method doesn't update or create individual elements, it
@@ -328,6 +347,13 @@ def validate_available(parser, options):
 
   if not options.manifest_id:
     parser.error("When specifying --available, --manifest-id is also required")
+
+def validate_os(parser, options):
+  if not options.os:
+    return
+
+  if not options.os_family:
+    parser.error("When specifying --os, --os-family is also required")
 
 def validate_repo(parser, options):
   """
@@ -394,6 +420,11 @@ def main(argv):
     help="A CSV of service components that are intended to be upgraded via patch. \
       Omitting this implies the entire service should be upgraded")
 
+  parser.add_option('--os', action='store_true', dest='os', help="Add OS data with options --os-family, --os-package-version")
+  parser.add_option('--os-family', dest='os_family', help="The operating system: i.e redhat7, debian7, ubuntu12, ubuntu14, suse11, suse12")
+  parser.add_option('--os-package-version', dest='os_package_version',
+    help="The package version to use for the OS")
+
   parser.add_option('--repo', action='store_true', dest='repo',
     help="Add repository data with options: --repo-os, --repo-url, --repo-id, --repo-name")
   parser.add_option('--repo-os', dest='repo_os',
@@ -415,6 +446,7 @@ def main(argv):
 
   validate_manifest(parser, options)
   validate_available(parser, options)
+  validate_os(parser, options)
   validate_repo(parser, options)
 
   vb = VersionBuilder(options.filename)
@@ -422,6 +454,7 @@ def main(argv):
   process_release(vb, options)
   process_manifest(vb, options)
   process_available(vb, options)
+  process_os(vb, options)
   process_repo(vb, options)
 
   # save file
