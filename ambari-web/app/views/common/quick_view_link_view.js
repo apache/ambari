@@ -398,20 +398,21 @@ App.QuickViewLinks = Em.View.extend({
       var quickLinks = [];
       var configProperties = this.get('configProperties');
       var protocol = this.setProtocol(configProperties, quickLinksConfig.get('protocol'));
+      var publicHostName = hosts[0].publicHostName;
 
       var links = Em.get(quickLinksConfig, 'links');
       links.forEach(function (link) {
         var componentName = link.component_name;
         var hostNameForComponent = hosts.findProperty('componentName',componentName);
         if (hostNameForComponent) {
-          var publicHostName = hostNameForComponent.publicHostName;
+            publicHostName = hostNameForComponent.publicHostName;
           if (link.protocol) {
             protocol = this.setProtocol(configProperties, link.protocol);
           }
-          var newItem = this.getHostLink(link, publicHostName, protocol, configProperties, response); //quicklink generated for the hbs template
-          if (!Em.isNone(newItem)) {
-            quickLinks.push(newItem);
-          }
+        }
+        var newItem = this.getHostLink(link, publicHostName, protocol, configProperties, response); //quicklink generated for the hbs template
+        if (!Em.isNone(newItem)) {
+          quickLinks.push(newItem);
         }
       }, this);
       this.set('quickLinks', quickLinks);
@@ -628,6 +629,9 @@ App.QuickViewLinks = Em.View.extend({
             break;
           default:
             hosts = hosts.concat(componentHosts);
+            if(hosts.length < 1 && this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
+              hosts = this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);
+            }
             break;
         }
       }, this);
