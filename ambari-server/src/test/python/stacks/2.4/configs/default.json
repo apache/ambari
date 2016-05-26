@@ -221,6 +221,9 @@
       "ranger-env": {
             "xml_configurations_supported" : "true"
       },
+      "zoo.cfg": {
+        "clientPort": "2181"
+      },
       "logsearch-admin-json" : {
         "logsearch_admin_username" : "admin",
         "logsearch_admin_password" : "admin",
