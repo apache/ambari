@@ -238,12 +238,6 @@ App.InstallerController = App.WizardController.extend({
   loadStacks: function () {
     var stacks = this.get('content.stacks');
     var dfd = $.Deferred();
-    App.configsCollection.clearAll();
-    App.Section.find().clear();
-    App.SubSection.find().clear();
-    App.SubSectionTab.find().clear();
-    App.Tab.find().clear();
-    this.set('stackConfigsLoaded', false);
     if (stacks && stacks.get('length')) {
       App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
       dfd.resolve(true);

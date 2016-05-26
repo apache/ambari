@@ -1325,12 +1325,25 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           });
         });
       });
-    }
-    else {
+    } else {
       dfd.resolve();
-      this.set('stackConfigsLoaded', true);
     }
     return dfd.promise();
+  },
+
+  /**
+   * Clear all config static data
+   * and theme info
+   *
+   * @method clearEnhancedConfigs
+   */
+  clearEnhancedConfigs: function() {
+    App.configsCollection.clearAll();
+    App.Section.find().clear();
+    App.SubSection.find().clear();
+    App.SubSectionTab.find().clear();
+    App.Tab.find().clear();
+    this.set('stackConfigsLoaded', false);
   },
 
   /**
