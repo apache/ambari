@@ -2609,13 +2609,13 @@ class TestHDP23StackAdvisor(TestCase):
       "services": [
         {
           "StackServices": {
-            "service_name": "RANGER",
+            "service_name": "RANGER_KMS",
             "service_version": "0.5.0.2.3"
           },
           "components": [
             {
               "StackServiceComponents": {
-                "component_name": "RANGER_ADMIN",
+                "component_name": "RANGER_KMS_SERVER",
                 "hostnames": ["host1"]
               }
             }
@@ -2630,6 +2630,11 @@ class TestHDP23StackAdvisor(TestCase):
         },
         "core-site": {
           "properties": {
+            "fs.defaultFS": "hdfs://host1:8020"
+          }
+        },
+        'ranger-kms-audit': {
+          'properties': {
           }
         }
       },
@@ -2645,6 +2650,10 @@ class TestHDP23StackAdvisor(TestCase):
       'core-site': {
         'properties': {
         }
+      },
+      'ranger-kms-audit': {
+          'properties': {
+          }
       }
     }
 
@@ -2671,6 +2680,10 @@ class TestHDP23StackAdvisor(TestCase):
         'properties': {
           'hadoop.proxyuser.kmsname.groups': '*'
         }
+      },
+      'ranger-kms-audit': {
+          'properties': {
+          }
       }
     }
 

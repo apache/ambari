@@ -98,7 +98,7 @@
       {
         "config": "dbks-site/ranger.ks.hsm.type",
         "widget": {
-          "type": "text-field"
+          "type": "combo"
         }
       },
       {

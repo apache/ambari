@@ -25,6 +25,16 @@
     <name>ranger.ks.hsm.type</name>
     <display-name>HSM Type</display-name>
     <value>LunaProvider</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>LunaProvider</value>
+          <label>Luna Provider</label>
+        </entry>
+      </entries>
+    </value-attributes>
     <description>HSM type</description>
   </property>
 

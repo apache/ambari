@@ -235,7 +235,6 @@ if current_host in ranger_admin_hosts:
 ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
 has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
 
-tagsync_enabled = config["configurations"]["ranger-tagsync-site"]['ranger.tagsync.enabled']
 tagsync_log_dir = default("/configurations/ranger-tagsync-site/ranger.tagsync.logdir", "/var/log/ranger/tagsync")
 tagsync_jceks_path = config["configurations"]["ranger-tagsync-site"]["ranger.tagsync.keystore.filename"]
 tagsync_application_properties = dict(config["configurations"]["tagsync-application-properties"]) if has_ranger_tagsync else None

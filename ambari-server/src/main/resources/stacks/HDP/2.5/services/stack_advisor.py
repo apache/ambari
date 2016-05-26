@@ -123,7 +123,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "RANGER": self.recommendRangerConfigurations,
       "HBASE": self.recommendHBASEConfigurations,
       "HIVE": self.recommendHIVEConfigurations,
-      "ATLAS": self.recommendAtlasConfigurations
+      "ATLAS": self.recommendAtlasConfigurations,
+      "RANGER_KMS": self.recommendRangerKMSConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -982,6 +983,19 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             # Received configs as a dictionary (Generally on 1st invocation).
             capacity_scheduler_properties = services['configurations']["capacity-scheduler"]["properties"]
     return capacity_scheduler_properties, received_as_key_value_pair
+
+  def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP25StackAdvisor, self).recommendRangerKMSConfigurations(configurations, clusterData, services, hosts)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putRangerKmsSiteProperty = self.putProperty(configurations, "kms-site", services)
+
+    if 'ranger-env' in services['configurations'] and 'ranger_user' in services['configurations']['ranger-env']['properties']:
+      rangerUser = services['configurations']['ranger-env']['properties']['ranger_user']
+
+      if 'kms-site' in services['configurations'] and 'KERBEROS' in servicesList:
+        putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.groups'.format(rangerUser), '*')
+        putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.hosts'.format(rangerUser), '*')
+        putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.users'.format(rangerUser), '*')
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)

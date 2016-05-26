@@ -84,6 +84,12 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>core-site</type>
+        <name>fs.defaultFS</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

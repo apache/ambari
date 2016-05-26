@@ -375,6 +375,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     kmsEnvProperties = getSiteProperties(services['configurations'], 'kms-env')
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
+    putRangerKmsAuditProperty = self.putProperty(configurations, "ranger-kms-audit", services)
 
     if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
 
@@ -410,6 +411,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(kmsUserOld), 'delete', 'true')
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(kmsUserOld)})
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(kmsUser)})
+
+    if "HDFS" in servicesList:
+      if 'core-site' in services['configurations'] and ('fs.defaultFS' in services['configurations']['core-site']['properties']):
+        default_fs = services['configurations']['core-site']['properties']['fs.defaultFS']
+        putRangerKmsAuditProperty('xasecure.audit.destination.hdfs.dir', '{0}/{1}/{2}'.format(default_fs,'ranger','audit'))
 
 
   def getDBConnectionHostPort(self, db_type, db_host):
