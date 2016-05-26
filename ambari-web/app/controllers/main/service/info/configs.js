@@ -27,6 +27,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   isRecommendedLoaded: true,
 
+  /**
+   * Is true while request to recommendations is in progress
+   * @type {Boolean}
+   */
+  recommendationsInProgress: false,
+
   dataIsLoaded: false,
 
   stepConfigs: [], //contains all field properties that are viewed in this service
@@ -136,8 +142,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   isSubmitDisabled: function () {
     if (!this.get('selectedService')) return true;
-    return this.get('selectedService').get('errorCount') !==  0 || this.get('saveInProgress');
-  }.property('selectedService.errorCount', 'saveInProgress'),
+    return this.get('selectedService').get('errorCount') !== 0 || this.get('saveInProgress') || this.get('recommendationsInProgress');
+  }.property('selectedService.errorCount', 'saveInProgress', 'recommendationsInProgress'),
 
   /**
    * Determines if some config value is changed

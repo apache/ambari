@@ -174,6 +174,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
 
       dataToSend.recommendations = recommendations;
       var self = this;
+      this.set('recommendationsInProgress', true);
       return App.ajax.send({
         name: 'config.recommendations',
         sender: this,
@@ -184,6 +185,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
         success: 'loadRecommendationsSuccess',
         error: 'loadRecommendationsError',
         callback: function() {
+          self.set('recommendationsInProgress', false);
           self.set('recommendationTimeStamp', (new Date).getTime());
           if (onComplete) {
             onComplete()
