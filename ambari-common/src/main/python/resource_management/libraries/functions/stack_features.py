@@ -243,6 +243,11 @@ _DEFAULT_STACK_FEATURES = {
       "name": "ranger_logsearch_dependent",
       "description": "Ranger audit properties should be configured to use Ambari installed LogSearch (AMBARI-16446)",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "hbase_home_directory",
+      "description": "Hbase home directory in HDFS needed for HBASE backup",
+      "min_version": "2.5.0.0"
     }
   ]
 }
