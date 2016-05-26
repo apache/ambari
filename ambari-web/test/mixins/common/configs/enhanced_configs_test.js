@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 describe('App.EnhancedConfigsMixin', function() {
 
@@ -155,6 +156,37 @@ describe('App.EnhancedConfigsMixin', function() {
         Em.I18n.t('popup.dependent.configs.dependencies.config.plural').format(2) +
         Em.I18n.t('popup.dependent.configs.dependencies.service.plural').format(2)
       )
+    });
+  });
+
+  describe("#loadConfigRecommendations", function () {
+    var mixinInstance;
+
+    beforeEach(function(){
+      mixinInstance = mixinObject.create({
+        recommendationsConfigs: {},
+        stepConfigs: [],
+        hostGroups: {
+          blueprint: {
+            configurations: {}
+          }
+        }
+      });
+      this.mockedCallback = sinon.stub();
+    });
+
+    it("shound call callback if changedConfigs is empty array", function() {
+      mixinInstance.loadConfigRecommendations([], this.mockedCallback);
+      expect(App.ajax.send.calledOnce).to.be.false;
+      expect(this.mockedCallback.calledOnce).to.be.true;
+    });
+
+    it("shound call callback from ajax callback if changedConfigs is not empty", function() {
+      mixinInstance.loadConfigRecommendations([{}], this.mockedCallback);
+      var args = testHelpers.findAjaxRequest('name', 'config.recommendations');
+      expect(args[0]).exists;
+      args[0].callback();
+      expect(this.mockedCallback.calledOnce).to.be.true;
     });
   });
 });
