@@ -381,3 +381,7 @@ if has_ranger_admin:
   #For SQLA explicitly disable audit to DB for Ranger
   if xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
+
+
+create_hbase_home_directory = check_stack_feature(StackFeature.HBASE_HOME_DIRECTORY, stack_version_formatted)
+hbase_home_directory = format("/user/{hbase_user}")

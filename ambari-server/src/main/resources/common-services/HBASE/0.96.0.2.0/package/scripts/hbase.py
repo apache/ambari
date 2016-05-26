@@ -211,6 +211,13 @@ def hbase(name=None):
                          owner=params.hbase_user,
                          mode=0711
     )
+    if params.create_hbase_home_directory:
+      params.HdfsResource(params.hbase_home_directory,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.hbase_user,
+                          mode=0755
+      )
     params.HdfsResource(None, action="execute")
 
   if params.phoenix_enabled:

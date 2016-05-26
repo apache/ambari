@@ -83,3 +83,4 @@ class StackFeature:
   HIVE_METASTORE_SITE_SUPPORT = "hive_metastore_site_support"
   RANGER_USERSYNC_PASSWORD_JCEKS = "ranger_usersync_password_jceks"
   RANGER_LOGSEARCH_DEPENDENT = "ranger_logsearch_dependent"
+  HBASE_HOME_DIRECTORY = "hbase_home_directory"
