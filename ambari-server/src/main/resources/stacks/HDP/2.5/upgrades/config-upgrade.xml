@@ -47,6 +47,32 @@
               <value>10001</value>
             </condition>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0">
+            <type>storm-site</type>
+            <replace key="_storm.thrift.nonsecure.transport" find="backtype.storm.security.auth.SimpleTransportPlugin"
+                     replace-with="org.apache.storm.security.auth.SimpleTransportPlugin" />
+            <replace key="_storm.thrift.secure.transport" find="backtype.storm.security.auth.KerberosSaslTransportPlugin"
+                     replace-with="org.apache.storm.security.auth.KerberosSaslTransportPlugin" />
+            <replace key="storm.messaging.transport" find="backtype.storm.messaging.netty.Context"
+                     replace-with="org.apache.storm.messaging.netty.Context" />
+            <replace key="nimbus.topology.validator" find="backtype.storm.nimbus.DefaultTopologyValidator"
+                     replace-with="org.apache.storm.nimbus.DefaultTopologyValidator" />
+            <replace key="topology.spout.wait.strategy" find="backtype.storm.spout.SleepSpoutWaitStrategy"
+                     replace-with="org.apache.storm.spout.SleepSpoutWaitStrategy" />
+            <replace key="topology.kryo.factory" find="backtype.storm.serialization.DefaultKryoFactory"
+                     replace-with="org.apache.storm.serialization.DefaultKryoFactory" />
+            <replace key="topology.tuple.serializer" find="backtype.storm.serialization.types.ListDelegateSerializer"
+                     replace-with="org.apache.storm.serialization.types.ListDelegateSerializer" />
+            <replace key="nimbus.authorizer" find="backtype.storm.security.auth.authorizer.SimpleACLAuthorizer"
+                     replace-with="org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer" />
+            <replace key="drpc.authorizer" find="backtype.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer"
+                     replace-with="org.apache.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer" />
+            <replace key="ui.filter" find="backtype.storm.security.auth.KerberosPrincipalToLocal"
+                     replace-with="org.apache.storm.security.auth.KerberosPrincipalToLocal" />
+            <set key="client.jartransformer.class" value="org.apache.storm.hack.StormShadeTransformer" />
+          </definition>
+
         </changes>
       </component>
     </service>
