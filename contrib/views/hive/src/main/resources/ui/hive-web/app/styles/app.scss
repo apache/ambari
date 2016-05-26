@@ -692,3 +692,15 @@ table.no-border, table.no-border tr, table.no-border tr td {
 .red-border {
   border-color :red;
 }
+
+ul.explainlist li{
+  background: none;
+  word-break: break-all;
+  padding: 0;
+}
+
+pre.explainprint{
+ line-height: 0.5;
+ padding: 12px 15px;
+}
+
