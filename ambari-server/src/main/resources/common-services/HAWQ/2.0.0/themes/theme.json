@@ -122,13 +122,18 @@
             },
 
             {
+               "config":"hawq-sysctl-env/vm.overcommit_ratio",
+               "subsection-name":"resource-management-col1"
+            },
+
+            {
                "config":"hawq-site/hawq_rm_memory_limit_perseg",
                "subsection-name":"resource-management-col1"
             },
 
             {
                "config":"hawq-site/hawq_rm_nvcore_limit_perseg",
-               "subsection-name":"resource-management-col1"
+               "subsection-name":"resource-management-col2"
             }
          ]
       },
@@ -191,15 +196,20 @@
             }
          },
          {
-            "config":"hawq-sysctl-env/vm.overcommit_memory",
+            "config":"hawq-sysctl-env/vm.overcommit_ratio",
             "widget":{
-               "type":"combo"
+               "type":"text-field"
             }
          },
           {
             "config":"hawq-sysctl-env/vm.overcommit_memory",
             "widget":{
-               "type":"combo"
+               "type":"slider",
+               "units": [
+                  {
+                    "unit-name":"int"
+                  }
+               ]
             }
          },
          {

@@ -176,6 +176,16 @@
       The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
       The default is 64GB.
     </description>
+    <depends-on>
+      <property>
+        <type>hawq-sysctl-env</type>
+        <name>vm.overcommit_ratio</name>
+      </property>
+      <property>
+        <type>hawq-sysctl-env</type>
+        <name>vm.overcommit_memory</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>string</type>
     </value-attributes>

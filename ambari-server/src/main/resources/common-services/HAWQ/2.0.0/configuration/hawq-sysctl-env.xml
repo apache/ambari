@@ -320,27 +320,31 @@
     <value>1</value>
     <description>
       Establishes the conditions for determining whether large memory requests are accepted or denied.
-      The three possible values for this parameter are: 0, 1 or 2.
+      The three possible values for this parameter are:
+      0: Heuristic overcommit handling
+      1: Always overcommit
+      2: Don't overcommit.
       For production environments, the value of 2 is recommended and means that processes will not be killed but will receive errors upon memory allocation.
       The default value is 1.
     </description>
     <value-attributes>
-      <type>value-list</type>
-      <entries>
-        <entry>
-          <value>0</value>
-          <description>Heuristic overcommit handling</description>
-        </entry>
-        <entry>
-          <value>1</value>
-          <description>Always overcommit</description>
-        </entry>
-        <entry>
-          <value>2</value>
-          <description>Don't overcommit</description>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>2</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>vm.overcommit_ratio</name>
+    <display-name>VM Overcommit Ratio</display-name>
+    <value></value>
+    <description>
+      When overcommit_memory is set to 2, the committed address space is not permitted to exceed swap plus this percentage of physical RAM.
+      Default is 50.
+    </description>
+    <value-attributes>
+      <type>int</type>
     </value-attributes>
   </property>
 
