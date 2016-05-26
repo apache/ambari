@@ -49,20 +49,6 @@ class TestAtlasServer(RMFTestCase):
                               cd_access='a',
                               mode=0755
                               )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/hbase/logs',
-                              owner='atlas',
-                              group='hadoop',
-                              create_parents = True,
-                              cd_access='a',
-                              mode=0755
-                              )
-    self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/data',
-                              owner='atlas',
-                              group='hadoop',
-                              create_parents = True,
-                              cd_access='a',
-                              mode=0755
-                              )
     self.assertResourceCalled('Directory', '/usr/hdp/current/atlas-server/data',
                               owner='atlas',
                               group='hadoop',
@@ -120,13 +106,14 @@ class TestAtlasServer(RMFTestCase):
                               group='hadoop',
                               mode=0644,
                               )
-    self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
-                              owner = 'atlas',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/atlas-server/hbase/conf',
-                              configurations = self.getConfig()['configurations']['atlas-hbase-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['atlas-hbase-site']
-                              )
+
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --download-config -d /tmp/solr_config_basic_configs_0.[0-9]* -cs basic_configs -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --upload-config -d /usr/lib/ambari-logsearch-solr/server/solr/configsets/basic_configs/conf -cs basic_configs -rt 5 -i 10')
+
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --create-collection -c vertex_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --create-collection -c edge_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --create-collection -c fulltext_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
+
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",

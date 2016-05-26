@@ -4772,7 +4772,11 @@ class TestHDP25StackAdvisor(TestCase):
     configurations = {
       "application-properties": {
         "properties": {
-          "atlas.graph.index.search.solr.zookeeper-url": ""
+          "atlas.graph.index.search.solr.zookeeper-url": "",
+          "atlas.audit.hbase.zookeeper.quorum": "",
+          "atlas.graph.storage.hostname": "",
+          "atlas.kafka.bootstrap.servers": "",
+          "atlas.kafka.zookeeper.connect": ""
         }
       },
       "logsearch-solr-env": {
@@ -4793,6 +4797,10 @@ class TestHDP25StackAdvisor(TestCase):
       'application-properties': {
         'properties': {
           'atlas.graph.index.search.solr.zookeeper-url': '{{solr_zookeeper_url}}',
+          "atlas.audit.hbase.zookeeper.quorum": "",
+          "atlas.graph.storage.hostname": "",
+          "atlas.kafka.bootstrap.servers": "",
+          "atlas.kafka.zookeeper.connect": ""
         }
       },
       "logsearch-solr-env": {
@@ -4831,7 +4839,11 @@ class TestHDP25StackAdvisor(TestCase):
       "configurations": {
         "application-properties": {
           "properties": {
-            "atlas.graph.index.search.solr.zookeeper-url": ""
+            "atlas.graph.index.search.solr.zookeeper-url": "",
+            "atlas.audit.hbase.zookeeper.quorum": "",
+            "atlas.graph.storage.hostname": "",
+            "atlas.kafka.bootstrap.servers": "",
+            "atlas.kafka.zookeeper.connect": ""
           }
         },
         "logsearch-solr-env": {

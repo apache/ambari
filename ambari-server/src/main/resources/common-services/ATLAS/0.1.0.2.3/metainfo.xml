@@ -59,11 +59,6 @@
             <fileName>atlas-log4j.xml</fileName>
             <dictionaryName>atlas-log4j</dictionaryName>
           </configFile>
-          <configFile>
-            <type>xml</type>
-            <fileName>hbase-site.xml</fileName>
-            <dictionaryName>atlas-hbase-site</dictionaryName>
-          </configFile>
         </component>
 
         <component>
@@ -93,11 +88,6 @@
             <fileName>atlas-log4j.xml</fileName>
             <dictionaryName>atlas-log4j</dictionaryName>
           </configFile>
-          <configFile>
-            <type>xml</type>
-            <fileName>atlas-hbase-site.xml</fileName>
-            <dictionaryName>atlas-hbase-site</dictionaryName>
-          </configFile>
         </component>
       </components>
 
@@ -118,15 +108,10 @@
         <timeout>300</timeout>
       </commandScript>
 
-      <requiredServices>
-        <service>KAFKA</service>
-      </requiredServices>
-
       <configuration-dependencies>
         <config-type>application-properties</config-type>
         <config-type>atlas-env</config-type>
         <config-type>atlas-log4j</config-type>
-        <config-type>atlas-hbase-site</config-type>
       </configuration-dependencies>
 
     </service>

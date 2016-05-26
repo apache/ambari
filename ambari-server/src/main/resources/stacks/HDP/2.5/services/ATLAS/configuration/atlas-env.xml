@@ -80,16 +80,15 @@
     </value-attributes>
   </property>
   <property>
-    <name>has_embedded_hbase</name>
-    <value>true</value>
-    <description>Indicates whether or not Atlas can install embedded Hbase.</description>
-    <value-attributes>
-      <read-only>true</read-only>
-      <overridable>false</overridable>
-      <visible>false</visible>
-    </value-attributes>
+    <name>atlas_solr_shards</name>
+    <value>1</value>
+    <description>The number of shards set for LogSearch SOLR.</description>
   </property>
-
+  <property>
+    <name>atlas_solr_shards</name>
+    <value>1</value>
+    <description>The number of shards set for collections created in LogSearch SOLR.</description>
+  </property>
   <!-- metadata-env.sh -->
   <property>
     <name>content</name>
@@ -122,7 +121,7 @@
       export ATLAS_PID_DIR={{pid_dir}}
 
       # hbase conf dir
-      export HBASE_CONF_DIR={{atlas_hbase_conf_dir}}
+      export HBASE_CONF_DIR={{hbase_conf_dir}}
 
       # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
       export ATLAS_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}

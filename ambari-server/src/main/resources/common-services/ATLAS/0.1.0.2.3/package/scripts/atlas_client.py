@@ -53,7 +53,7 @@ class AtlasClient(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    metadata()
+    metadata('client')
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
