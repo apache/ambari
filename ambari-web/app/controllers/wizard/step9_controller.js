@@ -1053,8 +1053,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         numPolls: this.get('numPolls'),
         callback: this.getLogsByRequest,
         args: [polling, requestId],
-        timeout: 3000,
-        errorLogMessage: 'Install services all retries failed'
+        timeout: 3000
       },
       success: 'reloadSuccessCallback',
       error: 'reloadErrorCallback'
@@ -1085,9 +1084,11 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method reloadErrorCallback
    */
   reloadErrorCallback: function (jqXHR, ajaxOptions, error, opt, params) {
-    this._super(jqXHR, ajaxOptions, error, opt, params);
     if (jqXHR.status) {
+      this.closeReloadPopup();
       this.loadLogData(true);
+    } else {
+      this._super(jqXHR, ajaxOptions, error, opt, params);
     }
   },
 

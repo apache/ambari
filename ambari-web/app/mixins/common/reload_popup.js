@@ -20,8 +20,6 @@ var App = require('app');
 
 App.ReloadPopupMixin = Em.Mixin.create({
 
-  retryCount: 0,
-
   reloadPopup: null,
 
   reloadSuccessCallback: function () {
@@ -35,17 +33,13 @@ App.ReloadPopupMixin = Em.Mixin.create({
         App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
       }
     } else {
-      var times = Em.isNone(params.times) ? App.get('maxRetries') : params.times,
-        timeout = Em.isNone(params.timeout) ? App.get('timeout') : params.timeout;
+      var timeout = Em.isNone(params.timeout) ? App.get('timeout') : params.timeout;
       this.showReloadPopup(params.reloadPopupText);
-      if (this.get('retryCount') < times) {
-        if (params.callback) {
-          var self = this;
-          window.setTimeout(function () {
-            params.callback.apply(self, params.args || []);
-          }, timeout);
-        }
-        this.incrementProperty('retryCount');
+      if (params.callback) {
+        var self = this;
+        window.setTimeout(function () {
+          params.callback.apply(self, params.args || []);
+        }, timeout);
       }
     }
   },
@@ -70,10 +64,7 @@ App.ReloadPopupMixin = Em.Mixin.create({
             + this.t('app.reloadPopup.link') + "</a></div>")
         }),
         onClose: function () {
-          self.setProperties({
-            reloadPopup: null,
-            retryCount: 0
-          });
+          self.set('reloadPopup', null);
           this._super();
         }
       }));

@@ -147,8 +147,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
       sender: this,
       data: {
         requestId: this.get('requestId'),
-        callback: this.startPolling,
-        errorLogMessage: 'Install services all retries failed'
+        callback: this.startPolling
       },
       success: 'reloadSuccessCallback',
       error: 'reloadErrorCallback'

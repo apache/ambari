@@ -3149,4 +3149,42 @@ describe('App.WizardStep3Controller', function () {
 
   });
 
+  describe('#closeReloadPopupOnExit', function () {
+
+    var cases = [
+      {
+        stopBootstrap: true,
+        closeReloadPopupCallCount: 1,
+        title: 'bootstrap should be stopped'
+      },
+      {
+        stopBootstrap: false,
+        closeReloadPopupCallCount: 0,
+        title: 'bootstrap should not be stopped'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(c, 'closeReloadPopup', Em.K);
+    });
+
+    afterEach(function () {
+      c.closeReloadPopup.restore();
+    });
+
+    cases.forEach(function (item) {
+
+      it(item.title, function () {
+        if (c.get('stopBootstrap') === item.stopBootstrap) {
+          c.propertyDidChange('stopBootstrap');
+        } else {
+          c.set('stopBootstrap', item.stopBootstrap);
+        }
+        expect(c.closeReloadPopup.callCount).to.equal(item.closeReloadPopupCallCount);
+      });
+
+    });
+
+  });
+
 });
