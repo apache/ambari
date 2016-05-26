@@ -68,6 +68,7 @@ import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -282,14 +283,17 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   public RequestStatus createResources(Request request) throws SystemException,
           UnsupportedPropertyException, ResourceAlreadyExistsException,
           NoSuchParentResourceException {
+
+    if (request.getProperties().size() > 1) {
+      throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
+    }
+
     Iterator<Map<String, Object>> iterator = request.getProperties().iterator();
+
     String clName;
     final String desiredRepoVersion;
     String stackName;
     String stackVersion;
-    if (request.getProperties().size() != 1) {
-      throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
-    }
 
     Map<String, Object> propertyMap = iterator.next();
 
@@ -319,6 +323,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       cluster = clusters.getCluster(clName);
     } catch (AmbariException e) {
       throw new NoSuchParentResourceException(e.getMessage(), e);
+    }
+
+    UpgradeEntity entity = cluster.getUpgradeInProgress();
+    if (null != entity) {
+      throw new IllegalArgumentException(String.format(
+          "Cluster %s %s is in progress.  Cannot install packages.",
+          cluster.getClusterName(), entity.getDirection().getText(false)));
     }
 
     // get all of the host eligible for stack distribution

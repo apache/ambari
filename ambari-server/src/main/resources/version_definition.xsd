@@ -50,6 +50,7 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="redhat6" />
       <xs:enumeration value="redhat7" />
+      <xs:enumeration value="debian6" />
       <xs:enumeration value="debian7" />
       <xs:enumeration value="ubuntu12" />
       <xs:enumeration value="ubuntu14" />

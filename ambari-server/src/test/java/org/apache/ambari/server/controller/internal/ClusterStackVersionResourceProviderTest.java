@@ -80,6 +80,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
@@ -96,6 +97,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.IOUtils;
@@ -1500,7 +1502,64 @@ public class ClusterStackVersionResourceProviderTest {
 
   }
 
+  @Test
+  public void testCreateResourcesExistingUpgrade() throws Exception {
+    Resource.Type type = Resource.Type.ClusterStackVersion;
 
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+
+    UpgradeEntity upgrade = new UpgradeEntity();
+    upgrade.setDirection(Direction.UPGRADE);
+
+    expect(cluster.getClusterName()).andReturn("c1").atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getUpgradeInProgress()).andReturn(upgrade).once();
+
+    // replay
+    replay(managementController, clusters, cluster);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    injector.injectMembers(provider);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    // add properties to the request map
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, "2.2.0.1-885");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, "2.1.1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    try {
+      provider.createResources(request);
+      Assert.fail("Expecting the create to fail due to an already installed version");
+    } catch (IllegalArgumentException iae) {
+      // !!! expected
+      Assert.assertEquals("Cluster c1 upgrade is in progress.  Cannot install packages.", iae.getMessage());
+    }
+
+    verify(cluster);
+
+  }
   private class MockModule extends AbstractModule {
     @Override
     protected void configure() {
