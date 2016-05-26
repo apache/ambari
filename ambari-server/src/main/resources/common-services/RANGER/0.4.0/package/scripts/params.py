@@ -27,6 +27,7 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
@@ -266,3 +267,33 @@ ranger_solr_conf = format('{ranger_home}/contrib/solr_for_audit_setup/conf')
 logsearch_solr_hosts = default("/clusterHostInfo/logsearch_solr_hosts", [])
 replication_factor = 2 if len(logsearch_solr_hosts) > 1 else 1
 has_logsearch = len(logsearch_solr_hosts) > 0
+
+# logic to create core-site.xml if hdfs not installed
+if stack_supports_ranger_kerberos and not has_namenode:
+  core_site_property = {
+    'hadoop.security.authentication': 'kerberos' if security_enabled else 'simple'
+  }
+
+  if security_enabled:
+    ranger_admin_principal = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.principal']
+    ranger_usersync_principal = config['configurations']['ranger-ugsync-site']['ranger.usersync.kerberos.principal']
+    ranger_admin_bare_principal = get_bare_principal(ranger_admin_principal)
+    ranger_usersync_bare_principal = get_bare_principal(ranger_usersync_principal)
+
+    rule_dict = [
+      {'principal': ranger_admin_bare_principal, 'user': unix_user},
+      {'principal': ranger_usersync_bare_principal, 'user': 'rangerusersync'},
+    ]
+
+    if has_ranger_tagsync:
+      ranger_tagsync_principal = config['configurations']['ranger-tagsync-site']['ranger.tagsync.kerberos.principal']
+      ranger_tagsync_bare_principal = get_bare_principal(ranger_tagsync_principal)
+      rule_dict.append({'principal': ranger_tagsync_bare_principal, 'user': 'rangertagsync'})
+
+    core_site_auth_to_local_property = ''
+    for item in range(len(rule_dict)):
+      rule_line = 'RULE:[2:$1@$0]({0}@EXAMPLE.COM)s/.*/{1}/\n'.format(rule_dict[item]['principal'], rule_dict[item]['user'])
+      core_site_auth_to_local_property = rule_line + core_site_auth_to_local_property
+
+    core_site_auth_to_local_property = core_site_auth_to_local_property + 'DEFAULT'
+    core_site_property['hadoop.security.auth_to_local'] = core_site_auth_to_local_property
