@@ -22,15 +22,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
+import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.inject.ScopeAnnotation;
 import com.google.inject.Singleton;
 
 /**
  * The {@link AmbariService} annotation is used to register a class that
- * implements Guava's {@link AbstractScheduledService} with the
- * {@link ServiceManager}.
+ * implements Guava's {@link Service} with the {@link ServiceManager}.
  * <p/>
  * Classes with this annotation are bound as singletons and automatically
  * injected with their members. There is not need to use {@link Singleton} or

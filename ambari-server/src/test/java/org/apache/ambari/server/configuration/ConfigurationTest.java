@@ -35,7 +35,9 @@ import java.util.Properties;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.After;
@@ -779,5 +781,75 @@ public class ConfigurationTest {
     Assert.assertEquals(2, properties.size());
     Assert.assertEquals("FooChannel", properties.getProperty("eclipselink.cache.coordination.channel"));
     Assert.assertEquals("commit", properties.getProperty("eclipselink.persistence-context.flush-mode"));
+  }
+
+  /**
+   * Tests the default values for the {@link ThreadPoolEnabledPropertyProvider}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testThreadPoolEnabledPropertyProviderDefaults() throws Exception {
+    final int SMALLEST_COMPLETION_SERIVCE_TIMEOUT_MS = 1000;
+    final int LARGEST_COMPLETION_SERIVCE_TIMEOUT_MS = 5000;
+
+    int processorCount = Runtime.getRuntime().availableProcessors();
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    long completionServiceTimeout = configuration.getPropertyProvidersCompletionServiceTimeout();
+    int corePoolSize = configuration.getPropertyProvidersThreadPoolCoreSize();
+    int maxPoolSize = configuration.getPropertyProvidersThreadPoolMaxSize();
+    int workerQueueSize = configuration.getPropertyProvidersWorkerQueueSize();
+
+    // test defaults
+    Assert.assertEquals(5000, completionServiceTimeout);
+    Assert.assertEquals(Configuration.PROCESSOR_BASED_THREADPOOL_CORE_SIZE_DEFAULT, corePoolSize);
+    Assert.assertEquals(Configuration.PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT, maxPoolSize);
+    Assert.assertEquals(Integer.MAX_VALUE, workerQueueSize);
+
+    // now let's test to make sure these all make sense
+    Assert.assertTrue(completionServiceTimeout >= SMALLEST_COMPLETION_SERIVCE_TIMEOUT_MS);
+    Assert.assertTrue(completionServiceTimeout <= LARGEST_COMPLETION_SERIVCE_TIMEOUT_MS);
+    Assert.assertTrue(corePoolSize <= maxPoolSize);
+    Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 32);
+    Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= 32);
+    Assert.assertTrue(workerQueueSize > processorCount * 10);
+  }
+
+  /**
+   * Tests the default values for the {@link MetricsRetrievalService}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testMetricsRetrieveServiceDefaults() throws Exception {
+    final int LOWEST_CACHE_TIMEOUT_MINUTES = 30;
+
+    int processorCount = Runtime.getRuntime().availableProcessors();
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    int priority = configuration.getMetricsServiceThreadPriority();
+    int cacheTimeout = configuration.getMetricsServiceCacheTimeout();
+    int corePoolSize = configuration.getMetricsServiceThreadPoolCoreSize();
+    int maxPoolSize = configuration.getMetricsServiceThreadPoolMaxSize();
+    int workerQueueSize = configuration.getMetricsServiceWorkerQueueSize();
+
+    // test defaults
+    Assert.assertEquals(Thread.NORM_PRIORITY, priority);
+    Assert.assertEquals(LOWEST_CACHE_TIMEOUT_MINUTES, cacheTimeout);
+    Assert.assertEquals(Configuration.PROCESSOR_BASED_THREADPOOL_CORE_SIZE_DEFAULT, corePoolSize);
+    Assert.assertEquals(Configuration.PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT, maxPoolSize);
+    Assert.assertEquals(maxPoolSize * 10, workerQueueSize);
+
+    // now let's test to make sure these all make sense
+    Assert.assertTrue(priority <= Thread.NORM_PRIORITY);
+    Assert.assertTrue(priority > Thread.MIN_PRIORITY);
+
+    Assert.assertTrue(cacheTimeout >= LOWEST_CACHE_TIMEOUT_MINUTES);
+    Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 32);
+    Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= 32);
+    Assert.assertTrue(workerQueueSize >= processorCount * 10);
   }
 }
