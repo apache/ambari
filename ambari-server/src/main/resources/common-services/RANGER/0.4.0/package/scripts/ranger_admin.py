@@ -75,7 +75,7 @@ class RangerAdmin(Script):
     env.set_params(params)
     self.configure(env, upgrade_type=upgrade_type)
 
-    if params.stack_supports_logsearch_dependent and params.has_logsearch:
+    if params.stack_supports_logsearch and params.has_logsearch and params.is_solrCloud_enabled:
       setup_ranger_audit_solr()
     ranger_service('ranger_admin')
 
