@@ -56,6 +56,7 @@ import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
+import org.springframework.ldap.filter.Filter;
 
 import javax.naming.directory.SearchControls;
 
@@ -63,6 +64,7 @@ import static junit.framework.Assert.*;
 import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariLdapUtils.class)
@@ -1803,6 +1805,72 @@ public class AmbariLdapDataPopulatorTest {
     boolean result = populator.isMemberAttributeBaseDn("cnn=mygroupname,OU=myOrganizationUnit,DC=apache,DC=org");
     // THEN
     assertFalse(result);
+  }
+
+  @Test
+  public void testGetUniqueIdMemberPattern() {
+    // GIVEN
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    String  syncUserMemberPattern = "(?<sid>.*);(?<guid>.*);(?<member>.*)";
+    String memberAttribute = "<SID=...>;<GUID=...>;cn=member,dc=apache,dc=org";
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+    // WHEN
+    String result = populator.getUniqueIdByMemberPattern(memberAttribute, syncUserMemberPattern);
+    // THEN
+    assertEquals("cn=member,dc=apache,dc=org", result);
+  }
+
+  @Test
+  public void testGetUniqueIdByMemberPatternWhenPatternIsWrong() {
+    // GIVEN
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    String  syncUserMemberPattern = "(?<sid>.*);(?<guid>.*);(?<mem>.*)";
+    String memberAttribute = "<SID=...>;<GUID=...>;cn=member,dc=apache,dc=org";
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+    // WHEN
+    String result = populator.getUniqueIdByMemberPattern(memberAttribute, syncUserMemberPattern);
+    // THEN
+    assertEquals(memberAttribute, result);
+  }
+
+  @Test
+  public void testGetUniqueIdByMemberPatternWhenPatternIsEmpty() {
+    // GIVEN
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    String memberAttribute = "<SID=...>;<GUID=...>;cn=member,dc=apache,dc=org";
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+    // WHEN
+    String result = populator.getUniqueIdByMemberPattern(memberAttribute, "");
+    // THEN
+    assertEquals(memberAttribute, result);
+  }
+
+  @Test
+  public void testGetUniqueIdByMemberPatternWhenMembershipAttributeIsNull() {
+    // GIVEN
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    String  syncUserMemberPattern = "(?<sid>.*);(?<guid>.*);(?<member>.*)";
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+    // WHEN
+    String result = populator.getUniqueIdByMemberPattern(null, syncUserMemberPattern);
+    // THEN
+    assertNull(result);
+  }
+
+  @Test
+  public void testCreateCustomMemberFilter() {
+    // GIVEN
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+    // WHEN
+    Filter result = populator.createCustomMemberFilter("myUid", "(&(objectclass=posixaccount)(uid={member}))");
+    // THEN
+    assertEquals("(&(objectclass=posixaccount)(uid=myUid))", result.encode());
   }
 
   private static int userIdCounter = 1;
