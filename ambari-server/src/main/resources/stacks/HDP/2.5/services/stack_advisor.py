@@ -218,20 +218,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
           'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
         self.setLlapDaemonQueueNamePropAttributes(services, configurations)
-
-      # Check to see if 'cache' config HS2 'hive.llap.io.memory.size' has been modified by user.
-      # 'cache' size >= 64m implies config 'hive.llap.io.enabled' set to true, else false
-      cache_size_per_node_in_changed_configs = self.are_config_props_in_changed_configs(services,
-                                                                                        "hive-interactive-site",
-                                                                                        set(['hive.llap.io.memory.size']),
-                                                                                        False)
-      if cache_size_per_node_in_changed_configs:
-        cache_size_per_node = self.get_cache_size_per_node_for_llap_nodes(services)
-        llap_io_enabled = 'false'
-        if cache_size_per_node >= 64:
-          llap_io_enabled = 'true'
-        putHiveInteractiveSiteProperty('hive.llap.io.enabled', llap_io_enabled)
-        Logger.info("Updated 'Hive Server interactive' config 'hive.llap.io.enabled' to '{0}'.".format(llap_io_enabled))
     else:
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
 
@@ -836,7 +822,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         else:
           # If capacity-scheduler configs are received as a  dictionary (generally 1st time), we deposit the changed
           # values back as dictionary itself.
-
           # Update existing configs in 'capacity-scheduler'.
           for prop, val in capacity_scheduler_properties.items():
             if llap_queue_name not in prop:
@@ -955,41 +940,62 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
   """
   Checks and sets the 'Hive Server Interactive' 'hive.llap.daemon.queue.name' config Property Attributes.  Takes into
-  account that 'capacity-scheduler' may have changed in current Stack Advisor invocation.
+  account that 'capacity-scheduler' may have changed (got updated) in current Stack Advisor invocation.
   """
   def setLlapDaemonQueueNamePropAttributes(self, services, configurations):
-    Logger.info("Determing 'hive.llap.daemon.queue.name' config Property Attributes.")
+    Logger.info("Determining 'hive.llap.daemon.queue.name' config Property Attributes.")
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, self.HIVE_INTERACTIVE_SITE)
     capacity_scheduler_properties = dict()
 
     # Read 'capacity-scheduler' from configurations if we modified and added recommendation to it, as part of current
     # StackAdvisor invocation.
-    if 'capacity-scheduler' in configurations:
-      # Dictionary and having a length > 1, implies that we are dealing with 1st invocation, else all configs for
-      # capacity-scheduler will come as "\n" separated single string.
-      if isinstance(configurations['capacity-scheduler']['properties'], dict) \
-        and len(configurations['capacity-scheduler']['properties']) > 1:
-        capacity_scheduler_properties = configurations['capacity-scheduler']['properties']
-        Logger.info("'capacity-scheduler' changed in current Stack Advisor invocation. Retrieved the configs as dictionary from configurations.")
-      elif 'capacity-scheduler' in configurations['capacity-scheduler']['properties']:
-        properties = str(configurations['capacity-scheduler']['properties']['capacity-scheduler']).split('\n')
-        for property in properties:
-          key, sep, value = property.partition("=")
-          capacity_scheduler_properties[key] = value
-        Logger.info("'capacity-scheduler' changed in current Stack Advisor invocation. Retrieved the configs as '\\n' "
-                    "separated single string from configurations.")
-    else: # read from input : services
+    if "capacity-scheduler" in configurations:
+        cap_sched_props_as_dict = configurations["capacity-scheduler"]["properties"]
+        if 'capacity-scheduler' in cap_sched_props_as_dict:
+          cap_sched_props_as_str = configurations['capacity-scheduler']['properties']['capacity-scheduler']
+          if cap_sched_props_as_str:
+            cap_sched_props_as_str = str(cap_sched_props_as_str).split('\n')
+            if len(cap_sched_props_as_str) > 0 and cap_sched_props_as_str[0] != 'null':
+              # Got 'capacity-scheduler' configs as one "\n" separated string
+              for property in cap_sched_props_as_str:
+                key, sep, value = property.partition("=")
+                capacity_scheduler_properties[key] = value
+              Logger.info("'capacity-scheduler' configs is set as a single '\\n' separated string in current invocation. "
+                          "count(configurations['capacity-scheduler']['properties']['capacity-scheduler']) = "
+                          "{0}".format(len(capacity_scheduler_properties)))
+            else:
+              Logger.info("Read configurations['capacity-scheduler']['properties']['capacity-scheduler'] is : {0}".format(cap_sched_props_as_str))
+          else:
+            Logger.info("configurations['capacity-scheduler']['properties']['capacity-scheduler'] : {0}.".format(cap_sched_props_as_str))
+
+        # if 'capacity_scheduler_properties' is empty, implies we may have 'capacity-scheduler' configs as dictionary
+        # in configurations, if 'capacity-scheduler' changed in current invocation.
+        if not capacity_scheduler_properties:
+          if isinstance(cap_sched_props_as_dict, dict) and len(cap_sched_props_as_dict) > 1:
+            capacity_scheduler_properties = cap_sched_props_as_dict
+            Logger.info("'capacity-scheduler' changed in current Stack Advisor invocation. Retrieved the configs as dictionary from configurations.")
+          else:
+            Logger.info("Read configurations['capacity-scheduler']['properties'] is : {0}".format(cap_sched_props_as_dict))
+    else:
+      Logger.info("'capacity-scheduler' not modified in the current Stack Advisor invocation.")
+
+
+    # if 'capacity_scheduler_properties' is still empty, implies 'capacity_scheduler' wasn't change in current
+    # ST invocation. Thus, read it from input : 'services'.
+    if not capacity_scheduler_properties:
       capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
       Logger.info("'capacity-scheduler' not changed in current Stack Advisor invocation. Retrieved the configs from services.")
+
+    # Get set of current YARN leaf queues.
     leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
     if leafQueueNames:
       leafQueues = [{"label": str(queueName), "value": queueName} for queueName in leafQueueNames]
-      leafQueues = sorted(leafQueues, key=lambda q:q['value'])
+      leafQueues = sorted(leafQueues, key=lambda q: q['value'])
       putHiveInteractiveSitePropertyAttribute("hive.llap.daemon.queue.name", "entries", leafQueues)
       Logger.info("'hive.llap.daemon.queue.name' config Property Attributes set to : {0}".format(leafQueues))
     else:
       Logger.error("Problem retrieving YARN queues. Skipping updating HIVE Server Interactve "
-                   "'hive.server2.tez.default.queues' property.")
+                   "'hive.server2.tez.default.queues' property attributes.")
 
   """
   Gets all YARN leaf queues.
