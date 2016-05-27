@@ -184,7 +184,7 @@ class TestHDP21StackAdvisor(TestCase):
           },
           "components" : [ {
             "StackServiceComponents" : {
-              "component_name" : "HIVE_METASTORE",
+              "component_name" : "HIVE_SERVER",
               "service_name" : "HIVE",
               "hostnames" : ["example.com"]
             }

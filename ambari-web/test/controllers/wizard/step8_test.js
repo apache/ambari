@@ -1338,7 +1338,7 @@ describe('App.WizardStep8Controller', function () {
         {
           name: 'New MySQL Database',
           component: 'MYSQL_SERVER',
-          expectedHosts: ['h1']
+          expectedHosts: ['h2']
         },
         {
           name: 'New PostgreSQL Database',
