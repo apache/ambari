@@ -141,15 +141,6 @@ class TestHDP25StackAdvisor(TestCase):
       ]
     }
 
-    self.clusterData = {
-      "cpu": 4,
-      "mapMemory": 3000,
-      "amMemory": 2000,
-      "reduceMemory": 2056,
-      "containers": 3,
-      "ramPerContainer": 256
-    }
-
     # Expected config outputs.
 
     # Expected capacity-scheduler with 'llap' (size:20) and 'default' queue at root level.
@@ -642,9 +633,21 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
     configurations = {
     }
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
                       self.expected_hive_interactive_site_llap['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
@@ -784,9 +787,23 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
+
     configurations = {
     }
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
     # Check output
 
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
@@ -922,10 +939,22 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
@@ -1062,9 +1091,23 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
     configurations = {
     }
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
                       self.expected_hive_interactive_site_llap['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
@@ -1211,10 +1254,24 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
@@ -1361,10 +1418,24 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
@@ -1511,10 +1582,24 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
@@ -1639,10 +1724,23 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertTrue('hive.llap.daemon.queue.name' not in configurations['hive-interactive-site']['properties'])
@@ -1774,10 +1872,22 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
@@ -1930,10 +2040,23 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties'],
@@ -2078,11 +2201,22 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
 
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties'],
@@ -2200,11 +2334,23 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
 
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['hive-interactive-site']['properties'],
@@ -2362,11 +2508,22 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
 
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services_15, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_15, self.hosts)
 
     # Check output
     self.assertEquals(configurations['capacity-scheduler']['properties'],
@@ -2465,11 +2622,22 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
 
 
     configurations = {
     }
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['capacity-scheduler']['properties'],
@@ -2567,9 +2735,22 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
     configurations = {
     }
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     # Check output
     self.assertEquals(configurations['capacity-scheduler']['properties'],
@@ -2724,11 +2905,23 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
 
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     cap_sched_output_dict = convertToDict(configurations['capacity-scheduler']['properties']['capacity-scheduler'])
     cap_sched_expected_dict = convertToDict(self.expected_capacity_scheduler_llap_Stopped_size_0['properties']['capacity-scheduler'])
@@ -2879,10 +3072,21 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
 
     configurations = {
     }
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services_18, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services_18, self.hosts)
 
     self.assertEquals(configurations['capacity-scheduler']['properties'],
                       self.expected_capacity_scheduler_empty['properties'])
@@ -3047,11 +3251,21 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
 
-    configurations = {
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
-
+    configurations = {
+    }
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '1')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '32'})
 
@@ -3067,7 +3281,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '409')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '512')
-
 
 
   # Test 19: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
@@ -3221,27 +3434,42 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 512,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 10240 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '3')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '2')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '32'})
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '3069')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '3072')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '2728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '2731')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '272')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '341')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '512')
+
 
 
 
@@ -3397,22 +3625,36 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 1024,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 51200 * 1024
+      }
+    }
+
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertTrue('hive.server2.tez.sessions.per.default.queue' not in configurations['hive-interactive-site']['properties'])
     self.assertTrue('hive.server2.tez.sessions.per.default.queue' not in configurations['hive-interactive-site']['property_attributes'])
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '18432')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10240')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '17408')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '9216')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '819')
@@ -3576,11 +3818,24 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 2048,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 40960 * 1024
+      }
+    }
+
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '13')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '32'})
@@ -3749,22 +4004,36 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 341,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 12288 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '6')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '5')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '32'})
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '2')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '12276')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10230')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '9204')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '7158')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
@@ -3923,25 +4192,37 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
 
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 2048,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 204800 * 1024
+      }
+    }
+
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204800')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '61440')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '201728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '58368')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '1024')
-
 
 
 
@@ -4100,11 +4381,24 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 3072,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 40960 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '15')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '32'})
@@ -4121,6 +4415,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '3276')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '1024')
+
 
 
 
@@ -4274,27 +4569,41 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 30,
+      "ramPerContainer": 341,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 204800 * 1024
+      }
+    }
+
+
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '32')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '32'})
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '4')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204600')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10230')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '10')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '201190')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '6820')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2728')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '341')
+
 
 
 
@@ -4447,25 +4756,37 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 3,
+      "ramPerContainer": 82240,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 204800 * 1024
+      }
+    }
 
     configurations = {
     }
 
-
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    print "\n\n\n\n\ yyyyyyy"
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '2')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204800')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '164480')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '201728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '161408')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '1024')
+
 
 
 
@@ -4610,25 +4931,37 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 3,
+      "ramPerContainer": 164480,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 204800 * 1024
+      }
+    }
 
     configurations = {
     }
 
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '2')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204800')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '164480')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '201728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '161408')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '1024')
+
 
 
 
@@ -4775,24 +5108,40 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 3,
+      "ramPerContainer": 82240,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 328960 * 1024
+      }
+    }
+
 
     configurations = {
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '2')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204800')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '246720')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '201728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '243648')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '1024')
+
+
+
+
 
 
   # Test 29: (1). only 'default' queue exists at root level in capacity-scheduler, and
@@ -4933,12 +5282,25 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 3,
+      "ramPerContainer": 82240,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 328960 * 1024
+      }
+    }
+
     configurations = {
     }
 
-    self.stackAdvisor.recommendHIVEConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, self.hosts)
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'],
                       self.expected_hive_interactive_site_llap['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
+
 
 
 
@@ -5102,10 +5464,21 @@ class TestHDP25StackAdvisor(TestCase):
       }
     }
 
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 3,
+      "ramPerContainer": 82240,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 328960 * 1024
+      }
+    }
 
     configurations = {
     }
-    self.stackAdvisor.recommendHIVEConfigurations(configurations, self.clusterData, services, self.hosts)
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, self.hosts)
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.queue.name'],
                       self.expected_hive_interactive_site_prop_attr_as_a1_b_llap['hive-interactive-site']['property_attributes']['hive.llap.daemon.queue.name'])
 
