@@ -258,10 +258,29 @@ public class DefaultCondition implements Condition {
   }
 
   protected boolean appendHostnameClause(StringBuilder sb, boolean appendConjunction) {
+    boolean hostnameContainsRegex = false;
+    if (hostnames != null) {
+      for (String hostname : hostnames) {
+        if (hostname.contains("%")) {
+          hostnameContainsRegex = true;
+          break;
+        }
+      }
+    }
 
-    if (hostnames != null && getHostnames().size() > 1) {
-      StringBuilder hostnamesCondition = new StringBuilder();
+    StringBuilder hostnamesCondition = new StringBuilder();
+    if (hostnameContainsRegex) {
+      hostnamesCondition.append(" (");
+      for (String hostname : getHostnames()) {
+        if (hostnamesCondition.length() > 2) {
+          hostnamesCondition.append(" OR ");
+        }
+        hostnamesCondition.append("HOSTNAME LIKE ?");
+      }
+      hostnamesCondition.append(")");
 
+      appendConjunction = append(sb, appendConjunction, getHostnames(), hostnamesCondition.toString());
+    } else if (hostnames != null && getHostnames().size() > 1) {
       for (String hostname : getHostnames()) {
         if (hostnamesCondition.length() > 0) {
           hostnamesCondition.append(" ,");
