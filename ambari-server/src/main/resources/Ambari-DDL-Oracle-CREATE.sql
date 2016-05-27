@@ -565,7 +565,7 @@ CREATE TABLE viewinstance (
   icon64 VARCHAR(255),
   xml_driven CHAR(1),
   alter_names NUMBER(1) DEFAULT 1 NOT NULL,
-  cluster_handle BIGINT,
+  cluster_handle NUMBER(19),
   cluster_type VARCHAR(100) DEFAULT 'LOCAL_AMBARI' NOT NULL,
   short_url NUMBER,
   CONSTRAINT PK_viewinstance PRIMARY KEY (view_instance_id),
@@ -779,7 +779,7 @@ CREATE TABLE setting (
 -- Remote Cluster table
 
 CREATE TABLE remoteambaricluster(
-  cluster_id BIGINT NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
   name VARCHAR(255) NOT NULL,
   username VARCHAR(255) NOT NULL,
   url VARCHAR(255) NOT NULL,
@@ -788,8 +788,8 @@ CREATE TABLE remoteambaricluster(
   CONSTRAINT unq_remote_ambari_cluster UNIQUE (name));
 
 CREATE TABLE remoteambariclusterservice(
-  id BIGINT NOT NULL,
-  cluster_id BIGINT NOT NULL,
+  id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   CONSTRAINT PK_remote_ambari_service PRIMARY KEY (id),
   CONSTRAINT FK_remote_ambari_cluster_id FOREIGN KEY (cluster_id) REFERENCES remoteambaricluster(cluster_id)
