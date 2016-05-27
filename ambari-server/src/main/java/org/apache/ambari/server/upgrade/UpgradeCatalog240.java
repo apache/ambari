@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,9 +48,11 @@ import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -57,11 +60,13 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AlertFirmness;
@@ -76,7 +81,9 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
+import org.apache.ambari.server.view.DefaultMasker;
 import org.apache.ambari.view.ClusterType;
+import org.apache.ambari.view.MaskException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -338,6 +345,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     createRolePrincipals();
     updateHDFSWidgetDefinition();
     updateTezViewProperty();
+    upgradeCapSchedulerView();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
@@ -2169,5 +2177,42 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.dropColumn(VIEWINSTANCE_TABLE, CLUSTER_HANDLE_COLUMN);
     dbAccessor.renameColumn(VIEWINSTANCE_TABLE, cluster_handle_dummy,
       new DBColumnInfo(CLUSTER_HANDLE_COLUMN, Long.class, null, null, true));
+  }
+
+  /**
+   *  If Capacity Scheduler instances configured as CUSTOM
+   *  then upgrade them to Remote cluster
+   *
+   * @throws SQLException
+   */
+  protected void upgradeCapSchedulerView() throws SQLException {
+    String capSchedulerViewName = "CAPACITY-SCHEDULER{1.0.0}";
+
+    RemoteAmbariClusterDAO remoteClusterDAO = injector.getInstance(RemoteAmbariClusterDAO.class);
+    ViewInstanceDAO instanceDAO = injector.getInstance(ViewInstanceDAO.class);
+
+    List<ViewInstanceEntity> instances = instanceDAO.findAll();
+
+    for (ViewInstanceEntity instance : instances) {
+      if (instance.getViewName().equals(capSchedulerViewName) && instance.getClusterHandle() == null) {
+        RemoteAmbariClusterEntity clusterEntity = new RemoteAmbariClusterEntity();
+        clusterEntity.setName(instance.getName() + "-cluster");
+        Map<String, String> propertyMap = instance.getPropertyMap();
+        clusterEntity.setUrl(propertyMap.get("ambari.server.url"));
+        clusterEntity.setUsername(propertyMap.get("ambari.server.username"));
+        try {
+          clusterEntity.setPassword(new DefaultMasker().unmask(propertyMap.get("ambari.server.password")));
+        } catch (MaskException e) {
+          // ignore
+        }
+
+        remoteClusterDAO.save(clusterEntity);
+
+        instance.setClusterHandle(clusterEntity.getId());
+        instance.setClusterType(ClusterType.REMOTE_AMBARI);
+
+        instanceDAO.merge(instance);
+      }
+    }
   }
 }
