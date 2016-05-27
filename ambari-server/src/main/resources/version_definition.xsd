@@ -55,6 +55,7 @@
       <xs:enumeration value="debian7" />
       <xs:enumeration value="ubuntu12" />
       <xs:enumeration value="ubuntu14" />
+      <xs:enumeration value="ubuntu16" />
       <xs:enumeration value="suse11" />
       <xs:enumeration value="suse12" />
     </xs:restriction>

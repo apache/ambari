@@ -77,7 +77,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>hive-${stack_version}</name>
@@ -95,7 +95,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>amazon2015,redhat6,debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>amazon2015,redhat6,debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>
