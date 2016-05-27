@@ -214,8 +214,8 @@ class OozieUpgrade(Script):
     params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
       action = "create_on_execute",
       type = "directory",
-      owner = "oozie",
-      group = "hadoop",
+      owner = params.oozie_user,
+      group = params.user_group,
       mode = 0755,
       recursive_chmod = True)
 
