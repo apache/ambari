@@ -1114,29 +1114,28 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', 'localhost:6667')
 
-    if 'LOGSEARCH' in servicesList and zookeeper_host_port:
-      putRangerEnvProperty('is_solrCloud_enabled', 'true')
+    if 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']["ranger-env"]["properties"]:
+      isSolrCloudEnabled = services['configurations']["ranger-env"]["properties"]["is_solrCloud_enabled"]  == "true"
+    else:
+      isSolrCloudEnabled = False
+
+    ranger_audit_zk_port = ''
+
+    if 'LOGSEARCH' in servicesList and zookeeper_host_port and is_solrCloud_enabled:
       zookeeper_host_port = zookeeper_host_port.split(',')
       zookeeper_host_port.sort()
       zookeeper_host_port = ",".join(zookeeper_host_port)
-      logsearch_solr_znode = '/logsearch'
-      ranger_audit_zk_port = ''
+      logsearch_solr_znode = '/ambari-solr'
+
       if 'logsearch-solr-env' in services['configurations'] and \
         ('logsearch_solr_znode' in services['configurations']['logsearch-solr-env']['properties']):
         logsearch_solr_znode = services['configurations']['logsearch-solr-env']['properties']['logsearch_solr_znode']
         ranger_audit_zk_port = '{0}{1}'.format(zookeeper_host_port, logsearch_solr_znode)
       putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
+    elif zookeeper_host_port and is_solrCloud_enabled:
+      ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'ranger_audits')
+      putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     else:
-      putRangerEnvProperty('is_solrCloud_enabled', 'false')
-
-    if 'ranger-env' in configurations and configurations["ranger-env"]["properties"]["is_solrCloud_enabled"]:
-      isSolrCloudEnabled = configurations and configurations["ranger-env"]["properties"]["is_solrCloud_enabled"] == "true"
-    elif 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']["ranger-env"]["properties"]:
-      isSolrCloudEnabled = services['configurations']["ranger-env"]["properties"]["is_solrCloud_enabled"]  == "true"
-    else:
-      isSolrCloudEnabled = False
-
-    if not isSolrCloudEnabled:
       putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
 
     ranger_services = [

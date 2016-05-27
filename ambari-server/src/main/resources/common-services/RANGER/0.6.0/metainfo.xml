@@ -27,18 +27,6 @@
       <version>0.6.0</version>
 
       <components>
-        <component>
-          <name>RANGER_ADMIN</name>
-          <dependencies>
-            <dependency>
-              <name>LOGSEARCH/LOGSEARCH_SOLR_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-        </component>
 
         <component>
           <name>RANGER_TAGSYNC</name>
@@ -64,10 +52,6 @@
           <default>true</default>
         </theme>
       </themes>
-
-      <requiredServices>
-        <service>LOGSEARCH</service>
-      </requiredServices>
 
       <configuration-dependencies>
         <config-type>admin-log4j</config-type>

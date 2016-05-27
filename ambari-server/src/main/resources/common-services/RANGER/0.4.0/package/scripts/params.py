@@ -64,7 +64,7 @@ stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature
 stack_supports_ranger_log4j =  stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, stack_version_formatted)
 stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 stack_supports_usersync_passwd = stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, stack_version_formatted)
-stack_supports_logsearch_dependent = stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOGSEARCH_DEPENDENT, stack_version_formatted)
+stack_supports_logsearch = stack_version_formatted and check_stack_feature(StackFeature.LOGSEARCH_SUPPORT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -266,6 +266,16 @@ ranger_solr_conf = format('{ranger_home}/contrib/solr_for_audit_setup/conf')
 logsearch_solr_hosts = default("/clusterHostInfo/logsearch_solr_hosts", [])
 replication_factor = 2 if len(logsearch_solr_hosts) > 1 else 1
 has_logsearch = len(logsearch_solr_hosts) > 0
+is_solrCloud_enabled = default('/configurations/ranger-env/is_solrCloud_enabled', False)
+zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
+# get comma separated list of zookeeper hosts from clusterHostInfo
+index = 0
+zookeeper_quorum = ""
+for host in config['clusterHostInfo']['zookeeper_hosts']:
+  zookeeper_quorum += host + ":" + str(zookeeper_port)
+  index += 1
+  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
+    zookeeper_quorum += ","
 
 # logic to create core-site.xml if hdfs not installed
 if stack_supports_ranger_kerberos and not has_namenode:

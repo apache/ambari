@@ -240,8 +240,8 @@ _DEFAULT_STACK_FEATURES = {
       "min_version": "2.5.0.0"
     },
     {
-      "name": "ranger_logsearch_dependent",
-      "description": "Ranger audit properties should be configured to use Ambari installed LogSearch (AMBARI-16446)",
+      "name": "logsearch_support",
+      "description": "LogSearch Service support",
       "min_version": "2.5.0.0"
     },
     {
