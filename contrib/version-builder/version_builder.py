@@ -428,7 +428,7 @@ def main(argv):
   parser.add_option('--repo', action='store_true', dest='repo',
     help="Add repository data with options: --repo-os, --repo-url, --repo-id, --repo-name")
   parser.add_option('--repo-os', dest='repo_os',
-    help="The operating system type: i.e. redhat6, redhat7, debian7, ubuntu12, ubuntu14, suse11, suse12")
+    help="The operating system type: i.e. redhat6, redhat7, debian7, ubuntu12, ubuntu14, ubuntu16, suse11, suse12")
   parser.add_option('--repo-url', dest='repo_url',
     help="The base url for the repository data")
   parser.add_option('--repo-id', dest='repo_id', help="The ID of the repo")
