@@ -573,7 +573,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     //events
     goToAdmin: function (router, event) {
-      router.transitionTo(event.context);
+      var isDisabled = !!event.context.disabled;
+      if(!isDisabled){
+        router.transitionTo(event.context.url);
+      }
     }
 
   }),
