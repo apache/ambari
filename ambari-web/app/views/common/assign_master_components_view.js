@@ -28,6 +28,8 @@ App.AssignMasterComponentsView = Em.View.extend({
    */
   title: '',
 
+  showTitle: true,
+
   /**
    * Alert message to be shown on the page
    * @type {String}
@@ -42,6 +44,8 @@ App.AssignMasterComponentsView = Em.View.extend({
   shouldUseInputs: Em.computed.gt('controller.hosts.length', 25),
 
   isBackButtonVisible: true,
+
+  isCancelButtonVisible: false,
 
   acceptButtonText: Em.I18n.t('common.next') + '&rarr;',
 

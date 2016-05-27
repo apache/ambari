@@ -244,6 +244,7 @@ Em.I18n.translations = {
   'common.actions': 'Actions',
   'common.maintenance': 'Maintenance',
   'common.passive_state': 'Maintenance Mode',
+  'common.select': 'Select',
   'common.selected': 'Selected',
   'common.password': 'Password',
   'common.url': 'URL',
@@ -906,6 +907,8 @@ Em.I18n.translations = {
   'installer.step7.assign.master.dependent.component.body':'If not present {0} will also be installed on the selected host. ',
   'installer.step7.missing.service.header':'Missing Service',
   'installer.step7.missing.service.body': '{0} service should be added to the cluster to {1}.',
+  'assign.master.popup.header':'Select {0} host',
+  'assign.master.popup.cancel.body':'Not selecting {0} host will disable interactive query.',
 
 
   'installer.step8.header': 'Review',
@@ -1759,6 +1762,7 @@ Em.I18n.translations = {
   'services.service.summary.moreStats':'more stats here',
   'services.service.summary.clientCount': '{0} Client Hosts',
   'services.service.summary.historyServer': 'History Server Web UI',
+  'services.service.summary.hiveserver2.jdbc.url.text': ' JDBC URL',
   'services.service.summary.hiveserver2.endpoint.tooltip.text':'JDBC connection string for {0}',
   'services.service.summary.hiveserver2.endpoint.value':'jdbc:hive2://{0}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace={1}',
   'services.service.actions.downloadClientConfigs':'Download Client Configs',
