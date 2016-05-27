@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.naming.NamingException;
@@ -39,6 +40,7 @@ import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,7 @@ import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.Filter;
+import org.springframework.ldap.filter.HardcodedFilter;
 import org.springframework.ldap.filter.LikeFilter;
 import org.springframework.ldap.filter.OrFilter;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -99,6 +102,9 @@ public class AmbariLdapDataPopulator {
 
   // REGEXP to check member attribute starts with "cn=" or "uid=" - case insensitive
   private static final String IS_MEMBER_DN_REGEXP = "^(?i)(%s|%s)=.*$";
+
+  private static final String MEMBER_ATTRIBUTE_REPLACE_STRING = "${member}";
+  private static final String MEMBER_ATTRIBUTE_VALUE_PLACEHOLDER = "{member}";
 
   /**
    * Construct an AmbariLdapDataPopulator.
@@ -448,7 +454,17 @@ public class AmbariLdapDataPopulator {
    */
   protected LdapUserDto getLdapUserByMemberAttr(String memberAttributeValue) {
     Set<LdapUserDto> filteredLdapUsers = new HashSet<LdapUserDto>();
-    if (memberAttributeValue!= null && isMemberAttributeBaseDn(memberAttributeValue)) {
+
+    memberAttributeValue = getUniqueIdByMemberPattern(memberAttributeValue,
+      ldapServerProperties.getSyncUserMemberReplacePattern());
+    Filter syncMemberFilter = createCustomMemberFilter(memberAttributeValue,
+      ldapServerProperties.getSyncUserMemberFilter());
+
+    if (memberAttributeValue != null && syncMemberFilter != null) {
+      LOG.trace("Use custom filter '{}' for getting member user with default baseDN ('{}')",
+        syncMemberFilter.encode(), ldapServerProperties.getBaseDN());
+      filteredLdapUsers = getFilteredLdapUsers(ldapServerProperties.getBaseDN(), syncMemberFilter);
+    } else if (memberAttributeValue!= null && isMemberAttributeBaseDn(memberAttributeValue)) {
       LOG.trace("Member can be used as baseDn: {}", memberAttributeValue);
       Filter filter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getUserObjectClass());
       filteredLdapUsers = getFilteredLdapUsers(memberAttributeValue, filter);
@@ -471,7 +487,17 @@ public class AmbariLdapDataPopulator {
    */
   protected LdapGroupDto getLdapGroupByMemberAttr(String memberAttributeValue) {
     Set<LdapGroupDto> filteredLdapGroups = new HashSet<LdapGroupDto>();
-    if (memberAttributeValue != null && isMemberAttributeBaseDn(memberAttributeValue)) {
+
+    memberAttributeValue = getUniqueIdByMemberPattern(memberAttributeValue,
+      ldapServerProperties.getSyncGroupMemberReplacePattern());
+    Filter syncMemberFilter = createCustomMemberFilter(memberAttributeValue,
+      ldapServerProperties.getSyncGroupMemberFilter());
+
+    if (memberAttributeValue != null && syncMemberFilter != null) {
+      LOG.trace("Use custom filter '{}' for getting member group with default baseDN ('{}')",
+        syncMemberFilter.encode(), ldapServerProperties.getBaseDN());
+      filteredLdapGroups = getFilteredLdapGroups(ldapServerProperties.getBaseDN(), syncMemberFilter);
+    } else if (memberAttributeValue != null && isMemberAttributeBaseDn(memberAttributeValue)) {
       LOG.trace("Member can be used as baseDn: {}", memberAttributeValue);
       Filter filter = new EqualsFilter(OBJECT_CLASS_ATTRIBUTE, ldapServerProperties.getGroupObjectClass());
       filteredLdapGroups = getFilteredLdapGroups(memberAttributeValue, filter);
@@ -483,6 +509,42 @@ public class AmbariLdapDataPopulator {
     }
 
     return (filteredLdapGroups.isEmpty()) ? null : filteredLdapGroups.iterator().next();
+  }
+
+  /**
+   * Use custom member filter. Replace {member} with the member attribute.
+   * E.g.: (&(objectclass=posixaccount)(dn={member})) -> (&(objectclass=posixaccount)(dn=cn=mycn,dc=apache,dc=org))
+   */
+  protected Filter createCustomMemberFilter(String memberAttributeValue, String syncMemberFilter) {
+    Filter filter = null;
+    if (StringUtils.isNotEmpty(syncMemberFilter)) {
+      filter = new HardcodedFilter(syncMemberFilter.replace(MEMBER_ATTRIBUTE_VALUE_PLACEHOLDER, memberAttributeValue));
+    }
+    return filter;
+  }
+
+  /**
+   * Replace memberAttribute value by a custom pattern to get the DN or id (like memberUid) of a user/group.
+   * E.g.: memberAttribute="<sid=...><guid=...>,cn=mycn,dc=org,dc=apache"
+   * Apply on (?<sid>.*);(?<guid>.*);(?<member>.*) pattern, then the result will be: "${member}"
+   */
+  protected String getUniqueIdByMemberPattern(String memberAttributeValue, String pattern) {
+    if (StringUtils.isNotEmpty(memberAttributeValue) && StringUtils.isNotEmpty(pattern)) {
+      try {
+        Pattern p = Pattern.compile(pattern);
+        Matcher m = p.matcher(memberAttributeValue);
+        LOG.debug("Apply replace pattern '{}' on '{}' membership attribbute value.", memberAttributeValue, pattern);
+        if (m.matches()) {
+          memberAttributeValue = m.replaceAll(MEMBER_ATTRIBUTE_REPLACE_STRING);
+          LOG.debug("Membership attribute value after replace pattern applied: '{}'", memberAttributeValue);
+        } else {
+          LOG.warn("Membership attribute value pattern is not matched ({}) on '{}'", pattern, memberAttributeValue);
+        }
+      } catch (Exception e) {
+        LOG.error("Error during replace memberAttribute '{}' with pattern '{}'", memberAttributeValue, pattern);
+      }
+    }
+    return memberAttributeValue;
   }
 
   /**
