@@ -34,11 +34,12 @@ public class ComponentLayoutRecommendationCommand extends
     StackAdvisorCommand<RecommendationResponse> {
 
   public ComponentLayoutRecommendationCommand(File recommendationsDir,
+                                              String recommendationsArtifactsLifetime,
                                               String stackAdvisorScript,
                                               int requestId,
                                               StackAdvisorRunner saRunner,
                                               AmbariMetaInfo metaInfo) {
-    super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
+    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override

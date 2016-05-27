@@ -38,9 +38,9 @@ import java.util.Set;
 public class ConfigurationRecommendationCommand extends
     StackAdvisorCommand<RecommendationResponse> {
 
-  public ConfigurationRecommendationCommand(File recommendationsDir, String stackAdvisorScript, int requestId,
+  public ConfigurationRecommendationCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
                                             StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-    super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
+    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override

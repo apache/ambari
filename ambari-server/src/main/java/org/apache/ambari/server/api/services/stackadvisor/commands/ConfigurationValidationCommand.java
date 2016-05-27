@@ -31,9 +31,9 @@ import org.apache.ambari.server.api.services.stackadvisor.validations.Validation
  */
 public class ConfigurationValidationCommand extends StackAdvisorCommand<ValidationResponse> {
 
-  public ConfigurationValidationCommand(File recommendationsDir, String stackAdvisorScript,
+  public ConfigurationValidationCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript,
                                         int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-    super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
+    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override

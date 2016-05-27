@@ -19,7 +19,12 @@ package org.apache.ambari.server.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Static Helper methods for datetime conversions
@@ -93,5 +98,40 @@ public class DateUtils {
   public static boolean isFutureTime(Date time) {
     Date now = new Date();
     return time.after(now);
+  }
+
+  /**
+   * Returns a date given period before now
+   *
+   * @param periodString is a string indicating a time period. Example '1y2m3w4d5y'
+   * means 1 year, 2 months, 3 weeks, 4 days, 5 hours.
+   * @return
+   */
+  public static Date getDateSpecifiedTimeAgo(String periodString) {
+    String pattern = "((\\d+)([hdwmy]))";
+    Pattern findPattern = Pattern.compile(pattern);
+    Pattern matchPattern = Pattern.compile(pattern+"+");
+
+    Map<String, Integer> qualifierToConstant = new HashMap<String, Integer>() {{
+        put("h",   Calendar.HOUR);
+        put("d",    Calendar.DATE);
+        put("w",   Calendar.WEEK_OF_YEAR);
+        put("m",  Calendar.MONTH);
+        put("y",   Calendar.YEAR);
+    }};
+
+    if(!matchPattern.matcher(periodString).matches()) {
+      throw new IllegalArgumentException(String.format("Invalid string for indicating period %s", periodString));
+    }
+
+    Calendar calendar = Calendar.getInstance();
+    Matcher m = findPattern.matcher(periodString);
+
+    while (m.find()) {
+      int amount = Integer.parseInt(m.group(2));
+      int unit = qualifierToConstant.get(m.group(3));
+      calendar.add(unit, -amount);
+    }
+    return calendar.getTime();
   }
 }

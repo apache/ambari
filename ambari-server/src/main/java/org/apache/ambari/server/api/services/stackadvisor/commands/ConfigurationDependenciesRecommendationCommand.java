@@ -40,9 +40,9 @@ import static org.apache.ambari.server.api.services.stackadvisor.recommendations
 public class ConfigurationDependenciesRecommendationCommand extends
     StackAdvisorCommand<RecommendationResponse> {
 
-  public ConfigurationDependenciesRecommendationCommand(File recommendationsDir, String stackAdvisorScript, int requestId,
+  public ConfigurationDependenciesRecommendationCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
                                                         StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-    super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
+    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override

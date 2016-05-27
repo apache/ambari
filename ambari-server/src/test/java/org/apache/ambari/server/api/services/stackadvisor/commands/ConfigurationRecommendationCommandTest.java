@@ -43,7 +43,7 @@ public class ConfigurationRecommendationCommandTest {
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     File file = mock(File.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(file, "script", 1, saRunner, metaInfo);
+    ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(file, "1w", "script", 1, saRunner, metaInfo);
 
     StackAdvisorRequest request = mock(StackAdvisorRequest.class);
     Map<String, Set<String>> componentHostGroupMap = new HashMap<String, Set<String>>();
