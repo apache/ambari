@@ -405,8 +405,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           repoVersionEnt.getVersion()));
     }
 
-    if (null != xml && StringUtils.isNotBlank(xml.release.packageVersion)) {
-      params.put(KeyNames.PACKAGE_VERSION, xml.release.packageVersion);
+    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
+      params.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
     }
 
 
