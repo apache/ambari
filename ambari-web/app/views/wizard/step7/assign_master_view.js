@@ -24,13 +24,15 @@ require('views/wizard/step5_view');
 
 App.AssignMasterOnStep7View = App.AssignMasterComponentsView.extend({
 
-  title: Em.I18n.t('installer.step5.header'),
+  showTitle: false, 
 
-  acceptButtonText: Em.I18n.t('common.save'),
+  acceptButtonText: Em.I18n.t('common.select'),
 
   alertMessage: '',
 
   isBackButtonVisible: false,
+
+  isCancelButtonVisible: true,
 
   willInsertElement: function() {
     this._super();

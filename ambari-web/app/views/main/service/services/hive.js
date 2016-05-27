@@ -21,6 +21,7 @@ var App = require('app');
 App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hive'),
   serviceName: 'HIVE',
+  isFullWidth: true,
   
   didInsertElement: function () {
     var controller = this.get('controller');
@@ -52,7 +53,7 @@ App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
     setEllipsis: function() {
       var $ = this.$();
       var text =  $.text();
-      var MAX_LENGTH = 32;
+      var MAX_LENGTH = 96;
       var ellipsis = '...';
       var length = MAX_LENGTH > text.length ? text.length : MAX_LENGTH;
       var start = Math.max(length - ellipsis.length, ellipsis.length);

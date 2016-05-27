@@ -98,16 +98,38 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     if (!this.get('content.controllerName')) {
       this.loadMasterComponentHosts();
     }
+    var mastersToCreate = this.get('mastersToCreate');
+    var masterToCreateDisplayName = App.format.role(mastersToCreate[0]);
+    var configWidgetContext = this.get('configWidgetContext');
+    var config = this.get('configWidgetContext.config');
     var popup = App.ModalPopup.show({
       classNames: ['full-width-modal', 'add-service-wizard-modal'],
-      header: Em.I18n.t('admin.highAvailability.wizard.step2.header'),
+      header: Em.I18n.t('assign.master.popup.header').format(masterToCreateDisplayName),
       bodyClass: App.AssignMasterOnStep7View.extend({
         controller: self
       }),
       primary: Em.I18n.t('form.cancel'),
       showFooter: false,
-      secondary: null,
-      showCloseButton: false,
+      onClose: function () {
+        this.showWarningPopup();
+      },
+      showWarningPopup: function() {
+        var mainPopupContext = this;
+        var warningPopup = App.ModalPopup.show({
+          encodeBody: false,
+          header: Em.I18n.t('common.warning'),
+          primaryClass: 'btn-warning',
+          body: Em.I18n.t('assign.master.popup.cancel.body').format(masterToCreateDisplayName),
+          onPrimary: function () {
+            configWidgetContext.toggleProperty('controller.forceUpdateBoundaries');
+            var value = config.get('initialValue');
+            config.set('value', value);
+            configWidgetContext.setValue(value);
+            this.hide();
+            mainPopupContext.hide();
+          }
+        });
+      },
       didInsertElement: function () {
         this._super();
         this.fitHeight();
@@ -369,5 +391,12 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     config.set('recommendedValue', componentHostName);
     configActionComponent.hostName = componentHostName;
     this.get('configWidgetContext.config').set('configActionComponent', configActionComponent);
+  },
+
+  /**
+   * function called for onclcik event on cancel button for the popup
+   */
+  onCancel: function() {
+    this.get('popup').showWarningPopup();
   }
 });

@@ -271,7 +271,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           var hiveEndPoint = {
             isVisible: hiveSiteDynamicDiscovery,
             componentName: masterComponent.get('componentName'),
-            label: masterComponent.get('displayName') + ' Endpoint',
+            label: masterComponent.get('displayName') + Em.I18n.t('services.service.summary.hiveserver2.jdbc.url.text'),
             value: Em.I18n.t('services.service.summary.hiveserver2.endpoint.value').format(hiveSiteZkQuorom, hiveSiteZkNameSpace),
             tooltipText: Em.I18n.t('services.service.summary.hiveserver2.endpoint.tooltip.text').format(masterComponent.get('displayName'))
           };
