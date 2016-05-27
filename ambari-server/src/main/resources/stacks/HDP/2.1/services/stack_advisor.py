@@ -88,9 +88,9 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     if hiveEnvProperties and hiveSiteProperties and self.checkSiteProperties(hiveSiteProperties, 'javax.jdo.option.ConnectionDriverName') and self.checkSiteProperties(hiveEnvProperties, 'hive_database'):
       putHiveProperty('javax.jdo.option.ConnectionDriverName', self.getDBDriver(hiveEnvProperties['hive_database']))
     if hiveSiteProperties and hiveEnvProperties and self.checkSiteProperties(hiveSiteProperties, 'ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionURL') and self.checkSiteProperties(hiveEnvProperties, 'hive_database'):
-      hiveMSHost = self.getHostWithComponent('HIVE', 'HIVE_METASTORE', services, hosts)
-      if hiveMSHost is not None:
-        dbConnection = self.getDBConnectionString(hiveEnvProperties['hive_database']).format(hiveMSHost['Hosts']['host_name'], hiveSiteProperties['ambari.hive.db.schema.name'])
+      hiveServerHost = self.getHostWithComponent('HIVE', 'HIVE_SERVER', services, hosts)
+      if hiveServerHost is not None:
+        dbConnection = self.getDBConnectionString(hiveEnvProperties['hive_database']).format(hiveServerHost['Hosts']['host_name'], hiveSiteProperties['ambari.hive.db.schema.name'])
         putHiveProperty('javax.jdo.option.ConnectionURL', dbConnection)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

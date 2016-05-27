@@ -1387,7 +1387,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (hiveService) {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
       if (hiveDb.value == "New MySQL Database") {
-        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'), 'MYSQL_SERVER');
+        this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
       } else if (hiveDb.value === "New PostgreSQL Database") {
         this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'POSTGRESQL_SERVER');
       }
