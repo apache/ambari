@@ -156,8 +156,10 @@ def kms(upgrade_type=None):
         path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + params.default_connectors_map[params.db_flavor]
         if not os.path.isfile(path_to_jdbc):
           path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + "*"
-          print "Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.hive_jdbc_driver] + \
+          error_message = "Error! Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.db_flavor] + \
                 " in oozie lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
+          print error_message
+          Logger.error(error_message)
 
       cp = cp + os.pathsep + path_to_jdbc
 

@@ -20,6 +20,7 @@ limitations under the License.
 import os
 from resource_management import *
 from resource_management.core.shell import as_user
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -73,8 +74,10 @@ def oozie_service(action = 'start', upgrade_type=None):
         path_to_jdbc = format("{oozie_libext_dir}/") + params.default_connectors_map[params.jdbc_driver_name]
         if not os.path.isfile(path_to_jdbc):
           path_to_jdbc = format("{oozie_libext_dir}/") + "*"
-          print "Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.hive_jdbc_driver] + \
+          error_message = "Error! Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.jdbc_driver_name] + \
                 " in oozie lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
+          print error_message
+          Logger.error(error_message)
 
       db_connection_check_command = format("{java_home}/bin/java -cp {check_db_connection_jar}:{path_to_jdbc} org.apache.ambari.server.DBConnectionVerification '{oozie_jdbc_connection_url}' {oozie_metastore_user_name} {oozie_metastore_user_passwd!p} {jdbc_driver_name}")
     else:
