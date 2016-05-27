@@ -269,46 +269,31 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
                                          Map<Long, Double> timeSliceValueMap) {
 
 
-    for (int sliceNum = 0; sliceNum < timeSlices.size(); sliceNum++) {
-      Long[] timeSlice = timeSlices.get(sliceNum);
-
+    List<Long> requiredTimestamps = new ArrayList<>();
+    for (Long[] timeSlice : timeSlices) {
       if (!timeSliceValueMap.containsKey(timeSlice[1])) {
-        LOG.debug("Found an empty slice : " + new Date(timeSlice[0]) + ", " + new Date(timeSlice[1]));
+        requiredTimestamps.add(timeSlice[1]);
+      }
+    }
 
-        Double lastSeenValue = null;
-        int index = sliceNum - 1;
-        Long[] prevTimeSlice = null;
-        while (lastSeenValue == null && index >= 0) {
-          prevTimeSlice = timeSlices.get(index--);
-          lastSeenValue = timeSliceValueMap.get(prevTimeSlice[1]);
-        }
+    Map<Long, Double> interpolatedValuesMap = PostProcessingUtil.interpolate(timelineMetric.getMetricValues(), requiredTimestamps);
 
-        Double nextSeenValue = null;
-        index = sliceNum + 1;
-        Long[] nextTimeSlice = null;
-        while ( nextSeenValue == null && index < timeSlices.size()) {
-          nextTimeSlice = timeSlices.get(index++);
-          nextSeenValue = timeSliceValueMap.get(nextTimeSlice[1]);
-        }
-
-        Double interpolatedValue = PostProcessingUtil.interpolate(timeSlice[1],
-          (prevTimeSlice != null ? prevTimeSlice[1] : null), lastSeenValue,
-          (nextTimeSlice != null ? nextTimeSlice[1] : null), nextSeenValue);
+    if (interpolatedValuesMap != null) {
+      for (Map.Entry<Long, Double> entry : interpolatedValuesMap.entrySet()) {
+        Double interpolatedValue = entry.getValue();
 
         if (interpolatedValue != null) {
           TimelineClusterMetric clusterMetric = new TimelineClusterMetric(
             timelineMetric.getMetricName(),
             timelineMetric.getAppId(),
             timelineMetric.getInstanceId(),
-            timeSlice[1],
+            entry.getKey(),
             timelineMetric.getType());
 
-          LOG.debug("Interpolated value : " + interpolatedValue);
           timelineClusterMetricMap.put(clusterMetric, interpolatedValue);
         } else {
           LOG.debug("Cannot compute interpolated value, hence skipping.");
         }
-
       }
     }
   }

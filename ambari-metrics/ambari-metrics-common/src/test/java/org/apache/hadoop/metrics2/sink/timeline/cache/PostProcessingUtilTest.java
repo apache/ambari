@@ -22,7 +22,9 @@ import org.apache.hadoop.metrics2.sink.timeline.PostProcessingUtil;
 import org.apache.hadoop.metrics2.sink.timeline.SingleValuedTimelineMetric;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -79,6 +81,32 @@ public class PostProcessingUtilTest {
     //Test interpolation with past time
     interpolatedValue = PostProcessingUtil.interpolate((t1 - 60000), t1, 20.0, t2, 30.0);
     Assert.assertEquals(interpolatedValue, 10.0);
+
+  }
+
+  @Test
+  public void testLinearInterpolate() throws Exception {
+
+    long t2 = System.currentTimeMillis();
+
+    Map<Long, Double> valuesMap = new TreeMap<>();
+
+    valuesMap.put(t2 - 4 * 3000, 4.0);
+    valuesMap.put(t2 - 2 * 3000, 2.0);
+    valuesMap.put(t2 - 1 * 3000, 1.0);
+
+    List<Long> requiredTs = new ArrayList<Long>();
+    requiredTs.add(t2 - 5*3000);
+    requiredTs.add(t2 - 3*3000);
+    requiredTs.add(t2);
+
+    Map result = PostProcessingUtil.interpolate(valuesMap, requiredTs);
+
+    Assert.assertNotNull(result);
+    Assert.assertEquals(result.get(t2 - 5*3000), 5.0);
+    Assert.assertEquals(result.get(t2 - 3*3000), 3.0);
+    Assert.assertEquals(result.get(t2), 0.0);
+    System.out.println(result.toString());
 
   }
 
