@@ -44,6 +44,7 @@ App.ServiceConfigGroup = DS.Model.extend({
    * @type {boolean}
    */
   isDefault: DS.attr('boolean', {defaultValue: false}),
+
   /**
    * this flag is used for installed services' config groups
    * if user make changes to them - mark this flag to true
@@ -151,12 +152,14 @@ App.ServiceConfigGroup = DS.Model.extend({
 App.ServiceConfigGroup.FIXTURES = [];
 
 App.ServiceConfigGroup.getParentConfigGroupId = function(serviceName) {
-  return App.ServiceConfigGroup.groupId(serviceName, 'default');
+  return App.ServiceConfigGroup.groupId(serviceName, 'Default');
 };
 
 App.ServiceConfigGroup.groupId = function(serviceName, groupName) {
   return serviceName + "_" + groupName;
 };
+
+App.ServiceConfigGroup.defaultGroupName = 'Default';
 
 /**
  * Delete all records with isTemporary:true

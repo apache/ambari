@@ -216,7 +216,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       .get('configs')
       .filterProperty('displayType', 'password')
       .someProperty('isNotDefaultValue');
-  }.property('stepConfigs.[].configs', 'selectedService.serviceName'),
+  }.property('stepConfigs.@each.configs', 'selectedService.serviceName'),
 
   /**
    * indicate whether service config version belongs to default config group
@@ -226,7 +226,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method isVersionDefault
    */
   isVersionDefault: function(version) {
-    return (App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version).get('groupName') === 'default');
+    return App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version).get('groupName') === App.ServiceConfigGroup.defaultGroupName;
   },
 
   /**
@@ -341,7 +341,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
     var configs = [];
     data.items.forEach(function (version) {
-      if (version.group_name == 'default') {
+      if (version.group_name === App.ServiceConfigGroup.defaultGroupName) {
         version.configurations.forEach(function (configObject) {
           configs = configs.concat(App.config.getConfigsFromJSON(configObject, true));
         });
@@ -424,7 +424,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   addOverrides: function(data, allConfigs) {
     var self = this;
     data.items.forEach(function(group) {
-      if (group.group_name != 'default') {
+      if (group.group_name !== App.ServiceConfigGroup.defaultGroupName) {
         var configGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', group.service_name).findProperty('name', group.group_name);
         group.configurations.forEach(function(config) {
           for (var prop in config.properties) {
@@ -433,18 +433,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
             if (serviceConfig) {
               var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
               var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
-              if (self.get('selectedConfigGroup.isDefault') || configGroup.get('name') == self.get('selectedConfigGroup.name')) {
+              if (self.get('selectedConfigGroup.isDefault') || configGroup.get('name') === self.get('selectedConfigGroup.name')) {
                 var overridePlainObject = {
                   "value": value,
                   "savedValue": value,
                   "isFinal": isFinal,
                   "savedIsFinal": isFinal,
-                  "isEditable": self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name')
+                  "isEditable": self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name')
                 };
                 App.config.createOverride(serviceConfig, overridePlainObject, configGroup);
               }
             } else {
-              var isEditable = self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name');
+              var isEditable = self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name');
               allConfigs.push(App.config.createCustomGroupConfig({
                 propertyName: prop,
                 filename: fileName,
@@ -466,7 +466,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   onLoadOverrides: function (allConfigs) {
     this.get('servicesToLoad').forEach(function(serviceName) {
-      var configGroups = serviceName == this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
+      var configGroups = serviceName === this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
       var configTypes = App.StackService.find(serviceName).get('configTypeList');
       var configsByService = this.get('allConfigs').filter(function (c) {
         return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
@@ -518,7 +518,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         var value = patternConfig.get('value') === true || ["yes", "true"].contains(patternConfig.get('value').toLowerCase());
 
         serviceConfig.configs.filter(function(c) {
-          if (c.get('category') === category && c.get('name').match(patternConfig.get('dependentConfigPattern')) && c.get('name') != patternConfig.get('name'))
+          if (c.get('category') === category && c.get('name').match(patternConfig.get('dependentConfigPattern')) && c.get('name') !== patternConfig.get('name'))
             c.set('isVisible', value);
         });
       }
@@ -548,7 +548,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var value = !!this.get('overrideToAdd.widget') ? Em.get(overrideToAdd, 'value') : '';
     if (overrideToAdd) {
       overrideToAdd = stepConfig.configs.filter(function(c){
-        return c.name == overrideToAdd.name && c.filename == overrideToAdd.filename;
+        return c.name == overrideToAdd.name && c.filename === overrideToAdd.filename;
       });
       if (overrideToAdd[0]) {
         App.config.createOverride(overrideToAdd[0], {"isEditable": true, "value": value}, this.get('selectedConfigGroup'));
@@ -573,11 +573,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
     App.ConfigAction.find().forEach(function(item){
       var hostComponentConfig = item.get('hostComponentConfig');
-      var config =  serviceConfig.get('configs').filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
+      var config = serviceConfig.get('configs').filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
       if (config){
         var componentHostName = App.HostComponent.find().findProperty('componentName', item.get('componentName')) ;
         if (componentHostName) {
-          var setConfigValue =  !config.get('value');
+          var setConfigValue = !config.get('value');
           if (setConfigValue) {
             config.set('value', componentHostName.get('hostName'));
             config.set('recommendedValue', componentHostName.get('hostName'));
@@ -627,11 +627,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var restartRequiredHostsAndComponents = this.get('content.restartRequiredHostsAndComponents');
     for (var hostName in restartRequiredHostsAndComponents) {
       restartRequiredHostsAndComponents[hostName].forEach(function (hostComponent) {
-        if (hostComponent == 'NameNode')
+        if (hostComponent === 'NameNode')
          isNNAffected = true;
       })
     }
-    if (this.get('content.serviceName') == 'HDFS' && isNNAffected &&
+    if (this.get('content.serviceName') === 'HDFS' && isNNAffected &&
       this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
         return App.showConfirmationFeedBackPopup(function (query) {
@@ -666,7 +666,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     for (var hostName in restartRequiredHostsAndComponents) {
       hosts.push(hostName);
     }
-    var hostsText = hosts.length == 1 ? Em.I18n.t('common.host') : Em.I18n.t('common.hosts');
+    var hostsText = hosts.length === 1 ? Em.I18n.t('common.host') : Em.I18n.t('common.hosts');
     hosts = hosts.join(', ');
     this.showItemsShouldBeRestarted(hosts, Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(hostsText));
   },
@@ -692,10 +692,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }
     var componentsList = [];
     for (var obj in componentsObject) {
-      var componentDisplayName = (componentsObject[obj] > 1) ? obj + 's' : obj;
+      var componentDisplayName = componentsObject[obj] > 1 ? obj + 's' : obj;
       componentsList.push(componentsObject[obj] + ' ' + componentDisplayName);
     }
-    var componentsText = componentsList.length == 1 ? Em.I18n.t('common.component') : Em.I18n.t('common.components');
+    var componentsText = componentsList.length === 1 ? Em.I18n.t('common.component') : Em.I18n.t('common.components');
     hostsComponets = componentsList.join(', ');
     this.showItemsShouldBeRestarted(hostsComponets, Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(componentsText));
   },

@@ -127,7 +127,7 @@ describe('App.HostProgressPopupBodyView', function () {
 
   describe('#preloadHostModel', function() {
     describe('When Log Search installed', function() {
-      var cases;
+
       beforeEach(function() {
         this.HostModelStub = sinon.stub(App.Host, 'find');
         this.isLogSearchInstalled = sinon.stub(view, 'get').withArgs('isLogSearchInstalled');
@@ -142,7 +142,7 @@ describe('App.HostProgressPopupBodyView', function () {
         App.router.get('updateController').updateLogging.restore();
       });
 
-      cases = [
+      [
         {
           hostName: 'host1',
           logSearchSupported: true,
@@ -218,10 +218,13 @@ describe('App.HostProgressPopupBodyView', function () {
           },
           m: 'Host is absent, log search not installed and supported'
         }
-      ];
+      ].forEach(function(test) {
 
-      cases.forEach(function(test) {
-        describe(test.m, function() {
+        it('hostInfoLoaded should be true on init', function() {
+          expect(Em.get(view, 'hostInfoLoaded')).to.be.true;
+        });
+
+        describe(test.m, function () {
 
           beforeEach(function () {
             this.HostModelStub.returns(test.hosts);
@@ -232,26 +235,20 @@ describe('App.HostProgressPopupBodyView', function () {
             } else {
               this.updateCtrlStub.returns($.Deferred().resolve().promise());
             }
-          });
-
-          it('hostInfoLoaded should be true on init', function () {
-            expect(Em.get(view, 'hostInfoLoaded')).to.be.true;
-          });
-
-          it('updateLogging call validation', function () {
             Em.set(view, 'hostInfoLoaded', false);
             view.preloadHostModel(test.hostName);
+          });
+
+          it('updateLogging call validation', function() {
             expect(App.router.get('updateController').updateLogging.called).to.be.equal(test.e.updateLoggingCalled);
           });
 
-          it('in result hostInfoLoaded should be always true', function () {
-            Em.set(view, 'hostInfoLoaded', false);
-            view.preloadHostModel(test.hostName);
+          it('in result hostInfoLoaded should be always true', function() {
             expect(Em.get(view, 'hostInfoLoaded')).to.be.true;
           });
 
         });
-      }, this);
+      });
     });
   });
 });

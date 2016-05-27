@@ -175,13 +175,13 @@ describe('App.EnhancedConfigsMixin', function() {
       this.mockedCallback = sinon.stub();
     });
 
-    it("shound call callback if changedConfigs is empty array", function() {
+    it("should call callback if changedConfigs is empty array", function() {
       mixinInstance.loadConfigRecommendations([], this.mockedCallback);
-      expect(App.ajax.send.calledOnce).to.be.false;
+      expect(testHelpers.findAjaxRequest('name', 'config.recommendations')).to.not.exist;
       expect(this.mockedCallback.calledOnce).to.be.true;
     });
 
-    it("shound call callback from ajax callback if changedConfigs is not empty", function() {
+    it("should call callback from ajax callback if changedConfigs is not empty", function() {
       mixinInstance.loadConfigRecommendations([{}], this.mockedCallback);
       var args = testHelpers.findAjaxRequest('name', 'config.recommendations');
       expect(args[0]).exists;

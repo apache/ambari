@@ -87,7 +87,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
           defaultHostNames = defaultHostNames.without(serviceToHostMap[sName][i]);
         }
         var defVer = result.find(function(v) {
-          return v.is_current && v.group_name === 'default' && v.service_name == sName;
+          return v.is_current && v.group_name === App.ServiceConfigGroup.defaultGroupName && v.service_name == sName;
         });
         if (defVer) {
           defVer.hosts = defaultHostNames;

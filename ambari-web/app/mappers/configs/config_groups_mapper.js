@@ -63,7 +63,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
 
       if (json && json.items) {
         json.items.forEach(function (configGroup) {
-          if (configGroup.group_name != 'default') {
+          if (configGroup.group_name !== App.ServiceConfigGroup.defaultGroupName) {
             if (mapFromVersions) {
               configGroup.id = App.ServiceConfigGroup.groupId(configGroup.service_name, configGroup.group_name);
             } else {
