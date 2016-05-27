@@ -28,6 +28,7 @@ CLUSTER = "cluster"
 IMMEDIATE = "immediate"
 FAST = "fast"
 ACTIVATE = "activate"
+POSTGRES = "postgres"
 
 # Users
 root_user = "root"
