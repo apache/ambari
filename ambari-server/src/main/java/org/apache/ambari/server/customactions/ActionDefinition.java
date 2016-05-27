@@ -21,6 +21,9 @@ package org.apache.ambari.server.customactions;
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.controller.ActionResponse;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+
+import java.util.Set;
 
 /**
  * The resource describing the definition of an action
@@ -34,6 +37,7 @@ public class ActionDefinition {
   private String description;
   private TargetHostType targetType;
   private Short defaultTimeout;
+  private Set<RoleAuthorization> permissions;
 
   /**
    * Create an instance of ActionDefinition
@@ -46,10 +50,11 @@ public class ActionDefinition {
    * @param description     Short description of the action
    * @param targetType      Selection criteria for target hosts
    * @param defaultTimeout  The timeout value for this action when executed
+   * @param permissions     A set of permissions to use when verifiying authorization to execute this action
    */
   public ActionDefinition(String actionName, ActionType actionType, String inputs,
                           String targetService, String targetComponent, String description,
-                          TargetHostType targetType, Short defaultTimeout) {
+                          TargetHostType targetType, Short defaultTimeout, Set<RoleAuthorization> permissions) {
     setActionName(actionName);
     setActionType(actionType);
     setInputs(inputs);
@@ -58,6 +63,7 @@ public class ActionDefinition {
     setDescription(description);
     setTargetType(targetType);
     setDefaultTimeout(defaultTimeout);
+    setPermissions(permissions);
   }
 
   public String getActionName() {
@@ -122,6 +128,14 @@ public class ActionDefinition {
 
   public void setDefaultTimeout(Short defaultTimeout) {
     this.defaultTimeout = defaultTimeout;
+  }
+
+  public void setPermissions(Set<RoleAuthorization> permissions) {
+    this.permissions = permissions;
+  }
+
+  public Set<RoleAuthorization> getPermissions() {
+    return permissions;
   }
 
   public ActionResponse convertToResponse() {

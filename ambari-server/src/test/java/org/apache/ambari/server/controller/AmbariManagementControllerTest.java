@@ -4314,11 +4314,11 @@ public class AmbariManagementControllerTest {
 
 
     ActionDefinition a1 = new ActionDefinition(actionDef1, ActionType.SYSTEM,
-        "test,[optional1]", "", "", "Does file exist", TargetHostType.SPECIFIC, Short.valueOf("100"));
+        "test,[optional1]", "", "", "Does file exist", TargetHostType.SPECIFIC, Short.valueOf("100"), null);
     controller.getAmbariMetaInfo().addActionDefinition(a1);
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         actionDef2, ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
-        TargetHostType.ALL, Short.valueOf("1000")));
+        TargetHostType.ALL, Short.valueOf("1000"), null));
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -4700,23 +4700,23 @@ public class AmbariManagementControllerTest {
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         actionDef1, ActionType.SYSTEM, "test,dirName", "", "", "Does file exist",
-        TargetHostType.SPECIFIC, Short.valueOf("100")));
+        TargetHostType.SPECIFIC, Short.valueOf("100"), null));
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         actionDef2, ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
-        TargetHostType.ANY, Short.valueOf("100")));
+        TargetHostType.ANY, Short.valueOf("100"), null));
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
             "update_repo", ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
-            TargetHostType.ANY, Short.valueOf("100")));
+            TargetHostType.ANY, Short.valueOf("100"), null));
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         actionDef3, ActionType.SYSTEM, "", "MAPREDUCE", "MAPREDUCE_CLIENT", "Does file exist",
-        TargetHostType.ANY, Short.valueOf("100")));
+        TargetHostType.ANY, Short.valueOf("100"), null));
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         actionDef4, ActionType.SYSTEM, "", "HIVE", "", "Does file exist",
-        TargetHostType.ANY, Short.valueOf("100")));
+        TargetHostType.ANY, Short.valueOf("100"), null));
 
     actionRequest = new ExecuteActionRequest(cluster1, null, actionDef1, null, null, null, false);
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
@@ -6560,7 +6560,7 @@ public class AmbariManagementControllerTest {
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
       action1, ActionType.SYSTEM, "", "HDFS", "", "Some custom action.",
-      TargetHostType.ALL, Short.valueOf("10010")));
+      TargetHostType.ALL, Short.valueOf("10010"), null));
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -10601,7 +10601,7 @@ public class AmbariManagementControllerTest {
 
     ambariMetaInfo.addActionDefinition(new ActionDefinition(action1, ActionType.SYSTEM,
         "", "", "", "action def description", TargetHostType.ANY,
-        Short.valueOf("60")));
+        Short.valueOf("60"), null));
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
