@@ -30,6 +30,14 @@
   </property>
 
   <property>
+    <name>spark.driver.extraLibraryPath</name>
+    <value>{{spark_hadoop_lib_native}}</value>
+    <description>
+       Set a special library path to use when launching the driver JVM.
+    </description>
+  </property>
+
+  <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
     <description>
