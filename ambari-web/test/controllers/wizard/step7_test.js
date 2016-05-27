@@ -1442,10 +1442,19 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#addKerberosDescriptorConfigs', function() {
+
+    beforeEach(function() {
+      sinon.stub(App.config, 'kerberosIdentitiesDescription');
+    });
+
+    afterEach(function() {
+      App.config.kerberosIdentitiesDescription.restore();
+    });
+
     var configs = [
-      { name: 'prop1', displayName: 'Prop1' },
-      { name: 'prop2', displayName: 'Prop2' },
-      { name: 'prop3', displayName: 'Prop3' }
+      { name: 'prop1', displayName: 'Prop1', description: 'd1' },
+      { name: 'prop2', displayName: 'Prop2', description: 'd1' },
+      { name: 'prop3', displayName: 'Prop3', description: 'd1' }
     ];
     var descriptor = [
       Em.Object.create({ name: 'prop4', filename: 'file-1'}),

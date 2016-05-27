@@ -463,6 +463,55 @@ App.config = Em.Object.create({
   },
 
   /**
+   * parse Kerberos descriptor
+   *
+   * @param kerberosDescriptor
+   * @returns {{}}
+   */
+  parseDescriptor: function(kerberosDescriptor) {
+    var identitiesMap = {};
+    Em.get(kerberosDescriptor, 'KerberosDescriptor.kerberos_descriptor.services').forEach(function (service) {
+      this.parseIdentities(service, identitiesMap);
+      service.components.forEach(function (component) {
+        this.parseIdentities(component, identitiesMap);
+      }, this);
+    }, this);
+    return identitiesMap;
+  },
+
+  /**
+   * Looking for configs identities and add them to <code>identitiesMap<code>
+   *
+   * @param item
+   * @param identitiesMap
+   */
+  parseIdentities: function (item, identitiesMap) {
+    if (item.identities) {
+      item.identities.forEach(function (identity) {
+
+        Em.keys(identity).without('name').forEach(function (item) {
+          if (identity[item].configuration) {
+            var cfg = identity[item].configuration.split('/'), name = cfg[1], fileName = cfg[0];
+            identitiesMap[App.config.configId(name, fileName)] = true;
+          }
+        });
+      });
+    }
+    return identitiesMap;
+  },
+
+  /**
+   * Update description for disabled kerberos configs which are identities
+   *
+   * @param description
+   * @returns {*}
+   */
+  kerberosIdentitiesDescription: function(description) {
+    return (description.endsWith('.') ? description : description + '.') +
+      Em.I18n.t('services.service.config.secure.additionalDescription');
+  },
+
+  /**
    * Get view class based on display type of config
    *
    * @param displayType

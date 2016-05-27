@@ -128,6 +128,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var configs = [];
     identities.forEach(function (identity) {
       var defaultObject = {
+        isConfigIdentity: true,
         isOverridable: false,
         isVisible: true,
         isSecureConfig: true,
@@ -413,20 +414,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
       });
     }, this);
     return isConfigUpdated;
-  },
-
-  /**
-   * Make request for stack descriptor configs if cluster  is not secure
-   * or cluster descriptor configs if cluster is secure
-   * @returns {$.ajax}
-   * @method loadStackDescriptorConfigs
-   */
-  loadDescriptorConfigs: function() {
-    if (this.get('shouldLoadClusterDescriptor')) {
-      return this.loadClusterDescriptorConfigs();
-    } else {
-      return this.loadStackDescriptorConfigs();
-    }
   },
 
   /**

@@ -19,7 +19,9 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.ConfigsSaverMixin, App.ConfigsComparator, App.ComponentActionsByConfigs, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfigs, App.ConfigsLoader,
+  App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.ConfigsSaverMixin,
+  App.ConfigsComparator, App.ComponentActionsByConfigs, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -328,15 +330,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   parseConfigData: function(data) {
-    this.prepareConfigObjects(data, this.get('content.serviceName'));
     var self = this;
-    this.loadCompareVersionConfigs(this.get('allConfigs')).done(function() {
-      self.addOverrides(data, self.get('allConfigs'));
-      self.onLoadOverrides(self.get('allConfigs'));
+    this.loadKerberosIdentitiesConfigs().done(function(identityConfigs) {
+      self.prepareConfigObjects(data, identityConfigs);
+      self.loadCompareVersionConfigs(self.get('allConfigs')).done(function() {
+        self.addOverrides(data, self.get('allConfigs'));
+        self.onLoadOverrides(self.get('allConfigs'));
+      });
     });
   },
 
-  prepareConfigObjects: function(data, serviceName) {
+  prepareConfigObjects: function(data, identitiesMap) {
     this.get('stepConfigs').clear();
 
     var configs = [];
@@ -362,7 +366,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }
 
     this.setPropertyIsVisible(configs);
-    this.setPropertyIsEditable(configs);
+    this.setPropertyIsEditable(configs, identitiesMap);
     this.set('allConfigs', configs);
   },
 
@@ -387,16 +391,41 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   /**
-   * Set <code>isEditable<code> proeperty based on selected group, security
+   * Set <code>isEditable<code> property based on selected group, security
    * and controller restriction
    * @param configs
+   * @param identitiesMap
    */
-  setPropertyIsEditable: function(configs) {
+  setPropertyIsEditable: function (configs, identitiesMap) {
     if (!this.get('selectedConfigGroup.isDefault') || !this.get('canEdit')) {
       configs.setEach('isEditable', false);
     } else if (App.get('isKerberosEnabled')) {
-      configs.filterProperty('isSecureConfig').setEach('isEditable', false);
+      configs.forEach(function (c) {
+        if (identitiesMap[c.get('id')]) {
+          c.set('isConfigIdentity', true);
+          c.set('isEditable', false);
+          c.set('isSecureConfig', true);
+          c.set('description', App.config.kerberosIdentitiesDescription(c.get('description')));
+        }
+      });
     }
+  },
+
+  /**
+   * Load config Identities
+   *
+   * @returns {*}
+   */
+  loadKerberosIdentitiesConfigs: function () {
+    var dfd = $.Deferred();
+    if (App.get('isKerberosEnabled')) {
+      this.loadClusterDescriptorConfigs().then(function (kerberosDescriptor) {
+        dfd.resolve(App.config.parseDescriptor(kerberosDescriptor));
+      });
+    } else {
+      dfd.resolve(true);
+    }
+    return dfd.promise();
   },
 
   /**

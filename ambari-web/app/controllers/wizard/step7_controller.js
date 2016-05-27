@@ -389,6 +389,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   onLoadOverrides: function () {
+    debugger;
     this.get('stepConfigs').forEach(function(stepConfig) {
       stepConfig.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', stepConfig.get('serviceName')));
 
@@ -412,7 +413,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   _updateIsEditableFlagForConfig: function (serviceConfigProperty, defaultGroupSelected) {
     if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
-      if (defaultGroupSelected && !Em.get(serviceConfigProperty, 'group')) {
+      if (App.get('isKerberosEnabled') && serviceConfigProperty.get('isConfigIdentity')) {
+        serviceConfigProperty.set('isEditable', false);
+      } else if (defaultGroupSelected && !Em.get(serviceConfigProperty, 'group')) {
         if (serviceConfigProperty.get('serviceName') === 'MISC') {
           var service = App.config.get('serviceByConfigTypeMap')[App.config.getConfigTagFromFileName(serviceConfigProperty.get('filename'))];
           serviceConfigProperty.set('isEditable', service && !this.get('installedServiceNames').contains(service.get('serviceName')));
@@ -422,8 +425,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       } else if (!(Em.get(serviceConfigProperty, 'group') && Em.get(serviceConfigProperty, 'group.name') === this.get('selectedConfigGroup.name'))) {
         serviceConfigProperty.set('isEditable', false);
       }
-    }
-    else {
+    } else {
       serviceConfigProperty.set('isEditable', false);
     }
     return serviceConfigProperty;
@@ -588,6 +590,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           displayName: Em.get(item, 'name'),
           isUserProperty: false,
           isOverridable: false,
+          isConfigIdentity: Em.get(item, 'isConfigIdentity'),
+          description: Em.get(item, 'isConfigIdentity')
+            ? App.config.kerberosIdentitiesDescription(Em.get(property, 'description'))
+            : Em.get(property, 'description'),
           category: 'Advanced ' + Em.get(item, 'filename')
         });
       }
@@ -1123,17 +1129,21 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   _setEditableValue: function (config) {
     var selectedGroup = this.get('selectedConfigGroup');
     if (!selectedGroup) return config;
-    var isEditable = config.get('isEditable'),
-      isServiceInstalled = this.get('installedServiceNames').contains(this.get('selectedService.serviceName'));
-    if (isServiceInstalled) {
-      isEditable = config.get('isReconfigurable') && selectedGroup.get('isDefault');
+    if (App.get('isKerberosEnabled') && config.get('isConfigIdentity')) {
+      config.set('isEditable', false);
     } else {
-      isEditable = selectedGroup.get('isDefault');
+      var isEditable = config.get('isEditable'),
+        isServiceInstalled = this.get('installedServiceNames').contains(this.get('selectedService.serviceName'));
+      if (isServiceInstalled) {
+        isEditable = config.get('isReconfigurable') && selectedGroup.get('isDefault');
+      } else {
+        isEditable = selectedGroup.get('isDefault');
+      }
+      if (config.get('group')) {
+        isEditable = config.get('group.name') === this.get('selectedConfigGroup.name');
+      }
+      config.set('isEditable', isEditable);
     }
-    if (config.get('group')) {
-      isEditable = config.get('group.name') === this.get('selectedConfigGroup.name');
-    }
-    config.set('isEditable', isEditable);
     return config;
   },
 

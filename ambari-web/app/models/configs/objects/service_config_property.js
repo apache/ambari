@@ -142,6 +142,8 @@ App.ServiceConfigProperty = Em.Object.extend({
   isComparison: false,
   hasCompareDiffs: false,
   showLabel: true,
+  isConfigIdentity: false,
+
 
   error: Em.computed.bool('errorMessage.length'),
   warn: Em.computed.bool('warnMessage.length'),
