@@ -29,12 +29,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -49,7 +51,10 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.utils.VersionUtils;
@@ -625,7 +630,45 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     }
   }
 
+  /**
+   * Retrieve the composite Kerberos Descriptor.
+   * <p>
+   * The composite Kerberos Descriptor is the cluster's stack-specific Kerberos Descriptor overlaid
+   * with changes specified by the user via the cluster's Kerberos Descriptor artifact.
+   *
+   * @param cluster the relevant cluster
+   * @return the composite Kerberos Descriptor
+   * @throws AmbariException
+   */
+  protected KerberosDescriptor getKerberosDescriptor(Cluster cluster) throws AmbariException {
+    // Get the Stack-defined Kerberos Descriptor (aka default Kerberos Descriptor)
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    StackId stackId = cluster.getCurrentStackVersion();
+    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
 
+    // Get the User-set Kerberos Descriptor
+    ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);
+    KerberosDescriptor artifactDescriptor = null;
+    ArtifactEntity artifactEntity = artifactDAO.findByNameAndForeignKeys("kerberos_descriptor",
+        new TreeMap<String, String>(Collections.singletonMap("cluster", String.valueOf(cluster.getClusterId()))));
+    if (artifactEntity != null) {
+      Map<String, Object> data = artifactEntity.getArtifactData();
+
+      if (data != null) {
+        artifactDescriptor = new KerberosDescriptorFactory().createInstance(data);
+      }
+    }
+
+    // Calculate and return the composite Kerberos Descriptor
+    if (defaultDescriptor == null) {
+      return artifactDescriptor;
+    } else if (artifactDescriptor == null) {
+      return defaultDescriptor;
+    } else {
+      defaultDescriptor.update(artifactDescriptor);
+      return defaultDescriptor;
+    }
+  }
 
   /**
    * Update the specified Kerberos Descriptor artifact to conform to the new structure.

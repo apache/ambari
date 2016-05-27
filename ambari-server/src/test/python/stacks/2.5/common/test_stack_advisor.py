@@ -5224,7 +5224,589 @@ def test_recommendAtlasConfigurations(self):
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
-    
+
+  def test_phoenixQueryServerSecureConfigsAppendProxyuser(self):
+    self.maxDiff = None
+    phoenix_query_server_hosts = ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+    # Starting configuration
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.HTTP.hosts": "c6401.ambari.apache.org",
+        }
+      },
+      "hbase-site": {
+        "properties": {}
+      }
+    }
+    # Expected configuration after the recommendation
+    expected_configuration = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.HTTP.hosts": "c6401.ambari.apache.org,c6402.ambari.apache.org",
+        }
+      },
+      "hbase-site": {
+        "properties": {
+          "hbase.master.ui.readonly": "true"
+        }
+      }
+    }
+
+    clusterData = {
+      "hbaseRam": 4096,
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
+          "StackServices": {
+            "service_name": "HBASE",
+          },
+          "Versions": {
+            "stack_version": "2.5"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "PHOENIX_QUERY_SERVER",
+                "hostnames": phoenix_query_server_hosts
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": configurations,
+      "changed-configurations": [ ]
+
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6402.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6402.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6403.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6403.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+
+    self.assertTrue('core-site' in configurations)
+    self.assertTrue('properties' in configurations['core-site'])
+    # Avoid an unnecessary sort in the stack advisor, sort here for easy comparison
+    actualHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    expectedHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    self.assertEquals(splitAndSort(actualHosts), splitAndSort(expectedHosts))
+    # Do a simple check for hbase-site
+    self.assertTrue('hbase-site' in configurations)
+    self.assertTrue('properties' in configurations['hbase-site'])
+    self.assertEquals(configurations['hbase-site']['properties']['hbase.master.ui.readonly'],
+        expected_configuration['hbase-site']['properties']['hbase.master.ui.readonly'])
+
+  def test_phoenixQueryServerSecureConfigsNoProxyuser(self):
+    self.maxDiff = None
+    phoenix_query_server_hosts = ["c6401.ambari.apache.org"]
+    # Starting configuration
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {}
+      },
+      "hbase-site": {
+        "properties": {}
+      }
+    }
+    # Expected configuration after the recommendation
+    expected_configuration = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.HTTP.hosts": "c6401.ambari.apache.org",
+        }
+      },
+      "hbase-site": {
+        "properties": {
+          "hbase.master.ui.readonly": "true"
+        }
+      }
+    }
+
+    clusterData = {
+      "hbaseRam": 4096,
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
+          "StackServices": {
+            "service_name": "HBASE",
+          },
+          "Versions": {
+            "stack_version": "2.5"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "PHOENIX_QUERY_SERVER",
+                "hostnames": phoenix_query_server_hosts
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": configurations,
+      "changed-configurations": [ ]
+
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6402.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6402.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6403.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6403.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+
+    self.assertTrue('core-site' in configurations)
+    self.assertTrue('properties' in configurations['core-site'])
+    # Avoid an unnecessary sort in the stack advisor, sort here for easy comparison
+    actualHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    expectedHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    self.assertEquals(splitAndSort(actualHosts), splitAndSort(expectedHosts))
+    # Do a simple check for hbase-site
+    self.assertTrue('hbase-site' in configurations)
+    self.assertTrue('properties' in configurations['hbase-site'])
+    self.assertEquals(configurations['hbase-site']['properties']['hbase.master.ui.readonly'],
+        expected_configuration['hbase-site']['properties']['hbase.master.ui.readonly'])
+
+  def test_phoenixQueryServerSecureConfigsAppendProxyuser(self):
+    self.maxDiff = None
+    phoenix_query_server_hosts = ["c6402.ambari.apache.org"]
+    # Starting configuration
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.HTTP.hosts": "c6401.ambari.apache.org",
+        }
+      },
+      "hbase-site": {
+        "properties": {}
+      }
+    }
+    # Expected configuration after the recommendation
+    expected_configuration = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.HTTP.hosts": "c6401.ambari.apache.org,c6402.ambari.apache.org",
+        }
+      },
+      "hbase-site": {
+        "properties": {
+          "hbase.master.ui.readonly": "true"
+        }
+      }
+    }
+
+    clusterData = {
+      "hbaseRam": 4096,
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
+          "StackServices": {
+            "service_name": "HBASE",
+          },
+          "Versions": {
+            "stack_version": "2.5"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "PHOENIX_QUERY_SERVER",
+                "hostnames": phoenix_query_server_hosts
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": configurations,
+      "changed-configurations": [ ]
+
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6402.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6402.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6403.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6403.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+
+    self.assertTrue('core-site' in configurations)
+    self.assertTrue('properties' in configurations['core-site'])
+    # Avoid an unnecessary sort in the stack advisor, sort here for easy comparison
+    actualHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    expectedHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    self.assertEquals(splitAndSort(actualHosts), splitAndSort(expectedHosts))
+    # Do a simple check for hbase-site
+    self.assertTrue('hbase-site' in configurations)
+    self.assertTrue('properties' in configurations['hbase-site'])
+    self.assertEquals(configurations['hbase-site']['properties']['hbase.master.ui.readonly'],
+        expected_configuration['hbase-site']['properties']['hbase.master.ui.readonly'])
+
+  def test_phoenixQueryServerNoChangesWithUnsecure(self):
+    self.maxDiff = None
+    phoenix_query_server_hosts = ["c6402.ambari.apache.org"]
+    # Starting configuration
+    configurations = {
+      "cluster-env": {
+        "properties": {}
+      },
+      "core-site": {
+        "properties": {}
+      },
+      "hbase-site": {
+        "properties": {}
+      }
+    }
+
+    clusterData = {
+      "hbaseRam": 4096,
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
+          "StackServices": {
+            "service_name": "HBASE",
+          },
+          "Versions": {
+            "stack_version": "2.5"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "PHOENIX_QUERY_SERVER",
+                "hostnames": phoenix_query_server_hosts
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": configurations,
+      "changed-configurations": [ ]
+
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6402.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6402.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6403.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6403.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+
+    self.assertTrue('core-site' in configurations)
+    self.assertTrue('properties' in configurations['core-site'])
+    # Should have no updates for core-site for unsecure
+    self.assertFalse('hadoop.proxuser.HTTP.hosts' in configurations['core-site']['properties'])
+    # Should have no update to hbase-site for unsecure
+    self.assertTrue('hbase-site' in configurations)
+    self.assertTrue('properties' in configurations['hbase-site'])
+    self.assertFalse('hbase.master.ui.readonly' in configurations['hbase-site']['properties']['hbase.master.ui.readonly'])
+
+  def test_obtainPhoenixQueryServerHosts(self):
+    self.maxDiff = None
+    phoenix_query_server_hosts = ["c6402.ambari.apache.org"]
+    # Starting configuration
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.HTTP.hosts": "c6401.ambari.apache.org",
+        }
+      },
+      "hbase-site": {
+        "properties": {}
+      }
+    }
+    # Expected configuration after the recommendation
+    expected_configuration = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "hadoop.proxyuser.HTTP.hosts": "c6401.ambari.apache.org,c6402.ambari.apache.org",
+        }
+      },
+      "hbase-site": {
+        "properties": {
+          "hbase.master.ui.readonly": "true"
+        }
+      }
+    }
+
+    clusterData = {
+      "hbaseRam": 4096,
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
+          "StackServices": {
+            "service_name": "HBASE",
+          },
+          "Versions": {
+            "stack_version": "2.5"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "PHOENIX_QUERY_SERVER",
+                "hostnames": phoenix_query_server_hosts
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": configurations,
+      "changed-configurations": [ ]
+    }
+
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6402.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6402.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }, {
+          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6403.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6403.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.assertEquals(self.stackAdvisor.get_phoenix_query_server_hosts(services, hosts),
+        phoenix_query_server_hosts)
+
+    phoenix_query_server_hosts = []
+    services['services'][0]['components'][0]['StackServiceComponents']['hostnames'] = phoenix_query_server_hosts
+
+    self.assertEquals(self.stackAdvisor.get_phoenix_query_server_hosts(services, hosts),
+        phoenix_query_server_hosts)
+
+"""
+Given a comma-separated string, split the items, sort them, and re-join the elements
+back into a comma-separated string
+"""
+def splitAndSort(s):
+  l = s.split(',')
+  l.sort()
+  return ','.join(l)
+
 """
 Helper method to convert string of key-values to dict.
 """
