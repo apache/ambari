@@ -61,17 +61,21 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -85,6 +89,9 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.view.DefaultMasker;
+import org.apache.ambari.view.ClusterType;
+import org.apache.ambari.view.MaskException;
 import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -473,6 +480,7 @@ public class UpgradeCatalog240Test {
     Method updateClusterInheritedPermissionsConfig = UpgradeCatalog240.class.getDeclaredMethod("updateClusterInheritedPermissionsConfig");
     Method createRolePrincipals = UpgradeCatalog240.class.getDeclaredMethod("createRolePrincipals");
     Method updateHDFSWidget = UpgradeCatalog240.class.getDeclaredMethod("updateHDFSWidgetDefinition");
+    Method upgradeCapSchedulerView = UpgradeCatalog240.class.getDeclaredMethod("upgradeCapSchedulerView");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -502,6 +510,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateClusterInheritedPermissionsConfig)
             .addMockedMethod(createRolePrincipals)
             .addMockedMethod(updateHDFSWidget)
+            .addMockedMethod(upgradeCapSchedulerView)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -526,6 +535,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.createRolePrincipals();
     upgradeCatalog240.updateClusterInheritedPermissionsConfig();
     upgradeCatalog240.updateHDFSWidgetDefinition();
+    upgradeCatalog240.upgradeCapSchedulerView();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -1556,6 +1566,60 @@ public class UpgradeCatalog240Test {
 
     String result = (String) updateAmsEnvContent.invoke(upgradeCatalog240, oldContent);
     Assert.assertEquals(expectedContent, result);
+  }
+
+  @Test
+  public void testUpgradeCapSchedulerView() throws SQLException, MaskException {
+    final RemoteAmbariClusterDAO clusterDAO = createNiceMock(RemoteAmbariClusterDAO.class);
+    final ViewInstanceDAO instanceDAO = createNiceMock(ViewInstanceDAO.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(RemoteAmbariClusterDAO.class).toInstance(clusterDAO);
+        bind(ViewInstanceDAO.class).toInstance(instanceDAO);
+      }
+    });
+
+    List<ViewInstanceEntity> instances = new ArrayList<ViewInstanceEntity>();
+
+    ViewInstanceEntity instance1 = createNiceMock(ViewInstanceEntity.class);
+    expect(instance1.getViewName()).andReturn("CAPACITY-SCHEDULER{1.0.0}");
+    expect(instance1.getClusterHandle()).andReturn(null);
+    instances.add(instance1);
+
+    Map<String,String> propertyMap = new HashMap<String,String>();
+    String url = "url";
+    String username = "user";
+    String password = "password";
+    propertyMap.put("ambari.server.url",url);
+    propertyMap.put("ambari.server.username",username);
+    propertyMap.put("ambari.server.password",new DefaultMasker().mask(password));
+
+    expect(instance1.getPropertyMap()).andReturn(propertyMap);
+    expect(instance1.getName()).andReturn("instance");
+
+    expect(instanceDAO.findAll()).andReturn(instances);
+
+    Capture<RemoteAmbariClusterEntity> clusterEntityCapture = newCapture();
+    clusterDAO.save(capture(clusterEntityCapture));
+
+    instance1.setClusterType(ClusterType.REMOTE_AMBARI);
+    instance1.setClusterHandle(null);
+    expect(instanceDAO.merge(eq(instance1))).andReturn(instance1);
+
+    replay(clusterDAO, instanceDAO, instance1);
+    mockInjector.getInstance(UpgradeCatalog240.class).upgradeCapSchedulerView();
+
+    assertEquals("instance-cluster", clusterEntityCapture.getValue().getName());
+    assertEquals(url, clusterEntityCapture.getValue().getUrl());
+    assertEquals(username, clusterEntityCapture.getValue().getUsername());
+    assertEquals(password, clusterEntityCapture.getValue().getPassword());
+
+    verify(clusterDAO, instanceDAO, instance1);
   }
 }
 
