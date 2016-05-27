@@ -5112,7 +5112,7 @@ class TestHDP25StackAdvisor(TestCase):
 
 
 
-def test_recommendAtlasConfigurations(self):
+  def test_recommendAtlasConfigurations(self):
     self.maxDiff = None
     configurations = {
       "application-properties": {
@@ -5285,6 +5285,11 @@ def test_recommendAtlasConfigurations(self):
             }
           ]
         },
+        {
+          "StackServices": {
+            "service_name": "KERBEROS",
+          },
+        },
       ],
       "configurations": configurations,
       "changed-configurations": [ ]
@@ -5404,6 +5409,11 @@ def test_recommendAtlasConfigurations(self):
             }
           ]
         },
+        {
+          "StackServices": {
+            "service_name": "KERBEROS",
+          },
+        },
       ],
       "configurations": configurations,
       "changed-configurations": [ ]
@@ -5455,6 +5465,7 @@ def test_recommendAtlasConfigurations(self):
 
     self.assertTrue('core-site' in configurations)
     self.assertTrue('properties' in configurations['core-site'])
+    self.assertTrue('hadoop.proxyuser.HTTP.hosts' in configurations['core-site']['properties'])
     # Avoid an unnecessary sort in the stack advisor, sort here for easy comparison
     actualHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
     expectedHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
@@ -5524,6 +5535,11 @@ def test_recommendAtlasConfigurations(self):
               }
             }
           ]
+        },
+        {
+          "StackServices": {
+            "service_name": "KERBEROS",
+          },
         },
       ],
       "configurations": configurations,
