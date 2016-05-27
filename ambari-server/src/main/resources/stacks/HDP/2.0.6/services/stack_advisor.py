@@ -115,6 +115,33 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         config[configType]["properties"][key] = str(value)
     return appendProperty
 
+  def updateProperty(self, config, configType, services=None):
+    userConfigs = {}
+    changedConfigs = []
+    # if services parameter, prefer values, set by user
+    if services:
+      if 'configurations' in services.keys():
+        userConfigs = services['configurations']
+      if 'changed-configurations' in services.keys():
+        changedConfigs = services["changed-configurations"]
+
+    if configType not in config:
+      config[configType] = {}
+    if"properties" not in config[configType]:
+      config[configType]["properties"] = {}
+    def updatePropertyWithCallback(key, value, callback):
+      # If property exists in changedConfigs, do not override, use user defined property
+      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
+        config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
+      else:
+        # Give the callback an empty string if the mapping doesn't exist
+        current_value = ""
+        if key in config[configType]["properties"]:
+          current_value = config[configType]["properties"][key]
+        
+        config[configType]["properties"][key] = callback(current_value, value)
+    return updatePropertyWithCallback
+
   def __isPropertyInChangedConfigs(self, configType, propertyName, changedConfigs):
     for changedConfig in changedConfigs:
       if changedConfig['type']==configType and changedConfig['name']==propertyName:

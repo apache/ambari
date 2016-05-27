@@ -195,12 +195,42 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
+    appendCoreSiteProperty = self.updateProperty(configurations, "core-site", services)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     if 'KERBEROS' in servicesList:
       putHbaseSiteProperty('hbase.master.ui.readonly', 'true')
+
+      phoenix_query_server_hosts = self.get_phoenix_query_server_hosts(services, hosts)
+      if phoenix_query_server_hosts:
+        # The PQS hosts we want to ensure are set
+        new_value = ','.join(phoenix_query_server_hosts)
+        # Compute the unique set of hosts for the property
+        def updateCallback(originalValue, newValue):
+          # Only update the original value if it's not whitespace only
+          if originalValue and not originalValue.isspace():
+            hosts = originalValue.split(',')
+            # Add in the new hosts if we have some
+            if newValue and not newValue.isspace():
+              hosts.extend(newValue.split(','))
+            # Return the combined (unique) list of hosts
+            return ','.join(set(hosts))
+          else:
+            return newValue
+        # Update the proxyuser setting, deferring to out callback to merge results together
+        appendCoreSiteProperty('hadoop.proxyuser.HTTP.hosts', new_value, updateCallback)
     else:
       putHbaseSiteProperty('hbase.master.ui.readonly', 'false')
+
+  """
+  Returns the list of Phoenix Query Server host names, or None.
+  """
+  def get_phoenix_query_server_hosts(self, services, hosts):
+    if len(hosts['items']) > 0:
+      phoenix_query_server_hosts = self.getHostsWithComponent("HBASE", "PHOENIX_QUERY_SERVER", services, hosts)
+      assert (phoenix_query_server_hosts is not None), "Information about PHOENIX_QUERY_SERVER not found in cluster."
+      host_names = []
+      return [host['Hosts']['host_name'] for host in phoenix_query_server_hosts]
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
@@ -550,7 +580,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       node_manager_hosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
       assert (node_manager_hosts is not None), "Information about NODEMANAGER not found in cluster."
       return node_manager_hosts
-
 
   """
   Returns the current LLAP queue capacity percentage value. (llap_queue_capacity)

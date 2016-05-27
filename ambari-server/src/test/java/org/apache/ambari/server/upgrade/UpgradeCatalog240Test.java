@@ -25,6 +25,7 @@ import junit.framework.Assert;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 
@@ -84,10 +85,15 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.view.DefaultMasker;
 import org.apache.ambari.view.ClusterType;
@@ -482,6 +488,8 @@ public class UpgradeCatalog240Test {
     Method createRolePrincipals = UpgradeCatalog240.class.getDeclaredMethod("createRolePrincipals");
     Method updateHDFSWidget = UpgradeCatalog240.class.getDeclaredMethod("updateHDFSWidgetDefinition");
     Method upgradeCapSchedulerView = UpgradeCatalog240.class.getDeclaredMethod("upgradeCapSchedulerView");
+    Method updatePhoenixConfigs = UpgradeCatalog240.class.getDeclaredMethod("updatePhoenixConfigs");
+    Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -513,6 +521,8 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(createRolePrincipals)
             .addMockedMethod(updateHDFSWidget)
             .addMockedMethod(upgradeCapSchedulerView)
+            .addMockedMethod(updatePhoenixConfigs)
+            .addMockedMethod(updateKerberosDescriptorArtifacts)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -539,6 +549,8 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateClusterInheritedPermissionsConfig();
     upgradeCatalog240.updateHDFSWidgetDefinition();
     upgradeCatalog240.upgradeCapSchedulerView();
+    upgradeCatalog240.updatePhoenixConfigs();
+    upgradeCatalog240.updateKerberosDescriptorArtifacts();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -1623,6 +1635,86 @@ public class UpgradeCatalog240Test {
     assertEquals(password, clusterEntityCapture.getValue().getPassword());
 
     verify(clusterDAO, instanceDAO, instance1);
+  }
+
+  @Test
+  public void testPhoenixQueryServerKerberosUpdateConfigs() throws Exception{
+    // Tests that we switch from the HBase service principal and keytab to the SPNEGO service principal and keytab.
+    final String spnegoPrincipal = "HTTP/_HOST@EXAMPLE.COM";
+    final String spnegoKeytab = "/etc/security/keytabs/spnego.service.keytab";
+    final Map<String, String> oldPqsProperties = new HashMap<>();
+    oldPqsProperties.put("phoenix.queryserver.kerberos.principal", "hbase/_HOST@EXAMPLE.COM");
+    oldPqsProperties.put("phoenix.queryserver.keytab.file", "/etc/security/keytabs/hbase.service.keytab");
+    final Map<String, String> newPqsProperties = new HashMap<String, String>();
+    newPqsProperties.put("phoenix.queryserver.kerberos.principal", spnegoPrincipal);
+    newPqsProperties.put("phoenix.queryserver.keytab.file", spnegoKeytab);
+
+    final EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    // Set up all of the injected mocks to trigger the upgrade scenario
+    AmbariManagementController controller = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    KerberosDescriptor kerberosDescriptor = easyMockSupport.createNiceMock(KerberosDescriptor.class);
+    KerberosIdentityDescriptor kerberosIdentityDescriptor = easyMockSupport.createNiceMock(KerberosIdentityDescriptor.class);
+    KerberosPrincipalDescriptor principalDescriptor = easyMockSupport.createNiceMock(KerberosPrincipalDescriptor.class);
+    KerberosKeytabDescriptor keytabDescriptor = easyMockSupport.createNiceMock(KerberosKeytabDescriptor.class);
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockHbaseSite = easyMockSupport.createNiceMock(Config.class);
+    // HBase and Kerberos are both "installed"
+    final Map<String, Service> mockServices = new HashMap<>();
+    mockServices.put("HBASE", null);
+    final StackId stackId = new StackId("HDP-2.5");
+
+    expect(controller.getClusters()).andReturn(clusters).once();
+    expect(clusters.getClusters()).andReturn(Collections.singletonMap("normal", cluster)).once();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+    expect(cluster.getServices()).andReturn(mockServices).once();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getDesiredConfigByType(UpgradeCatalog240.HBASE_SITE_CONFIG)).andReturn(mockHbaseSite).atLeastOnce();
+    expect(mockHbaseSite.getProperties()).andReturn(oldPqsProperties).anyTimes();
+
+    // Stub out the KerberosDescriptor down to the Principal and Keytab Descriptors
+    expect(kerberosDescriptor.getIdentity("spnego")).andReturn(kerberosIdentityDescriptor).once();
+    expect(kerberosIdentityDescriptor.getPrincipalDescriptor()).andReturn(principalDescriptor).anyTimes();
+    expect(kerberosIdentityDescriptor.getKeytabDescriptor()).andReturn(keytabDescriptor).anyTimes();
+    expect(principalDescriptor.getValue()).andReturn(spnegoPrincipal).anyTimes();
+    expect(keytabDescriptor.getFile()).andReturn(spnegoKeytab).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+
+    easyMockSupport.replayAll();
+
+    UpgradeCatalog240 upgradeCatalog240 = createMockBuilder(UpgradeCatalog240.class)
+        .withConstructor(Injector.class)
+        .withArgs(injector)
+        .addMockedMethod("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class)
+        .addMockedMethod("getKerberosDescriptor", Cluster.class)
+        .createMock();
+
+    expect(upgradeCatalog240.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).once();
+
+    upgradeCatalog240.updateConfigurationProperties(UpgradeCatalog240.HBASE_SITE_CONFIG, newPqsProperties, true, false);
+    expectLastCall().once();
+
+    replay(upgradeCatalog240);
+
+    // Expected that we see the configuration updates fire
+    upgradeCatalog240.updatePhoenixConfigs();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testStackIdVersion() {
+    final EasyMockSupport easyMockSupport = new EasyMockSupport();
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    UpgradeCatalog240 upgradeCatalog240 = new UpgradeCatalog240(injector);
+
+    assertFalse(upgradeCatalog240.isAtLeastHdp25(new StackId("HDP-2.3")));
+    assertFalse(upgradeCatalog240.isAtLeastHdp25(new StackId("HDP-2.4")));
+    assertTrue(upgradeCatalog240.isAtLeastHdp25(new StackId("HDP-2.5")));
+    assertTrue(upgradeCatalog240.isAtLeastHdp25(new StackId("HDP-2.6")));
+    assertFalse(upgradeCatalog240.isAtLeastHdp25(new StackId("SOMETHINGELSE-1.4")));
   }
 }
 
