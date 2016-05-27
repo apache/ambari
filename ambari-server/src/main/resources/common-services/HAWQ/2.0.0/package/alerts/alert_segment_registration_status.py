@@ -28,6 +28,7 @@ HAWQ_HOME='/usr/local/hawq'
 HAWQ_GREENPLUM_PATH_FILE = "{0}/greenplum_path.sh".format(HAWQ_HOME)
 HAWQ_SLAVES_FILE= "{0}/etc/slaves".format(HAWQ_HOME)
 HAWQMASTER_PORT = '{{hawq-site/hawq_master_address_port}}'
+POSTGRES = 'postgres'
 
 RESULT_STATE_OK = 'OK'
 RESULT_STATE_WARNING = 'WARNING'
@@ -94,7 +95,7 @@ def get_segment_list_db(port):
   """
   logger.debug("Fetching segment list from HAWQ Master Database.")
   query = " SELECT hostname FROM gp_segment_configuration where role = 'p' and status = 'u' "
-  cmd = "source {0} && psql -p {1} -t -d template1 -c \"{2};\"".format(HAWQ_GREENPLUM_PATH_FILE, port, query)
+  cmd = "source {0} && psql -p {1} -t -d {2} -c \"{3};\"".format(HAWQ_GREENPLUM_PATH_FILE, port, POSTGRES, query)
  
   returncode, command_output = call(cmd, user=HAWQ_USER, timeout=60)
   if returncode:

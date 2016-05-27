@@ -87,7 +87,7 @@ def exec_ssh_cmd(hostname, cmd):
   return process.returncode, stdout, stderr
 
 
-def exec_psql_cmd(command, host, port, db="template1", tuples_only=True):
+def exec_psql_cmd(command, host, port, db=hawq_constants.POSTGRES, tuples_only=True):
   """
   Sets up execution environment and runs the HAWQ queries
   """

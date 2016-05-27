@@ -23,6 +23,7 @@ from resource_management.core.shell import call
 
 HAWQ_USER = 'gpadmin'
 HAWQ_GREENPLUM_PATH_FILE = '/usr/local/hawq/greenplum_path.sh'
+POSTGRES = 'postgres'
 
 HAWQMASTER_PORT = '{{hawq-site/hawq_master_address_port}}'
 HAWQSTANDBY_ADDRESS = '{{hawq-site/hawq_standby_address_host}}'
@@ -81,7 +82,7 @@ def get_sync_status(port):
   """
   
   query = "SELECT summary_state, error_message FROM gp_master_mirroring"
-  cmd = "source {0} && psql -p {1} -t --no-align -d template1 -c \"{2};\"".format(HAWQ_GREENPLUM_PATH_FILE, port, query)
+  cmd = "source {0} && psql -p {1} -t --no-align -d {2} -c \"{3};\"".format(HAWQ_GREENPLUM_PATH_FILE, port, POSTGRES, query)
 
   returncode, output = call(cmd, user=HAWQ_USER, timeout=60)
 
