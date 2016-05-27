@@ -915,4 +915,58 @@ describe('App.config', function () {
     });
 
   });
+
+  describe('#parseIdentities', function() {
+    var testObject = {
+      identities: [
+        {
+          name: "/spnego"
+        },
+        {
+          principal: {
+            configuration: "hbase-env/hbase_principal_name",
+            type: "user",
+            local_username: "${hbase-env/hbase_user}",
+            value: "${hbase-env/hbase_user}-${cluster_name|toLower()}@${realm}"
+          },
+          name: "hbase",
+          keytab: {
+            owner: {
+              access: "r",
+              name: "${hbase-env/hbase_user}"
+            },
+            file: "${keytab_dir}/hbase.headless.keytab",
+            configuration: "hbase-env/hbase_user_keytab",
+            group: {
+              access: "r",
+              name: "${cluster-env/user_group}"
+            }
+          }
+        },
+        {
+          name: "/smokeuser"
+        }
+      ]
+    };
+    var result = {
+      "hbase_principal_name__hbase-env": true,
+      "hbase_user_keytab__hbase-env": true
+    };
+
+    it('generates map with identities', function() {
+      expect(App.config.parseIdentities(testObject, {})).to.eql(result);
+    });
+  });
+
+  describe('#kerberosIdentitiesDescription', function () {
+    it('update description for identities (without dot)', function() {
+      expect(App.config.kerberosIdentitiesDescription('some text')).to.eql('some text.'
+        + Em.I18n.t('services.service.config.secure.additionalDescription'));
+    });
+
+    it('update description for identities (with dot)', function() {
+      expect(App.config.kerberosIdentitiesDescription('some text.')).to.eql('some text.'
+        + Em.I18n.t('services.service.config.secure.additionalDescription'));
+    });
+  });
 });
