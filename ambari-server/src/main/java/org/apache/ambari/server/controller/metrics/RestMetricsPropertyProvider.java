@@ -19,12 +19,15 @@
 
 package org.apache.ambari.server.controller.metrics;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
@@ -36,35 +39,38 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
- * WARNING: Class should be thread-safe!
+ * Resolves metrics like api/cluster/summary/nimbus.uptime For every metric,
+ * finds a relevant JSON value and returns it as a resource property.
  * <p/>
- * Resolves metrics like api/cluster/summary/nimbus.uptime
- * For every metric, finds a relevant JSON value and returns is as
- * a resource property.
+ * This class will delegate responsibility for actually retrieving JSON data
+ * from a remote URL to the {@link MetricsRetrievalService}. It will also
+ * leverage the {@link MetricsRetrievalService} to provide cached {@link Map}
+ * instances for given URLs.
+ * <p/>
+ * This is because the REST API workflow will attempt to read data from this
+ * provider during the context of a live Jetty thread. As a result, any attempt
+ * to read remote resources will cause a delay in returning a response code. On
+ * small clusters this mormally isn't a problem. However, as the cluster
+ * increases in size, the thread pool would not be able to keep pace and would
+ * eventually cause REST API request threads to wait while remote JSON data is
+ * retrieved.
  */
 public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
   protected final static Logger LOG =
       LoggerFactory.getLogger(RestMetricsPropertyProvider.class);
-
-  private static Map<String, RestMetricsPropertyProvider> instances =
-      new Hashtable<String, RestMetricsPropertyProvider>();
 
   @Inject
   private AmbariManagementController amc;
@@ -72,12 +78,24 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
   @Inject
   private Clusters clusters;
 
+  /**
+   * Used to parse the REST JSON metrics.
+   */
+  @Inject
+  private Gson gson;
+
+  /**
+   * Used to submit asynchronous requests for remote metrics as well as querying
+   * cached metrics.
+   */
+  @Inject
+  private MetricsRetrievalService metricsRetrievalService;
+
   private final Map<String, String> metricsProperties;
   private final StreamProvider streamProvider;
   private final String clusterNamePropertyId;
   private final String componentNamePropertyId;
   private final String statePropertyId;
-  private MetricHostProvider metricHostProvider;
   private final String componentName;
 
   private static final String DEFAULT_PORT_PROPERTY = "default_port";
@@ -116,26 +134,23 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
    * @param componentNamePropertyId the component name property id
    * @param statePropertyId         the state property id
    */
-  public RestMetricsPropertyProvider(
-    Injector injector,
-    Map<String, String> metricsProperties,
-    Map<String, Map<String, PropertyInfo>> componentMetrics,
-    StreamProvider streamProvider,
-    MetricHostProvider metricHostProvider,
-    String clusterNamePropertyId,
-    String hostNamePropertyId,
-    String componentNamePropertyId,
-    String statePropertyId,
-    String componentName){
-
+  @AssistedInject
+  RestMetricsPropertyProvider(
+      @Assisted("metricsProperties") Map<String, String> metricsProperties,
+      @Assisted("componentMetrics") Map<String, Map<String, PropertyInfo>> componentMetrics,
+      @Assisted("streamProvider") StreamProvider streamProvider,
+      @Assisted("metricHostProvider") MetricHostProvider metricHostProvider,
+      @Assisted("clusterNamePropertyId") String clusterNamePropertyId,
+      @Assisted("hostNamePropertyId") @Nullable String hostNamePropertyId,
+      @Assisted("componentNamePropertyId") String componentNamePropertyId,
+      @Assisted("statePropertyId") @Nullable String statePropertyId,
+      @Assisted("componentName") @Nullable String componentName) {
     super(componentMetrics, hostNamePropertyId, metricHostProvider, clusterNamePropertyId);
     this.metricsProperties = metricsProperties;
     this.streamProvider = streamProvider;
     this.clusterNamePropertyId = clusterNamePropertyId;
     this.componentNamePropertyId = componentNamePropertyId;
     this.statePropertyId = statePropertyId;
-    this.metricHostProvider = metricHostProvider;
-    injector.injectMembers(this);
     this.componentName = componentName;
   }
 
@@ -223,24 +238,28 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
     HashMap<String, Set<String>> urls = extractPropertyURLs(resultIds, propertyInfos);
 
     for (String url : urls.keySet()) {
-      String spec = null;
+      String spec = getSpec(protocol, hostname, port, url);
+
+      // always submit a request to cache the latest data
+      metricsRetrievalService.submitRESTRequest(streamProvider, spec);
+
+      // check to see if there is a cached value and use it if there is
+      Map<String, String> jsonMap = metricsRetrievalService.getCachedRESTMetric(spec);
+      if (null == jsonMap) {
+        return resource;
+      }
+
+      if (!ticket.isValid()) {
+        return resource;
+      }
+
       try {
-        spec = getSpec(protocol, hostname, port, url);
-        InputStream in = streamProvider.readFrom(spec);
-        if (!ticket.isValid()) {
-          if (in != null) {
-            in.close();
-          }
-          return resource;
-        }       
-        try {
-          extractValuesFromJSON(in, urls.get(url), resource, propertyInfos);
-        } finally {
-            in.close();
-          }
-      } catch (IOException e) {
-        AmbariException detailedException = new AmbariException(
-            String.format("Unable to get REST metrics from the host %s for the component %s. Spec: %s", hostname, resourceComponentName, spec), e);
+        extractValuesFromJSON(jsonMap, urls.get(url), resource, propertyInfos);
+      } catch (AmbariException ambariException) {
+        AmbariException detailedException = new AmbariException(String.format(
+            "Unable to get REST metrics from the for %s at $s", resourceComponentName, spec),
+            ambariException);
+
         logException(detailedException);
       }
     }
@@ -418,25 +437,17 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
 
 
   /**
-   * Extracts requested properties from a given JSON input stream into
-   * resource.
+   * Extracts requested properties from a parsed {@link Map} of {@link String}.
    *
-   * @param jsonStream           input stream that contains JSON
-   * @param requestedPropertyIds a set of property IDs
-   *                             that should be fetched for this URL
-   * @param resource             all extracted values are placed into resource
+   * @param requestedPropertyIds
+   *          a set of property IDs that should be fetched for this URL
+   * @param resource
+   *          all extracted values are placed into resource
    */
-  private void extractValuesFromJSON(InputStream jsonStream,
-                                     Set<String> requestedPropertyIds,
-                                     Resource resource,
-                                     Map<String, PropertyInfo> propertyInfos)
-      throws IOException {
-    Gson gson = new Gson();
-    Type type = new TypeToken<Map<Object, Object>>() {
-    }.getType();
-    JsonReader jsonReader = new JsonReader(
-        new BufferedReader(new InputStreamReader(jsonStream)));
-    Map<String, String> jsonMap = gson.fromJson(jsonReader, type);
+  private void extractValuesFromJSON(Map<String, String> jsonMap,
+      Set<String> requestedPropertyIds, Resource resource, Map<String, PropertyInfo> propertyInfos)
+      throws AmbariException {
+    Type type = new TypeToken<Map<Object, Object>>() {}.getType();
     for (String requestedPropertyId : requestedPropertyIds) {
       PropertyInfo propertyInfo = propertyInfos.get(requestedPropertyId);
       String metricsPath = propertyInfo.getPropertyId();
@@ -450,7 +461,8 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
               "Can not fetch %dth element of document path (%s) " +
                   "from json. Wrong metrics path: %s",
               i, pathElement, metricsPath);
-          throw new IOException(message);
+
+          throw new AmbariException(message);
         }
         Object jsonSubElement = jsonMap.get(pathElement);
         if (i == docPath.length - 1) { // Reached target document section

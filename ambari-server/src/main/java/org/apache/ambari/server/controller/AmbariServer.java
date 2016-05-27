@@ -166,6 +166,16 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
 
+  /**
+   * The thread name prefix for threads handling agent requests.
+   */
+  private static final String AGENT_THREAD_POOL_NAME = "ambari-agent-thread";
+
+  /**
+   * The thread name prefix for threads handling REST API requests.
+   */
+  private static final String CLIENT_THREAD_POOL_NAME = "ambari-client-thread";
+
   // Set velocity logger
   protected static final String VELOCITY_LOG_CATEGORY = "VelocityLogger";
 
@@ -458,7 +468,7 @@ public class AmbariServer {
 
         // Agent Jetty thread pool
         configureJettyThreadPool(serverForAgent, sslConnectorOneWay.getAcceptors(),
-            "qtp-ambari-agent", configs.getAgentThreadPoolSize());
+            AGENT_THREAD_POOL_NAME, configs.getAgentThreadPoolSize());
 
         serverForAgent.addConnector(sslConnectorOneWay);
         serverForAgent.addConnector(sslConnectorTwoWay);
@@ -468,7 +478,7 @@ public class AmbariServer {
         agentConnector.setIdleTimeout(configs.getConnectionMaxIdleTime());
 
         // Agent Jetty thread pool
-        configureJettyThreadPool(serverForAgent, agentConnector.getAcceptors(), "qtp-ambari-agent",
+        configureJettyThreadPool(serverForAgent, agentConnector.getAcceptors(), AGENT_THREAD_POOL_NAME,
             configs.getAgentThreadPoolSize());
 
         serverForAgent.addConnector(agentConnector);
@@ -575,7 +585,7 @@ public class AmbariServer {
       }
 
       // Client Jetty thread pool
-      configureJettyThreadPool(server, apiConnector.getAcceptors(), "qtp-ambari-client", configs.getClientThreadPoolSize());
+      configureJettyThreadPool(server, apiConnector.getAcceptors(), CLIENT_THREAD_POOL_NAME, configs.getClientThreadPoolSize());
       server.addConnector(apiConnector);
 
       server.setStopAtShutdown(true);

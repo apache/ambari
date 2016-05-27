@@ -18,8 +18,18 @@
 
 package org.apache.ambari.server.controller.metrics;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -44,8 +54,10 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
+import org.apache.ambari.server.utils.SynchronousThreadPoolExecutor;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
@@ -53,18 +65,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 /**
@@ -112,6 +114,12 @@ public class RestMetricsPropertyProviderTest {
     c1 = clusters.getCluster("c1");
     JMXPropertyProvider.init(injector.getInstance(Configuration.class));
 
+    MetricsRetrievalService metricsRetrievalService = injector.getInstance(
+        MetricsRetrievalService.class);
+
+    metricsRetrievalService.start();
+    metricsRetrievalService.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
+
     // Setting up Mocks for Controller, Clusters etc, queried as part of user's Role context
     // while fetching Metrics.
     amc = createNiceMock(AmbariManagementController.class);
@@ -134,8 +142,8 @@ public class RestMetricsPropertyProviderTest {
       HashMap<String, Map<String, PropertyInfo>> componentMetrics, StreamProvider streamProvider,
       TestMetricsHostProvider metricsHostProvider) throws Exception {
 
-    RestMetricsPropertyProvider restMetricsPropertyProvider = new RestMetricsPropertyProvider(
-        injector,
+    MetricPropertyProviderFactory factory = injector.getInstance(MetricPropertyProviderFactory.class);
+    RestMetricsPropertyProvider restMetricsPropertyProvider = factory.createRESTMetricsPropertyProvider(
         metricDefinition.getProperties(),
         componentMetrics,
         streamProvider,

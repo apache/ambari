@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -48,6 +50,7 @@ import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
+import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.Parallel;
@@ -566,10 +569,20 @@ public class Configuration {
   private static final int VIEW_REQUEST_THREADPOOL_TIMEOUT_DEFAULT = 2000;
 
 
+  /**
+   * Threadpool sizing based on the number of available processors multiplied by 2.
+   */
+  public static final int PROCESSOR_BASED_THREADPOOL_CORE_SIZE_DEFAULT = 2 * Runtime.getRuntime().availableProcessors();
+
+  /**
+   * Threadpool sizing based on the number of available processors multiplied by 4.
+   */
+  public static final int PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT = 4 * Runtime.getRuntime().availableProcessors();
+
   public static final String PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY = "server.property-provider.threadpool.size.max";
-  public static final int PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_DEFAULT = 4 * Runtime.getRuntime().availableProcessors();
   public static final String PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_KEY = "server.property-provider.threadpool.size.core";
-  public static final int PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_DEFAULT = 2 * Runtime.getRuntime().availableProcessors();
+  public static final String PROPERTY_PROVIDER_THREADPOOL_WORKER_QUEUE_SIZE = "server.property-provider.threadpool.worker.size";
+  public static final String PROPERTY_PROVIDER_THREADPOOL_COMPLETION_TIMEOUT = "server.property-provider.threadpool.completion.timeout";
 
   private static final String SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = "server.http.session.inactive_timeout";
 
@@ -719,6 +732,39 @@ public class Configuration {
   private static final int AUDIT_LOGGER_CAPACITY_DEFAULT = 10000;
 
   public static final String ALERTS_SNMP_DISPATCH_UDP_PORT = "alerts.snmp.dispatcher.udp.port";
+
+  /**
+   * The amount of time that the {@link MetricsRetrievalService} will cache
+   * retrieved metric data.
+   */
+  public static final String METRIC_RETRIEVAL_SERVICE_CACHE_TIMEOUT = "metrics.retrieval-service.cache.timeout";
+
+  /**
+   * The priorty of the {@link Thread}s used by the
+   * {@link MetricsRetrievalService}. This is a value in between
+   * {@link Thread#MIN_PRIORITY} and {@link Thread#MAX_PRIORITY}.
+   */
+  public static final String METRIC_RETRIEVAL_SERVICE_THREAD_PRIORITY = "server.metrics.retrieval-service.thread.priority";
+
+  /**
+   * The maximum size of the threadpool for the {@link MetricsRetrievalService}.
+   * This value is only applicable if the
+   * {@link #METRIC_RETRIEVAL_SERVICE_THREADPOOL_WORKER_QUEUE_SIZE} is small
+   * enough to trigger the {@link ThreadPoolExecutor} to create new threads.
+   */
+  public static final String METRIC_RETRIEVAL_SERVICE_THREADPOOL_MAX_SIZE = "server.metrics.retrieval-service.threadpool.size.max";
+
+  /**
+   * The core size of the threadpool for the {@link MetricsRetrievalService}.
+   */
+  public static final String METRIC_RETRIEVAL_SERVICE_THREADPOOL_CORE_SIZE = "server.metrics.retrieval-service.threadpool.size.core";
+
+  /**
+   * The size of the worker queue for the {@link MetricsRetrievalService}. The
+   * larger this queue is, the less likely it will be to create more threads
+   * beyond the core size.
+   */
+  public static final String METRIC_RETRIEVAL_SERVICE_THREADPOOL_WORKER_QUEUE_SIZE = "server.metrics.retrieval-service.threadpool.worker.size";
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -2465,7 +2511,7 @@ public class Configuration {
    */
   public int getPropertyProvidersThreadPoolCoreSize() {
     return Integer.parseInt(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_KEY,
-      String.valueOf(PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_DEFAULT)));
+        String.valueOf(PROCESSOR_BASED_THREADPOOL_CORE_SIZE_DEFAULT)));
   }
 
   /**
@@ -2475,7 +2521,31 @@ public class Configuration {
    */
   public int getPropertyProvidersThreadPoolMaxSize() {
     return Integer.parseInt(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY,
-      String.valueOf(PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_DEFAULT)));
+        String.valueOf(PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Get property-providers' worker queue size. This will return
+   * {@link Integer#MAX_VALUE} if not specified which will allow an unbounded
+   * queue and essentially a fixed core threadpool size.
+   *
+   * @return the property-providers' worker queue size.
+   */
+  public int getPropertyProvidersWorkerQueueSize() {
+    return Integer.parseInt(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_WORKER_QUEUE_SIZE,
+        String.valueOf(Integer.MAX_VALUE)));
+  }
+
+  /**
+   * Get property-providers' timeout value in milliseconds for waiting on the
+   * completion of submitted {@link Callable}s. This will return {@value 5000}
+   * if not specified.
+   *
+   * @return the property-providers' completion srevice timeout, in millis.
+   */
+  public long getPropertyProvidersCompletionServiceTimeout() {
+    return Long.parseLong(properties.getProperty(PROPERTY_PROVIDER_THREADPOOL_COMPLETION_TIMEOUT,
+        String.valueOf(5000)));
   }
 
   /**
@@ -3037,4 +3107,80 @@ public class Configuration {
   public boolean isLdapAlternateUserSearchEnabled() {
     return Boolean.parseBoolean(properties.getProperty(LDAP_ALT_USER_SEARCH_ENABLED_KEY, LDAP_ALT_USER_SEARCH_ENABLED_DEFAULT));
   }
+
+  /**
+   * Gets the number of minutes that data cached by the
+   * {@link MetricsRetrievalService} is kept. The longer this value is, the
+   * older the data will be when a user first logs in. After that first login,
+   * data will be updated by the {@link MetricsRetrievalService} as long as
+   * incoming REST requests are made.
+   * <p/>
+   * It is recommended that this value be longer rather than shorter since the
+   * performance benefit of the cache greatly outweighs the data loaded after
+   * first login.
+   *
+   * @return the number of minutes, defaulting to 30 if not specified.
+   */
+  public int getMetricsServiceCacheTimeout() {
+    return Integer.parseInt(properties.getProperty(METRIC_RETRIEVAL_SERVICE_CACHE_TIMEOUT, "30"));
+  }
+
+  /**
+   * Gets the priority of the {@link Thread}s used by the
+   * {@link MetricsRetrievalService}. This will be a value within the range of
+   * {@link Thread#MIN_PRIORITY} and {@link Thread#MAX_PRIORITY}.
+   *
+   * @return the thread proprity.
+   */
+  public int getMetricsServiceThreadPriority() {
+    int priority = Integer.parseInt(properties.getProperty(METRIC_RETRIEVAL_SERVICE_THREAD_PRIORITY,
+        String.valueOf(Thread.NORM_PRIORITY)));
+
+    if (priority < Thread.MIN_PRIORITY || priority > Thread.MAX_PRIORITY) {
+      priority = Thread.NORM_PRIORITY;
+    }
+
+    return priority;
+  }
+
+  /**
+   * Gets the core pool size used for the {@link MetricsRetrievalService}.
+   *
+   * @return the core pool size or
+   *         {@value #PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT} if not
+   *         specified.
+   */
+  public int getMetricsServiceThreadPoolCoreSize() {
+    return Integer.parseInt(properties.getProperty(METRIC_RETRIEVAL_SERVICE_THREADPOOL_CORE_SIZE,
+        String.valueOf(PROCESSOR_BASED_THREADPOOL_CORE_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Gets the max pool size used for the {@link MetricsRetrievalService}.
+   * Threads will only be increased up to this value of the worker queue is
+   * exhauseted and rejects the new task.
+   *
+   * @return the max pool size, or
+   *         {@value PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT} if not
+   *         specified.
+   * @see #getMetricsServiceWorkerQueueSize()
+   */
+  public int getMetricsServiceThreadPoolMaxSize() {
+    return Integer.parseInt(properties.getProperty(METRIC_RETRIEVAL_SERVICE_THREADPOOL_MAX_SIZE,
+        String.valueOf(PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT)));
+  }
+
+  /**
+   * Gets the queue size of the worker queue for the
+   * {@link MetricsRetrievalService}.
+   *
+   * @return the worker queue size, or {@code 10 *}
+   *         {@link #getMetricsServiceThreadPoolMaxSize()} if not specified.
+   */
+  public int getMetricsServiceWorkerQueueSize() {
+    return Integer.parseInt(
+        properties.getProperty(METRIC_RETRIEVAL_SERVICE_THREADPOOL_WORKER_QUEUE_SIZE,
+            String.valueOf(10 * getMetricsServiceThreadPoolMaxSize())));
+  }
+
 }

@@ -18,23 +18,7 @@
 
 package org.apache.ambari.server.controller.jmx;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.metrics.MetricHostProvider;
-import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.codehaus.jackson.type.TypeReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,17 +29,60 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.state.services.MetricsRetrievalService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+
 /**
- * Property provider implementation for JMX sources.
+ * The {@link JMXPropertyProvider} is used to retrieve JMX metrics from a given
+ * {@link Request}. This class will delegate responsibility for actually
+ * retrieving JMX data from a remote URL to the {@link MetricsRetrievalService}.
+ * It will also leverage the {@link MetricsRetrievalService} to provide cached
+ * {@link JMXMetricHolder} instances for given URLs.
+ * <p/>
+ * This is because the REST API workflow will attempt to read data from this
+ * provider during the context of a live Jetty thread. As a result, any attempt
+ * to read remote resources will cause a delay in returning a response code. On
+ * small clusters this mormally isn't a problem. However, as the cluster
+ * increases in size, the thread pool would not be able to keep pace and would
+ * eventually cause REST API request threads to wait while remote JMX data is
+ * retrieved.
+ * <p/>
+ * In general, this type of federated data collection is a poor design. Even
+ * with a large enough threadpool there are simple use cases where the model
+ * breaks down:
+ * <ul>
+ * <li>Concurrent users logged in, each creating their own requests and
+ * exhausting the threadpool
+ * <li>Misbehaving JMX endpoints which don't respond in a timely manner
+ * </ul>
+ * <p/>
+ * For these reasons the {@link JMXPropertyProvider} will use a completely
+ * asynchronous model through the {@link MetricsRetrievalService}. It should be
+ * noted that this provider is still an instance of a
+ * {@link ThreadPoolEnabledPropertyProvider} due to the nature of how the cached
+ * {@link JMXMetricHolder} instances need to be looped over an parsed.
  */
 public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
   private static final String NAME_KEY = "name";
   private static final String PORT_KEY = "tag.port";
   private static final String DOT_REPLACEMENT_CHAR = "#";
-
-  private final static ObjectReader jmxObjectReader;
-  private final static ObjectReader stormObjectReader;
 
   private static final Map<String, String> DEFAULT_JMX_PORTS = new HashMap<String, String>();
 
@@ -69,16 +96,6 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     DEFAULT_JMX_PORTS.put("NODEMANAGER",         "8042");
     DEFAULT_JMX_PORTS.put("JOURNALNODE",         "8480");
     DEFAULT_JMX_PORTS.put("STORM_REST_API",      "8745");
-
-    ObjectMapper jmxObjectMapper = new ObjectMapper();
-    jmxObjectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);
-    jmxObjectReader = jmxObjectMapper.reader(JMXMetricHolder.class);
-
-    TypeReference<HashMap<String,Object>> typeRef
-            = new TypeReference<
-            HashMap<String,Object>
-            >() {};
-    stormObjectReader = jmxObjectMapper.reader(typeRef);
   }
 
   protected final static Logger LOG =
@@ -101,6 +118,13 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
   private final Map<String, String> clusterComponentPortsMap;
 
+  /**
+   * Used to submit asynchronous requests for remote metrics as well as querying
+   * cached metrics.
+   */
+  @Inject
+  private MetricsRetrievalService metricsRetrievalService;
+
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -115,14 +139,16 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
    * @param componentNamePropertyId  the component name property id
    * @param statePropertyId          the state property id
    */
-  public JMXPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics,
-                             StreamProvider streamProvider,
-                             JMXHostProvider jmxHostProvider,
-                             MetricHostProvider metricHostProvider,
-                             String clusterNamePropertyId,
-                             String hostNamePropertyId,
-                             String componentNamePropertyId,
-                             String statePropertyId) {
+  @AssistedInject
+  JMXPropertyProvider(
+      @Assisted("componentMetrics") Map<String, Map<String, PropertyInfo>> componentMetrics,
+      @Assisted("streamProvider") StreamProvider streamProvider,
+      @Assisted("jmxHostProvider") JMXHostProvider jmxHostProvider,
+      @Assisted("metricHostProvider") MetricHostProvider metricHostProvider,
+      @Assisted("clusterNamePropertyId") String clusterNamePropertyId,
+      @Assisted("hostNamePropertyId") @Nullable String hostNamePropertyId,
+      @Assisted("componentNamePropertyId") String componentNamePropertyId,
+      @Assisted("statePropertyId") @Nullable String statePropertyId) {
 
     super(componentMetrics, hostNamePropertyId, metricHostProvider, clusterNamePropertyId);
 
@@ -132,7 +158,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     this.hostNamePropertyId       = hostNamePropertyId;
     this.componentNamePropertyId  = componentNamePropertyId;
     this.statePropertyId          = statePropertyId;
-    this.clusterComponentPortsMap = new HashMap<>();
+    clusterComponentPortsMap = new HashMap<>();
   }
 
   // ----- helper methods ----------------------------------------------------
@@ -174,6 +200,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
         unsupportedIds.add(id);
       }
     }
+
     ids.removeAll(unsupportedIds);
 
     if (ids.isEmpty()) {
@@ -205,53 +232,50 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
       return resource;
     }
 
-    InputStream in = null;
-
     String spec = null;
-    try {
+    for (String hostName : hostNames) {
       try {
-        for (String hostName : hostNames) {
-          try {
-            String port = getPort(clusterName, componentName, hostName, httpsEnabled);
-            if (port == null) {
-              LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
-              return resource;
-            }
-            spec = getSpec(protocol, hostName, port, "/jmx");
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Spec: " + spec);
-            }
-            in = streamProvider.readFrom(spec);
-            // if the ticket becomes invalid (timeout) then bail out
-            if (!ticket.isValid()) {
-              return resource;
-            }
-
-            getHadoopMetricValue(in, ids, resource, request, ticket);
-
-          } catch (IOException e) {
-            AmbariException detailedException = new AmbariException(
-                String.format("Unable to get JMX metrics from the host %s for the component %s. Spec: %s", hostName, componentName, spec), e);
-            logException(detailedException);
-          }
+        String port = getPort(clusterName, componentName, hostName, httpsEnabled);
+        if (port == null) {
+          LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
+          return resource;
         }
-      } finally {
-        if (in != null) {
-          in.close();
+
+        // build the URL
+        String jmxUrl = getSpec(protocol, hostName, port, "/jmx");
+
+        // always submit a request to cache the latest data
+        metricsRetrievalService.submitJMXRequest(streamProvider, jmxUrl);
+
+        // check to see if there is a cached value and use it if there is
+        JMXMetricHolder jmxMetricHolder = metricsRetrievalService.getCachedJMXMetric(jmxUrl);
+        if (null == jmxMetricHolder) {
+          return resource;
         }
+
+        // if the ticket becomes invalid (timeout) then bail out
+        if (!ticket.isValid()) {
+          return resource;
+        }
+
+        getHadoopMetricValue(jmxMetricHolder, ids, resource, request, ticket);
+
+      } catch (IOException e) {
+        AmbariException detailedException = new AmbariException(String.format(
+            "Unable to get JMX metrics from the host %s for the component %s. Spec: %s", hostName,
+            componentName, spec), e);
+        logException(detailedException);
       }
-    } catch (IOException e) {
-      logException(e);
     }
+
     return resource;
   }
 
   /**
    * Hadoop-specific metrics fetching
    */
-  private void getHadoopMetricValue(InputStream in, Set<String> ids,
+  private void getHadoopMetricValue(JMXMetricHolder metricHolder, Set<String> ids,
                        Resource resource, Request request, Ticket ticket) throws IOException {
-    JMXMetricHolder metricHolder = jmxObjectReader.readValue(in);
 
     Map<String, Map<String, Object>> categories = new HashMap<String, Map<String, Object>>();
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
@@ -377,7 +401,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
   private String getJMXProtocol(String clusterName, String componentName) {
     return jmxHostProvider.getJMXProtocol(clusterName, componentName);
   }
-  
+
   private Set<String> getHosts(Resource resource, String clusterName, String componentName) {
     return hostNamePropertyId == null ?
             jmxHostProvider.getHostNames(clusterName, componentName) :

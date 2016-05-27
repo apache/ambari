@@ -18,19 +18,6 @@
 
 package org.apache.ambari.server.controller.metrics;
 
-import com.google.common.base.Throwables;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
-import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
-import org.apache.ambari.server.controller.utilities.BufferedThreadPoolExecutorCompletionService;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,16 +26,56 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
+import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.utilities.BufferedThreadPoolExecutorCompletionService;
+import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
+
+import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Inject;
 
 /**
- * Unites common functionality for multithreaded metrics providers
- * (JMX and REST as of now). Shares the same pool of executor threads.
+ * Unites common functionality for multithreaded metrics providers (JMX and REST
+ * as of now). Shares the same pool of executor threads across all
+ * implementations.
+ * <p/>
+ * <b>This {@link PropertyProvider} should not be mistaken for a way to perform
+ * expensive operations, as it is still called as part of the incoming REST
+ * Jetty request.</b> It is poor design to have UI threads from the web client
+ * waiting on expensive operations from a {@link PropertyProvider}, even if they
+ * are spread across multiple threads.
+ * <p/>
+ * Instead, this {@link PropertyProvider} is useful for spreading many small,
+ * quick operations across a threadpool. This is why the known implementations
+ * of this class (such as the {@link JMXPropertyProvider}) use a cache instead
+ * of reaching out to network endpoints on their own.
+ * <p/>
+ * This is also why the {@link ThreadPoolExecutor} used here has an unbounded
+ * worker queue and essentially a fixed core size to perform its work. When
+ * {@link Callable}s are rejected because of a worker queue exhaustion, they are
+ * never submitted for execution, yet the {@link Future} instance is still
+ * returned. Therefore, if the queue is ever exhausted, incoming REST API
+ * requests must wait the entire {@link CompletionService#poll(long, TimeUnit)}
+ * timeout before skipping the result and returning control.
+ *
  */
 public abstract class ThreadPoolEnabledPropertyProvider extends AbstractPropertyProvider {
+
+  protected static Configuration configuration;
 
   /**
    * Host states that make available metrics collection
@@ -59,28 +86,23 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   private final String clusterNamePropertyId;
 
   /**
-   * Executor service is shared between all childs of current class
+   * Executor service is shared between all instances.
    */
   private static ThreadPoolExecutor EXECUTOR_SERVICE;
   private static int THREAD_POOL_CORE_SIZE;
   private static int THREAD_POOL_MAX_SIZE;
+  private static int THREAD_POOL_WORKER_QUEUE_SIZE;
+  private static long COMPLETION_SERVICE_POLL_TIMEOUT;
   private static final long THREAD_POOL_TIMEOUT_MILLIS = 30000L;
 
   @Inject
   public static void init(Configuration configuration) {
     THREAD_POOL_CORE_SIZE = configuration.getPropertyProvidersThreadPoolCoreSize();
     THREAD_POOL_MAX_SIZE = configuration.getPropertyProvidersThreadPoolMaxSize();
+    THREAD_POOL_WORKER_QUEUE_SIZE = configuration.getPropertyProvidersWorkerQueueSize();
+    COMPLETION_SERVICE_POLL_TIMEOUT = configuration.getPropertyProvidersCompletionServiceTimeout();
     EXECUTOR_SERVICE = initExecutorService();
   }
-
-  private static final long DEFAULT_POPULATE_TIMEOUT_MILLIS = 10000L;
-  /**
-   * The amount of time that this provider will wait for JMX metric values to be
-   * returned from the JMX sources.  If no results are returned for this amount of
-   * time then the request to populate the resources will fail.
-   */
-  protected long populateTimeout = DEFAULT_POPULATE_TIMEOUT_MILLIS;
-  public static final String TIMED_OUT_MSG = "Timed out waiting for metrics.";
 
   private static final Cache<String, Throwable> exceptionsCache = CacheBuilder.newBuilder()
           .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -114,8 +136,15 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
             THREAD_POOL_CORE_SIZE,
             THREAD_POOL_MAX_SIZE,
             THREAD_POOL_TIMEOUT_MILLIS,
-            TimeUnit.MILLISECONDS);
+            TimeUnit.MILLISECONDS,
+            THREAD_POOL_WORKER_QUEUE_SIZE);
     threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+    ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
+        "ambari-property-provider-thread-%d").build();
+
+    threadPoolExecutor.setThreadFactory(threadFactory);
+
     return threadPoolExecutor;
   }
 
@@ -128,36 +157,47 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
     if(!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
       return resources;
     }
-    // Get a valid ticket for the request.
-    Ticket ticket = new Ticket();
 
-    CompletionService<Resource> completionService =
+    // Get a valid ticket for the request.
+    final Ticket ticket = new Ticket();
+
+    // in most cases, the buffered completion service will not be utlized for
+    // its advantages since the worker queue is unbounded. However, if is
+    // configured with a boundary, then the buffered service ensures that no
+    // requests are discarded.
+    final CompletionService<Resource> completionService =
         new BufferedThreadPoolExecutorCompletionService<Resource>(EXECUTOR_SERVICE);
 
     // In a large cluster we could have thousands of resources to populate here.
     // Distribute the work across multiple threads.
     for (Resource resource : resources) {
-      completionService.submit(getPopulateResourceCallable(resource, request, predicate, ticket));
+      completionService.submit(
+          getPopulateResourceCallable(resource, request, predicate, ticket));
     }
 
     Set<Resource> keepers = new HashSet<Resource>();
     try {
-      for (int i = 0; i < resources.size(); ++ i) {
-        Future<Resource> resourceFuture =
-            completionService.poll(populateTimeout, TimeUnit.MILLISECONDS);
+      for (int i = 0; i < resources.size(); ++i) {
+        Future<Resource> resourceFuture = completionService.poll(COMPLETION_SERVICE_POLL_TIMEOUT,
+            TimeUnit.MILLISECONDS);
 
         if (resourceFuture == null) {
-          // its been more than the populateTimeout since the last callable completed ...
-          // invalidate the ticket to abort the threads and don't wait any longer
+          // its been more than the populateTimeout since the last callable
+          // completed ...
+          // invalidate the ticket to abort the threads and don't wait any
+          // longer
           ticket.invalidate();
-          LOG.error(TIMED_OUT_MSG);
+          LOG.error("Timed out after waiting {}ms waiting for request {}",
+              COMPLETION_SERVICE_POLL_TIMEOUT, request);
+
+          // stop iterating
           break;
-        } else {
-          // future should already be completed... no need to wait on get
-          Resource resource = resourceFuture.get();
-          if (resource != null) {
-            keepers.add(resource);
-          }
+        }
+
+        // future should already be completed... no need to wait on get
+        Resource resource = resourceFuture.get();
+        if (resource != null) {
+          keepers.add(resource);
         }
       }
     } catch (InterruptedException e) {
@@ -165,6 +205,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
     } catch (ExecutionException e) {
       rethrowSystemException(e.getCause());
     }
+
     return keepers;
   }
 
@@ -181,6 +222,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   private Callable<Resource> getPopulateResourceCallable(
       final Resource resource, final Request request, final Predicate predicate, final Ticket ticket) {
     return new Callable<Resource>() {
+      @Override
       public Resource call() throws SystemException {
         return populateResource(resource, request, predicate, ticket);
       }
@@ -211,8 +253,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
 
 
   protected void setPopulateTimeout(long populateTimeout) {
-    this.populateTimeout = populateTimeout;
-
+    COMPLETION_SERVICE_POLL_TIMEOUT = populateTimeout;
   }
 
 
@@ -247,7 +288,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
    * @return the error message that was logged
    */
   protected static String logException(final Throwable throwable) {
-    final String msg = "Caught exception getting JMX metrics : " + throwable.getLocalizedMessage();
+    final String msg = "Caught exception getting metrics : " + throwable.getLocalizedMessage();
 
     // JsonParseException includes InputStream's hash code into the message.
     // getMessage and printStackTrace returns a different String every time.

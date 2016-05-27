@@ -43,9 +43,9 @@ import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
-import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
@@ -167,11 +167,11 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
-    
+
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("HISTORYSERVER", new String[]{"mapreduce.jobhistory.http.policy"});
     jmxDesiredProperties.put("HISTORYSERVER", initPropMap);
-        
+
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("client", new String[]{"dfs.namenode.rpc-address"});
     initPropMap.put("datanode", new String[]{"dfs.namenode.servicerpc-address"});
@@ -206,6 +206,13 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   @Inject
   TimelineMetricCacheProvider metricCacheProvider;
+
+  /**
+   * A factory used to retrieve Guice-injected instances of a metric
+   * {@link PropertyProvider}.
+   */
+  @Inject
+  private MetricPropertyProviderFactory metricPropertyProviderFactory;
 
   /**
    * The map of host components.
@@ -243,8 +250,13 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if (managementController == null) {
       managementController = AmbariServer.getController();
     }
+
     if (metricCacheProvider == null && managementController != null) {
       metricCacheProvider = managementController.getTimelineMetricCacheProvider();
+    }
+
+    if (metricPropertyProviderFactory == null && managementController != null) {
+      metricPropertyProviderFactory = managementController.getMetricPropertyProviderFactory();
     }
   }
 
@@ -1085,7 +1097,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
                                                      String componentNamePropertyId,
                                                      String statePropertyId) {
 
-    return new JMXPropertyProvider(PropertyHelper.getJMXPropertyIds(type), streamProvider,
+    return metricPropertyProviderFactory.createJMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(type), streamProvider,
         jmxHostProvider, metricsHostProvider, clusterNamePropertyId, hostNamePropertyId,
         componentNamePropertyId, statePropertyId);
   }
@@ -1202,7 +1215,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   private String getJMXProtocolString(String value) {
-    if (value.equals(PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY)) {
+    if (PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY.equals(value)) {
       return "https";
     } else {
       return "http";

@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
@@ -795,6 +796,14 @@ public interface AmbariManagementController {
   Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(Set<StackConfigurationDependencyRequest> requests) throws AmbariException;
 
   TimelineMetricCacheProvider getTimelineMetricCacheProvider();
+
+  /**
+   * Gets the {@link MetricPropertyProviderFactory} that was injected into this
+   * class. This is a terrible pattern.
+   *
+   * @return the injected {@link MetricPropertyProviderFactory}
+   */
+  MetricPropertyProviderFactory getMetricPropertyProviderFactory();
 
   /**
    * Returns KerberosHelper instance

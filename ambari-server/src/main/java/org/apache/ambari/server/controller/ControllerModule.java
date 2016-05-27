@@ -70,6 +70,7 @@ import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -143,7 +144,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -456,6 +456,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(RequestFactory.class));
     install(new FactoryModuleBuilder().build(StackManagerFactory.class));
     install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
+    install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
@@ -528,9 +529,9 @@ public class ControllerModule extends AbstractModule {
       // Ambari services are registered with Guava
       if (null != clazz.getAnnotation(AmbariService.class)) {
         // safety check to ensure it's actually a Guava service
-        if (!AbstractScheduledService.class.isAssignableFrom(clazz)) {
+        if (!com.google.common.util.concurrent.Service.class.isAssignableFrom(clazz)) {
           String message = MessageFormat.format(
-              "Unable to register service {0} because it is not an AbstractScheduledService",
+              "Unable to register service {0} because it is not a Service which can be scheduled",
               clazz);
 
           LOG.warn(message);
@@ -538,10 +539,10 @@ public class ControllerModule extends AbstractModule {
         }
 
         // instantiate the service, register as singleton via toInstance()
-        AbstractScheduledService service = null;
+        com.google.common.util.concurrent.Service service = null;
         try {
-          service = (AbstractScheduledService) clazz.newInstance();
-          bind((Class<AbstractScheduledService>) clazz).toInstance(service);
+          service = (com.google.common.util.concurrent.Service) clazz.newInstance();
+          bind((Class<com.google.common.util.concurrent.Service>) clazz).toInstance(service);
           services.add(service);
           LOG.debug("Registering service {} ", clazz);
         } catch (Exception exception) {
