@@ -27,6 +27,7 @@ public class ActionDefinitionSpec {
   private String description;
   private String targetType;
   private String defaultTimeout;
+  private String permissions;
 
   public String getTargetComponent() {
     return targetComponent;
@@ -92,6 +93,14 @@ public class ActionDefinitionSpec {
     this.targetService = targetService;
   }
 
+  public String getPermissions() {
+    return permissions;
+  }
+
+  public void setPermissions(String permissions) {
+    this.permissions = permissions;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -134,6 +143,7 @@ public class ActionDefinitionSpec {
         .append(" targetComponent: ").append(targetComponent)
         .append(" defaultTimeout: ").append(defaultTimeout)
         .append(" targetType: ").append(targetType)
+        .append(" permissions: ").append(permissions)
         .toString();
   }
 }

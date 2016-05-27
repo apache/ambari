@@ -329,6 +329,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     setRoleSortOrder();
     addSettingPermission();
     addManageUserPersistedDataPermission();
+    allowClusterOperatorToManageCredentials();
     updateHDFSConfigs();
     updateHIVEConfigs();
     updateAMSConfigs();
@@ -511,6 +512,18 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id"},
       new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_USER_PERSISTED_DATA'"}, false);
 
+  }
+
+  /**
+   * Adds <code>CLUSTER.MANAGE_CREDENTIALS</code> to the set of authorizations a <code>CLUSTER.OPERATOR</code> can perform.
+   *
+   * @throws SQLException
+   */
+  protected void allowClusterOperatorToManageCredentials() throws SQLException {
+    String permissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.OPERATOR",
+        resourceTypeDAO.findByName("CLUSTER")).getId().toString();
+    dbAccessor.insertRowIfMissing("permission_roleauthorization", new String[]{"permission_id", "authorization_id" },
+        new String[]{"'" + permissionId + "'", "'CLUSTER.MANAGE_CREDENTIALS'" }, false);
   }
 
   protected void removeHiveOozieDBConnectionConfigs() throws AmbariException {

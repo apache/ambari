@@ -47,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.EnumSet;
 import java.util.regex.Pattern;
 
 public class AmbariAuthorizationFilter implements Filter {
@@ -77,9 +78,12 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_CLUSTER_SERVICES_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/services.*";
   private static final String API_CLUSTER_ALERT_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/alert.*";
   private static final String API_CLUSTER_HOSTS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/hosts.*";
+  private static final String API_CLUSTER_HOST_COMPONENTS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/host_components.*";
   private static final String API_STACK_VERSIONS_PATTERN = API_VERSION_PREFIX + "/stacks/.*?/versions/.*";
   private static final String API_HOSTS_ALL_PATTERN = API_VERSION_PREFIX + "/hosts.*";
   private static final String API_ALERT_TARGETS_ALL_PATTERN = API_VERSION_PREFIX + "/alert_targets.*";
+  private static final String API_BOOTSTRAP_PATTERN_ALL = API_VERSION_PREFIX + "/bootstrap.*";
+  private static final String API_REQUESTS_ALL_PATTERN = API_VERSION_PREFIX + "/requests.*";
 
   protected static final String LOGIN_REDIRECT_BASE = "/#/login?targetURI=";
 
@@ -161,55 +165,62 @@ public class AmbariAuthorizationFilter implements Filter {
     } else if (!authorizationPerformedInternally(requestURI)) {
       boolean authorized = false;
 
-      for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
-        if (grantedAuthority instanceof AmbariGrantedAuthority) {
+      if (requestURI.matches(API_BOOTSTRAP_PATTERN_ALL)) {
+        authorized = AuthorizationHelper.isAuthorized(authentication,
+            ResourceType.CLUSTER,
+            null,
+            EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+      }
+      else {
+        for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
+          if (grantedAuthority instanceof AmbariGrantedAuthority) {
 
-          AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
+            AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
 
-          PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
-          Integer permissionId = privilegeEntity.getPermission().getId();
+            PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
+            Integer permissionId = privilegeEntity.getPermission().getId();
 
-          // admin has full access
-          if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
-            authorized = true;
-            break;
-          }
-
-          // clusters require permission
-          if (!"GET".equalsIgnoreCase(httpRequest.getMethod()) && requestURI.matches(API_CREDENTIALS_AMBARI_PATTERN)) {
-            // Only the administrator can operate on credentials where the alias starts with "ambari."
+            // admin has full access
             if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
               authorized = true;
               break;
             }
-          } else if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
-            if (permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION) ||
-                permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
-              authorized = true;
-              break;
-            }
-          } else if (STACK_ADVISOR_REGEX.matcher(requestURI).matches()) {
-            //TODO permissions model doesn't manage stacks api, but we need access to stack advisor to save configs
-            if (permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION) ||
-                permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
-              authorized = true;
-              break;
-            }
-          } else if (requestURI.matches(API_VIEWS_ALL_PATTERN)) {
-            // views require permission
-            if (permissionId.equals(PermissionEntity.VIEW_USER_PERMISSION)) {
-              authorized = true;
-              break;
+
+            // clusters require permission
+            if (!"GET".equalsIgnoreCase(httpRequest.getMethod()) && requestURI.matches(API_CREDENTIALS_AMBARI_PATTERN)) {
+              // Only the administrator can operate on credentials where the alias starts with "ambari."
+              if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
+                authorized = true;
+                break;
+              }
+            } else if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
+              if (permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION) ||
+                  permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
+                authorized = true;
+                break;
+              }
+            } else if (STACK_ADVISOR_REGEX.matcher(requestURI).matches()) {
+              //TODO permissions model doesn't manage stacks api, but we need access to stack advisor to save configs
+              if (permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION) ||
+                  permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
+                authorized = true;
+                break;
+              }
+            } else if (requestURI.matches(API_VIEWS_ALL_PATTERN)) {
+              // views require permission
+              if (permissionId.equals(PermissionEntity.VIEW_USER_PERMISSION)) {
+                authorized = true;
+                break;
+              }
             }
           }
         }
+
+        // Allow all GETs that are not LDAP sync events...
+        authorized = authorized || (httpRequest.getMethod().equals("GET") && !requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN));
       }
 
-      // allow GET for everything except /views, /api/v1/users, /api/v1/groups, /api/v1/ldap_sync_events
-      if (!authorized &&
-          (!httpRequest.getMethod().equals("GET")
-              || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
-
+      if (!authorized) {
         if(auditLogger.isEnabled()) {
           auditEvent = AccessUnauthorizedAuditEvent.builder()
             .withHttpMethodName(httpRequest.getMethod())
@@ -283,6 +294,7 @@ public class AmbariAuthorizationFilter implements Filter {
    */
   private boolean authorizationPerformedInternally(String requestURI) {
     return requestURI.matches(API_USERS_ALL_PATTERN) ||
+        requestURI.matches(API_REQUESTS_ALL_PATTERN) ||
         requestURI.matches(API_GROUPS_ALL_PATTERN) ||
         requestURI.matches(API_CREDENTIALS_ALL_PATTERN) ||
         requestURI.matches(API_PRIVILEGES_ALL_PATTERN) ||
@@ -295,6 +307,7 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(VIEWS_CONTEXT_PATH_PATTERN) ||
         requestURI.matches(API_WIDGET_LAYOUTS_PATTERN) ||
         requestURI.matches(API_CLUSTER_HOSTS_ALL_PATTERN) ||
+        requestURI.matches(API_CLUSTER_HOST_COMPONENTS_ALL_PATTERN) ||
         requestURI.matches(API_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_ALERT_TARGETS_ALL_PATTERN) ||
         requestURI.matches(API_PRIVILEGES_ALL_PATTERN) ||
