@@ -228,8 +228,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def get_phoenix_query_server_hosts(self, services, hosts):
     if len(hosts['items']) > 0:
       phoenix_query_server_hosts = self.getHostsWithComponent("HBASE", "PHOENIX_QUERY_SERVER", services, hosts)
-      assert (phoenix_query_server_hosts is not None), "Information about PHOENIX_QUERY_SERVER not found in cluster."
-      host_names = []
+      if phoenix_query_server_hosts is None:
+        return []
       return [host['Hosts']['host_name'] for host in phoenix_query_server_hosts]
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
