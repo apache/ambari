@@ -575,7 +575,7 @@ public class TestPhoenixTransactSQL {
           "GROUP BY METRIC_NAME, HOSTNAME, APP_ID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) " +
       "AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
-    Assert.assertEquals(conditionClause, expectedClause);
+    Assert.assertEquals(expectedClause, conditionClause);
   }
 
   @Test
@@ -597,7 +597,7 @@ public class TestPhoenixTransactSQL {
       "GROUP BY METRIC_NAME, APP_ID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) " +
       "AND HOSTNAME = ? AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
-    Assert.assertEquals(conditionClause, expectedClause);
+    Assert.assertEquals(expectedClause, conditionClause);
   }
 
   @Test
@@ -611,5 +611,56 @@ public class TestPhoenixTransactSQL {
       "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
 
     Assert.assertEquals(condition.getConditionClause(), null);
+  }
+
+  @Test
+  public void testHostsRegexpConditionClause() {
+    Condition condition = new TopNCondition(
+            Arrays.asList("m1"), Arrays.asList("%.ambari", "host1.apache"),
+            "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
+
+    String conditionClause = condition.getConditionClause().toString();
+    String expectedClause = "(METRIC_NAME IN (?)) AND HOSTNAME IN (" +
+            "SELECT " + PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),120000l) +
+            " HOSTNAME FROM METRIC_RECORD WHERE " +
+            "(METRIC_NAME IN (?)) AND " +
+            "(HOSTNAME LIKE ? OR HOSTNAME LIKE ?) AND " +
+            "APP_ID = ? AND INSTANCE_ID = ? AND " +
+            "SERVER_TIME >= ? AND SERVER_TIME < ? " +
+            "GROUP BY METRIC_NAME, HOSTNAME, APP_ID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) " +
+            "AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+    Assert.assertEquals(expectedClause, conditionClause);
+
+    condition = new TopNCondition(
+            Arrays.asList("m1", "m2", "m3"), Arrays.asList("%.ambari"),
+            "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
+
+    conditionClause = condition.getConditionClause().toString();
+    expectedClause = " METRIC_NAME IN (" +
+            "SELECT " + PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),120000l) +
+            " METRIC_NAME FROM METRIC_RECORD WHERE " +
+            "(METRIC_NAME IN (?, ?, ?)) AND " +
+            "(HOSTNAME LIKE ?) AND " +
+            "APP_ID = ? AND INSTANCE_ID = ? AND " +
+            "SERVER_TIME >= ? AND SERVER_TIME < ? " +
+            "GROUP BY METRIC_NAME, APP_ID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) " +
+            "AND (HOSTNAME LIKE ?) AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+    Assert.assertEquals(expectedClause, conditionClause);
+
+    condition = new TopNCondition(
+            Arrays.asList("m1", "m2", "m3"), Arrays.asList("h1.ambari"),
+            "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
+
+    conditionClause = condition.getConditionClause().toString();
+    expectedClause = " METRIC_NAME IN (" +
+            "SELECT " + PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),120000l) +
+            " METRIC_NAME FROM METRIC_RECORD WHERE " +
+            "(METRIC_NAME IN (?, ?, ?)) AND " +
+            "HOSTNAME = ? AND " +
+            "APP_ID = ? AND INSTANCE_ID = ? AND " +
+            "SERVER_TIME >= ? AND SERVER_TIME < ? " +
+            "GROUP BY METRIC_NAME, APP_ID ORDER BY MAX(METRIC_MAX) DESC LIMIT 2) " +
+            "AND HOSTNAME = ? AND APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
+    Assert.assertEquals(expectedClause, conditionClause);
   }
 }
