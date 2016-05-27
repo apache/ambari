@@ -40,14 +40,14 @@ App.ServiceConfigVersion = DS.Model.extend({
   stackVersion: DS.attr('string'),
   isCompatible: DS.attr('boolean'),
   canBeMadeCurrent: Em.computed.and('isCompatible', '!isCurrent'),
-  isDefault: Em.computed.equal('groupName', 'default'),
+  isDefault: Em.computed.equal('groupName', 'Default'),
   currentTooltip: Em.computed.i18nFormat('dashboard.configHistory.table.current.tooltip', 'displayName', 'configGroupName'),
 
   /**
    * @type {string}
    */
   configGroupName: function () {
-    return this.get('isDefault') ? Em.I18n.t('common.default') : this.get('groupName');
+    return this.get('isDefault') ? App.ServiceConfigGroup.defaultGroupName : this.get('groupName');
   }.property('groupName','isDefault'),
 
   /**

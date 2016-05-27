@@ -62,7 +62,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
   loadServiceConfigVersionsSuccess: function (data) {
     if (Em.get(data, 'items.length')) {
       App.serviceConfigVersionsMapper.map(data);
-      var currentDefault = data.items.filterProperty('group_name', 'default').findProperty('is_current');
+      var currentDefault = data.items.filterProperty('group_name', App.ServiceConfigGroup.defaultGroupName).findProperty('is_current');
       if (currentDefault) {
         this.set('currentDefaultVersion', currentDefault.service_config_version);
       }
@@ -78,8 +78,8 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
       var self = this;
       this.loadConfigGroups(this.get('servicesToLoad')).done(function() {
         var selectedGroup = App.ServiceConfigGroup.find().find(function(g) {
-          return g.get('serviceName') == preSelectedVersion.get('serviceName')
-            && (g.get('name') == preSelectedVersion.get('groupName') || (preSelectedVersion.get('groupName') == 'default' && g.get('isDefault')));
+          return g.get('serviceName') === preSelectedVersion.get('serviceName')
+            && (g.get('name') === preSelectedVersion.get('groupName') || preSelectedVersion.get('groupName') === App.ServiceConfigGroup.defaultGroupName && g.get('isDefault'));
         });
         self.set('selectedConfigGroup', selectedGroup);
         self.loadSelectedVersion(preSelectedVersion.get('version'), selectedGroup);
@@ -145,8 +145,8 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
       this.loadCurrentVersions();
     } else {
       //version of non-default group require properties from current version of default group to correctly display page
-      var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
-      switchToGroup = (this.isVersionDefault(version) && !switchToGroup) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
+      var versions = this.isVersionDefault(version) ? [version] : [this.get('currentDefaultVersion'), version];
+      switchToGroup = this.isVersionDefault(version) && !switchToGroup ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
 
       if (this.get('dataIsLoaded') && switchToGroup) {
         this.set('selectedConfigGroup', switchToGroup);
@@ -159,7 +159,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
         data: {
           serviceName: this.get('content.serviceName'),
           serviceConfigVersions: versions,
-          additionalParams: this.get('dependentServiceNames.length') ? '|service_name.in(' +  this.get('dependentServiceNames') + ')&is_current=true' : ''
+          additionalParams: this.get('dependentServiceNames.length') ? '|service_name.in(' + this.get('dependentServiceNames') + ')&is_current=true' : ''
         },
         success: 'loadSelectedVersionsSuccess'
       }));

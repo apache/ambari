@@ -133,7 +133,7 @@ describe('App.ServiceConfigGroup', function () {
 
     it("App.ServiceConfigGroup.groupId should be called", function () {
       App.ServiceConfigGroup.getParentConfigGroupId('S1');
-      expect(App.ServiceConfigGroup.groupId.calledWith('S1', 'default')).to.be.true;
+      expect(App.ServiceConfigGroup.groupId.calledWith('S1', 'Default')).to.be.true;
     });
   });
 
