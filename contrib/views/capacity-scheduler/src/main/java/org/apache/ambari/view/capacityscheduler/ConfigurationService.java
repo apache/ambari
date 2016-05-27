@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.capacityscheduler;
 
+import org.apache.ambari.view.AmbariHttpException;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.capacityscheduler.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.capacityscheduler.utils.ServiceFormattedException;
@@ -105,8 +106,8 @@ public class ConfigurationService {
   // Privilege Reading
   // ================================================================================
 
-  private static final String CLUSTER_OPERATOR_PRIVILEGE_URL = "?privileges/PrivilegeInfo/permission_name=CLUSTER.ADMINISTRATOR&privileges/PrivilegeInfo/principal_name=%s";
-  private static final String AMBARI_ADMIN_PRIVILEGE_URL = "/api/v1/users/%s?Users/admin=true";
+  private static final String AMBARI_OR_CLUSTER_ADMIN_PRIVILEGE_URL = "/api/v1/users/%s?privileges/PrivilegeInfo/permission_name=AMBARI.ADMINISTRATOR|" +
+    "(privileges/PrivilegeInfo/permission_name.in(CLUSTER.ADMINISTRATOR,CLUSTER.OPERATOR)&privileges/PrivilegeInfo/cluster_name=%s)";
 
   /**
    * Gets capacity scheduler configuration.
@@ -256,26 +257,26 @@ public class ConfigurationService {
    *
    * @return    if <code>true</code>, the user is an operator; otherwise <code>false</code>
    */
-  private   boolean isOperator() {
+  private boolean isOperator() {
 
-      // first check if the user is an CLUSTER.ADMINISTRATOR
-      String url = String.format(CLUSTER_OPERATOR_PRIVILEGE_URL, context.getUsername());
-      JSONObject json = readFromCluster(url);
+    String url = String.format(AMBARI_OR_CLUSTER_ADMIN_PRIVILEGE_URL, context.getUsername(), context.getCluster().getName());
 
-      if (json == null || json.size() <= 0) {
-        // user is not a CLUSTER.ADMINISTRATOR but might be an AMBARI.ADMINISTRATOR
-        url = String.format(AMBARI_ADMIN_PRIVILEGE_URL, context.getUsername());
-        String response = ambariApi.readFromAmbari(url, "GET", null, null);
-        if (response == null || response.isEmpty()) {
-          return false;
-        }
-        json = getJsonObject(response);
-        if (json == null || json.size() <= 0) {
-          return false;
+    try {
+      String response = ambariApi.readFromAmbari(url, "GET", null, null);
+
+      if(response != null && !response.isEmpty()){
+        JSONObject json = (JSONObject) JSONValue.parse(response);
+        if (json.containsKey("privileges")) {
+          JSONArray privileges = (JSONArray) json.get("privileges");
+          if(privileges.size() > 0) return true;
         }
       }
-      
-    return  true;
+
+    } catch (AmbariHttpException e) {
+      LOG.info("Got Error response from url : {}. Response : {}", url, e.getMessage());
+    }
+
+    return false;
   }
 
   private JSONObject readFromCluster(String url) {
