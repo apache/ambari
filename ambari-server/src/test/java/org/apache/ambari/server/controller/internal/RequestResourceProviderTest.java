@@ -22,19 +22,20 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import static org.powermock.api.easymock.PowerMock.createMock;
+import static org.powermock.api.easymock.PowerMock.createNiceMock;
+import static org.powermock.api.easymock.PowerMock.replay;
+import static org.powermock.api.easymock.PowerMock.reset;
+import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -49,6 +50,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -63,6 +65,7 @@ import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -70,6 +73,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelperInitializer;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -1307,21 +1311,69 @@ public class RequestResourceProviderTest {
   }
 
   @Test
-  public void testCreateResourcesForNonCluster() throws Exception {
+  public void testCreateResourcesCheckHostForNonClusterAsAdministrator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createAdministrator(), "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+  }
+
+  @Test
+  public void testCreateResourcesCheckHostForNonClusterAsClusterAdministrator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterAdministrator(), "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+  }
+
+  @Test
+  public void testCreateResourcesCheckHostForNonClusterAsClusterOperator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterOperator(), "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesCheckHostForNonClusterAsServiceAdministrator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createServiceAdministrator(), "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+  }
+
+  @Test
+  public void testCreateResourcesCheckJavaForNonClusterAsAdministrator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createAdministrator(), "check_java", null);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesCheckJavaForNonClusterAsClusterAdministrator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterAdministrator(), "check_java", null);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesCheckJavaForNonClusterAsClusterOperator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterOperator(), "check_java", null);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesForNonClusterAsServiceAdministrator() throws Exception {
+    testCreateResourcesForNonCluster(TestAuthenticationFactory.createServiceAdministrator(), "check_java", null);
+  }
+
+  private void testCreateResourcesForNonCluster(Authentication authentication, String actionName, Set<RoleAuthorization> permissions) throws Exception {
     Resource.Type type = Resource.Type.Request;
 
     Capture<ExecuteActionRequest> actionRequest = newCapture();
     Capture<HashMap<String, String>> propertyMap = newCapture();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+    ActionDefinition actionDefinition = createMock(ActionDefinition.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
       .andReturn(response).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+    expect(metaInfo.getActionDefinition(actionName)).andReturn(actionDefinition).anyTimes();
+    expect(actionDefinition.getPermissions()).andReturn(permissions).anyTimes();
     expect(response.getMessage()).andReturn("Message").anyTimes();
 
     // replay
-    replay(managementController, response);
+    replay(managementController, metaInfo, actionDefinition, response);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -1338,7 +1390,9 @@ public class RequestResourceProviderTest {
     propertySet.add(properties);
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
-    requestInfoProperties.put(RequestResourceProvider.ACTION_ID, "check_java");
+    requestInfoProperties.put(RequestResourceProvider.ACTION_ID, actionName);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
@@ -1352,7 +1406,7 @@ public class RequestResourceProviderTest {
 
     Assert.assertTrue(actionRequest.hasCaptured());
     Assert.assertFalse("expected an action", capturedRequest.isCommand());
-    Assert.assertEquals("check_java", capturedRequest.getActionName());
+    Assert.assertEquals(actionName, capturedRequest.getActionName());
     Assert.assertEquals(null, capturedRequest.getCommandName());
     Assert.assertNotNull(capturedRequest.getResourceFilters());
     Assert.assertEquals(1, capturedRequest.getResourceFilters().size());
