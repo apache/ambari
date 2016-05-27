@@ -121,7 +121,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
           if (item[repoVersionsKey].stack_services) {
             item[repoVersionsKey].stack_services.forEach(function (service) {
               var serviceObj = {
-                id: service.name,
+                id: item[repoVersionsKey].repository_version + service.name,
                 name: service.name,
                 display_name: service.display_name,
                 latest_version: service.versions[0] ? service.versions[0] : ''
@@ -132,7 +132,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
           } else if (item[repoVersionsKey].services) {
             item[repoVersionsKey].services.forEach(function (service) {
               var serviceObj = {
-                id: service.name,
+                id: item[repoVersionsKey].repository_version + service.name,
                 name: service.name,
                 display_name: service.display_name,
                 latest_version: service.versions[0] ? service.versions[0].version: ''
