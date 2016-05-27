@@ -636,6 +636,7 @@ class TestHDP25StackAdvisor(TestCase):
 
 
   # Test 2 : (1). Only default queue exists in capacity-scheduler and capacity-scheduler is passed-in as a dictionary,
+  # and services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"] is set to value "null"
   # (2). enable_hive_interactive' is 'On' and 'llap_queue_capacity is 0.
   def test_recommendYARNConfigurations_create_llap_queue_1(self):
 
@@ -913,6 +914,7 @@ class TestHDP25StackAdvisor(TestCase):
 
 
   # Test 4: (1). Only default queue exists in capacity-scheduler and capacity-scheduler is passed-in as a dictionary
+  # and services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"] is null
   # (2). enable_hive_interactive' is 'On' and 'llap_queue_capacity is 40.
   def test_recommendYARNConfigurations_create_llap_queue_2(self):
     services = {
@@ -977,7 +979,7 @@ class TestHDP25StackAdvisor(TestCase):
       "configurations": {
         "capacity-scheduler" : {
           "properties" : {
-            "capacity-scheduler" : "null",
+            "capacity-scheduler" : None,
             "yarn.scheduler.capacity.root.accessible-node-labels" : "*",
             "yarn.scheduler.capacity.maximum-am-resource-percent" : "1",
             "yarn.scheduler.capacity.root.acl_administer_queue" : "*",
@@ -4606,7 +4608,8 @@ class TestHDP25StackAdvisor(TestCase):
 
 
   # Test 28: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
-  #          'capacity-scheduler' configs are passed-in as dictionary  and
+  #          'capacity-scheduler' configs are passed-in as dictionary and
+  #          services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"] is set to value "null"  and
   #          (2). enable_hive_interactive' is 'on' and (3). configuration change detected for 'hive.server2.tez.sessions.per.default.queue'
   #         Expected : Configurations values recommended for llap related configs.
   def test_recommendYARNConfigurations_five_node_manager_llap_configs_updated_3(self):

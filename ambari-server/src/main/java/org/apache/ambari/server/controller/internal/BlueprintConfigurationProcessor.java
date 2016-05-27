@@ -448,6 +448,8 @@ public class BlueprintConfigurationProcessor {
   private void doRecommendConfigurations(Configuration configuration, Set<String> configTypesUpdated) {
     ConfigRecommendationStrategy configRecommendationStrategy = clusterTopology.getConfigRecommendationStrategy();
     Map<String, AdvisedConfiguration> advisedConfigurations = clusterTopology.getAdvisedConfigurations();
+    LOG.info("Config recommendation strategy being used is {})", configRecommendationStrategy);
+
     if (ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY.equals(configRecommendationStrategy)) {
       LOG.info("Filter out recommended configurations. Keep only the stack defaults.");
       doFilterStackDefaults(advisedConfigurations);
@@ -465,7 +467,7 @@ public class BlueprintConfigurationProcessor {
         }
       }
     } else {
-      LOG.info("No any recommended configuration applied. (strategy: {})", ConfigRecommendationStrategy.NEVER_APPLY);
+      LOG.info("No recommended configurations are applied. (strategy: {})", ConfigRecommendationStrategy.NEVER_APPLY);
     }
   }
 
