@@ -48,16 +48,8 @@ public class TestAuthenticationFactory {
     return createClusterAdministrator("clusterAdmin", 4L);
   }
 
-  public static Authentication createClusterOperator() {
-    return createClusterOperator("clusterOp", 4L);
-  }
-
   public static Authentication createClusterAdministrator(String name, Long clusterResourceId) {
     return new TestAuthorization(name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
-  }
-
-  public static Authentication createClusterOperator(String name, Long clusterResourceId) {
-    return new TestAuthorization(name, Collections.singleton(createClusterOperatorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createServiceAdministrator() {
@@ -100,10 +92,6 @@ public class TestAuthenticationFactory {
     return new AmbariGrantedAuthority(createClusterAdministratorPrivilegeEntity(clusterResourceId));
   }
 
-  private static GrantedAuthority createClusterOperatorGrantedAuthority(Long clusterResourceId) {
-    return new AmbariGrantedAuthority(createClusterOperatorPrivilegeEntity(clusterResourceId));
-  }
-
   private static GrantedAuthority createServiceAdministratorGrantedAuthority(Long clusterResourceId) {
     return new AmbariGrantedAuthority(createServiceAdministratorPrivilegeEntity(clusterResourceId));
   }
@@ -131,13 +119,6 @@ public class TestAuthenticationFactory {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
     privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
     privilegeEntity.setPermission(createClusterAdministratorPermission());
-    return privilegeEntity;
-  }
-
-  private static PrivilegeEntity createClusterOperatorPrivilegeEntity(Long clusterResourceId) {
-    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
-    privilegeEntity.setPermission(createClusterOperatorPermission());
     return privilegeEntity;
   }
 
@@ -216,44 +197,6 @@ public class TestAuthenticationFactory {
         RoleAuthorization.SERVICE_VIEW_METRICS,
         RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
         RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA)));
-    return permissionEntity;
-  }
-
-  private static PermissionEntity createClusterOperatorPermission() {
-    PermissionEntity permissionEntity = new PermissionEntity();
-    permissionEntity.setId(5);
-    permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
-    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
-        RoleAuthorization.HOST_VIEW_CONFIGS,
-        RoleAuthorization.HOST_ADD_DELETE_COMPONENTS,
-        RoleAuthorization.HOST_VIEW_METRICS,
-        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
-        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
-        RoleAuthorization.SERVICE_MANAGE_ALERTS,
-        RoleAuthorization.SERVICE_ENABLE_HA,
-        RoleAuthorization.SERVICE_VIEW_METRICS,
-        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
-        RoleAuthorization.HOST_VIEW_STATUS_INFO,
-        RoleAuthorization.CLUSTER_VIEW_METRICS,
-        RoleAuthorization.SERVICE_VIEW_STATUS_INFO,
-        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
-        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
-        RoleAuthorization.SERVICE_VIEW_ALERTS,
-        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.SERVICE_TOGGLE_ALERTS,
-        RoleAuthorization.SERVICE_MOVE,
-        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
-        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
-        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
-        RoleAuthorization.SERVICE_VIEW_CONFIGS,
-        RoleAuthorization.HOST_ADD_DELETE_HOSTS,
-        RoleAuthorization.SERVICE_START_STOP,
-        RoleAuthorization.CLUSTER_VIEW_ALERTS,
-        RoleAuthorization.HOST_TOGGLE_MAINTENANCE,
-        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
-        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
-        RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA,
-        RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS)));
     return permissionEntity;
   }
 

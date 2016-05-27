@@ -56,7 +56,6 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
@@ -72,7 +71,6 @@ import org.apache.ambari.server.topology.TopologyManager;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Resource provider for request resources.
@@ -187,33 +185,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         String clusterName = actionRequest.getClusterName();
 
         if(clusterName == null) {
-          String actionName = actionRequest.getActionName();
-
-          // Ensure that the actionName is not null or empty.  A null actionName will result in
-          // a NPE at when getting the action definition.  The string "_unknown_action_" should not
-          // result in a valid action definition and should be easy to understand in any error message
-          // that gets displayed or logged due to an authorization issue.
-          if(StringUtils.isEmpty(actionName)) {
-            actionName = "_unknown_action_";
-          }
-
-          ActionDefinition actionDefinition = getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
-          Set<RoleAuthorization> permissions = (actionDefinition == null) ? null : actionDefinition.getPermissions();
-
-          if(permissions == null) {
-            if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
-              throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the '%s'command.", actionName));
-            }
-          }
-          else {
-            // Since we cannot tell whether the action is to be exectued for the system or a
-            // non-disclosed cluster, specify that the resource is a CLUSTER with no resource id.
-            // This should ensure that a user with a role for any cluster with the appropriate
-            // permissions or an Ambari administrator can execute the command.
-            if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, null, permissions)) {
-              throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the '%s'command.", actionName));
-            }
-          }
+          // This must be an administrative action?
+          // TODO: Perform authorization check for this?
         }
         else if(actionRequest.isCommand()) {
           if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER,

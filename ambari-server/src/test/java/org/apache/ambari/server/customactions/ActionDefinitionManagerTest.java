@@ -19,25 +19,22 @@
 package org.apache.ambari.server.customactions;
 
 import java.io.File;
-import java.util.EnumSet;
 
 import junit.framework.Assert;
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.junit.Test;
 
 public class ActionDefinitionManagerTest {
 
-  private static final String CUSTOM_ACTION_DEFINITION_ROOT = "./src/test/resources/custom_action_definitions/";
-  private static final String CUSTOM_ACTION_DEFINITION_INVALID_ROOT = "./src/test/resources/custom_action_definitions_invalid/";
+  private final String customActionDefinitionRoot = "./src/test/resources/custom_action_definitions/";
 
   @Test
   public void testReadCustomActionDefinitions() throws Exception {
     ActionDefinitionManager manager = new ActionDefinitionManager();
-    manager.readCustomActionDefinitions(new File(CUSTOM_ACTION_DEFINITION_ROOT));
+    manager.readCustomActionDefinitions(new File(customActionDefinitionRoot));
 
-    Assert.assertEquals(3, manager.getAllActionDefinition().size());
+    Assert.assertEquals(2, manager.getAllActionDefinition().size());
     ActionDefinition ad = manager.getActionDefinition("customAction1");
     Assert.assertNotNull(ad);
     Assert.assertEquals("customAction1", ad.getActionName());
@@ -48,7 +45,6 @@ public class ActionDefinitionManagerTest {
     Assert.assertEquals(60, (int)ad.getDefaultTimeout());
     Assert.assertEquals(TargetHostType.ALL, ad.getTargetType());
     Assert.assertEquals(ActionType.USER, ad.getActionType());
-    Assert.assertEquals(EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_COMPONENTS, RoleAuthorization.HOST_ADD_DELETE_HOSTS), ad.getPermissions());
 
     ad = manager.getActionDefinition("customAction2");
     Assert.assertNotNull(ad);
@@ -60,25 +56,6 @@ public class ActionDefinitionManagerTest {
     Assert.assertEquals(60, (int)ad.getDefaultTimeout());
     Assert.assertEquals(null, ad.getTargetType());
     Assert.assertEquals(ActionType.USER, ad.getActionType());
-    Assert.assertEquals(EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_COMPONENTS, RoleAuthorization.HOST_ADD_DELETE_HOSTS), ad.getPermissions());
-
-    ad = manager.getActionDefinition("customAction3");
-    Assert.assertNotNull(ad);
-    Assert.assertEquals("customAction3", ad.getActionName());
-    Assert.assertEquals("A random test", ad.getDescription());
-    Assert.assertEquals(null, ad.getInputs());
-    Assert.assertEquals("TASKTRACKER", ad.getTargetComponent());
-    Assert.assertEquals("MAPREDUCE", ad.getTargetService());
-    Assert.assertEquals(60, (int)ad.getDefaultTimeout());
-    Assert.assertEquals(null, ad.getTargetType());
-    Assert.assertEquals(ActionType.USER, ad.getActionType());
-    Assert.assertNull(ad.getPermissions());
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadInvalidCustomActionDefinitions() throws Exception {
-    ActionDefinitionManager manager = new ActionDefinitionManager();
-    manager.readCustomActionDefinitions(new File(CUSTOM_ACTION_DEFINITION_INVALID_ROOT));
   }
 }
 

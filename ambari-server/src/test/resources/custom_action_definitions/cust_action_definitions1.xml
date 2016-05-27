@@ -27,7 +27,6 @@
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>
     <targetType>ALL</targetType>
-    <permissions>HOST.ADD_DELETE_HOSTS,HOST.ADD_DELETE_COMPONENTS</permissions>
   </actionDefinition>
   <actionDefinition>
     <actionName>customAction2</actionName>
@@ -35,17 +34,9 @@
     <targetService>MAPREDUCE</targetService>
     <targetComponent>TASKTRACKER</targetComponent>
     <description>A random test</description>
-    <permissions> HOST.ADD_DELETE_HOSTS , HOST.ADD_DELETE_COMPONENTS </permissions> <!-- Note the spaces -->
   </actionDefinition>
   <actionDefinition>
     <actionName>customAction3</actionName>
-    <actionType>USER</actionType>
-    <targetService>MAPREDUCE</targetService>
-    <targetComponent>TASKTRACKER</targetComponent>
-    <description>A random test</description>
-  </actionDefinition>
-  <actionDefinition>
-    <actionName>customAction4</actionName>
     <actionType>USERS_OWN</actionType>
     <targetService>MAPREDUCE</targetService>
     <targetComponent>TASKTRACKER</targetComponent>

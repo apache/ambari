@@ -28,7 +28,6 @@
     <defaultTimeout>60</defaultTimeout>
     <description>General check for host</description>
     <targetType>ANY</targetType>
-    <permissions>HOST.ADD_DELETE_HOSTS</permissions>
   </actionDefinition>
   <actionDefinition>
     <actionName>update_repo</actionName>

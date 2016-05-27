@@ -21,8 +21,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +30,9 @@ import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Manages Action definitions read from XML files
@@ -125,8 +120,7 @@ public class ActionDefinitionManager {
             }
 
             actionDefinitionMap.put(ad.getActionName(), new ActionDefinition(ad.getActionName(), actionType,
-                ad.getInputs(), ad.getTargetService(), ad.getTargetComponent(), ad.getDescription(), targetType, defaultTimeout,
-                translatePermissions(ad.getPermissions())));
+                ad.getInputs(), ad.getTargetService(), ad.getTargetComponent(), ad.getDescription(), targetType, defaultTimeout));
             LOG.info("Added custom action definition for " + ad.getActionName());
           } else {
             LOG.warn(errorReason.toString());
@@ -204,34 +198,5 @@ public class ActionDefinitionManager {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Given a comma-delimited list of permission names, translates into a {@link Set} of
-   * {@link RoleAuthorization}s.
-   * <p>
-   * <code>null</code> is returned if the permission string is null or empty, or if none of the
-   * permissions in the string translate to a {@link RoleAuthorization}.  Permissions that do not
-   * translate to a {@link RoleAuthorization} will yield a {@link IllegalArgumentException}.
-   *
-   * @param permissions a comma-delimited string of permission names
-   * @return a set of {@link RoleAuthorization}s; or null if no permissions are specified
-   */
-  private Set<RoleAuthorization> translatePermissions(String permissions) {
-    if (StringUtils.isEmpty(permissions)) {
-      return null;
-    } else {
-      Set<RoleAuthorization> authorizations = new HashSet<RoleAuthorization>();
-      String[] parts = permissions.split(",");
-
-      for (String permission : parts) {
-        RoleAuthorization authorization = RoleAuthorization.translate(permission);
-        if (authorization != null) {
-          authorizations.add(authorization);
-        }
-      }
-
-      return (authorizations.isEmpty()) ? null : EnumSet.copyOf(authorizations);
-    }
   }
 }
