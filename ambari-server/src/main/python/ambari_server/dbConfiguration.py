@@ -40,12 +40,22 @@ SETUP_DB_CONNECT_ATTEMPTS = 3
 
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
+CUSTOM_JDBC_DB_NAMES = ["postgres", "mysql", "mssql", "oracle", "hsqldb", "sqlanywhere"]
 DATABASE_NAMES = ["postgres", "oracle", "mysql", "mssql", "sqlanywhere"]
 DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "mssql": "Microsoft SQL Server", "postgres":
   "PostgreSQL", "sqlanywhere": "SQL Anywhere"}
 LINUX_DBMS_KEYS_LIST = [ 'embedded', 'oracle', 'mysql', 'postgres', 'mssql', 'sqlanywhere']
 AMBARI_DATABASE_NAME = "ambari"
 AMBARI_DATABASE_TITLE = "ambari"
+
+TAR_GZ_ARCHIVE_TYPE = ".tar.gz"
+
+default_connectors_map = { "mssql":"sqljdbc4.jar",
+                           "mysql":"mysql-connector-java.jar",
+                           "postgres":"postgresql-jdbc.jar",
+                           "oracle":"ojdbc.jar",
+                           "sqlanywhere":"sajdbc4.jar",
+                           "hsqldb":"hsqldb.jar"}
 
 STORAGE_TYPE_LOCAL = 'local'
 STORAGE_TYPE_REMOTE = 'remote'

@@ -34,7 +34,7 @@ from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import copy_files, run_os_command, is_root
 from ambari_commons.str_utils import compress_backslashes
-from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
+from ambari_server.dbConfiguration import DBMSConfigFactory, TAR_GZ_ARCHIVE_TYPE, default_connectors_map, check_jdbc_drivers
 from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
   get_ambari_properties, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, \
   get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
@@ -60,7 +60,6 @@ SE_MODE_PERMISSIVE = "permissive"
 
 PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
 
-TAR_GZ_ARCHIVE_TYPE = ".tar.gz"
 
 # Non-root user setup commands
 NR_USER_COMMENT = "Ambari user"
@@ -77,11 +76,7 @@ UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 JDK_PROMPT = "[{0}] {1}\n"
 JDK_VALID_CHOICES = "^[{0}{1:d}]$"
 
-default_connectors_map = { "mssql":"sqljdbc4.jar",
-                           "mysql":"mysql-connector-java.jar",
-                           "postgres":"postgresql-jdbc.jar",
-                           "oracle":"ojdbc.jar",
-                           "sqlanywhere":"sajdbc4.jar"}
+
 
 def get_supported_jdbc_drivers():
   factory = DBMSConfigFactory()

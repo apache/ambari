@@ -31,10 +31,10 @@ import optparse
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
 from ambari_commons.os_utils import is_root, run_os_command
-from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, \
-  get_jdbc_driver_path, ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
+from ambari_server.dbConfiguration import DBMSConfigFactory, CUSTOM_JDBC_DB_NAMES, TAR_GZ_ARCHIVE_TYPE,  check_jdbc_drivers, \
+  get_jdbc_driver_path, ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST, default_connectors_map
 from ambari_server.properties import Properties
-from ambari_server.serverConfiguration import configDefaults, \
+from ambari_server.serverConfiguration import configDefaults, get_resources_location, update_properties, \
   check_database_name_property, get_ambari_properties, get_ambari_version, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
   update_database_name_property, get_admin_views_dir, get_views_dir, \
@@ -412,6 +412,26 @@ def upgrade(args):
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
     args.warnings.append("Existing LDAP configuration is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")
+
+  # adding custom jdbc name and previous custom jdbc properties
+  # we need that to support new dynamic jdbc names for upgraded ambari
+  add_jdbc_properties(properties)
+
+
+def add_jdbc_properties(properties):
+  for db_name in CUSTOM_JDBC_DB_NAMES:
+    if db_name == "sqlanywhere":
+      symlink_name = db_name + "-jdbc-driver" + TAR_GZ_ARCHIVE_TYPE
+    else:
+      symlink_name = db_name + "-jdbc-driver.jar"
+
+    resources_dir = get_resources_location(properties)
+    custom_db_jdbc_property_name = "custom." + db_name + ".jdbc.name"
+
+    if os.path.lexists(os.path.join(resources_dir, symlink_name)):
+      properties.process_pair(custom_db_jdbc_property_name, symlink_name)
+      properties.process_pair("previous." + custom_db_jdbc_property_name, default_connectors_map[db_name])
+      update_properties(properties)
 
 
 #
