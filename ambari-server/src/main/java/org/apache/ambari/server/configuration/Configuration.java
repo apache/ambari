@@ -98,6 +98,8 @@ public class Configuration {
   public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
   public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
+  public static final String RECOMMENDATIONS_ARTIFACTS_LIFETIME = "recommendations.artifacts.lifetime";
+  public static final String RECOMMENDATIONS_ARTIFACTS_LIFETIME_DEFAULT = "1w";
   public static final String RECOMMENDATIONS_DIR = "recommendations.dir";
   public static final String RECOMMENDATIONS_DIR_DEFAULT = AmbariPath.getPath("/var/run/ambari-server/stack-recommendations");
   public static final String STACK_ADVISOR_SCRIPT = "stackadvisor.script";
@@ -1223,6 +1225,11 @@ public class Configuration {
   public File getRecommendationsDir() {
     String fileName = properties.getProperty(RECOMMENDATIONS_DIR, RECOMMENDATIONS_DIR_DEFAULT);
     return new File(fileName);
+  }
+
+  public String getRecommendationsArtifactsLifetime() {
+    String lifetime = properties.getProperty(RECOMMENDATIONS_ARTIFACTS_LIFETIME, RECOMMENDATIONS_ARTIFACTS_LIFETIME_DEFAULT);
+    return lifetime;
   }
 
   public String areHostsSysPrepped(){

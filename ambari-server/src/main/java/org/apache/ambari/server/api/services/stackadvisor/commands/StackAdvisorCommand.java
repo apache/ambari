@@ -19,11 +19,13 @@
 package org.apache.ambari.server.api.services.stackadvisor.commands;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,11 +47,16 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AgeFileFilter;
+import org.apache.commons.io.filefilter.FalseFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.derby.iapi.util.StringUtil;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -93,6 +100,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
 
   private File recommendationsDir;
+  private String recommendationsArtifactsLifetime;
   private String stackAdvisorScript;
 
   private int requestId;
@@ -104,7 +112,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private final AmbariMetaInfo metaInfo;
 
   @SuppressWarnings("unchecked")
-  public StackAdvisorCommand(File recommendationsDir, String stackAdvisorScript, int requestId,
+  public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
       StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
@@ -113,6 +121,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     this.mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
 
     this.recommendationsDir = recommendationsDir;
+    this.recommendationsArtifactsLifetime = recommendationsArtifactsLifetime;
     this.stackAdvisorScript = stackAdvisorScript;
     this.requestId = requestId;
     this.saRunner = saRunner;
@@ -314,6 +323,8 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       }
     }
 
+    cleanupRequestDirectory();
+
     requestDirectory = new File(recommendationsDir, Integer.toString(requestId));
 
     if (requestDirectory.exists()) {
@@ -321,6 +332,29 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
     if (!requestDirectory.mkdirs()) {
       throw new IOException("Cannot create " + requestDirectory);
+    }
+  }
+
+  /**
+   * Deletes folders older than (now - recommendationsArtifactsLifetime)
+   */
+  private void cleanupRequestDirectory() throws IOException {
+    final Date cutoffDate = DateUtils.getDateSpecifiedTimeAgo(recommendationsArtifactsLifetime); // subdirectories older than this date will be deleted
+
+    String[] oldDirectories = recommendationsDir.list(new FilenameFilter() {
+      @Override
+      public boolean accept(File current, String name) {
+        File file = new File(current, name);
+        return file.isDirectory() && !FileUtils.isFileNewer(file, cutoffDate);
+      }
+    });
+    
+    if(oldDirectories.length > 0) {
+      LOG.info(String.format("Deleting old directories %s from %s", StringUtils.join(oldDirectories, ", "), recommendationsDir));
+    }
+    
+    for(String oldDirectory:oldDirectories) {
+      FileUtils.deleteDirectory(new File(recommendationsDir, oldDirectory));
     }
   }
 
