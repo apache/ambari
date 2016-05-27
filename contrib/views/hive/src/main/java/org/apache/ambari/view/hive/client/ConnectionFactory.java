@@ -129,22 +129,22 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
     return params;
   }
 
-  private Map<String,String> getDefaultAuthParams(){
-    Map<String,String> params = new HashMap<String,String>();
-    String auth = getProperty(HIVE_SITE,HIVE_SERVER2_AUTHENTICATION);
-    params.put("auth",auth);
+  private Map<String, String> getDefaultAuthParams() {
+    Map<String, String> params = new HashMap<String, String>();
+    String auth = getProperty(HIVE_SITE, HIVE_SERVER2_AUTHENTICATION);
+    params.put("auth", auth);
 
-    if(auth.equalsIgnoreCase("KERBEROS")){
-      params.put("principal",getProperty(HIVE_SITE,HIVE_SERVER2_KERBEROS_PRINCIPAL));
-      params.put(Utils.HiveAuthenticationParams.HS2_PROXY_USER,"${username}");
-    } else if(auth.equalsIgnoreCase("LDAP") || auth.equalsIgnoreCase("CUSTOM")){
-      params.put("auth","NONE");
-      params.put("password","${ask_password}");
+    if (auth.equalsIgnoreCase("KERBEROS")) {
+      params.put("principal", getProperty(HIVE_SITE, HIVE_SERVER2_KERBEROS_PRINCIPAL));
+      params.put(Utils.HiveAuthenticationParams.HS2_PROXY_USER, context.getUsername());
+    } else if (auth.equalsIgnoreCase("LDAP") || auth.equalsIgnoreCase("CUSTOM")) {
+      params.put("auth", "NONE");
+      params.put("password", "${ask_password}");
     }
 
-    String qop = getProperty(HIVE_SITE,HIVE_SASL_QOP);
-    if(qop != null && !qop.equals("auth")){
-      params.put(Utils.HiveAuthenticationParams.AUTH_QOP,qop);
+    String qop = getProperty(HIVE_SITE, HIVE_SASL_QOP);
+    if (qop != null && !qop.equals("auth")) {
+      params.put(Utils.HiveAuthenticationParams.AUTH_QOP, qop);
     }
     return params;
   }
