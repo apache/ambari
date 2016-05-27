@@ -1,0 +1,39 @@
+{
+  "type": "full-release",
+  "name": "microsoft_r-ambari.mpack",
+  "version": "1.0.0.0",
+  "description": "Ambari Management Pack for Microsoft R",
+  "prerequisites": {
+    "min-ambari-version": "2.2.0.0",
+    "min-stack-versions": [
+      {
+        "stack_name": "HDP",
+        "stack_version": "1.3.0"
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "name": "MICROSOFT_R-common-services",
+      "type" : "service-definitions",
+      "source_dir" : "common-services"
+    },
+    {
+      "name" : "MICROSOFT_R-custom-services",
+      "type" : "stack-extension-definitions",
+      "source_dir": "custom-services",
+      "service_versions_map": [
+        {
+          "service_name" : "MICROSOFT_R",
+          "service_version" : "8.0.0",
+          "applicable_stacks" : [
+            {
+              "stack_name" : "HDP",
+              "stack_version" : "2.2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
