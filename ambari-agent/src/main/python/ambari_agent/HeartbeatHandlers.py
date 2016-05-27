@@ -26,6 +26,7 @@ import signal
 import threading
 import traceback
 from ambari_commons.os_family_impl import OsFamilyImpl
+from RemoteDebugUtils import remote_debug
 import sys
 
 logger = logging.getLogger()
@@ -84,13 +85,12 @@ def signal_handler(signum, frame):
 
 
 def debug(sig, frame):
-  """Interrupt running process, and provide a python prompt for
-  interactive debugging."""
+  """Interrupt running process, and provide a stacktrace of threads """
   d = {'_frame': frame}  # Allow access to frame object.
   d.update(frame.f_globals)  # Unless shadowed by global
   d.update(frame.f_locals)
 
-  message = "Signal received : entering python shell.\nTraceback:\n"
+  message = "Signal received.\nTraceback:\n"
   message += ''.join(traceback.format_stack(frame))
   logger.info(message)
 
@@ -128,6 +128,7 @@ def bind_signal_handlers(agentPid):
     if os.getpid() == agentPid:
       signal.signal(signal.SIGINT, signal_handler)
       signal.signal(signal.SIGTERM, signal_handler)
+      signal.signal(signal.SIGUSR2, remote_debug) # Interrupt running process, and provide a python prompt for it
       try:
         import faulthandler  # This is not default module, has to be installed separately
         faulthandler.enable(file=sys.stderr, all_threads=True)
