@@ -21,7 +21,7 @@
       <ul class="nav nav-list">
         {{#each category in view.categories}}
           {{#view view.NavItemView itemBinding="category.name" elementIdBinding="category.name"}}
-              <a href="#" {{action "goToAdmin" category.url}} >{{category.label}}</a>
+              <a href="#" {{action "goToAdmin" category}} >{{category.label}}</a>
           {{/view}}
         {{/each}}
       </ul>

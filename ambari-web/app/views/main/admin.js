@@ -34,14 +34,16 @@ App.MainAdminView = Em.View.extend({
       items.push({
         name: 'adminServiceAccounts',
         url: 'adminServiceAccounts',
-        label: Em.I18n.t('common.serviceAccounts')
+        label: Em.I18n.t('common.serviceAccounts'),
+        disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
       });
     }
     if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || (App.get('upgradeInProgress') || App.get('upgradeHolding')) ) {
       items.push({
         name: 'kerberos',
         url: 'adminKerberos.index',
-        label: Em.I18n.t('common.kerberos')
+        label: Em.I18n.t('common.kerberos'),
+        disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
       });
     }
     if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
@@ -58,8 +60,11 @@ App.MainAdminView = Em.View.extend({
 
   NavItemView: Ember.View.extend({
     tagName: 'li',
-    classNameBindings: 'isActive:active'.w(),
-    isActive: Em.computed.equalProperties('item', 'parentView.selected')
+    classNameBindings: 'isActive:active isDisabled:disabled'.w(),
+    isActive: Em.computed.equalProperties('item', 'parentView.selected'),
+    isDisabled: function () {
+      return !!this.get('parentView.categories').findProperty('name', this.get('item'))['disabled'];
+    }.property('item', 'parentView.categories.@each.disabled')
   }),
 
   willDestroyElement: function () {

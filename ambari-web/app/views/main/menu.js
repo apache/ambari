@@ -116,14 +116,16 @@ App.MainMenuView = Em.CollectionView.extend({
           categories.push({
             name: 'adminServiceAccounts',
             url: 'serviceAccounts',
-            label: Em.I18n.t('common.serviceAccounts')
+            label: Em.I18n.t('common.serviceAccounts'),
+            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
           });
         }
         if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
           categories.push({
             name: 'kerberos',
             url: 'kerberos/',
-            label: Em.I18n.t('common.kerberos')
+            label: Em.I18n.t('common.kerberos'),
+            disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
           });
         }
         if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
@@ -141,14 +143,16 @@ App.MainMenuView = Em.CollectionView.extend({
 
     AdminDropdownItemView: Ember.View.extend({
       tagName: 'li',
-      classNameBindings: 'isActive:active'.w(),
+      classNameBindings: 'isActive:active isDisabled:disabled'.w(),
       isActive: Em.computed.equalProperties('item', 'parentView.selectedAdminItem'),
-
+      isDisabled: function () {
+        return !!this.get('parentView.dropdownCategories').findProperty('name', this.get('item'))['disabled'];
+      }.property('item', 'parentView.dropdownCategories.@each.disabled'),
       goToCategory: function (event) {
         var itemName = this.get('parentView').get('content').routing;
         // route to correct category of current menu item
         // skip routing to already selected category
-        if (itemName === 'admin' && !this.get('isActive')) {
+        if (itemName === 'admin' && !this.get('isActive') && !this.get('isDisabled')) {
           App.router.route('main/admin/' + event.context);
         }
       }
