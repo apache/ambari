@@ -191,14 +191,19 @@ export default Ember.Controller.extend({
   waitForJobStatus: function (jobId, resolve, reject) {
     console.log("finding status of job: ", jobId);
     var self = this;
-    var fetchJobPromise = this.get('jobService').fetchJobStatus(jobId);
+    var fetchJobPromise = this.get('jobService').fetchJob(jobId);
       fetchJobPromise.then(function (data) {
-        var status = data.jobStatus;
-        if (status == "Succeeded") {
-          resolve(status);
-        } else if (status == "Canceled" || status == "Closed" || status == "Error") {
-          reject(new Error(status));
+        console.log("waitForJobStatus : data : ", data);
+        var job = data.job;
+        var status = job.status.toUpperCase();
+        if (status == constants.statuses.succeeded ) {
+          console.log("resolving waitForJobStatus with : " , status);
+          resolve(job);
+        } else if (status == constants.statuses.canceled || status == constants.statuses.closed || status == constants.statuses.error) {
+          console.log("rejecting waitForJobStatus with : " + status);
+          reject(new Error(job.statusMessage));
         } else {
+          console.log("retrying waitForJobStatus : ", jobId);
           self.waitForJobStatus(jobId, resolve, reject);
         }
       }, function (error) {
@@ -568,8 +573,9 @@ export default Ember.Controller.extend({
     var self = this;
     self.setError();
     self.createActualTable()
-      .then(function(data){
-        return self.waitForCreateActualTable(data.jobId);
+      .then(function(job){
+        console.log("1. received job : ", job);
+        return self.waitForCreateActualTable(job.id);
       },function(error){
         console.log("Error occurred: ", error);
         self.onCreateActualTableFailure(error);
@@ -581,12 +587,12 @@ export default Ember.Controller.extend({
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
-          self.onCreateActualTableFailure(new Error("Server job for creation of actual table failed."));
+          self.onCreateActualTableFailure(error);
         }
         throw error;
       })
-      .then(function(data){
-        return self.waitForCreateTempTable(data.jobId);
+      .then(function(job){
+        return self.waitForCreateTempTable(job.id);
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
@@ -600,7 +606,7 @@ export default Ember.Controller.extend({
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
-          return self.onCreateTempTableFailure(new Error("Server job for creation of temporary table failed."));
+          return self.onCreateTempTableFailure(error);
         }
         throw error;
       }).then(function(data){
@@ -618,12 +624,12 @@ export default Ember.Controller.extend({
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
-          return self.onUploadingFileFailure(new Error("Server job for upload of file failed."));
+          return self.onUploadingFileFailure(error);
         }
         throw error;
       })
-      .then(function(data){
-        return self.waitForInsertIntoTable(data.jobId);
+      .then(function(job){
+        return self.waitForInsertIntoTable(job.id);
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
@@ -637,12 +643,12 @@ export default Ember.Controller.extend({
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
-          return self.onInsertIntoTableFailure(new Error("Server job for insert from temporary to actual table failed."));
+          return self.onInsertIntoTableFailure(error);
         }
         throw error;
       })
-      .then(function(data){
-        return self.waitForDeleteTempTable(data.jobId);
+      .then(function(job){
+        return self.waitForDeleteTempTable(job.id);
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
@@ -655,7 +661,7 @@ export default Ember.Controller.extend({
       },function(error){
         if(!self.get('error')){
           console.log("Error occurred: ", error);
-          self.onDeleteTempTableFailure(new Error("Server job for deleting temporary table failed."));
+          self.onDeleteTempTableFailure(error);
         }
         throw error;
       }).catch(function(error){
