@@ -813,7 +813,7 @@ public class ConfigurationTest {
     Assert.assertTrue(completionServiceTimeout <= LARGEST_COMPLETION_SERIVCE_TIMEOUT_MS);
     Assert.assertTrue(corePoolSize <= maxPoolSize);
     Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 32);
-    Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= 32);
+    Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= processorCount * 4);
     Assert.assertTrue(workerQueueSize > processorCount * 10);
   }
 
@@ -849,7 +849,7 @@ public class ConfigurationTest {
 
     Assert.assertTrue(cacheTimeout >= LOWEST_CACHE_TIMEOUT_MINUTES);
     Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 32);
-    Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= 32);
+    Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= processorCount * 4);
     Assert.assertTrue(workerQueueSize >= processorCount * 10);
   }
 }
