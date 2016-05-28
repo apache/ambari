@@ -300,8 +300,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     LLAP_MAX_CONCURRENCY = 32 # Allow a max of 32 concurrency.
 
     # initial memory setting to make sure hive.llap.daemon.yarn.container.mb >= yarn.scheduler.minimum-allocation-mb
-    Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size as initial size (" + str(self.get_yarn_min_container_size(services)) + " MB).")
-    putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', long(self.get_yarn_min_container_size(services)))
+    Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size as initial size (" + str(self.get_yarn_min_container_size(services, configurations)) + " MB).")
+    putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', long(self.get_yarn_min_container_size(services, configurations)))
 
     try:
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
@@ -359,13 +359,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         assert (node_manager_host_list is not None), "Information about NODEMANAGER not found in cluster."
         node_manager_cnt = len(node_manager_host_list)
         llap_slider_cap_percentage = self.get_llap_cap_percent_slider(services, configurations)
-        yarn_nm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services)
+        yarn_nm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
         total_cluster_capacity = node_manager_cnt * yarn_nm_mem_in_mb
         Logger.info("\n\nCalculated total_cluster_capacity : {0}, using following : node_manager_cnt : {1}, "
                     "yarn_nm_mem_in_mb : {2}".format(total_cluster_capacity, node_manager_cnt, yarn_nm_mem_in_mb))
 
-        yarn_min_container_size = self.get_yarn_min_container_size(services)
-        tez_am_container_size = self._normalizeUp(self.get_tez_am_container_size(services), yarn_min_container_size)
+        yarn_min_container_size = self.get_yarn_min_container_size(services, configurations)
+        tez_am_container_size = self._normalizeUp(self.get_tez_am_container_size(services, configurations), yarn_min_container_size)
         total_llap_queue_size = float(llap_slider_cap_percentage) / 100 * total_cluster_capacity
         # Get calculated value for Slider AM container Size
         slider_am_container_size = self.calculate_slider_am_size(yarn_min_container_size)
@@ -425,7 +425,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
 
         # Calculate value for 'hive.llap.daemon.num.executors', a per node config.
-        hive_tez_container_size = self.get_hive_tez_container_size(services)
+        hive_tez_container_size = self.get_hive_tez_container_size(services, configurations)
         if 'yarn.nodemanager.resource.cpu-vcores' in services['configurations']['yarn-site']['properties']:
           cpu_per_nm_host = float(services['configurations']['yarn-site']['properties'][
                                     'yarn.nodemanager.resource.cpu-vcores'])
@@ -509,7 +509,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       traceback.print_exc()
 
       try:
-        yarn_min_container_size = long(self.get_yarn_min_container_size(services))
+        yarn_min_container_size = long(self.get_yarn_min_container_size(services, configurations))
         slider_am_container_size = long(self.calculate_slider_am_size(yarn_min_container_size))
         putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', 0)
         putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", 0)
@@ -625,33 +625,53 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       raise Fail("Couldn't retrieve Hive Server interactive's 'num_llap_nodes' config.")
 
   """
-  Gets HIVE Tez container size (hive.tez.container.size)
+  Gets HIVE Tez container size (hive.tez.container.size). Takes into account if it has been calculated as part of current
+  Stack Advisor invocation.
   """
-  def get_hive_tez_container_size(self, services):
-    hive_container_size = 0
-    if 'hive.tez.container.size' in services['configurations']['hive-site']['properties']:
-      hive_container_size = float(
-        services['configurations']['hive-site']['properties']['hive.tez.container.size'])
-      assert (
-        hive_container_size > 0), "'hive.tez.container.size' current value : {0}. Expected value : > 0".format(
-        hive_container_size)
-    else:
+  def get_hive_tez_container_size(self, services, configurations):
+    hive_container_size = None
+    # Check if 'hive.tez.container.size' is modified in current ST invocation.
+    if 'hive-site' in configurations and 'hive.tez.container.size' in configurations['hive-site']['properties']:
+      hive_container_size = float(configurations['hive-site']['properties']['hive.tez.container.size'])
+      Logger.info("''hive.tez.container.size'' read from configurations as : {0}".format(hive_container_size))
+
+    if not hive_container_size:
+      # Check if 'hive.tez.container.size' is input in services array.
+      if 'hive.tez.container.size' in services['configurations']['hive-site']['properties']:
+        hive_container_size = float(services['configurations']['hive-site']['properties']['hive.tez.container.size'])
+        Logger.info("''hive.tez.container.size'' read from services as : {0}".format(hive_container_size))
+
+    if not hive_container_size:
       raise Fail("Couldn't retrieve Hive Server 'hive.tez.container.size' config.")
+
+    assert (hive_container_size > 0), "'hive.tez.container.size' current value : {0}. Expected value : > 0".format(
+          hive_container_size)
+
     return hive_container_size
 
   """
-  Gets YARN's mimimum container size (yarn.scheduler.minimum-allocation-mb)
+  Gets YARN's mimimum container size (yarn.scheduler.minimum-allocation-mb). Takes into account if it has been calculated
+  as part of current Stack Advisor invocation.
   """
-  def get_yarn_min_container_size(self, services):
-    yarn_min_container_size = 0
-    if 'yarn.scheduler.minimum-allocation-mb' in services['configurations']['yarn-site']['properties']:
-      yarn_min_container_size = float(
-        services['configurations']['yarn-site']['properties']['yarn.scheduler.minimum-allocation-mb'])
-      assert (
-        yarn_min_container_size > 0), "'yarn.scheduler.minimum-allocation-mb' current value : {0}. Expected value : > 0".format(
-        yarn_min_container_size)
-    else:
+  def get_yarn_min_container_size(self, services, configurations):
+    yarn_min_container_size = None
+    # Check if 'yarn.scheduler.minimum-allocation-mb' is modified in current ST invocation.
+    if 'yarn-site' in configurations and 'yarn.scheduler.minimum-allocation-mb' in configurations['yarn-site']['properties']:
+      yarn_min_container_size = float(configurations['yarn-site']['properties']['yarn.scheduler.minimum-allocation-mb'])
+      Logger.info("''yarn.scheduler.minimum-allocation-mb'' read from configurations as : {0}".format(yarn_min_container_size))
+
+    if not yarn_min_container_size:
+      # Check if 'yarn.scheduler.minimum-allocation-mb' is input in services array.
+      if 'yarn-site' in services['configurations'] and \
+          'yarn.scheduler.minimum-allocation-mb' in services['configurations']['yarn-site']['properties']:
+        yarn_min_container_size = float(services['configurations']['yarn-site']['properties']['yarn.scheduler.minimum-allocation-mb'])
+        Logger.info("''yarn.scheduler.minimum-allocation-mb'' read from services as : {0}".format(yarn_min_container_size))
+
+    if not yarn_min_container_size:
       raise Fail("Couldn't retrieve YARN's 'yarn.scheduler.minimum-allocation-mb' config.")
+
+    assert (yarn_min_container_size > 0), "'yarn.scheduler.minimum-allocation-mb' current value : {0}. " \
+                                            "Expected value : > 0".format(yarn_min_container_size)
     return yarn_min_container_size
 
   """
@@ -666,52 +686,75 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       return 256
 
   """
-  Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb).
+  Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb). Takes into account if it has been calculated
+  as part of current Stack Advisor invocation.
   """
-  def get_yarn_nm_mem_in_mb(self, services):
-    if 'yarn-site' in services['configurations'] and \
-        'yarn.nodemanager.resource.memory-mb' in services['configurations']['yarn-site']['properties']:
-      yarn_nm_mem_in_mb = float(
-        services['configurations']['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb'])
-      assert (
-        yarn_nm_mem_in_mb > 0.0), "'yarn.nodemanager.resource.memory-mb' current value : {0}. Expected value : > 0".format(
-        yarn_nm_mem_in_mb)
-    else:
-      raise Fail(
-        "Couldn't retrieve YARN's 'yarn.nodemanager.resource.memory-mb' config.")
+  def get_yarn_nm_mem_in_mb(self, services, configurations):
+    yarn_nm_mem_in_mb = None
+
+    # Check if 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
+    if 'yarn-site' in configurations and 'yarn.nodemanager.resource.memory-mb' in configurations['yarn-site']['properties']:
+      yarn_nm_mem_in_mb = float(configurations['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb'])
+      Logger.info("''yarn.nodemanager.resource.memory-mb'' read from configurations as : {0}".format(yarn_nm_mem_in_mb))
+      print "from services : ",services['configurations']['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb']
+
+    if not yarn_nm_mem_in_mb:
+      # Check if 'yarn.nodemanager.resource.memory-mb' is input in services array.
+      if 'yarn-site' in services['configurations'] and \
+          'yarn.nodemanager.resource.memory-mb' in services['configurations']['yarn-site']['properties']:
+        yarn_nm_mem_in_mb = float(services['configurations']['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb'])
+
+    if not yarn_nm_mem_in_mb:
+      raise Fail("Couldn't retrieve YARN's 'yarn.nodemanager.resource.memory-mb' config.")
+
+    assert (yarn_nm_mem_in_mb > 0.0), "'yarn.nodemanager.resource.memory-mb' current value : {0}. " \
+                                      "Expected value : > 0".format(yarn_nm_mem_in_mb)
+
     return yarn_nm_mem_in_mb
 
   """
-  Gets Tez App Master container size (tez.am.resource.memory.mb)
+  Gets Tez App Master container size (tez.am.resource.memory.mb). Takes into account if it has been calculated
+  as part of current Stack Advisor invocation.
   """
-  def get_tez_am_container_size(self, services):
-    llap_daemon_container_size = 0
-    if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
-        'tez.am.resource.memory.mb' in services['configurations']['tez-interactive-site']['properties']:
-      llap_daemon_container_size = float(
-        services['configurations']['tez-interactive-site']['properties']['tez.am.resource.memory.mb'])
-      assert (
-        llap_daemon_container_size > 0), "'tez.am.resource.memory.mb' current value : {0}. Expected value : > 0".format(
-        llap_daemon_container_size)
-    else:
+  def get_tez_am_container_size(self, services, configurations):
+    llap_daemon_container_size = None
+
+    # Check if 'tez.am.resource.memory.mb' is modified in current ST invocation.
+    if 'tez-interactive-site' in configurations and 'tez.am.resource.memory.mb' in configurations['tez-interactive-site']['properties']:
+      llap_daemon_container_size = float(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'])
+      Logger.info("''tez.am.resource.memory.mb'' read from configurations as : {0}".format(llap_daemon_container_size))
+
+    if not llap_daemon_container_size:
+      # Check if 'tez.am.resource.memory.mb' is input in services array.
+      if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
+          'tez.am.resource.memory.mb' in services['configurations']['tez-interactive-site']['properties']:
+        llap_daemon_container_size = float(services['configurations']['tez-interactive-site']['properties']['tez.am.resource.memory.mb'])
+        Logger.info("''tez.am.resource.memory.mb'' read from services as : {0}".format(llap_daemon_container_size))
+
+
+    if not llap_daemon_container_size:
       raise Fail("Couldn't retrieve Hive Server interactive's 'tez.am.resource.memory.mb' config.")
+
+    assert (llap_daemon_container_size > 0), "'tez.am.resource.memory.mb' current value : {0}. " \
+                                             "Expected value : > 0".format(llap_daemon_container_size)
+
     return llap_daemon_container_size
 
   """
   Minimum 'llap' queue capacity required in order to get LLAP app running.
   """
-  def min_llap_queue_perc_required_in_cluster(self, services, hosts):
+  def min_llap_queue_perc_required_in_cluster(self, services, hosts, configurations):
     # Get llap queue size if sized at 20%
     node_manager_hosts = self.get_node_manager_hosts(services, hosts)
-    yarn_rm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services)
+    yarn_rm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
     total_cluster_cap = len(node_manager_hosts) * yarn_rm_mem_in_mb
     total_llap_queue_size_at_20_perc = 20.0 / 100 * total_cluster_cap
 
     # Calculate based on minimum size required by containers.
-    yarn_min_container_size = self.get_yarn_min_container_size(services)
+    yarn_min_container_size = self.get_yarn_min_container_size(services, configurations)
     slider_am_size = self.calculate_slider_am_size(yarn_min_container_size)
-    hive_tez_container_size = self.get_hive_tez_container_size(services)
-    tez_am_container_size = self.get_tez_am_container_size(services)
+    hive_tez_container_size = self.get_hive_tez_container_size(services, configurations)
+    tez_am_container_size = self.get_tez_am_container_size(services, configurations)
     normalized_val = self._normalizeUp(slider_am_size, yarn_min_container_size) + self._normalizeUp\
       (hive_tez_container_size, yarn_min_container_size) + self._normalizeUp(tez_am_container_size, yarn_min_container_size)
 
@@ -757,7 +800,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if 'llap_queue_capacity' in services['configurations']['hive-interactive-env']['properties']:
         llap_slider_cap_percentage = int(
           services['configurations']['hive-interactive-env']['properties']['llap_queue_capacity'])
-        llap_min_reqd_cap_percentage = self.min_llap_queue_perc_required_in_cluster(services, hosts)
+        llap_min_reqd_cap_percentage = self.min_llap_queue_perc_required_in_cluster(services, hosts, configurations)
         if llap_slider_cap_percentage <= 0 or llap_slider_cap_percentage > 100:
           Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% to {1}%".format(llap_slider_cap_percentage, llap_min_reqd_cap_percentage))
           putHiveInteractiveEnvProperty('llap_queue_capacity', llap_min_reqd_cap_percentage)
