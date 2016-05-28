@@ -6197,6 +6197,10 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   }
 }
 
+.icon-undo {
+  color: rgb(243, 178, 11);
+}
+
 .view-permission-header th {
   padding-top: 40px;
 }
@@ -6248,30 +6252,21 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     font-weight: normal;
     cursor: pointer;
   }
-  #upload-definition-file-panel {
-    .register-version-options {
-      padding: 5px 0px;
-      .local-option-label {
-        margin-left: 20px;
-        padding-top: 4px;
-      }
-    }
-    .vdf-url {
-      input {
-        width: 80%;
-      }
-    }
-    .read-info-button {
-      margin: 10px 0px;
-    }
-  }
   #upload-definition-file-panel.disabled {
      .local-option-label {
        color: #999999;
      }
   }
 }
-#select-stack #repoVersionInfoForm {
+.register-version-options {
+  input.disabled {
+    background-color: #eee;
+  }
+  input[type="file"] {
+    margin-bottom: 10px;
+  }
+}
+#select-stack {
   .accordion-heading {
     background-color: #f0f0f0;
     font-weight: bold;
@@ -6280,6 +6275,9 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       display: block;
       padding: 8px 15px;
     }
+  }
+  .accordion-inner {
+    border-top: none;
   }
   .accordion-body {
     .version-info-section {
@@ -6290,7 +6288,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       line-height: 14px;
     }
     .version-info {
-      font-weight: bold;
       padding-top: 5px;
       line-height: 14px;
     }
@@ -6302,14 +6299,19 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     border: 1px solid #ddd;
     max-height: 200px;
     overflow: auto;
-    padding: 8px 25px;
-    margin: 8px;
+    margin: 8px 0;
+    .table {
+      margin-bottom: 0;
+      tr:first-child td {
+        border-top: none;
+      }
+    }
   }
   .repos-panel {
     .remove-icon {
       color: red;
-      margin: 20px 0px;
-      padding: 0px;
+      margin: 20px 0 0 0;
+      padding: 0;
       text-align: center;
       cursor: pointer;
       &.disabled {
@@ -6321,9 +6323,11 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     .repo-table-title {
       padding-left: 5px;
+      padding-bottom: 10px;
       border-bottom: 1px solid #ebebeb;
       label {
         font-weight: bold;
+        margin-top: 5px;
       }
     }
     .os-type-label {
@@ -6338,26 +6342,37 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       padding-top: 10px;
     }
     .repo-name-url {
-      padding: 8px 0px;
+      padding-top: 8px;
+      .repo-name-url-inner {
+        margin-bottom: 8px;
+      }
     }
     .repo-url input {
       width: 90%;
       height: 24px;
     }
     .add-os-button {
-      margin-top:10px;
       button.disabled {
         cursor: not-allowed;
       }
     }
     #skip-validation {
       margin-top: 13px;
+      span.disabled {
+        opacity: 0.7;
+      }
     }
     #use-redhat, #skip-validation {
       input{
         margin: 0px 10px;
       }
     }
+    #use-redhat span.disabled {
+      opacity: 0.7;
+    }
+  }
+  #repoVersionInfoForm {
+
   }
 }
 #combo_search_box {

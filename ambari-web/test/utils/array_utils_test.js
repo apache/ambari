@@ -122,4 +122,47 @@ describe('array_utils', function () {
 
   });
 
+  describe('#sortByIdAsVersion', function () {
+
+    Em.A([
+      {
+        c: [{id: '1.2.4'}, {id: '1.2.5'}, {id: '1.2.3'}],
+        m: 'Items without letters and with same length',
+        e: ['1.2.3', '1.2.4', '1.2.5']
+      },
+      {
+        c: [{id: 'HDP-1.2.4'}, {id: 'HDP-1.2.5'}, {id: 'HDP-1.2.3'}],
+        m: 'Items with letters and with same length',
+        e: ['HDP-1.2.3', 'HDP-1.2.4', 'HDP-1.2.5']
+      },
+      {
+        c: [{id: 'HDP-1.2.4.2'}, {id: 'HDP-1.2.4.1'}, {id: 'HDP-1.2.3'}],
+        m: 'Items with letters and with custom length',
+        e: ['HDP-1.2.3', 'HDP-1.2.4.1', 'HDP-1.2.4.2']
+      },
+      {
+        c: [{id: 'HDP-1.2.4.2.3'}, {id: 'HDP-1.2.4.11.3'}, {id: 'HDP-1.2.3'}],
+        m: 'Items with letters and with double digits',
+        e: ['HDP-1.2.3', 'HDP-1.2.4.2.3', 'HDP-1.2.4.11.3']
+      },
+      {
+        c: [{id: 'HDP-1.2.3.2'}, {id: 'HDP-1.2.4'}, {id: 'HDP-1.2.3'}],
+        m: 'Items with letters and with custom length (2)',
+        e: ['HDP-1.2.3', 'HDP-1.2.3.2', 'HDP-1.2.4']
+      },
+      {
+        c: [{id: 'HDP-1.2.3'}, {id: 'HDP-1.2.4'}, {id: 'HDP-1.2.3'}],
+        m: 'Items with letters and equal ids',
+        e: ['HDP-1.2.3', 'HDP-1.2.3', 'HDP-1.2.4']
+      }
+    ]).forEach(function (test) {
+
+      it(test.m, function () {
+        expect(test.c.sort(arrayUtils.sortByIdAsVersion).mapProperty('id')).to.be.eql(test.e);
+      });
+
+    });
+
+  });
+
 });

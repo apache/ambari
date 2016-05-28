@@ -1210,4 +1210,23 @@ describe('App.InstallerController', function () {
     });
   });
 
+  describe('#postVersionDefinitionFileErrorCallback', function () {
+
+    beforeEach(function () {
+      sinon.stub(App, 'showAlertPopup', Em.K);
+    });
+
+    afterEach(function () {
+      App.showAlertPopup.restore();
+    });
+
+    it('should delete VDF-data', function () {
+      App.db.setLocalRepoVDFData({});
+      expect(App.db.getLocalRepoVDFData()).to.not.be.an.object;
+      installerController.postVersionDefinitionFileErrorCallback({}, {}, {}, {}, {dfd: $.Deferred()});
+      expect(App.db.getLocalRepoVDFData()).to.be.undefined;
+    });
+
+  });
+
 });

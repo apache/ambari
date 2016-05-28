@@ -508,13 +508,13 @@ describe('App.ConfigRecommendationParser', function() {
     it('add new file name', function() {
       instanceObject.set('modifiedFileNames', ['someFile']);
       instanceObject.addModifiedFileName('otherFile');
-      expect(instanceObject.get('modifiedFileNames').join(',')).to.eql('someFile,otherFile');
+      expect(instanceObject.get('modifiedFileNames').join(',')).to.be.equal('someFile,otherFile');
     });
 
     it('do not add file that already in list', function() {
       instanceObject.set('modifiedFileNames', ['someFile']);
       instanceObject.addModifiedFileName('someFile');
-      expect(instanceObject.get('modifiedFileNames').join(',')).to.eql('someFile');
+      expect(instanceObject.get('modifiedFileNames').join(',')).to.be.equal('someFile');
     });
   });
 });

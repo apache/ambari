@@ -1668,7 +1668,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   submit: function () {
     var self = this;
-    if(App.router.nextBtnClickInProgress){
+
+    if(App.get('router.nextBtnClickInProgress')){
       return;
     }
     if (this.get('isHostHaveWarnings')) {

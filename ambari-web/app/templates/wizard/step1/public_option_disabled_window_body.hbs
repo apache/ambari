@@ -1,4 +1,4 @@
-<!--
+{{!
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -14,15 +14,12 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
--->
-<div class="modal-header">
-    <h3 class="modal-title">{{header}}</h3>
-</div>
-<div class="modal-body">
-  <div class="default-body" ng-show="!isTempalte">{{body}}</div>
-  <div ng-show="isTempalte" ng-include="body.url"></div>
-</div>
-<div class="modal-footer">
-    <button class="btn btn-default" ng-if="showCancelButton" ng-click="cancel()">{{cancelText}}</button>
-    <button class="btn btn-primary" ng-click="ok()">{{confirmText}}</button>
-</div>
+}}
+
+
+<div class="public-disabled-message">{{t installer.step1.selectUseRepoOptions.public.networkLost.popup.msg}}</div>
+<ul>
+  <li class="public-disabled-option">{{t installer.step1.selectUseRepoOptions.public.networkLost.popup.msg1}}</li>
+  <li class="public-disabled-option">{{t installer.step1.selectUseRepoOptions.public.networkLost.popup.msg2}}</li>
+  <li class="public-disabled-option">{{t installer.step1.selectUseRepoOptions.public.networkLost.popup.msg3}}</li>
+</ul>

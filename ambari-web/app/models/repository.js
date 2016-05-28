@@ -43,12 +43,26 @@ App.Repository = DS.Model.extend({
   }.property('baseUrl'),
 
   invalidError: function() {
-    return this.get('validation') == App.Repository.validation['INVALID'];
+    return this.get('validation') === App.Repository.validation.INVALID;
   }.property('validation'),
+
+  /**
+   * @type {boolean}
+   */
+  isUtils: function () {
+    return this.get('repoName').contains('UTILS');
+  }.property('repoName'),
 
   undo: Em.computed.notEqualProperties('baseUrl', 'latestBaseUrl'),
 
-  clearAll: Em.computed.alias('baseUrl')
+  notEmpty: Em.computed.notEqual('baseUrl', ''),
+
+  clearAll: Em.computed.alias('baseUrl'),
+
+  /**
+   * @type {string}
+   */
+  placeholder: Em.computed.ifThenElse('isUtils', '', Em.I18n.t('installer.step1.advancedRepo.localRepo.placeholder')),
 
 });
 

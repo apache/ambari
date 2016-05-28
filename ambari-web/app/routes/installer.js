@@ -131,7 +131,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             index: 1,
             name: 'enterUrl',
             url: '',
-            placeholder: 'Enter URL to Version Definition File',
+            placeholder: Em.I18n.t('installer.step1.useLocalRepo.enterUrl.placeholder'),
             hasError: false,
             isSelected: false
           }
@@ -156,7 +156,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     back: Em.Router.transitionTo('step0'),
     next: function (router) {
       console.time('step1 next');
-      if(App.router.nextBtnClickInProgress || router.transitionInProgress){
+      if(router.get('nextBtnClickInProgress') || router.transitionInProgress){
         return;
       }
       var wizardStep1Controller = router.get('wizardStep1Controller');

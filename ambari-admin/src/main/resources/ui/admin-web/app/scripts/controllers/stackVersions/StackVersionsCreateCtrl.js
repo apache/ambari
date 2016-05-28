@@ -18,13 +18,17 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsCreateCtrl', ['$scope', 'Stack', '$routeParams', '$location', 'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'ConfirmationModal', function($scope, Stack, $routeParams, $location, Alert, $translate, Cluster, AddRepositoryModal, ConfirmationModal) {
+.controller('StackVersionsCreateCtrl', ['$scope', 'Stack', 'Utility', '$routeParams', '$location', '$timeout' ,'Alert', '$translate', 'Cluster', 'AddRepositoryModal', 'AddVersionModal', 'ConfirmationModal',
+    function($scope, Stack, Utility, $routeParams, $location, $timeout, Alert, $translate, Cluster, AddRepositoryModal, AddVersionModal, ConfirmationModal) {
   var $t = $translate.instant;
   $scope.constants = {
     os: $t('versions.os')
   };
   $scope.createController = true;
   $scope.osList = [];
+  $scope.stackIds = [];
+  $scope.allVersions = [];
+  $scope.networkLost = false;
   $scope.skipValidation = false;
   $scope.useRedhatSatellite = false;
 
@@ -66,18 +70,34 @@ angular.module('ambariAdminConsole')
   /**
    * User can select ONLY one option to upload version definition file
    */
-  $scope.togglePublicLocalOptionSelect = function () {
-    $scope.option1.hasError = false;
-    $scope.option2.hasError = false;
-  };
   $scope.toggleOptionSelect = function () {
     $scope.option1.hasError = false;
     $scope.option2.hasError = false;
   };
+  $scope.isPublicRepoSelected = function () {
+    if ($scope.selectedOption.index == $scope.publicOption.index) return true;
+  };
   $scope.togglePublicLocalOptionSelect = function () {
-    if ($scope.selectedOption.index == $scope.publicOption.index && $scope.selectedPublicRepoVersion) {
-      $scope.setVersionSelected($scope.selectedPublicRepoVersion);
+    if ($scope.selectedOption.index == $scope.publicOption.index) {
+      $scope.setInitialPublicRepoVersions();
+    } else {
+      $scope.clearRepoVersions();
     }
+    $scope.validateRepoUrl();
+  };
+  $scope.setInitialPublicRepoVersions = function () {
+    angular.forEach($scope.osList, function (os) {
+      os.repositories.forEach(function(repo) {
+        repo.Repositories.base_url = repo.Repositories.initial_base_url;
+      });
+    });
+  };
+  $scope.clearRepoVersions = function () {
+    angular.forEach($scope.osList, function (os) {
+      os.repositories.forEach(function(repo) {
+        repo.Repositories.base_url = '';
+      });
+    });
   };
   $scope.clearOptionsError = function () {
     $scope.option1.hasError = false;
@@ -114,6 +134,13 @@ angular.module('ambariAdminConsole')
     } else {
       $scope.option1.file = '';
     }
+  };
+
+  /**
+   * On click handler for adding a new version
+   */
+  $scope.addVersion = function() {
+    AddVersionModal.show($scope);
   };
 
   /**
@@ -154,21 +181,30 @@ angular.module('ambariAdminConsole')
   $scope.afterStackVersionRead = function () {
     Stack.getSupportedOSList($scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version)
       .then(function (data) {
+        var existingOSHash = {};
+        angular.forEach($scope.osList, function (os) {
+          if (angular.isUndefined(os.selected)) {
+            os.selected = true;
+          }
+          existingOSHash[os.OperatingSystems.os_type] = os;
+
+        });
         var operatingSystems = data.operating_systems;
-        operatingSystems.map(function (os) {
-          var existingOSHash = {};
-          angular.forEach($scope.osList, function (os) {
-            existingOSHash[os.OperatingSystems.os_type] = os;
-          });
+        angular.forEach(operatingSystems, function (stackOs) {
           // if os not in the list, mark as un-selected, add this to the osList
-          if (!existingOSHash[os.OperatingSystems.os_type]) {
-            os.selected = false;
-            os.repositories.forEach(function(repo) {
+          if (!existingOSHash[stackOs.OperatingSystems.os_type]) {
+            stackOs.selected = false;
+            stackOs.repositories.forEach(function(repo) {
               repo.Repositories.base_url = '';
+              repo.Repositories.initial_base_url = '';
             });
-            $scope.osList.push(os);
+            $scope.osList.push(stackOs);
           }
         });
+        if ($scope.selectedOption.index == $scope.localOption.index) {
+          $scope.clearRepoVersions();
+          $scope.validateRepoUrl();
+        }
       })
       .catch(function (data) {
         Alert.error($t('versions.alerts.osListError'), data.message);
@@ -192,7 +228,13 @@ angular.module('ambariAdminConsole')
   /**
    * On click handler for adding new OS
    */
-  $scope.addOS = function() {
+  $scope.addOS = function($event) {
+    var dropdownEl = $event.target.parentElement.parentElement;
+    // close the dopdown when an OS is added.
+    $timeout(function () {
+      dropdownEl.click();
+    });
+
     this.os.selected = true;
     if (this.os.repositories) {
       this.os.repositories.forEach(function(repo) {
@@ -208,6 +250,23 @@ angular.module('ambariAdminConsole')
     AddRepositoryModal.show($scope.osList, $scope.upgradeStack.stack_name, $scope.upgradeStack.stack_version, $scope.id);
   };
 
+  $scope.validBaseUrlsExist = function () {
+    var validBaseUrlsExist = true;
+    if ($scope.osList) {
+      $scope.osList.forEach(function(os) {
+        if (os.repositories && os.selected) {
+          os.repositories.forEach(function(repo) {
+            if (repo.invalidBaseUrl) {
+              validBaseUrlsExist = false;
+            }
+          })
+        }
+      });
+    }
+    return validBaseUrlsExist;
+  };
+
+
   $scope.isSaveButtonDisabled = function() {
     var enabled = false;
     $scope.osList.forEach(function(os) {
@@ -215,7 +274,8 @@ angular.module('ambariAdminConsole')
         enabled = true
       }
     });
-    return !enabled;
+    var isRedhatSatelliteSelected = $scope.useRedhatSatellite;
+    return !(isRedhatSatelliteSelected || (enabled && $scope.validBaseUrlsExist()));
   };
 
   $scope.defaulfOSRepos = {};
@@ -239,42 +299,47 @@ angular.module('ambariAdminConsole')
         updateRepoUrl = true;
       }
     });
-    if ($scope.isPublicVersion) {
-      var skip = $scope.skipValidation || $scope.useRedhatSatellite;
-      return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
-        if (invalidUrls.length === 0) {
+
+    var skip = $scope.skipValidation || $scope.useRedhatSatellite;
+    return Stack.validateBaseUrls(skip, $scope.osList, $scope.upgradeStack).then(function (invalidUrls) {
+      if (invalidUrls.length === 0) {
+        if ($scope.isPublicVersion) {
           var data = {
             "VersionDefinition": {
               "available": $scope.id
             }
           };
-          var repoUpdate = {
-            operating_systems: $scope.updateObj.operating_systems
-          };
-          Stack.postVersionDefinitionFile(false, data).then(function (versionInfo) {
-            if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
-              Stack.updateRepo(versionInfo.stackName, versionInfo.stackVersion, versionInfo.id, repoUpdate).then(function () {
-                Alert.success($t('versions.alerts.versionEdited', {
-                  stackName: $scope.upgradeStack.stack_name,
-                  versionName: $scope.actualVersion,
-                  displayName: $scope.displayName
-                }));
-                $location.path('/stackVersions');
-              }).catch(function (data) {
-                Alert.error($t('versions.alerts.versionUpdateError'), data.message);
-              });
-            }
-          })
-          .catch(function (data) {
-            Alert.error($t('versions.alerts.readVersionInfoError'), data.message);
-          });
+          var isXMLdata = false;
         } else {
-          Stack.highlightInvalidUrls(invalidUrls);
+          var data = $scope.data;
+          var isXMLdata = $scope.isXMLdata;
         }
-      });
-    } else {
-      $scope.updateRepoVersions();
-    }
+
+        var repoUpdate = {
+          operating_systems: $scope.updateObj.operating_systems
+        };
+        Stack.postVersionDefinitionFile(isXMLdata, data, false).then(function (response) {
+          var versionInfo = response.resources[0].VersionDefinition;
+          if (versionInfo.id && versionInfo.stack_name && versionInfo.stack_version) {
+            Stack.updateRepo(versionInfo.stack_name, versionInfo.stack_version, versionInfo.id, repoUpdate).then(function () {
+              Alert.success($t('versions.alerts.versionEdited', {
+                stackName: $scope.upgradeStack.stack_name,
+                versionName: $scope.actualVersion,
+                displayName: $scope.displayName
+              }));
+              $location.path('/stackVersions');
+            }).catch(function (data) {
+              Alert.error($t('versions.alerts.versionUpdateError'), data.message);
+            });
+          }
+        })
+        .catch(function (data) {
+          Alert.error($t('versions.alerts.readVersionInfoError'), data.message);
+        });
+      } else {
+        Stack.highlightInvalidUrls(invalidUrls);
+      }
+    });
   };
 
   $scope.updateRepoVersions = function () {
@@ -324,8 +389,47 @@ angular.module('ambariAdminConsole')
     }
   };
 
-  $scope.clearError = function() {
-    this.repository.hasError = false;
+  $scope.showPublicRepoDisabledDialog = function() {
+    ConfirmationModal.show(
+      $t('versions.networkIssues.publicDisabledHeader'),
+      {
+        "url": 'views/modals/publicRepoDisabled.html'
+      },
+      $t('common.controls.ok'),
+      $t('common.controls.cancel'),
+      true
+    )
+  };
+
+  $scope.onRepoUrlChange = function (repository) {
+    $scope.clearError(repository);
+    $scope.setInvalidUrlError(repository);
+  };
+
+  $scope.undoChange = function(repo) {
+    if ($scope.selectedOption.index == 1) {
+      repo.Repositories.base_url = repo.Repositories.initial_base_url;
+    } else {
+      repo.Repositories.base_url = '';
+    }
+  };
+
+  $scope.clearError = function(repository) {
+    repository.hasError = false;
+  };
+
+  $scope.setInvalidUrlError = function (repository) {
+    repository.invalidBaseUrl =  !$scope.isValidRepoBaseUrl(repository.Repositories.base_url);
+  };
+  /**
+   * Validate base URL
+   * @param {string} value
+   * @returns {boolean}
+   */
+  $scope.isValidRepoBaseUrl = function (value) {
+    var remotePattern = /^(?:(?:https?|ftp):\/{2})(?:\S+(?::\S*)?@)?(?:(?:(?:[\w\-.]))*)(?::[0-9]+)?(?:\/\S*)?$/,
+      localPattern = /^file:\/{2,3}([a-zA-Z][:|]\/){0,1}[\w~!*'();@&=\/\\\-+$,?%#.\[\]]+$/;
+    return remotePattern.test(value) || localPattern.test(value);
   };
 
   $scope.hasValidationErrors = function() {
@@ -372,10 +476,8 @@ angular.module('ambariAdminConsole')
       };
     });
     $scope.repoVersionFullName = response.repoVersionFullName;
-    angular.forEach(response.osList, function (os) {
-      os.selected = true;
-    });
     $scope.osList = response.osList;
+
     // load supported os type base on stack version
     $scope.afterStackVersionRead();
   };
@@ -385,11 +487,106 @@ angular.module('ambariAdminConsole')
     $scope.setVersionSelected(this.version);
   };
 
+  $scope.onStackIdChange = function () {
+    $scope.setStackIdActive(this.stack);
+    $scope.setVisibleStackVersions($scope.allVersions);
+    $scope.setVersionSelected($scope.activeStackVersion);
+  };
+
+  $scope.setStackIdActive =  function (stack) {
+    angular.forEach($scope.stackIds, function(_stack){
+      _stack.isSelected = false;
+    });
+    stack.isSelected = true;
+  };
+
+  $scope.setStackIds = function(stacks) {
+    var stackIds = [];
+    // sort stacks as per per {stack_name}-{stack_version}
+    stacks.sort(function(a,b){
+      if (a.stackName === b.stackName) {
+        var aStackVersion = parseFloat(a.stackVersion);
+        var bStackVersion = parseFloat(b.stackVersion);
+        if (aStackVersion === bStackVersion) {
+          // sort numerically as per per {repository_version}
+          return Utility.compareVersions(a.repositoryVersion, b.repositoryVersion);
+        } else {
+          //sort numerically as per per {stack_version}
+          return aStackVersion > bStackVersion;
+        }
+      } else {
+        //sort lexicographically as per per {stack_name}
+        return  (a.stackName > b.stackName);
+      }
+    }).reverse();
+    angular.forEach(stacks, function (stack) {
+      stackIds.push(stack.stackNameVersion);
+    });
+    $scope.stackIds = stackIds.filter(function(item, index, self){
+      return self.indexOf(item) === index;
+    }).map(function(item){
+      return {
+        stackNameVersion: item,
+        isSelected: false
+      };
+    });
+    $scope.stackIds[0].isSelected = true;
+  };
+
+  $scope.setActiveVersion = function () {
+    $scope.activeStackVersion = this.version;
+    $scope.setVersionSelected($scope.activeStackVersion);
+  };
+
+  $scope.setVisibleStackVersions = function (versions) {
+    var activeStackId = $scope.stackIds.find(function(item){
+      return item.isSelected === true;
+    });
+    angular.forEach(versions, function (item, index) {
+      var isPublicVersionsExist = false;
+      // If public VDF exists for a stack then default base stack version should be hidden
+      if (item.stackDefault) {
+        isPublicVersionsExist = versions.find(function(_version){
+          return (item.stackNameVersion === _version.stackNameVersion && !_version.stackDefault);
+        });
+      }
+      item.visible = (item.stackNameVersion === activeStackId.stackNameVersion) && !isPublicVersionsExist;
+    });
+    $scope.activeStackVersion = versions.filter(function(item){
+      return item.visible;
+    })[0];
+  };
+
+  $scope.setNetworkIssues = function (versions) {
+   $scope.networkLost = !versions.find(function(_version){
+     return !_version.stackDefault;
+   });
+    if ($scope.networkLost) {
+      $scope.selectedOption.index = 2;
+      $scope.clearRepoVersions();
+    }
+  };
+
+  $scope.validateRepoUrl = function () {
+    angular.forEach($scope.osList,function(os){
+      if (os.repositories) {
+        os.repositories.forEach(function(repo) {
+          $scope.onRepoUrlChange(repo);
+        });
+      }
+    });
+  };
+
   $scope.fetchPublicVersions = function () {
     return Stack.allPublicStackVersions().then(function (versions) {
       if (versions && versions.length) {
-        $scope.selectedPublicRepoVersion = versions[0];
-        $scope.setVersionSelected(versions[0]);
+        $scope.setStackIds(versions);
+        $scope.setVisibleStackVersions(versions);
+        $scope.allVersions = versions;
+        $scope.selectedPublicRepoVersion = $scope.activeStackVersion;
+        $scope.setVersionSelected($scope.activeStackVersion);
+        $scope.setNetworkIssues(versions);
+        $scope.validateRepoUrl();
         $scope.availableStackRepoList = versions.length == 1 ? [] : versions;
       }
     });

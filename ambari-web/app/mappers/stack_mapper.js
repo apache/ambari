@@ -27,6 +27,7 @@ App.stackMapper = App.QuickDataMapper.create({
     id: 'id',
     stack_name: 'stack_name',
     stack_version: 'stack_version',
+    stack_default: 'stack_default',
     show_available: 'show_available',
     type: 'type',
     repository_version: 'repository_version',
@@ -96,12 +97,11 @@ App.stackMapper = App.QuickDataMapper.create({
 
     var item = json;
     var stack = item.VersionDefinition;
+    if (!stack.id) {
+      stack.id = stack.stack_name + '-' + stack.stack_version + '-' + stack.repository_version; //HDP-2.5-2.5.0.0
+    }
     var operatingSystemsArray = [];
     var servicesArray = [];
-
-    if (!stack.id) {
-      stack.id = stack.stack_name + "-" + stack.stack_version + "-" + stack.repository_version; //HDP-2.5-2.5.0.0
-    }
 
     item.operating_systems.forEach(function(ops) {
       var operatingSystems = ops.OperatingSystems;
@@ -110,7 +110,7 @@ App.stackMapper = App.QuickDataMapper.create({
       ops.repositories.forEach(function(repo) {
         repo.Repositories.id = [stack.id, repo.Repositories.os_type, repo.Repositories.repo_id].join('-');
         repo.Repositories.os_id = [stack.id, repo.Repositories.os_type].join('-');
-        if (!repo.Repositories.latest_base_url)  repo.Repositories.latest_base_url = repo.Repositories.base_url;
+        if (!repo.Repositories.latest_base_url) repo.Repositories.latest_base_url = repo.Repositories.base_url;
         resultRepo.push(this.parseIt(repo.Repositories, this.get('configRepository')));
         repositoriesArray.pushObject(repo.Repositories);
       }, this);
