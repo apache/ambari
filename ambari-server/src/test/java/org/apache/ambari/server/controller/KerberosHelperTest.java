@@ -1952,19 +1952,19 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).times(1);
-//    expect(identityDescriptor1.getName()).andReturn("1").times(1);
+    expect(identityDescriptor1.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).times(1);
-//    expect(identityDescriptor2.getName()).andReturn("2").times(1);
+    expect(identityDescriptor2.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptor3 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor3.getPrincipalDescriptor()).andReturn(principalDescriptor3).times(1);
-//    expect(identityDescriptor3.getName()).andReturn("3").times(1);
+    expect(identityDescriptor3.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
 
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor1.getName()).andReturn("SERVICE1").times(2);
-    expect(serviceDescriptor1.getIdentities(true)).andReturn(Arrays.asList(
+    expect(serviceDescriptor1.getIdentities(eq(true), anyObject(Map.class))).andReturn(Arrays.asList(
         identityDescriptor1,
         identityDescriptor2,
         identityDescriptor3
@@ -1983,14 +1983,14 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getProperty("additional_realms")).andReturn(null).times(1);
-    expect(kerberosDescriptor.getIdentities()).andReturn(null).times(1);
+    expect(kerberosDescriptor.getIdentities(eq(true), anyObject(Map.class))).andReturn(null).times(1);
     expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(null).times(1);
     expect(kerberosDescriptor.getServices()).andReturn(Collections.singletonMap("SERVICE1", serviceDescriptor1)).times(1);
 
     final Service service1 = createNiceMock(Service.class);
 
     final Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getServices()).andReturn(Collections.singletonMap("SERVICE1", service1)).times(1);
+    expect(cluster.getServices()).andReturn(Collections.singletonMap("SERVICE1", service1)).anyTimes();
 
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
 
@@ -2253,7 +2253,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).atLeastOnce();
     expect(kerberosDescriptor.getService("SERVICE3")).andReturn(serviceDescriptor3).atLeastOnce();
     expect(kerberosDescriptor.getProperty("additional_realms")).andReturn(null).atLeastOnce();
-    expect(kerberosDescriptor.getIdentities()).andReturn(null).atLeastOnce();
+    expect(kerberosDescriptor.getIdentities(eq(true), anyObject(Map.class))).andReturn(null).atLeastOnce();
     expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(Collections.singleton("core-site/auth.to.local")).atLeastOnce();
 
     final ResourceProvider artifactResourceProvider = createMock(ArtifactResourceProvider.class);
@@ -3820,30 +3820,36 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(identityDescriptor1.getName()).andReturn("identity1").anyTimes();
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).anyTimes();
     expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).anyTimes();
+    expect(identityDescriptor1.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
+    expect(identityDescriptor1.getWhen()).andReturn(null).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor2.getName()).andReturn("identity2").anyTimes();
     expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).anyTimes();
     expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).anyTimes();
+    expect(identityDescriptor2.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
+    expect(identityDescriptor2.getWhen()).andReturn(null).anyTimes();
 
     final KerberosIdentityDescriptor identityDescriptorService1 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptorService1.getName()).andReturn("identity3").anyTimes();
     expect(identityDescriptorService1.getPrincipalDescriptor()).andReturn(principalDescriptorService1).anyTimes();
     expect(identityDescriptorService1.getKeytabDescriptor()).andReturn(keytabDescriptorService1).anyTimes();
+    expect(identityDescriptorService1.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
+    expect(identityDescriptorService1.getWhen()).andReturn(null).anyTimes();
 
     final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor1.getIdentities(true)).andReturn(Collections.singletonList(identityDescriptor1)).anyTimes();
+    expect(componentDescriptor1.getIdentities(eq(true), anyObject(Map.class))).andReturn(Collections.singletonList(identityDescriptor1)).anyTimes();
 
     final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
-    expect(componentDescriptor2.getIdentities(true)).andReturn(Collections.singletonList(identityDescriptor2)).anyTimes();
+    expect(componentDescriptor2.getIdentities(eq(true), anyObject(Map.class))).andReturn(Collections.singletonList(identityDescriptor2)).anyTimes();
 
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).anyTimes();
-    expect(serviceDescriptor1.getIdentities(true)).andReturn(Collections.singletonList(identityDescriptorService1)).anyTimes();
+    expect(serviceDescriptor1.getIdentities(eq(true), anyObject(Map.class))).andReturn(Collections.singletonList(identityDescriptorService1)).anyTimes();
 
     final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
     expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).anyTimes();
-    expect(serviceDescriptor2.getIdentities(true)).andReturn(null).anyTimes();
+    expect(serviceDescriptor2.getIdentities(eq(true), anyObject(Map.class))).andReturn(null).anyTimes();
 
     final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getProperties()).andReturn(new HashMap<String, String>() {
@@ -3934,7 +3940,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosServiceDescriptor descriptor = createMock(KerberosServiceDescriptor.class);
     expect(descriptor.getName()).andReturn(serviceName).anyTimes();
     expect(descriptor.getComponents()).andReturn(componentMap).anyTimes();
-    expect(descriptor.getIdentities(true)).andReturn(identities).anyTimes();
+    expect(descriptor.getIdentities(eq(true), anyObject(Map.class))).andReturn(identities).anyTimes();
     expect(descriptor.getAuthToLocalProperties()).andReturn(null).anyTimes();
     return descriptor;
   }
@@ -3955,7 +3961,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       throws AmbariException {
     KerberosComponentDescriptor descriptor = createMock(KerberosComponentDescriptor.class);
     expect(descriptor.getName()).andReturn(componentName).anyTimes();
-    expect(descriptor.getIdentities(true)).andReturn(identities).anyTimes();
+    expect(descriptor.getIdentities(eq(true), anyObject(Map.class))).andReturn(identities).anyTimes();
     expect(descriptor.getConfigurations(true)).andReturn(configurations).anyTimes();
     expect(descriptor.getAuthToLocalProperties()).andReturn(null).anyTimes();
     return descriptor;

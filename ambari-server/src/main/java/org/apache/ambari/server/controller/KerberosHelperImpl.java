@@ -353,6 +353,11 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     Map<String, Set<String>> propertiesToIgnore = new HashMap<String, Set<String>>();
 
+    // Create the context to use for filtering Kerberos Identities based on the state of the cluster
+    Map<String, Object> filterContext = new HashMap<String, Object>();
+    filterContext.put("configurations", configurations);
+    filterContext.put("services", services);
+
     for (String serviceName : services) {
       // Set properties...
       KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
@@ -363,7 +368,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           if (componentDescriptor != null) {
             Map<String, Map<String, String>> identityConfigurations;
 
-            identityConfigurations = getIdentityConfigurations(serviceDescriptor.getIdentities(true));
+            identityConfigurations = getIdentityConfigurations(serviceDescriptor.getIdentities(true, filterContext));
             if (identityConfigurations != null) {
               for (Map.Entry<String, Map<String, String>> entry : identityConfigurations.entrySet()) {
                 String configType = entry.getKey();
@@ -382,7 +387,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               }
             }
 
-            identityConfigurations = getIdentityConfigurations(componentDescriptor.getIdentities(true));
+            identityConfigurations = getIdentityConfigurations(componentDescriptor.getIdentities(true, filterContext));
             if (identityConfigurations != null) {
               for (Map.Entry<String, Map<String, String>> entry : identityConfigurations.entrySet()) {
                 String configType = entry.getKey();
@@ -699,6 +704,11 @@ public class KerberosHelperImpl implements KerberosHelper {
         throw new AmbariException(message, e);
       }
 
+      // Create the context to use for filtering Kerberos Identities based on the state of the cluster
+      Map<String, Object> filterContext = new HashMap<String, Object>();
+      filterContext.put("configurations", configurations);
+      filterContext.put("services", services);
+
       for (String serviceName : services) {
         // Set properties...
         KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
@@ -710,7 +720,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               List<KerberosIdentityDescriptor> identityDescriptors;
 
               // Handle the service-level Kerberos identities
-              identityDescriptors = serviceDescriptor.getIdentities(true);
+              identityDescriptors = serviceDescriptor.getIdentities(true, filterContext);
               if (identityDescriptors != null) {
                 for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
                   createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
@@ -718,7 +728,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               }
 
               // Handle the component-level Kerberos identities
-              identityDescriptors = componentDescriptor.getIdentities(true);
+              identityDescriptors = componentDescriptor.getIdentities(true, filterContext);
               if (identityDescriptors != null) {
                 for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
                   createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
@@ -831,9 +841,14 @@ public class KerberosHelperImpl implements KerberosHelper {
       // Additional realms that need to be handled according to the Kerberos Descriptor
       String additionalRealms = kerberosDescriptor.getProperty("additional_realms");
 
+      // Create the context to use for filtering Kerberos Identities based on the state of the cluster
+      Map<String, Object> filterContext = new HashMap<String, Object>();
+      filterContext.put("configurations", existingConfigurations);
+      filterContext.put("services", cluster.getServices().keySet());
+
       // Determine which properties need to be set
       AuthToLocalBuilder authToLocalBuilder = new AuthToLocalBuilder(realm, additionalRealms, caseInsensitiveUser);
-      addIdentities(authToLocalBuilder, kerberosDescriptor.getIdentities(), null, existingConfigurations);
+      addIdentities(authToLocalBuilder, kerberosDescriptor.getIdentities(true, filterContext), null, existingConfigurations);
 
       authToLocalProperties = kerberosDescriptor.getAuthToLocalProperties();
       if (authToLocalProperties != null) {
@@ -847,7 +862,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         for (KerberosServiceDescriptor service : services.values()) {
           if (installedServices.containsKey(service.getName())) {
             Service svc = installedServices.get(service.getName());
-            addIdentities(authToLocalBuilder, service.getIdentities(true), null, existingConfigurations);
+            addIdentities(authToLocalBuilder, service.getIdentities(true, filterContext), null, existingConfigurations);
 
             authToLocalProperties = service.getAuthToLocalProperties();
             if (authToLocalProperties != null) {
@@ -897,7 +912,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
                 if (addSvcCompIdentities) {
                   LOG.info("Adding identity for " + component.getName() + " to auth to local mapping");
-                  addIdentities(authToLocalBuilder, component.getIdentities(true), null, existingConfigurations);
+                  addIdentities(authToLocalBuilder, component.getIdentities(true, filterContext), null, existingConfigurations);
 
                   authToLocalProperties = component.getAuthToLocalProperties();
                   if (authToLocalProperties != null) {
@@ -905,8 +920,6 @@ public class KerberosHelperImpl implements KerberosHelper {
 
                   }
                 }
-
-
               }
             }
           }
@@ -1281,22 +1294,30 @@ public class KerberosHelperImpl implements KerberosHelper {
         if (kerberosDescriptor != null) {
           Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
 
+          Set<String> existingServices = cluster.getServices().keySet();
+
           for (String hostname : hosts) {
+            // Calculate the current host-specific configurations. These will be used to replace
+            // variables within the Kerberos descriptor data
+            Map<String, Map<String, String>> configurations = calculateConfigurations(cluster,
+                hostname.equals(ambariServerHostname) ? null : hostname,
+                kerberosDescriptorProperties);
+
+            // Create the context to use for filtering Kerberos Identities based on the state of the cluster
+            Map<String, Object> filterContext = new HashMap<String, Object>();
+            filterContext.put("configurations", configurations);
+            filterContext.put("services", existingServices);
+
+
             Map<String, KerberosIdentityDescriptor> hostActiveIdentities = new HashMap<String, KerberosIdentityDescriptor>();
             List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname,
-                serviceName, componentName, kerberosDescriptor);
+                serviceName, componentName, kerberosDescriptor, filterContext);
 
             if (hostname.equals(ambariServerHostname)) {
               addAmbariServerIdentity(kerberosEnvConfig.getProperties(), kerberosDescriptor, identities);
             }
 
             if (!identities.isEmpty()) {
-              // Calculate the current host-specific configurations. These will be used to replace
-              // variables within the Kerberos descriptor data
-              Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname.equals
-                      (ambariServerHostname) ? null : hostname,
-                  kerberosDescriptorProperties);
-
               for (KerberosIdentityDescriptor identity : identities) {
                 KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
                 String principal = null;
@@ -1352,7 +1373,8 @@ public class KerberosHelperImpl implements KerberosHelper {
                     hostActiveIdentities.put(uniqueKey, new KerberosIdentityDescriptor(
                         identity.getName(),
                         resolvedPrincipalDescriptor,
-                        resolvedKeytabDescriptor));
+                        resolvedKeytabDescriptor,
+                        identity.getWhen()));
                   }
                 }
               }
@@ -2305,13 +2327,15 @@ public class KerberosHelperImpl implements KerberosHelper {
    *                           components
    * @param kerberosDescriptor the relevant Kerberos Descriptor     @return a list of KerberosIdentityDescriptors representing the active identities for the
    * requested service component
+   * @param filterContext      the context to use for filtering identities based on the state of the cluster
    * @throws AmbariException if an error occurs processing the cluster's active identities
    */
   private List<KerberosIdentityDescriptor> getActiveIdentities(Cluster cluster,
                                                                String hostname,
                                                                String serviceName,
                                                                String componentName,
-                                                               KerberosDescriptor kerberosDescriptor)
+                                                               KerberosDescriptor kerberosDescriptor,
+                                                               Map<String, Object> filterContext)
       throws AmbariException {
 
     List<KerberosIdentityDescriptor> identities = new ArrayList<KerberosIdentityDescriptor>();
@@ -2329,14 +2353,14 @@ public class KerberosHelperImpl implements KerberosHelper {
           KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(schServiceName);
 
           if (serviceDescriptor != null) {
-            List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true);
+            List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true, filterContext);
             if (serviceIdentities != null) {
               identities.addAll(serviceIdentities);
             }
 
             KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(schComponentName);
             if (componentDescriptor != null) {
-              List<KerberosIdentityDescriptor> componentIdentities = componentDescriptor.getIdentities(true);
+              List<KerberosIdentityDescriptor> componentIdentities = componentDescriptor.getIdentities(true, filterContext);
               if (componentIdentities != null) {
                 identities.addAll(componentIdentities);
               }
