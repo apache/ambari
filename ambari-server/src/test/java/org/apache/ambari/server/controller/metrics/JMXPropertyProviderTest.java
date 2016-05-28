@@ -71,7 +71,7 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "state");
 
-  public static final int NUMBER_OF_RESOURCES = 400;
+  public static final int NUMBER_OF_RESOURCES = 350;
   private static MetricPropertyProviderFactory metricPropertyProviderFactory;
 
   @BeforeClass
