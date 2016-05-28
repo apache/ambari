@@ -161,6 +161,9 @@ for host in atlas_hosts:
   id += 1
   first_id = False
 
+atlas_search_backend = default("/configurations/application-properties/atlas.graph.index.search.backend", "")
+search_backend_solr = atlas_search_backend.startswith('solr')
+
 # logsearch solr
 logsearch_solr_znode = default("/configurations/logsearch-solr-env/logsearch_solr_znode", None)
 logsearch_solr_dir = '/usr/lib/ambari-logsearch-solr'

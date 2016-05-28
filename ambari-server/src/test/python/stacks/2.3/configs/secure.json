@@ -169,7 +169,7 @@
       "atlas.cluster.name" : "c2",
       "atlas.graph.storage.backend": "berkeleyje",
       "atlas.graph.storage.directory": "data/berkley",
-      "atlas.graph.index.search.backend": "elasticsearch",
+      "atlas.graph.index.search.backend": "solr5",
       "atlas.graph.index.search.directory": "data/es",
       "atlas.graph.index.search.elasticsearch.client-only": false,
       "atlas.graph.index.search.elasticsearch.local-mode": true,
@@ -322,6 +322,9 @@
       "jaimin-knox-1.c.pramod-thangali.internal"
     ],
     "kafka_broker_hosts": [
+      "c6401.ambari.apache.org"
+    ],
+    "logsearch_solr_hosts": [
       "c6401.ambari.apache.org"
     ],
     "zookeeper_hosts": [
