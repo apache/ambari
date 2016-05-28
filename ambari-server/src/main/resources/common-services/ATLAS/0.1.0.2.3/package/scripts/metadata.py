@@ -109,7 +109,7 @@ def metadata(type='server'):
          content=StaticFile('policy-store.txt')
     )
 
-    if type == 'server':
+    if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
       random_num = random.random()
 
       upload_conf_set('basic_configs', random_num)
