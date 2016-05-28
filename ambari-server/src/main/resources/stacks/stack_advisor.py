@@ -308,8 +308,9 @@ class DefaultStackAdvisor(StackAdvisor):
   have an advisor. Stack-versions can extend this class to provide their own
   implement
   """
-
   services = None
+  # Dictionary that maps serviceName or componentName to serviceAdvisor
+  serviceAdvisorsDict = {}
 
   """
   Filters the list of specified hosts object and returns
@@ -323,6 +324,53 @@ class DefaultStackAdvisor(StackAdvisor):
                    if host.get('maintenance_state') is None or host.get('maintenance_state') == "OFF"]
 
     return hostsList
+
+  def getServiceAdvisor(self, key):
+
+    if len(self.serviceAdvisorsDict) == 0:
+      self.loadServiceAdvisors()
+    return self.serviceAdvisorsDict[key]
+
+  def loadServiceAdvisors(self, services=None):
+
+    if self.services is None:
+      self.services = services
+    for service in self.services["services"]:
+      serviceName = service["StackServices"]["service_name"]
+      self.serviceAdvisorsDict[serviceName] = self.instantiateServiceAdvisor(service)
+      for component in service["components"]:
+        componentName = self.getComponentName(component)
+        self.serviceAdvisorsDict[componentName] = self.serviceAdvisorsDict[serviceName]
+
+  def instantiateServiceAdvisor(self, service):
+    import imp
+    import os
+    import traceback
+
+    serviceName = service["StackServices"]["service_name"]
+    className = service["StackServices"]["advisor_name"] if "advisor_name" in service["StackServices"] else None
+    path = service["StackServices"]["advisor_path"] if "advisor_path" in service["StackServices"] else None
+
+    if path is None or className is None:
+      return None
+
+    if not os.path.exists(path):
+      return None
+
+    try:
+      serviceAdvisor = None
+      with open(path, 'rb') as fp:
+        serviceAdvisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
+      if hasattr(serviceAdvisor, className):
+        print "ServiceAdvisor implementation for service {0} was loaded".format(serviceName)
+        clazz = getattr(serviceAdvisor, className)
+        return clazz()
+
+    except Exception as e:
+      traceback.print_exc()
+      print "Failed to load or create ServiceAdvisor implementation for service {0}".format(serviceName)
+
+    return None
 
   def recommendComponentLayout(self, services, hosts):
     """Returns Services object with hostnames array populated for components"""
@@ -368,7 +416,8 @@ class DefaultStackAdvisor(StackAdvisor):
     #extend hostsComponentsMap' with MASTER components
     for service in services["services"]:
       masterComponents = [component for component in service["components"] if self.isMasterComponent(component)]
-      serviceAdvisor = self.instantiateServiceAdvisor(service)
+      serviceName = service["StackServices"]["service_name"]
+      serviceAdvisor = self.getServiceAdvisor(serviceName)
       for component in masterComponents:
         componentName = component["StackServiceComponents"]["component_name"]
         hostsForComponent = []
@@ -392,7 +441,8 @@ class DefaultStackAdvisor(StackAdvisor):
     for service in services["services"]:
       slaveClientComponents = [component for component in service["components"]
                                if self.isSlaveComponent(component) or self.isClientComponent(component)]
-      serviceAdvisor = self.instantiateServiceAdvisor(service)
+      serviceName = service["StackServices"]["service_name"]
+      serviceAdvisor = self.getServiceAdvisor(serviceName)
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
         hostsForComponent = []
@@ -410,7 +460,8 @@ class DefaultStackAdvisor(StackAdvisor):
 
     #colocate custom services
     for service in services["services"]:
-      serviceAdvisor = self.instantiateServiceAdvisor(service)
+      serviceName = service["StackServices"]["service_name"]
+      serviceAdvisor = self.getServiceAdvisor(serviceName)
       if serviceAdvisor is not None:
         serviceComponents = [component for component in service["components"]]
         serviceAdvisor.colocateService(self, hostsComponentsMap, serviceComponents)
@@ -486,49 +537,8 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return hostsForComponent
 
-  def instantiateServiceAdvisorForComponent(self, componentName):
-    if self.services is None:
-      return None
-
-    for service in self.services["services"]:
-      for component in service["components"]:
-        if componentName == self.getComponentName(component):
-          return self.instantiateServiceAdvisor(service)
-
-    return None
-
-  def instantiateServiceAdvisor(self, service):
-    import imp
-    import os
-    import traceback
-
-    serviceName = service["StackServices"]["service_name"]
-    className = service["StackServices"]["advisor_name"] if "advisor_name" in service["StackServices"] else None
-    path = service["StackServices"]["advisor_path"] if "advisor_path" in service["StackServices"] else None
-
-    if path is None or className is None:
-      return None
-
-    if not os.path.exists(path):
-      return None
-
-    try:
-      serviceAdvisor = None
-      with open(path, 'rb') as fp:
-        serviceAdvisor = imp.load_module('service_advisor_impl', fp, path, ('.py', 'rb', imp.PY_SOURCE))
-      if hasattr(serviceAdvisor, className):
-        print "ServiceAdvisor implementation for service {0} was loaded".format(serviceName)
-        clazz = getattr(serviceAdvisor, className)
-        return clazz()
-
-    except Exception as e:
-      traceback.print_exc()
-      print "Failed to load or create ServiceAdvisor implementation for service {0}".format(serviceName)
-
-    return None
-
   def isComponentUsingCardinalityForLayout(self, componentName):
-    serviceAdvisor = self.instantiateServiceAdvisorForComponent(componentName)
+    serviceAdvisor = self.getServiceAdvisor(componentName)
     if serviceAdvisor is not None:
       return serviceAdvisor.isComponentUsingCardinalityForLayout(componentName)
 
@@ -566,9 +576,10 @@ class DefaultStackAdvisor(StackAdvisor):
       return items
 
     for service in services["services"]:
-      advisor = self.instantiateServiceAdvisor(service)
-      if advisor is not None:
-        items.extend(advisor.getComponentLayoutValidations(self, services, hosts))
+      serviceName = service["StackServices"]["service_name"]
+      serviceAdvisor = self.getServiceAdvisor(serviceName)
+      if serviceAdvisor is not None:
+        items.extend(serviceAdvisor.getComponentLayoutValidations(self, services, hosts))
 
     return items
 
@@ -658,9 +669,9 @@ class DefaultStackAdvisor(StackAdvisor):
             resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
             items.extend(resultItems)
 
-    advisor = self.instantiateServiceAdvisor(service)
-    if advisor is not None:
-      items.extend(advisor.getConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts))
+    serviceAdvisor = self.getServiceAdvisor(serviceName)
+    if serviceAdvisor is not None:
+      items.extend(serviceAdvisor.getConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts))
 
     return items
 
@@ -697,9 +708,9 @@ class DefaultStackAdvisor(StackAdvisor):
         if calculation is not None:
           calculation(configurations, cgClusterSummary, cgServices, cgHosts)
         else:
-          advisor = self.instantiateServiceAdvisor(service)
-          if advisor is not None:
-            advisor.getServiceConfigurationRecommendations(self, configuration, cgClusterSummary, cgServices, cgHosts)
+          serviceAdvisor = self.getServiceAdvisor(serviceName)
+          if serviceAdvisor is not None:
+            serviceAdvisor.getServiceConfigurationRecommendations(self, configurations, cgClusterSummary, cgServices, cgHosts)
 
       cgRecommendation = {
         "configurations": {},
@@ -768,9 +779,9 @@ class DefaultStackAdvisor(StackAdvisor):
         if calculation is not None:
           calculation(configurations, clusterSummary, services, hosts)
         else:
-          advisor = self.instantiateServiceAdvisor(service)
-          if advisor is not None:
-            advisor.getServiceConfigurationRecommendations(self, configurations, clusterSummary, services, hosts)
+          serviceAdvisor = self.getServiceAdvisor(serviceName)
+          if serviceAdvisor is not None:
+            serviceAdvisor.getServiceConfigurationRecommendations(self, configurations, clusterSummary, services, hosts)
 
     return recommendations
 
@@ -807,7 +818,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def isMasterComponentWithMultipleInstances(self, component):
     componentName = self.getComponentName(component)
-    serviceAdvisor = self.instantiateServiceAdvisorForComponent(componentName)
+    serviceAdvisor = self.getServiceAdvisor(componentName)
     if serviceAdvisor is not None:
       return serviceAdvisor.isMasterComponentWithMultipleInstances(componentName)
 
@@ -816,7 +827,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def isComponentNotValuable(self, component):
     componentName = self.getComponentName(component)
-    serviceAdvisor = self.instantiateServiceAdvisorForComponent(componentName)
+    serviceAdvisor = self.getServiceAdvisor(componentName)
     if serviceAdvisor is not None:
       return serviceAdvisor.isComponentNotValuable(componentName)
 
@@ -829,7 +840,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   # Helper dictionaries
   def getComponentCardinality(self, componentName):
-    serviceAdvisor = self.instantiateServiceAdvisorForComponent(componentName)
+    serviceAdvisor = self.getServiceAdvisor(componentName)
     if serviceAdvisor is not None:
       return serviceAdvisor.getComponentCardinality(componentName)
 
@@ -856,7 +867,7 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     Provides a scheme for laying out given component on different number of hosts.
     """
-    serviceAdvisor = self.instantiateServiceAdvisorForComponent(componentName)
+    serviceAdvisor = self.getServiceAdvisor(componentName)
     if serviceAdvisor is not None:
       return serviceAdvisor.getComponentLayoutScheme(componentName)
 
@@ -867,7 +878,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def isComponentNotPreferableOnAmbariServerHost(self, component):
     componentName = self.getComponentName(component)
-    serviceAdvisor = self.instantiateServiceAdvisorForComponent(componentName)
+    serviceAdvisor = self.getServiceAdvisor(componentName)
     if serviceAdvisor is not None:
       return serviceAdvisor.isComponentNotPreferableOnAmbariServerHost(componentName)
 

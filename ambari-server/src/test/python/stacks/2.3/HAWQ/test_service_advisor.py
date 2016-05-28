@@ -19,7 +19,7 @@ limitations under the License.
 import os
 import imp
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock.mock import patch
 
 
 class TestHAWQ200ServiceAdvisor(TestCase):
@@ -48,6 +48,9 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     services = {
       "services": [
         {
+          "StackServices": {
+            "service_name": "HAWQ"
+          },
           "components": [
             {
               "StackServiceComponents": {
@@ -82,6 +85,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     # HAWQMASTER is placed on c6403.ambari.apache.org
     # There are 4 available hosts in the cluster
     # Recommend HAWQSTANDBY on next available host, c6402.ambari.apache.org
+    self.stackAdvisor.loadServiceAdvisors(services)
     standbyHosts = self.serviceAdvisor.getHostsForMasterComponent(self.stackAdvisor, services, None, component, hostsList, None)
     self.assertEquals(standbyHosts, ["c6402.ambari.apache.org"])
 
