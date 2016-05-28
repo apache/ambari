@@ -163,7 +163,7 @@ public class KerberosDescriptorTest {
       KerberosComponentDescriptor component = service.getComponent("A_DIFFERENT_COMPONENT_NAME");
       Assert.assertNotNull(component);
 
-      List<KerberosIdentityDescriptor> resolvedIdentities = component.getIdentities(true);
+      List<KerberosIdentityDescriptor> resolvedIdentities = component.getIdentities(true, null);
       KerberosIdentityDescriptor resolvedIdentity = null;
       Assert.assertNotNull(resolvedIdentities);
       Assert.assertEquals(3, resolvedIdentities.size());
@@ -176,7 +176,7 @@ public class KerberosDescriptorTest {
       }
       Assert.assertNotNull(resolvedIdentity);
 
-      List<KerberosIdentityDescriptor> identities = component.getIdentities(false);
+      List<KerberosIdentityDescriptor> identities = component.getIdentities(false, null);
       Assert.assertNotNull(identities);
       Assert.assertEquals(3, identities.size());
 

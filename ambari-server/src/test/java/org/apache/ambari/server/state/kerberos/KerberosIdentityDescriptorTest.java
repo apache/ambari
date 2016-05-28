@@ -23,7 +23,9 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class KerberosIdentityDescriptorTest {
@@ -34,6 +36,8 @@ public class KerberosIdentityDescriptorTest {
           "  \"principal\":" + KerberosPrincipalDescriptorTest.JSON_VALUE +
           "," +
           "  \"keytab\":" + KerberosKeytabDescriptorTest.JSON_VALUE +
+          "," +
+          "  \"when\": {\"contains\" : [\"services\", \"HIVE\"]}" +
           "}";
 
   public static final Map<String, Object> MAP_VALUE =
@@ -150,5 +154,18 @@ public class KerberosIdentityDescriptorTest {
     identityDescriptor.update(updatedIdentityDescriptor);
 
     validateUpdatedData(identityDescriptor);
+  }
+
+  @Test
+  public void testShouldInclude() {
+    KerberosIdentityDescriptor identityDescriptor = createFromJSON();
+
+    Map<String, Object> context = new HashMap<String, Object>();
+
+    context.put("services", new HashSet<String>(Arrays.asList("HIVE", "HDFS", "ZOOKEEPER")));
+    Assert.assertTrue(identityDescriptor.shouldInclude(context));
+
+    context.put("services", new HashSet<String>(Arrays.asList("NOT_HIVE", "HDFS", "ZOOKEEPER")));
+    Assert.assertFalse(identityDescriptor.shouldInclude(context));
   }
 }

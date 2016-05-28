@@ -162,14 +162,14 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
    * <p/>
    * The returned KerberosIdentityDescriptors are not merged with data from referenced
    * KerberosConfigurationDescriptors. This is the same calling
-   * {@link AbstractKerberosDescriptorContainer#getIdentities(boolean)} and setting the argument to
-   * 'false'
+   * {@link AbstractKerberosDescriptorContainer#getIdentities(boolean, Map)} and setting the
+   * argument to 'false'
    *
    * @return the relevant List of KerberosIdentityDescriptors
    */
   public List<KerberosIdentityDescriptor> getIdentities() {
     try {
-      return getIdentities(false);
+      return getIdentities(false, null);
     } catch (AmbariException e) {
       // AmbariException will not be thrown unless an error occurs while trying to dereference
       // identities.  This method does not attempt to dereference identities.
@@ -200,19 +200,20 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
    *                          (false)
    * @return a List of the requested KerberosIdentityDescriptors
    */
-  public List<KerberosIdentityDescriptor> getIdentities(boolean resolveReferences) throws AmbariException {
-    if (resolveReferences) {
-      if (identities == null) {
-        return Collections.emptyList();
-      } else {
-        List<KerberosIdentityDescriptor> list = new ArrayList<KerberosIdentityDescriptor>();
+  public List<KerberosIdentityDescriptor> getIdentities(boolean resolveReferences, Map<String,Object> contextForFilter) throws AmbariException {
+    if (identities == null) {
+      return Collections.emptyList();
+    } else {
+      List<KerberosIdentityDescriptor> list = new ArrayList<KerberosIdentityDescriptor>();
 
-        // For each KerberosIdentityDescriptor, copy it and then attempt to find the referenced
-        // KerberosIdentityDescriptor.
-        // * If a reference is found, copy that, update it with the initial KerberosIdentityDescriptor
-        //   and then add it to the list.
-        // * If a reference is not found, simply add the initial KerberosIdentityDescriptor to the list
-        for (KerberosIdentityDescriptor identity : identities) {
+      for (KerberosIdentityDescriptor identity : identities) {
+        KerberosIdentityDescriptor identityToAdd;
+
+        if (resolveReferences) {
+          // Copy this KerberosIdentityDescriptor and then attempt to find the referenced one.
+          // * If a reference is found, copy that, update it with the initial KerberosIdentityDescriptor
+          //   and then add it to the list.
+          // * If a reference is not found, simply add the initial KerberosIdentityDescriptor to the list
           KerberosIdentityDescriptor referencedIdentity;
           try {
             referencedIdentity = getReferencedIdentityDescriptor(identity.getName());
@@ -226,16 +227,22 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
           if (referencedIdentity != null) {
             KerberosIdentityDescriptor detachedIdentity = new KerberosIdentityDescriptor(referencedIdentity.toMap());
             detachedIdentity.update(identity);
-            list.add(detachedIdentity);
+
+            identityToAdd = detachedIdentity;
           } else {
-            list.add(identity);
+            identityToAdd = identity;
           }
+        } else {
+          identityToAdd = identity;
         }
 
-        return list;
+        // Make sure this Kerberos Identity is not to be filtered out based on its "when" clause
+        if ((identityToAdd != null) && ((contextForFilter == null) || identityToAdd.shouldInclude(contextForFilter))) {
+          list.add(identityToAdd);
+        }
       }
-    } else {
-      return identities;
+
+      return list;
     }
   }
 

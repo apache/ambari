@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,6 +88,11 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
       // variables within the Kerberos descriptor data
       Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptorProperties);
 
+      // Create the context to use for filtering Kerberos Identities based on the state of the cluster
+      Map<String, Object> filterContext = new HashMap<String, Object>();
+      filterContext.put("configurations", configurations);
+      filterContext.put("services", cluster.getServices().keySet());
+
       actionLog.writeStdOut(String.format("Writing Kerberos identity data metadata file to %s", identityDataFile.getAbsolutePath()));
       try {
         kerberosIdentityDataFileWriter = kerberosIdentityDataFileWriterFactory.createKerberosIdentityDataFileWriter(identityDataFile);
@@ -118,7 +122,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
             KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
 
             if (serviceDescriptor != null) {
-              List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true);
+              List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true, filterContext);
 
               // Add service-level principals (and keytabs)
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, serviceIdentities,
@@ -128,7 +132,7 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
               KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(componentName);
 
               if (componentDescriptor != null) {
-                List<KerberosIdentityDescriptor> componentIdentities = componentDescriptor.getIdentities(true);
+                List<KerberosIdentityDescriptor> componentIdentities = componentDescriptor.getIdentities(true, filterContext);
 
                 // Calculate the set of configurations to update and replace any variables
                 // using the previously calculated Map of configurations for the host.
