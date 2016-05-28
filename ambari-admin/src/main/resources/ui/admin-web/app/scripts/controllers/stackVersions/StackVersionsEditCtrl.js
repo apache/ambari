@@ -36,6 +36,7 @@ angular.module('ambariAdminConsole')
 
   $scope.loadStackVersionInfo = function () {
     return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
+      $scope.activeStackVersion = response;
       $scope.id = response.id;
       $scope.isPatch = response.type == 'PATCH';
       $scope.stackNameVersion = response.stackNameVersion || $t('common.NA');
@@ -98,6 +99,9 @@ angular.module('ambariAdminConsole')
         operatingSystems.map(function (os) {
           var existingOSHash = {};
           angular.forEach($scope.osList, function (os) {
+            os.repositories.forEach(function(repo) {
+              repo.Repositories.initial_base_url = repo.Repositories.base_url;
+            });
             existingOSHash[os.OperatingSystems.os_type] = os;
           });
           // if os not in the list, mark as un-selected, add this to the osList
@@ -215,7 +219,6 @@ angular.module('ambariAdminConsole')
           });
       });
   };
-  $scope.loadStackVersionInfo();
 
   /**
    * On click handler for removing OS
@@ -281,11 +284,15 @@ angular.module('ambariAdminConsole')
       }
     });
     return !enabled;
-  }
+  };
 
   $scope.cancel = function () {
     $scope.editVersionDisabled = true;
     $location.path('/stackVersions');
+  };
+
+  $scope.undoChange = function(repo) {
+    repo.Repositories.base_url = repo.Repositories.initial_base_url;
   };
 
   $scope.clearErrors = function() {
@@ -388,4 +395,6 @@ angular.module('ambariAdminConsole')
       $scope.stackVersions = stackVersions;
     });
   };
+
+  $scope.loadStackVersionInfo();
 }]);

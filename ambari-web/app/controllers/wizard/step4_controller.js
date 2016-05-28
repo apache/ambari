@@ -137,7 +137,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method submit
    */
   submit: function () {
-    if(App.router.nextBtnClickInProgress){
+    if(App.get('router.nextBtnClickInProgress')){
       return;
     }
     if (!this.get('isSubmitDisabled')) {

@@ -1372,9 +1372,48 @@ accordion .panel-group .panel{
   text-align: right;
 }
 
-.name-label-adjust {
-  width: 20.7%;
+.repo-table-title {
+  padding-left: 5px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ebebeb;
 }
+
+.repo-table-title label {
+  margin-top: 5px;
+}
+
+.repo-table-title #os-label {
+  padding-left: 7px;
+}
+
+.repo-table-title .add-os-button.disabled {
+  cursor: not-allowed;
+}
+
+.advanced-radio-buttons {
+  margin-top: 15px;
+}
+
+.advanced-radio-buttons i {
+  color: #0572ff;
+}
+
+.advanced-radio-buttons span.disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.repo-table-title #name-label-adjust {
+  width: 20.7%;
+  padding-left:0px;
+  right:5px;
+}
+
+.repo-table-title #repo-base-url-label {
+  padding-left:0px;
+  right:3px;
+}
+
 .verison-label-row .label {
   font-size: 100%;
 }
@@ -1477,15 +1516,85 @@ thead.view-permission-header > tr > th {
 .left-menu-all-repos .repos-table .repos-td.active > a {
   color: white;
 }
-#upload-definition-file-panel {
-  padding: 5px 10px 5px 10px;
-  margin-bottom: 15px;
+#list-stack-id {
+  padding-left: 0px;
+  padding-right: 0px;
+  margin-left: 0px;
+}
+.tabs-left, .tabs-right {
+  border-bottom: none;
+  padding-top: 2px;
+}
+.tabs-left {
+  border-right: 1px solid #ddd;
+}
+.tabs-right {
+  border-left: 1px solid #ddd;
+}
+.tabs-left>li, .tabs-right>li {
+  float: none;
+  margin-bottom: 2px;
+}
+.tabs-left>li {
+  margin-right: -1px;
+}
+.tabs-right>li {
+  margin-left: -1px;
+}
+.tabs-left>li.active>a,
+.tabs-left>li.active>a:hover,
+.tabs-left>li.active>a:focus {
+  border-bottom-color: #ddd;
+  border-right-color: transparent;
 }
 
-#upload-definition-file-panel .option-radio {
-  padding: 15px 5px;
-  font-weight: bold;;
+.tabs-right>li.active>a,
+.tabs-right>li.active>a:hover,
+.tabs-right>li.active>a:focus {
+  border-bottom: 1px solid #ddd;
+  border-left-color: transparent;
 }
+.tabs-left>li>a {
+  border-radius: 4px 0 0 4px;
+  margin-right: 0;
+  display:block;
+}
+.tabs-right>li>a {
+  border-radius: 0 4px 4px 0;
+  margin-right: 0;
+}
+
+.public-disabled-option {
+  padding: 5px;
+  padding-left: 15px;
+}
+
+#upload-definition-file-panel .big-radio {
+  font-weight: bold;
+  padding: 5px 15px;
+  margin-left: -18px;
+}
+
+#upload-definition-file-panel .big-radio #public-disabled-link {
+  margin-left: 10px;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+#current-stack-details {
+  bottom: 20px;
+  padding-left: 0px;
+}
+
+#current-stack-details .table-borderless {
+ border: transparent;
+}
+
+#current-stack-details .table-borderless tbody tr td, .table-borderless tbody tr th, .table-borderless thead tr th {
+  border: none;
+}
+
+
 #upload-definition-file-panel .stack-version-selection {
    padding-left: 25px;
  }
@@ -1510,9 +1619,9 @@ thead.view-permission-header > tr > th {
 .register-version-options .option-radio-button label {
   font-weight: normal;
 }
-.register-version-options .choose-file-input {
-  padding-top: 6px;
-  padding-bottom: 20px;
+.register-version-options .choose-file-input input {
+  padding-top: 3px;
+  padding-bottom: 3px;
 }
 .register-version-form .details-panel .patch-icon {
   color: #ff4500;
@@ -1525,9 +1634,43 @@ thead.view-permission-header > tr > th {
   margin-top: 0;
   margin-bottom: 0;
 }
+
+.details-panel {
+  border: 1px solid #e5e5e5;
+}
+
+.details-panel .version-contents-section {
+  border: 1px solid #ddd;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.details-panel .version-contents-section-register-version {
+  margin: 8px 0;
+}
+
+.details-panel .version-contents-section .table {
+  margin-bottom: 0;
+}
+
+.details-panel .version-contents-section .table tr:first-child td {
+  border-top: none;
+}
+
 .register-version-form .details-panel .version-info-section {
   margin-top: 10px;
 }
+
+.register-version-options .stack-url-input input.disabled {
+  background-color: #eee;
+}
+
+.register-version-options .choose-file-input input.disabled {
+  font-weight: normal;
+  cursor: default;
+  background-color: #eee;
+}
+
 .register-version-form .details-panel .version-contents-section {
   max-height: 200px;
   overflow: auto;
@@ -1553,6 +1696,7 @@ thead.view-permission-header > tr > th {
   padding: 0;
   text-align: center;
   cursor: pointer;
+  width: 5.982905982905983%;
 }
 .register-version-form .repos-panel .remove-icon.disabled{
   color: grey;
@@ -1560,11 +1704,32 @@ thead.view-permission-header > tr > th {
 
 .register-version-form .repos-panel .repo-name-label {
   text-align: left;
+  padding-top: 10px;
+  padding-left: 0px;
+}
+
+.register-version-form .repos-panel .repo-name-url {
+  padding: 8px 0px;
+  margin-bottom: 0px;
 }
 
 .register-version-form .repos-panel .os-type-label {
-  margin-top: 27px;;
+  margin-top: 27px;
+  padding-left: 10px;
 }
+
+.register-version-form .repos-panel .repo-url {
+  padding-right: 5px;
+}
+
+.register-version-form .repos-panel .repo-url input {
+  padding: 4px;
+}
+
+.register-version-form .repos-panel .fa-undo {
+  margin-top: 10px;
+}
+
 .register-version-form .dropdown-menu li a {
   cursor: pointer;
 }
@@ -1586,6 +1751,10 @@ thead.view-permission-header > tr > th {
 
 .green-icon {
   color: #5ab400;
+}
+
+.orange-icon {
+  color: #f3b20b;
 }
 
 .cursor-pointer {

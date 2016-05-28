@@ -70,7 +70,7 @@ App.WizardStep0Controller = Em.Controller.extend({
    * @method submit
    */
   submit: function () {
-    if(App.router.nextBtnClickInProgress){
+    if(App.get('router.nextBtnClickInProgress')){
       return;
     }
     this.set('hasSubmitted', true);
@@ -78,7 +78,7 @@ App.WizardStep0Controller = Em.Controller.extend({
       App.clusterStatus.set('clusterName', this.get('content.cluster.name'));
       this.set('content.cluster.status', 'PENDING');
       this.set('content.cluster.isCompleted', false);
-      App.router.nextBtnClickInProgress = true;
+      App.set('router.nextBtnClickInProgress', true);
       App.router.send('next');
     }
   }

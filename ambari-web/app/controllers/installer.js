@@ -322,10 +322,12 @@ App.InstallerController = App.WizardController.extend({
   },
 
   mergeChanges: function (repos, stacks) {
-    repos.forEach(function (repo) {
+    var _repos = repos || [];
+    var _stacks = stacks || [];
+    _repos.forEach(function (repo) {
       App.Repository.find().findProperty('id', repo.id).set('baseUrl', repo.base_url);
     });
-    stacks.forEach(function (_stack) {
+    _stacks.forEach(function (_stack) {
       var stack = App.Stack.find().findProperty('id', _stack.id);
       if (stack) {
         stack.set('useRedhatSatellite', _stack.use_redhat_satellite);
@@ -335,12 +337,9 @@ App.InstallerController = App.WizardController.extend({
 
   setSelected: function (isStacksExistInDb) {
     if (!isStacksExistInDb) {
-      var defaultStackVersion = App.Stack.find().findProperty('stackNameVersion', App.defaultStackVersion);
-      if (defaultStackVersion) {
-        defaultStackVersion.set('isSelected', true)
-      } else {
-        App.Stack.find().objectAt(0).set('isSelected', true);
-      }
+      var stacks = App.Stack.find();
+      stacks.setEach('isSelected', false);
+      stacks.sortProperty('id').set('lastObject.isSelected', true);
     }
     this.set('content.stacks', App.Stack.find());
     App.set('currentStackVersion', App.Stack.find().findProperty('isSelected').get('stackNameVersion'));
@@ -414,11 +413,11 @@ App.InstallerController = App.WizardController.extend({
   },
   getServerVersionSuccessCallback: function (data) {
     var clientVersion = App.get('version');
-    var serverVersion = (data.RootServiceComponents.component_version).toString();
+    var serverVersion = data.RootServiceComponents.component_version.toString();
     this.set('ambariServerVersion', serverVersion);
     if (clientVersion) {
       this.set('versionConflictAlertBody', Em.I18n.t('app.versionMismatchAlert.body').format(serverVersion, clientVersion));
-      this.set('isServerClientVersionMismatch', clientVersion != serverVersion);
+      this.set('isServerClientVersionMismatch', clientVersion !== serverVersion);
     } else {
       this.set('isServerClientVersionMismatch', false);
     }
@@ -435,10 +434,6 @@ App.InstallerController = App.WizardController.extend({
     Em.assert('Stack model is not populated', stacks.get('length'));
     App.db.setStacks(stacks.slice());
     this.set('content.stacks', stacks);
-
-    App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
-      App.serviceMapper.deleteRecord(os);
-    });
     var repos = App.Repository.find() || [];
     App.db.setRepos(repos.slice());
   },
@@ -495,15 +490,15 @@ App.InstallerController = App.WizardController.extend({
     var props = this.getDBProperties(['masterComponentHosts', 'hosts']);
     var masterComponentHosts = props.masterComponentHosts,
       hosts = props.hosts || {},
-      host_names = Em.keys(hosts);
+      hostNames = Em.keys(hosts);
     if (Em.isNone(masterComponentHosts)) {
       masterComponentHosts = [];
     }
     else {
       masterComponentHosts.forEach(function (component) {
-        for (var i = 0; i < host_names.length; i++) {
-          if (hosts[host_names[i]].id === component.host_id) {
-            component.hostName = host_names[i];
+        for (var i = 0; i < hostNames.length; i++) {
+          if (hosts[hostNames[i]].id === component.host_id) {
+            component.hostName = hostNames[i];
             break;
           }
         }
@@ -527,13 +522,13 @@ App.InstallerController = App.WizardController.extend({
     var props = this.getDBProperties(['slaveComponentHosts', 'hosts']);
     var slaveComponentHosts = props.slaveComponentHosts,
       hosts = props.hosts || {},
-      host_names = Em.keys(hosts);
+      hostNames = Em.keys(hosts);
     if (!Em.isNone(slaveComponentHosts)) {
       slaveComponentHosts.forEach(function (component) {
         component.hosts.forEach(function (host) {
-          for (var i = 0; i < host_names.length; i++) {
-            if (hosts[host_names[i]].id === host.host_id) {
-              host.hostName = host_names[i];
+          for (var i = 0; i < hostNames.length; i++) {
+            if (hosts[hostNames[i]].id === host.host_id) {
+              host.hostName = hostNames[i];
               break;
             }
           }
@@ -596,9 +591,8 @@ App.InstallerController = App.WizardController.extend({
   postVersionDefinitionFileSuccessCallback: function (_data, request, dataInfo) {
     if (_data.resources.length && _data.resources[0].VersionDefinition) {
       var data = _data.resources[0];
-      var self = this;
       // load the data info to display for details and contents panel
-      data.VersionDefinition.id = dataInfo.data.VersionDefinition.available;
+      data.VersionDefinition.id = Em.get(dataInfo, 'data.VersionDefinition.available') || data.VersionDefinition.id;
       var response = {
         id : data.VersionDefinition.id,
         stackVersion : data.VersionDefinition.stack_version,
@@ -670,19 +664,20 @@ App.InstallerController = App.WizardController.extend({
   postVersionDefinitionFileErrorCallback: function (request, ajaxOptions, error, data, params) {
     params.dfd.reject(data);
     var header = Em.I18n.t('installer.step1.useLocalRepo.uploadFile.error.title');
-    var body = "";
-    if(request && request.responseText){
+    var body = '';
+    if(request && request.responseText) {
       try {
         var json = $.parseJSON(request.responseText);
         body = json.message;
       } catch (err) {}
     }
+    App.db.setLocalRepoVDFData(undefined);
     App.showAlertPopup(header, body);
   },
 
   getSupportedOSList: function (versionDefinition, stackInfo) {
     this.incrementProperty('loadStacksRequestsCounter');
-    return  App.ajax.send({
+    return App.ajax.send({
       name: 'wizard.step1.get_supported_os_types',
       sender: this,
       data: {
@@ -727,8 +722,10 @@ App.InstallerController = App.WizardController.extend({
           this.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
             self.mergeChanges(data.stackInfo.repos, data.stackInfo.stacks);
             App.Stack.find().setEach('isSelected', false);
-            var stackId = versionData.data.VersionDefinition.available || versionInfo.stackNameVersion + "-" + versionInfo.actualVersion;
+            var stackId = Em.get(versionData, 'data.VersionDefinition.available') || versionInfo.stackNameVersion + "-" + versionInfo.actualVersion;
             App.Stack.find().findProperty('id', stackId).set('isSelected', true);
+            self.setSelected(data.stackInfo.isStacksExistInDb);
+          }).fail(function () {
             self.setSelected(data.stackInfo.isStacksExistInDb);
           });
         } else {
@@ -781,12 +778,12 @@ App.InstallerController = App.WizardController.extend({
    */
   prepareRepoForSaving: function(repo) {
     var repoVersion = { "operating_systems": [] };
-    var ambari_managed_repositories = !repo.get('useRedhatSatellite');
+    var ambariManagedRepositories = !repo.get('useRedhatSatellite');
     repo.get('operatingSystems').forEach(function (os, k) {
       repoVersion.operating_systems.push({
         "OperatingSystems": {
           "os_type": os.get("osType"),
-          "ambari_managed_repositories": ambari_managed_repositories
+          "ambari_managed_repositories": ambariManagedRepositories
         },
         "repositories": []
       });
@@ -822,7 +819,7 @@ App.InstallerController = App.WizardController.extend({
             repo.setProperties({
               errorTitle: '',
               errorContent: '',
-              validation: App.Repository.validation['INPROGRESS']
+              validation: App.Repository.validation.INPROGRESS
             });
             this.set('content.isCheckInProgress', true);
             App.ajax.send({
@@ -860,7 +857,7 @@ App.InstallerController = App.WizardController.extend({
       var os = selectedStack.get('operatingSystems').findProperty('id', data.osId);
       var repo = os.get('repositories').findProperty('repoId', data.repoId);
       if (repo) {
-        repo.set('validation', App.Repository.validation['OK']);
+        repo.set('validation', App.Repository.validation.OK);
       }
     }
     this.set('validationCnt', this.get('validationCnt') - 1);
@@ -880,7 +877,7 @@ App.InstallerController = App.WizardController.extend({
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
         repo.setProperties({
-          validation: App.Repository.validation['INVALID'],
+          validation: App.Repository.validation.INVALID,
           errorTitle: request.status + ":" + request.statusText,
           errorContent: $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : ""
         });
@@ -1055,9 +1052,9 @@ App.InstallerController = App.WizardController.extend({
       if (stringUtils.compareVersions(currentJDKVersion, minJDKVersion) < 0 ||
           stringUtils.compareVersions(maxJDKVersion, currentJDKVersion) < 0) {
         // checks and process only minor part for now
-        var versionDistance = parseInt(maxJDKVersion.split('.')[1]) - parseInt(minJDKVersion.split('.')[1]);
+        var versionDistance = parseInt(maxJDKVersion.split('.')[1], 10) - parseInt(minJDKVersion.split('.')[1], 10);
         var versionsList = [minJDKVersion];
-        for (var i = 1; i < (versionDistance + 1); i++) {
+        for (var i = 1; i < versionDistance + 1; i++) {
           versionsList.push("" + minJDKVersion.split('.')[0] + '.' + (+minJDKVersion.split('.')[1] + i));
         }
         var versionsString = stringUtils.getFormattedStringFromArray(versionsList, t('or'));

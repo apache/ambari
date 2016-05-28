@@ -26,85 +26,39 @@ App.WizardStep1View = Em.View.extend({
   didInsertElement: function () {
     $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
     $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
-    if (this.get('controller.selectedStack') && this.get('controller.selectedStack.showAvailable')) {
+    $('.add-os-button,.redhat-label').tooltip();
+    if (this.get('controller.selectedStack.showAvailable')) {
       // first time load
-      this.set('controller.latestSelectedPublicRepoId',this.get('controller.selectedStack.id'));
+      if (this.get('controller.selectedStack.useRedhatSatellite')) {
+        // restore `use local repo` on page refresh
+        this.get('controller').useLocalRepo();
+      }
     } else {
       var selected = this.get('controller.content.stacks') && this.get('controller.content.stacks').findProperty('showAvailable');
-      if (selected) {
-        // get back from other steps, set default public repo as selected public
-        this.set('controller.latestSelectedPublicRepoId', selected.get('id'));
-      } else {
+      if (!selected) {
         // network disconnection
-        this.set('controller.latestSelectedPublicRepoId', null);
-        this.set('controller.optionsToSelect.useLocalRepo.isSelected', true);
-        this.set('controller.optionsToSelect.usePublicRepo.isSelected', false);
+        Em.trySet(this, 'controller.selectedStack.useLocalRepo', true);
+        Em.trySet(this, 'controller.selectedStack.usePublicRepo', false);
       }
     }
   },
 
-  /**
-   * =========================== Option "Use Public Repository" starts from here ==================
-   */
-
-  /**
-   * The public reo version shown on the dropdown button
-   */
-  selectedPublicRepoVersion: function () {
-    var selectedId = this.get('controller.latestSelectedPublicRepoId');
-    return selectedId ? this.get('controller.content.stacks').findProperty('id', selectedId): null;
-  }.property('controller.latestSelectedPublicRepoId'),
-
-  /**
-   * List of other available stack repos within the same stack name
-   * @type {Em.Object[]}
-   */
-  availableStackRepoList: function () {
-    var selectedStack = this.get('controller.selectedStack');
-    var availableStackRepos = this.get('controller.content.stacks').filter(function (item) {
-      return item.get('showAvailable') && item.get('id') != selectedStack.get('id');
-    });
-    return availableStackRepos.toArray().map(function (stack) {
-      return Em.Object.create({
-        id: stack.get('id'),
-        repositoryVersion: stack.get('repositoryVersion'),
-        displayName: stack.get('stackName') + "-" + stack.get('repositoryVersion'),
-        isSelected: false
-      });
-    });
-  }.property('controller.selectedStack'),
-
-  selectRepoInList: function (event) {
-    if (this.get('controller.optionsToSelect.useLocalRepo.isSelected')) return;
-    this.get('controller.content.stacks').setEach('isSelected', false);
-    this.get('controller.content.stacks').findProperty('id', event.context.id).set('isSelected', true);
-    this.set('controller.latestSelectedPublicRepoId',event.context.id);
+  willDestroyElement: function () {
+    $("[rel=skip-validation-tooltip]").tooltip('destroy');
+    $("[rel=use-redhat-tooltip]").tooltip('destroy');
+    $('.add-os-button,.redhat-label').tooltip('destroy');
   },
 
-  selectedServices: function () {
-    var selectedStack = this.get('controller.selectedStack');
-    return Em.isNone(selectedStack) ? [] : selectedStack.get('stackServices').toArray().filter(function (service) {
-      return !service.get('isHidden');
-    }).map(function (service) {
-      return Em.Object.create({
-        displayName: service.get('displayName'),
-        version: service.get('latestVersion')
-      });
-    });
-  }.property('controller.selectedStack'),
-
+  /**
+   * Show possible reasons why Public Repo is disabled
+   *
+   * @returns {App.ModalPopup}
+   */
   openPublicOptionDisabledWindow: function () {
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step1.selectUseRepoOptions.public.networkLost.popup.title'),
-      message: Em.I18n.t('installer.step1.selectUseRepoOptions.public.networkLost.popup.msg'),
-      option1: Em.I18n.t('installer.step1.selectUseRepoOptions.public.networkLost.popup.msg1'),
-      option2: Em.I18n.t('installer.step1.selectUseRepoOptions.public.networkLost.popup.msg2'),
-      option3: Em.I18n.t('installer.step1.selectUseRepoOptions.public.networkLost.popup.msg3'),
       bodyClass: Ember.View.extend({
-        template: Em.Handlebars.compile('<div class="public-disabled-message">{{message}}</div>' +
-          '<li class="public-disabled-option">{{option1}}</li>' +
-          '<li class="public-disabled-option">{{option2}}</li>' +
-          '<li class="public-disabled-option">{{option3}}</li>')
+        templateName: require('templates/wizard/step1/public_option_disabled_window_body')
       }),
       secondary: false
     });
@@ -112,9 +66,10 @@ App.WizardStep1View = Em.View.extend({
 
   /**
    * Disable submit button flag
+   *
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('controller.content.isCheckInProgress'),
+  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'controller.content.isCheckInProgress'),
 
   /**
    * Onclick handler for recheck repos urls. Used in Advanced Repository Options.
@@ -123,164 +78,107 @@ App.WizardStep1View = Em.View.extend({
     App.router.get('installerController').checkRepoURL(this.get('controller'));
   },
 
-
-  /**
-   * =========================== Option "Use Local Repository" starts from here ==================
-   */
-
   /**
    * Checkbox for use Public repo
+   *
    * @type {Ember.Checkbox}
    */
   usePublicRepoRadioButton: Em.Checkbox.extend({
     tagName: 'input',
     attributeBindings: [ 'type', 'checked' ],
     classNames: [''],
-    checked: Em.computed.alias('controller.optionsToSelect.usePublicRepo.isSelected'),
+    checked: Em.computed.alias('controller.selectedStack.usePublicRepo'),
     type: 'radio',
-    disabled: function() {
-      return !this.get('controller.latestSelectedPublicRepoId');
-    }.property('controller.latestSelectedPublicRepoId'),
+    disabled: Em.computed.alias('controller.networkIssuesExist'),
 
     click: function () {
-      this.set('controller.optionsToSelect.usePublicRepo.isSelected', true);
-      this.set('controller.optionsToSelect.useLocalRepo.isSelected', false);
-      var latestSelectedPublicRepoId = this.get('controller.latestSelectedPublicRepoId');
-      if (latestSelectedPublicRepoId) {
-        this.get('controller.content.stacks').setEach('isSelected', false);
-        this.get('controller.content.stacks').findProperty('id', latestSelectedPublicRepoId).set('isSelected', true);
-      } else {
-        // make the 1st public repo as selected
-        this.get('controller.content.stacks').findProperty('id').set('isSelected', true);
-      }
+      this.get('controller').usePublicRepo();
     }
   }),
 
   /**
    * Checkbox for use Public repo
+   *
    * @type {Ember.Checkbox}
    */
   useLocalRepoRadioButton: Em.Checkbox.extend({
     tagName: 'input',
     attributeBindings: [ 'type', 'checked' ],
     classNames: [''],
-    checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.isSelected'),
+    checked: Em.computed.alias('controller.selectedStack.useLocalRepo'),
     type: 'radio',
 
     click: function () {
-      this.set('controller.optionsToSelect.useLocalRepo.isSelected', true);
-      this.set('controller.optionsToSelect.usePublicRepo.isSelected', false);
-      var latestSelectedLocalRepoId = this.get('controller.latestSelectedLocalRepoId');
-      if (latestSelectedLocalRepoId) {
-        this.get('controller.content.stacks').setEach('isSelected', false);
-        this.get('controller.content.stacks').findProperty('id', latestSelectedLocalRepoId).set('isSelected', true);
-      }
+      this.get('controller').useLocalRepo();
     }
   }),
 
   /**
-   * Checkbox for Use local Repo > Upload VDF file
-   * @type {Ember.Checkbox}
+   * User already selected all OSes
+   *
+   * @type {boolean}
    */
-  uploadFileRadioButton: Em.Checkbox.extend({
-    tagName: 'input',
-    attributeBindings: [ 'type', 'checked' ],
-    classNames: [''],
-    checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected'),
-    type: 'radio',
-    disabled: function () {
-      return this.get("controller.optionsToSelect.usePublicRepo.isSelected");
-    }.property("controller.optionsToSelect.usePublicRepo.isSelected"),
-
-    click: function () {
-      this.set('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected', true);
-      this.set('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected', false);
-      this.set('controller.optionsToSelect.useLocalRepo.enterUrl.hasError', false);
-      this.set('controller.optionsToSelect.useLocalRepo.uploadFile.hasError', false);
-    }
-  }),
+  allOsesSelected: Em.computed.everyBy('controller.selectedStack.operatingSystems', 'isSelected', true),
 
   /**
-   * Checkbox for Use local Repo > Enter Url of VDF file
-   * @type {Ember.Checkbox}
+   * Disallow adding OS if all OSes are already added or user select <code>useRedhatSatellite</code>
+   *
+   * @type {boolean}
    */
-  enterUrlRadioButton: Em.Checkbox.extend({
-    tagName: 'input',
-    attributeBindings: [ 'type', 'checked' ],
-    classNames: [''],
-    checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected'),
-    type: 'radio',
-    disabled: function () {
-      return this.get("controller.optionsToSelect.usePublicRepo.isSelected");
-    }.property("controller.optionsToSelect.usePublicRepo.isSelected"),
+  isAddOsButtonDisabled: Em.computed.or('allOsesSelected', 'controller.selectedStack.useRedhatSatellite'),
 
-    click: function () {
-      this.set('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected', true);
-      this.set('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected', false);
-      this.set('controller.optionsToSelect.useLocalRepo.enterUrl.hasError', false);
-      this.set('controller.optionsToSelect.useLocalRepo.uploadFile.hasError', false);
-    }
-  }),
+  /**
+   * Tooltip for Add OS Button
+   * Empty if this button is enabled
+   *
+   * @type {string}
+   */
+  addOsButtonTooltip: Em.computed.ifThenElse('allOsesSelected', Em.I18n.t('installer.step1.addOs.disabled.tooltip'), ''),
 
- /*
-  * Is File API available
-  * @type {bool}
-  */
-  isFileApi: function () {
-    return window.File && window.FileReader && window.FileList;
-  }.property(),
-
-  fileBrowserDisabled: function () {
-    return this.get("controller.optionsToSelect.usePublicRepo.isSelected") || this.get("controller.optionsToSelect.useLocalRepo.enterUrl.isSelected");
-  }.property("controller.optionsToSelect.usePublicRepo.isSelected", "controller.optionsToSelect.useLocalRepo.enterUrl.isSelected"),
-  enterUrlFieldDisabled: function () {
-    return this.get("controller.optionsToSelect.usePublicRepo.isSelected") || this.get("controller.optionsToSelect.useLocalRepo.uploadFile.isSelected");
-  }.property("controller.optionsToSelect.usePublicRepo.isSelected", "controller.optionsToSelect.useLocalRepo.uploadFile.isSelected"),
-  readInfoButtonDisabled: function () {
-    if (this.get('controller.optionsToSelect.useLocalRepo.isSelected')) {
-      if(this.get('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected')) {
-        return !this.get('controller.optionsToSelect.useLocalRepo.uploadFile.file');
-      } else if (this.get('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected')) {
-        return !this.get('controller.optionsToSelect.useLocalRepo.enterUrl.url');
-      }
-    } else {
-      return true;
-    }
-  }.property('controller.optionsToSelect.useLocalRepo.isSelected', 'controller.optionsToSelect.useLocalRepo.uploadFile.isSelected',
-    'controller.optionsToSelect.useLocalRepo.uploadFile.file', 'controller.optionsToSelect.useLocalRepo.enterUrl.url'),
-
-  operatingSystems: function () {
-    var selectedStack = this.get('controller.selectedStack');
-    return Em.isNone(selectedStack) ? [] : selectedStack.get('operatingSystems');
-  }.property('controller.selectedStack'),
-
-  isAddOsButtonDisabled: function () {
-    return this.get('operatingSystems').get('length') == this.get('operatingSystems').filterProperty('isSelected').get('length') || this.get('controller.selectedStack.useRedhatSatellite') === true;
-  }.property('operatingSystems', 'operatingSystems.@each.isSelected', 'controller.selectedStack.useRedhatSatellite'),
-
+  /**
+   * Tooltip for useRedhatSatellite block
+   * Empty if usage Redhat is enabled
+   *
+   * @type {string}
+   */
+  redhatDisabledTooltip: Em.computed.ifThenElse('controller.selectedStack.usePublicRepo', Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.disabled.tooltip'), ''),
   /**
    * List of all repositories under selected stack operatingSystems
+   *
+   * @type {App.Repository[]}
    */
   allRepositories: function () {
-    var selectedStack = this.get('controller.selectedStack');
-    return Em.isNone(selectedStack) ? [] : selectedStack.get('repositories');
-  }.property('controller.selectedStack'),
+    return this.getWithDefault('controller.selectedStack.repositories', []);
+  }.property('controller.selectedStack.repositories.[]'),
 
   /**
    * Verify if some repo has invalid base-url
+   * Ignore if <code>useRedhatSatellite</code> is true for selected stack
+   *
    * @type {bool}
    */
-  invalidFormatUrlExist: Em.computed.someBy('allRepositories', 'invalidFormatError', true),
+  invalidFormatUrlExist: function () {
+    if (this.get('controller.selectedStack.useRedhatSatellite')) {
+      return false;
+    }
+    var allRepositories = this.get('allRepositories');
+    if (!allRepositories) {
+      return false;
+    }
+    return allRepositories.someProperty('invalidFormatError', true);
+  }.property('controller.selectedStack.useRedhatSatellite', 'allRepositories.@each.invalidFormatError'),
+
   /**
    * Verify if some invalid repo-urls exist
    * @type {bool}
    */
-  invalidUrlExist: Em.computed.someBy('allRepositories', 'validation', App.Repository.validation['INVALID']),
+  invalidUrlExist: Em.computed.someBy('allRepositories', 'validation', App.Repository.validation.INVALID),
+
   /**
    * If all repo links are unchecked
    * @type {bool}
    */
-  isNoOsChecked: Em.computed.everyBy('operatingSystems', 'isSelected', false),
+  isNoOsChecked: Em.computed.everyBy('controller.selectedStack.operatingSystems', 'isSelected', false),
 
   popoverView: Em.View.extend({
     tagName: 'i',
@@ -292,43 +190,46 @@ App.WizardStep1View = Em.View.extend({
   }),
 
   /**
+   * @type {Em.Checkbox}
+   */
+  redhatCheckBoxView: Em.Checkbox.extend({
+    attributeBindings: [ 'type', 'checked' ],
+    checkedBinding: 'controller.selectedStack.useRedhatSatellite',
+    classNames: ['checkbox'],
+    disabledBinding: 'controller.selectedStack.usePublicRepo',
+    click: function () {
+      // click triggered before value is toggled, so if-statement is inverted
+      if (!this.get('controller.selectedStack.useRedhatSatellite')) {
+        App.ModalPopup.show({
+          header: Em.I18n.t('common.important'),
+          secondary: false,
+          bodyClass: Ember.View.extend({
+            template: Ember.Handlebars.compile(Em.I18n.t('installer.step1.advancedRepo.useRedhatSatellite.warning'))
+          })
+        });
+      }
+    }
+  }),
+
+  /**
    * Handler when editing any repo BaseUrl
+   *
    * @method editLocalRepository
    */
   editLocalRepository: function () {
     //upload to content
     var repositories = this.get('allRepositories');
+    if (!repositories) {
+      return;
+    }
     repositories.forEach(function (repository) {
-      if (repository.get('lastBaseUrl') != repository.get('baseUrl')) {
+      if (repository.get('lastBaseUrl') !== repository.get('baseUrl')) {
         repository.setProperties({
           lastBaseUrl: repository.get('baseUrl'),
-          validation: App.Repository.validation['PENDING']
+          validation: App.Repository.validation.PENDING
         });
       }
     }, this);
   }.observes('allRepositories.@each.baseUrl')
-
-});
-
-
-App.VersionDefinitionFileUploader = Em.View.extend({
-  template: Em.Handlebars.compile('<input type="file" {{bindAttr disabled="view.disabled"}} />'),
-
-  classNames: ['vdf-input-indentation'],
-
-  change: function (e) {
-    var self = this;
-    if (e.target.files && e.target.files.length == 1) {
-      var file = e.target.files[0];
-      var reader = new FileReader();
-
-      reader.onload = (function () {
-        return function (e) {
-          self.get("controller").setVDFFile(e.target.result);
-        };
-      })(file);
-      reader.readAsText(file);
-    }
-  }
 
 });

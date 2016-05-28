@@ -38,6 +38,7 @@ angular.module('ambariAdminConsole')
       'users': 'Users',
       'groups': 'Groups',
       'versions': 'Versions',
+      'stack': 'Stack',
       'details': 'Details',
       'goToDashboard': 'Go to Dashboard',
       'noClusters': 'No Clusters',
@@ -89,6 +90,7 @@ angular.module('ambariAdminConsole')
       'listViewLabel': 'LIST',
       'rbac': 'Role Based Access Control',
       'important': 'Important',
+      'undo': 'Undo',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -372,9 +374,19 @@ angular.module('ambariAdminConsole')
 
     'versions': {
       'current': 'Current',
+      'addVersion': 'Add Version',
+      'defaultVersion': '(Default Version Definition)',
       'inUse': 'In Use',
       'installed': 'Installed',
       'usePublic': "Use Public Repository",
+      'networkIssues': {
+        'networkLost': "Why is this disabled?",
+        'publicDisabledHeader': "Public Repository Option Disabled",
+        'publicRepoDisabledMsg': 'Ambari does not have access to the Internet and cannot use the Public Repository for installing the software. Your Options:',
+        'publicRepoDisabledMsg1': 'Configure your hosts for access to the Internet.',
+        'publicRepoDisabledMsg2': 'If you are using an Internet Proxy, refer to the Ambari Documentation on how to configure Ambari to use the Internet Proxy.',
+        'publicRepoDisabledMsg3': 'Use the Local Repositoy option.'
+      },
       'selectVersion': "Select Version",
       'selectVersionEmpty': "No other repositories",
       'useLocal': "Use Local Repository",
@@ -406,11 +418,15 @@ angular.module('ambariAdminConsole')
         'actualVersion': 'Actual Version',
         'releaseNotes': 'Release Notes'
       },
+      'repository': {
+        'placeholder': 'Enter Base URL or remove this OS'
+      },
       'useRedhatSatellite': {
         'title': 'Use RedHat Satellite/Spacewalk',
         'warning': 'By selecting to <b>"Use RedHat Satellite/Spacewalk"</b> for the software repositories, ' +
         'you are responsible for configuring the repository channel in Satellite/Spacewalk and confirming the repositories for the selected <b>stack version</b> are available on the hosts in the cluster. ' +
-        'Refer to the Ambari documentation for more information.'
+        'Refer to the Ambari documentation for more information.',
+        'disabledMsg': 'Use of RedHat Satellite/Spacewalk is not available when using Public Repositories'
       },
       'changeBaseURLConfirmation': {
         'title': 'Confirm Base URL Change',
@@ -425,6 +441,7 @@ angular.module('ambariAdminConsole')
         'filterListError': 'Fetch stack version filter list error',
         'versionCreated': 'Created version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{stackName}}-{{versionName}}</a>',
         'versionCreationError': 'Version creation error',
+        'allOsAdded': 'All Operating Systems have been added',
         'osListError': 'getSupportedOSList error',
         'readVersionInfoError': 'Version Definition read error',
         'versionEdited': 'Edited version <a href="#/stackVersions/{{stackName}}/{{versionName}}/edit">{{displayName}}</a>',

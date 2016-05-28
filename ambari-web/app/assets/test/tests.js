@@ -119,6 +119,7 @@ var files = [
   'test/controllers/experimental_test',
   'test/controllers/wizard_test',
   'test/controllers/wizard/step0_test',
+  'test/controllers/wizard/step1_test',
   'test/controllers/wizard/step2_test',
   'test/controllers/wizard/step3_test',
   'test/controllers/wizard/step4_test',

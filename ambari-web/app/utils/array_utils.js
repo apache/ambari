@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 
+function _parseId(id) {
+  return id.replace(/[^\d|\.]/g, '').split('.').map(function (i) {return parseInt(i, 10);});
+}
+
 module.exports = {
   /**
    *
@@ -52,5 +56,33 @@ module.exports = {
     });
 
     return intersection;
+  },
+
+  /**
+   * Callback for sorting models with `id`-property equal to something like version number: 'HDP-1.2.3', '4.2.52' etc
+   *
+   * @param {{id: string}} obj1
+   * @param {{id: string}} obj2
+   * @returns {number}
+   */
+  sortByIdAsVersion: function (obj1, obj2) {
+    var id1 = _parseId(Em.get(obj1, 'id'));
+    var id2 = _parseId(Em.get(obj2, 'id'));
+    var lId1 = id1.length;
+    var lId2 = id2.length;
+    var limit = lId1 > lId2 ? lId2 : lId1;
+    for (var i = 0; i < limit; i++) {
+      if (id1[i] > id2[i]) {
+        return 1;
+      }
+      if (id1[i] < id2[i]) {
+        return -1;
+      }
+    }
+    if (lId1 === lId2) {
+      return 0
+    }
+    return lId1 > lId2 ? 1 : -1;
   }
+
 };

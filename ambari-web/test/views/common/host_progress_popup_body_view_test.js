@@ -221,20 +221,35 @@ describe('App.HostProgressPopupBodyView', function () {
       ];
 
       cases.forEach(function(test) {
-        it(test.m, function() {
-          assert.equal(Em.get(view, 'hostInfoLoaded'), true, 'hostInfoLoaded should be true on init');
-          this.HostModelStub.returns(test.hosts);
-          this.isLogSearchInstalled.returns(test.isLogSearchInstalled);
-          this.logSearchSupported.returns(test.logSearchSupported);
-          if (test.requestFailed) {
-            this.updateCtrlStub.returns($.Deferred().reject().promise());
-          } else {
-            this.updateCtrlStub.returns($.Deferred().resolve().promise());
-          }
-          Em.set(view, 'hostInfoLoaded', false);
-          view.preloadHostModel(test.hostName);
-          assert.equal(App.router.get('updateController').updateLogging.called, test.e.updateLoggingCalled, 'updateLogging call validation');
-          assert.equal(Em.get(view, 'hostInfoLoaded'), true, 'in result hostInfoLoaded should be always true');
+        describe(test.m, function() {
+
+          beforeEach(function () {
+            this.HostModelStub.returns(test.hosts);
+            this.isLogSearchInstalled.returns(test.isLogSearchInstalled);
+            this.logSearchSupported.returns(test.logSearchSupported);
+            if (test.requestFailed) {
+              this.updateCtrlStub.returns($.Deferred().reject().promise());
+            } else {
+              this.updateCtrlStub.returns($.Deferred().resolve().promise());
+            }
+          });
+
+          it('hostInfoLoaded should be true on init', function () {
+            expect(Em.get(view, 'hostInfoLoaded')).to.be.true;
+          });
+
+          it('updateLogging call validation', function () {
+            Em.set(view, 'hostInfoLoaded', false);
+            view.preloadHostModel(test.hostName);
+            expect(App.router.get('updateController').updateLogging.called).to.be.equal(test.e.updateLoggingCalled);
+          });
+
+          it('in result hostInfoLoaded should be always true', function () {
+            Em.set(view, 'hostInfoLoaded', false);
+            view.preloadHostModel(test.hostName);
+            expect(Em.get(view, 'hostInfoLoaded')).to.be.true;
+          });
+
         });
       }, this);
     });

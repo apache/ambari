@@ -78,6 +78,8 @@ module.exports = function(config) {
       'vendor/scripts/jquery.flexibleArea.js',
       'vendor/scripts/FileSaver.js',
       'vendor/scripts/Blob.js',
+      'vendor/scripts/moment.js',
+      'vendor/scripts/moment-timezone-with-data-2010-2020.js',
       'vendor/**/*.js',
       'app/templates/**/*.hbs',
       'app!(assets)/**/!(karma_setup|tests).js',
@@ -108,7 +110,7 @@ module.exports = function(config) {
     },
 
     preprocessors: {
-//      '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
+      '!(vendor|node_modules|test)/**/!(karma_setup|tests).js': 'coverage',
       'app/templates/**/*.hbs': ['ember-precompiler-brunch', 'common-require'],
       'app!(assets)/**/!(karma_setup|tests).js': ['common-require'],
       'test/**/*.js': ['common-require']
@@ -123,7 +125,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
 //    reporters: ['progress', 'coverage'],
-    reporters: ['progress'],
+    reporters: ['progress', 'coverage'],
 
 
     // web server port
@@ -160,6 +162,6 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
-    singleRun: false
+    singleRun: true
   });
 };

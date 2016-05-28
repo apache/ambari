@@ -1475,7 +1475,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method submit
    */
   submit: function () {
-    if (this.get('isSubmitDisabled') || App.router.nextBtnClickInProgress) {
+    if (this.get('isSubmitDisabled') || App.get('router.nextBtnClickInProgress')) {
       return false;
     }
     App.set('router.nextBtnClickInProgress', true);
