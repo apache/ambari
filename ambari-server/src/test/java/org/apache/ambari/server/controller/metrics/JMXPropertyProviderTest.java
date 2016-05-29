@@ -71,7 +71,7 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "state");
 
-  public static final int NUMBER_OF_RESOURCES = 350;
+  public static final int NUMBER_OF_RESOURCES = 400;
   private static MetricPropertyProviderFactory metricPropertyProviderFactory;
 
   @BeforeClass
@@ -418,6 +418,9 @@ public class JMXPropertyProviderTest {
       PropertyHelper.getPropertyId("HostRoles", "host_name"),
       PropertyHelper.getPropertyId("HostRoles", "component_name"),
       PropertyHelper.getPropertyId("HostRoles", "state"));
+
+    // set the provider timeout to 500 millis
+    propertyProvider.setPopulateTimeout(1000);
 
     for (int i = 0; i < NUMBER_OF_RESOURCES; ++i) {
       // datanode
