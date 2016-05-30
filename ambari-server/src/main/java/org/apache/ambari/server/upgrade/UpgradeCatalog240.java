@@ -1398,8 +1398,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     }
 
     // drop FKs to SCDS in both HCDS and HCS tables
+    // These are the expected constraint names
     dbAccessor.dropFKConstraint(HOST_COMPONENT_DS_TABLE, "hstcmpnntdesiredstatecmpnntnme");
     dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, "hstcomponentstatecomponentname");
+    // These are the old (pre Ambari 1.5) constraint names, however still found on some installations
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_DS_TABLE, "FK_hostcomponentdesiredstate_component_name");
+    dbAccessor.dropFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_component_name");
 
     // remove existing compound PK
     dbAccessor.dropPKConstraint(SERVICE_COMPONENT_DS_TABLE, "servicecomponentdesiredstate_pkey");
