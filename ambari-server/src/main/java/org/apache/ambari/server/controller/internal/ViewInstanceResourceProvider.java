@@ -351,8 +351,11 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
       viewInstanceEntity.setIcon64((String) properties.get(ICON64_PATH_ID));
     }
 
-    if (properties.containsKey(CLUSTER_HANDLE_PROPERTY_ID)) {
-      viewInstanceEntity.setClusterHandle(Long.valueOf((String) properties.get(CLUSTER_HANDLE_PROPERTY_ID)));
+    String handle = (String) properties.get(CLUSTER_HANDLE_PROPERTY_ID);
+    if (handle != null) {
+      viewInstanceEntity.setClusterHandle(Long.valueOf(handle));
+    } else {
+      viewInstanceEntity.setClusterHandle(null);
     }
 
     if (properties.containsKey(CLUSTER_TYPE_PROPERTY_ID)) {
