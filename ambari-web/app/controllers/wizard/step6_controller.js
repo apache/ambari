@@ -144,7 +144,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   anyGeneralIssues: Em.computed.or('anyGeneralErrors', 'anyGeneralWarnings'),
 
   anyHostErrors: function () {
-    return this.get('hosts').some(function(h) { return h.errorMessages.length > 0; });
+    return this.get('hosts').some(function(h) { return h.errorMessages ? (h.errorMessages.length > 0) : false;});
   }.property('hosts.@each.errorMessages'),
 
   /**
@@ -153,7 +153,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   anyErrors: Em.computed.or('anyGeneralErrors', 'anyHostErrors'),
 
   anyHostWarnings: function () {
-    return this.get('hosts').some(function(h) { return h.warnMessages.length > 0; });
+    return this.get('hosts').some(function(h) { return h.warnMessages ? (h.warnMessages.length > 0) : false;});
   }.property('hosts.@each.warnMessages'),
 
   /**
