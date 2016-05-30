@@ -259,6 +259,7 @@ if not hive_use_existing_db:
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 target_hive = format("{hive_lib}/{jdbc_jar_name}")
 target_hive2 = format("{hive_lib2}/{jdbc_jar_name}") if hive_lib2 is not None else None
+hive2_previous_jdbc_jar = format("{hive_lib2}/{hive_previous_jdbc_jar_name}") if hive_lib2 is not None else None
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 
 if not (stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)):
@@ -373,6 +374,7 @@ yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix'
 
 target_hive = format("{hive_lib}/{jdbc_jar_name}")
 target_hive_interactive = format("{hive_interactive_lib}/{jdbc_jar_name}")
+hive_intaractive_previous_jdbc_jar = format("{hive_interactive_lib}/{hive_previous_jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
 
 start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")

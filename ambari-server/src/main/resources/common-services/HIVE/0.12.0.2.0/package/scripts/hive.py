@@ -269,9 +269,9 @@ def hive(name=None):
 
   if name == 'metastore' or name == 'hiveserver2':
     if params.target_hive is not None and not os.path.exists(params.target_hive):
-      jdbc_connector(params.target_hive)
+      jdbc_connector(params.target_hive, params.hive_previous_jdbc_jar)
     if params.target_hive2 is not None and not os.path.exists(params.target_hive2):
-      jdbc_connector(params.target_hive2)
+      jdbc_connector(params.target_hive2, params.hive2_previous_jdbc_jar)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -415,7 +415,7 @@ def fill_conf_dir(component_conf_dir):
     pass # if params.log4j_version == '1'
 
 
-def jdbc_connector(target):
+def jdbc_connector(target, hive_previous_jdbc_jar):
   """
   Shared by Hive Batch, Hive Metastore, and Hive Interactive
   :param target: Target of jdbc jar name, which could be for any of the components above.
@@ -430,8 +430,8 @@ def jdbc_connector(target):
       "no_proxy": format("{ambari_server_hostname}")
     }
 
-    if params.hive_previous_jdbc_jar and os.path.isfile(params.hive_previous_jdbc_jar):
-      File(params.hive_previous_jdbc_jar, action='delete')
+    if hive_previous_jdbc_jar and os.path.isfile(hive_previous_jdbc_jar):
+      File(hive_previous_jdbc_jar, action='delete')
 
     # TODO: should be removed after ranger_hive_plugin will not provide jdbc
     Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
