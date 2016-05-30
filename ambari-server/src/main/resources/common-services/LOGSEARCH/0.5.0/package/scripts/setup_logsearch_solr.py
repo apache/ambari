@@ -67,10 +67,20 @@ def setup_logsearch_solr(name = None):
 
     zk_cli_prefix = format('export JAVA_HOME={java64_home}; {cloud_scripts}/zkcli.sh -zkhost {zookeeper_hosts}')
     Execute(format('{zk_cli_prefix} -cmd makepath {logsearch_solr_znode}'),
-            not_if=format("{zk_cli_prefix} -cmd get {logsearch_solr_znode}"),
+            not_if=format("{zk_cli_prefix}{logsearch_solr_znode} -cmd list"),
             ignore_failures=True,
             user=params.logsearch_solr_user
             )
+    if params.logsearch_solr_ssl_enabled:
+      Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val https'),
+              ignore_failures=True,
+              user=params.logsearch_solr_user
+              )
+    else:
+      Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val http'),
+              ignore_failures=True,
+              user=params.logsearch_solr_user
+              )
   elif name == 'client':
     Directory([params.solr_client_dir, params.logsearch_solr_client_log_dir],
               mode=0755,

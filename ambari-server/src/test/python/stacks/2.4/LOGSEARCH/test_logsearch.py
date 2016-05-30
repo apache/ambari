@@ -83,7 +83,6 @@ class TestLogSearch(RMFTestCase):
                               mode = 0755,
                               owner = "logsearch"
     )
-
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch-admin.json',
                               owner = 'logsearch',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-admin-json']['content'])

@@ -75,6 +75,7 @@ class TestLogFeeder(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh',
                               owner='logfeeder',
+                              mode=0755,
                               content=InlineTemplate(self.getConfig()['configurations']['logfeeder-env']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/log4j.xml',

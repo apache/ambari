@@ -262,6 +262,26 @@ solr_audit_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_a
 logfeeder_env_content = config['configurations']['logfeeder-env']['content']
 logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 
+logsearch_solr_ssl_enabled = default('configurations/logsearch-solr-env/logsearch_solr_ssl_enabled', False)
+logsearch_solr_ssl_server_keystore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_keystore_location']
+logsearch_solr_ssl_server_keystore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_keystore_password']
+logsearch_solr_ssl_server_keystore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_keystore_type']
+logsearch_solr_ssl_server_truststore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_truststore_location']
+logsearch_solr_ssl_server_truststore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_truststore_password']
+logsearch_solr_ssl_server_truststore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_truststore_type']
+logsearch_solr_ssl_client_keystore_location = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_keystore_location']
+logsearch_solr_ssl_client_keystore_password = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_keystore_password']
+logsearch_solr_ssl_client_keystore_type = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_keystore_type']
+logsearch_solr_ssl_client_truststore_location = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_truststore_location']
+logsearch_solr_ssl_client_truststore_password = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_truststore_password']
+logsearch_solr_ssl_client_truststore_type = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_truststore_type']
+logfeeder_solr_ssl_client_keystore_location = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_keystore_location']
+logfeeder_solr_ssl_client_keystore_password = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_keystore_password']
+logfeeder_solr_ssl_client_keystore_type = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_keystore_type']
+logfeeder_solr_ssl_client_truststore_location = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_truststore_location']
+logfeeder_solr_ssl_client_truststore_password = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_truststore_password']
+logfeeder_solr_ssl_client_truststore_type = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_truststore_type']
+
 logfeeder_checkpoint_folder = default('/configurations/logfeeder-env/logfeeder.checkpoint.folder',
                                       '/etc/ambari-logsearch-logfeeder/conf/checkpoints')
 
