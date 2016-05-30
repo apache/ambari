@@ -218,8 +218,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
                       "{llap_keytab_splits[4]} --slider-principal {hive_headless_keytab}")
 
       # Append args.
-      cmd+= " --args \" -XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts" \
-            " -XX:+AlwaysPreTouch -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200\""
+      cmd+= format(" --args \" {llap_app_java_opts}\"")
       # TODO: Remove adding "-XX:MaxDirectMemorySize" when Driver starts appending itself.
       if params.hive_llap_io_mem_size > params.llap_heap_size:
         max_dir_mem_size = long(params.hive_llap_io_mem_size) + 256

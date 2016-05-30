@@ -186,14 +186,20 @@
   <property>
     <name>llap_log_level</name>
     <value>INFO</value>
-    <description>LLAP app logging level</description>
-    <display-name>LLAP app logging level</display-name>
+    <description>LLAP app logging level (WARN/INFO/DEBUG/TRACE)</description>
+    <display-name>LLAP app logging level (WARN/INFO/DEBUG/TRACE)</display-name>
   </property>
   <property>
     <name>llap_app_name</name>
     <value>llap0</value>
     <description>LLAP app name</description>
     <display-name>LLAP app name</display-name>
+  </property>
+  <property>
+    <name>llap_java_opts</name>
+    <value>-XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:+AlwaysPreTouch -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200</value>
+    <description>Java opts for llap application</description>
+    <display-name>LLAP app java opts</display-name>
   </property>
 
   <!-- hive-env.sh -->
