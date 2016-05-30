@@ -41,6 +41,8 @@
           "uri": {
             "http": "{{logsearch-solr-env/logsearch_solr_port}}",
             "https": "{{logsearch-solr-env/logsearch_solr_port}}",
+            "https_property": "{{logsearch-solr-env/logsearch_solr_ssl_enabled}}",
+            "https_property_value": "true",
             "connection_timeout": 5.0,
             "default_port": 8886
           },

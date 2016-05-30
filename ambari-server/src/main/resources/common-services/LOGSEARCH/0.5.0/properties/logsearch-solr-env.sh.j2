@@ -92,12 +92,15 @@ SOLR_LOGS_DIR={{logsearch_solr_log_dir}}
 # Sets the port Solr binds to, default is 8983
 SOLR_PORT={{logsearch_solr_port}}
 
-# Uncomment to set SSL-related system properties
 # Be sure to update the paths to the correct keystore for your environment
-#SOLR_SSL_OPTS="-Djavax.net.ssl.keyStore=etc/solr-ssl.keystore.jks \
-#-Djavax.net.ssl.keyStorePassword=secret \
-#-Djavax.net.ssl.trustStore=etc/solr-ssl.keystore.jks \
-#-Djavax.net.ssl.trustStorePassword=secret"
+{% if logsearch_solr_ssl_enabled %}
+SOLR_SSL_KEY_STORE={{logsearch_solr_ssl_server_keystore_location}}
+SOLR_SSL_KEY_STORE_PASSWORD={{logsearch_solr_ssl_server_keystore_password}}
+SOLR_SSL_TRUST_STORE={{logsearch_solr_ssl_server_keystore_location}}
+SOLR_SSL_TRUST_STORE_PASSWORD={{logsearch_solr_ssl_server_keystore_password}}
+SOLR_SSL_NEED_CLIENT_AUTH=false
+SOLR_SSL_WANT_CLIENT_AUTH=false
+{% endif %}
 
 # Uncomment to set a specific SSL port (-Djetty.ssl.port=N); if not set
 # and you are using SSL, then the start script will use SOLR_PORT for the SSL port

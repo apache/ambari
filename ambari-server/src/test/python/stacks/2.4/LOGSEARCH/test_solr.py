@@ -25,7 +25,7 @@ from resource_management.libraries.script.config_dictionary import UnknownConfig
 class TestSolr(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "LOGSEARCH/0.5.0/package"
   STACK_VERSION = "2.4"
-  
+
   def configureResourcesCalled(self):
       self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr',
                                 owner = 'solr',
@@ -94,11 +94,15 @@ class TestSolr(RMFTestCase):
                                 content = Template('zoo.cfg.j2')
       )
       self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org -cmd makepath /logsearch',
-                                not_if = "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org -cmd get /logsearch",
+                                not_if = "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org/logsearch -cmd list",
                                 ignore_failures = True,
                                 user = "solr"
       )
-  
+      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org/logsearch -cmd clusterprop -name urlScheme -val http',
+                                ignore_failures = True,
+                                user = "solr"
+      )
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
                        classname = "LogsearchSolr",

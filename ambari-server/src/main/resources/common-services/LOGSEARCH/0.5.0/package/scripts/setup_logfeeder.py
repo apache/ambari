@@ -48,6 +48,7 @@ def setup_logfeeder():
 
   File(format("{logsearch_logfeeder_conf}/logfeeder-env.sh"),
        content=InlineTemplate(params.logfeeder_env_content),
+       mode=0755,
        owner=params.logfeeder_user
        )
 

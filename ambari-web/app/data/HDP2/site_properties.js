@@ -1877,11 +1877,53 @@ var hdp2properties = [
     "index": 7
   },
   {
-    "name": "content",
+    "name": "logfeeder_solr_ssl_client_truststore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 8
+  },
+  {
+    "name": "logfeeder_solr_ssl_client_truststore_type",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 9
+  },
+  {
+    "name": "logfeeder_solr_ssl_client_truststore_password",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 10
+  },
+  {
+    "name": "logfeeder_solr_ssl_client_keystore_location",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 11
+  },
+  {
+    "name": "logfeeder_solr_ssl_client_keystore_type",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 12
+  },
+  {
+    "name": "logfeeder_solr_ssl_client_keystore_password",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 13
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 14
   },
   /*logfeeder-log4j*/
   {
@@ -2000,11 +2042,53 @@ var hdp2properties = [
     "index": 9
   },
   {
-    "name": "content",
+    "name": "logsearch_solr_ssl_client_truststore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 10
+  },
+  {
+    "name": "logsearch_solr_ssl_client_truststore_type",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 11
+  },
+  {
+    "name": "logsearch_solr_ssl_client_truststore_password",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 12
+  },
+  {
+    "name": "logsearch_solr_ssl_client_keystore_location",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 13
+  },
+  {
+    "name": "logsearch_solr_ssl_client_keystore_type",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 14
+  },
+  {
+    "name": "logsearch_solr_ssl_client_keystore_password",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 15
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 16
   },
   /*logsearch-log4j*/
   {
@@ -2088,74 +2172,95 @@ var hdp2properties = [
   },
   /*logsearch-solr-env*/
   {
-    "name": "logsearch_solr_datadir",
+    "name": "logsearch_solr_log_dir",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 1
   },
   {
-    "name": "logsearch_solr_log_dir",
+    "name": "logsearch_solr_client_log_dir",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 2
   },
   {
-    "name": "logsearch_solr_client_log_dir",
+    "name": "logsearch_solr_pid_dir",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 3
   },
   {
-    "name": "logsearch_solr_pid_dir",
+    "name": "logsearch_solr_port",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 4
   },
   {
-    "name": "logsearch_solr_znode",
+    "name": "logsearch_solr_jmx_port",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 5
   },
   {
-    "name": "logsearch_solr_port",
+    "name": "logsearch_solr_ssl_enabled",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 6
   },
   {
-    "name": "logsearch_solr_jmx_port",
+    "name": "logsearch_solr_ssl_server_truststore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 7
   },
   {
-    "name": "logsearch_solr_minmem",
+    "name": "logsearch_solr_ssl_server_truststore_type",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 8
   },
   {
-    "name": "logsearch_solr_maxmem",
+    "name": "logsearch_solr_ssl_server_truststore_password",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 9
   },
   {
-    "name": "content",
+    "name": "logsearch_solr_ssl_server_keystore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 10
+  },
+  {
+    "name": "logsearch_solr_ssl_server_keystore_type",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 11
+  },
+  {
+    "name": "logsearch_solr_ssl_server_keystore_password",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 12
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 13
   },
   /*logsearch-solr-log4j*/
   {

@@ -92,6 +92,51 @@
   </property>
 
   <property>
+    <name>logfeeder_solr_ssl_client_truststore_location</name>
+    <value>/etc/security/serverKeys/logsearch-solr-ssl.trustStore.jks</value>
+    <display-name>Logfeeder Solr client trust store location</display-name>
+    <description>Location of the trust store file.</description>
+  </property>
+  <property>
+    <name>logfeeder_solr_ssl_client_truststore_type</name>
+    <value>jks</value>
+    <display-name>Logfeeder Solr client trust store type</display-name>
+    <description>Type of the trust store file.</description>
+  </property>
+  <property>
+    <name>logfeeder_solr_ssl_client_truststore_password</name>
+    <value>bigdata</value>
+    <display-name>Logfeeder Solr client trust store password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the trust store file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>logfeeder_solr_ssl_client_keystore_location</name>
+    <value>/etc/security/serverKeys/logsearch-solr-ssl.keyStore.jks</value>
+    <display-name>Logfeeder Solr client key store location</display-name>
+    <description>Location of the key store file.</description>
+  </property>
+  <property>
+    <name>logfeeder_solr_ssl_client_keystore_type</name>
+    <value>jks</value>
+    <display-name>Logfeeder Solr client key store type</display-name>
+    <description>Type of the key store file.</description>
+  </property>
+  <property>
+    <name>logfeeder_solr_ssl_client_keystore_password</name>
+    <value>bigdata</value>
+    <display-name>Logfeeder Solr client key store password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the key store file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+
+  <property>
     <name>content</name>
     <display-name>logfeeder-env template</display-name>
     <description>This is the jinja template for logsearch-env.sh file</description>

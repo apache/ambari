@@ -98,6 +98,66 @@
   </property>
 
   <property>
+    <name>logsearch_solr_ssl_enabled</name>
+    <value>false</value>
+    <display-name>Enable SSL to Log Search Solr</display-name>
+    <description>Enable ssl to Solr</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logsearch_solr_ssl_server_truststore_location</name>
+    <value>/etc/security/serverKeys/logsearch-solr-ssl.trustStore.jks</value>
+    <display-name>Log Search Solr trust store location</display-name>
+    <description>Location of the trust store file.</description>
+  </property>
+
+  <property>
+    <name>logsearch_solr_ssl_server_truststore_type</name>
+    <value>jks</value>
+    <display-name>Log Search Solr trust store type</display-name>
+    <description>Type of the trust store file.</description>
+  </property>
+
+  <property>
+    <name>logsearch_solr_ssl_server_truststore_password</name>
+    <value>bigdata</value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Log Search Solr trust store password</display-name>
+    <description>Password to open the trust store file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>logsearch_solr_ssl_server_keystore_location</name>
+    <value>/etc/security/serverKeys/logsearch-solr-ssl.keyStore.jks</value>
+    <display-name>Log Search Solr key store location</display-name>
+    <description>Location of the key store file.</description>
+  </property>
+
+  <property>
+    <name>logsearch_solr_ssl_server_keystore_type</name>
+    <value>jks</value>
+    <display-name>Log Search Solr key store type</display-name>
+    <description>Type of the key store file.</description>
+  </property>
+
+  <property>
+    <name>logsearch_solr_ssl_server_keystore_password</name>
+    <value>bigdata</value>
+    <display-name>Log Search Solr key store password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the key store file.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
+
+  <property>
     <name>logsearch_solr_znode</name>
     <value>/ambari-solr</value>
     <description>Zookeeper znode, e.g: /logsearch</description>
