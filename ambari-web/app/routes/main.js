@@ -736,14 +736,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         }
       }),
       showInfo: function (router, event) {
-        var mainServiceInfoConfigsController = App.router.get('mainServiceInfoConfigsController');
-        if (event.context !== 'configs' && mainServiceInfoConfigsController.hasUnsavedChanges()) {
-          mainServiceInfoConfigsController.showSavePopup(router.get('location.lastSetURL').replace('configs', 'summary'));
-          return false;
-        }
-        var parent = event.view.get('_parentView');
-        parent.deactivateChildViews();
-        event.view.set('active', "active");
         router.transitionTo(event.context);
       }
     }),
