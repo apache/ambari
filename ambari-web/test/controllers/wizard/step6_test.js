@@ -1825,5 +1825,59 @@ describe('App.WizardStep6Controller', function () {
     });
 
   });
+   
+  describe('#anyHostErrors', function () {
+
+    var tests = [
+    {
+       it: "anyHostErrors returns true if errorMessages are defined",
+       host: Em.A([Em.Object.create({
+          errorMessages: "Error Message"
+       })]),
+       result: true
+     },
+     {
+       it: "anyHostErrors returns false if errorMessages are not defined",
+       host: Em.A([Em.Object.create({
+       })]),
+       result: false
+     }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.it, function() {
+        controller.set('hosts', test.host);
+        expect(controller.get('anyHostErrors')).to.equal(test.result);
+      })
+    });   
+  });
+
+
+   
+  describe('#anyHostWarnings', function () {
+
+    var tests = [
+    {
+       it: "anyHostWarnings returns true if warnMessages are defined",
+       host: Em.A([Em.Object.create({
+          warnMessages: "Warning Message"
+       })]),
+       result: true
+     },
+     {
+       it: "anyHostWarnings returns false if warnMessages are not defined",
+       host: Em.A([Em.Object.create({
+       })]),
+       result: false
+     }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.it, function() {
+        controller.set('hosts', test.host);
+        expect(controller.get('anyHostWarnings')).to.equal(test.result);
+      })
+    });   
+  });
 
 });
