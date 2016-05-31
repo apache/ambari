@@ -17,8 +17,9 @@
 -->
 <configuration supports_adding_forbidden="true">
 
-  <property>
+  <property require-input="true">
     <name>hawq_password</name>
+    <property-type>PASSWORD</property-type>
     <display-name>HAWQ System User Password</display-name>
     <value></value>
     <description>
