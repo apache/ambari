@@ -1,0 +1,110 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="index-content">
+  <div class="main-content">
+    <aside {{bind-attr class="isDatabaseExplorerVisible:col-md-3:no-width :col-xs-3 :no-padding"}}>
+      {{render 'databases'}}
+    </aside>
+
+    <div {{bind-attr class="isDatabaseExplorerVisible:col-md-9:col-md-12 :col-xs-9 :query-container"}}>
+      {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel" iconActions=queryPanelActions}}
+        {{render 'open-queries'}}
+
+        <div class="toolbox">
+          {{#if canExecute}}
+            <button type="button" class="btn btn-sm btn-success execute-query" {{action "executeQuery"}}>
+              {{t "buttons.execute"}}
+            </button>
+          {{else}}
+            <button type="button" {{bind-attr class=":btn :btn-sm :btn-warning model.isCancelling:disabled"}} {{action "stopCurrentJob"}}>
+              {{#if model.isCancelling}}
+                {{t "buttons.stoppingJob"}}
+                <div class="spinner small inline-spinner"></div>
+              {{else}}
+                {{t "buttons.stopJob"}}
+              {{/if}}
+            </button>
+          {{/if}}
+
+          <button type="button" {{bind-attr class=":btn :btn-sm :btn-default canExecute::disabled"}} {{action "explainQuery"}}>
+            {{t "buttons.explain"}}
+          </button>
+
+          <button type="button" class="btn btn-sm btn-default save-query-as" {{action "saveQuery"}}>{{t "buttons.saveAs"}}</button>
+
+          {{render 'insert-udfs'}}
+
+          {{#if canKillSession}}
+            <button type="button" class="btn btn-sm btn-danger kill-session" {{action "killSession"}}>{{t "buttons.killSession"}}</button>
+          {{/if}}
+
+          <button type="button" class="btn btn-sm btn-primary  pull-right" {{action "addQuery"}}>{{t "buttons.newQuery"}}</button>
+        </div>
+      {{/panel-widget}}
+
+      {{#if displayJobTabs}}
+        {{#if jobProgressService.currentJob.stages.length}}
+          {{#progress-widget value=jobProgressService.currentJob.totalProgress}}
+          {{/progress-widget}}
+        {{/if}}
+      {{/if}}
+
+      {{#if queryParams}}
+        {{#panel-widget headingTranslation="titles.query.parameters"}}
+          <div class="form-horizontal">
+            {{#each param in queryParams}}
+              <div {{bind-attr class=":form-group param.value:has-success:has-error"}}>
+                <label class="col-sm-3 control-label">{{param.name}}</label>
+                  <div class="col-sm-9">
+                    {{input value=param.value placeholder="value" class="form-control"}}
+                  </div>
+              </div>
+            {{/each}}
+          </div>
+        {{/panel-widget}}
+      {{/if}}
+
+      {{#if displayJobTabs}}
+        {{#panel-widget heading=queryProcessTitle
+                        isLoading=content.isRunning
+                        menuItems=downloadMenu
+                        menuHeadingTranslation="titles.download"
+                        classNames="query-process-results-panel"}}
+          {{#tabs-widget tabs=queryProcessTabs selectedTab=selectedQueryProcessTab}}
+            {{outlet}}
+          {{/tabs-widget}}
+        {{/panel-widget}}
+      {{/if}}
+    </div>
+  </div>
+
+  {{outlet 'overlay'}}
+
+  <div class="query-menu">
+    {{#popover-widget classNames="fa fa-info-circle queries-icon" titleTranslation="popover.queryEditorHelp.title" }}
+      <ul>
+        <li>{{t 'popover.queryEditorHelp.content.line1'}}</li>
+        <li>{{t 'popover.queryEditorHelp.content.line2'}}</li>
+        <li>{{t 'popover.queryEditorHelp.content.line3'}}</li>
+      </ul>
+    {{/popover-widget}}
+
+    {{render 'query-tabs'}}
+  </div>
+</div>
