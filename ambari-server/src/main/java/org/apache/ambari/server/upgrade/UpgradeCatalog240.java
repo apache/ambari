@@ -2329,6 +2329,14 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
    */
   @Transactional
   private void updateViewInstanceTable() throws SQLException {
+    try {
+      if (Long.class.equals(dbAccessor.getColumnClass(VIEWINSTANCE_TABLE, CLUSTER_HANDLE_COLUMN))) {
+        LOG.info(String.format("%s column is already numeric. Skipping an update of %s table.", CLUSTER_HANDLE_COLUMN, VIEWINSTANCE_TABLE));
+        return;
+      }
+    } catch (ClassNotFoundException e) {
+      LOG.warn("Cannot determine a type of " + CLUSTER_HANDLE_COLUMN + " column.");
+    }
 
     String cluster_handle_dummy = "cluster_handle_dummy";
 
