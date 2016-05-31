@@ -131,4 +131,25 @@ angular.module('ambariAdminConsole', [
     }];
     return $delegate;
   }]);
+
+  if (!Array.prototype.find) {
+    Array.prototype.find = function (callback, context) {
+      if (this == null) {
+        throw new TypeError('Array.prototype.find called on null or undefined');
+      }
+      if (typeof callback !== 'function') {
+        throw new TypeError(callback + ' is not a function');
+      }
+      var list = Object(this),
+        length = list.length >>> 0,
+        value;
+      for (var i = 0; i < length; i++) {
+        value = list[i];
+        if (callback.call(context, value, i, list)) {
+          return value;
+        }
+      }
+      return undefined;
+    };
+  }
 }]);
