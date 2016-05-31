@@ -198,6 +198,15 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       String contextName = record.context();
 
       StringBuilder sb = new StringBuilder();
+
+      // Transform ipc.8020 -> ipc.client,  ipc.8040 -> ipc.datanode, etc.
+      if (contextName.startsWith("ipc.")) {
+        String portNumber = contextName.replaceFirst("ipc.", "");
+        if (rpcPortSuffixes.containsKey(portNumber)) {
+          contextName = "ipc." + rpcPortSuffixes.get(portNumber);
+        }
+      }
+
       sb.append(contextName);
       sb.append('.');
       // Similar to GangliaContext adding processName to distinguish jvm
