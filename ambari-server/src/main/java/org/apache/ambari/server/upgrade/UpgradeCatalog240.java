@@ -353,6 +353,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateKerberosConfigs();
     updateYarnEnv();
     updatePhoenixConfigs();
+    updateFalconConfigs();
     updateKerberosDescriptorArtifacts();
     removeHiveOozieDBConnectionConfigs();
     updateClustersAndHostsVersionStateTableDML();
@@ -1887,6 +1888,29 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           String newDefault ="[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}";
           Map<String, String> updates = Collections.singletonMap("content", newDefault);
           updateConfigurationPropertiesForCluster(cluster, "krb5-conf", updates, null, true, false);
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates the Falcon-related configurations for the clusters managed by this Ambari
+   * Removes falcon_store_uri from falcon-env.
+   *
+   * @throws AmbariException if an error occurs while updating the configurations
+   */
+  protected void updateFalconConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config falconEnvConfig = cluster.getDesiredConfigByType("falcon-env");
+      if (falconEnvConfig != null) {
+        Map<String, String> falconEnvEnvProperties = falconEnvConfig.getProperties();
+        if (falconEnvEnvProperties.containsKey("falcon_store_uri")) {
+          LOG.info("Removing property falcon_store_uri from falcon-env");
+          removeConfigurationPropertiesFromCluster(cluster, "falcon-env", Collections.singleton("falcon_store_uri"));
         }
       }
     }
