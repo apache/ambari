@@ -67,6 +67,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
   hadoop_home = stack_select.get_hadoop_dir("home")
   spark_conf = format("{stack_root}/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
+  spark_daemon_memory = config['configurations']['spark-env']['spark_daemon_memory']
   spark_pid_dir = status_params.spark_pid_dir
   spark_home = format("{stack_root}/current/{component_directory}")
 
