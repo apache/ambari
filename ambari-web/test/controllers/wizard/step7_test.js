@@ -1116,7 +1116,8 @@ describe('App.InstallerStep7Controller', function () {
         it(test.m, function () {
           installerStep7Controller.reopen({isHostsConfigsPage: test.isHostsConfigsPage});
           var serviceConfigProperty = Em.Object.create({
-            isReconfigurable: test.isReconfigurable
+            isReconfigurable: test.isReconfigurable,
+            isEditable: true
           });
           installerStep7Controller._updateIsEditableFlagForConfig(serviceConfigProperty, test.defaultGroupSelected);
           expect(serviceConfigProperty.get('isEditable')).to.equal(test.e);

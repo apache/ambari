@@ -1644,6 +1644,10 @@ Em.I18n.translations = {
 
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
 
+  'admin.stackUpgrade.preCheck.warning.message': "{0} Warning {1}",
+  'admin.stackUpgrade.preCheck.bypass.message': "{0} Error {1}",
+  'admin.stackUpgrade.preCheck.fail.message': "{0} Required {1}",
+
   'admin.stackUpgrade.finalize.later': "Finalize Later",
   'admin.stackUpgrade.finalize.message.upgrade': "Your cluster version has been upgraded. " +
   "Click on <b>Finalize</b> when you are ready to finalize the upgrade and commit to the new version." +
