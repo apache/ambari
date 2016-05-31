@@ -140,6 +140,18 @@
             </organization>
         </developer>
         <developer>
+            <id>adenissov</id>
+            <name>Alexander Denissov</name>
+            <email>adenissov@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Pivotal
+            </organization>
+        </developer>
+        <developer>
             <id>ajit</id>
             <name>Ajit Kumar</name>
             <email>ajit@apache.org</email>
@@ -377,6 +389,18 @@
             </organization>
         </developer>
         <developer>
+            <id>gautam</id>
+            <name>Gautam Borad</name>
+            <email>gautam@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>hitesh</id>
             <name>Hitesh Shah</name>
             <email>hitesh@apache.org</email>
@@ -566,6 +590,18 @@
             </roles>
             <organization>
                 Pivotal
+            </organization>
+        </developer>
+        <developer>
+            <id>oleewere</id>
+            <name>Oliver Szabo</name>
+            <email>oleewere@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
             </organization>
         </developer>
         <developer>
