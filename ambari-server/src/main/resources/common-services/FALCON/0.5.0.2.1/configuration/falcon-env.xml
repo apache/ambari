@@ -69,6 +69,12 @@
       <type>directory</type>
     </value-attributes>
   </property>
+  <property>
+    <name>falcon_store_uri</name>
+    <value>file:///hadoop/falcon/store</value>
+    <display-name>Falcon store URI</display-name>
+    <description>Directory where entity definitions are stored.</description>
+  </property>
   <!--embeddedmq properties-->
   <property>
     <name>falcon.embeddedmq.data</name>

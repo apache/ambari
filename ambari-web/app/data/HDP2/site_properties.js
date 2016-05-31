@@ -1614,6 +1614,12 @@ var hdp2properties = [
     "filename": "falcon-env.xml",
     "category": "FALCON_SERVER"
   },
+  {
+    "name": "falcon_store_uri",
+    "serviceName": "FALCON",
+    "filename": "falcon-env.xml",
+    "category": "FALCON_SERVER"
+  },
 /************************************************AMBARI_METRICS******************************************/
   {
     "name": "timeline.metrics.service.operation.mode",

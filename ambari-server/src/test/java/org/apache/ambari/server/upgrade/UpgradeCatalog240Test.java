@@ -491,7 +491,6 @@ public class UpgradeCatalog240Test {
     Method upgradeCapSchedulerView = UpgradeCatalog240.class.getDeclaredMethod("upgradeCapSchedulerView");
     Method updatePhoenixConfigs = UpgradeCatalog240.class.getDeclaredMethod("updatePhoenixConfigs");
     Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
-    Method updateFalconConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateFalconConfigs");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -525,7 +524,6 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(upgradeCapSchedulerView)
             .addMockedMethod(updatePhoenixConfigs)
             .addMockedMethod(updateKerberosDescriptorArtifacts)
-            .addMockedMethod(updateFalconConfigs)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -554,7 +552,6 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.upgradeCapSchedulerView();
     upgradeCatalog240.updatePhoenixConfigs();
     upgradeCatalog240.updateKerberosDescriptorArtifacts();
-    upgradeCatalog240.updateFalconConfigs();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -636,54 +633,6 @@ public class UpgradeCatalog240Test {
     assertNull(oozieCapture.getValue().get("oozie_derby_database"));
     assertNull(oozieCapture.getValue().get("oozie_hostname"));
     assertNull(hiveCapture.getValue().get("hive_hostname"));
-  }
-
-  @Test
-  public void testUpdateFalconConfigs() throws Exception{
-    EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(
-            AmbariManagementController.class);
-    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
-
-    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
-    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-
-    final Config mockFalconEnv = easyMockSupport.createNiceMock(Config.class);
-
-    final Map<String, String> propertiesExpectedFalconEnv = new HashMap<String, String>();
-    propertiesExpectedFalconEnv.put("falcon_store_uri", "file:///hadoop/falcon/store");
-    propertiesExpectedFalconEnv.put("property", "value");
-
-    final Injector mockInjector = Guice.createInjector(new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
-        binder.bind(ConfigHelper.class).toInstance(mockConfigHelper);
-        binder.bind(Clusters.class).toInstance(mockClusters);
-        binder.bind(EntityManager.class).toInstance(entityManager);
-        binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      }
-    });
-
-    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
-    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", mockClusterExpected);
-    }}).once();
-
-    expect(mockClusterExpected.getDesiredConfigByType("falcon-env")).andReturn(mockFalconEnv).atLeastOnce();
-    expect(mockFalconEnv.getProperties()).andReturn(propertiesExpectedFalconEnv).anyTimes();
-
-    Capture<Map<String, String>> falconCapture =  newCapture();
-    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
-            capture(falconCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
-
-    easyMockSupport.replayAll();
-    mockInjector.getInstance(UpgradeCatalog240.class).updateFalconConfigs();
-    easyMockSupport.verifyAll();
-
-    assertEquals("value", falconCapture.getValue().get("property"));
-    assertNull(falconCapture.getValue().get("falcon_store_uri"));
   }
 
   @Test
