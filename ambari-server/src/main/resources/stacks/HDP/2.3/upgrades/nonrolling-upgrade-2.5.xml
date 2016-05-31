@@ -291,10 +291,6 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db"/>
       </execute-stage>
 
-      <execute-stage service="YARN" component="NODEMANAGER" title="Add Spark2 shuffle">
-        <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
-      </execute-stage>
-
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
       </execute-stage>

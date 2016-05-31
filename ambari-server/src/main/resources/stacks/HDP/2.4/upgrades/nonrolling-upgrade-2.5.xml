@@ -277,11 +277,6 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_yarn_audit_db"/>
       </execute-stage>
 
-      <!-- YARN -->
-      <execute-stage service="YARN" component="NODEMANAGER" title="Add Spark2 shuffle">
-        <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
-      </execute-stage>
-
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
         <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
