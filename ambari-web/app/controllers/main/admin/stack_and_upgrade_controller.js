@@ -140,6 +140,32 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     })
   ],
 
+  /**
+   * pre-check messages map
+   * @type {object}
+   */
+  preCheckMessages: {
+    'WARNING': {
+      template: 'admin.stackUpgrade.preCheck.warning.message',
+      precheckResultsMessageClass: 'ORANGE',
+      isPrecheckFailed: false,
+      precheckResultsMessageIconClass: 'icon-warning-sign'
+    },
+    'BYPASS': {
+      template: 'admin.stackUpgrade.preCheck.bypass.message',
+      precheckResultsMessageClass: 'RED',
+      isPrecheckFailed: false,
+      precheckResultsMessageIconClass: 'icon-remove',
+      bypassedFailures: true
+    },
+    'FAIL': {
+      template: 'admin.stackUpgrade.preCheck.fail.message',
+      precheckResultsMessageClass: 'RED',
+      isPrecheckFailed: true,
+      precheckResultsMessageIconClass: 'icon-remove'
+    }
+  },
+
   runningCheckRequests: [],
 
   /**
@@ -426,27 +452,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         upgradeItems = [];
       newGroup.upgrade_items.forEach(function (item) {
         var oldItem = App.upgradeEntity.create({type: 'ITEM'}, item.UpgradeItem);
-        var status = oldItem.get('status');
-        var text = oldItem.get('text');
-
-        try {
-          var messageArray = $.parseJSON(text);
-          var messages = [];
-          for(var i = 0; i < messageArray.length; i ++){
-            var aMessageObj = messageArray[i];
-            messages.push(aMessageObj.message);
-          }
-          oldItem.set('messages', messages);
-          oldItem.set('text', messages.join(' '));
-        } catch (err){}
-
+        this.formatMessages(oldItem);
         oldItem.set('tasks', []);
         upgradeItems.pushObject(oldItem);
-      });
+      }, this);
       upgradeItems.reverse();
       oldGroup.set('upgradeItems', upgradeItems);
       upgradeGroups.pushObject(oldGroup);
-    });
+    }, this);
     upgradeGroups.reverse();
     this.set('upgradeData', Em.Object.create({
       upgradeGroups: upgradeGroups,
@@ -454,6 +467,26 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     }));
     this.set('downgradeAllowed', newData.Upgrade.downgrade_allowed);
     this.setDBProperty('downgradeAllowed', newData.Upgrade.downgrade_allowed);
+  },
+
+  /**
+   * format upgrade item text
+   * @param {App.upgradeEntity} oldItem
+   */
+  formatMessages: function (oldItem) {
+    var text = oldItem.get('text');
+    var messages = [];
+
+    try {
+      var messageArray = JSON.parse(text);
+      for (var i = 0; i < messageArray.length; i++) {
+        messages.push(messageArray[i].message);
+      }
+      oldItem.set('text', messages.join(' '));
+    } catch (err) {
+      console.warn('Upgrade Item has malformed text');
+    }
+    oldItem.set('messages', messages);
   },
 
   /**
@@ -485,7 +518,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         group.get('upgradeItems').forEach(function (item) {
           if (item.get('stage_id') === data.UpgradeItem.stage_id) {
             if (item.get('tasks.length')) {
-              item.set('isTasksLoaded', true);
               data.tasks.forEach(function (task) {
                 var currentTask = item.get('tasks').findProperty('id', task.Tasks.id);
                 this.get('taskDetailsProperties').forEach(function (property) {
@@ -627,7 +659,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   abortUpgradeErrorCallback: function (data) {
     var header = Em.I18n.t('admin.stackUpgrade.state.paused.fail.header');
     var body = Em.I18n.t('admin.stackUpgrade.state.paused.fail.body');
-    if(data && data.responseText){
+    if (data && data.responseText) {
       try {
         var json = $.parseJSON(data.responseText);
         body = body + ' ' + json.message;
@@ -671,7 +703,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} version
    */
   upgrade: function (version) {
-    var self = this;
     this.set('requestInProgress', true);
     App.ajax.send({
       name: 'admin.upgrade.start',
@@ -687,7 +718,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
     // Show a "preparing the upgrade..." dialog in case the api call returns too slow
     if (App.router.get('currentState.name') != 'stackUpgrade') {
-      self.showPreparingUpgradeIndicator();
+      this.showPreparingUpgradeIndicator();
     }
   },
 
@@ -738,7 +769,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeErrorCallback: function (data) {
     var header = Em.I18n.t('admin.stackVersions.upgrade.start.fail.title');
     var body = "";
-    if(data && data.responseText){
+    if (data && data.responseText) {
       try {
         var json = $.parseJSON(data.responseText);
         body = json.message;
@@ -1083,7 +1114,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   getSupportedUpgradeTypesSuccess: function (data) {
     var supportedUpgradeTypes = data.items[0] && data.items[0].CompatibleRepositoryVersions.upgrade_types;
     this.get('upgradeMethods').forEach(function (method) {
-      method.set('allowed', supportedUpgradeTypes && !!supportedUpgradeTypes.contains(method.get('type')));
+      method.set('allowed', Boolean(supportedUpgradeTypes && supportedUpgradeTypes.contains(method.get('type'))));
     });
   },
 
@@ -1096,49 +1127,50 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param params {object}
    */
   runPreUpgradeCheckOnlySuccess: function (data, opt, params) {
-    var self = this;
-    var message = '';
-    var messageClass = 'GREEN';
-    var allowedToStart = true;
-    var messageIconClass = 'icon-ok';
-    var bypassedFailures = false;
-
-    if (data.items.someProperty('UpgradeChecks.status', 'WARNING')) {
-      message = message + data.items.filterProperty('UpgradeChecks.status', 'WARNING').length + ' Warning ';
-      messageClass = 'ORANGE';
-      allowedToStart = true;
-      messageIconClass = 'icon-warning-sign';
-    }
-    if (data.items.someProperty('UpgradeChecks.status', 'BYPASS')) {
-      message = data.items.filterProperty('UpgradeChecks.status', 'BYPASS').length + ' Error ' + message;
-      messageClass = 'RED';
-      allowedToStart = true;
-      messageIconClass = 'icon-remove';
-      bypassedFailures = true;
-    }
-    if (data.items.someProperty('UpgradeChecks.status', 'FAIL')) {
-      message = data.items.filterProperty('UpgradeChecks.status', 'FAIL').length + ' Required ' + message;
-      messageClass = 'RED';
-      allowedToStart = false;
-      messageIconClass = 'icon-remove';
-    }
-
-    if (!message) {
-      message = Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed');
-    }
-    var method = self.get('upgradeMethods').findProperty('type', params.type);
-    method.setProperties({
-      precheckResultsMessage: message,
-      precheckResultsMessageClass: messageClass,
+    var properties = {
       precheckResultsTitle: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title'),
-      isPrecheckFailed: allowedToStart === false,
-      precheckResultsMessageIconClass: messageIconClass,
       precheckResultsData: data,
       isCheckComplete: true,
-      bypassedFailures: bypassedFailures,
-      action: 'openMessage'
-    });
+      action: 'openMessage',
+      precheckResultsMessage: '',
+      recheckResultsMessageClass: 'GREEN',
+      isPrecheckFailed: false,
+      precheckResultsMessageIconClass: 'icon-ok',
+      bypassedFailures: false
+    };
+
+    Object.keys(this.get('preCheckMessages')).forEach(function(status) {
+      if (data.items.someProperty('UpgradeChecks.status', status)) {
+        properties = this.formatPreCheckMessage(status, data, properties);
+      }
+    }, this);
+
+    if (!properties.precheckResultsMessage) {
+      properties.precheckResultsMessage = Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed');
+    }
+    this.get('upgradeMethods').findProperty('type', params.type).setProperties(properties);
     this.updateSelectedMethod(false);
+    this.addPrecheckMessageTooltip();
+  },
+
+  /**
+   * @method formatPreCheckMessage
+   * @param {string} type
+   * @param {object} data
+   * @param {object} defaults
+   * @returns {object}
+   */
+  formatPreCheckMessage: function(type, data, defaults) {
+    var length = data.items.filterProperty('UpgradeChecks.status', type).length;
+    var properties = this.get('preCheckMessages')[type] || {};
+    var message = Em.I18n.t(properties.template).format(length, defaults.precheckResultsMessage);
+    defaults = $.extend(defaults, properties);
+    delete defaults.template;
+    defaults.precheckResultsMessage = message;
+    return defaults;
+  },
+
+  addPrecheckMessageTooltip: function() {
     Em.run.later(this, function () {
       // add tooltip for the type with preCheck errors
       App.tooltip($(".thumbnail.check-failed"), {
@@ -1167,16 +1199,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * Not in upgrade wizard: de-select the method with pre-check errors
    * @param isInUpgradeWizard {boolean}
    */
-  updateSelectedMethod: function(isInUpgradeWizard) {
-    var self = this;
+  updateSelectedMethod: function (isInUpgradeWizard) {
     if (isInUpgradeWizard) {
-      this.get('upgradeMethods').forEach(function(method){
-        if (method.get('type') == self.get('upgradeType')) {
-          method.set('selected', true);
-        } else {
-          method.set('selected', false);
-        }
-      });
+      this.get('upgradeMethods').forEach(function (method) {
+        method.set('selected', method.get('type') === this.get('upgradeType'));
+      }, this);
     } else {
       var ruMethod = this.get('upgradeMethods').findProperty('type', 'ROLLING');
       var euMethod = this.get('upgradeMethods').findProperty('type', 'NON_ROLLING');
@@ -1460,7 +1487,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @method installStackVersionSuccess
    */
   installRepoVersionSuccess: function (data, opt, params) {
-    if(data && data.statusText == "timeout") {
+    if (data && data.statusText === "timeout") {
       App.showAlertPopup(Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title'), Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.timeout'));
       return false;
     }
@@ -1485,13 +1512,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   installRepoVersionError: function (data) {
     var header = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.title');
     var body = "";
-    if(data && data.responseText){
+    if (data && data.responseText) {
       try {
         var json = $.parseJSON(data.responseText);
         body = json.message;
       } catch (err) {}
     }
-    if(data && data.statusText == "timeout") {
+    if (data && data.statusText === "timeout") {
       body = Em.I18n.t('admin.stackVersions.upgrade.installPackage.fail.timeout');
     }
     App.showAlertPopup(header, body);
@@ -1807,7 +1834,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
-   * load version for services to display on Choose Servoces page
+   * load version for services to display on Choose Services page
    * should load from VersionDefinition endpoint
    */
   loadServiceVersionFromVersionDefinitions: function () {
@@ -1815,7 +1842,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       name: 'cluster.load_current_repo_stack_services',
       sender: this,
       data: {
-        clusterName: App.clusterName
+        clusterName: App.get('clusterName')
       },
       success: 'loadServiceVersionFromVersionDefinitionsSuccessCallback',
       error: 'loadServiceVersionFromVersionDefinitionsErrorCallback'
@@ -1823,6 +1850,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   serviceVersionsMap: {},
+
+  /**
+   * @param {object|null} jsonData
+   */
   loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
     var rv = jsonData.items[0].repository_versions[0].RepositoryVersions;
     var map = this.get('serviceVersionsMap');
@@ -1833,7 +1864,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     }
   },
 
-  loadServiceVersionFromVersionDefinitionsErrorCallback: function (request, ajaxOptions, error) {
-  },
+  loadServiceVersionFromVersionDefinitionsErrorCallback: function (request, ajaxOptions, error) {}
 
 });
