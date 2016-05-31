@@ -112,7 +112,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # Check status and based on that decide on [re]starting.
 
       # Start LLAP before Hive Server Interactive start.
-      # TODO, why does LLAP have to be started before Hive Server Interactive???
       status = self._llap_start(env)
       if not status:
         raise Fail("Skipping START of Hive Server Interactive since LLAP app couldn't be STARTED.")
@@ -129,10 +128,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       if params.security_enabled:
         self.do_kinit()
 
-      # TODO, why must Hive Server Interactive be stopped before LLAP???
-
       # Stop Hive Interactive Server first
-      # TODO : Upgrade check comes here.
       hive_service_interactive('hiveserver2', action='stop')
 
       self._llap_stop(env)
@@ -141,7 +137,8 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       import status_params
       env.set_params(status_params)
 
-      # TODO : LLAP app status check
+      # We are not doing 'llap' status check done here as part of status check for 'HSI', as 'llap' status
+      # check is a heavy weight operation.
 
       pid_file = format("{hive_pid_dir}/{hive_interactive_pid}")
       # Recursively check all existing gmetad pid files
@@ -200,11 +197,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       Logger.info("Starting LLAP")
       LLAP_APP_NAME = 'llap0'
 
-      # TODO, start only if not already running.
-      # TODO : Currently hardcoded the params. Need to read the suggested values from hive2/hive-site.xml.
-      # TODO, ensure that script works as hive from cmd when not cd'ed in /home/hive
-      # Needs permission to write to hive home dir.
-
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
@@ -219,10 +211,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       # Append args.
       cmd+= format(" --args \" {llap_app_java_opts}\"")
-      # TODO: Remove adding "-XX:MaxDirectMemorySize" when Driver starts appending itself.
-      if params.hive_llap_io_mem_size > params.llap_heap_size:
-        max_dir_mem_size = long(params.hive_llap_io_mem_size) + 256
-        cmd = cmd[0:len(cmd)-1] + format(" -XX:MaxDirectMemorySize={max_dir_mem_size}m\"")
 
       run_file_path = None
       try:
@@ -250,23 +238,17 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         Logger.info(format("Run file path: {run_file_path}"))
         if os.path.isfile(run_file_path):
           Execute(run_file_path, user=params.hive_user)
-
-          # TODO : Sleep below is not a good idea. We need to check the status of LLAP app to figure out it got
-          # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
-          Logger.info("Sleeping for 30 secs")
-          time.sleep(30)
           Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
 
-          # TODO: Uncomment this when 'llapstatus' commands returns correct output.
-          '''
+          # We need to check the status of LLAP app to figure out it got
+          # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
           status = self.check_llap_app_status(LLAP_APP_NAME, params.num_retries_for_checking_llap_status)
           if status:
             Logger.info("LLAP app '{0}' deployed successfully.".format(LLAP_APP_NAME))
             return True
           else:
+            Logger.error("LLAP app '{0}' deployment unsuccessful.".format(LLAP_APP_NAME))
             return False
-          '''
-          return True
         else:
           raise Fail(format("Did not find run file {run_file_path}"))
       except:
@@ -336,7 +318,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         num_retries = 2
       if num_retries > 20:
         num_retries = 20
-
       @retry(times=num_retries, sleep_time=15, err_class=Fail)
       def do_retries():
         live_instances = 0
@@ -344,7 +325,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
         percent_desired_instances_to_be_up = 80 # Used in 'RUNNING_PARTIAL' state.
         llap_app_info = self._get_llap_app_status_info(llap_app_name)
-
         if llap_app_info is None or 'state' not in llap_app_info:
           Logger.error("Malformed JSON data received for LLAP app. Exiting ....")
           return False
@@ -372,14 +352,14 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           if live_instances > 0:
             percentInstancesUp = float(live_instances) / desired_instances * 100
           if percentInstancesUp >= percent_desired_instances_to_be_up:
-            Logger.info("Slider app '{0}' in '{1}' state. Live Instances : '{2}'  >= {3}% of Desired Instances : " \
-                        "'{4}'".format(llap_app_name, llap_app_info['state'],
+            Logger.info("LLAP app '{0}' in '{1}' state. Live Instances : '{2}'  >= {3}% of Desired Instances : " \
+                        "'{4}'.".format(llap_app_name, llap_app_info['state'],
                                        llap_app_info['liveInstances'],
                                        percent_desired_instances_to_be_up,
                                        llap_app_info['desiredInstances']))
             return True
           else:
-            Logger.info("Slider app '{0}' in '{1}' state. Live Instances : '{2}'. Desired Instances : " \
+            Logger.info("LLAP app '{0}' in '{1}' state. Live Instances : '{2}'. Desired Instances : " \
                         "'{3}' after {4} secs.".format(llap_app_name, llap_app_info['state'],
                                                        llap_app_info['liveInstances'],
                                                        llap_app_info['desiredInstances'],
@@ -387,26 +367,26 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
             raise Fail("App state is RUNNING_PARTIAL. Live Instances : '{0}', Desired Instance : '{1}'".format(llap_app_info['liveInstances'],
                                                                                                            llap_app_info['desiredInstances']))
         elif llap_app_info['state'].upper() in ['APP_NOT_FOUND', 'LAUNCHING']:
-          status_str = format("Slider app '{0}' current state is {1}.".format(llap_app_name, llap_app_info['state']))
+          status_str = format("LLAP app '{0}' current state is {1}.".format(llap_app_name, llap_app_info['state']))
           Logger.info(status_str)
           raise Fail(status_str)
         else:  # Covers state "COMPLETE" and any unknown that we get.
           Logger.info(
-            "Slider app '{0}' current state is '{1}'. Expected : 'RUNNING'".format(llap_app_name, llap_app_info['state']))
+            "LLAP app '{0}' current state is '{1}'. Expected : 'RUNNING'.".format(llap_app_name, llap_app_info['state']))
           return False
 
       try:
         status = do_retries()
         return status
       except Exception, e:
-        Logger.info("App '{0}' did not come up after a wait of {1} seconds".format(llap_app_name,
+        Logger.info("LLAP app '{0}' did not come up after a wait of {1} seconds.".format(llap_app_name,
                                                                                           time.time() - curr_time))
         return False
-      
+
     def get_log_folder(self):
       import params
       return params.hive_log_dir
-    
+
     def get_user(self):
       import params
       return params.hive_user
