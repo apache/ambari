@@ -150,7 +150,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();
     // Return eviction time smaller than time diff for first 3 entries
     // Third entry will result in eviction
-    expect(conf.getInt(eq(METRICS_SEND_INTERVAL), anyInt())).andReturn(90).anyTimes();
+    expect(conf.getInt(eq(METRICS_SEND_INTERVAL), anyInt())).andReturn(10).anyTimes();
 
     conf.setListDelimiter(eq(','));
     expectLastCall().anyTimes();
@@ -179,6 +179,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(metric.value()).andReturn(3.0).once();
     expect(metric.value()).andReturn(4.0).once();
     expect(metric.value()).andReturn(5.0).once();
+    expect(metric.value()).andReturn(6.0).once();
 
     MetricsRecord record = createNiceMock(MetricsRecord.class);
     expect(record.name()).andReturn("testName").anyTimes();
@@ -195,7 +196,7 @@ public class HadoopTimelineMetricsSinkTest {
     final Long now = System.currentTimeMillis();
     // TODO: Current implementation of cache needs > 1 elements to evict any
     expect(record.timestamp()).andReturn(now).times(2);
-    expect(record.timestamp()).andReturn(now + 100l).once();
+    expect(record.timestamp()).andReturn(now + 100l).times(2);
     expect(record.timestamp()).andReturn(now + 200l).once();
     expect(record.timestamp()).andReturn(now + 300l).once();
 
@@ -226,6 +227,8 @@ public class HadoopTimelineMetricsSinkTest {
     sink.putMetrics(record);
     // time = t3
     sink.putMetrics(record);
+    // time = t4
+    sink.putMetrics(record);
 
     verify(conf, sink, record, metric);
 
@@ -239,7 +242,7 @@ public class HadoopTimelineMetricsSinkTest {
     Assert.assertEquals(now, timestamps.next());
     Assert.assertEquals(new Long(now + 100l), timestamps.next());
     Iterator<Double> values = timelineMetric1.getMetricValues().values().iterator();
-    Assert.assertEquals(new Double(2.0), values.next());
+    Assert.assertEquals(new Double(1.0), values.next());
     Assert.assertEquals(new Double(3.0), values.next());
     // t3, t4
     TimelineMetric timelineMetric2 = metricsIterator.next().getMetrics().get(0);
@@ -248,8 +251,8 @@ public class HadoopTimelineMetricsSinkTest {
     Assert.assertEquals(new Long(now + 200l), timestamps.next());
     Assert.assertEquals(new Long(now + 300l), timestamps.next());
     values = timelineMetric2.getMetricValues().values().iterator();
-    Assert.assertEquals(new Double(4.0), values.next());
     Assert.assertEquals(new Double(5.0), values.next());
+    Assert.assertEquals(new Double(6.0), values.next());
   }
 
   @Test
