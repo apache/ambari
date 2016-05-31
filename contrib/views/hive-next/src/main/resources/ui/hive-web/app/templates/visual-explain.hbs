@@ -1,0 +1,93 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="visual-explain" class="index-overlay">
+  {{#panel-widget headingTranslation="titles.query.visualExplain"}}
+
+  {{#if noquery}}
+    <div class="alert alert-danger" role="alert"><strong>{{tb-helper 'hive.errors.no.query'}}</strong></div>
+  {{/if}}
+
+  {{#unless showSpinner}}
+     <div class="spinner"></div>
+  {{/unless}}
+
+  <div id="no-visual-explain-graph"></div>
+
+  <div id="visual-explain-graph">
+    {{#each edge in view.edges}}
+      <div class="edge">
+        <div class="edge-path" {{bind-attr style="edge.style"}}>
+          {{edge.type}}
+        </div>
+       {{!--  <div class="edge-arrow" ></div> --}}
+      </div>
+    {{/each}}
+
+    <div class="nodes">
+      {{#each group in view.verticesGroups}}
+        <div class="node-container">
+          {{#if group.contents}}
+            {{#each node in group.contents}}
+              <div {{bind-attr class="node.isTableNode:table-node node.isOutputNode:output-node :node" title="node.id"}}>
+                {{#if node.isTableNode}}
+                  <p><strong>{{t 'labels.table'}}</strong></p>
+                  {{node.label}}
+                {{else}}
+                  {{#if node.isOutputNode}}
+                    {{node.label}}
+                  {{else}}
+                    <div class="node-heading">
+                      <strong>{{node.label}}</strong>
+                    </div>
+                    <div class="node-content">
+                      {{#each section in node.contents}}
+                        <p>
+                          {{#popover-widget classNames="fa fa-info-circle" titleTranslation="popover.visualExplain.statistics" }}
+                            {{section.statistics}}
+                          {{/popover-widget}}
+                          <strong>
+                            {{section.index}}. {{section.title}}
+                          </strong>
+                          {{section.value}}
+                        </p>
+
+                        {{#each field in section.fields}}
+                          {{#if field.value}}
+                            <p>{{field.label}} {{field.value}}</p>
+                          {{/if}}
+                        {{/each}}
+                      {{/each}}
+                    </div>
+                    {{progress-widget value=node.progress}}
+                  {{/if}}
+                {{/if}}
+              </div>
+            {{/each}}
+          {{else}}
+            <div class="node" {{bind-attr title="group.label"}}>
+              {{group.label}}
+            </div>
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
+  {{/panel-widget}}
+</div>

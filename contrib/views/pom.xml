@@ -45,6 +45,7 @@
     <module>storm</module>
     <module>zeppelin</module>
     <module>hueambarimigration</module>
+    <module>hive-next</module>
   </modules>
   <build>
     <pluginManagement>

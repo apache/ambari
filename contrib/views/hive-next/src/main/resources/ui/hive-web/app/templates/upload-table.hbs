@@ -1,0 +1,168 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div style="width : 90%">
+  <div class="main-content">
+    {{#if showErrors}}
+      {{render 'messages'}}
+    {{/if}}
+  </div>
+</div>
+
+<div id="uploadProgressModal" class="modal fade" role="dialog" data-backdrop="static">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Upload Progress</h4>
+      </div>
+      <div class="modal-body">
+        <p>
+        <ul>
+          {{uploadProgressInfo}}
+        </ul>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="pull-right">
+  <i class="query-menu-tab fa queries-icon fa-envelope" {{ action 'toggleErrors'}}></i>
+</div>
+<div {{bind-attr class="showErrors:hide-data:show-data"}}>
+  <div>
+    <table class="table data-upload-form pull-left">
+      <tr>
+        <td class="data-upload-form-label"><label>Upload from Local</label></td>
+        <td  class="data-upload-form-field"> {{radio-button value='local' checked=uploadSource}}</td>
+
+        <td class="data-upload-form-label"><label>Upload from HDFS</label></td>
+        <td  class="data-upload-form-field">{{radio-button value='hdfs' checked=uploadSource}}</td>
+      </tr>
+      <tr>
+        <td class="data-upload-form-label"><label>File type</label></td>
+        <td class="data-upload-form-field">
+          {{typeahead-widget
+          content=inputFileTypes
+          optionValuePath="id"
+          optionLabelPath="name"
+          selection=inputFileType
+          placeholder="Select File Type"}}
+        </td>
+
+
+        {{#if isLocalUpload }}
+          <td class="data-upload-form-label"><label>Select from local</label></td>
+          <td class="data-upload-form-field">{{file-upload  filesUploaded="filesUploaded"}}</td>
+        {{else}}
+          <td class="data-upload-form-label"><label>HDFS Path</label></td>
+          <td class="data-upload-form-field" id="hdfs-param">{{input type="text" class="form-control" placeholder="Enter full HDFS path" value=hdfsPath }}
+            <button style="margin-left: 5px; padding-top: 6px;padding-bottom: 6px; padding-right: 10px; padding-left: 10px;" type="button" {{action "previewFromHdfs"}}
+            {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.showPreview"}}</button></td>
+        {{/if}}
+      </tr>
+      {{#if rows}}
+        <tr>
+          <td class="data-upload-form-label"><label>Database</label></td>
+          <td class="data-upload-form-field">
+            {{typeahead-widget
+            content=controllers.databases.databases
+            optionValuePath="id"
+            optionLabelPath="name"
+            selection=selectedDatabase
+            placeholder="Select a Database"
+            }}
+          </td>
+
+          <td class="data-upload-form-label"><label>Table name</label></td>
+          <td
+            class="data-upload-form-field">{{input type="text" class="form-control" placeholder="Table Name" value=tableName }}</td>
+        </tr>
+        <tr>
+          <td class="data-upload-form-label"><label>Stored as</label></td>
+          <td class="data-upload-form-field">
+            {{typeahead-widget
+            content=fileTypes
+            selection=selectedFileType}}
+          </td>
+          {{#if inputFileTypeCSV }}
+            <td class="data-upload-form-label"><label>Is first row header ?</label></td>
+            <td class="data-upload-form-field">
+              {{input id="isFirstRowHeader" type="checkbox" checked=isFirstRowHeader }}
+            </td>
+
+          {{/if}}
+        </tr>
+      {{/if}}
+    </table>
+
+    <table class="pull-right">
+      <tr>
+        <td>
+          {{#if rows}}
+            <button type="button" {{action "uploadTable"}}
+              {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.uploadTable"}}</button>
+          {{/if}}
+        </td>
+      </tr>
+    </table>
+
+  </div>
+
+  <div>
+    {{#if rows}}
+      <div id="upload-table">
+        <table class="table table-expandable no-border">
+          <thead>
+          <tr>
+            {{#each column in header}}
+              <th>{{input placeholder="column-name" type="text" class="form-control" value=column.name}}</th>
+            {{/each}}
+          </tr>
+          <tr id="upload-controls">
+            {{#each column in header}}
+              <th>
+                <table>
+                  <tbody>
+                  <tr>
+                    <td>{{typeahead-widget content=dataTypes selection=column.type }}</td>
+                    {{input-header column=column dataTypes=dataTypes}}
+                  </tr>
+                  </tbody>
+                </table>
+              </th>
+            {{/each}}
+          </tr>
+          </thead>
+          <tbody>
+          {{#each row in rows}}
+            <tr>
+              {{#each item in row.row}}
+                <td>{{item}}</td>
+              {{/each}}
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+      </div>
+    {{/if}}
+  </div>
+</div>

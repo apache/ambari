@@ -1,0 +1,50 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+{{#if tableSearchResults.tables}}
+  <div class="databases">
+    <a class="fa fa-database"> {{selectedDatabase.name}}</a>
+
+    <div class="tables">
+      {{#each table in tableSearchResults.tables}}
+        <a class="fa fa-th"> {{table.name}}</a>
+
+        <div class="columns">
+          {{#each column in table.columns}}
+            <div>
+              <strong>{{column.name}}</strong>
+              <span class="pull-right">{{column.type}}</span>
+            </div>
+          {{/each}}
+
+          {{#if table.hasNext}}
+            <strong><a {{action "showMoreResultColumns" table}}>{{t "buttons.loadMore"}}</a></strong>
+          {{/if}}
+        </div>
+      {{/each}}
+
+      {{#if tableSearchResults.hasNext}}
+        <strong><a {{action "showMoreResultTables" database}}>{{t "buttons.loadMore"}}</a></strong>
+      {{/if}}
+    </div>
+  </div>
+{{else}}
+  <div class="alert alert-warning database-explorer-alert" role="alert">
+    {{t "labels.noTablesMatch"}} <strong>&quot;{{tablesSearchTerm}}&quot;</strong>
+  </div>
+{{/if}}
