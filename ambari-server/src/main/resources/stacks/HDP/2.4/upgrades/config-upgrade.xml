@@ -173,6 +173,16 @@
           </definition>
         </changes>
       </component>
+
+      <component name="NODEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle">
+            <type>yarn-site</type>
+            <set key="yarn.nodemanager.aux-services" value="mapreduce_shuffle,spark_shuffle,spark2_shuffle"/>
+            <!-- Ideally we need to append spark2_shuffle to the existing value -->
+          </definition>
+        </changes>
+      </component>
     </service>
 
     <service name="KAFKA">
