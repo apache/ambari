@@ -16,4 +16,3 @@
 -- limitations under the License.
 --
 DROP DATABASE :dbname;
-DROP DATABASE ambarirca;

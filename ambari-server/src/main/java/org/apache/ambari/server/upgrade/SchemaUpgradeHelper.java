@@ -32,6 +32,8 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -49,6 +51,7 @@ public class SchemaUpgradeHelper {
   private PersistService persistService;
   private DBAccessor dbAccessor;
   private Configuration configuration;
+  private static final String[] rcaTableNames = {"workflow", "job", "task", "taskAttempt", "hdfsEvent", "mapreduceEvent", "clusterEvent"};
 
   @Inject
   public SchemaUpgradeHelper(Set<UpgradeCatalog> allUpgradeCatalogs,
@@ -265,6 +268,48 @@ public class SchemaUpgradeHelper {
     }
   }
 
+  public void cleanUpRCATables() {
+    LOG.info("Cleaning up RCA tables.");
+    for (String tableName : rcaTableNames) {
+      try {
+        if (dbAccessor.tableExists(tableName)) {
+          dbAccessor.truncateTable(tableName);
+        }
+      } catch (Exception e) {
+        LOG.warn("Error cleaning rca table " + tableName, e);
+      }
+    }
+    try {
+      cleanUpTablesFromRCADatabase();
+    } catch (Exception e) {
+      LOG.warn("Error cleaning rca tables from ambarirca db", e);
+    }
+  }
+
+  private void cleanUpTablesFromRCADatabase() throws ClassNotFoundException, SQLException {
+    String driverName = configuration.getRcaDatabaseDriver();
+    String connectionURL = configuration.getRcaDatabaseUrl();
+    if (connectionURL.contains(Configuration.HOSTNAME_MACRO)) {
+      connectionURL = connectionURL.replace(Configuration.HOSTNAME_MACRO, "localhost");
+    }
+    String username = configuration.getRcaDatabaseUser();
+    String password = configuration.getRcaDatabasePassword();
+
+    Class.forName(driverName);
+    try (Connection connection = DriverManager.getConnection(connectionURL, username, password)) {
+      connection.setAutoCommit(true);
+      for (String tableName : rcaTableNames) {
+        String query = "DELETE FROM " + tableName;
+        try (Statement statement = connection.createStatement()) {
+          statement.execute(query);
+        } catch (Exception e) {
+          LOG.warn("Error while executing query: " + query, e);
+        }
+      }
+    }
+  }
+
+
   /**
    * Upgrade Ambari DB schema to the target version passed in as the only
    * argument.
@@ -312,6 +357,8 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.resetUIState();
 
       LOG.info("Upgrade successful.");
+
+      schemaUpgradeHelper.cleanUpRCATables();
 
       schemaUpgradeHelper.stopPersistenceService();
     } catch (Throwable e) {
