@@ -426,6 +426,14 @@ class ActionQueue(threading.Thread):
                                                 command['hostLevelParams']['clientsToUpdateConfigs'])
         roleResult['configurationTags'] = configHandler.read_actual_component(
             command['role'])
+    elif status == self.FAILED_STATUS:
+      if self.controller.recovery_manager.enabled() and command.has_key('roleCommand') \
+              and self.controller.recovery_manager.configured_for_recovery(command['role']):
+        if command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
+          self.controller.recovery_manager.update_current_status(command['role'], self.controller.recovery_manager.INSTALL_FAILED)
+          logger.info("After EXECUTION_COMMAND (INSTALL), with taskId=" + str(command['taskId']) +
+                      ", current state of " + command['role'] + " to " +
+                      self.controller.recovery_manager.get_current_status(command['role']))
 
     self.commandStatuses.put_command_status(command, roleResult)
 
@@ -511,7 +519,9 @@ class ActionQueue(threading.Thread):
         component_status = LiveStatus.DEAD_STATUS
         if self.controller.recovery_manager.enabled() \
           and self.controller.recovery_manager.configured_for_recovery(component):
-          self.controller.recovery_manager.update_current_status(component, component_status)
+          if (self.controller.recovery_manager.get_current_status(component) != self.controller.recovery_manager.INSTALL_FAILED):
+            self.controller.recovery_manager.update_current_status(component, component_status)
+
       request_execution_cmd = self.controller.recovery_manager.requires_recovery(component) and \
                                 not self.controller.recovery_manager.command_exists(component, ActionQueue.EXECUTION_COMMAND)
 
