@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManager;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -55,6 +56,7 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -279,6 +281,21 @@ public class VersionDefinitionResourceProviderTest {
         found1 = true;
       } else if ("HDP-2.2.0".equals(res.getPropertyValue("VersionDefinition/id"))) {
         Assert.assertEquals(Boolean.TRUE, res.getPropertyValue("VersionDefinition/stack_default"));
+
+        VersionDefinitionXml vdf = ami.getVersionDefinition("HDP-2.2.0");
+
+        Assert.assertNotNull(vdf);
+        Assert.assertEquals(2, vdf.repositoryInfo.getOses().size());
+
+        String family1 = vdf.repositoryInfo.getOses().get(0).getFamily();
+        String family2 = vdf.repositoryInfo.getOses().get(1).getFamily();
+
+        Assert.assertFalse(family1.equals(family2));
+        Assert.assertTrue(Sets.newHashSet("suse11", "redhat6").contains(family1));
+        Assert.assertTrue(Sets.newHashSet("suse11", "redhat6").contains(family2));
+
+
+
         found2 = true;
       }
     }
