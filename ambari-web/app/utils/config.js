@@ -507,8 +507,8 @@ App.config = Em.Object.create({
    * @returns {*}
    */
   kerberosIdentitiesDescription: function(description) {
-    return (description.endsWith('.') ? description : description + '.') +
-      Em.I18n.t('services.service.config.secure.additionalDescription');
+    return description ? (description.endsWith('.') ? description : description + '.') +
+        Em.I18n.t('services.service.config.secure.additionalDescription') : Em.I18n.t('services.service.config.secure.additionalDescription');
   },
 
   /**
