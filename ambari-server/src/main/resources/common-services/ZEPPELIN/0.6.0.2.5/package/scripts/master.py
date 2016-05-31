@@ -36,7 +36,8 @@ class Master(Script):
     import params
     env.set_params(params)
 
-    Execute('chmod +x ' + params.service_packagedir + "/scripts/setup_snapshot.sh")
+    Execute('chmod -R 755 ' + params.service_packagedir)
+    Execute('chmod a+x ' + os.path.join(params.service_packagedir, "scripts/setup_snapshot.sh"))
 
     # Create user and group if they don't exist
     self.create_linux_user(params.zeppelin_user, params.zeppelin_group)
