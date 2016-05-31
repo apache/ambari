@@ -148,7 +148,7 @@ public class UpgradeCatalog240Test {
   }
 
   @Test
-  public void testExecuteDDLUpdates() throws SQLException, AmbariException {
+  public void testExecuteDDLUpdates() throws SQLException, AmbariException, ClassNotFoundException {
     Capture<DBAccessor.DBColumnInfo> capturedSortOrderColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedPermissionIDColumnInfo = newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedScColumnInfo = newCapture();
@@ -275,6 +275,7 @@ public class UpgradeCatalog240Test {
     expect(connection.createStatement()).andReturn(statement);
 
     // Test viewInstance update
+    expect(dbAccessor.getColumnClass(UpgradeCatalog240.VIEWINSTANCE_TABLE, UpgradeCatalog240.CLUSTER_HANDLE_COLUMN)).andReturn(String.class);
     dbAccessor.addColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), anyObject(DBAccessor.DBColumnInfo.class));
 
     expect(dbAccessor.getConnection()).andReturn(connection);
