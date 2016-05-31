@@ -80,6 +80,7 @@ proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 java_home = config['hostLevelParams']['java_home']
 falcon_local_dir = config['configurations']['falcon-env']['falcon_local_dir']
+falcon_store_uri = config['configurations']['falcon-env']['falcon_store_uri']
 falcon_log_dir = config['configurations']['falcon-env']['falcon_log_dir']
 
 # falcon-startup.properties
