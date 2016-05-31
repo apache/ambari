@@ -434,6 +434,9 @@ App.InstallerController = App.WizardController.extend({
     Em.assert('Stack model is not populated', stacks.get('length'));
     App.db.setStacks(stacks.slice());
     this.set('content.stacks', stacks);
+    App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
+      App.serviceMapper.deleteRecord(os);
+    });
     var repos = App.Repository.find() || [];
     App.db.setRepos(repos.slice());
   },
