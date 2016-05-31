@@ -1113,7 +1113,7 @@ a.alert-link, a.alert-link:hover, a.alert-link:visited{
 .alert-container {
   position: fixed;
   top: 50px;
-  z-index: 1000;
+  z-index: 1100;
   width: 300px;
   margin-left: -150px;
   left: 50%;

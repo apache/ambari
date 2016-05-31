@@ -389,7 +389,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   onLoadOverrides: function () {
-    debugger;
     this.get('stepConfigs').forEach(function(stepConfig) {
       stepConfig.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', stepConfig.get('serviceName')));
 
