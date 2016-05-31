@@ -32,12 +32,22 @@ class SparkServiceCheck(Script):
     if params.security_enabled:
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
+      if (params.has_livyserver):
+        livy_kinit_cmd = format("{kinit_path_local} -kt {livy_kerberos_keytab} {livy_kerberos_principal}; ")
+        Execute(livy_kinit_cmd, user=params.livy_user)
 
     Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{spark_history_server_host}:{spark_history_ui_port} | grep 200"),
-      tries = 10,
+      tries=5,
       try_sleep=3,
       logoutput=True
     )
+    if params.has_livyserver and params.livy_livyserver_host != "localhost" and params.livy_livyserver_host != "0.0.0.0":
+      Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{livy_livyserver_host}:{livy_livyserver_port}/sessions | grep 200"),
+              tries=5,
+              try_sleep=3,
+              logoutput=True,
+              user=params.livy_user
+              )
 
 if __name__ == "__main__":
   SparkServiceCheck().execute()
