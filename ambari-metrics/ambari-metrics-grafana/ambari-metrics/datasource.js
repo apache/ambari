@@ -97,6 +97,8 @@ define([
             var alias = target.alias ? target.alias : target.metric;
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "yarnqueues") {
               alias = alias + ' on ' + target.qmetric; }
+            if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "kafka-topics") {
+            alias = alias + ' on ' + target.kbTopic; }
             return function (res) {
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
@@ -222,6 +224,18 @@ define([
               allHostMetricsData(target)
             );
           };
+          
+          var getKafkaAppIdData = function(target) {
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform
+              + metricAggregator + '&appId=kafka_broker&startTime=' + from +
+              '&endTime=' + to + precision).then(
+              getMetricsData(target)
+            );
+          };
 
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
@@ -287,6 +301,22 @@ define([
                   _.map(table, function(tableMetric) { hbMetric.push(target.metric.replace('*', tableMetric)); });
                   target.hbMetric = _.flatten(hbMetric).join(',');
                   return getHbaseAppIdData(target);
+                }));
+              });
+            }
+            // Templatized Dashboard for per-topic metrics in Kafka.
+            if (templateSrv.variables[0].query === "kafka-topics") {
+              var allTopics = templateSrv.variables.filter(function(variable) { return variable.query === "kafka-topics";});
+              var selectedTopics = (_.isEmpty(allTopics)) ? "" : allTopics[0].options.filter(function(topic)
+              { return topic.selected; }).map(function(topicName) { return topicName.value; });
+              selectedTopics = templateSrv._values.Topics.lastIndexOf('}') > 0 ? templateSrv._values.Topics.slice(1,-1) :
+                templateSrv._values.Topics;
+              var selectedTopic = selectedTopics.split(',');  
+              _.forEach(selectedTopic, function(processTopic) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.kbTopic = processTopic;
+                  target.kbMetric = target.metric.replace('*', target.kbTopic);
+                  return getKafkaAppIdData(target);
                 }));
               });
             }
@@ -402,6 +432,27 @@ define([
                 return _.map(tables, function (tables) {
                   return {
                     text: tables
+                  };
+                });
+              });
+          }
+          // Templated Variable for Kafka Topics.
+          // It will search the cluster and populate the topics.
+          if(interpolated === "kafka-topics") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var kafkaTopics = allMetrics["kafka_broker"];
+                var extractTopics = kafkaTopics.filter(/./.test.bind(new RegExp("\\b.log.Log.\\b", 'g')));
+                var topics =_.map(extractTopics, function (topic) {
+                  var topicPrefix = "topic.";
+                  return topic.substring(topic.lastIndexOf(topicPrefix)+topicPrefix.length, topic.length);
+                });
+                topics = _.sortBy(_.uniq(topics));
+                var i = topics.indexOf("ambari_kafka_service_check");
+                if(i != -1) { topics.splice(i, 1);}
+                return _.map(topics, function (topics) {
+                  return {
+                    text: topics
                   };
                 });
               });
