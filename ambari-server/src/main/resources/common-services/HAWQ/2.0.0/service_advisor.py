@@ -142,6 +142,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       hawqHosts = hawqMasterHosts.union(hawqSegmentHosts)
       numSegments = len(hawqSegmentHosts)
       minHawqHostsMemory = min([host['Hosts']['total_mem'] for host in hosts['items'] if host['Hosts']['host_name'] in hawqHosts])
+      minHawqHostsCoreCount = min([host['Hosts']['cpu_count'] for host in hosts['items'] if host['Hosts']['host_name'] in hawqHosts])
 
     if "hawq-site" in services["configurations"]:
       hawq_site = services["configurations"]["hawq-site"]["properties"]
@@ -166,6 +167,9 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         else:
           buckets = factor * numSegments
         putHawqSiteProperty('default_hash_table_bucket_number', buckets)
+
+      if "hawq_rm_nvcore_limit_perseg" in hawq_site:
+        putHawqSiteProperty('hawq_rm_nvcore_limit_perseg', minHawqHostsCoreCount)
 
       # update YARN RM urls with the values from yarn-site if YARN is installed
       if "YARN" in servicesList and "yarn-site" in services["configurations"]:

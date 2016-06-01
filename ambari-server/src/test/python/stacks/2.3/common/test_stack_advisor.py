@@ -1994,25 +1994,29 @@ class TestHDP23StackAdvisor(TestCase):
         {
           "Hosts": {
             "host_name": "c6401.ambari.apache.org",
-            "total_mem": 12345678
+            "cpu_count" : 2,
+            "total_mem": 33554432
           }
         },
         {
           "Hosts": {
             "host_name": "c6402.ambari.apache.org",
-            "total_mem": 12345678
+            "cpu_count" : 4,
+            "total_mem": 33554433
           }
         },
         {
           "Hosts": {
             "host_name": "c6403.ambari.apache.org",
-            "total_mem": 12345678
+            "cpu_count" : 1,
+            "total_mem": 33554434
           }
         },
         {
           "Hosts": {
             "host_name": "c6404.ambari.apache.org",
-            "total_mem": 12345678
+            "cpu_count" : 2,
+            "total_mem": 33554435
           }
         }
       ]

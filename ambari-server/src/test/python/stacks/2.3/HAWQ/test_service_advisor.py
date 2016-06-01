@@ -141,7 +141,8 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       },
       "hawq-site": {
         "properties": {
-          "hawq_rm_memory_limit_perseg": "67108864KB"
+          "hawq_rm_memory_limit_perseg": "67108864KB",
+          "hawq_rm_nvcore_limit_perseg": "16"
         }
       }
     }
@@ -184,29 +185,51 @@ class TestHAWQ200ServiceAdvisor(TestCase):
         {
           "Hosts": {
             "host_name": "c6401.ambari.apache.org",
+            "cpu_count" : 2,
             "total_mem": 33554432
           }
         },
         {
           "Hosts": {
             "host_name": "c6402.ambari.apache.org",
+            "cpu_count" : 4,
             "total_mem": 33554433
           }
         },
         {
           "Hosts": {
             "host_name": "c6403.ambari.apache.org",
+            "cpu_count" : 1,
             "total_mem": 33554434
           }
         },
         {
           "Hosts": {
             "host_name": "c6404.ambari.apache.org",
+            "cpu_count" : 2,
             "total_mem": 33554435
           }
         }
       ]
     }
+
+    ## Test if hawq_rm_nvcore_limit_perseg is set correctly
+
+    # Case 1:
+    # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 4, c6404.ambari.apache.org - 2
+    # Non HAWQ Hosts Core Count: c6401.ambari.apache.org - 1
+    # Recommend hawq_rm_nvcore_limit_perseg as 2
+    self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
+    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "2")
+
+    # Case 2:
+    # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 2, c6404.ambari.apache.org - 2
+    # Non HAWQ Hosts Core Count: c6401.ambari.apache.org - 1
+    # Recommend hawq_rm_nvcore_limit_perseg as 2
+    hosts["items"][1]["Hosts"]["cpu_count"] = 2
+    self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
+    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "2")
+
 
     ## Test if vm.overcommit_memory is set correctly
 
@@ -221,6 +244,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
 
     ## Test if hawq_rm_memory_limit_perseg is set correctly
+
     # Case 1: Minimum host memory is ~ 2 GB (2048MB), recommended val must be .75% of 2GB as vm.overcommit_memory = 1 and in MB
     hosts["items"][0]["Hosts"]["total_mem"] = 2097152
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
