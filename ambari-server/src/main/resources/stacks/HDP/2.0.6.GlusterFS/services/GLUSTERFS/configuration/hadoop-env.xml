@@ -24,50 +24,50 @@
     <name>hadoop_pid_dir_prefix</name>
     <value>/var/run/hadoop</value>
     <description>Hadoop PID Dir Prefix</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop_heapsize</name>
     <value>1024</value>
     <description>Hadoop maximum Java heap size</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>glusterfs_user</name>
     <value>root</value>
     <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>
     <description>Hadoop Log Dir Prefix</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>namenode_heapsize</name>
     <value>1024</value>
     <description>NameNode Java heap size</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>namenode_host</name>
     <value/>
     <description>NameNode Host.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>snamenode_host</name>
     <value/>
     <description>Secondary NameNode.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>proxyuser_group</name>
@@ -77,16 +77,16 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hdfs_user</name>
     <display-name>HDFS User</display-name>
     <value>hdfs</value>
     <description>User to run HDFS as</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <!--
   <property>
@@ -215,7 +215,7 @@ export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-a
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

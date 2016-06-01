@@ -22,44 +22,44 @@
   <property>
     <name>xasecure.audit.destination.db</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.db.jdbc.url</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.db.user</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.db.password</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.db.jdbc.driver</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.credential.provider.file</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.db.batch.filespool.dir</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.solr.urls</name>
@@ -74,8 +74,8 @@
         <name>ranger.audit.solr.urls</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.solr.zookeepers</name>
@@ -87,7 +87,7 @@
         <name>ranger.audit.solr.zookeepers</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

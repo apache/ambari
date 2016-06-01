@@ -21,8 +21,8 @@
   <property>
     <name>ams_user</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>metrics_collector_log_dir</name>
@@ -32,8 +32,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>metrics_collector_pid_dir</name>
@@ -43,8 +43,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>metrics_monitor_pid_dir</name>
@@ -54,8 +54,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>metrics_monitor_log_dir</name>
@@ -65,8 +65,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>content</name>
@@ -75,7 +75,7 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

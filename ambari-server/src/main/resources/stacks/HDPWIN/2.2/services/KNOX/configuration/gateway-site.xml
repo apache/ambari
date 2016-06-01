@@ -24,14 +24,14 @@ limitations under the License.
     <name>java.security.krb5.conf</name>
     <value>c:\hadoop\knox\conf\krb5.conf</value>
     <description>Absolute path to krb5.conf file</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>java.security.auth.login.config</name>
     <value>c:\hadoop\knox\conf\krb5JAASLogin.conf</value>
     <description>Absolute path to JASS login config file</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

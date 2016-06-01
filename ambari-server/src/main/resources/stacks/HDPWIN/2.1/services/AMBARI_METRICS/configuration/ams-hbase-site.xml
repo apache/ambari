@@ -31,8 +31,8 @@
       default HBase writes into /tmp. Change this configuration else all data
       will be lost on machine restart.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.tmp.dir</name>
@@ -43,7 +43,7 @@
       than '/tmp' (The '/tmp' directory is often cleared on
       machine restart).
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

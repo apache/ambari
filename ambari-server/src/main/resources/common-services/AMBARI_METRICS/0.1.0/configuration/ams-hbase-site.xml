@@ -39,8 +39,8 @@
         <name>timeline.metrics.service.operation.mode</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.tmp.dir</name>
@@ -54,16 +54,16 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.local.dir</name>
     <value>${hbase.tmp.dir}/local</value>
     <description>Directory on the local filesystem to be used as a local storage
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.cluster.distributed</name>
@@ -79,8 +79,8 @@
         <name>timeline.metrics.service.operation.mode</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.wait.on.regionservers.mintostart</name>
@@ -88,8 +88,8 @@
     <description>
       Ensure that HBase Master waits for # many region server to start.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.quorum</name>
@@ -102,43 +102,43 @@
       this is the list of servers which we will start/stop ZooKeeper on.
     </description>
     <final>true</final>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.info.bindAddress</name>
     <value>0.0.0.0</value>
     <description>The bind address for the HBase Master web UI</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.info.port</name>
     <value>61310</value>
     <description>The port for the HBase Master web UI.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.info.port</name>
     <value>61330</value>
     <description>The port for the HBase RegionServer web UI.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.port</name>
     <value>61300</value>
     <description>The port for the HBase Master web UI.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.port</name>
     <value>61320</value>
     <description>The port for the HBase RegionServer web UI.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>
@@ -148,8 +148,8 @@
       HStoreFiles in a region.
       0 to disable automated major compactions.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.query.spoolThresholdBytes</name>
@@ -158,8 +158,8 @@
       Threshold size in bytes after which results from parallelly executed
       query results are spooled to disk. Default is 20 mb.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.property.dataDir</name>
@@ -168,8 +168,8 @@
       Property from ZooKeeper's config zoo.cfg.
       The directory where the snapshot is stored.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.client.scanner.caching</name>
@@ -178,23 +178,23 @@
       Number of rows that will be fetched when calling next on a scanner
       if it is not served from (local, client) memory.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.normalizer.enabled</name>
     <value>true</value>
     <description>If set to true, Master will try to keep region size
     within each table approximately the same.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.normalizer.period</name>
     <value>600000</value>
     <description>Period in ms at which the region normalizer runs in the Master.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.normalizer.class</name>
@@ -204,8 +204,8 @@
       See the class comment for more on how it works
       http://hbase.apache.org/devapidocs/org/apache/hadoop/hbase/master/normalizer/SimpleRegionNormalizer.html
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hfile.block.cache.size</name>
@@ -214,8 +214,8 @@
       Percentage of maximum heap (-Xmx setting) to allocate to block cache
       used by a StoreFile. Default of 0.4 means allocate 40%.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
@@ -224,8 +224,8 @@
       Maximum size of all memstores in a region server before new
       updates are blocked and flushes are forced. Defaults to 40% of heap
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
@@ -237,8 +237,8 @@
       the minimum possible flushing to occur when updates are blocked due to
       memstore limiting.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.groupby.maxCacheSize</name>
@@ -246,8 +246,8 @@
     <description>
       Size in bytes of pages cached during GROUP BY spilling. Default is 100Mb.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
@@ -256,8 +256,8 @@
       Maximum HFile size. If the sum of the sizes of a region&#x2019;s HFiles has grown
       to exceed this value, the region is split in two. Default is 10Gb.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
@@ -267,8 +267,8 @@
       times hbase.hregion.memstore.flush.size bytes. Useful preventing runaway
       memstore during spikes in update traffic.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.hstore.flusher.count</name>
@@ -278,8 +278,8 @@
       will be queued. With more threads, the flushes will be executed in parallel,
       increasing the load on HDFS, and potentially causing more compactions.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.query.timeoutMs</name>
@@ -288,8 +288,8 @@
       Number of milliseconds after which a query will timeout on the client.
       Default is 5 min.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.query.keepAliveMs</name>
@@ -298,8 +298,8 @@
       Number of milliseconds after which a query will keep the connection to HBase alive.
       Default is 5 min.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.client.scanner.timeout.period</name>
@@ -307,8 +307,8 @@
     <description>
       Client scanner lease period in milliseconds.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.rpc.timeout</name>
@@ -319,8 +319,8 @@
       but will eventually throw a TimeoutException.
     </description>
     <display-name>HBase RPC Timeout</display-name>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.thread.compaction.large</name>
@@ -328,8 +328,8 @@
     <description>
       Configuration key for the large compaction threads.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.thread.compaction.small</name>
@@ -337,8 +337,8 @@
     <description>
       Configuration key for the small compaction threads.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
@@ -353,20 +353,20 @@
         <name>hbase.cluster.distributed</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.peerport</name>
     <value>61288</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.leaderport</name>
     <value>61388</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.hstore.blockingStoreFiles</name>
@@ -377,8 +377,8 @@
       this region until a compaction is completed, or until
       hbase.hstore.blockingWaitTime has been exceeded.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.memstore.flush.size</name>
@@ -388,22 +388,22 @@
       number of bytes. Value is checked by a thread that runs every
       hbase.server.thread.wakefrequency.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.snapshot.enabled</name>
     <value>false</value>
     <description>Enable/Disable HBase snapshots.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.replication</name>
     <value>false</value>
     <description>Enable/Disable HBase replication.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.property.tickTime</name>
@@ -413,15 +413,15 @@
       ZooKeeper, as measured in milliseconds. This property setting only
       affects the ZK server started by AMS in embedded mode. Unit = ms.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>zookeeper.session.timeout</name>
     <value>120000</value>
     <description>ZooKeeper session timeout in milliseconds.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>zookeeper.session.timeout.localHBaseCluster</name>
@@ -430,8 +430,8 @@
       ZooKeeper session timeout in milliseconds for
       pseudo distributed mode.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.sequence.saltBuckets</name>
@@ -439,8 +439,8 @@
     <description>
       Controls the number of pre-allocated regions for SYSTEM.SEQUENCE table.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.query.maxGlobalMemoryPercentage</name>
@@ -449,8 +449,8 @@
       Percentage of total heap memory (i.e. Runtime.getRuntime().maxMemory())
       that all threads may use.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.spool.directory</name>
@@ -459,8 +459,8 @@
       Set directory for Phoenix spill files. If possible set this to a
       different mount point from the one for hbase.rootdir in embedded mode.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.mutate.batchSize</name>
@@ -470,8 +470,8 @@
       during the execution of an UPSERT SELECT or DELETE statement.
       This affects performance of group by aggregators if they are being used.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.query.rowKeyOrderSaltedTable</name>
@@ -482,8 +482,8 @@
       When this property is turned on, the salted table would behave just like
       a normal table and would return items in rowkey order for scans
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.coprocessor.maxServerCacheTimeToLiveMs</name>
@@ -496,8 +496,8 @@
       &#x201C;Earlier hash cache(s) might have expired on servers&#x201D; might also be a
       sign that this number should be increased.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>phoenix.coprocessor.maxMetaDataCacheSize</name>
@@ -507,8 +507,8 @@
       evictions will begin to occur based on least recent access time.
       Default is 20Mb
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>dfs.client.read.shortcircuit</name>
@@ -527,13 +527,13 @@
         <name>hbase.rootdir</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>zookeeper.znode.parent</name>
     <value>/ams-hbase-unsecure</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

@@ -31,8 +31,8 @@
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>manage_krb5_conf</name>
@@ -45,8 +45,8 @@
       <overridable>false</overridable>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>conf_dir</name>
@@ -57,8 +57,8 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>content</name>
@@ -107,7 +107,7 @@
       <type>content</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>
