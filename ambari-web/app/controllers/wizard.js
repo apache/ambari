@@ -60,7 +60,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   connectOutlet:function(name) {
     if (name !== 'loading') this.set('isStepDisabled.isLocked', false);
     App.router.setProperties({
-      transitionInProgress: false,
+      backBtnClickInProgress: false,
       nextBtnClickInProgress: false
     });
     return this._super.apply(this,arguments);

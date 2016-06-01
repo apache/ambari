@@ -213,6 +213,16 @@
       <a href="javascript:void(null)" {{action "retryRepoUrls" target="view"}}>{{t installer.step1.retryRepoUrls}}</a>
     </div>
   {{/if}}
-  <a class="btn pull-left installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
-  <button class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</button>
+  <button type="button" class="btn pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+    &larr; {{t common.back}}
+    {{#if App.router.backBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+  </button>
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}}>
+    {{#if App.router.nextBtnClickInProgress}}
+      {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+    {{t common.next}} &rarr;
+  </button>
 </div>

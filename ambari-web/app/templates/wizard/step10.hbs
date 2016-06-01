@@ -49,6 +49,11 @@
     </ul>
   </div>
   <div class="btn-area">
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action complete}}>{{t common.complete}} &rarr;</a>
+    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action complete}}>
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+      {{/if}}
+      {{t common.complete}} &rarr;
+    </button>
   </div>
 </div>

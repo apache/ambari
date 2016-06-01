@@ -27,13 +27,13 @@ describe('App.WizardStep0Controller', function () {
     wizardStep0Controller = App.WizardStep0Controller.create({content: {cluster: {}}});
     sinon.stub(App.clusterStatus, 'set', Em.K);
     sinon.stub(App.router, 'send', Em.K);
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
   });
 
   afterEach(function() {
     App.clusterStatus.set.restore();
     App.router.send.restore();
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
   });
 
   describe('#invalidClusterName', function () {

@@ -69,7 +69,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * Define state for submit button
    * @type {bool}
    */
-  submitDisabled: Em.computed.alias('validationInProgress'),
+  submitDisabled: Em.computed.or('validationInProgress', 'App.router.btnClickInProgress'),
 
   /**
    * timer for validation request
@@ -144,7 +144,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   anyGeneralIssues: Em.computed.or('anyGeneralErrors', 'anyGeneralWarnings'),
 
   anyHostErrors: function () {
-    return this.get('hosts').some(function(h) { return h.errorMessages ? (h.errorMessages.length > 0) : false;});
+    return this.get('hosts').some(function(h) { return h.errorMessages ? h.errorMessages.length > 0 : false;});
   }.property('hosts.@each.errorMessages'),
 
   /**
@@ -153,7 +153,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   anyErrors: Em.computed.or('anyGeneralErrors', 'anyHostErrors'),
 
   anyHostWarnings: function () {
-    return this.get('hosts').some(function(h) { return h.warnMessages ? (h.warnMessages.length > 0) : false;});
+    return this.get('hosts').some(function(h) { return h.warnMessages ? h.warnMessages.length > 0 : false;});
   }.property('hosts.@each.warnMessages'),
 
   /**
@@ -631,7 +631,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     }).
       then(function () {
         self.set('validationInProgress', false);
-        if (!self.get('submitDisabled') && successCallback) {
+        if (App.get('router.btnClickInProgress') && successCallback) {
           successCallback();
         }
       }
@@ -645,7 +645,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    */
   updateValidationsSuccessCallback: function (data) {
     var self = this;
-    //data = JSON.parse(data); // temporary fix
 
     var clientComponents = App.get('components.clients');
 
@@ -658,7 +657,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       host.checkboxes.setEach('hasWarnMessage', false);
       host.checkboxes.setEach('hasErrorMessage', false);
     });
-    var anyErrors = false;
     var anyGeneralClientErrors = false; // any error/warning for any client component (under "CLIENT" alias)
 
     var validationData = validationUtils.filterNotInstalledComponents(data);
@@ -673,16 +671,14 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
           if (checkbox.component === item['component-name'] || isClientComponent) {
             checkboxWithIssue = checkbox;
             return true;
-          } else {
-            return false;
           }
+          return false;
         });
       });
       if (host) {
         Em.set(host, 'anyMessage', true);
 
         if (item.level === 'ERROR') {
-          anyErrors = true;
           host.errorMessages.pushObject(item.message);
           Em.set(checkboxWithIssue, 'hasErrorMessage', true);
         }
@@ -711,7 +707,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
           }
 
           if (item.level === 'ERROR') {
-            anyErrors = true;
             self.get('generalErrorMessages').push(item.message + details);
           }
           else
@@ -721,10 +716,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         }
       }
     });
-
-    // use this.set('submitDisabled', anyErrors); is validation results should block next button
-    // It's because showValidationIssuesAcceptBox allow use accept validation issues and continue
-    // this.set('submitDisabled', false);
   },
 
   /**

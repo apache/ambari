@@ -91,7 +91,7 @@ module.exports = App.WizardRoute.extend({
 
   },
 
-  step1: Em.Route.extend({
+  step1: App.StepRoute.extend({
     route: '/step1',
     connectOutlets: function (router) {
       var controller = router.get('addServiceController');
@@ -112,7 +112,7 @@ module.exports = App.WizardRoute.extend({
         });
       });
     },
-    next: function (router) {
+    nextTransition: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep4Controller = router.get('wizardStep4Controller');
       addServiceController.saveServices(wizardStep4Controller);
@@ -127,7 +127,7 @@ module.exports = App.WizardRoute.extend({
     }
   }),
 
-  step2: Em.Route.extend({
+  step2: App.StepRoute.extend({
     route: '/step2',
     connectOutlets: function (router) {
       var controller = router.get('addServiceController');
@@ -142,7 +142,11 @@ module.exports = App.WizardRoute.extend({
       });
 
     },
-    back: Em.Router.transitionTo('step1'),
+
+    backTransition: function (router) {
+      router.transitionTo('step1');
+    },
+
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep5Controller = router.get('wizardStep5Controller');
@@ -155,7 +159,7 @@ module.exports = App.WizardRoute.extend({
     }
   }),
 
-  step3: Em.Route.extend({
+  step3: App.StepRoute.extend({
     route: '/step3',
     connectOutlets: function (router) {
       var controller = router.get('addServiceController');
@@ -168,14 +172,15 @@ module.exports = App.WizardRoute.extend({
         });
       });
     },
-    back: function (router) {
+
+    backTransition: function (router) {
       var controller = router.get('addServiceController');
       if (!controller.get('content.skipMasterStep')) {
-        router.transitionTo('step2');
-      } else {
-        router.transitionTo('step1');
+        return router.transitionTo('step2');
       }
+      return router.transitionTo('step1');
     },
+
     next: function (router) {
       App.set('router.nextBtnClickInProgress', true);
       var addServiceController = router.get('addServiceController');
@@ -194,14 +199,13 @@ module.exports = App.WizardRoute.extend({
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
           router.get('wizardStep7Controller').clearAllRecommendations();
           addServiceController.setDBProperty('serviceConfigGroups', undefined);
-          App.set('router.nextBtnClickInProgress', false);
           router.transitionTo('step4');
         });
       });
     }
   }),
 
-  step4: Em.Route.extend({
+  step4: App.StepRoute.extend({
     route: '/step4',
     connectOutlets: function (router) {
       var controller = router.get('addServiceController');
@@ -221,15 +225,16 @@ module.exports = App.WizardRoute.extend({
         });
       });
     },
-    back: function (router) {
+
+    backTransition: function (router) {
       var controller = router.get('addServiceController');
       if (!controller.get('content.skipSlavesStep')) {
-        router.transitionTo('step3');
-      } else if (!controller.get('content.skipMasterStep')) {
-        router.transitionTo('step2');
-      } else {
-        router.transitionTo('step1');
+        return router.transitionTo('step3');
       }
+      if (!controller.get('content.skipMasterStep')) {
+        return router.transitionTo('step2');
+      }
+      return router.transitionTo('step1');
     },
     next: function (router) {
       var addServiceController = router.get('addServiceController');
@@ -261,21 +266,15 @@ module.exports = App.WizardRoute.extend({
     back: function (router) {
       var controller = router.get('addServiceController');
       if (!controller.get('content.skipConfigStep')) {
-        router.transitionTo('step4');
+        return router.transitionTo('step4');
       }
-      else {
-        if (!controller.get('content.skipSlavesStep')) {
-          router.transitionTo('step3');
-        }
-        else {
-          if (!controller.get('content.skipMasterStep')) {
-            router.transitionTo('step2');
-          }
-          else {
-            router.transitionTo('step1');
-          }
-        }
+      if (!controller.get('content.skipSlavesStep')) {
+        return router.transitionTo('step3');
       }
+      if (!controller.get('content.skipMasterStep')) {
+        return router.transitionTo('step2');
+      }
+      return router.transitionTo('step1');
     },
     next: function (router) {
       if (App.Cluster.find().objectAt(0).get('isKerberosEnabled')) {
@@ -289,7 +288,7 @@ module.exports = App.WizardRoute.extend({
     }
   }),
 
-  step6: Em.Route.extend({
+  step6: App.StepRoute.extend({
     route: '/step6',
     connectOutlets: function (router, context) {
       var controller = router.get('addServiceController');
@@ -305,28 +304,21 @@ module.exports = App.WizardRoute.extend({
         router.get('kerberosWizardStep5Controller').getCSVData(true);
       }
     },
-    back: function (router) {
+    backTransition: function (router) {
       var controller = router.get('addServiceController');
       if (App.get('isKerberosEnabled')) {
-        router.transitionTo('step5');
-        return;
+        return router.transitionTo('step5');
       }
       if (!controller.get('content.skipConfigStep')) {
-        router.transitionTo('step4');
+        return router.transitionTo('step4');
       }
-      else {
-        if (!controller.get('content.skipSlavesStep')) {
-          router.transitionTo('step3');
-        }
-        else {
-          if (!controller.get('content.skipMasterStep')) {
-            router.transitionTo('step2');
-          }
-          else {
-            router.transitionTo('step1');
-          }
-        }
+      if (!controller.get('content.skipSlavesStep')) {
+        return router.transitionTo('step3');
       }
+      if (!controller.get('content.skipMasterStep')) {
+        return router.transitionTo('step2');
+      }
+      return router.transitionTo('step1');
     },
     next: function (router) {
       var addServiceController = router.get('addServiceController');

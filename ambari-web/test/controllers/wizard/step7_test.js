@@ -111,11 +111,11 @@ describe('App.InstallerStep7Controller', function () {
   beforeEach(function () {
     sinon.stub(App.config, 'setPreDefinedServiceConfigs', Em.K);
     installerStep7Controller = getController();
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
   });
 
   afterEach(function() {
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
     App.config.setPreDefinedServiceConfigs.restore();
     installerStep7Controller.destroy();
   });

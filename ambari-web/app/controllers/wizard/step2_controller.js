@@ -167,7 +167,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * is Submit button disabled
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError'),
+  isSubmitDisabled: Em.computed.or('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError', 'App.router.btnClickInProgress'),
 
   installedHostNames: function () {
     var installedHostsName = [];

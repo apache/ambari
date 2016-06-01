@@ -65,6 +65,11 @@ App.WizardStep0Controller = Em.Controller.extend({
   },
 
   /**
+   * @type {boolean}
+   */
+  isSubmitDisabled: Em.computed.or('invalidClusterName', 'App.router.btnClickInProgress'),
+
+  /**
    * Onclick handler for <code>next</code> button
    * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
    * @method submit
