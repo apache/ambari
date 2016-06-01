@@ -38,11 +38,6 @@ App.WizardWatcherController = Em.Controller.extend(App.UserPref, {
   controllerName: null,
 
   /**
-   * @type {Function}
-   */
-  mock: Em.K,
-
-  /**
    * define whether Wizard is running
    * @type {boolean}
    */

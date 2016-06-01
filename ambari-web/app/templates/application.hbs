@@ -107,12 +107,14 @@
             <div class="span11">
               {{#if isExistingClusterDataLoaded}}
                 <p class="span4 offset4">
+                {{#if App.router.wizardWatcherController.isNonWizardUser}}
+                  <span class="brand cluster-name">
+                    <span class="label upgrade-in-progress">
+                      <i class="icon-cog"></i>&nbsp;{{App.router.wizardWatcherController.wizardDisplayName}}
+                    </span>
+                  </span>
+                {{/if}}
                 <a class="brand cluster-name" href="#">
-                  {{#if App.router.wizardWatcherController.isNonWizardUser}}
-                      <span class="label upgrade-in-progress" {{action "mock" target="App.router.wizardWatcherController"}}>
-                        <i class="icon-cog"></i>&nbsp;{{App.router.wizardWatcherController.wizardDisplayName}}
-                      </span>
-                  {{/if}}
                   {{#if App.upgradeInProgress}}
                     {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
                       <span
