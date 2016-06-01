@@ -195,6 +195,9 @@ logsearch_custom_properties.pop("logsearch.collection.audit.logs.replication.fac
 logsearch_custom_properties.pop("logsearch.collection.service.logs.numshards", None)
 logsearch_custom_properties.pop("logsearch.service.logs.split.interval.mins", None)
 logsearch_custom_properties.pop("logsearch.collection.audit.logs.numshards", None)
+logsearch_custom_properties.pop("logsearch.external.auth.enabled", None)
+logsearch_custom_properties.pop("logsearch.external.auth.host_url", None)
+logsearch_custom_properties.pop("logsearch.external.auth.login_url", None)
 
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
@@ -237,13 +240,29 @@ mapred_log_dir_prefix = default('/configurations/mapred-env/mapred_log_dir_prefi
 zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zookeeper')
 
 #####################################
-# Logsearch admin configs
+# Logsearch auth configs
 #####################################
 
 logsearch_admin_credential_file = 'logsearch-admin.json'
 logsearch_admin_username = default('/configurations/logsearch-admin-json/logsearch_admin_username', "admin")
 logsearch_admin_password = default('/configurations/logsearch-admin-json/logsearch_admin_password', "")
 logsearch_admin_content = config['configurations']['logsearch-admin-json']['content']
+
+# for now just pick first collector
+if 'ambari_server_host' in config['clusterHostInfo']:
+  ambari_server_host = config['clusterHostInfo']['ambari_server_host'][0]
+  ambari_server_port = config['clusterHostInfo']['ambari_server_port'][0]
+  ambari_server_use_ssl = config['clusterHostInfo']['ambari_server_use_ssl'][0] == 'true'
+  
+  ambari_server_protocol = 'https' if ambari_server_use_ssl else 'http'
+
+  ambari_server_auth_host_url = format('{ambari_server_protocol}://{ambari_server_host}:{ambari_server_port}')
+else:
+  ambari_server_auth_host_url = ''
+
+logsearch_auth_external_enabled = str(config['configurations']['logsearch-properties']['logsearch.external.auth.enabled']).lower()
+logsearch_auth_external_host_url = format(config['configurations']['logsearch-properties']['logsearch.external.auth.host_url'])
+logsearch_auth_external_login_url = config['configurations']['logsearch-properties']['logsearch.external.auth.login_url']
 
 #####################################
 # Logfeeder configs

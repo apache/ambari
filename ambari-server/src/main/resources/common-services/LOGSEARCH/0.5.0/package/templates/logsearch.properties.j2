@@ -47,7 +47,16 @@ logsearch.solr.jmx.port={{logsearch_solr_jmx_port}}
 logsearch.logfeeder.include.default.level={{logsearch_logfeeder_include_default_level}}
 
 # logsearch-admin.json
+logsearch.auth.file.enable=true
 logsearch.login.credentials.file={{logsearch_admin_credential_file}}
+
+logsearch.auth.ldap.enable=false
+logsearch.auth.simple.enable=false
+
+logsearch.auth.external_auth.enable={{logsearch_auth_external_enabled}}
+logsearch.auth.external_auth.host_url={{logsearch_auth_external_host_url}}
+logsearch.auth.external_auth.login_url={{logsearch_auth_external_login_url}}
+logsearch.roles.allowed=AMBARI.ADMINISTRATOR
 
 # Custom properties
 {% for key, value in logsearch_custom_properties.items() %}
