@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -190,9 +192,35 @@ public class LatestRepoCallable implements Callable<Void> {
    * @throws Exception
    */
   private VersionDefinitionXml mergeDefinitions(StackId stackId, String version, Map<String, String> osMap) throws Exception {
+
+    Set<String> oses = new HashSet<>();
+    for (RepositoryInfo ri : stack.getRepositories()) {
+      if (null != os_family.find(ri.getOsType())) {
+        oses.add(os_family.find(ri.getOsType()));
+      }
+    }
+
     VersionDefinitionXml.Merger merger = new VersionDefinitionXml.Merger();
 
     for (Entry<String, String> versionEntry : osMap.entrySet()) {
+
+      String osFamily = os_family.find(versionEntry.getKey());
+
+      // !!! check for aliases.  Moving this to OsFamily could result in incorrect behavior
+      if (null == osFamily) {
+        String alias = os_family.getAliases().get(versionEntry.getKey());
+        if (null != alias) {
+          osFamily = os_family.find(alias);
+        }
+      }
+
+      // !!! if the family is not known OR not part of the stack, skip
+      if (null == osFamily || !oses.contains(osFamily)) {
+        LOG.info("Stack {} cannot resolve OS {} to the supported ones: {}. Family: {}",
+            stackId, versionEntry.getKey(), StringUtils.join(oses, ','), osFamily);
+        continue;
+      }
+
       String uriString = versionEntry.getValue();
 
       if ('.' == uriString.charAt(0)) {
