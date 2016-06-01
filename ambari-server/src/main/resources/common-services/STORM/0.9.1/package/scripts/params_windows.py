@@ -18,8 +18,8 @@ limitations under the License.
 
 """
 
-from resource_management import *
 from status_params import *
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.default import default
 
 # server configurations
