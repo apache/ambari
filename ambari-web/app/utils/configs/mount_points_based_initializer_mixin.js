@@ -61,7 +61,7 @@ App.MountPointsBasedInitializerMixin = Em.Mixin.create({
     if (!setOfHostNames.length) {
       return configProperty;
     }
-    var allMountPoints = this._getAllMountPoints(setOfHostNames, hostsInfo);
+    var allMountPoints = this._getAllMountPoints(setOfHostNames, hostsInfo, localDB);
 
     var mPoint = allMountPoints[0].mountpoint;
     if (mPoint === "/") {
@@ -107,7 +107,7 @@ App.MountPointsBasedInitializerMixin = Em.Mixin.create({
       return configProperty;
     }
 
-    var allMountPoints = this._getAllMountPoints(setOfHostNames, hostsInfo);
+    var allMountPoints = this._getAllMountPoints(setOfHostNames, hostsInfo, localDB);
     var mPoint = '';
 
     allMountPoints.forEach(function (eachDrive) {
@@ -207,26 +207,36 @@ App.MountPointsBasedInitializerMixin = Em.Mixin.create({
    *   <li>Should not be docker-dir</li>
    *   <li>Should not be boot-dir</li>
    *   <li>Should not be dev-dir</li>
+   *   <li>Valid mount point started from /usr/hdp/ should be /usr/hdp/current
+   *       or /usr/hdp/<STACK_VERSION_NUMBER> e.g. /usr/hdp/2.5.0.0
+   *   </li>
    * </ul>
    *
    * @param {{mountpoint: string, available: number}} mPoint
-   * @returns {boolean} true - valid, false - invalid
+   * @returns {function} true - valid, false - invalid
    * @private
    */
-  _filterMountPoint: function (mPoint) {
-    var isAvailable = mPoint.available !== 0;
-    if (!isAvailable) {
-      return false;
-    }
+  _filterMountPoint: function (localDB) {
+    var stackVersionNumber = [Em.getWithDefault(localDB.selectedStack || {}, 'repository_version', null)].compact();
+    return function(mPoint) {
+      var isAvailable = mPoint.available !== 0;
+      if (!isAvailable) {
+        return false;
+      }
 
-    var notHome = !['/', '/home'].contains(mPoint.mountpoint);
-    var notDocker = !['/etc/resolv.conf', '/etc/hostname', '/etc/hosts'].contains(mPoint.mountpoint);
-    var notBoot = mPoint.mountpoint && !(mPoint.mountpoint.startsWith('/boot')
-                                        || mPoint.mountpoint.startsWith('/mnt')
-                                        || mPoint.mountpoint.startsWith('/tmp'));
-    var notDev = !(['devtmpfs', 'tmpfs', 'vboxsf', 'CDFS'].contains(mPoint.type));
+      var stackRoot = '/usr/hdp';
+      var notHome = !['/', '/home'].contains(mPoint.mountpoint);
+      var notDocker = !['/etc/resolv.conf', '/etc/hostname', '/etc/hosts'].contains(mPoint.mountpoint);
+      var notBoot = mPoint.mountpoint && !(mPoint.mountpoint.startsWith('/boot')
+                                           || mPoint.mountpoint.startsWith('/mnt')
+                                           || mPoint.mountpoint.startsWith('/tmp'));
+      var notDev = !(['devtmpfs', 'tmpfs', 'vboxsf', 'CDFS'].contains(mPoint.type));
+      var validStackRootMount = !(mPoint.mountpoint.startsWith(stackRoot) && !['current'].concat(stackVersionNumber).filter(function(i) {
+        return mPoint.mountpoint === stackRoot + '/' + i;
+      }).length);
 
-    return notHome && notDocker && notBoot && notDev;
+      return notHome && notDocker && notBoot && notDev && validStackRootMount;
+    };
   },
 
   /**
@@ -258,11 +268,13 @@ App.MountPointsBasedInitializerMixin = Em.Mixin.create({
    *
    * @param {string[]} setOfHostNames
    * @param {object} hostsInfo
+   * @param {topologyLocalDB} localDB
    * @returns {string[]}
    * @private
    */
-  _getAllMountPoints: function (setOfHostNames, hostsInfo) {
-    var allMountPoints = [];
+  _getAllMountPoints: function (setOfHostNames, hostsInfo, localDB) {
+    var allMountPoints = [],
+        mountPointFilter = this._filterMountPoint(localDB);
     for (var i = 0; i < setOfHostNames.length; i++) {
       var hostname = setOfHostNames[i];
       var mountPointsPerHost = hostsInfo[hostname].disk_info;
@@ -276,7 +288,7 @@ App.MountPointsBasedInitializerMixin = Em.Mixin.create({
         };
       }
 
-      mountPointsPerHost.filter(this._filterMountPoint).forEach(function (mPoint) {
+      mountPointsPerHost.filter(mountPointFilter).forEach(function (mPoint) {
         if( !allMountPoints.findProperty("mountpoint", mPoint.mountpoint)) {
           allMountPoints.push(mPoint);
         }

@@ -1217,7 +1217,157 @@ describe('App.ConfigInitializer', function () {
         expect(App.ConfigInitializer[name]).to.be.a.function;
       });
     });
-
   });
 
+  describe('#_filterMountPoint', function() {
+    var cases = [
+      {
+        mPoint: {
+          mountpoint: '/'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/home'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/etc/resolv.conf'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/etc/hostname'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/etc/hosts'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/boot'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/mnt'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/tmp'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/some-dir',
+          type: 'devtmpfs'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/some-dir',
+          type: 'tmpfs'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/some-dir',
+          type: 'vboxsf'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/some-dir',
+          type: 'CDFS'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/usr/hdp'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/usr/hdp/1'
+        },
+        localDB: {},
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/usr/hdp/current'
+        },
+        localDB: {},
+        e: true
+      },
+      {
+        mPoint: {
+          mountpoint: '/usr/hdp/2.5'
+        },
+        localDB: {
+          selectedStack: {
+            repository_version: '2.5'
+          }
+        },
+        e: true
+      },
+      {
+        mPoint: {
+          mountpoint: '/usr/hdp/2.5.0'
+        },
+        localDB: {
+          selectedStack: {
+            repository_version: '2.5'
+          }
+        },
+        e: false
+      },
+      {
+        mPoint: {
+          mountpoint: '/normal/directory'
+        },
+        localDB: {
+          selectedStack: {
+            repository_version: '2.5'
+          }
+        },
+        e: true
+      }
+    ].forEach(function(test) {
+      it('mount point "{0}" should be {1}'.format(test.mPoint.mountpoint, test.e ? 'valid' : 'invalid'), function() {
+        var fFn = App.ConfigInitializer._filterMountPoint(test.localDB);
+        expect(fFn(test.mPoint)).to.be.eql(test.e);
+      });
+    });
+  });
 });
