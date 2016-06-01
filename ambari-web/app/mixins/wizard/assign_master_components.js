@@ -1144,6 +1144,14 @@ App.AssignMasterComponents = Em.Mixin.create({
     }, true);
   },
 
+  _goNextStepIfValid: function () {
+    if (!this.get('submitDisabled')) {
+      App.router.send('next');
+    }else{
+      App.set('router.nextBtnClickInProgress', false);
+    }
+  },
+
   /**
    * Submit button click handler
    * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
@@ -1154,26 +1162,19 @@ App.AssignMasterComponents = Em.Mixin.create({
     if (this.get('submitDisabled')) {
       return;
     }
-    if (!this.get('submitButtonClicked') && !App.router.get('nextBtnClickInProgress')) {
+    if (!this.get('submitButtonClicked') && !App.get('router.nextBtnClickInProgress')) {
       this.set('submitButtonClicked', true);
       App.router.set('nextBtnClickInProgress', true);
 
-      var goNextStepIfValid = function () {
-        if (!self.get('submitDisabled')) {
-          App.router.send('next');
-        }else{
-          App.router.set('nextBtnClickInProgress', false);
-        }
-      };
-
       if (this.get('useServerValidation')) {
         self.recommendAndValidate(function () {
-          self.showValidationIssuesAcceptBox(goNextStepIfValid);
+          self.showValidationIssuesAcceptBox(self._goNextStepIfValid.bind(self));
         });
-      } else {
-        self.updateIsSubmitDisabled();
-        goNextStepIfValid();
-        self.set('submitButtonClicked', false);
+      }
+      else {
+        this.updateIsSubmitDisabled();
+        this._goNextStepIfValid();
+        this.set('submitButtonClicked', false);
       }
     }
   },

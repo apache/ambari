@@ -69,7 +69,7 @@ App.WizardStep1View = Em.View.extend({
    *
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'controller.content.isCheckInProgress'),
+  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress'),
 
   /**
    * Onclick handler for recheck repos urls. Used in Advanced Repository Options.

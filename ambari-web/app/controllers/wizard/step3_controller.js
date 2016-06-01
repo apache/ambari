@@ -113,7 +113,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @return {bool}
    */
   isBackDisabled: function () {
-    return (this.get('isRegistrationInProgress') || !this.get('isWarningsLoaded')) && !this.get('isBootstrapFailed');
+    return (this.get('isRegistrationInProgress') || !this.get('isWarningsLoaded')) && !this.get('isBootstrapFailed') || App.get('router.btnClickInProgress');
   }.property('isRegistrationInProgress', 'isWarningsLoaded', 'isBootstrapFailed'),
 
   /**
@@ -1660,33 +1660,31 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     }
   },
 
+  _submitProceed: function () {
+    this.set('confirmedHosts', this.get('bootHosts'));
+    App.get('router').send('next');
+  },
+
   /**
    * Submit-click handler
    * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
-   * @return {App.ModalPopup|null}
+   * @return {App.ModalPopup?}
    * @method submit
    */
   submit: function () {
     var self = this;
 
-    if(App.get('router.nextBtnClickInProgress')){
+    if(App.get('router.nextBtnClickInProgress')) {
       return;
     }
     if (this.get('isHostHaveWarnings')) {
       return App.showConfirmationPopup(
         function () {
-          self.set('confirmedHosts', self.get('bootHosts'));
-          App.set('router.nextBtnClickInProgress', true);
-          App.get('router').send('next');
+          self._submitProceed();
         },
         Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
     }
-    else {
-      this.set('confirmedHosts', this.get('bootHosts'));
-      App.set('router.nextBtnClickInProgress', true);
-      App.get('router').send('next');
-    }
-    return null;
+    this._submitProceed();
   },
 
   /**

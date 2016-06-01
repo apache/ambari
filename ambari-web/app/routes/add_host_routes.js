@@ -92,7 +92,7 @@ module.exports = App.WizardRoute.extend({
 
   },
 
-  step1: Em.Route.extend({
+  step1: App.StepRoute.extend({
     route: '/step1',
     connectOutlets: function (router) {
       var controller = router.get('addHostController');
@@ -106,7 +106,7 @@ module.exports = App.WizardRoute.extend({
       });
     },
 
-    next: function (router) {
+    nextTransition: function (router) {
       var controller = router.get('addHostController');
       controller.save('installOptions');
       //hosts was saved to content.hosts inside wizardStep2Controller
@@ -126,7 +126,7 @@ module.exports = App.WizardRoute.extend({
     }
   }),
 
-  step2: Em.Route.extend({
+  step2: App.StepRoute.extend({
     route: '/step2',
     connectOutlets: function (router) {
       var controller = router.get('addHostController');
@@ -138,13 +138,13 @@ module.exports = App.WizardRoute.extend({
         controller.connectOutlet('wizardStep3', controller.get('content'));
       });
     },
-    back: function (router) {
+    backTransition: function (router) {
       router.transitionTo('step1');
     },
     exit: function (router) {
       router.get('wizardStep3Controller').set('stopBootstrap', true);
     },
-    next: function (router, context) {
+    nextTransition: function (router, context) {
       var addHostController = router.get('addHostController');
       var wizardStep3Controller = router.get('wizardStep3Controller');
       var wizardStep6Controller = router.get('wizardStep6Controller');
@@ -170,7 +170,7 @@ module.exports = App.WizardRoute.extend({
     }
   }),
 
-  step3: Em.Route.extend({
+  step3: App.StepRoute.extend({
     route: '/step3',
     connectOutlets: function (router, context) {
       var controller = router.get('addHostController');
@@ -182,7 +182,9 @@ module.exports = App.WizardRoute.extend({
         controller.connectOutlet('wizardStep6', controller.get('content'));
       });
     },
-    back: Em.Router.transitionTo('step2'),
+    backTransition: function (router) {
+      router.transitionTo('step2');
+    },
     next: function (router) {
       App.set('router.nextBtnClickInProgress', true);
       var addHostController = router.get('addHostController');
@@ -205,7 +207,7 @@ module.exports = App.WizardRoute.extend({
     }
   }),
 
-  step4: Em.Route.extend({
+  step4: App.StepRoute.extend({
     route: '/step4',
     connectOutlets: function (router, context) {
       var controller = router.get('addHostController');
@@ -222,10 +224,10 @@ module.exports = App.WizardRoute.extend({
         });
       });
     },
-    back: function (router) {
+    backTransition: function (router) {
       router.transitionTo('step3');
     },
-    next: function (router) {
+    nextTransition: function (router) {
       var addHostController = router.get('addHostController');
       addHostController.saveServiceConfigGroups();
       router.transitionTo('step5');

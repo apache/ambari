@@ -141,9 +141,19 @@
   {{/if}}
   <div class="btn-area">
     {{#if view.isBackButtonVisible}}
-      <a class="btn pull-left installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
+      <button type="button" class="btn pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+        &larr; {{t common.back}}
+        {{#if App.router.backBtnClickInProgress}}
+          {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+        {{/if}}
+      </button>
     {{/if}}
-    <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>{{view.acceptButtonText}}</a>
+    <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+      {{/if}}
+      {{view.acceptButtonText}}
+    </a>
     {{#if view.isCancelButtonVisible}}
       <a class="btn pull-right mrm" {{action onCancel target="controller"}}>{{t common.cancel}}</a>
     {{/if}}

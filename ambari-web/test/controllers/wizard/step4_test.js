@@ -573,27 +573,6 @@ describe('App.WizardStep4Controller', function () {
     })
   });
 
-  describe('#submit for  Next click', function() {
-    var c;
-    beforeEach(function(){
-      c = App.WizardStep4Controller.create();
-      sinon.stub(App.router, 'send', Em.K);
-      App.router.nextBtnClickInProgress = false;
-    });
-    afterEach(function(){
-      App.router.nextBtnClickInProgress = false;
-      App.router.send.restore();
-    });
-    it('if Next button is clicked multiple times before the next step renders, it must not be processed',function(){
-      c.reopen({isSubmitDisabled:false});
-      c.submit();
-      expect(App.router.send.calledWith('next')).to.equal(true);
-
-      App.router.send.reset();
-      c.submit();
-      expect(App.router.send.calledWith('next')).to.equal(false);
-    });
-  });
   describe('#dependencies', function() {
     var tests = [
       {

@@ -45,7 +45,17 @@
       </table>
   </div>
    <div class="btn-area">
-      <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-      <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+      <button class="btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+        &larr; {{t common.back}}
+        {{#if App.router.backBtnClickInProgress}}
+          {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+        {{/if}}
+      </button>
+      <button class="btn btn-success pull-right" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action next}}>
+        {{#if App.router.nextBtnClickInProgress}}
+          {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+        {{/if}}
+        {{t common.next}} &rarr;
+      </button>
     </div>
 </div>

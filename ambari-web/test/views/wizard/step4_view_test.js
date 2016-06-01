@@ -16,27 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
-require('views/wizard/step4_view');
-
-var view;
-
 describe('App.WizardStep4View', function () {
 
-  beforeEach(function () {
-    view = App.WizardStep4View.create();
-  });
-
-  describe('#didInsertElement()', function () {
-    beforeEach(function () {
-      sinon.stub(App.get('router'), 'set', Em.K);
-    });
-    afterEach(function () {
-      App.get('router').set.restore();
-    });
-    it('router.transitionInProgress is set to false', function () {
-      view.didInsertElement();
-      expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.false;
-    });
-  });
 });

@@ -42,14 +42,14 @@ describe('App.WizardStep3Controller', function () {
     sinon.stub(App.db, 'getDisplayLength', Em.K);
     sinon.stub(App.db, 'getFilterConditions').returns([]);
     sinon.stub(App.router, 'send', Em.K);
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
   });
 
   afterEach(function () {
     App.db.getDisplayLength.restore();
     App.router.send.restore();
     App.db.getFilterConditions.restore();
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
   });
 
   App.TestAliases.testAsComputedGt(getController(), 'isHostHaveWarnings', 'warnings.length', 0);
@@ -1066,19 +1066,6 @@ describe('App.WizardStep3Controller', function () {
       c.reopen({isHostHaveWarnings: false, bootHosts: bootHosts, hosts: []});
       c.submit();
       expect(c.get('confirmedHosts')).to.eql(bootHosts);
-    });
-
-    it('if Next button is clicked multiple times before the next step renders, it must not be processed',function(){
-      var bootHosts = [
-        Em.Object.create({name: 'c1'})
-      ];
-      c.reopen({isHostHaveWarnings: false, bootHosts: bootHosts, hosts: []});
-      c.submit();
-      expect(App.router.send.calledWith('next')).to.equal(true);
-
-      App.router.send.reset();
-      c.submit();
-      expect(App.router.send.calledWith('next')).to.equal(false);
     });
 
   });

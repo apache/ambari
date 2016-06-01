@@ -74,7 +74,7 @@ describe('App.WizardStep2Controller', function () {
 
   App.TestAliases.testAsComputedAlias(getController(), 'agentUser', 'content.installOptions.agentUser', 'string');
 
-  App.TestAliases.testAsComputedOr(getController(), 'isSubmitDisabled', ['hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError']);
+  App.TestAliases.testAsComputedOr(getController(), 'isSubmitDisabled', ['hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError', 'App.router.btnClickInProgress']);
 
   describe('#hostNames', function() {
     it('should be equal to content.installOptions.hostNames', function() {

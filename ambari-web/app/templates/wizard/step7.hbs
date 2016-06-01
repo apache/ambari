@@ -31,16 +31,22 @@
 
 
   <div class="btn-area">
-    <a class="btn installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
+    <button type="button" class="btn installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+      &larr; {{t common.back}}
+      {{#if App.router.backBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+      {{/if}}
+    </button>
     <div class="pull-right">
       {{#if App.supports.preInstallChecks}}
         <a class="btn" {{action runPreInstallChecks target="App.router.preInstallChecksController"}} {{bindAttr disabled="isSubmitDisabled"}}><i class="icon-exclamation"></i> {{t installer.step7.preInstallChecks}}</a>
       {{/if}}
-      {{#if App.router.nextBtnClickInProgress}}
-        {{view App.SpinnerView tagName="span"}}
-      {{/if}}
-      <a class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}}
-        {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+      <button type="button" class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>
+        {{#if App.router.nextBtnClickInProgress}}
+          {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+        {{/if}}
+        {{t common.next}} &rarr;
+      </button>
     </div>
   </div>
 </div>

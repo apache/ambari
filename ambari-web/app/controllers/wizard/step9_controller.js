@@ -111,7 +111,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     if (controllerName == 'addHostController' || controllerName == 'addServiceController') {
       validStates.push('INSTALL FAILED');
     }
-    return !validStates.contains(this.get('content.cluster.status'));
+    return !validStates.contains(this.get('content.cluster.status')) || App.get('router.btnClickInProgress');
   }.property('content.cluster.status'),
 
   /**

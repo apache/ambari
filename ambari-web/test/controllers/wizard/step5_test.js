@@ -26,12 +26,12 @@ describe('App.WizardStep5Controller', function () {
   beforeEach(function () {
     c = App.WizardStep5Controller.create();
     sinon.stub(App.router, 'send', Em.K);
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
   });
 
   afterEach(function () {
     App.router.send.restore();
-    App.router.nextBtnClickInProgress = false;
+    App.set('router.nextBtnClickInProgress', false);
   });
 
   var controller = App.WizardStep5Controller.create();
@@ -1280,19 +1280,6 @@ describe('App.WizardStep5Controller', function () {
 
     });
 
-  });
-
-  describe('#submit',function(){
-    it('if Next button is clicked multiple times before the next step renders, it must not be processed',function(){
-      c.reopen({isSubmitDisabled:false, submitDisabled:false, useServerValidation:false});
-      c.submit();
-      expect(App.router.send.calledWith('next')).to.equal(true);
-
-      App.router.send.reset();
-      c.submit();
-      expect(App.router.send.calledWith('next')).to.equal(false);
-
-    });
   });
 
 });

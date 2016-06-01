@@ -86,11 +86,11 @@ describe('App.Router', function () {
 
   });
 
-  describe('#adminViewInfoSuccessCallback', function() {
-    beforeEach(function() {
+  describe('#adminViewInfoSuccessCallback', function () {
+    beforeEach(function () {
       sinon.stub(window.location, 'replace', Em.K);
     });
-    afterEach(function() {
+    afterEach(function () {
       window.location.replace.restore();
     });
 
@@ -135,7 +135,7 @@ describe('App.Router', function () {
       expected: '/views/ADMIN_VIEW/2.1.0/INSTANCE/#/'
     }];
 
-    tests.forEach(function(data, index) {
+    tests.forEach(function (data, index) {
       it('should redirect to the latest version of admin view ("' + data.expected + '") #' + (index + 1), function () {
         router.adminViewInfoSuccessCallback(data.mockData);
         expect(window.location.replace.calledWith(data.expected)).to.be.true;
@@ -143,46 +143,46 @@ describe('App.Router', function () {
     });
   });
 
-  describe.skip("#savePreferedPath()", function() {
+  describe.skip("#savePreferedPath()", function () {
     beforeEach(function () {
       router.set('preferedPath', null);
     });
-    it("has no key", function() {
+    it("has no key", function () {
       router.savePreferedPath('path');
       expect(router.get('preferedPath')).to.equal('path');
     });
-    it("path does not contain key", function() {
+    it("path does not contain key", function () {
       router.savePreferedPath('path', 'key');
       expect(router.get('preferedPath')).to.be.null;
     });
-    it("path contains key", function() {
+    it("path contains key", function () {
       router.savePreferedPath('key=path', 'key=');
       expect(router.get('preferedPath')).to.equal('path');
     });
   });
 
-  describe.skip("#restorePreferedPath()", function() {
-    it("preferedPath is null", function() {
+  describe.skip("#restorePreferedPath()", function () {
+    it("preferedPath is null", function () {
       router.set('preferedPath', null);
       expect(router.restorePreferedPath()).to.be.false;
       expect(router.get('preferedPath')).to.be.null;
     });
-    it("preferedPath is '/relativeURL'", function() {
+    it("preferedPath is '/relativeURL'", function () {
       router.set('preferedPath', '/relativeURL');
       expect(router.restorePreferedPath()).to.be.true;
       expect(router.get('preferedPath')).to.be.null;
     });
-    it("preferedPath is '#/relativeURL'", function() {
+    it("preferedPath is '#/relativeURL'", function () {
       router.set('preferedPath', '#/relativeURL');
       expect(router.restorePreferedPath()).to.be.true;
       expect(router.get('preferedPath')).to.be.null;
     });
-    it("preferedPath is '#/login'", function() {
+    it("preferedPath is '#/login'", function () {
       router.set('preferedPath', '#/login');
       expect(router.restorePreferedPath()).to.be.false;
       expect(router.get('preferedPath')).to.be.null;
     });
-    it("preferedPath is 'http://absoluteURL'", function() {
+    it("preferedPath is 'http://absoluteURL'", function () {
       router.set('preferedPath', 'http://absoluteURL');
       expect(router.restorePreferedPath()).to.be.false;
       expect(router.get('preferedPath')).to.be.null;
@@ -419,7 +419,7 @@ describe('App.Router', function () {
     });
   });
 
-  describe("#getAuthenticated", function() {
+  describe("#getAuthenticated", function () {
     beforeEach(function () {
       router = App.Router.create();
       this.mockGetCurrentLocationUrl = sinon.stub(router, 'getCurrentLocationUrl');
@@ -447,7 +447,7 @@ describe('App.Router', function () {
         lastSetURL: '/main/dashboard',
         isResolved: false,
         responseData: {
-          responseText: JSON.stringify({ jwtProviderUrl: 'http://some.com?originalUrl=' }),
+          responseText: JSON.stringify({jwtProviderUrl: 'http://some.com?originalUrl='}),
           status: 403
         },
         redirectCalled: true,
@@ -457,25 +457,26 @@ describe('App.Router', function () {
         lastSetURL: '/login/local',
         isResolved: false,
         responseData: {
-          responseText: JSON.stringify({ jwtProviderUrl: 'http://some.com?originalUrl=' }),
+          responseText: JSON.stringify({jwtProviderUrl: 'http://some.com?originalUrl='}),
           status: 403
         },
         redirectCalled: false,
         m: 'jwtProviderUrl is present, current location is local login url, no redirect'
       }
-    ].forEach(function(test) {
-      describe(test.m, function() {
+    ].forEach(function (test) {
+      describe(test.m, function () {
         var mockCurrentUrl;
         beforeEach(function () {
           mockCurrentUrl = 'http://localhost:3333/#/some/hash';
           router.set('location.lastSetURL', test.lastSetURL);
           App.ajax.send.restore(); // default ajax-mock can't be used here
-          sinon.stub(App.ajax, 'send', function() {
+          sinon.stub(App.ajax, 'send', function () {
             if (!test.isResolved) {
               router.onAuthenticationError(test.responseData);
             }
             return {
-              complete: function() {}
+              complete: function () {
+              }
             };
           });
           this.mockGetCurrentLocationUrl.returns(mockCurrentUrl);
@@ -574,6 +575,98 @@ describe('App.Router', function () {
 
     });
 
+  });
+
+});
+
+describe('App.StepRoute', function () {
+
+  beforeEach(function () {
+    this.route = App.StepRoute.create();
+    this.nextTransitionSpy = sinon.spy(this.route, 'nextTransition');
+    this.backTransitionSpy = sinon.spy(this.route, 'backTransition');
+    this.appGetStub = sinon.stub(App, 'get');
+    this.appSetStub = sinon.stub(App, 'set');
+    this.runNextStub = sinon.stub(Em.run, 'next', Em.clb);
+  });
+
+  afterEach(function () {
+    this.nextTransitionSpy.restore();
+    this.backTransitionSpy.restore();
+    this.appGetStub.restore();
+    this.appSetStub.restore();
+    this.runNextStub.restore();
+  });
+
+  describe('#back', function () {
+
+    [
+      {
+        btnClickInProgress: true,
+        backBtnClickInProgressIsSet: false,
+        backTransitionIsCalled: false,
+        m: 'backTransition is not called'
+      },
+      {
+        btnClickInProgress: false,
+        backBtnClickInProgressIsSet: true,
+        backTransitionIsCalled: true,
+        m: 'backTransition is called'
+      }
+    ].forEach(function (test) {
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          this.appGetStub.withArgs('router.btnClickInProgress').returns(test.btnClickInProgress);
+          this.route.back({});
+        });
+
+        it('backTransition call', function () {
+          expect(this.backTransitionSpy.called).to.be.equal(test.backTransitionIsCalled);
+        });
+
+        it('backBtnClickInProgress is set', function () {
+          expect(this.appSetStub.calledWith('router.backBtnClickInProgress')).to.be.equal(test.backBtnClickInProgressIsSet);
+        });
+
+      });
+    });
+
+  });
+
+  describe('#next', function () {
+
+    [
+      {
+        btnClickInProgress: true,
+        nextBtnClickInProgressIsSet: false,
+        nextTransitionIsCalled: false,
+        m: 'nextTransition is not called'
+      },
+      {
+        btnClickInProgress: false,
+        nextBtnClickInProgressIsSet: true,
+        nextTransitionIsCalled: true,
+        m: 'nextTransition is called'
+      }
+    ].forEach(function (test) {
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          this.appGetStub.withArgs('router.btnClickInProgress').returns(test.btnClickInProgress);
+          this.route.next({});
+        });
+
+        it('nextTransition call', function () {
+          expect(this.nextTransitionSpy.called).to.be.equal(test.nextTransitionIsCalled);
+        });
+
+        it('nextBtnClickInProgress is set', function () {
+          expect(this.appSetStub.calledWith('router.nextBtnClickInProgress')).to.be.equal(test.nextBtnClickInProgressIsSet);
+        });
+
+      });
+    });
   });
 
 });

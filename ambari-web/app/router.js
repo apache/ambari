@@ -44,8 +44,90 @@ App.WizardRoute = Em.Route.extend({
   gotoStep10: Em.Router.transitionTo('step10'),
 
   isRoutable: function() {
-    return (typeof this.get('route') === 'string' && App.router.get('loggedIn'));
+    return typeof this.get('route') === 'string' && App.router.get('loggedIn');
   }.property('App.router.loggedIn')
+
+});
+
+/**
+ * This route executes "back" and "next" handler on the next run-loop
+ * Reason: It's done like this, because in general transitions have highest priority in the Ember run-loop
+ * So, CP's and observers for <code>App.router.backBtnClickInProgress</code> and <code>App.router.nextBtnClickInProgress</code>
+ * will be triggered after "back" or "next" are complete and not before them.
+ * It's more important for "back", because usually it doesn't do any requests that may cause a little delay for run loops
+ * <code>Em.run.next</code> is used to avoid this
+ *
+ * Example:
+ * <pre>
+ *   App.Step2Route = App.StepRoute.extend({
+ *
+ *    route: '/step2',
+ *
+ *    connectOutlets: function (router, context) {
+ *      // some code
+ *    },
+ *
+ *    nextTransition: function (router) {
+ *      router.transitionTo('step3');
+ *    },
+ *
+ *    backTransition: function (router) {
+ *      router.transitionTo('step1');
+ *    }
+ *
+ *   });
+ * </pre>
+ * In this case both <code>transitionTo</code> will be executed in the next run loop after loop where "next" or "back" were called
+ * <b>IMPORTANT!</b> Flags <code>App.router.backBtnClickInProgress</code> and <code>App.router.nextBtnClickInProgress</code> are set to <code>true</code>
+ * in the "back" and "next". Be sure to set them <code>false</code> when needed
+ *
+ * @type {Em.Route}
+ */
+App.StepRoute = Em.Route.extend({
+
+  /**
+   * @type {Function}
+   */
+  backTransition: Em.K,
+
+  /**
+   * @type {Function}
+   */
+  nextTransition: Em.K,
+
+  /**
+   * Default "Back"-action
+   * Execute <code>backTransition</code> once
+   *
+   * @param {Em.Router} router
+   */
+  back: function (router) {
+    if (App.get('router.btnClickInProgress')) {
+      return;
+    }
+    App.set('router.backBtnClickInProgress', true);
+    var self = this;
+    Em.run.next(function () {
+      Em.tryInvoke(self, 'backTransition', [router]);
+    })
+  },
+
+  /**
+   * Default "Next"-action
+   * Execute <code>nextTransition</code> once
+   *
+   * @param {Em.Router} router
+   */
+  next: function (router) {
+    if (App.get('router.btnClickInProgress')) {
+      return;
+    }
+    App.set('router.nextBtnClickInProgress', true);
+    var self = this;
+    Em.run.next(function () {
+      Em.tryInvoke(self, 'nextTransition', [router]);
+    })
+  }
 
 });
 
@@ -54,8 +136,33 @@ App.Router = Em.Router.extend({
   enableLogging: true,
   isFwdNavigation: true,
   backBtnForHigherStep: false,
-  transitionInProgress: false,
+
+  /**
+   * Checks if Back button is clicked
+   * Set to default value on the <code>App.WizardController.connectOutlet</code>
+   *
+   * @type {boolean}
+   * @default false
+   */
+  backBtnClickInProgress: false,
+
+  /**
+   * Checks if Next button is clicked
+   * Set to default value on the <code>App.WizardController.connectOutlet</code>
+   *
+   * @type {boolean}
+   * @default false
+   */
   nextBtnClickInProgress: false,
+
+  /**
+   * Checks if Next or Back button is clicked
+   * Used in the <code>App.StepRoute</code>-instances to avoid "next"/"back" double-clicks
+   *
+   * @type {boolean}
+   * @default false
+   */
+  btnClickInProgress: Em.computed.or('backBtnClickInProgress', 'nextBtnClickInProgress'),
 
   /**
    * Path for local login page. This page will be always accessible without
@@ -90,9 +197,9 @@ App.Router = Em.Router.extend({
     var matches = step.match(/\d+$/);
     var newStep;
     if (matches) {
-      newStep = parseInt(matches[0]);
+      newStep = parseInt(matches[0], 10);
     }
-    var previousStep = parseInt(this.getInstallerCurrentStep());
+    var previousStep = parseInt(this.getInstallerCurrentStep(), 10);
     this.set('isFwdNavigation', newStep >= previousStep);
   },
 
@@ -399,10 +506,9 @@ App.Router = Em.Router.extend({
           this.hide();
         }
       });
-    }else{
-      this.setClusterData(data, opt, params);
-      return false;
     }
+    this.setClusterData(data, opt, params);
+    return false;
   },
 
   /**
@@ -548,13 +654,13 @@ App.Router = Em.Router.extend({
             var clusterStatusOnServer = App.clusterStatus.get('value');
             if (clusterStatusOnServer) {
               var wizardControllerRoutes = require('data/controller_route');
-              var wizardControllerRoute =  wizardControllerRoutes.findProperty('wizardControllerName', clusterStatusOnServer.wizardControllerName);
+              var wizardControllerRoute = wizardControllerRoutes.findProperty('wizardControllerName', clusterStatusOnServer.wizardControllerName);
               if (wizardControllerRoute && !App.router.get('wizardWatcherController').get('isNonWizardUser')) {
                 route = wizardControllerRoute.route;
               }
             }
-            if (wizardControllerRoute && wizardControllerRoute.wizardControllerName === 'mainAdminStackAndUpgradeController')  {
-              var clusterController =   App.router.get('clusterController');
+            if (wizardControllerRoute && wizardControllerRoute.wizardControllerName === 'mainAdminStackAndUpgradeController') {
+              var clusterController = App.router.get('clusterController');
               clusterController.loadClusterName().done(function(){
                 clusterController.restoreUpgradeState().done(function(){
                   callback(route);
@@ -699,8 +805,9 @@ App.Router = Em.Router.extend({
   initAuth: function(){
     if (App.db) {
       var auth = App.db.getAuth();
-      if(auth)
+      if(auth) {
         App.set('auth', auth);
+      }
     }
   },
 

@@ -143,8 +143,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   isSubmitDisabled: function () {
     if (!this.get('stepConfigs.length')) return true;
     if (this.get('submitButtonClicked')) return true;
+    if (App.get('router.btnClickInProgress')) return true;
     return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible");
-  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked'),
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'App.router.btnClickInProgress'),
 
   /**
    * List of selected to install service names
@@ -250,15 +251,20 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         Em.I18n.t('installer.step7.showingPropertiesWithIssues') : '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
 
+  /**
+   * @type {string}
+   */
   issuesFilterLinkText: function () {
-    if (this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected')) {
+    var issuesAttrSelected = this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected');
+    if (issuesAttrSelected) {
       return Em.I18n.t('installer.step7.showAllProperties');
     }
 
-    return this.get('isSubmitDisabled') && !this.get('submitButtonClicked') ?
-        this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected') ?
-          Em.I18n.t('installer.step7.showAllProperties') : Em.I18n.t('installer.step7.showPropertiesWithIssues')
-       : '';
+    if (this.get('isSubmitDisabled') && !this.get('submitButtonClicked')) {
+      return issuesAttrSelected ?
+        Em.I18n.t('installer.step7.showAllProperties') : Em.I18n.t('installer.step7.showPropertiesWithIssues');
+    }
+    return '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
 
   /**
@@ -281,7 +287,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    *    <li>stepConfigs</li>
    *    <li>filter</li>
    *  </ul>
-   *  and desect all <code>filterColumns</code>
+   *  and deselect all <code>filterColumns</code>
    * @method clearStep
    */
   clearStep: function () {
@@ -353,7 +359,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         serviceConfigs = stepConfig.get('configs'),
         configGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', group.service_name).findProperty('name', group.group_name);
 
-      var isEditable = self.get('canEdit') && configGroup.get('name') == stepConfig.get('selectedConfigGroup.name');
+      var isEditable = self.get('canEdit') && configGroup.get('name') === stepConfig.get('selectedConfigGroup.name');
 
       group.configurations.forEach(function (config) {
         for (var prop in config.properties) {
@@ -464,7 +470,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
     var storedConfigs = this.get('content.serviceConfigProperties');
 
-    var configs = (storedConfigs && storedConfigs.length) ? storedConfigs : App.configsCollection.getAll();
+    var configs = storedConfigs && storedConfigs.length ? storedConfigs : App.configsCollection.getAll();
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     if (this.get('wizardController.name') === 'addServiceController' && !this.get('content.serviceConfigProperties.length')) {
@@ -974,19 +980,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         if (Em.isNone(mappedConfigValue)) {
           //for now ranger plugin properties are not sending by recommendations if they are missed - it should be added
           return _config.serviceName === 'MISC' || /^ranger-/.test(_config.filename);
-        } else {
-          if (_config.savedValue != mappedConfigValue) {
-            _config.savedValue = App.config.formatPropertyValue(_config, mappedConfigValue);
-          }
-          _config.value = App.config.formatPropertyValue(_config, mappedConfigValue);
-          _config.hasInitialValue = true;
-          this.updateDependencies(_config);
-          delete configsMap[type][_config.name];
-          return true;
         }
-      } else {
+        if (_config.savedValue != mappedConfigValue) {
+          _config.savedValue = App.config.formatPropertyValue(_config, mappedConfigValue);
+        }
+        _config.value = App.config.formatPropertyValue(_config, mappedConfigValue);
+        _config.hasInitialValue = true;
+        this.updateDependencies(_config);
+        delete configsMap[type][_config.name];
         return true;
       }
+      return true;
     }, this);
     //add user properties
     Em.keys(configsMap).forEach(function (filename) {
@@ -1007,10 +1011,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @param config
    */
   updateDependencies: function(config) {
-    if (config.name === 'hive.metastore.uris' && config.filename === 'hive-site.xml') {
-      this.get('configDependencies')['hive.metastore.uris'] = config.savedValue;
-    } else if (config.name === 'clientPort' && config.filename === 'hive-site.xml') {
-      this.get('configDependencies').clientPort = config.savedValue;
+    if (config.filename === 'hive-site.xml') {
+      if (config.name === 'hive.metastore.uris') {
+        this.get('configDependencies')['hive.metastore.uris'] = config.savedValue;
+      }
+      else
+        if (config.name === 'clientPort') {
+          this.get('configDependencies').clientPort = config.savedValue;
+        }
     }
   },
 
@@ -1050,7 +1058,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       this.set('configGroups', serviceGroups);
       this.set('selectedConfigGroup', serviceGroups.findProperty('isDefault'));
     }
-  }.observes('selectedService.configGroups.@each'),
+  }.observes('selectedService.configGroups.[]'),
 
   /**
    * load default groups for each service in case of initial load
@@ -1301,12 +1309,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * that using MySql database too.
    *
    * @method resolveHiveMysqlDatabase
-   **/
+   */
   resolveHiveMysqlDatabase: function () {
     var hiveService = this.get('content.services').findProperty('serviceName', 'HIVE');
     if (!hiveService || !hiveService.get('isSelected') || hiveService.get('isInstalled')) {
-      this.moveNext();
-      return;
+      return this.moveNext();
     }
     var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
     if (hiveDBType === 'New MySQL Database') {
@@ -1315,9 +1322,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         self.mySQLWarningHandler();
       });
     }
-    else {
-      this.moveNext();
-    }
+    return this.moveNext();
   },
 
   /**
@@ -1366,9 +1371,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         }
       });
     }
-    else {
-      return this.moveNext();
-    }
+    return this.moveNext();
   },
 
   checkDatabaseConnectionTest: function () {
@@ -1490,7 +1493,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * Proceed to the next step
    **/
   moveNext: function () {
-    App.set('router.nextBtnClickInProgress', true);
+    App.set('router.nextBtnClickInProgress', false);
     App.router.send('next');
     this.set('submitButtonClicked', false);
   },

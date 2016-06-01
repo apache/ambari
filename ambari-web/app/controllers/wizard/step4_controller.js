@@ -47,8 +47,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return this.filterProperty('isSelected', true).filterProperty('isInstalled', false).length === 0;
-  }.property("@each.isSelected"),
+    return this.filterProperty('isSelected', true).filterProperty('isInstalled', false).length === 0 || App.get('router.btnClickInProgress');
+  }.property('@each.isSelected', 'App.router.btnClickInProgress'),
 
   /**
    * List of validation errors. Look to #createError method for information
@@ -137,14 +137,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method submit
    */
   submit: function () {
-    if(App.get('router.nextBtnClickInProgress')){
+    if(App.get('router.nextBtnClickInProgress')) {
       return;
     }
     if (!this.get('isSubmitDisabled')) {
       this.unSelectServices();
       this.setGroupedServices();
       if (this.validate()) {
-        App.set('router.nextBtnClickInProgress', true);
         this.set('errorStack', []);
         App.router.send('next');
       }

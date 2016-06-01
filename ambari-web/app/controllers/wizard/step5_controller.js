@@ -20,5 +20,13 @@ var App = require('app');
 
 App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
 
-  name: "wizardStep5Controller"
+  name: "wizardStep5Controller",
+
+  _goNextStepIfValid: function () {
+    App.set('router.nextBtnClickInProgress', false);
+    if (!this.get('submitDisabled')) {
+      App.router.send('next');
+    }
+  },
+
 });
