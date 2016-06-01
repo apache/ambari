@@ -172,7 +172,13 @@
         "log.retention.hours": "168"
       },
       "logsearch-solr-env": {
-        "logsearch_solr_znode": "/logsearch"
+        "logsearch_solr_znode": "/logsearch",
+        "logsearch_solr_user": "solr",
+        "logsearch_solr_group": "solr",
+        "logsearch_solr_client_log_dir" :"/var/log/ambari-logsearch-solr-client"
+      },
+      "logsearch-solr-client-log4j" : {
+        "content" : "content"
       },
       "application-properties": {
         "atlas.cluster.name" : "c2",

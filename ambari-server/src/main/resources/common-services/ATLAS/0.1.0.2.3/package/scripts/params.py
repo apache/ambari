@@ -173,6 +173,10 @@ logsearch_solr_replication_factor = 2 if len(logsearch_solr_hosts) > 1 else 1
 atlas_solr_shards = default("/configurations/atlas-env/atlas_solr-shards", 1)
 has_logsearch_solr = len(logsearch_solr_hosts) > 0
 
+if has_logsearch_solr:
+  logsearch_solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user']
+  logsearch_solr_group = config['configurations']['logsearch-solr-env']['logsearch_solr_group']
+
 # zookeeper
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
