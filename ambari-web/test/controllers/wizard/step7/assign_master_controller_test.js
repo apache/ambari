@@ -148,13 +148,15 @@ describe('App.AssignMasterOnStep7Controller', function () {
         displayName: 'c1'
       }),
       setValue: Em.K,
-      toggleProperty: Em.K
+      toggleProperty: Em.K,
+      sendRequestRorDependentConfigs: Em.K
     });
 
     beforeEach(function() {
       sinon.stub(stringUtils, 'getFormattedStringFromArray');
       sinon.stub(mock, 'setValue');
       sinon.stub(mock, 'toggleProperty');
+      sinon.stub(mock, 'sendRequestRorDependentConfigs');
       sinon.spy(App.ModalPopup, 'show');
     });
 
@@ -162,6 +164,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       stringUtils.getFormattedStringFromArray.restore();
       mock.setValue.restore();
       mock.toggleProperty.restore();
+      mock.sendRequestRorDependentConfigs.restore();
       App.ModalPopup.show.restore();
     });
 

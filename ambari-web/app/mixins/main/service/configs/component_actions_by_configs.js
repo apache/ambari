@@ -259,7 +259,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
 
     return  {
       "type": 'PUT',
-      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/host_components",
+      "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
       "RequestBodyInfo": {
         "RequestInfo": {
           "context": context,
