@@ -22,76 +22,76 @@
     <name>fs.defaultFS</name>
     <value/>
     <description>Provide VIPRFS bucket details using the format viprfs://$BUCKET_NAME.$NAMESPACE.$SITE_NAME_from_fs.vipr.installations</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop.security.authentication</name>
     <value>simple</value>
     <description>Supported values: simple, kerberos</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop.security.authorization</name>
     <value>false</value>
     <description>Supported values true, false</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop.security.auth_to_local</name>
     <value>DEFAULT</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.permissions.umask-mode</name>
     <value>022</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <!-- VIPRFS Configurations -->
   <property>
     <name>fs.vipr.installations</name>
     <value>Site1</value>
     <description>Provide site name of the tenant</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.vipr.installation.Site1.hosts</name>
     <value/>
     <description>Provide ECS node IPs or VIP</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.vipr.installation.Site1.resolution</name>
     <value>dynamic</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.vipr.installation.Site1.resolution.dynamic.time_to_live_ms</name>
     <value>900000</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.viprfs.auth.anonymous_translation</name>
     <value>LOCAL_USER</value>
     <final>true</final>
     <description>Supported values are LOCAL_USER. Applicable only for insecure cluster deployment.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.viprfs.auth.identity_translation</name>
     <value>NONE</value>
     <description>Supported values are NONE(default), FIXED_REALM, and CURRENT_USER_REALM</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <!--  Moving the configuration to kerberos.json as this is applicable to only secure cluster
     <property>
@@ -104,35 +104,35 @@
     <name>fs.viprfs.impl</name>
     <value>com.emc.hadoop.fs.vipr.ViPRFileSystem</value>
     <final>true</final>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.AbstractFileSystem.viprfs.impl</name>
     <value>com.emc.hadoop.fs.vipr.ViPRAbstractFileSystem</value>
     <final>true</final>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.trace.viprfs.dfs.impl</name>
     <value>com.emc.hadoop.fs.trace.TraceDistributedFileSystem</value>
     <final>true</final>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.trace.viprfs.dfs.inner</name>
     <value>org.apache.hadoop.hdfs.DistributedFileSystemShim</value>
     <final>true</final>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>fs.viprfs.dfs.impl</name>
     <value>org.apache.hadoop.hdfs.DistributedFileSystemShim</value>
     <final>true</final>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

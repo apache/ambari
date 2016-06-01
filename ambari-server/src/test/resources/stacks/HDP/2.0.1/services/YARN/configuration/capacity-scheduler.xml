@@ -22,8 +22,8 @@
     <description>
       Maximum number of applications that can be pending and running.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.maximum-am-resource-percent</name>
@@ -33,8 +33,8 @@
       application masters i.e. controls number of concurrent running
       applications.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.queues</name>
@@ -42,8 +42,8 @@
     <description>
       The queues at the this level (root is the root queue).
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.capacity</name>
@@ -54,15 +54,15 @@
       The child queues capacity should add up to their parent queue's capacity
       or less.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.capacity</name>
     <value>100</value>
     <description>Default queue target capacity.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.user-limit-factor</name>
@@ -70,8 +70,8 @@
     <description>
       Default queue user limit a percentage from 0.0 to 1.0.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.maximum-capacity</name>
@@ -79,8 +79,8 @@
     <description>
       The maximum capacity of the default queue. 
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.state</name>
@@ -88,8 +88,8 @@
     <description>
       The state of the default queue. State can be one of RUNNING or STOPPED.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.acl_submit_jobs</name>
@@ -97,8 +97,8 @@
     <description>
       The ACL of who can submit jobs to the default queue.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.acl_administer_jobs</name>
@@ -106,8 +106,8 @@
     <description>
       The ACL of who can administer jobs on the default queue.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.acl_administer_queues</name>
@@ -116,7 +116,7 @@
       The ACL for who can administer this queue i.e. change sub-queue 
       allocations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>
