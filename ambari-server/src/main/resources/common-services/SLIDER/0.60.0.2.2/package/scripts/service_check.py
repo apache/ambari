@@ -18,12 +18,14 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from ambari_commons import OSConst
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.format import format
+from resource_management.core.resources.system import Execute
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
 class SliderServiceCheck(Script):
 

@@ -19,10 +19,13 @@ Ambari Agent
 
 """
 import os
-from resource_management import *
-from ambari_commons import OSConst
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import Template, InlineTemplate
+from resource_management.libraries.functions.format import format
+from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
