@@ -229,6 +229,9 @@
         "logsearch_admin_password" : "admin",
         "content": "admin json content"
       },
+      "logsearch-solr-client-log4j" : {
+        "content" : "content"
+      },
       "logsearch-solr-env": {
         "logsearch_solr_user": "solr",
         "logsearch_solr_group": "solr",

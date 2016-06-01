@@ -108,7 +108,39 @@ class TestMetadataServer(RMFTestCase):
                                 group='hadoop',
                                 mode=0644,
                                 )
-
+      self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr-client',
+                                owner='solr',
+                                group='solr',
+                                create_parents = True,
+                                cd_access='a',
+                                mode=0755
+                                )
+      self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-solr-client',
+                                owner='solr',
+                                group='solr',
+                                create_parents = True,
+                                cd_access='a',
+                                mode=0755
+                                )
+      self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh',
+                                content=StaticFile('/usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh'),
+                                owner='solr',
+                                group='solr',
+                                mode=0755,
+                                )
+      self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-solr-client/log4j.properties',
+                                content=InlineTemplate(self.getConfig()['configurations'][
+                                    'logsearch-solr-client-log4j']['content']),
+                                owner='solr',
+                                group='solr',
+                                mode=0644,
+                                )
+      self.assertResourceCalled('File', '/var/log/ambari-logsearch-solr-client/solr-client.log',
+                                owner='solr',
+                                group='solr',
+                                mode=0644,
+                                content = ''
+                                )
       self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --download-config -d /tmp/solr_config_basic_configs_0.[0-9]* -cs basic_configs -rt 5 -i 10')
       self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --upload-config -d /usr/lib/ambari-logsearch-solr/server/solr/configsets/basic_configs/conf -cs basic_configs -rt 5 -i 10')
 

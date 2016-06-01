@@ -16,8 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.source import StaticFile, InlineTemplate
 
 __all__ = ["upload_configuration_to_zk", "create_collection"]
 
@@ -73,3 +75,39 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
 
   Execute(create_collection_cmd, user=user, group=group
   )
+
+def setup_solr_client(config, user = None, group = None):
+    solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user'] if user is None else user
+    solr_group = config['configurations']['logsearch-solr-env']['logsearch_solr_group'] if group is None else group
+    solr_client_dir = '/usr/lib/ambari-logsearch-solr-client'
+    solr_client_log_dir = default('/configurations/logsearch-solr-env/logsearch_solr_client_log_dir', '/var/log/ambari-logsearch-solr-client')
+    solr_client_log = format("{solr_client_log_dir}/solr-client.log")
+    solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4j']['content']
+
+    Directory([solr_client_dir, solr_client_log_dir],
+                mode=0755,
+                cd_access='a',
+                owner=solr_user,
+                group=solr_group,
+                create_parents=True
+                )
+    solrCliFilename = format("{solr_client_dir}/solrCloudCli.sh")
+    File(solrCliFilename,
+         mode=0755,
+         owner=solr_user,
+         group=solr_group,
+         content=StaticFile(solrCliFilename)
+         )
+    File(format("{solr_client_dir}/log4j.properties"),
+         content=InlineTemplate(solr_client_log4j_content),
+         owner=solr_user,
+         group=solr_group,
+         mode=0644
+         )
+
+    File(solr_client_log,
+         mode=0644,
+         owner=solr_user,
+         group=solr_group,
+         content=''
+         )

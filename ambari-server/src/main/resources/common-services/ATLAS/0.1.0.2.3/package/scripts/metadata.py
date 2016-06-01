@@ -108,6 +108,8 @@ def metadata(type='server'):
     )
 
     if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
+      solr_cloud_util.setup_solr_client(params.config)
+
       random_num = random.random()
 
       upload_conf_set('basic_configs', random_num)
@@ -131,8 +133,8 @@ def upload_conf_set(config_set, random_num):
       config_set=config_set,
       tmp_config_set_dir=tmp_config_set_folder,
       java64_home=params.java64_home,
-      user=params.metadata_user,
-      group=params.user_group)
+      user=params.logsearch_solr_user,
+      group=params.logsearch_solr_group)
 
 def create_collection(collection, config_set):
   import params
@@ -143,7 +145,7 @@ def create_collection(collection, config_set):
       collection = collection,
       config_set=config_set,
       java64_home=params.java64_home,
-      user=params.metadata_user,
-      group=params.user_group,
+      user=params.logsearch_solr_user,
+      group=params.logsearch_solr_group,
       shards=params.atlas_solr_shards,
       replication_factor = params.logsearch_solr_replication_factor)

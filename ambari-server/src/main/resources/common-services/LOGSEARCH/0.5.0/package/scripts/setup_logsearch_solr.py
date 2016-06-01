@@ -18,10 +18,10 @@ limitations under the License.
 """
 
 from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Directory, Execute, File
-from resource_management.core.source import StaticFile
-from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import solr_cloud_util
 
 
 def setup_logsearch_solr(name = None):
@@ -82,32 +82,7 @@ def setup_logsearch_solr(name = None):
               user=params.logsearch_solr_user
               )
   elif name == 'client':
-    Directory([params.solr_client_dir, params.logsearch_solr_client_log_dir],
-              mode=0755,
-              cd_access='a',
-              owner=params.logsearch_solr_user,
-              group=params.logsearch_solr_group,
-              create_parents=True
-              )
-    solrCliFilename = format("{solr_client_dir}/solrCloudCli.sh")
-    File(solrCliFilename,
-         mode=0755,
-         group=params.logsearch_solr_group,
-         owner=params.logsearch_solr_user,
-         content=StaticFile(solrCliFilename)
-         )
-
-    File(format("{solr_client_dir}/log4j.properties"),
-         content=InlineTemplate(params.solr_client_log4j_content),
-         owner=params.logsearch_solr_user
-         )
-
-    File(params.logsearch_solr_client_log,
-         mode=0644,
-         owner=params.logsearch_solr_user,
-         group=params.logsearch_solr_group,
-         content=''
-         )
+    solr_cloud_util.setup_solr_client(params.config)
 
   else :
     raise Fail('Nor client or server were selected to install.')
