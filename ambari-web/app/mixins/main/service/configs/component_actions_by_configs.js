@@ -156,6 +156,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         var context = Em.I18n.t('requestInfo.start').format(displayStr);
         var batches =[];
         this.setRefreshYarnQueueRequest(batches);
+        this.setCreateComponentRequest(batches, hostComponents);
         batches.push(this.getCreateHostComponentsRequest(_hostName, hostComponents));
         batches.push(this.getInstallHostComponentsRequest(_hostName, hostComponents));
         batches.push(this.getStartHostComponentsRequest(_hostName, masterHostComponents, context));
@@ -291,6 +292,26 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
       "type": 'DELETE',
       "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + component
     }
+  },
+
+  /**
+   * Add `Create component` as a request in the batched API call
+   * @param batches  {Array}
+   * @param hostComponents {Array}
+   * @private
+   * @method {setCreateComponentRequest}
+   */
+  setCreateComponentRequest: function(batches, hostComponents) {
+    hostComponents.forEach(function(_componentName){
+      var serviceName = App.StackServiceComponent.find().findProperty('componentName',  _componentName).get('serviceName');
+      var serviceComponents = App.Service.find().findProperty('serviceName', serviceName).get('serviceComponents');
+      if (!serviceComponents.contains(_componentName)) {
+        batches.push({
+          "type": 'POST',
+          "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/services/" + serviceName + "/components/" + _componentName
+        });
+      }
+    });
   },
 
   /**
