@@ -16,19 +16,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-
 <configuration supports_final="true">
-
-    <property>
-        <name>hive.metastore.schema.verification.record.version</name>
-        <value>false</value>
-        <description>Prevents metastore from overwriting the version number</description>
-    </property>
-
-    <property>
-        <name>hive.metastore.schema.verification</name>
-        <value>false</value>
-        <description>Prevents metastore from complaining about version difference</description>
-    </property>
-
+  <property>
+    <name>hive.metastore.schema.verification.record.version</name>
+    <value>false</value>
+    <description>Prevents metastore from overwriting the version number</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
+  <property>
+    <name>hive.metastore.schema.verification</name>
+    <value>false</value>
+    <description>Prevents metastore from complaining about version difference</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
 </configuration>

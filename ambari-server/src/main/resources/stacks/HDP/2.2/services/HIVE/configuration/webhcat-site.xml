@@ -16,31 +16,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-
 <!-- The default settings for Templeton. -->
 <!-- Edit templeton-site.xml to change settings for your local -->
 <!-- install. -->
-
 <configuration supports_final="true">
-
   <property>
     <name>templeton.jar</name>
     <value>/usr/hdp/${hdp.version}/hive/share/webhcat/svr/lib/hive-webhcat-*.jar</value>
     <description>The path to the Templeton jar file.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.libjars</name>
     <value>/usr/hdp/${hdp.version}/zookeeper/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.hadoop</name>
     <value>/usr/hdp/${hdp.version}/hadoop/bin/hadoop</value>
     <description>The path to the Hadoop executable.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.pig.archive</name>
     <value>hdfs:///hdp/apps/${hdp.version}/pig/pig.tar.gz</value>
@@ -48,20 +48,23 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.pig.path</name>
     <value>pig.tar.gz/pig/bin/pig</value>
     <description>The path to the Pig executable.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.hcat</name>
     <value>/usr/hdp/${hdp.version}/hive/bin/hcat</value>
     <description>The path to the hcatalog executable.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.hive.archive</name>
     <value>hdfs:///hdp/apps/${hdp.version}/hive/hive.tar.gz</value>
@@ -69,53 +72,61 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.hive.home</name>
     <value>hive.tar.gz/hive</value>
     <description>The path to the Hive home within the tar. Has no effect if templeton.hive.archive is not set.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.hcat.home</name>
     <value>hive.tar.gz/hive/hcatalog</value>
     <description>The path to the HCat home within the tar. Has no effect if templeton.hive.archive is not set.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.hive.path</name>
     <value>hive.tar.gz/hive/bin/hive</value>
     <description>The path to the Hive executable.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.sqoop.archive</name>
     <value>hdfs:///hdp/apps/${hdp.version}/sqoop/sqoop.tar.gz</value>
     <description>The path to the Sqoop archive in HDFS.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.sqoop.path</name>
     <value>sqoop.tar.gz/sqoop/bin/sqoop</value>
     <description>The path to the Sqoop executable.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.sqoop.home</name>
     <value>sqoop.tar.gz/sqoop</value>
     <description>The path to the Sqoop home within the tar. Has no effect if
       templeton.sqoop.archive is not set.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>templeton.streaming.jar</name>
     <value>hdfs:///hdp/apps/${hdp.version}/mapreduce/hadoop-streaming.jar</value>
     <description>The hdfs path to the Hadoop streaming jar file.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
-   <property>
+  <property>
     <name>templeton.hive.extra.files</name>
     <value>/etc/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib</value>
     <description>The resources in this list will be localized to the node running LaunchMapper and added to HADOOP_CLASSPTH
@@ -126,5 +137,7 @@ limitations under the License.
       This can be used to specify config files, Tez artifacts, etc.  This will be sent -files option of hadoop jar command thus
       each path is interpreted by Generic Option Parser.  It can be local or hdfs path.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

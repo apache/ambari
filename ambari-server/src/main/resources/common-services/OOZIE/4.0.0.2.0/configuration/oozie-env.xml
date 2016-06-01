@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>oozie_user</name>
@@ -31,11 +30,15 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_admin_users</name>
     <value>{oozie_user}, oozie-admin</value>
     <description>Oozie admin users.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_database</name>
@@ -45,6 +48,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_data_dir</name>
@@ -56,6 +61,8 @@
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_log_dir</name>
@@ -66,6 +73,8 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_tmp_dir</name>
@@ -76,6 +85,8 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_pid_dir</name>
@@ -87,6 +98,8 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_admin_port</name>
@@ -97,28 +110,37 @@
       <overridable>false</overridable>
       <type>int</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_heapsize</name>
     <value>2048</value>
     <description>Oozie heap size.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_permsize</name>
     <value>256</value>
     <description>Oozie permanent generation size.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_user_nofile_limit</name>
     <value>32000</value>
     <description>Max open files limit setting for OOZIE user.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie_user_nproc_limit</name>
     <value>16000</value>
     <description>Max number of processes limit setting for OOZIE user.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <!-- oozie-env.sh -->
   <property>
     <name>content</name>
@@ -189,9 +211,10 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
 export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
    </value>
-   <value-attributes>
-     <type>content</type>
-   </value-attributes>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

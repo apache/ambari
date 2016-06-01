@@ -256,7 +256,7 @@ public class AmbariMetaInfo {
     readServerVersion();
 
     stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot,
-        osFamily);
+        osFamily, false);
 
     getCustomActionDefinitions(customActionRoot);
   }

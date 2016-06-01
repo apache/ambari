@@ -33,7 +33,7 @@
     <value>true</value>
     <description>to enable dfs append</description>
     <final>true</final>
-    <deletable>false</deletable>
+    <deleted>false</deleted>
   </property>
 
   <property>

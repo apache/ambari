@@ -5,15 +5,19 @@
   <property>
     <name>mapreduce.cluster.local.dir</name>
     <value>c:\hadoop\temp\local\hadoop-mapreduce</value>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>mapred.local.dir</name>
     <value>c:\hadoop\temp\local\hadoop-mapreduce</value>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>mapred.child.tmp</name>
     <value>c:\hadoop\temp\hadoop-mapred</value>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

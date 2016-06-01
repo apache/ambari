@@ -19,54 +19,66 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>kafka_user</name>
     <display-name>Kafka User</display-name>
     <value>kafka</value>
     <property-type>USER</property-type>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>kafka_keytab</name>
     <description>Kafka keytab path</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>kafka_principal_name</name>
     <description>Kafka principal name</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>kafka_log_dir</name>
     <value>/var/log/kafka</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>kafka_pid_dir</name>
     <value>/var/run/kafka</value>
     <display-name>Kafka PID dir</display-name>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>kafka_user_nofile_limit</name>
     <value>128000</value>
     <description>Max open files limit setting for KAFKA user.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>kafka_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for KAFKA user.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <!-- kafka-env.sh -->
   <property>
     <name>content</name>
@@ -95,9 +107,13 @@ fi
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>is_supported_kafka_ranger</name>
     <value>false</value>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

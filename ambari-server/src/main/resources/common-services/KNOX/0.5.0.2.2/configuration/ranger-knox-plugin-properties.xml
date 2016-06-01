@@ -19,23 +19,24 @@
  */
 -->
 <configuration supports_final="true">
-
   <property>
     <name>policy_user</name>
     <value>ambari-qa</value>
     <display-name>Policy user for KNOX</display-name>
     <description>This user must be system user and also present at Ranger admin portal</description>
-  </property> 
-
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>common.name.for.certificate</name>
-    <value></value>
+    <value/>
     <description>Common name for certificate, this value should match what is specified in repo within ranger admin</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>ranger-knox-plugin-enabled</name>
     <value>No</value>
@@ -51,15 +52,17 @@
       <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
     <value>admin</value>
     <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin</description>
-  </property> 
-
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <value>admin-password</value>
@@ -69,20 +72,22 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-  </property> 
-
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>KNOX_HOME</name>
     <value>/usr/local/knox-server</value>
     <display-name>Knox Home</display-name>
     <description>Knox home folder</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.DB.IS_ENABLED</name>
     <value>true</value>
     <display-name>Audit to DB</display-name>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
@@ -92,13 +97,14 @@
         <name>xasecure.audit.destination.db</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.IS_ENABLED</name>
     <value>false</value>
     <display-name>Audit to HDFS</display-name>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
@@ -108,143 +114,164 @@
         <name>xasecure.audit.destination.hdfs</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
     <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <description></description>
+    <description/>
     <depends-on>
       <property>
         <type>ranger-env</type>
         <name>xasecure.audit.destination.hdfs.dir</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY</name>
     <value>__REPLACE__LOG_DIR/hadoop/%app-type%/audit</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY</name>
     <value>__REPLACE__LOG_DIR/hadoop/%app-type%/audit/archive</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_FILE</name>
     <value>%hostname%-audit.log</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS</name>
     <value>900</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS</name>
     <value>86400</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS</name>
     <value>60</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_FILE</name>
     <value>%time:yyyyMMdd-HHmm.ss%.log</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS</name>
     <value>60</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS</name>
     <value>600</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT</name>
     <value>10</value>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>SSL_KEYSTORE_FILE_PATH</name>
     <value>/etc/hadoop/conf/ranger-plugin-keystore.jks</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>SSL_KEYSTORE_PASSWORD</name>
     <value>myKeyFilePassword</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>SSL_TRUSTSTORE_FILE_PATH</name>
     <value>/etc/hadoop/conf/ranger-plugin-truststore.jks</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>SSL_TRUSTSTORE_PASSWORD</name>
     <value>changeit</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  
   <property>
     <name>POLICY_MGR_URL</name>
     <value>{{policymgr_mgr_url}}</value>
-    <description>Policy Manager url</description>    
-  </property> 
-  
+    <description>Policy Manager url</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>SQL_CONNECTOR_JAR</name>
     <value>{{sql_connector_jar}}</value>
-    <description>Location of DB client library (please check the location of the jar file)</description>    
-  </property> 
-  
+    <description>Location of DB client library (please check the location of the jar file)</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>XAAUDIT.DB.FLAVOUR</name>
     <value>{{xa_audit_db_flavor}}</value>
-    <description>The database type to be used (mysql/oracle)</description>    
-  </property> 
-  
+    <description>The database type to be used (mysql/oracle)</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>XAAUDIT.DB.DATABASE_NAME</name>
     <value>{{xa_audit_db_name}}</value>
-    <description>Audit database name</description>    
-  </property> 
-  
+    <description>Audit database name</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>XAAUDIT.DB.USER_NAME</name>
     <value>{{xa_audit_db_user}}</value>
-    <description>Audit database user</description>    
-  </property> 
-  
+    <description>Audit database user</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>XAAUDIT.DB.PASSWORD</name>
     <value>{{xa_audit_db_password}}</value>
@@ -253,18 +280,21 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  
   <property>
     <name>XAAUDIT.DB.HOSTNAME</name>
     <value>{{xa_db_host}}</value>
     <description>Audit database hostname</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  
   <property>
     <name>REPOSITORY_NAME</name>
     <value>{{repo_name}}</value>
-    <description>Ranger repository name</description>    
+    <description>Ranger repository name</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

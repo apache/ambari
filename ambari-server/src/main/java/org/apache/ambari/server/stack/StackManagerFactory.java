@@ -44,5 +44,5 @@ public interface StackManagerFactory {
    */
   StackManager create(@Assisted("stackRoot") File stackRoot,
       @Nullable @Assisted("commonServicesRoot") File commonServicesRoot,
-      OsFamily osFamily);
+      OsFamily osFamily, boolean validate);
 }

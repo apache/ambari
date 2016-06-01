@@ -19,25 +19,26 @@
  */
 -->
 <configuration>
-
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
     <display-name>Repository config username</display-name>
     <value>keyadmin</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <display-name>Repository config password</display-name>
     <value>keyadmin</value>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>password</type>
     </value-attributes>
-  </property>  
-
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
   <property>
     <name>DB_FLAVOR</name>
     <display-name>DB FLAVOR</display-name>
@@ -70,8 +71,9 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>SQL_CONNECTOR_JAR</name>
     <display-name>SQL connector jar</display-name>
@@ -86,8 +88,9 @@
         <name>DB_FLAVOR</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>db_root_user</name>
     <display-name>Database Administrator (DBA) username</display-name>
@@ -96,30 +99,33 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>db_root_password</name>
     <display-name>Database Administrator (DBA) password</display-name>
-    <value></value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <description>Database password for the database admin username</description>
     <value-attributes>
       <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>db_host</name>
     <display-name>Ranger KMS DB host</display-name>
-    <value></value>
+    <value/>
     <description>Database host</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>db_name</name>
     <display-name>Ranger KMS DB name</display-name>
@@ -128,8 +134,9 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>db_user</name>
     <display-name>Ranger KMS DB username</display-name>
@@ -138,30 +145,33 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>db_password</name>
     <display-name>Ranger KMS DB password</display-name>
-    <value></value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <description>Database password for the Ranger KMS schema</description>
     <value-attributes>
       <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>KMS_MASTER_KEY_PASSWD</name>
     <display-name>KMS master key password</display-name>
-    <value></value>
+    <value/>
     <property-type>PASSWORD</property-type>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
-</configuration>  
+</configuration>

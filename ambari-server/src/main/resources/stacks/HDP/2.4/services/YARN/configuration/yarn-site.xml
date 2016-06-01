@@ -16,18 +16,20 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
 <configuration supports_final="true">
-    <property>
-        <name>yarn.nodemanager.aux-services</name>
-        <value>mapreduce_shuffle,spark_shuffle</value>
-        <description>Auxilliary services of NodeManager. A valid service name should only contain a-zA-Z0-9_ and can
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle,spark_shuffle</value>
+    <description>Auxilliary services of NodeManager. A valid service name should only contain a-zA-Z0-9_ and can
           not start with numbers</description>
-    </property>
-
-    <property>
-        <name>yarn.nodemanager.aux-services.spark_shuffle.class</name>
-        <value>org.apache.spark.network.yarn.YarnShuffleService</value>
-        <description>The auxiliary service class to use for Spark</description>
-    </property>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.spark_shuffle.class</name>
+    <value>org.apache.spark.network.yarn.YarnShuffleService</value>
+    <description>The auxiliary service class to use for Spark</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
 </configuration>

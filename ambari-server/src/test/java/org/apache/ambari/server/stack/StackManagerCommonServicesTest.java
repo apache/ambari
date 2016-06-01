@@ -97,7 +97,7 @@ public class StackManagerCommonServicesTest {
     replay(metaInfoDao, actionMetadata);
 
     StackManager stackManager = new StackManager(new File(stackRoot), new File(
-        commonServicesRoot), osFamily, metaInfoDao, actionMetadata, stackDao);
+        commonServicesRoot), osFamily, true, metaInfoDao, actionMetadata, stackDao);
 
     EasyMock.verify( config, stackDao );
 

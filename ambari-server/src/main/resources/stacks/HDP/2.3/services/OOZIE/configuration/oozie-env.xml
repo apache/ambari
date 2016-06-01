@@ -19,9 +19,7 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
-
   <!-- oozie-env.sh -->
   <property>
     <name>content</name>
@@ -107,6 +105,7 @@ export HADOOP_OPTS="-Dhdp.version=${HDP_VERSION} ${HADOOP_OPTS}"
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

@@ -21,14 +21,14 @@
 -->
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
-
   <property>
     <name>logsearch_ui_port</name>
     <value>61888</value>
     <description>Default port for Log Search UI</description>
     <display-name>Log Search UI Port</display-name>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_pid_dir</name>
     <value>/var/run/ambari-logsearch-portal</value>
@@ -37,8 +37,9 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_log_dir</name>
     <value>/var/log/ambari-logsearch-portal</value>
@@ -47,8 +48,9 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_user</name>
     <value>logsearch</value>
@@ -59,16 +61,18 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_group</name>
     <value>logsearch</value>
     <property-type>GROUP</property-type>
     <description>Log Search group</description>
     <display-name>Log Search Group</display-name>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_app_max_memory</name>
     <value>1024</value>
@@ -81,8 +85,9 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_solr_audit_logs_use_ranger</name>
     <value>false</value>
@@ -92,8 +97,9 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_debug_enabled</name>
     <value>false</value>
@@ -102,40 +108,48 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_debug_port</name>
     <value>5005</value>
     <display-name>Log Search Debug Port</display-name>
     <description>Debug port for Log Search Server</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_solr_audit_logs_zk_node</name>
     <value>{logsearch_solr_znode}</value>
     <display-name>Solr Audit Logs Znode</display-name>
     <description>Only needed if using custom solr cloud. E.g. /audit_logs</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_solr_audit_logs_zk_quorum</name>
     <value>{zookeeper_quorum}</value>
     <display-name>Solr Audit Logs ZK Quorum</display-name>
     <description>Only needed if using custom solr cloud. E.g. zk1:2181,zk2:2182</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_solr_ssl_client_truststore_location</name>
     <value>/etc/security/serverKeys/logsearch-solr-ssl.trustStore.jks</value>
     <display-name>Log Search Solr client trust store location</display-name>
     <description>Location of the trust store file.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>logsearch_solr_ssl_client_truststore_type</name>
     <value>jks</value>
     <display-name>Log Search Solr client trust store type</display-name>
     <description>Type of the trust store file.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>logsearch_solr_ssl_client_truststore_password</name>
@@ -146,18 +160,24 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>logsearch_solr_ssl_client_keystore_location</name>
     <value>/etc/security/serverKeys/logsearch-solr-ssl.keyStore.jks</value>
     <display-name>Log Search Solr client key store location</display-name>
     <description>Location of the key store file.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>logsearch_solr_ssl_client_keystore_type</name>
     <value>jks</value>
     <display-name>Log Search Solr client key store type</display-name>
     <description>Type of the key store file.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>logsearch_solr_ssl_client_keystore_password</name>
@@ -168,19 +188,21 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <!-- logsearch-env.sh -->
   <property>
     <name>content</name>
     <display-name>logsearch-env template</display-name>
     <description>This is the jinja template for logsearch-env.sh file</description>
-    <value></value>
+    <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>
       <property-file-name>logsearch-env.sh.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

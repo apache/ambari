@@ -29,30 +29,42 @@
       <overridable>false</overridable>
       <type>int</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.master.info.port</name>
     <value>16010</value>
     <description>The port for the HBase Master web UI.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.port</name>
     <value>16020</value>
     <description>The port the HBase RegionServer binds to.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.info.port</name>
     <value>16030</value>
     <description>The port for the HBase RegionServer web UI.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
     <value>0.4</value>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
     <value>0.38</value>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>
