@@ -56,6 +56,8 @@ class CustomServiceOrchestrator():
   IPV4_ADDRESSES_KEY = "all_ipv4_ips"
 
   AMBARI_SERVER_HOST = "ambari_server_host"
+  AMBARI_SERVER_PORT = "ambari_server_port"
+  AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl"
 
   FREQUENT_COMMANDS = [COMMAND_NAME_SECURITY_STATUS, COMMAND_NAME_STATUS]
   DONT_DEBUG_FAILURES_FOR_COMMANDS = FREQUENT_COMMANDS
@@ -360,6 +362,8 @@ class CustomServiceOrchestrator():
     ipv4_addresses = info.pop(self.IPV4_ADDRESSES_KEY)
 
     ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
+    ambariServerPort = info.pop(self.AMBARI_SERVER_PORT)
+    ambariServerUseSsl = info.pop(self.AMBARI_SERVER_USE_SSL)
 
     decompressedMap = {}
 
@@ -385,8 +389,10 @@ class CustomServiceOrchestrator():
     decompressedMap[self.RACKS_KEY] = racks
     #Add ips list to result
     decompressedMap[self.IPV4_ADDRESSES_KEY] = ipv4_addresses
-    #Add ambari-server host to result
+    #Add ambari-server properties to result
     decompressedMap[self.AMBARI_SERVER_HOST] = ambariServerHost
+    decompressedMap[self.AMBARI_SERVER_PORT] = ambariServerPort
+    decompressedMap[self.AMBARI_SERVER_USE_SSL] = ambariServerUseSsl
 
     return decompressedMap
 

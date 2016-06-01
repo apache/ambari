@@ -248,6 +248,8 @@ public class AmbariManagementControllerTest {
     controller = injector.getInstance(AmbariManagementController.class);
     TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
+    Configuration configuration = injector.getInstance(Configuration.class);
+    StageUtils.setConfiguration(configuration);
     ActionManager.setTopologyManager(topologyManager);
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());

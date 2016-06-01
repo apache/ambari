@@ -166,11 +166,13 @@ public class LogsearchExternalServerAuthenticationProvider extends
     String allowedRoleList[] = PropertiesUtil
         .getPropertyStringList(ALLOWED_ROLE_PROP);
 
+    List<String> values = new ArrayList<String>();
+    jsonUtil.getValuesOfKey(responseJson,
+        PRIVILEGE_INFO.PERMISSION_NAME.toString(), values);
+    if (values.isEmpty())
+      return true;
+    
     if (allowedRoleList.length > 0 && responseJson != null) {
-      List<String> values = new ArrayList<String>();
-      jsonUtil.getValuesOfKey(responseJson,
-          PRIVILEGE_INFO.PERMISSION_NAME.toString(), values);
-
       for (String allowedRole : allowedRoleList) {
         for (String role : values) {
           if (role.equals(allowedRole)) {

@@ -275,7 +275,10 @@
         "logsearch.collection.audit.logs.numshards": "10",
         "logsearch.collection.audit.logs.replication.factor": "1",
         "logsearch.app.max.memory": "1g",
-        "logsearch.solr.metrics.collector.hosts" : "{metrics_collector_hosts}"
+        "logsearch.solr.metrics.collector.hosts" : "{metrics_collector_hosts}",
+        "logsearch.external.auth.enabled" : "false",
+        "logsearch.external.auth.host_url" : "{ambari_server_auth_host_url}",
+        "logsearch.external.auth.login_url" : "/api/v1/users/$USERNAME/privileges?fields=*"
       },
       "logfeeder-properties": {
         "logfeeder.metrics.collector.hosts" : "{metrics_collector_hosts}",
@@ -381,6 +384,12 @@
     "clusterHostInfo": {
       "ambari_server_host": [
         "c6401.ambari.apache.org"
+      ],
+      "ambari_server_port": [
+        "8080"
+      ],
+      "ambari_server_use_ssl": [
+        "false"
       ],
       "all_ping_ports": [
         "8670",

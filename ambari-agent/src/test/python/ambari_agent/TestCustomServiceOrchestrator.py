@@ -163,6 +163,8 @@ class TestCustomServiceOrchestrator(TestCase):
                          'slave_hosts'   : ['0', '1'],
                          'all_racks'   : [u'/default-rack:0'],
                          'ambari_server_host' : 'a.b.c',
+                         'ambari_server_port' : '123',
+                         'ambari_server_use_ssl' : 'false',
                          'all_ipv4_ips'   : [u'192.168.12.101:0'],
                          'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
                          'all_ping_ports': ['8670:0,1']},

@@ -103,7 +103,8 @@ public class BackgroundCustomCommandExecutionTest {
     Assert.assertEquals("src/main/resources/custom_action_definitions", configuration.getCustomActionDefinitionPath());
 
     StageUtils.setTopologyManager(topologyManager);
-
+    StageUtils.setConfiguration(configuration);
+    
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
     // Set the authenticated user

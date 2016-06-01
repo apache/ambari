@@ -889,6 +889,7 @@ public class AmbariServer {
     StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
     WorkflowJsonService.setDBProperties(
       injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));

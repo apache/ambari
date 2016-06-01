@@ -34,6 +34,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -141,6 +142,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   private final KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory = createStrictMock(KerberosConfigDataFileWriterFactory.class);
   private final AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
   private final TopologyManager topologyManager = createMock(TopologyManager.class);
+  private final Configuration configuration = createMock(Configuration.class);
 
   @Before
   public void setUp() throws Exception {
@@ -229,6 +231,10 @@ public class KerberosHelperTest extends EasyMockSupport {
     StageUtils.setTopologyManager(topologyManager);
     expect(topologyManager.getPendingHostComponents()).andReturn(
         Collections.<String, Collection<String>>emptyMap()).anyTimes();
+    
+    StageUtils.setConfiguration(configuration);
+    expect(configuration.getApiSSLAuthentication()).andReturn(false).anyTimes();
+    expect(configuration.getClientApiPort()).andReturn(8080).anyTimes();
 
     CredentialStoreService credentialStoreService = injector.getInstance(CredentialStoreService.class);
     if (!credentialStoreService.isInitialized(CredentialStoreType.TEMPORARY)) {
