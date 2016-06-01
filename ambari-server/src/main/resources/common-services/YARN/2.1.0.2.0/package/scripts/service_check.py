@@ -19,7 +19,6 @@ Ambari Agent
 
 """
 
-from resource_management import *
 import sys
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import re
@@ -27,9 +26,14 @@ import subprocess
 from ambari_commons import os_utils
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.constants import StackFeature
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import StaticFile
+from resource_management.core import shell
 
 CURL_CONNECTION_TIMEOUT = '5'
 

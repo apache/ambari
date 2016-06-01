@@ -25,6 +25,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.format import format
 
 
 def post_upgrade_check():

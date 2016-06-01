@@ -20,7 +20,11 @@ Ambari Agent
 """
 
 import sys
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.libraries.functions.format import format
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.source import StaticFile
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 

@@ -19,15 +19,18 @@ Ambari Agent
 
 """
 
-from resource_management import *
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties,\
   FILE_TYPE_XML
 from resource_management.libraries.functions.format import format
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+
 from yarn import yarn
 from service import service
 from ambari_commons import OSConst
@@ -80,7 +83,7 @@ class ApplicationTimelineServerDefault(ApplicationTimelineServer):
     env.set_params(status_params)
     Execute(format("mv {yarn_historyserver_pid_file_old} {yarn_historyserver_pid_file}"),
             only_if = format("test -e {yarn_historyserver_pid_file_old}", user=status_params.yarn_user))
-    functions.check_process_status(status_params.yarn_historyserver_pid_file)
+    check_process_status(status_params.yarn_historyserver_pid_file)
 
   def security_status(self, env):
     import status_params

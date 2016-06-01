@@ -30,8 +30,7 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.libraries.resources.xml_config import XmlConfig
-from resource_management.core.source import InlineTemplate
-from resource_management.core.source import Template
+from resource_management.core.source import InlineTemplate, Template
 from resource_management.core.logger import Logger
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst

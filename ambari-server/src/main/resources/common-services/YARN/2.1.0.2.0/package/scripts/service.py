@@ -19,11 +19,12 @@ Ambari Agent
 
 """
 
-from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.core.shell import as_user
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.format import format
+from resource_management.core.resources.system import Execute, File
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def service(componentName, action='start', serviceName='yarn'):
