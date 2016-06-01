@@ -411,11 +411,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         continue;
       }
 
-      // backing VDF does not define the package version, cannot install (allows a VDF with package-version)
-      if (null == desiredVersionDefinition.release.packageVersion) {
-        String msg = String.format("Ambari cannot install version %s.  Version %s is already installed.",
-          desiredRepoVersion, clusterRepoVersion.getVersion());
-        throw new IllegalArgumentException(msg);
+      // backing VDF does not define the package version for any of the hosts, cannot install (allows a VDF with package-version)
+      for (Host host : hosts) {
+        if (StringUtils.isBlank(desiredVersionDefinition.getPackageVersion(host.getOsFamily()))) {
+          String msg = String.format("Ambari cannot install version %s.  Version %s is already installed.",
+            desiredRepoVersion, clusterRepoVersion.getVersion());
+          throw new IllegalArgumentException(msg);
+        }
       }
     }
 
@@ -635,8 +637,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           repoVersion.getVersion()));
     }
 
-    if (null != xml && StringUtils.isNotBlank(xml.release.packageVersion)) {
-      params.put(KeyNames.PACKAGE_VERSION, xml.release.packageVersion);
+    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
+      params.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
     }
 
 

@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.repository.AvailableVersion.Component;
 import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -101,13 +102,16 @@ public class VersionDefinitionXml {
   public String xsdLocation;
 
   @XmlTransient
-  private Map<String, AvailableService> availableMap;
+  private Map<String, AvailableService> m_availableMap;
 
   @XmlTransient
   private List<ManifestServiceInfo> m_manifest = null;
 
   @XmlTransient
   private boolean m_stackDefault = false;
+
+  @XmlTransient
+  private Map<String, String> m_packageVersions = null;
 
 
   /**
@@ -117,9 +121,9 @@ public class VersionDefinitionXml {
    * are specified as "available".
    */
   public Collection<AvailableService> getAvailableServices(StackInfo stack) {
-    if (null == availableMap) {
+    if (null == m_availableMap) {
       Map<String, ManifestService> manifests = buildManifest();
-      availableMap = new HashMap<>();
+      m_availableMap = new HashMap<>();
 
       if (availableServices.isEmpty()) {
         for (ManifestService ms : manifests.values()) {
@@ -135,7 +139,7 @@ public class VersionDefinitionXml {
       }
     }
 
-    return availableMap.values();
+    return m_availableMap.values();
   }
 
   /**
@@ -183,6 +187,24 @@ public class VersionDefinitionXml {
     return m_manifest;
   }
 
+  /**
+   * Gets the package version for an OS family
+   * @param osFamily  the os family
+   * @return the package version, or {@code null} if not found
+   */
+  public String getPackageVersion(String osFamily) {
+    if (null == m_packageVersions) {
+      m_packageVersions = new HashMap<>();
+
+      for (Os os : repositoryInfo.getOses()) {
+        m_packageVersions.put(os.getFamily(), os.getPackageVersion());
+      }
+    }
+
+    return m_packageVersions.get(osFamily);
+  }
+
+
 
   /**
    * Helper method to use a {@link ManifestService} to generate the available services structure
@@ -193,13 +215,13 @@ public class VersionDefinitionXml {
   private void addToAvailable(ManifestService ms, StackInfo stack, Set<String> components) {
     ServiceInfo service = stack.getService(ms.serviceName);
 
-    if (!availableMap.containsKey(ms.serviceName)) {
+    if (!m_availableMap.containsKey(ms.serviceName)) {
       String display = (null == service) ? ms.serviceName: service.getDisplayName();
 
-      availableMap.put(ms.serviceName, new AvailableService(ms.serviceName, display));
+      m_availableMap.put(ms.serviceName, new AvailableService(ms.serviceName, display));
     }
 
-    AvailableService as = availableMap.get(ms.serviceName);
+    AvailableService as = m_availableMap.get(ms.serviceName);
     as.getVersions().add(new AvailableVersion(ms.version, ms.versionId,
         buildComponents(service, components)));
   }
@@ -263,8 +285,6 @@ public class VersionDefinitionXml {
       IOUtils.closeQuietly(xsdStream);
     }
   }
-
-
 
   /**
    * Parses a URL for a definition XML file into the object graph.
@@ -401,7 +421,6 @@ public class VersionDefinitionXml {
         m_xml.release.build = null; // could be combining builds, so this is invalid
         m_xml.release.compatibleWith = xml.release.compatibleWith;
         m_xml.release.display = stackId.getStackName() + "-" + xml.release.version;
-        m_xml.release.packageVersion = null; // could be combining, so this is invalid
         m_xml.release.repositoryType = RepositoryType.STANDARD; // assumption since merging only done for new installs
         m_xml.release.releaseNotes = xml.release.releaseNotes;
         m_xml.release.stackId = xml.release.stackId;

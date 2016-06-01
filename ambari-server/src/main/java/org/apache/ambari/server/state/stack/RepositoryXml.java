@@ -106,6 +106,9 @@ public class RepositoryXml implements Validable{
     @XmlAttribute(name="family")
     private String family;
 
+    @XmlElement(name="package-version")
+    private String packageVersion;
+
     @XmlElement(name="repo")
     private List<Repo> repos;
 
@@ -124,6 +127,13 @@ public class RepositoryXml implements Validable{
      */
     public List<Repo> getRepos() {
       return repos;
+    }
+
+    /**
+     * @return the package version, or {@code null} if not defined
+     */
+    public String getPackageVersion() {
+      return packageVersion;
     }
   }
 

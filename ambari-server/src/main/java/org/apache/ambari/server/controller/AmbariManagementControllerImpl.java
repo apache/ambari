@@ -2229,8 +2229,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (null != repoVersion) {
       try {
         VersionDefinitionXml xml = repoVersion.getRepositoryXml();
-        if (null != xml && !StringUtils.isBlank(xml.release.packageVersion)) {
-          hostParams.put(PACKAGE_VERSION, xml.release.packageVersion);
+        if (null != xml && !StringUtils.isBlank(xml.getPackageVersion(osFamily))) {
+          hostParams.put(PACKAGE_VERSION, xml.getPackageVersion(osFamily));
         }
       } catch (Exception e) {
         throw new AmbariException(String.format("Could not load version xml from repo version %s",
