@@ -76,7 +76,7 @@
   {{! left tabs end }}
 
   {{! Public Repository radio }}
-  <label class="radio big-radio">
+  <label {{bindAttr class=":radio :big-radio :public-radio networkIssuesExist:disabled"}}>
     {{view view.usePublicRepoRadioButton}} {{t installer.step1.selectUseRepoOptions.public}}
     {{#if networkIssuesExist}}
       <a id="public-disabled-link" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>

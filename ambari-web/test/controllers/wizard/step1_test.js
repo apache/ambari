@@ -59,7 +59,7 @@ var stacks = [
 ];
 
 function getController() {
-  return App.WizardStep1Controller.create({content: Em.Object.create({stacks: stacks})});
+  return App.WizardStep1Controller.create({content: Em.Object.create({stacks: stacks}), onNetworkIssuesExist: Em.K});
 }
 
 describe('App.WizardStep1Controller', function () {

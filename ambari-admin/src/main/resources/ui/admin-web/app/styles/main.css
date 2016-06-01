@@ -1607,6 +1607,12 @@ thead.view-permission-header > tr > th {
 #upload-definition-file-panel .dropdown-menu li a {
   cursor: pointer;
 }
+
+#upload-definition-file-panel .disabled span {
+  opacity: 0.7;
+  cursor: default;
+}
+
 .register-version-options {
   padding-left: 25px;
 }

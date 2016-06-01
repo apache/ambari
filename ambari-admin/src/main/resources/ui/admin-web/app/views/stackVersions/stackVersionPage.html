@@ -99,9 +99,9 @@
 
 <div id="upload-definition-file-panel" ng-if="createController">
 
-  <div class="col-sm-12 big-radio clearfix">
+  <div class="col-sm-12 big-radio clearfix" ng-class="{'disabled' : networkLost || useRedhatSatellite}">
     <input type="radio" ng-model="selectedOption.index" value="1" ng-change="togglePublicLocalOptionSelect()" ng-disabled="networkLost || useRedhatSatellite">
-    {{'versions.usePublic' | translate}}
+    <span>{{'versions.usePublic' | translate}}</span>
     <a id="public-disabled-link" href="javascript:void(0);" ng-if="networkLost" ng-click="showPublicRepoDisabledDialog()">{{'versions.networkIssues.networkLost'| translate}}</a>
   </div>
   <div class="col-sm-12 big-radio clearfix">
