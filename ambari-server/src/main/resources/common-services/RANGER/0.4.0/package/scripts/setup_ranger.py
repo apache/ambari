@@ -20,8 +20,15 @@ limitations under the License.
 import sys
 import fileinput
 import os
-from resource_management import *
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.resources.modify_properties_file import ModifyPropertiesFile
+from resource_management.core.source import DownloadSource
 from resource_management.core.logger import Logger
+from resource_management.core.shell import as_sudo
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Directory, Execute, File
+
 
 def ranger(name=None, upgrade_type=None):
   if name == 'ranger_admin':
