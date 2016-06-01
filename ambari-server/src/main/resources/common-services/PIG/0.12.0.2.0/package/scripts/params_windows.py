@@ -18,7 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
-from resource_management import *
+from resource_management.libraries.script.script import Script
 
 # server configurations
 config = Script.get_config()
