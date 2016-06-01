@@ -346,14 +346,14 @@ class ActionQueue(threading.Thread):
         if roleResult['stdout'] != '':
             logger.info("Begin command output log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
-            self.log_command_output(roleResult['stdout'])
+            self.log_command_output(roleResult['stdout'], str(command['taskId']))
             logger.info("End command output log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
 
         if roleResult['stderr'] != '':
             logger.info("Begin command stderr log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
-            self.log_command_output(roleResult['stderr'])
+            self.log_command_output(roleResult['stderr'], str(command['taskId']))
             logger.info("End command stderr log for command with id = " + str(command['taskId']) + ", role = "
                         + command['role'] + ", roleCommand = " + command['roleCommand'])
 
@@ -427,7 +427,7 @@ class ActionQueue(threading.Thread):
 
     self.commandStatuses.put_command_status(command, roleResult)
 
-  def log_command_output(self, text):
+  def log_command_output(self, text, taskId):
     """
     Logs a message as multiple enumerated log messages every of which is not larger than MAX_SYMBOLS_PER_LOG_MESSAGE.
 
@@ -437,9 +437,9 @@ class ActionQueue(threading.Thread):
     chunks = split_on_chunks(text, MAX_SYMBOLS_PER_LOG_MESSAGE)
     if len(chunks) > 1:
       for i in range(len(chunks)):
-        logger.info("Chunk {0}/{1} of log for command: \n".format(i+1, len(chunks)) + chunks[i])
+        logger.info("Cmd log for taskId={0} and chunk {1}/{2} of log for command: \n".format(taskId, i+1, len(chunks)) + chunks[i])
     else:
-      logger.info(text)
+      logger.info("Cmd log for taskId={0}: ".format(taskId), text)
 
   def get_retry_delay(self, last_delay):
     """
