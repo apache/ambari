@@ -26,7 +26,6 @@ import java.util.TreeMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class TimelineMetricsCacheTest {
 
@@ -76,8 +75,8 @@ public class TimelineMetricsCacheTest {
   }
 
   @Test
-  public void testMaxRecsPerNameForTimelineMetricWrapperCache() throws Exception {
-    int maxRecsPerName = 3;
+  public void testMaxRecsPerName() throws Exception {
+    int maxRecsPerName = 2;
     int maxEvictionTime = TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS ;
     TimelineMetricsCache timelineMetricsCache =
       new TimelineMetricsCache(maxRecsPerName, maxEvictionTime);
@@ -123,21 +122,6 @@ public class TimelineMetricsCacheTest {
     assertEquals("1 metric value should have been removed", 3, cachedMetric.getMetricValues().size());
     // first metric value was removed, starttime == second metric value starttime
     assertEquals(DEFAULT_START_TIME + maxEvictionTime * 2, cachedMetric.getStartTime());
-  }
-
-  @Test
-  public void testEvictionTimeForTimelineMetricWrapperCache() {
-    int maxEvictionTime = 10;
-    TimelineMetricsCache timelineMetricsCache =
-            new TimelineMetricsCache(TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT, maxEvictionTime);
-    int numberOfMetricsInserted = 1000;
-    for (int i = 0; i < numberOfMetricsInserted; i++) {
-      timelineMetricsCache.putTimelineMetric(
-              createTimelineMetricSingleValue(DEFAULT_START_TIME + maxEvictionTime * i));
-    }
-    TimelineMetric cachedMetric = timelineMetricsCache.getTimelineMetric(METRIC_NAME);
-    assertNotNull(cachedMetric);
-    assertTrue("Some metric values should have been removed", cachedMetric.getMetricValues().size() < numberOfMetricsInserted);
   }
 
   private TimelineMetric createTimelineMetricSingleValue(final long startTime) {
