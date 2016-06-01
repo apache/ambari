@@ -185,7 +185,13 @@ App.WizardStep1Controller = Em.Controller.extend({
    */
   onNetworkIssuesExist: function() {
     if (this.get('networkIssuesExist')) {
-      this.useLocalRepo();
+      this.get('content.stacks').forEach(function (stack) {
+        stack.setProperties({
+          usePublicRepo: false,
+          useLocalRepo: true
+        });
+        stack.cleanReposBaseUrls();
+      });
     }
   }.observes('networkIssuesExist'),
 
@@ -282,7 +288,7 @@ App.WizardStep1Controller = Em.Controller.extend({
 
       controller: this,
 
-      header: Em.I18n.t('installer.step1.changeVersion.title'),
+      header: Em.I18n.t('installer.step1.addVersion.title'),
 
       primary: Em.I18n.t('installer.step1.useLocalRepo.readButton'),
 
