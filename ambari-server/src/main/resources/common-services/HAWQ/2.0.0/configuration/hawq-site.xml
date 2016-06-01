@@ -180,10 +180,10 @@
   <property>
     <name>hawq_rm_memory_limit_perseg</name>
     <display-name>Segment Memory Usage Limit</display-name>
-    <value>64GB</value>
+    <value>67108864KB</value>
     <description>
       The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
-      The default is 64GB.
+      Its value depends on vm.overcommit_memory, vm.overcommit_ratio and system memory on HAWQ hosts.
     </description>
     <depends-on>
       <property>

@@ -347,7 +347,6 @@
       1: Always overcommit
       2: Don't overcommit.
       For production environments, the value of 2 is recommended and means that processes will not be killed but will receive errors upon memory allocation.
-      The default value is 1.
     </description>
     <value-attributes>
       <type>int</type>
@@ -361,7 +360,7 @@
   <property>
     <name>vm.overcommit_ratio</name>
     <display-name>VM Overcommit Ratio</display-name>
-    <value/>
+    <value>50</value>
     <description>
       When overcommit_memory is set to 2, the committed address space is not permitted to exceed swap plus this percentage of physical RAM.
       Default is 50.
