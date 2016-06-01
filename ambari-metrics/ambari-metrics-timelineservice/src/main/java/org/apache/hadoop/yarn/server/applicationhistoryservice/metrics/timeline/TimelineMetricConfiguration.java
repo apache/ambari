@@ -231,14 +231,8 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED =
     "timeline.metrics.cluster.aggregator.interpolation.enabled";
 
-  public static final String TIMELINE_METRICS_PRECISION_TABLE_DURABILITY =
-    "timeline.metrics.precision.table.durability";
-
-  public static final String TIMELINE_METRICS_AGGREGATE_TABLES_DURABILITY =
-      "timeline.metrics.aggregate.tables.durability";
-
-  public static final String TIMELINE_METRICS_WHITELIST_FILE =
-    "timeline.metrics.whitelist.file";
+  public static final String TIMELINE_METRICS_TABLES_DURABILITY =
+    "timeline.metrics.tables.durability";
 
   public static final String HBASE_BLOCKING_STORE_FILES =
     "hbase.hstore.blockingStoreFiles";

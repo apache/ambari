@@ -97,14 +97,12 @@ public abstract class AbstractTimelineMetricsSink {
       connection.setDoOutput(true);
 
       if (jsonData != null) {
-        LOG.info(jsonData);
         try (OutputStream os = connection.getOutputStream()) {
           os.write(jsonData.getBytes("UTF-8"));
         }
       }
 
       int statusCode = connection.getResponseCode();
-      LOG.info("statusCode:" + statusCode);
 
       if (statusCode != 200) {
         LOG.info("Unable to POST metrics to collector, " + connectUrl + ", " +
@@ -119,7 +117,6 @@ public abstract class AbstractTimelineMetricsSink {
       failedCollectorConnectionsCounter.set(0);
       return true;
     } catch (IOException ioe) {
-      LOG.info(ioe.getMessage());
       StringBuilder errorMessage =
           new StringBuilder("Unable to connect to collector, " + connectUrl + "\n"
                   + "This exceptions will be ignored for next " + NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS + " times\n");
