@@ -141,7 +141,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       },
       "hawq-site": {
         "properties": {
-          "hawq_rm_memory_limit_perseg": "64GB"
+          "hawq_rm_memory_limit_perseg": "67108864KB"
         }
       }
     }
@@ -211,13 +211,12 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     ## Test if vm.overcommit_memory is set correctly
 
     # Case 1: All machines have total_mem above 32GB (total_mem >= 33554432)
-    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = ''
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "2")
 
     # Case 2: One machine has total_mem below 32GB
     hosts["items"][0]["Hosts"]["total_mem"] = 33554431
-    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = ''
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] = "67108864KB"
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
 
@@ -238,8 +237,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hosts["items"][0]["Hosts"]["total_mem"] = 67108864
     hosts["items"][1]["Hosts"]["total_mem"] = 77108864
     hosts["items"][3]["Hosts"]["total_mem"] = 87108864
-    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = 50
-    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"] = 2
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] = "67108864KB"
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "24GB")
 
@@ -257,13 +255,11 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "436GB")
 
-
     # Case 6: Minimum host memory is ~ 1024 GB, vm.overcommit_ratio = 75, vm.overcommit_memory = 2
     # recommended val must be .95% of (1024*75)/100 and in GB
     hosts["items"][0]["Hosts"]["total_mem"] = 1073741824
     hosts["items"][1]["Hosts"]["total_mem"] = 2073741824
     hosts["items"][3]["Hosts"]["total_mem"] = 3073741824
     services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = 75
-    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"] = 2
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "730GB")

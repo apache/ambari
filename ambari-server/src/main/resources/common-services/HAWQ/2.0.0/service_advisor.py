@@ -174,18 +174,20 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           if hs_prop in hawq_site and ys_prop in yarn_site:
             putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
 
-    # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
     if "hawq-sysctl-env" in services["configurations"] and "vm.overcommit_memory" in services["configurations"]["hawq-sysctl-env"]["properties"]:
       MEM_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
       # Set the value for hawq_rm_memory_limit_perseg based on vm.overcommit value and RAM available on HAWQ Hosts
-      # Available RAM Formula = SWAP + RAM * vm.overcommit_ratio / 100. (SWAP not considered for recommendation here)
-      # Default value of vm.overcommit_ratio from configuration is '', so first time during install it will be blank, for subsequent calls it will have the recommended value.
-      if "vm.overcommit_ratio" in services["configurations"]["hawq-sysctl-env"]["properties"] and len(str(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"])) > 0:
+      # If value of hawq_rm_memory_limit_perseg is 67108864KB, it indicates hawq is being added and recommendation
+      # has not be made yet, since after recommendation it will be in GB in case its 67108864KB.
+      if "vm.overcommit_ratio" in services["configurations"]["hawq-sysctl-env"]["properties"]:
         vm_overcommit_ratio = int(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"])
-        vm_overcommit_mem_value = int(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"])
       else:
         vm_overcommit_ratio = 50
+      if "hawq_rm_memory_limit_perseg" in services["configurations"]["hawq-site"]["properties"] and services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] == "67108864KB":
         vm_overcommit_mem_value = 2 if minHawqHostsMemory >= MEM_THRESHOLD else 1
+      else:
+        # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
+        vm_overcommit_mem_value = int(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"])
       host_ram_kb = minHawqHostsMemory * vm_overcommit_ratio / 100 if vm_overcommit_mem_value == 2 else minHawqHostsMemory
       host_ram_gb = float(host_ram_kb) / (1024 * 1024)
       recommended_mem_percentage = {
