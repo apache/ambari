@@ -18,12 +18,25 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
  */
 public class AggregatorUtils {
+
+  public static Set<String> whitelistedMetrics = new HashSet<String>();
+  private static final Log LOG = LogFactory.getLog(AggregatorUtils.class);
 
   public static double[] calculateAggregates(Map<Long, Double> metricValues) {
     double[] values = new double[4];
@@ -54,6 +67,34 @@ public class AggregatorUtils {
     values[3] = metricCount;
 
     return values;
+  }
+
+  public static void populateMetricWhitelistFromFile(String whitelistFile) {
+
+    FileInputStream fstream = null;
+    BufferedReader br = null;
+    String strLine;
+
+    try {
+      fstream = new FileInputStream(whitelistFile);
+      br = new BufferedReader(new InputStreamReader(fstream));
+
+      while ((strLine = br.readLine()) != null)   {
+        strLine = strLine.trim();
+        whitelistedMetrics.add(strLine);
+      }
+    } catch (IOException ioEx) {
+      LOG.error("Unable to parse metric whitelist file");
+      if (br != null) {
+        try {
+          br.close();
+        } catch (IOException e) {
+          LOG.error("Unable to close whitelist file reader");
+        }
+      }
+    }
+    LOG.info("Whitelisting " + whitelistedMetrics.size() + " metrics");
+    LOG.debug("Whitelisted metrics : " + Arrays.toString(whitelistedMetrics.toArray()));
   }
 
 }
