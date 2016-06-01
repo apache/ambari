@@ -24,7 +24,7 @@ require('views/wizard/step5_view');
 
 App.AssignMasterOnStep7View = App.AssignMasterComponentsView.extend({
 
-  showTitle: false, 
+  showTitle: false,
 
   acceptButtonText: Em.I18n.t('common.select'),
 
