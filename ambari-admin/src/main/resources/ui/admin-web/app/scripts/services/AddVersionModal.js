@@ -140,10 +140,17 @@ angular.module('ambariAdminConsole')
                   parentScope.setStackIdActive(stack);
                 }
               });
-              angular.forEach(parentScope.allVersions, function(version) {
-                version.visible = (version.stackNameVersion === response.stackNameVersion);
-              });
               parentScope.allVersions.push(response);
+              angular.forEach(parentScope.allVersions, function(version) {
+                var isPublicVersionsExist = false;
+                // If public VDF exists for a stack then default base stack version should be hidden
+                if (version.stackDefault) {
+                  isPublicVersionsExist = parentScope.allVersions.find(function(_version){
+                    return (version.stackNameVersion === _version.stackNameVersion && !_version.stackDefault);
+                  });
+                }
+                version.visible = (version.stackNameVersion === response.stackNameVersion) && !isPublicVersionsExist;
+              });
               parentScope.activeStackVersion = response;
               parentScope.selectedPublicRepoVersion = response;
               parentScope.setVersionSelected(response);
