@@ -597,7 +597,8 @@ App.Router = Em.Router.extend({
         name: 'router.logoff',
         sender: this,
         success: 'logOffSuccessCallback',
-        error: 'logOffErrorCallback'
+        error: 'logOffErrorCallback',
+        beforeSend: 'logOffBeforeSend'
       }).complete(function() {
         self.logoffRedirect(context);
       });
@@ -615,16 +616,21 @@ App.Router = Em.Router.extend({
 
   },
 
+  logOffBeforeSend: function(opt, xhr) {
+    xhr.setRequestHeader('Authorization', '');
+  },
+
   /**
    * Redirect function on sign off request.
    *
    * @param {$.Event} [context=undefined] - triggered event context
    */
   logoffRedirect: function(context) {
+    this.transitionTo('login', context);
     if (App.router.get('clusterController.isLoaded')) {
-      window.location.reload();
-    } else {
-      this.transitionTo('login', context);
+      Em.run.next(function() {
+        window.location.reload();
+      });
     }
   },
 
