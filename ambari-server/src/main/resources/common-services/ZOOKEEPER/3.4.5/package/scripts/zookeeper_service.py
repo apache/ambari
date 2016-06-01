@@ -20,15 +20,16 @@ Ambari Agent
 """
 
 import os
-from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.version import compare_versions, format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.service import Service
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def zookeeper_service(action='start', upgrade_type=None):

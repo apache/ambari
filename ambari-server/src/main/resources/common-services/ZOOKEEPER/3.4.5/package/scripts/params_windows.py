@@ -19,7 +19,8 @@ Ambari Agent
 
 """
 from ambari_commons.str_utils import ensure_double_backslashes
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import is_empty
 import status_params
 
 # server configurations
