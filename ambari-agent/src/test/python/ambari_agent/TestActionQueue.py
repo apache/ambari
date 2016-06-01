@@ -338,13 +338,14 @@ class TestActionQueue(TestCase):
     actionQueue.process_command(execution_command)
     self.assertTrue(log_exc_mock.called)
 
+  @patch.object(ActionQueue, "log_command_output")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(CustomServiceOrchestrator, "runCommand")
   @patch("CommandStatusDict.CommandStatusDict")
   @patch.object(ActionQueue, "status_update_callback")
   def test_log_execution_commands(self, status_update_callback_mock,
                                   command_status_dict_mock,
-                                  cso_runCommand_mock):
+                                  cso_runCommand_mock, mock_log_command_output):
     custom_service_orchestrator_execution_result_dict = {
         'stdout': 'out',
         'stderr': 'stderr',
@@ -377,6 +378,7 @@ class TestActionQueue(TestCase):
                 'customCommand': 'RESTART',
                 'exitCode': 0}
     # Agent caches configurationTags if custom_command RESTART completed
+    mock_log_command_output.assert_has_calls([call("out\n\nCommand completed successfully!\n", "9"), call("stderr", "9")], any_order=True)
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(expected, report['reports'][0])
 
