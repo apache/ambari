@@ -19,16 +19,29 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
+    <link rel="stylesheet" href="/stylesheets/vendor.css">
 </head>
 <body>
+
+<div class="container-fluid" id="messageContainer" style="display:none;">
+    <h1>Welcome to the Zeppelin View</h1>
+    <h3>Service check failed</h3>
+
+    <table class="table">
+        <tbody>
+        <tr>
+            <td>zeppelin service is not running</td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
 
 <iframe id='zeppelinIFrame' width="100%" seamless="seamless" style="border: 0px;"></iframe>
 <script>
     var $ = jQuery = parent.jQuery;
     var iframe = document.querySelector('#zeppelinIFrame');
     var port = "${port}";
-    var publicName = "${publicname}";
-
 
     $.getJSON('/api/v1/clusters', function (data) {
         $.getJSON('/api/v1/clusters/' +
@@ -39,8 +52,7 @@
                         for (var j = 0; j < data['items'][i]['host_components'].length; j++) {
                             if (data['items'][i]['host_components'][j]['HostRoles']['component_name'] == 'ZEPPELIN_MASTER') {
                                 var url = '//' + data['items'][i]['host_components'][j]['HostRoles']['host_name'] + ':' + port;
-                                iframe.src = url;
-                                iframe.height = window.innerHeight;
+                                validateAndLoadZeppelinUI(iframe, url);
                                 return;
                             }
                         }
@@ -51,6 +63,22 @@
     $(window).resize(function () {
         iframe.height = window.innerHeight;
     });
+
+    function validateAndLoadZeppelinUI(iframe, url) {
+        $.get(location.href + "zeppelin-service-check?url=" + url, function (response) {
+            if (response.status === "SUCCESS") {
+                messageContainer.style.display = "none";
+                iframe.style.display = "block";
+                iframe.src = url;
+                iframe.height = window.innerHeight;
+            } else {
+                messageContainer.style.display = "block";
+                iframe.style.display = "none";
+            }
+        });
+
+
+    }
 </script>
 </body>
 </html>

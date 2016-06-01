@@ -27,6 +27,16 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     This is the Zeppelin view servlet application.
   </description>
   <servlet>
+    <servlet-name>ZeppelinServiceCheck</servlet-name>
+    <servlet-class>org.apache.ambari.view.zeppelin.ZeppelinServiceCheck</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ZeppelinServiceCheck</servlet-name>
+    <url-pattern>/zeppelin-service-check</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>ZeppelinServlet</servlet-name>
     <servlet-class>org.apache.ambari.view.zeppelin.ZeppelinServlet</servlet-class>
   </servlet>
@@ -35,4 +45,5 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <servlet-name>ZeppelinServlet</servlet-name>
     <url-pattern>/</url-pattern>
   </servlet-mapping>
+
 </web-app>
