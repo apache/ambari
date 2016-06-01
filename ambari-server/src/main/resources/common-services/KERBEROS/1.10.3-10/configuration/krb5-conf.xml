@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration>
   <property require-input="false">
     <name>domains</name>
@@ -32,8 +31,9 @@
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>manage_krb5_conf</name>
     <display-name>Manage Kerberos client krb5.conf</display-name>
@@ -45,8 +45,9 @@
       <overridable>false</overridable>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>conf_dir</name>
     <display-name>krb5-conf directory path</display-name>
@@ -56,6 +57,8 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>content</name>
@@ -85,9 +88,9 @@
 
 [realms]
   {{realm}} = {
-{%- if kdc_hosts > 0 -%}
+{%- if kdc_hosts &gt; 0 -%}
 {%- set kdc_host_list = kdc_hosts.split(',')  -%}
-{%- if kdc_host_list and kdc_host_list|length > 0 %}
+{%- if kdc_host_list and kdc_host_list|length &gt; 0 %}
     admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}
 {%- if kdc_host_list -%}
 {% for kdc_host in kdc_host_list %}
@@ -104,5 +107,7 @@
       <type>content</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

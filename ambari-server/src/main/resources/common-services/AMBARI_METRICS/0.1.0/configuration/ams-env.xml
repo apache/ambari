@@ -17,7 +17,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>ambari_metrics_user</name>
@@ -29,6 +28,8 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_collector_log_dir</name>
@@ -38,6 +39,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_collector_pid_dir</name>
@@ -47,6 +50,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_monitor_pid_dir</name>
@@ -56,6 +61,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_monitor_log_dir</name>
@@ -65,6 +72,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_collector_heapsize</name>
@@ -74,6 +83,8 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>content</name>
@@ -128,6 +139,7 @@ export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS"
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

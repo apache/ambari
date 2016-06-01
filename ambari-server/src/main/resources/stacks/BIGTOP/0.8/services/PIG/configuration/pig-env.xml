@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <!-- pig-env.sh -->
   <property>
@@ -36,6 +35,7 @@ fi
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  
 </configuration>

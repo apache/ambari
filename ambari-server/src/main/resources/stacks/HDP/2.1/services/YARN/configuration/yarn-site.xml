@@ -16,10 +16,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <!-- Put site-specific property overrides in this file. -->
-
-<configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
   <property>
     <name>yarn.timeline-service.enabled</name>
     <value>true</value>
@@ -29,24 +27,27 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.timeline-service.store-class</name>
     <value>org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore</value>
     <description>
       Store class name for timeline store
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.timeline-service.generic-application-history.store-class</name>
     <value>org.apache.hadoop.yarn.server.applicationhistoryservice.NullApplicationHistoryStore</value>
     <description>
       Store class name for history store, defaulting to file system store
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.timeline-service.leveldb-timeline-store.path</name>
     <value>/var/log/hadoop-yarn/timeline</value>
@@ -56,8 +57,9 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.timeline-service.webapp.address</name>
     <value>localhost:8188</value>
@@ -65,8 +67,9 @@
     <description>
       The http address of the timeline service web application.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.timeline-service.webapp.https.address</name>
     <value>localhost:8190</value>
@@ -74,8 +77,9 @@
     <description>
       The http address of the timeline service web application.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.timeline-service.address</name>
     <value>localhost:10200</value>
@@ -84,6 +88,8 @@
       This is default address for the timeline server to start
       the RPC server.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <description>Enable age off of timeline store data.</description>
@@ -92,6 +98,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <description>Time to live for timeline store data in milliseconds.</description>
@@ -100,6 +108,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <description>Length of time to wait between deletion cycles of leveldb timeline store in milliseconds.</description>
@@ -108,5 +118,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

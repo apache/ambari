@@ -16,9 +16,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
 <configuration supports_final="true">
-
   <property>
     <name>oozie.service.coord.check.maximum.frequency</name>
     <value>false</value>
@@ -27,6 +25,8 @@
       this check or submit coordinators with frequencies faster than 5 minutes: doing so can cause unintended behavior and
       additional system stress.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>oozie.services</name>
@@ -71,13 +71,15 @@
       All services to be created and managed by Oozie Services singleton.
       Class names must be separated by commas.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>oozie.service.SchemaService.wf.ext.schemas</name>
     <value>shell-action-0.1.xsd,shell-action-0.2.xsd,shell-action-0.3.xsd,email-action-0.1.xsd,email-action-0.2.xsd,hive-action-0.2.xsd,hive-action-0.3.xsd,hive-action-0.4.xsd,hive-action-0.5.xsd,sqoop-action-0.2.xsd,sqoop-action-0.3.xsd,sqoop-action-0.4.xsd,ssh-action-0.1.xsd,ssh-action-0.2.xsd,distcp-action-0.1.xsd,distcp-action-0.2.xsd,oozie-sla-0.1.xsd,oozie-sla-0.2.xsd</value>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>oozie.service.AuthorizationService.security.enabled</name>
     <value>true</value>
@@ -85,16 +87,18 @@
       Specifies whether security (user name/admin role) is enabled or not.
       If disabled any user can manage Oozie system and manage any job.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>oozie.service.HadoopAccessorService.kerberos.enabled</name>
     <value>false</value>
     <description>
       Indicates if Oozie is configured to use Kerberos.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>oozie.authentication.simple.anonymous.allowed</name>
     <value>true</value>
@@ -102,6 +106,7 @@
       Indicates if anonymous requests are allowed.
       This setting is meaningful only when using 'simple' authentication.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

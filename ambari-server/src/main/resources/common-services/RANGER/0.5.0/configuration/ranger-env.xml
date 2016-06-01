@@ -19,13 +19,13 @@
  */
 -->
 <configuration supports_final="true" supports_adding_forbidden="true">
-
   <property>
     <name>xml_configurations_supported</name>
     <value>true</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>create_db_dbuser</name>
     <value>true</value>
@@ -46,13 +46,15 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>oracle_home</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>ranger_privelege_user_jdbc_url</name>
     <display-name>JDBC connect string for root user</display-name>
@@ -72,8 +74,9 @@
         <name>db_host</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>ranger-yarn-plugin-enabled</name>
     <value>No</value>
@@ -94,8 +97,9 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>ranger-kafka-plugin-enabled</name>
     <value>No</value>
@@ -116,8 +120,9 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.solr</name>
     <value>true</value>
@@ -138,8 +143,9 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>is_solrCloud_enabled</name>
     <display-name>SolrCloud</display-name>
@@ -161,8 +167,9 @@
       <selection-cardinality>1</selection-cardinality>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
@@ -183,8 +190,9 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://localhost:8020</value>
@@ -197,8 +205,9 @@
         <name>fs.defaultFS</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.db</name>
     <value>false</value>
@@ -219,6 +228,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

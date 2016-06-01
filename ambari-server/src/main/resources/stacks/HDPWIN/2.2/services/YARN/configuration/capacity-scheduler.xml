@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -14,7 +15,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>yarn.scheduler.capacity.resource-calculator</name>
@@ -34,26 +34,35 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels</name>
     <value>*</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels.default.capacity</name>
     <value>-1</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity</name>
     <value>-1</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default-node-label-expression</name>
     <value> </value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
- <!--
+<!--
     Licensed to the Apache Software Foundation (ASF) under one or more
     contributor license agreements.  See the NOTICE file distributed with
     this work for additional information regarding copyright ownership.
@@ -17,27 +16,27 @@
     See the License for the specific language governing permissions and
     limitations under the License.
  -->
- 
 <!-- Put site-specific property overrides in this file. -->
-
-<configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
-
-<!-- file system properties -->
-
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <!-- file system properties -->
   <property>
-  <name>fs.AbstractFileSystem.glusterfs.impl</name>
-  <display-name>GlusterFS fs impl</display-name>
-  <value>org.apache.hadoop.fs.local.GlusterFs</value>
+    <name>fs.AbstractFileSystem.glusterfs.impl</name>
+    <display-name>GlusterFS fs impl</display-name>
+    <value>org.apache.hadoop.fs.local.GlusterFs</value>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
-  <name>fs.glusterfs.impl</name>
-  <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
-  <display-name>GlusterFS Abstract File System Implementation</display-name>
+    <name>fs.glusterfs.impl</name>
+    <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
+    <display-name>GlusterFS Abstract File System Implementation</display-name>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>fs.defaultFS</name>
     <value>glusterfs:///localhost:8020</value>
-  </property>  
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
 </configuration>

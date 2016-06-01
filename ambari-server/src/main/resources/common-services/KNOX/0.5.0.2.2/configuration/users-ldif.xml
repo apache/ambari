@@ -19,13 +19,11 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
-
-    <property>
-        <name>content</name>
-        <display-name>users-ldif template</display-name>
-        <value>
+  <property>
+    <name>content</name>
+    <display-name>users-ldif template</display-name>
+    <value>
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -129,13 +127,15 @@ description: scientist group
 member: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org
 
         </value>
-        <description>
+    <description>
             content for users-ldif file for the demo LDAP that comes with Knox.
         </description>
-      <value-attributes>
-        <type>content</type>
-        <empty-value-valid>true</empty-value-valid>
-        <show-property-name>false</show-property-name>
-      </value-attributes>
-    </property>
+    <value-attributes>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
 </configuration>

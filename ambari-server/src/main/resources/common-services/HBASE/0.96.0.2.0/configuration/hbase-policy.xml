@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="true">
   <property>
     <name>security.client.protocol.acl</name>
@@ -29,8 +28,9 @@
     The ACL is a comma-separated list of user and group names. The user and 
     group list is separated by a blank. For e.g. "alice,bob users,wheel". 
     A special value of "*" means all users are allowed.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>security.admin.protocol.acl</name>
     <value>*</value>
@@ -39,8 +39,9 @@
     The ACL is a comma-separated list of user and group names. The user and 
     group list is separated by a blank. For e.g. "alice,bob users,wheel". 
     A special value of "*" means all users are allowed.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>security.masterregion.protocol.acl</name>
     <value>*</value>
@@ -49,5 +50,7 @@
     The ACL is a comma-separated list of user and group names. The user and 
     group list is separated by a blank. For e.g. "alice,bob users,wheel". 
     A special value of "*" means all users are allowed.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

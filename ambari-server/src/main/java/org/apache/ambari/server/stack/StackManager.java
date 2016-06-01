@@ -25,6 +25,11 @@ import java.util.HashSet;
 import java.util.Map;
 
 import javax.annotation.Nullable;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -37,11 +42,13 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import org.xml.sax.SAXException;
 
 
 /**
@@ -50,6 +57,7 @@ import com.google.inject.assistedinject.Assisted;
  */
 public class StackManager {
 
+  public static final String PROPERTY_SCHEMA_PATH = "configuration-schema.xsd";
   /**
    * Delimiter used for parent path string
    * Example:
@@ -100,14 +108,17 @@ public class StackManager {
   @Inject
   public StackManager(@Assisted("stackRoot") File stackRoot,
       @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
-      @Assisted OsFamily osFamily, MetainfoDAO metaInfoDAO,
+      @Assisted OsFamily osFamily, @Assisted boolean validate,
+                      MetainfoDAO metaInfoDAO,
       ActionMetadata actionMetadata, StackDAO stackDao)
       throws AmbariException {
 
     LOG.info("Initializing the stack manager...");
 
-    validateStackDirectory(stackRoot);
-    validateCommonServicesDirectory(commonServicesRoot);
+    if (validate) {
+      validateStackDirectory(stackRoot);
+      validateCommonServicesDirectory(commonServicesRoot);
+    }
 
     stackMap = new HashMap<String, StackInfo>();
     stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
@@ -276,6 +287,37 @@ public class StackManager {
       throw new AmbariException("" + Configuration.METADATA_DIR_PATH
           + " should be a directory with stack"
           + ", stackRoot = " + stackRootAbsPath);
+    }
+    Validator validator = getPropertySchemaValidator();
+
+    validateAllPropertyXmlsInFolderRecursively(stackRoot, validator);
+  }
+
+  public static Validator getPropertySchemaValidator() throws AmbariException {
+    SchemaFactory factory =
+      SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema schema;
+    ClassLoader classLoader = StackManager.class.getClassLoader();
+    try {
+      schema = factory.newSchema(classLoader.getResource(PROPERTY_SCHEMA_PATH));
+    } catch (SAXException e) {
+      throw new AmbariException(String.format("Failed to parse property schema file %s", PROPERTY_SCHEMA_PATH), e);
+    }
+    return schema.newValidator();
+  }
+
+  public static void validateAllPropertyXmlsInFolderRecursively(File stackRoot, Validator validator) throws AmbariException {
+    Collection<File> files = FileUtils.listFiles(stackRoot, new String[]{"xml"}, true);
+    for (File file : files) {
+      try {
+        if (file.getParentFile().getName().contains("configuration")) {
+          validator.validate(new StreamSource(file));
+        }
+      } catch (Exception e) {
+        String msg = String.format("File %s didn't pass the validation. Error message is : %s", file.getAbsolutePath(), e.getMessage());
+        LOG.error(msg);
+        throw new AmbariException(msg);
+      }
     }
   }
 

@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>mapred_log_dir_prefix</name>
@@ -30,6 +29,8 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapred_pid_dir_prefix</name>
@@ -40,12 +41,15 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapred_user</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <!-- mapred-env.cmd -->
   <property>
     <name>content</name>
@@ -55,5 +59,7 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

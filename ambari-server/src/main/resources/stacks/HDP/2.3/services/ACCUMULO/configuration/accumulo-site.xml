@@ -16,11 +16,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
 <configuration>
   <!-- Put your site-specific accumulo configurations here. The available configuration values along with their defaults are documented in docs/config.html Unless
     you are simply testing at your workstation, you will most definitely need to change the three entries below. -->
-
   <property>
     <name>general.classpaths</name>
     <value>
@@ -46,5 +44,7 @@ $HADOOP_CONF_DIR,
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

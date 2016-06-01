@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <!-- hadoop-env.sh -->
   <property>
@@ -131,7 +130,7 @@ export HADOOP_IDENT_STRING=$USER
 # Add database libraries
 JAVA_JDBC_LIBS=""
 if [ -d "/usr/share/java" ]; then
-  for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
+  for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2&gt;/dev/null`
   do
     JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
   done
@@ -151,7 +150,7 @@ export HADOOP_OPTS="-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
 {% if is_datanode_max_locked_memory_set %}
 # Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. 
 # Makes sense to fix only when runing DN as root 
-if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n "$HADOOP_SECURE_DN_USER" ]; then
+if [ "$command" == "datanode" ] &amp;&amp; [ "$EUID" -eq 0 ] &amp;&amp; [ -n "$HADOOP_SECURE_DN_USER" ]; then
   ulimit -l {{datanode_max_locked_memory}}
 fi
 {% endif %}
@@ -159,6 +158,8 @@ fi
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>nfsgateway_heapsize</name>
@@ -169,6 +170,7 @@ fi
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  
 </configuration>

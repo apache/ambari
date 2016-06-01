@@ -19,8 +19,6 @@
 package org.apache.ambari.server.state;
 
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.w3c.dom.Element;
 
@@ -30,6 +28,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlList;
 
@@ -51,6 +50,12 @@ public class PropertyInfo {
 
   private String filename;
   private boolean deleted;
+
+  @XmlElement(name="on-stack-upgrade", required = true)
+  private PropertyUpgradeBehavior propertyStackUpgradeBehavior;
+
+  @XmlElement(name="on-ambari-upgrade", required = true)
+  private PropertyUpgradeBehavior propertyAmbariUpgradeBehavior;
 
   @XmlAttribute(name = "require-input")
   private boolean requireInput;
@@ -134,7 +139,23 @@ public class PropertyInfo {
   public void setPropertyTypes(Set<PropertyType> propertyTypes) {
     this.propertyTypes = propertyTypes;
   }
-  
+
+  public PropertyUpgradeBehavior getPropertyStackUpgradeBehavior() {
+    return propertyStackUpgradeBehavior;
+  }
+
+  public void setPropertyStackUpgradeBehavior(PropertyUpgradeBehavior propertyStackUpgradeBehavior) {
+    this.propertyStackUpgradeBehavior = propertyStackUpgradeBehavior;
+  }
+
+  public PropertyUpgradeBehavior getPropertyAmbariUpgradeBehavior() {
+    return propertyAmbariUpgradeBehavior;
+  }
+
+  public void setPropertyAmbariUpgradeBehavior(PropertyUpgradeBehavior propertyAmbariUpgradeBehavior) {
+    this.propertyAmbariUpgradeBehavior = propertyAmbariUpgradeBehavior;
+  }
+
   public StackConfigurationResponse convertToResponse() {
     return new StackConfigurationResponse(getName(), getValue(),
       getDescription(), getDisplayName() , getFilename(), isRequireInput(),

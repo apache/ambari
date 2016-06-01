@@ -18,36 +18,45 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="true">
-    <property>
-        <name>spark.yarn.services</name>
-        <deleted>true</deleted>
-    </property>
-    <property>
-        <name>spark.history.provider</name>
-        <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
-        <description>Name of history provider class</description>
-    </property>
-    <property>
-        <name>spark.history.fs.logDirectory</name>
-        <value>hdfs:///spark-history</value>
-        <description>
+  <property>
+    <name>spark.yarn.services</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
+  <property>
+    <name>spark.history.provider</name>
+    <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
+    <description>Name of history provider class</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
+  <property>
+    <name>spark.history.fs.logDirectory</name>
+    <value>hdfs:///spark-history</value>
+    <description>
             Base directory for history spark application log.
         </description>
-    </property>
-    <property>
-        <name>spark.eventLog.enabled</name>
-        <value>true</value>
-        <description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
+  <property>
+    <name>spark.eventLog.enabled</name>
+    <value>true</value>
+    <description>
             Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.
         </description>
-    </property>
-    <property>
-        <name>spark.eventLog.dir</name>
-        <value>hdfs:///spark-history</value>
-        <description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
+  <property>
+    <name>spark.eventLog.dir</name>
+    <value>hdfs:///spark-history</value>
+    <description>
             Base directory in which Spark events are logged, if spark.eventLog.enabled is true.
         </description>
-    </property>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
 </configuration>

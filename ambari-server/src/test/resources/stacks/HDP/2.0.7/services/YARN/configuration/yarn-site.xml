@@ -16,26 +16,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <!-- Put site-specific property overrides in this file. -->
-
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_adding_forbidden="true" supports_do_not_extend="true">
-
-<!-- ResourceManager -->
-
+  <!-- ResourceManager -->
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.scheduler.address</name>
     <value>localhost:8030</value>
     <description>The address of the scheduler interface.</description>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  
   <property>
     <name>yarn.resourcemanager.address</name>
     <value>localhost:100009</value>
@@ -43,18 +41,21 @@
       The address of the applications manager interface in the
       RM.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.admin.address</name>
-    <value></value>
+    <value/>
     <description>The address of the RM admin interface.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>new-yarn-property</name>
     <value>some-value</value>
     <description>some description.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

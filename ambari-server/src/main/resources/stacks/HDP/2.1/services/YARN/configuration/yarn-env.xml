@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>apptimelineserver_heapsize</name>
@@ -31,8 +30,9 @@
       <unit>MB</unit>
       <type>int</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>
@@ -155,6 +155,7 @@ YARN_OPTS="$YARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
     <value-attributes>
       <type>content</type>
     </value-attributes>
-  </property>  
-  
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
+  </property>
 </configuration>

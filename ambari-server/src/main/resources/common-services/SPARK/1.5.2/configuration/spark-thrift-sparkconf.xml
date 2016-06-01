@@ -18,9 +18,7 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="true">
-
   <property>
     <name>spark.yarn.executor.memoryOverhead</name>
     <value>384</value>
@@ -29,16 +27,18 @@
       This is memory that accounts for things like VM overheads, interned strings,
       other native overheads, etc.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.driver.extraLibraryPath</name>
     <value>{{spark_hadoop_lib_native}}</value>
     <description>
        Set a special library path to use when launching the driver JVM.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.driver.memoryOverhead</name>
     <value>384</value>
@@ -47,40 +47,45 @@
       This is memory that accounts for things like VM overheads, interned strings,
       other native overheads, etc.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.scheduler.heartbeat.interval-ms</name>
     <value>5000</value>
     <description>
       The interval in ms in which the Spark application master heartbeats into the YARN ResourceManager.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.max.executor.failures</name>
     <value>3</value>
     <description>
       The maximum number of executor failures before failing the application.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.queue</name>
     <value>default</value>
     <description>
       The name of the YARN queue to which the application is submitted.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.containerLauncherMaxThreads</name>
     <value>25</value>
     <description>
       The maximum number of threads to use in the application master for launching executor containers.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.submit.file.replication</name>
     <value>3</value>
@@ -88,8 +93,9 @@
       HDFS replication level for the files uploaded into HDFS for the application.
       These include things like the Spark jar, the app jar, and any distributed cache files/archives.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.preserve.staging.files</name>
     <value>false</value>
@@ -97,12 +103,14 @@
       Set to true to preserve the staged files (Spark jar, app jar, distributed cache files) at the
       end of the job rather then delete them.
     </description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>spark.yarn.max.executor.failures</name>
     <value>3</value>
     <description>The maximum number of executor failures before failing the application.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

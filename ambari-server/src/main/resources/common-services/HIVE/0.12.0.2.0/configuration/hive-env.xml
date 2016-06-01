@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>hive.client.heapsize</name>
@@ -34,8 +33,9 @@
       <increment-step>512</increment-step>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>hive.metastore.heapsize</name>
     <value>1024</value>
@@ -48,8 +48,9 @@
       <unit>MB</unit>
       <increment-step>512</increment-step>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>hive_database_type</name>
     <value>mysql</value>
@@ -64,6 +65,8 @@
         <name>hive_database</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive_database</name>
@@ -75,11 +78,15 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive_ambari_database</name>
     <value>MySQL</value>
     <description>Database type.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive_database_name</name>
@@ -91,6 +98,8 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive_log_dir</name>
@@ -101,6 +110,8 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive_pid_dir</name>
@@ -112,6 +123,8 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive_user</name>
@@ -123,10 +136,10 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <!--HCAT-->
-
   <property>
     <name>hcat_log_dir</name>
     <value>/var/log/webhcat</value>
@@ -136,6 +149,8 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hcat_pid_dir</name>
@@ -147,6 +162,8 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hcat_user</name>
@@ -158,6 +175,8 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>webhcat_user</name>
@@ -169,20 +188,23 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>hive_user_nofile_limit</name>
     <value>32000</value>
     <description>Max open files limit setting for HIVE user.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>hive_user_nproc_limit</name>
     <value>16000</value>
     <description>Max number of processes limit setting for HIVE user.</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
@@ -234,6 +256,7 @@ export HADOOP_CLASSPATH={{atlas_conf_dir}}:{{atlas_home_dir}}/hook/hive:${HADOOP
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

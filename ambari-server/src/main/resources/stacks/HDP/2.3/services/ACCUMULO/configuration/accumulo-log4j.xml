@@ -19,46 +19,50 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
-
   <property>
     <name>audit_log_level</name>
     <value>OFF</value>
     <description>Log level for audit logging</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>monitor_forwarding_log_level</name>
     <value>WARN</value>
     <description>Log level for logging forwarded to the Accumulo
       Monitor</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>debug_log_size</name>
     <value>512M</value>
     <description>Size of each debug rolling log file</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>debug_num_logs</name>
     <value>10</value>
     <description>Number of rolling debug log files to keep</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>info_log_size</name>
     <value>512M</value>
     <description>Size of each info rolling log file</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>info_num_logs</name>
     <value>10</value>
     <description>Number of rolling info log files to keep</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
   <property>
     <name>content</name>
     <display-name>accumulo-log4j template</display-name>
@@ -112,6 +116,7 @@ log4j.appender.A1.layout=org.apache.log4j.PatternLayout
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>
