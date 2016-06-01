@@ -21,20 +21,19 @@ import os
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions import format
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import Direction
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import conf_select, stack_select
+from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
-
+from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.resources.system import File, Execute, Link
 from resource_management.core.resources.service import Service
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.show_logs import show_logs
+
 
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyImpl

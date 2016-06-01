@@ -32,11 +32,10 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from status_params import *
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select, conf_select
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.constants import StackFeature
 
 # server configurations
 config = Script.get_config()

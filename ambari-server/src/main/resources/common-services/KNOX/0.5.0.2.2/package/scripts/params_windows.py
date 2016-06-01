@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
 import os
 from status_params import *
 
