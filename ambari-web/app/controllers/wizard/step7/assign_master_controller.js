@@ -158,6 +158,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
         var value = config.get('initialValue');
         config.set('value', value);
         configWidgetContext.setValue(value);
+        configWidgetContext.sendRequestRorDependentConfigs(config);
         this._super();
       },
       secondary: null,
