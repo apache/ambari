@@ -88,10 +88,10 @@ public enum CheckDescription {
           "Repository version {{version}} does not exist.");
       }}),
 
-  SECONDARY_NAMENODE_MUST_BE_DELETED(PrereqCheckType.SERVICE,
+  SECONDARY_NAMENODE_MUST_BE_DELETED(PrereqCheckType.HOST,
       "The SNameNode component must be deleted from all hosts",
       new HashMap<String, String>() {{
-        put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: {{fails}}.");
+        put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: %s.");
       }}),
 
   STORM_REST_API_MUST_BE_DELETED(PrereqCheckType.SERVICE,
