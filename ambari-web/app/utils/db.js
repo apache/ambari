@@ -249,6 +249,10 @@ App.db.setStacks = function (stacks) {
   App.db.set('Installer', 'stacksVersions', stacks);
 };
 
+App.db.setOses = function (oses) {
+  App.db.set('Installer', 'operatingSystems', oses);
+};
+
 App.db.setRepos = function (repos) {
   App.db.set('Installer', 'repositories', repos);
 };
@@ -440,6 +444,10 @@ App.db.getDisableSecurityStatus = function () {
 
 App.db.getStacks = function () {
   return App.db.get('Installer', 'stacksVersions');
+};
+
+App.db.getOses = function () {
+  return App.db.get('Installer', 'operatingSystems');
 };
 
 App.db.getRepos = function () {

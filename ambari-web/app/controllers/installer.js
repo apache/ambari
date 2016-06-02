@@ -299,6 +299,7 @@ App.InstallerController = App.WizardController.extend({
    */
   loadStacksVersionsDefinitionsSuccessCallback: function (data) {
     var stacks = App.db.getStacks();
+    var oses = App.db.getOses();
     var repos = App.db.getRepos();
     this.decrementProperty('loadStacksRequestsCounter');
     var isStacksExistInDb = stacks && stacks.length;
@@ -316,16 +317,24 @@ App.InstallerController = App.WizardController.extend({
       var stackInfo = {};
       stackInfo.isStacksExistInDb = isStacksExistInDb;
       stackInfo.stacks = stacks;
+      stackInfo.oses = oses;
       stackInfo.repos = repos;
       this.getSupportedOSList(versionDefinition, stackInfo);
     }, this);
   },
 
-  mergeChanges: function (repos, stacks) {
+  mergeChanges: function (repos, oses, stacks) {
     var _repos = repos || [];
+    var _oses = oses || [];
     var _stacks = stacks || [];
     _repos.forEach(function (repo) {
       App.Repository.find().findProperty('id', repo.id).set('baseUrl', repo.base_url);
+    });
+    _oses.forEach(function (os) {
+      App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
+    });
+    App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
+      App.stackMapper.deleteRecord(os);
     });
     _stacks.forEach(function (_stack) {
       var stack = App.Stack.find().findProperty('id', _stack.id);
@@ -430,15 +439,10 @@ App.InstallerController = App.WizardController.extend({
    * set stacks from server to content and local DB
    */
   setStacks: function () {
-    var stacks = App.Stack.find() || [];
-    Em.assert('Stack model is not populated', stacks.get('length'));
-    App.db.setStacks(stacks.slice());
+    App.db.setStacks(App.Stack.find().slice());
     this.set('content.stacks', stacks);
-    App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
-      App.serviceMapper.deleteRecord(os);
-    });
-    var repos = App.Repository.find() || [];
-    App.db.setRepos(repos.slice());
+    App.db.setOses(App.OperatingSystem.find().slice());
+    App.db.setRepos(App.Repository.find().slice());
   },
 
   /**
@@ -723,7 +727,7 @@ App.InstallerController = App.WizardController.extend({
         var versionData = this.getSelectedRepoVersionData();
         if (versionData) {
           this.postVersionDefinitionFile(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
-            self.mergeChanges(data.stackInfo.repos, data.stackInfo.stacks);
+            self.mergeChanges(data.stackInfo.repos, data.stackInfo.oses, data.stackInfo.stacks);
             App.Stack.find().setEach('isSelected', false);
             var stackId = Em.get(versionData, 'data.VersionDefinition.available') || versionInfo.stackNameVersion + "-" + versionInfo.actualVersion;
             App.Stack.find().findProperty('id', stackId).set('isSelected', true);
