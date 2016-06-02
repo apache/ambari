@@ -751,8 +751,8 @@ public class ClusterStackVersionResourceProviderTest {
     expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
             anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
 
-    TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
-    StageUtils.setTopologyManager(topologyManager);
+    StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     // replay
     replay(managementController, response, clusters, hdfsService, hbaseService, resourceProviderFactory, csvResourceProvider,
@@ -1451,9 +1451,8 @@ public class ClusterStackVersionResourceProviderTest {
     expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
             anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
 
-    TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
-    StageUtils.setTopologyManager(topologyManager);
-
+    StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     // !!! make it look like there is already a versioned installed that is less than the one being installed
     ClusterVersionEntity bad = new ClusterVersionEntity();

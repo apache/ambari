@@ -346,8 +346,8 @@ public class HostStackVersionResourceProviderTest {
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
 
-    TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
-    StageUtils.setTopologyManager(topologyManager);
+    StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
