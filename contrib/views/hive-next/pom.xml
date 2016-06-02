@@ -20,12 +20,12 @@
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>hive-jdbc</artifactId>
   <version>2.0.0.0-SNAPSHOT</version>
-  <name>Hive</name>
+  <name>Hive Jdbc</name>
 
   <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>ambari-contrib-views</artifactId>
-    <version>2.0.0.0-SNAPSHOT</version>
+    <version>2.4.0.0.0</version>
   </parent>
 
   <repositories>
@@ -199,7 +199,7 @@
     <dependency>
       <groupId>org.apache.ambari.contrib.views</groupId>
       <artifactId>ambari-views-utils</artifactId>
-      <version>2.0.0.0-SNAPSHOT</version>
+      <version>2.4.0.0.0</version>
     </dependency>
     <dependency>
       <groupId>commons-validator</groupId>
