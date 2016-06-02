@@ -73,6 +73,8 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     PropertyHelper.getPropertyId("RequestSchedule", "schedule");
   protected static final String REQUEST_SCHEDULE_CREATE_USER_PROPERTY_ID =
     PropertyHelper.getPropertyId("RequestSchedule", "create_user");
+  protected static final String REQUEST_SCHEDULE_AUTHENTICATED_USER_PROPERTY_ID =
+    PropertyHelper.getPropertyId("RequestSchedule", "authenticated_user");
   protected static final String REQUEST_SCHEDULE_UPDATE_USER_PROPERTY_ID =
     PropertyHelper.getPropertyId("RequestSchedule", "update_user");
   protected static final String REQUEST_SCHEDULE_CREATE_TIME_PROPERTY_ID =
@@ -207,6 +209,8 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
         response.getSchedule(), requestedIds);
       setResourceProperty(resource, REQUEST_SCHEDULE_CREATE_USER_PROPERTY_ID,
         response.getCreateUser(), requestedIds);
+      setResourceProperty(resource, REQUEST_SCHEDULE_AUTHENTICATED_USER_PROPERTY_ID,
+        response.getAuthenticatedUserId(), requestedIds);
       setResourceProperty(resource, REQUEST_SCHEDULE_CREATE_TIME_PROPERTY_ID,
         response.getCreateTime(), requestedIds);
       setResourceProperty(resource, REQUEST_SCHEDULE_UPDATE_USER_PROPERTY_ID,
@@ -365,6 +369,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       }
 
       String username = getManagementController().getAuthName();
+      Integer userId = getManagementController().getAuthId();
 
       requestExecution.setBatch(request.getBatch());
       requestExecution.setDescription(request.getDescription());
@@ -374,6 +379,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
         requestExecution.setStatus(RequestExecution.Status.valueOf(request.getStatus()));
       }
       requestExecution.setUpdateUser(username);
+      requestExecution.setAuthenticatedUserId(userId);
 
       LOG.info("Persisting updated Request Schedule "
         + ", clusterName = " + request.getClusterName()
@@ -417,12 +423,14 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       }
 
       String username = getManagementController().getAuthName();
+      Integer userId = getManagementController().getAuthId();
 
       RequestExecution requestExecution = requestExecutionFactory.createNew
         (cluster, request.getBatch(), request.getSchedule());
 
       requestExecution.setCreateUser(username);
       requestExecution.setUpdateUser(username);
+      requestExecution.setAuthenticatedUserId(userId);
       requestExecution.setStatus(RequestExecution.Status.SCHEDULED);
 
       LOG.info("Persisting new Request Schedule "
@@ -443,7 +451,8 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
           requestExecution.getLastExecutionStatus(),
           requestExecution.getBatch(), request.getSchedule(),
           requestExecution.getCreateUser(), requestExecution.getCreateTime(),
-          requestExecution.getUpdateUser(), requestExecution.getUpdateTime());
+          requestExecution.getUpdateUser(), requestExecution.getUpdateTime(),
+          requestExecution.getAuthenticatedUserId());
 
       responses.add(response);
     }

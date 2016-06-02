@@ -69,6 +69,9 @@ public class RequestScheduleEntity {
   @Column(name = "batch_toleration_limit")
   private Integer batchTolerationLimit;
 
+  @Column(name = "authenticated_user_id")
+  private Integer authenticatedUserId;
+
   @Column(name = "create_user")
   private String createUser;
 
@@ -294,6 +297,14 @@ public class RequestScheduleEntity {
 
   public void setRequestEntities(List<RequestEntity> requestEntities) {
     this.requestEntities = requestEntities;
+  }
+
+  public Integer getAuthenticatedUserId() {
+    return authenticatedUserId;
+  }
+
+  public void setAuthenticatedUserId(Integer authenticatedUser) {
+    this.authenticatedUserId = authenticatedUser;
   }
 
   @Override

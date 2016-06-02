@@ -88,6 +88,7 @@ public class RequestScheduleResourceProviderTest {
     expect(managementController.getRequestExecutionFactory()).andReturn
       (executionFactory);
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(managementController.getAuthId()).andReturn(1).anyTimes();
 
     Capture<Cluster> clusterCapture = new Capture<Cluster>();
     Capture<Batch> batchCapture = new Capture<Batch>();
@@ -196,6 +197,7 @@ public class RequestScheduleResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(managementController.getAuthId()).andReturn(1).anyTimes();
     expect(managementController.getExecutionScheduleManager()).andReturn
       (executionScheduleManager).anyTimes();
 

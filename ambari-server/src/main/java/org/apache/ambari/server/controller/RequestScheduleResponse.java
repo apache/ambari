@@ -33,13 +33,15 @@ public class RequestScheduleResponse {
   private String createTime;
   private String updateUser;
   private String updateTime;
+  private Integer authenticatedUserId;
 
   public RequestScheduleResponse(Long id, String clusterName,
                                  String description, String status,
                                  String lastExecutionStatus,
                                  Batch batch, Schedule schedule,
                                  String createUser, String createTime,
-                                 String updateUser, String updateTime) {
+                                 String updateUser, String updateTime,
+                                 Integer authenticatedUserId) {
     this.id = id;
     this.clusterName = clusterName;
     this.description = description;
@@ -51,6 +53,7 @@ public class RequestScheduleResponse {
     this.createTime = createTime;
     this.updateUser = updateUser;
     this.updateTime = updateTime;
+    this.authenticatedUserId = authenticatedUserId;
   }
 
   public Long getId() {
@@ -139,5 +142,13 @@ public class RequestScheduleResponse {
 
   public void setLastExecutionStatus(String lastExecutionStatus) {
     this.lastExecutionStatus = lastExecutionStatus;
+  }
+
+  public Integer getAuthenticatedUserId() {
+    return authenticatedUserId;
+  }
+
+  public void setAuthenticatedUserId(Integer authenticatedUserId) {
+    this.authenticatedUserId = authenticatedUserId;
   }
 }

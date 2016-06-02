@@ -549,6 +549,13 @@ public interface AmbariManagementController {
   String getAuthName();
 
   /**
+   * Get the authenticated user's id.
+   *
+   * @return the authenticated user's name
+   */
+  int getAuthId();
+
+  /**
    * Create and persist the request stages and return a response containing the
    * associated request and resulting tasks.
    *

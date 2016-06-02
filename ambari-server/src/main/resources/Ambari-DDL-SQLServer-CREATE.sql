@@ -301,6 +301,7 @@ CREATE TABLE requestschedule (
   STATUS VARCHAR(255),
   batch_separation_seconds SMALLINT,
   batch_toleration_limit SMALLINT,
+  authenticated_user_id INTEGER,
   create_user VARCHAR(255),
   create_timestamp BIGINT,
   update_user VARCHAR(255),

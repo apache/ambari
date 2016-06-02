@@ -99,8 +99,9 @@ import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
+import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
+import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
@@ -319,14 +320,16 @@ public class AmbariServer {
         injector.getInstance(AuditLogger.class));
       factory.registerSingleton("permissionHelper",
         injector.getInstance(PermissionHelper.class));
-      factory.registerSingleton("ambariLocalUserService",
-        injector.getInstance(AmbariLocalUserDetailsService.class));
       factory.registerSingleton("ambariLdapAuthenticationProvider",
         injector.getInstance(AmbariLdapAuthenticationProvider.class));
+      factory.registerSingleton("ambariLocalAuthenticationProvider",
+        injector.getInstance(AmbariLocalUserProvider.class));
       factory.registerSingleton("ambariLdapDataPopulator",
         injector.getInstance(AmbariLdapDataPopulator.class));
       factory.registerSingleton("ambariAuthorizationFilter",
         injector.getInstance(AmbariAuthorizationFilter.class));
+      factory.registerSingleton("ambariUserAuthorizationFilter",
+        injector.getInstance(AmbariUserAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
         injector.getInstance(AmbariInternalAuthenticationProvider.class));
       factory.registerSingleton("ambariJwtAuthenticationFilter",

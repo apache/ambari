@@ -105,6 +105,11 @@ public interface RequestExecution {
   public void setLastExecutionStatus(String status);
 
   /**
+   * Set authenticated user
+   */
+  public void setAuthenticatedUserId(Integer username);
+
+  /**
    * Set create username
    */
   public void setCreateUser(String username);
@@ -123,6 +128,11 @@ public interface RequestExecution {
    * Get updated time
    */
   public String getUpdateTime();
+
+  /**
+   * Get authenticated user
+   */
+  public Integer getAuthenticatedUserId();
 
   /**
    * Get create user
