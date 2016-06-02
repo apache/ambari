@@ -23,6 +23,8 @@ angular.module('ambariAdminConsole')
 
   $scope.cluster = {};
 
+  $scope.nameValidationPattern = /^\s*\w*\s*$/;
+
   $scope.registerRemoteCluster = function () {
     $scope.form.submitted = true;
     if ($scope.form.$valid){
