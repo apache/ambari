@@ -35,10 +35,10 @@
     {{show-date file.modificationTime 'YYYY-MM-DD HH:mm'}}
   </div>
   <div class={{get-value-from-columns columnHeaders 'owner' 'columnClass'}}>
-    {{file.owner}}
+    {{shorten-text file.owner 20}}
   </div>
   <div class={{get-value-from-columns columnHeaders 'group' 'columnClass'}}>
-    {{file.group}}
+    {{shorten-text file.group 10}}
   </div>
   <div class={{get-value-from-columns columnHeaders 'permission' 'columnClass'}}>
     {{show-permission-string file}}
