@@ -19,7 +19,7 @@
 <!-- Solr managed schema - automatically generated - DO NOT EDIT -->
 <schema name="history" version="1.1">
 
-  <uniqueKey>composite_filtername-username</uniqueKey>
+  <uniqueKey>id</uniqueKey>
   
   <fieldType name="binary" class="solr.BinaryField"/>
   <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
@@ -82,7 +82,6 @@
   <solrQueryParser defaultOperator="OR"/>
 
   <field name="_version_" type="long" indexed="true" stored="true"/>
-  <field name="composite_filtername-username" type="string"/>
   <field name="filtername" type="key_lower_case" indexed="true" required="true" stored="true"/>
   <field name="id" type="string" required="true"/>
   <field name="jsons" type="string"/>

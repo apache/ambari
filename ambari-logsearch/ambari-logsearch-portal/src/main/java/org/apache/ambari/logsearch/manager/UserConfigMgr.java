@@ -22,9 +22,6 @@ package org.apache.ambari.logsearch.manager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
@@ -32,7 +29,6 @@ import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.UserConfigSolrDao;
 import org.apache.ambari.logsearch.query.QueryGeneration;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.ambari.logsearch.util.StringUtil;
@@ -48,17 +44,11 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.JsonParseException;
-
 @Component
 public class UserConfigMgr extends MgrBase {
-  private static final String DEFAULT_LEVELS = "FATAL,ERROR,WARN,INFO,DEBUG,TRACE";
 
   static Logger logger = Logger.getLogger(UserConfigMgr.class);
 
@@ -90,19 +80,41 @@ public class UserConfigMgr extends MgrBase {
           "Name '" + vHistory.getFilterName() + "' already exists",
           MessageEnums.INVALID_INPUT_DATA);
     }
+    String loggedInUserName = vHistory.getUserName();
+    String filterName = vHistory.getFilterName();
 
     solrInputDoc.addField(LogSearchConstants.ID, vHistory.getId());
-    solrInputDoc.addField(LogSearchConstants.USER_NAME, vHistory.getUserName());
+    solrInputDoc.addField(LogSearchConstants.USER_NAME, loggedInUserName);
     solrInputDoc.addField(LogSearchConstants.VALUES, vHistory.getValues());
-    solrInputDoc.addField(LogSearchConstants.FILTER_NAME,
-        vHistory.getFilterName());
+    solrInputDoc.addField(LogSearchConstants.FILTER_NAME, filterName);
     solrInputDoc.addField(LogSearchConstants.ROW_TYPE, vHistory.getRowType());
     List<String> shareNameList = vHistory.getShareNameList();
-    if (shareNameList != null && !shareNameList.isEmpty()){
+    if (shareNameList != null && !shareNameList.isEmpty()) {
       solrInputDoc.addField(LogSearchConstants.SHARE_NAME_LIST, shareNameList);
     }
-    solrInputDoc.addField(LogSearchConstants.COMPOSITE_KEY,
-        vHistory.getFilterName() + "-" + vHistory.getUserName());
+    // Check whether the Filter Name exists in solr
+    SolrQuery solrQuery = new SolrQuery();
+    queryGenerator.setMainQuery(solrQuery, null);
+    queryGenerator.setSingleIncludeFilter(solrQuery,
+        LogSearchConstants.FILTER_NAME, filterName);
+    queryGenerator.setSingleIncludeFilter(solrQuery,
+        LogSearchConstants.USER_NAME, loggedInUserName);
+    try {
+      QueryResponse queryResponse = userConfigSolrDao.process(solrQuery);
+      if (queryResponse != null) {
+        SolrDocumentList documentList = queryResponse.getResults();
+        if (documentList != null && !documentList.isEmpty()
+            && !vHistory.isOverwrite()) {
+          logger.error("Filtername is already present");
+          throw restErrorUtil.createRESTException(
+              "Filtername is already present", MessageEnums.INVALID_INPUT_DATA);
+        }
+      }
+    } catch (SolrException | SolrServerException | IOException e) {
+      logger.error("Error in checking same filtername config", e);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+    }
 
     try {
       userConfigSolrDao.addDocs(solrInputDoc);
@@ -138,7 +150,6 @@ public class UserConfigMgr extends MgrBase {
   }
 
   private boolean isValid(VUserConfig vHistory) {
-
     return !stringUtil.isEmpty(vHistory.getFilterName())
         && !stringUtil.isEmpty(vHistory.getRowType())
         && !stringUtil.isEmpty(vHistory.getUserName())
@@ -147,9 +158,8 @@ public class UserConfigMgr extends MgrBase {
 
   public void deleteUserConfig(String id) {
     try {
-      userConfigSolrDao.removeDoc("id:" + id);
+      userConfigSolrDao.deleteUserConfig(id);
     } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Deleting userCounfig. id=" + id, e);
       throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
@@ -243,8 +253,6 @@ public class UserConfigMgr extends MgrBase {
   }
 
   public String updateUserConfig(VUserConfig vuserConfig) {
-    String id = "" + vuserConfig.getId();
-    deleteUserConfig(id);
     return saveUserConfig(vuserConfig);
   }
 
@@ -254,81 +262,16 @@ public class UserConfigMgr extends MgrBase {
   /**
    * @return
    */
-  @SuppressWarnings("unchecked")
   public String getUserFilter() {
-    String filterName = LogSearchConstants.LOGFEEDER_FILTER_NAME;
-    SolrQuery solrQuery = new SolrQuery();
-    solrQuery.setQuery("*:*");
-    String fq = LogSearchConstants.ROW_TYPE + ":" + filterName;
-    solrQuery.setFilterQueries(fq);
+    VLogfeederFilterWrapper userFilter;
     try {
-      QueryResponse response = userConfigSolrDao.process(solrQuery);
-      SolrDocumentList documentList = response.getResults();
-      VLogfeederFilterWrapper logfeederFilterWrapper = null;
-      if (documentList != null && documentList.size() > 0) {
-        SolrDocument configDoc = documentList.get(0);
-        String configJson = jsonUtil.objToJson(configDoc);
-        HashMap<String, Object> configMap = (HashMap<String, Object>) jsonUtil
-            .jsonToMapObject(configJson);
-        String json = (String) configMap.get(LogSearchConstants.VALUES);
-        logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil.jsonToObj(
-            json, VLogfeederFilterWrapper.class);
-        logfeederFilterWrapper.setId("" + configDoc.get(LogSearchConstants.ID));
-
-      } else {
-        String logfeederDefaultLevels = PropertiesUtil
-            .getProperty("logsearch.logfeeder.include.default.level", DEFAULT_LEVELS);
-        JSONArray levelJsonArray = new JSONArray();
-        try {
-          String levelArray[] = logfeederDefaultLevels.split(",");
-          for (String level : levelArray) {
-            levelJsonArray.put(level.toUpperCase());
-          }
-        } catch (Exception e) {
-          logger.error("Error spliting logfeederDefaultLevels="
-              + logfeederDefaultLevels, e);
-          throw restErrorUtil.createRESTException(e.getMessage(),
-              MessageEnums.ERROR_SYSTEM);
-        }
-        String hadoopServiceString = getHadoopServiceConfigJSON();
-        String key = null;
-        JSONArray componentArray = null;
-        try {
-          JSONObject componentList = new JSONObject();
-          JSONObject jsonValue = new JSONObject();
-
-          JSONObject hadoopServiceJsonObject = new JSONObject(
-              hadoopServiceString).getJSONObject("service");
-          Iterator<String> hadoopSerivceKeys = hadoopServiceJsonObject.keys();
-          while (hadoopSerivceKeys.hasNext()) {
-            key = hadoopSerivceKeys.next();
-            componentArray = hadoopServiceJsonObject.getJSONObject(key)
-                .getJSONArray("components");
-            for (int i = 0; i < componentArray.length(); i++) {
-              JSONObject compJsonObject = (JSONObject) componentArray.get(i);
-              String componentName = compJsonObject.getString("name");
-              JSONObject innerContent = new JSONObject();
-              innerContent.put("label", componentName);
-              innerContent.put("hosts", new JSONArray());
-              innerContent.put("defaultLevels", levelJsonArray);
-              componentList.put(componentName, innerContent);
-            }
-          }
-          jsonValue.put("filter", componentList);
-          return saveUserFiter(jsonValue.toString());
-
-        } catch (JsonParseException | JSONException je) {
-          logger.error("Error parsing JSON. key=" + key + ", componentArray="
-              + componentArray, je);
-          logfeederFilterWrapper = new VLogfeederFilterWrapper();
-        }
-      }
-      return convertObjToString(logfeederFilterWrapper);
-    } catch (SolrException | SolrServerException | IOException e) {
+      userFilter = userConfigSolrDao.getUserFilter();
+    } catch (SolrServerException | IOException e) {
       logger.error(e);
       throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
+    return convertObjToString(userFilter);
   }
 
   /**
@@ -338,33 +281,19 @@ public class UserConfigMgr extends MgrBase {
    * @return
    */
   public String saveUserFiter(String json) {
-    VLogfeederFilterWrapper logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil
-        .jsonToObj(json, VLogfeederFilterWrapper.class);
-    if (logfeederFilterWrapper == null) {
-      logger.error("filter json is not a valid :" + json);
-      throw restErrorUtil.createRESTException("Invalid filter json",
-          MessageEnums.ERROR_SYSTEM);
-    }
-    String id = logfeederFilterWrapper.getId();
-    if (!stringUtil.isEmpty(id)) {
-      deleteUserConfig(id);
-    }
-    String filterName = LogSearchConstants.LOGFEEDER_FILTER_NAME;
-    json = jsonUtil.objToJson(logfeederFilterWrapper);
-    SolrInputDocument configDocument = new SolrInputDocument();
-    configDocument.addField(LogSearchConstants.ID, new Date().getTime());
-    configDocument.addField(LogSearchConstants.ROW_TYPE, filterName);
-    configDocument.addField(LogSearchConstants.VALUES, json);
-    configDocument.addField(LogSearchConstants.USER_NAME, filterName);
-    configDocument.addField(LogSearchConstants.FILTER_NAME, filterName);
-    configDocument.addField(LogSearchConstants.COMPOSITE_KEY, filterName + "-"
-        + filterName);
-    try {
-      userConfigSolrDao.addDocs(configDocument);
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Saving UserConfig. config=" + configDocument, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
-          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+    if (!stringUtil.isEmpty(json)) {
+      VLogfeederFilterWrapper logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil
+          .jsonToObj(json, VLogfeederFilterWrapper.class);
+      try {
+        if (logfeederFilterWrapper == null) {
+          logger.error(json + " is a invalid json");
+        }
+        userConfigSolrDao.saveUserFiter(logfeederFilterWrapper);
+      } catch (SolrException | SolrServerException | IOException e) {
+        logger.error("user config not able to save", e);
+        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+            .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      }
     }
     return getUserFilter();
   }
