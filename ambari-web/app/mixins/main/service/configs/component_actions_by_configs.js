@@ -155,10 +155,10 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
         var displayStr =  stringUtils.getFormattedStringFromArray(displayNames);
         var context = Em.I18n.t('requestInfo.start').format(displayStr);
         var batches =[];
-        this.setRefreshYarnQueueRequest(batches);
         this.setCreateComponentRequest(batches, hostComponents);
         batches.push(this.getCreateHostComponentsRequest(_hostName, hostComponents));
         batches.push(this.getInstallHostComponentsRequest(_hostName, hostComponents));
+        this.setRefreshYarnQueueRequest(batches);
         batches.push(this.getStartHostComponentsRequest(_hostName, masterHostComponents, context));
         this.setOrderIdForBatches(batches);
 

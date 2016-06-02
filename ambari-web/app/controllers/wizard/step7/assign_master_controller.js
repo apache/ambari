@@ -373,26 +373,29 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @method submit
    */
   submit: function () {
-    this.get('popup').hide();
-    var context = this.get('configWidgetContext');
-    context.toggleProperty('controller.forceUpdateBoundaries');
-    var configActionComponent = this.get('configActionComponent');
-    var componentHostName = this.getSelectedHostName(configActionComponent.componentName);
-    if (this.get('content.controllerName')) {
-      this.saveMasterComponentHosts();
-      this.saveRecommendationsHostGroups();
-    } else {
-      this.setGlobalComponentToBeAdded(configActionComponent.componentName, componentHostName);
-      this.clearComponentsToBeDeleted(configActionComponent.componentName);
-    }
+    var self  = this;
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+      self.get('popup').hide();
+      var context = self.get('configWidgetContext');
+      context.toggleProperty('controller.forceUpdateBoundaries');
+      var configActionComponent = self.get('configActionComponent');
+      var componentHostName = self.getSelectedHostName(configActionComponent.componentName);
+      if (self.get('content.controllerName')) {
+        self.saveMasterComponentHosts();
+        self.saveRecommendationsHostGroups();
+      } else {
+        self.setGlobalComponentToBeAdded(configActionComponent.componentName, componentHostName);
+        self.clearComponentsToBeDeleted(configActionComponent.componentName);
+      }
 
-    var hostComponentConfig = context.get('config.configAction.hostComponentConfig');
-    var serviceConfigs = context.get('controller.stepConfigs').findProperty('serviceName', context.get('config.serviceName')).get('configs');
-    var config = serviceConfigs.filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
-    config.set('value', componentHostName);
-    config.set('recommendedValue', componentHostName);
-    configActionComponent.hostName = componentHostName;
-    this.get('configWidgetContext.config').set('configActionComponent', configActionComponent);
+      var hostComponentConfig = context.get('config.configAction.hostComponentConfig');
+      var serviceConfigs = context.get('controller.stepConfigs').findProperty('serviceName', context.get('config.serviceName')).get('configs');
+      var config = serviceConfigs.filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
+      config.set('value', componentHostName);
+      config.set('recommendedValue', componentHostName);
+      configActionComponent.hostName = componentHostName;
+      self.get('configWidgetContext.config').set('configActionComponent', configActionComponent);
+    });
   },
 
   /**
