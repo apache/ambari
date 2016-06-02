@@ -149,7 +149,10 @@ public class PostProcessingUtil {
           interpolatedValue = y1 + m * (requiredTs - timestamps[0]);
         }
       }
-      interpolatedValuesMap.put(requiredTs, interpolatedValue);
+
+      if (interpolatedValue != null && interpolatedValue >= 0.0) {
+        interpolatedValuesMap.put(requiredTs, interpolatedValue);
+      }
     }
     return interpolatedValuesMap;
   }
