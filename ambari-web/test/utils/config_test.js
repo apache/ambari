@@ -959,13 +959,22 @@ describe('App.config', function () {
   });
 
   describe('#kerberosIdentitiesDescription', function () {
+    it('update empty description', function() {
+      expect(App.config.kerberosIdentitiesDescription()).to.eql(Em.I18n.t('services.service.config.secure.additionalDescription'));
+    });
+
     it('update description for identities (without dot)', function() {
-      expect(App.config.kerberosIdentitiesDescription('some text')).to.eql('some text.'
+      expect(App.config.kerberosIdentitiesDescription('some text')).to.eql('some text. '
         + Em.I18n.t('services.service.config.secure.additionalDescription'));
     });
 
     it('update description for identities (with dot)', function() {
-      expect(App.config.kerberosIdentitiesDescription('some text.')).to.eql('some text.'
+      expect(App.config.kerberosIdentitiesDescription('some text.')).to.eql('some text. '
+        + Em.I18n.t('services.service.config.secure.additionalDescription'));
+    });
+
+    it('update description for identities (with dot and spaces at the end)', function() {
+      expect(App.config.kerberosIdentitiesDescription('some text. ')).to.eql('some text. '
         + Em.I18n.t('services.service.config.secure.additionalDescription'));
     });
   });

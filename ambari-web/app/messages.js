@@ -2004,7 +2004,7 @@ Em.I18n.translations = {
   'services.service.config.nothing.to.display': 'No properties to display.',
   'services.service.config.final':'Final',
   'services.service.config.password.additionalDescription': 'For security purposes, password changes will not be shown in configuration version comparisons',
-  'services.service.config.secure.additionalDescription': ' This config can be changed from Kerberos page under Admin tab by privileged users.',
+  'services.service.config.secure.additionalDescription': 'This config can be changed from Kerberos page under Admin tab by privileged users.',
   'services.service.config.saved':'Save Configuration Changes',
   'services.service.config.notSaved':'Unable to Save Configuration Changes',
   'services.service.config.restartService.TooltipMessage':'<b>Restart Service</b><br>Stale configuration used by {0} components on {1} hosts:{2}',
