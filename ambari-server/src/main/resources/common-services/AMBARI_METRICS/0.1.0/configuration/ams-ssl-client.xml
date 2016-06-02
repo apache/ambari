@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -18,20 +17,26 @@
    limitations under the License.
 -->
 <configuration>
-    <property>
-        <name>ssl.client.truststore.location</name>
-        <value>/etc/security/clientKeys/all.jks</value>
-        <description>Location of the trust store file.</description>
-    </property>
-    <property>
-        <name>ssl.client.truststore.type</name>
-        <value>jks</value>
-        <description>Optional. Default value is "jks".</description>
-    </property>
-    <property>
-        <name>ssl.client.truststore.password</name>
-        <value>bigdata</value>
-        <property-type>PASSWORD</property-type>
-        <description>Password to open the trust store file.</description>
-    </property>
+  <property>
+    <name>ssl.client.truststore.location</name>
+    <value>/etc/security/clientKeys/all.jks</value>
+    <description>Location of the trust store file.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
+  <property>
+    <name>ssl.client.truststore.type</name>
+    <value>jks</value>
+    <description>Optional. Default value is "jks".</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
+  <property>
+    <name>ssl.client.truststore.password</name>
+    <value>bigdata</value>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
 </configuration>

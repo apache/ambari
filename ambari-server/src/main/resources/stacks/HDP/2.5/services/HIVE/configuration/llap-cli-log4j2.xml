@@ -19,13 +19,12 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
-  <name>content</name>
-  <display-name>llap-cli-log4j2 template</display-name>
-  <description>Custom llap-cli-log4j2.properties</description>
-  <value>
+    <name>content</name>
+    <display-name>llap-cli-log4j2 template</display-name>
+    <description>Custom llap-cli-log4j2.properties</description>
+    <value>
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -105,5 +104,7 @@ rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

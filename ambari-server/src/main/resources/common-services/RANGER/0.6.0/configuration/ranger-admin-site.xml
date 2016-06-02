@@ -15,128 +15,144 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
 <configuration>
-
   <property>
     <name>ranger.jpa.audit.jdbc.driver</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.jpa.audit.jdbc.url</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.jpa.audit.jdbc.user</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.jpa.audit.jdbc.password</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.jpa.audit.jdbc.credential.alias</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.jpa.audit.jdbc.dialect</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.admin.kerberos.token.valid.seconds</name>
     <value>30</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.admin.kerberos.cookie.domain</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.admin.kerberos.cookie.path</name>
     <value>/</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.spnego.kerberos.principal</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.spnego.kerberos.keytab</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.admin.kerberos.principal</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.admin.kerberos.keytab</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.lookup.kerberos.principal</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.lookup.kerberos.keytab</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>ranger.truststore.file</name>
     <value>/etc/ranger/admin/conf/ranger-admin-keystore.jks</value>
     <display-name>ranger.truststore.file</display-name>
     <description>Ranger trust-store file-path</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.truststore.password</name>
     <value>changeit</value>
     <property-type>PASSWORD</property-type>
     <display-name>ranger.truststore.password</display-name>
     <description>Ranger trust-store password</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.audit.solr.zookeepers</name>
     <value>NONE</value>
@@ -151,16 +167,22 @@
         <name>is_solrCloud_enabled</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   
   <property>
     <name>ranger.sso.cookiename</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 
   <property>
     <name>ranger.sso.query.param.originalurl</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 
   <property>
@@ -170,6 +192,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 
   <property>
@@ -180,6 +204,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 
   <property>
@@ -195,6 +221,8 @@
         <name>hdfs_user</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 
   <property>
@@ -210,5 +238,7 @@
         <name>hive_user</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

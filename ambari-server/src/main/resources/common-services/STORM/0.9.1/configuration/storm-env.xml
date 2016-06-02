@@ -19,88 +19,103 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>storm_user</name>
     <display-name>Storm User</display-name>
     <value>storm</value>
     <property-type>USER</property-type>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>storm_log_dir</name>
     <value>/var/log/storm</value>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>storm_pid_dir</name>
     <value>/var/run/storm</value>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>jmxremote_port</name>
     <value>56431</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
-
   <property>
     <name>storm_principal_name</name>
     <description>Storm principal name</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>storm_principal_name</name>
     <description>Storm principal name</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>storm_keytab</name>
     <description>Storm keytab path</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>storm_ui_principal_name</name>
     <description>Storm UI principal name</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>storm_ui_keytab</name>
     <description>Storm UI keytab path</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>nimbus_keytab</name>
     <description>Nimbus keytab path</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>nimbus_principal_name</name>
     <description>Nimbus principal name</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>storm_user_nofile_limit</name>
     <value>128000</value>
     <description>Max open files limit setting for STORM user.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>storm_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for STORM user.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!-- storm-env.sh -->
   <property>
     <name>content</name>
@@ -123,18 +138,21 @@ export STORM_HOME={{storm_component_home_dir}}
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
-   <property>
-     <name>nimbus_seeds_supported</name>
-     <value>false</value>
-     <description></description>
-   </property>
-   <property>
-     <name>storm_logs_supported</name>
-     <value>false</value>
-     <description></description>
-   </property>
-
-
+  <property>
+    <name>nimbus_seeds_supported</name>
+    <value>false</value>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
+  <property>
+    <name>storm_logs_supported</name>
+    <value>false</value>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
 </configuration>

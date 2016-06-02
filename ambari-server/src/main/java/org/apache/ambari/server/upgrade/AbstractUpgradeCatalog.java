@@ -24,7 +24,6 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -310,6 +309,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
         Map<String, Set<String>> newProperties = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> overriddenProperties = new HashMap<String, Set<String>>();
 
         Set<PropertyInfo> stackProperties = configHelper.getStackProperties(cluster);
         for(String serviceName: cluster.getServices().keySet()) {
@@ -321,21 +321,33 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           properties.addAll(stackProperties);
 
           for(PropertyInfo property:properties) {
+            if (property.getValue() == null) {
+              continue;
+            }
+
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             Config clusterConfigs = cluster.getDesiredConfigByType(configType);
-            if(clusterConfigs == null || !clusterConfigs.getProperties().containsKey(property.getName())) {
-              if (property.getValue() == null || property.getPropertyTypes().contains(PropertyInfo.PropertyType.DONT_ADD_ON_UPGRADE)) {
-                continue;
-              }
-
-              LOG.info("Config " + property.getName() + " from " + configType + " from xml configurations" +
-                  " is not found on the cluster. Adding it...");
-
-              if(!newProperties.containsKey(configType)) {
-                newProperties.put(configType, new HashSet<String>());
-              }
-              newProperties.get(configType).add(property.getName());
-            }
+//            if (clusterConfigs == null || (!clusterConfigs.getProperties().containsKey(property.getName()) && property.getPropertyAmbariUpgradeBehavior().isAdd())) {
+//              LOG.info("Config " + property.getName() + " from " + configType + " from xml configurations" +
+//                      " will be added...");
+//              if (!newProperties.containsKey(configType)) {
+//                newProperties.put(configType, new HashSet<String>());
+//              }
+//              newProperties.get(configType).add(property.getName());
+//            } else if (clusterConfigs.getProperties().containsKey(property.getName())) {
+//              if (property.getPropertyAmbariUpgradeBehavior().isDelete()) {
+//                LOG.info("Config " + property.getName() + " from " + configType + " from xml configurations" +
+//                        " will be removed...");
+//                continue;
+//              } else if (property.getPropertyAmbariUpgradeBehavior().isChange()) {
+//                LOG.info("Config " + property.getName() + " from " + configType + " from xml configurations" +
+//                        " will be overridden...");
+//                if (!overriddenProperties.containsKey(configType)) {
+//                  overriddenProperties.put(configType, new HashSet<String>());
+//                }
+//                overriddenProperties.get(configType).add(property.getName());
+//              }
+//            }
           }
         }
 
@@ -343,6 +355,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
         for (Entry<String, Set<String>> newProperty : newProperties.entrySet()) {
           updateConfigurationPropertiesWithValuesFromXml(newProperty.getKey(), newProperty.getValue(), false, true);
+        }
+        for (Entry<String, Set<String>> overriddenProperty : overriddenProperties.entrySet()) {
+          updateConfigurationPropertiesWithValuesFromXml(overriddenProperty.getKey(), overriddenProperty.getValue(), true, true);
         }
       }
     }

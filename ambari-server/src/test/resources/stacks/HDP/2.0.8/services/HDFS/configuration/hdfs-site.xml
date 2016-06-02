@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -17,29 +16,30 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <configuration>
-
   <property>
     <name>dfs.name.dir</name>
-    <value></value>
+    <value/>
     <description>Determines where on the local filesystem the DFS name node
       should store the name table.</description>
     <final>true</final>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>dfs.support.append</name>
     <value>true</value>
     <description>to enable dfs append</description>
     <final>true</final>
-    <deletable>false</deletable>
+    <deleted>false</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>dfs.webhdfs.enabled</name>
     <value>true</value>
     <description>to enable webhdfs</description>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-
 </configuration>

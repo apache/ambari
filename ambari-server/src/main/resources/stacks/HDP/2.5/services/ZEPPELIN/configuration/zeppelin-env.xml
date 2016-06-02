@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -17,9 +16,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <configuration>
-
   <property>
     <name>zeppelin_env_content</name>
     <description>This is the jinja template for zeppelin-env.sh file</description>
@@ -112,6 +109,7 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 # export ZEPPELIN_SPARK_MAXRESULT
 
   </value>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

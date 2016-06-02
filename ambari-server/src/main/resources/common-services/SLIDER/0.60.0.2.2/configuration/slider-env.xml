@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <!-- slider-env.sh -->
   <property>
@@ -42,6 +41,7 @@ export HADOOP_CONF_DIR={{hadoop_conf_dir}}
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-  
 </configuration>

@@ -15,12 +15,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<configuration> 
-	<property>
-		<name>pxf.service.kerberos.keytab</name>
-		<value>/etc/security/keytabs/pxf.service.keytab</value>
-		<description>
+<configuration>
+  <property>
+    <name>pxf.service.kerberos.keytab</name>
+    <value>/etc/security/keytabs/pxf.service.keytab</value>
+    <description>
 		  Path to the PXF keytab file, owned by PXF service and with permissions 0400.
 		</description>
-	</property>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
 </configuration>

@@ -19,11 +19,12 @@
  */
 -->
 <configuration supports_final="true" supports_adding_forbidden="true">
-
   <property>
     <name>is_supported_yarn_ranger</name>
     <value>true</value>
     <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <!-- yarn-env.sh -->
   <property>
@@ -155,5 +156,7 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

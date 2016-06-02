@@ -16,9 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-
 <configuration supports_final="true">
-
   <property>
     <name>hive.security.authenticator.manager</name>
     <value>org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator</value>
@@ -29,8 +27,9 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-  
   <property>
     <name>hive.security.authorization.manager</name>
     <value>org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory</value>
@@ -42,8 +41,9 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-  
   <property>
     <name>hive.security.authorization.enabled</name>
     <value>false</value>
@@ -69,6 +69,7 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

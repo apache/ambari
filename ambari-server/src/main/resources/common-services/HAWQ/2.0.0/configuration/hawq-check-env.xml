@@ -18,15 +18,15 @@
 -->
 <configuration supports_adding_forbidden="true">
   <!-- hawq_check.cnf -->
-    <property>
-      <name>content</name>
-      <display-name>Content</display-name>
-      <description>
+  <property>
+    <name>content</name>
+    <display-name>Content</display-name>
+    <description>
         Contents of the configuration file /usr/local/hawq/etc/hawq_check.cnf.
         This file is used by 'hawq check' command, which can be run manually by gpadmin user on the HAWQ master host.
         This command validates the system parameters and HDFS parameters mentioned in this file to ensure optimal HAWQ operation.
       </description>
-        <value>
+    <value>
 [global]
 configfile_version = 4
 
@@ -89,5 +89,7 @@ dfs.namenode.accesstime.precision = -1
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

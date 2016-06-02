@@ -19,9 +19,7 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
-
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
@@ -81,6 +79,7 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>
