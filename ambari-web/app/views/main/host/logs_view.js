@@ -29,6 +29,12 @@ App.MainHostLogsView = App.TableView.extend({
   classNames: ['logs-tab-content'],
 
   /**
+   * Filtered number of all content number information displayed on the page footer bar
+   * @returns {String}
+   */
+  filteredContentInfo: Em.computed.i18nFormat('tableView.filters.filteredLogsInfo', 'filteredCount', 'totalCount'),
+
+  /**
    * @type {Ember.Object}
    */
   host: Em.computed.alias('App.router.mainHostDetailsController.content'),

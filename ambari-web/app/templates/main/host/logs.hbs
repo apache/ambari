@@ -33,7 +33,7 @@
     {{#if view.pageContent}}
       {{#each row in view.pageContent}}
         {{#view view.logFileRowView contentBinding="row"}}
-          <td>{{row.serviceDisplayName}}</td>
+          <td class="first">{{row.serviceDisplayName}}</td>
           <td>{{row.componentDisplayName}}</td>
           <td>
             {{#each file in row.fileNamesObject}}

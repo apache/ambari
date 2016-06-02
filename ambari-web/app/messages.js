@@ -2850,6 +2850,7 @@ Em.I18n.translations = {
   'tableView.filters.showAll': 'Show All',
   'tableView.filters.filteredConfigVersionInfo': '{0} of {1} versions showing',
   'tableView.filters.filteredAlertInstancesInfo': '{0} of {1} instances showing',
+  'tableView.filters.filteredLogsInfo': '{0} of {1} logs showing',
 
   'rollingrestart.dialog.title': 'Restart {0}s',
   'rollingrestart.dialog.primary': 'Trigger Rolling Restart',
