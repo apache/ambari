@@ -43,6 +43,8 @@ import com.google.inject.Singleton;
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 16.0f)
 public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
+  private static final String HDFS_SERVICE_NAME = MasterHostResolver.Service.HDFS.name();
+
   @Inject
   HostComponentStateDAO hostComponentStateDao;
   /**
@@ -54,7 +56,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request, Arrays.asList("HDFS"), true)) {
+    if (!super.isApplicable(request, Arrays.asList(HDFS_SERVICE_NAME), true)) {
       return false;
     }
 
@@ -79,7 +81,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     try {
-      ServiceComponent serviceComponent = cluster.getService(MasterHostResolver.Service.HDFS.name()).getServiceComponent(SECONDARY_NAMENODE);
+      ServiceComponent serviceComponent = cluster.getService(HDFS_SERVICE_NAME).getServiceComponent(SECONDARY_NAMENODE);
       if (serviceComponent != null) {
         hosts = serviceComponent.getServiceComponentHosts().keySet();
       }
@@ -92,16 +94,18 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     if (hosts.isEmpty()) {
       List<HostComponentStateEntity> allHostComponents = hostComponentStateDao.findAll();
       for(HostComponentStateEntity hc : allHostComponents) {
-        if (hc.getServiceName().equalsIgnoreCase(MasterHostResolver.Service.HDFS.name()) && hc.getComponentName().equalsIgnoreCase(SECONDARY_NAMENODE)) {
+        if (hc.getServiceName().equalsIgnoreCase(HDFS_SERVICE_NAME) && hc.getComponentName().equalsIgnoreCase(SECONDARY_NAMENODE)) {
           hosts.add(hc.getHostName());
         }
       }
     }
 
     if (!hosts.isEmpty()) {
-      prerequisiteCheck.getFailedOn().add(SECONDARY_NAMENODE);
+      String foundHost = hosts.toArray(new String[hosts.size()])[0];
+      prerequisiteCheck.getFailedOn().add(HDFS_SERVICE_NAME);
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
+      String failReason = getFailReason(prerequisiteCheck, request);
+      prerequisiteCheck.setFailReason(String.format(failReason, foundHost));
     }
   }
 }

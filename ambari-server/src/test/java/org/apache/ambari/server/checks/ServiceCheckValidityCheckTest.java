@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -120,6 +121,27 @@ public class ServiceCheckValidityCheckTest {
 
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
     when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(singletonList(hostRoleCommandEntity));
+
+    PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
+    serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+  }
+
+
+  @Test
+  public void testFailWhenServiceWithNoServiceCheckExists() throws AmbariException {
+    ServiceComponent serviceComponent = mock(ServiceComponent.class);
+    when(serviceComponent.isVersionAdvertised()).thenReturn(true);
+
+    when(service.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
+    when(service.getServiceComponents()).thenReturn(ImmutableMap.of(SERVICE_COMPONENT_NAME, serviceComponent));
+
+    ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
+    serviceConfigEntity.setServiceName(SERVICE_NAME);
+    serviceConfigEntity.setCreateTimestamp(CONFIG_CREATE_TIMESTAMP);
+
+    when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
+    when(hostRoleCommandDAO.findAll(any(Request.class), any(Predicate.class))).thenReturn(Collections.<HostRoleCommandEntity>emptyList());
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));

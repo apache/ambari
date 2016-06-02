@@ -133,8 +133,10 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
       String serviceName = serviceEntry.getKey();
       Long configTimestamp = serviceEntry.getValue();
 
+      boolean serviceCheckWasExecuted = false;
       for (HostRoleCommandEntity command : latestTimestamps.values()) {
         if (command.getCommandDetail().contains(serviceName)) {
+          serviceCheckWasExecuted = true;
           Long serviceCheckTimestamp = command.getStartTime();
 
           if (serviceCheckTimestamp < configTimestamp) {
@@ -145,6 +147,11 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
                 DATE_FORMAT.format(new Date(serviceCheckTimestamp)));
           }
         }
+      }
+
+      if (!serviceCheckWasExecuted) {
+        failedServiceNames.add(serviceName);
+        LOG.info("Service {} service check has never been executed", serviceName);
       }
     }
 
