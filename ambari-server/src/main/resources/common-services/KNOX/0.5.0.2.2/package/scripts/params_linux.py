@@ -123,6 +123,13 @@ if dfs_ha_enabled:
     # With HA enabled namenode_address is recomputed
   namenode_address = format('hdfs://{dfs_ha_nameservices}')
 
+namenode_port_map = {}
+if dfs_ha_enabled:
+    for nn_id in dfs_ha_namemodes_ids_list:
+        nn_host = config['configurations']['hdfs-site'][format('dfs.namenode.http-address.{dfs_ha_nameservices}.{nn_id}')]
+        nn_host_parts = nn_host.split(':')
+        namenode_port_map[nn_host_parts[0]] = nn_host_parts[1]
+
 
 namenode_hosts = default("/clusterHostInfo/namenode_host", None)
 if type(namenode_hosts) is list:
@@ -145,7 +152,6 @@ if has_namenode:
 
 webhdfs_service_urls = ""
 
-
 def buildUrlElement(protocol, hdfs_host, port, servicePath) :
   openTag = "<url>"
   closeTag = "</url>"
@@ -156,11 +162,12 @@ def buildUrlElement(protocol, hdfs_host, port, servicePath) :
   else:
     return openTag + proto + hdfs_host + ":" + port + servicePath + closeTag + newLine
 
-if type(namenode_hosts) is list:
-    for host in namenode_hosts:
-      webhdfs_service_urls += buildUrlElement("http", host, namenode_http_port, "/webhdfs")
+namenode_host_keys = namenode_port_map.keys();
+if len(namenode_host_keys) > 0:
+    for host in namenode_host_keys:
+      webhdfs_service_urls += buildUrlElement("http", host, namenode_port_map[host], "/webhdfs")
 else:
-  webhdfs_service_urls = buildUrlElement("http", namenode_hosts, namenode_http_port, "/webhdfs")
+  webhdfs_service_urls = buildUrlElement("http", namenode_host, namenode_http_port, "/webhdfs")
 
 
 rm_hosts = default("/clusterHostInfo/rm_host", None)
