@@ -30,6 +30,7 @@ import org.snmp4j.Target;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.VariableBinding;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,6 +53,31 @@ public class SNMPDispatcherTest {
     dispatcher.dispatch(notification);
     verify(notification.Callback).onFailure(notification.CallbackIds);
     verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
+  }
+
+  @Test
+  public void testDispatchUdpTransportMappingCrash() throws Exception {
+    SNMPDispatcher dispatcher = spy(new SNMPDispatcher(DEFAULT_SNMP_PORT));
+    SNMPDispatcher.SnmpVersion snmpVersion = SNMPDispatcher.SnmpVersion.SNMPv1;
+    Notification notification = mock(Notification.class);
+    notification.Callback = mock(DispatchCallback.class);
+    notification.CallbackIds = mock(List.class);
+    Map<String, String> properties = new HashMap<String, String>();
+    properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
+    properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
+    properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
+    properties.put(SNMPDispatcher.COMMUNITY_PROPERTY, "4");
+    properties.put(SNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
+    properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "1.3.6.1.6.3.1.1.5.4");
+    notification.DispatchProperties = properties;
+    notification.Body = "body";
+    notification.Subject = "subject";
+    notification.Recipients = Arrays.asList(new Recipient());
+    doThrow(new IOException()).when(dispatcher).sendTraps(notification, snmpVersion);
+    dispatcher.dispatch(notification);
+    verify(notification.Callback).onFailure(notification.CallbackIds);
+    verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
+    assertNull(dispatcher.getTransportMapping());
   }
 
   @Test
