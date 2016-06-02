@@ -19,14 +19,12 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
-
-    <property>
-        <name>content</name>
-        <display-name>mahout-log4j template</display-name>
-        <description>Custom log4j.properties</description>
-        <value>
+  <property>
+    <name>content</name>
+    <display-name>mahout-log4j template</display-name>
+    <description>Custom log4j.properties</description>
+    <value>
 #
 #
 # Licensed to the Apache Software Foundation (ASF) under one
@@ -61,10 +59,11 @@ log4j.logger.org.eclipse.jetty=WARN
 log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=WARN
 log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=WARN
         </value>
-        <value-attributes>
-            <type>content</type>
-            <show-property-name>false</show-property-name>
-        </value-attributes>
-    </property>
-
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
 </configuration>

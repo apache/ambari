@@ -20,7 +20,6 @@
  */
 -->
 <configuration supports_final="true">
-
   <!--
     <property>
       <name>slider.security.protocol.acl</name>
@@ -28,14 +27,12 @@
       <description>When security is enabled, set appropriate acl. Default value means allow everyone.</description>
     </property>
     -->
-
   <!--
      The recommended approach is to configure slider-env.sh and set HADOOP_CONF_DIR.
      Otherwise, appropriate configurations from hdfs-site, yarn-site, can be dropped in this file
      for Slider client to work. The following list is not an exhaustive list but the minimal config
      needed to interact with a non-secure cluster.
   -->
-
   <!--
       <property>
         <name>yarn.resourcemanager.address</name>
@@ -56,5 +53,4 @@
           literal string "local" or a host:port for HDFS.</description>
       </property>
     -->
-
 </configuration>

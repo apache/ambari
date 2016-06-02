@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>mapred_log_dir_prefix</name>
@@ -30,6 +29,8 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>mapred_pid_dir_prefix</name>
@@ -41,6 +42,8 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>mapred_user</name>
@@ -52,6 +55,8 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>jobhistory_heapsize</name>
@@ -62,20 +67,23 @@
       <unit>MB</unit>
       <type>int</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>mapred_user_nofile_limit</name>
     <value>32768</value>
     <description>Max open files limit setting for MAPREDUCE user.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>mapred_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for MAPREDUCE user.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-  
   <!-- mapred-env.sh -->
   <property>
     <name>content</name>
@@ -98,5 +106,7 @@ export HADOOP_MAPRED_ROOT_LOGGER=INFO,RFA
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

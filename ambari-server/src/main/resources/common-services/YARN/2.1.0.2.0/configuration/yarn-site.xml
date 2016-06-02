@@ -16,34 +16,33 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-
 <!-- Put site-specific property overrides in this file. -->
-
-<configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
-
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
   <!-- ResourceManager -->
-
   <property>
     <name>yarn.resourcemanager.hostname</name>
     <value>localhost</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The hostname of the RM.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description> The address of ResourceManager. </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.scheduler.address</name>
     <value>localhost:8030</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The address of the scheduler interface.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.address</name>
     <value>localhost:8050</value>
@@ -52,21 +51,24 @@
       The address of the applications manager interface in the
       RM.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.admin.address</name>
     <value>localhost:8141</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The address of the RM admin interface.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.scheduler.class</name>
     <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
     <description>The class to use as the resource scheduler.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.scheduler.minimum-allocation-mb</name>
     <value>512</value>
@@ -89,8 +91,9 @@
         <name>yarn.nodemanager.resource.memory-mb</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.scheduler.maximum-allocation-mb</name>
     <value>5120</value>
@@ -113,8 +116,9 @@
         <name>yarn.nodemanager.resource.memory-mb</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.acl.enable</name>
     <value>false</value>
@@ -122,25 +126,27 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.admin.acl</name>
-    <value></value>
+    <value/>
     <description> ACL of who can be admin of the YARN cluster. </description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!-- NodeManager -->
-
   <property>
     <name>yarn.nodemanager.address</name>
     <value>0.0.0.0:45454</value>
     <description>The address of the container manager in the NM.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.resource.memory-mb</name>
     <value>5120</value>
@@ -154,14 +160,16 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.application.classpath</name>
     <value>/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*</value>
     <description>Classpath for typical applications.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.vmem-pmem-ratio</name>
     <value>2.1</value>
@@ -177,14 +185,16 @@
       <maximum>5.0</maximum>
       <increment-step>0.1</increment-step>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.container-executor.class</name>
     <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
     <description>ContainerExecutor for launching containers</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.linux-container-executor.group</name>
     <value>hadoop</value>
@@ -195,21 +205,24 @@
         <name>user_group</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce_shuffle</value>
     <description>Auxilliary services of NodeManager. A valid service name should only contain a-zA-Z0-9_ and can
       not start with numbers</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
     <value>org.apache.hadoop.mapred.ShuffleHandler</value>
     <description>The auxiliary service class to use </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.log-dirs</name>
     <value>/hadoop/yarn/log</value>
@@ -223,8 +236,9 @@
     <value-attributes>
       <type>directories</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.local-dirs</name>
     <value>/hadoop/yarn/local</value>
@@ -238,8 +252,9 @@
     <value-attributes>
       <type>directories</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.container-monitor.interval-ms</name>
     <value>3000</value>
@@ -247,8 +262,9 @@
       The interval, in milliseconds, for which the node manager
       waits  between two cycles of monitoring its containers' memory usage.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!--
   <property>
     <name>yarn.nodemanager.health-checker.script.path</name>
@@ -256,19 +272,20 @@
     <description>The health check script to run.</description>
   </property>
    -->
-
   <property>
     <name>yarn.nodemanager.health-checker.interval-ms</name>
     <value>135000</value>
     <description>Frequency of running node health script.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.health-checker.script.timeout-ms</name>
     <value>60000</value>
     <description>Script time out period.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.log.retain-second</name>
     <value>604800</value>
@@ -276,8 +293,9 @@
       Time in seconds to retain user logs. Only applicable if
       log aggregation is disabled.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.log-aggregation-enable</name>
     <value>true</value>
@@ -286,15 +304,17 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.remote-app-log-dir</name>
     <value>/app-logs</value>
     <description>Location to aggregate logs to. </description>
     <property-type>NOT_MANAGED_HDFS_PATH</property-type>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.remote-app-log-dir-suffix</name>
     <value>logs</value>
@@ -302,16 +322,18 @@
       The remote log dir will be created at
       {yarn.nodemanager.remote-app-log-dir}/${user}/{thisParam}.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.log-aggregation.compression-type</name>
     <value>gz</value>
     <description>
       T-file compression types used to compress aggregated logs.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.delete.debug-delay-sec</name>
     <value>0</value>
@@ -330,8 +352,9 @@
       of the Yarn applications' log directories is configurable with the
       yarn.nodemanager.log-dirs property (see also below).
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.log-aggregation.retain-seconds</name>
     <value>2592000</value>
@@ -339,8 +362,9 @@
       How long to keep aggregation logs before deleting them. -1 disables.
       Be careful set this too small and you will spam the name node.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.admin-env</name>
     <value>MALLOC_ARENA_MAX=$MALLOC_ARENA_MAX</value>
@@ -348,8 +372,9 @@
       Environment variables that should be forwarded from the NodeManager's
       environment to the container's.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.disk-health-checker.min-healthy-disks</name>
     <value>0.25</value>
@@ -360,8 +385,9 @@
       If there are less number of healthy local-dirs (or log-dirs) available,
       then new containers will not be launched on this node.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.am.max-attempts</name>
     <value>2</value>
@@ -373,8 +399,9 @@
       the resourcemanager will override it. The default number is set to 2, to
       allow at least one retry for AM.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.webapp.address</name>
     <value>localhost:8088</value>
@@ -382,8 +409,9 @@
     <description>
       The address of the RM web application.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.webapp.https.address</name>
     <value>localhost:8090</value>
@@ -391,16 +419,18 @@
     <description>
       The https address of the RM web application.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.nodemanager.vmem-check-enabled</name>
     <value>false</value>
     <description>
       Whether virtual memory limits will be enforced for containers.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.log.server.url</name>
     <value>http://localhost:19888/jobhistory/logs</value>
@@ -408,8 +438,9 @@
     <description>
       URI for the HistoryServer's log resource
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.resourcemanager.nodes.exclude-path</name>
     <value>/etc/hadoop/conf/yarn.exclude</value>
@@ -419,14 +450,16 @@
       file must be specified.  If the value is empty, no hosts are
       excluded.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>yarn.http.policy</name>
     <value>HTTP_ONLY</value>
     <description>
       This configures the HTTP endpoint for Yarn Daemons.The following values are supported: - HTTP_ONLY : Service is provided only on http - HTTPS_ONLY : Service is provided only on https
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

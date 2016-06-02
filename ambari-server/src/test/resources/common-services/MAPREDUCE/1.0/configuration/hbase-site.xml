@@ -29,12 +29,16 @@
     in milliseconds.  Default is 15. Set this value low if you want unit
     tests to be responsive.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.client.pause</name>
     <value>5000</value>
     <description>General client pause value.  Used mostly as value to wait
     before running a retry of a failed get, region lookup, etc.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.meta.thread.rescanfrequency</name>
@@ -42,6 +46,8 @@
     <description>How long the HMaster sleeps (in milliseconds) between scans of
     the root and meta tables.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.server.thread.wakefrequency</name>
@@ -49,6 +55,8 @@
     <description>Time to sleep in between searches for work (in milliseconds).
     Used as sleep interval by service threads such as META scanner and log roller.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.handler.count</name>
@@ -57,6 +65,8 @@
     Same property is used by the HMaster for count of master handlers.
     Default is 10.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.lease.period</name>
@@ -66,6 +76,8 @@
     value has been reduced so that the master will notice a dead region server
     sooner. The default is 30 seconds.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.info.port</name>
@@ -73,6 +85,8 @@
     <description>The port for the hbase master web UI
     Set to -1 if you do not want the info server to run.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.info.port</name>
@@ -80,6 +94,8 @@
     <description>The port for the hbase regionserver web UI
     Set to -1 if you do not want the info server to run.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.info.port.auto</name>
@@ -88,6 +104,8 @@
     search if hbase.regionserver.info.port is already in use.
     Enabled for testing to run multiple tests on one machine.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.master.lease.thread.wakefrequency</name>
@@ -96,6 +114,8 @@
     This value has been reduced due to the other reduced values above so that
     the master will notice a dead region server sooner. The default is 15 seconds.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.optionalcacheflushinterval</name>
@@ -104,6 +124,8 @@
     Amount of time to wait since the last time a region was flushed before
     invoking an optional cache flush. Default 60,000.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.safemode</name>
@@ -112,6 +134,8 @@
     Turn on/off safe mode in region server. Always on for production, always off
     for tests.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
@@ -122,10 +146,14 @@
 
     Keep the maximum filesize small so we split more often in tests.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop.log.dir</name>
     <value>${user.dir}/../logs</value>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
@@ -133,5 +161,7 @@
     <description>Property from ZooKeeper's config zoo.cfg.
     The port at which the clients will connect.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

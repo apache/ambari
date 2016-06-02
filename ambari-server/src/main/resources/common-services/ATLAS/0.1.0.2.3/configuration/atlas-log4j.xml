@@ -19,21 +19,21 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
-
   <property>
     <name>atlas_log_level</name>
     <value>debug</value>
     <description>Log level for atlas logging</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>audit_log_level</name>
     <value>OFF</value>
     <description>Log level for audit logging</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>content</name>
     <display-name>atlas-log4j template</display-name>
@@ -122,12 +122,12 @@
   </root>
 
 </log4j:configuration>
-      ]]>
-    </value>
+      ]]></value>
     <value-attributes>
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

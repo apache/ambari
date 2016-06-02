@@ -19,26 +19,33 @@
  * limitations under the License.
  */
 -->
-
 <configuration>
   <property>
     <name>hs_host</name>
-    <value></value>
+    <value/>
     <description>History Server.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>mapred_log_dir_prefix</name>
     <value>/var/log/hadoop-mapreduce</value>
     <description>Mapreduce Log Dir Prefix</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>mapred_pid_dir_prefix</name>
     <value>/var/run/hadoop-mapreduce</value>
     <description>Mapreduce PID Dir Prefix</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>mapred_user</name>
     <value>mapred</value>
     <description>Mapreduce User</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

@@ -19,9 +19,7 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
-
   <!-- oozie-env.sh -->
   <property>
     <name>content</name>
@@ -104,6 +102,7 @@ export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

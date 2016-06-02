@@ -19,12 +19,13 @@
  * limitations under the License.
  */
 -->
-
 <configuration>
   <property>
     <name>dataDir</name>
     <value>c:\\\\hadoop\\\\zookeeper</value>
     <display-name>ZooKeeper directory</display-name>
     <description>Data directory for ZooKeeper.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>

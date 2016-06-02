@@ -19,13 +19,13 @@
  */
 -->
 <configuration>
-  
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
     <value>/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.policymgr.clientssl.keystore.password</name>
     <value>myKeyFilePassword</value>
@@ -34,14 +34,16 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
     <value>/usr/hdp/current/hadoop-client/conf/ranger-yarn-plugin-truststore.jks</value>
     <description>java truststore file</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.policymgr.clientssl.truststore.password</name>
     <value>changeit</value>
@@ -50,18 +52,21 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
-    <property>
+  <property>
     <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>java keystore credential file</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.policymgr.clientssl.truststore.credential.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>java truststore credential file</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

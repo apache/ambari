@@ -19,9 +19,7 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
-
   <property>
     <name>content</name>
     <display-name>kafka-log4j template</display-name>
@@ -112,16 +110,17 @@ log4j.logger.state.change.logger=TRACE, stateChangeAppender
 log4j.additivity.state.change.logger=false
 
    </value>
-   <value-attributes>
+    <value-attributes>
       <type>content</type>
       <show-property-name>false</show-property-name>
-   </value-attributes>
-   <depends-on>
+    </value-attributes>
+    <depends-on>
       <property>
         <type>ranger-kafka-plugin-properties</type>
         <name>ranger-kafka-plugin-enabled</name>
       </property>
-   </depends-on>
+    </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

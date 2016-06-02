@@ -19,13 +19,13 @@
  */
 -->
 <configuration>
-
   <property>
     <name>xasecure.audit.is.enabled</name>
     <value>true</value>
     <description>Is Audit enabled?</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.db</name>
     <value>false</value>
@@ -34,20 +34,23 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.db.jdbc.url</name>
     <value>{{audit_jdbc_url}}</value>
     <description>Audit DB JDBC URL</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.db.user</name>
     <value>{{xa_audit_db_user}}</value>
     <description>Audit DB JDBC User</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.db.password</name>
     <value>crypted</value>
@@ -56,26 +59,30 @@
       <type>password</type>
     </value-attributes>
     <description>Audit DB JDBC Password</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.db.jdbc.driver</name>
     <value>{{jdbc_driver}}</value>
     <description>Audit DB JDBC Driver</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.credential.provider.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>Credential file store</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.db.batch.filespool.dir</name>
     <value>/var/log/ranger/kms/audit/db/spool</value>
     <description>/var/log/ranger/kms/audit/db/spool</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>true</value>
@@ -84,8 +91,9 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://NAMENODE_HOSTNAME:8020/ranger/audit</value>
@@ -96,14 +104,16 @@
         <name>fs.defaultFS</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
     <value>/var/log/ranger/kms/audit/hdfs/spool</value>
     <description>/var/log/ranger/kms/audit/hdfs/spool</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.solr</name>
     <value>true</value>
@@ -112,26 +122,30 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.solr.urls</name>
     <value>{{ranger_audit_solr_urls}}</value>
     <description>Solr URL</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.solr.zookeepers</name>
     <value>none</value>
     <description>Solr Zookeeper string</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xasecure.audit.destination.solr.batch.filespool.dir</name>
     <value>/var/log/ranger/kms/audit/solr/spool</value>
     <description>/var/log/ranger/kms/audit/solr/spool</description>
-  </property>  
-
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
   <property>
     <name>xasecure.audit.provider.summary.enabled</name>
     <value>false</value>
@@ -140,6 +154,7 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-  </property>  
-
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
 </configuration>

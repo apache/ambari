@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
@@ -18,21 +19,20 @@
  * limitations under the License.
  */
 -->
-
 <configuration>
-
   <property>
     <name>atlas.kafka.entities.group.id</name>
     <display-name>Atlas Source: Kafka consumer group</display-name>
     <value>ranger_entities_consumer</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>atlas.kafka.bootstrap.servers</name>
     <display-name>Atlas Source: Kafka endpoint</display-name>
     <value>localhost:6667</value>
-    <description></description>
+    <description/>
     <depends-on>
       <property>
         <type>kafka-broker</type>
@@ -42,13 +42,14 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>atlas.kafka.zookeeper.connect</name>
     <display-name>Atlas Source: Zookeeper endpoint</display-name>
     <value>localhost:2181</value>
-    <description></description>
+    <description/>
     <depends-on>
       <property>
         <type>zoo.cfg</type>
@@ -58,6 +59,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

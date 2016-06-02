@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
- <!--
+<!--
     Licensed to the Apache Software Foundation (ASF) under one or more
     contributor license agreements.  See the NOTICE file distributed with
     this work for additional information regarding copyright ownership.
@@ -17,13 +16,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
  -->
- 
 <!-- Put site-specific property overrides in this file. -->
-
-<configuration supports_final="true" xmlns:xi="http://www.w3.org/2001/XInclude">
-
-<!-- i/o properties -->
-
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
+  <!-- i/o properties -->
   <property>
     <name>io.file.buffer.size</name>
     <value>131072</value>
@@ -31,24 +26,26 @@
   The size of this buffer should probably be a multiple of hardware
   page size (4096 on Intel x86), and it determines how much data is
   buffered during read and write operations.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>io.serializations</name>
     <value>org.apache.hadoop.io.serializer.WritableSerialization</value>
     <description> A list of comma-delimited serialization classes that can be used for obtaining serializers and deserializers.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>io.compression.codecs</name>
     <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec</value>
     <description>A list of the compression codec classes that can be used
                  for compression/decompression.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
-<!-- file system properties -->
-
+  <!-- file system properties -->
   <property>
     <name>fs.defaultFS</name>
     <!-- cluster variant -->
@@ -56,16 +53,18 @@
     <description>The name of the default file system.  Either the
   literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>fs.trash.interval</name>
     <value>360</value>
     <description>Number of minutes between trash checkpoints.
   If zero, the trash feature is disabled.
   </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!-- ipc properties: copied from kryptonite configuration -->
   <property>
     <name>ipc.client.idlethreshold</name>
@@ -73,22 +72,25 @@
     <description>Defines the threshold number of connections after which
                connections will be inspected for idleness.
   </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ipc.client.connection.maxidletime</name>
     <value>30000</value>
     <description>The maximum time after which a client will bring down the
                connection to the server.
   </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ipc.client.connect.max.retries</name>
     <value>50</value>
     <description>Defines the maximum number of retries for IPC connections.</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ipc.server.tcpnodelay</name>
     <value>true</value>
@@ -98,8 +100,9 @@
       decrease latency
       with a cost of more/smaller packets.
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!-- Web Interface Configuration -->
   <property>
     <name>mapreduce.jobtracker.webinterface.trusted</name>
@@ -109,24 +112,28 @@
                 not be exposed to public. Enable this option if the interfaces
                 are only reachable by those who have the right authorization.
   </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
- <property>
-   <name>hadoop.security.authentication</name>
-   <value>simple</value>
-   <description>
+  <property>
+    <name>hadoop.security.authentication</name>
+    <value>simple</value>
+    <description>
    Set the authentication for the cluster. Valid values are: simple or
    kerberos.
    </description>
- </property>
-<property>
-  <name>hadoop.security.authorization</name>
-  <value>false</value>
-  <description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
+  <property>
+    <name>hadoop.security.authorization</name>
+    <value>false</value>
+    <description>
      Enable authorization for different protocols.
   </description>
-</property>
-
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
   <property>
     <name>hadoop.security.auth_to_local</name>
     <value>
@@ -137,7 +144,7 @@
         RULE:[2:$1@$0](rs@.*)s/.*/hbase/
         DEFAULT
     </value>
-<description>The mapping from kerberos principal names to local OS mapreduce.job.user.names.
+    <description>The mapping from kerberos principal names to local OS mapreduce.job.user.names.
   So the default rule is just "DEFAULT" which takes all principals in your default domain to their first component.
   "omalley@APACHE.ORG" and "omalley/admin@APACHE.ORG" to "omalley", if your default domain is APACHE.ORG.
 The translations rules have 3 sections:
@@ -175,6 +182,7 @@ If you want to treat all principals from APACHE.ORG with /admin as "admin", your
 RULE[2:$1%$2@$0](.%admin@APACHE.ORG)s/./admin/
 DEFAULT
     </description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

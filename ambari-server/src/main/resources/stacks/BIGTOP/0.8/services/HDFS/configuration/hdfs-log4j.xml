@@ -19,9 +19,7 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
-
   <property>
     <name>content</name>
     <description>Custom log4j.properties</description>
@@ -199,6 +197,7 @@ log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

@@ -19,57 +19,76 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>
     <description>Hadoop Log Dir Prefix</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop_pid_dir_prefix</name>
     <value>/var/run/hadoop</value>
     <description>Hadoop PID Dir Prefix</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop_root_logger</name>
     <value>INFO,RFA</value>
     <description>Hadoop Root Logger</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hadoop_heapsize</name>
     <value>1024</value>
     <description>Hadoop maximum Java heap size</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>namenode_heapsize</name>
     <value>1024</value>
     <description>NameNode Java heap size</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>namenode_opt_newsize</name>
     <value>200</value>
     <description>NameNode new generation size</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>namenode_opt_maxnewsize</name>
     <value>200</value>
     <description>NameNode maximum new generation size</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>namenode_opt_permsize</name>
     <value>128</value>
     <description>NameNode permanent generation size</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>namenode_opt_maxpermsize</name>
     <value>256</value>
     <description>NameNode maximum permanent generation size</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>dtnode_heapsize</name>
     <value>1024</value>
     <description>DataNode maximum Java heap size</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>proxyuser_group</name>
@@ -81,6 +100,8 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>hdfs_user</name>
@@ -92,8 +113,9 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
@@ -187,12 +209,12 @@ export HADOOP_IDENT_STRING=$USER
 # Use libraries from standard classpath
 JAVA_JDBC_LIBS=""
 #Add libraries required by mysql connector
-for jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`
+for jarFile in `ls /usr/share/java/*mysql* 2&gt;/dev/null`
 do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
 #Add libraries required by oracle connector
-for jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`
+for jarFile in `ls /usr/share/java/*ojdbc* 2&gt;/dev/null`
 do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
@@ -213,6 +235,7 @@ export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-a
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-  
 </configuration>

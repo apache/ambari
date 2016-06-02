@@ -21,7 +21,6 @@
 -->
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
-
   <property>
     <name>logsearch_service_logs_max_retention</name>
     <value>7</value>
@@ -31,8 +30,9 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>logsearch_service_logs_merge_factor</name>
     <value>5</value>
@@ -45,19 +45,21 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!-- solrconfig.xml -->
   <property>
     <name>content</name>
     <display-name>solrconfig template</display-name>
     <description>This is the jinja template for solrconfig.xml file for service logs</description>
-    <value></value>
+    <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>
       <property-file-name>service_logs-solrconfig.xml.j2</property-file-name>
       <property-file-type>xml</property-file-type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

@@ -15,50 +15,53 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
 <configuration>
-
   <property>
     <name>ranger.usersync.kerberos.principal</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.usersync.kerberos.keytab</name>
-    <value></value>
-    <description></description>
+    <value/>
+    <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.usersync.policymgr.username</name>
     <value>rangerusersync</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.usersync.policymgr.alias</name>
     <value>ranger.usersync.policymgr.password</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.usersync.policymgr.keystore</name>
     <value>/etc/ranger/usersync/conf/ugsync.jceks</value>
-    <description></description>
+    <description/>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.usersync.group.search.first.enabled</name>
     <display-name>Enable Group Search First</display-name>
     <value>false</value>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>value-list</type>
       <overridable>false</overridable>
@@ -74,13 +77,14 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.usersync.user.searchenabled</name>
     <display-name>Enable User Search</display-name>
     <value>false</value>
-    <description></description>
+    <description/>
     <value-attributes>
       <type>value-list</type>
       <overridable>false</overridable>
@@ -93,9 +97,10 @@
           <value>false</value>
           <label>No</label>
         </entry>
-     </entries>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

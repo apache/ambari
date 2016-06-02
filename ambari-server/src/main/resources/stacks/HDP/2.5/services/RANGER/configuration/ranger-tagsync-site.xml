@@ -18,15 +18,14 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="true">
-
   <property>
     <name>ranger.tagsync.dest.ranger.ssl.config.filename</name>
     <value>/usr/hdp/current/ranger-tagsync/conf/mytruststore.jks</value>
     <description>Truststore used for tagsync, required if tagsync -&gt; ranger admin communication is SSL enabled</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>ranger.tagsync.keystore.filename</name>
     <value>/usr/hdp/current/ranger-tagsync/conf/rangertagsync.jceks</value>
@@ -34,6 +33,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

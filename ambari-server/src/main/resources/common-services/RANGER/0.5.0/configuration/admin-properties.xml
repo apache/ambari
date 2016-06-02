@@ -20,7 +20,6 @@
  */
 -->
 <configuration supports_final="false">
-
   <property>
     <name>DB_FLAVOR</name>
     <value>MYSQL</value>
@@ -53,11 +52,12 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>policymgr_external_url</name>
-    <value></value>
+    <value/>
     <display-name>External URL</display-name>
     <description>Policy Manager external url eg: http://RANGER_HOST:6080</description>
     <value-attributes>
@@ -77,71 +77,85 @@
         <name>ranger.service.https.port</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>policymgr_http_enabled</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>authentication_method</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>remoteLoginEnabled</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>authServiceHostName</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>authServicePort</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xa_ldap_url</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xa_ldap_userDNpattern</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xa_ldap_groupSearchBase</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xa_ldap_groupSearchFilter</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xa_ldap_groupRoleAttribute</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xa_ldap_ad_domain</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>xa_ldap_ad_url</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <property>
     <name>SQL_COMMAND_INVOKER</name>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

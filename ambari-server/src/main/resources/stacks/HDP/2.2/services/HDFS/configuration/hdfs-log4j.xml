@@ -19,9 +19,7 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
-
   <property>
     <name>content</name>
     <display-name>hdfs-log4j template</display-name>
@@ -222,6 +220,7 @@ log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>

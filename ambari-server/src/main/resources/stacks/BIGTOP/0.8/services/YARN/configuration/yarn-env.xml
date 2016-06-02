@@ -19,17 +19,20 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
   <property>
     <name>yarn_log_dir_prefix</name>
     <value>/var/log/hadoop-yarn</value>
     <description>YARN Log Dir Prefix</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn_pid_dir_prefix</name>
     <value>/var/run/hadoop-yarn</value>
     <description>YARN PID Dir Prefix</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn_user</name>
@@ -41,33 +44,44 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>yarn_heapsize</name>
     <value>1024</value>
     <description>Max heapsize for all YARN components using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>resourcemanager_heapsize</name>
     <value>1024</value>
     <description>Max heapsize for ResourceManager using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>nodemanager_heapsize</name>
     <value>1024</value>
     <description>Max heapsize for NodeManager using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>min_user_id</name>
     <value>1000</value>
     <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to disallow all superusers from submitting jobs</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>apptimelineserver_heapsize</name>
     <value>1024</value>
     <description>Max heapsize for AppTimelineServer using a numerical value in the scale of MB</description>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>
@@ -187,6 +201,7 @@ YARN_OPTS="$YARN_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
-
 </configuration>
