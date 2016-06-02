@@ -81,10 +81,10 @@ class AmsAlert(MetricAlert):
 
     if isinstance(self.metric_info, AmsMetric):
       raw_data_points, http_code = self._load_metric(alert_uri.is_ssl_enabled, host, port, self.metric_info)
-      if not raw_data_points and http_code in [200, 307]:
+      if not raw_data_points and http_code not in [200, 307]:
         collect_result = self.RESULT_UNKNOWN
         value_list.append('HTTP {0} response (metrics unavailable)'.format(str(http_code)))
-      elif not raw_data_points and http_code not in [200, 307]:
+      elif not raw_data_points and http_code in [200, 307]:
         raise Exception("[Alert][{0}] Unable to extract JSON from HTTP response".format(self.get_name()))
       else:
 
@@ -130,6 +130,8 @@ class AmsAlert(MetricAlert):
     except Exception, exception:
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception("[Alert][{0}] Unable to retrieve metrics from AMS: {1}".format(self.get_name(), str(exception)))
+      status = response.status if 'response' in vars() else None
+      return (None, status)
     finally:
       if logger.isEnabledFor(logging.DEBUG):
         logger.debug("""
@@ -141,8 +143,7 @@ class AmsAlert(MetricAlert):
         try:
           conn.close()
         except:
-          logger.debug("[Alert][{0}] Unable to close URL connection to {1}".format
-                       (self.get_name(), url))
+          logger.debug("[Alert][{0}] Unable to close URL connection to {1}".format(self.get_name(), url))
     json_is_valid = True
     try:
       data_json = json.loads(data)
