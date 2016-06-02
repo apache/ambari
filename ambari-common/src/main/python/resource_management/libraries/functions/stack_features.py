@@ -248,11 +248,6 @@ _DEFAULT_STACK_FEATURES = {
       "name": "hbase_home_directory",
       "description": "Hbase home directory in HDFS needed for HBASE backup",
       "min_version": "2.5.0.0"
-    },
-    {
-      "name": "spark_livy",
-      "description": "Livy as slave component of spark",
-      "min_version": "2.5.0.0"
     }
   ]
 }

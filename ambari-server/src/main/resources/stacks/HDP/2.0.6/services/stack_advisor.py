@@ -303,13 +303,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if not falconUser in users and falconUser is not None:
           users[falconUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "falcon-env", "propertyName" : "falcon_user"}
 
-    if "SPARK" in servicesList:
-      livyUser = None
-      if "livy-env" in services["configurations"] and "livy_user" in services["configurations"]["livy-env"]["properties"]:
-        livyUser = services["configurations"]["livy-env"]["properties"]["livy_user"]
-        if not livyUser in users and livyUser is not None:
-          users[livyUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "livy-env", "propertyName" : "livy_user"}
-
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
