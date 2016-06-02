@@ -333,15 +333,8 @@ define(['require',
 			if(params){
 				that.$("input[data-node]").prop("checked",false);
 				_.each(params,function(node){
-					if(node.h){
-						that.$("input[data-type='H'][data-node='"+node.h+"']").prop("checked",true);
-						if(node.c){
-							var parent = that.$("li[data-type='H'][data-node='"+node.h+"']")
-							parent.find("input[data-type='C']").prop("checked",false);
-							_.each(node.c,function(component){
-								parent.find("input[data-type='C'][data-node='"+component+"']").prop("checked",true);
-							});
-						}
+					if(node){
+						that.$("input[data-type='H'][data-node='"+node+"']").prop("checked",true);
 					}
 					
 						

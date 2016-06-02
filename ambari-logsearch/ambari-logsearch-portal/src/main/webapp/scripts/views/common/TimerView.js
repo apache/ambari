@@ -87,7 +87,8 @@ define(['require','backbone','hbs!tmpl/common/TimerView_tmpl'],function(require,
 //		    startTime();
 			var time = 10,that=this;
 		    var initialOffset = '56';
-		    var i = 1
+		    var i = 1;
+		    clearInterval(that.timerInterval);
 		    this.$('h6').show();
 		    this.timerInterval = setInterval(function() {
 		        that.$('.circle_animation').css('stroke-dashoffset', initialOffset-(i*(initialOffset/time)));
@@ -95,8 +96,9 @@ define(['require','backbone','hbs!tmpl/common/TimerView_tmpl'],function(require,
 		        if (i == time) {
 		        	clearInterval(that.timerInterval);
 		            setTimeout(function(){
-		            	if(! that.isTimerManuallyStopped())
+		            	if(! that.isTimerManuallyStopped()){
 		            		that.timerCallBack();
+		            	}
 		            },1000);
 		        }
 		        i++;  

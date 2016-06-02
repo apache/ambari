@@ -232,7 +232,8 @@ define(['require',
 					vent : that.vent,
 					globalVent:that.globalVent,
 					params : that.defaultParams,
-					showUnit : true
+					showUnit : true,
+					futureDate : true
 				}));
             });
 		},

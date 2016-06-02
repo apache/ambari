@@ -132,7 +132,8 @@ define(['require',
 					params : that.defaultParams,
 					//parentView : this,
 					viewType : Globals.graphType.MULTILINE.value,
-					showDatePicker:true
+					showDatePicker:true,
+					futureDate : false
 				}));
 			})
 		},
