@@ -71,6 +71,7 @@ public class JMXHostProviderTest {
   private static final String NAMENODE_PORT_V1 = "dfs.http.address";
   private static final String NAMENODE_PORT_V2 = "dfs.namenode.http-address";
   private static final String DATANODE_PORT = "dfs.datanode.http.address";
+  private static final String DATANODE_HTTPS_PORT = "dfs.datanode.https.address";
   private static final String RESOURCEMANAGER_PORT = "yarn.resourcemanager.webapp.address";
   private static final String RESOURCEMANAGER_HTTPS_PORT = "yarn.resourcemanager.webapp.https.address";
   private static final String YARN_HTTPS_POLICY = "yarn.http.policy";
@@ -293,6 +294,7 @@ public class JMXHostProviderTest {
     configs.put(DATANODE_PORT, "localhost:70075");
     configs.put("ambari.dfs.datanode.http.port", "70070");
     configs.put(JOURNALNODE_HTTPS_PORT, "localhost:8481");
+    configs.put(DATANODE_HTTPS_PORT, "50475");
     configs.put(HDFS_HTTPS_POLICY, "HTTPS_ONLY");
 
     Map<String, String> yarnConfigs = new HashMap<String, String>();
@@ -546,6 +548,19 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "JOURNALNODE"));
     Assert.assertEquals("8481", providerModule.getPort("c1", "JOURNALNODE", "localhost", true));
+  }
+
+  @Test
+  public void testJMXDataNodeHttpsPort() throws
+    NoSuchParentResourceException,
+    ResourceAlreadyExistsException, UnsupportedPropertyException,
+    SystemException, AmbariException, NoSuchResourceException {
+    createConfigs();
+    JMXHostProviderModule providerModule = new JMXHostProviderModule();
+    providerModule.registerResourceProvider(Resource.Type.Cluster);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "DATANODE"));
+    Assert.assertEquals("50475", providerModule.getPort("c1", "DATANODE", "localhost", true));
   }
 
   @Test

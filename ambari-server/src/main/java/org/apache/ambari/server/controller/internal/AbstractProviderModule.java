@@ -135,6 +135,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap.put("NAMENODE-HA", new String[]{"dfs.namenode.http-address.%s.%s"});
     initPropMap.put("NAMENODE-HTTPS-HA", new String[]{"dfs.namenode.https-address.%s.%s"});
     initPropMap.put("DATANODE", new String[]{"dfs.datanode.http.address"});
+    initPropMap.put("DATANODE-HTTPS", new String[]{"dfs.datanode.https.address"});
     initPropMap.put("JOURNALNODE-HTTPS", new String[]{"dfs.journalnode.https-address"});
     initPropMap.put("JOURNALNODE", new String[]{"dfs.journalnode.http-address"});
     serviceDesiredProperties.put(Service.Type.HDFS, initPropMap);
@@ -159,6 +160,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("NAMENODE", new String[]{"dfs.http.policy"});
     jmxDesiredProperties.put("NAMENODE", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("DATANODE", new String[]{"dfs.http.policy"});
+    jmxDesiredProperties.put("DATANODE", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("JOURNALNODE", new String[]{"dfs.http.policy"});
@@ -1175,7 +1180,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     String jmxProtocolString = clusterJmxProtocolMap.get(clusterName);
 
     try {
-      if (componentName.equals("NAMENODE") || componentName.equals("RESOURCEMANAGER") || componentName.equals("JOURNALNODE") || componentName.equals("HISTORYSERVER")) {
+      if (componentName.equals("NAMENODE") || componentName.equals("DATANODE") || componentName.equals("RESOURCEMANAGER") || componentName.equals("NODEMANAGER") || componentName.equals("JOURNALNODE") || componentName.equals("HISTORYSERVER")) {
         Service.Type service = componentServiceMap.get(componentName);
         String config = serviceConfigTypes.get(service);
         String newSiteConfigVersion = getDesiredConfigVersion(clusterName, config);
