@@ -160,6 +160,7 @@ public class SNMPDispatcher implements NotificationDispatcher {
     } catch (Exception ex) {
       LOG.error("Error occurred during SNMP trap dispatching.", ex);
       failureCallback(notification);
+      transportMapping = null;
     }
   }
 
@@ -430,5 +431,9 @@ public class SNMPDispatcher implements NotificationDispatcher {
 
   public Integer getPort() {
     return port;
+  }
+
+  protected UdpTransportMapping getTransportMapping() {
+    return transportMapping;
   }
 }
