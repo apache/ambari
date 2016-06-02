@@ -19,10 +19,10 @@
  */
 -->
 <configuration>
+
   <property>
     <name>hbase.master.ui.readonly</name>
     <value>false</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

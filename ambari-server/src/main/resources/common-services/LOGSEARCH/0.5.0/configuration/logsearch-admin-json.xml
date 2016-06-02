@@ -20,17 +20,17 @@
  */
 -->
 <configuration supports_adding_forbidden="true">
+
   <property>
     <name>logsearch_admin_username</name>
     <value>ambari_logsearch_admin</value>
     <display-name>Admin username</display-name>
     <description>Log Search admin username</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property require-input="true">
     <name>logsearch_admin_password</name>
-    <value/>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Admin password</display-name>
     <description>Log Search admin password</description>
@@ -38,20 +38,18 @@
       <overridable>false</overridable>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>content</name>
     <display-name>logsearch-admin-json template</display-name>
     <description>This is the jinja template for logsearch-admin.json file</description>
-    <value/>
+    <value></value>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>
       <property-file-name>logsearch-admin.json.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

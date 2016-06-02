@@ -19,12 +19,12 @@
  */
 -->
 <configuration supports_final="true">
+
   <property>
     <name>KNOX_HOME</name>
     <value>/usr/hdp/current/knox-server</value>
     <display-name>Knox Home</display-name>
     <description>Knox home folder</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

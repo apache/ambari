@@ -19,18 +19,17 @@
  */
 -->
 <configuration>
+  
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
     <value>/usr/hdp/current/ranger-kms/conf/ranger-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
     <value>/usr/hdp/current/ranger-kms/conf/ranger-plugin-truststore.jks</value>
     <description>java truststore file</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
 </configuration>

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -16,39 +17,38 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+
 <!-- Put site-specific property overrides in this file. -->
+
 <configuration supports_final="true">
+
   <property>
     <name>dfs.namenode.startup.delay.block.deletion.sec</name>
     <value>3600</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
+
   <property>
     <name>dfs.journalnode.edits.dir</name>
     <value>/hadoop/hdfs/journalnode</value>
     <description>The path where the JournalNode daemon will store its local state. </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
   <property>
     <name>dfs.client.retry.policy.enabled</name>
     <value>false</value>
     <description>Enables HDFS client retry in the event of a NameNode failure.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.content-summary.limit</name>
     <value>5000</value>
     <description>Dfs content summary limit.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.encryption.key.provider.uri</name>
-    <value/>
+    <value></value>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -70,50 +70,42 @@
         <name>ranger.service.https.attrib.ssl.enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <!-- HDFS properties required for HAWQ -->
   <property>
     <name>dfs.allow.truncate</name>
     <value>true</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.support.append</name>
     <value>true</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.client.read.shortcircuit</name>
     <value>true</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.block.local-path-access.user</name>
     <value>gpadmin</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.datanode.data.dir.perm</name>
     <value>750</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.datanode.handler.count</name>
     <value>60</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>dfs.namenode.accesstime.precision</name>
     <value>-1</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

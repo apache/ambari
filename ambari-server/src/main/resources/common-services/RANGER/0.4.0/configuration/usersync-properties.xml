@@ -40,136 +40,102 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>MIN_UNIX_USER_ID_TO_SYNC</name>
     <display-name>Minimum User ID</display-name>
     <value>1000</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>POLICY_MGR_URL</name>
     <value>{{usersync_exturl}}</value>
     <description>Policy Manager external url</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_INTERVAL</name>
     <value>1</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>SYNC_LDAP_URL</name>
     <display-name>LDAP (AD) URL</display-name>
-    <value/>
+    <value></value>
     <description>LDAP server URL. Example value = ldap://localhost:389</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_LDAP_BIND_DN</name>
     <display-name>​Bind User</display-name>
-    <value/>
+    <value></value>
     <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. Example: cn=admin,ou=users,dc=hadoop,dc=apache,dc-org</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_LDAP_BIND_PASSWORD</name>
     <display-name>Bind User Password</display-name>
-    <value/>
+    <value></value>
     <property-type>PASSWORD</property-type>
-    <description/>
+    <description></description>
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>CRED_KEYSTORE_FILENAME</name>
     <value>/usr/lib/xausersync/.jceks/xausersync.jceks</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>SYNC_LDAP_USER_SEARCH_BASE</name>
     <display-name>User Search Base</display-name>
-    <value/>
+    <value></value>
     <description>sample value would be ou=users,dc=hadoop,dc=apache,dc=org</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_LDAP_USER_SEARCH_SCOPE</name>
     <display-name>User Search Scope</display-name>
     <value>sub</value>
     <description>default value: sub</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_LDAP_USER_OBJECT_CLASS</name>
     <display-name>User Object Class​</display-name>
     <value>person</value>
     <description>default value: person</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_LDAP_USER_SEARCH_FILTER</name>
     <display-name>​User Search Filter</display-name>
-    <value/>
+    <value></value>
     <description>default value is empty</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    </value-attributes>  
   </property>
   <property>
     <name>SYNC_LDAP_USER_NAME_ATTRIBUTE</name>
     <display-name>Username Attribute</display-name>
     <value>cn</value>
     <description>default value: cn</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE</name>
     <display-name>User Group Name Attribute</display-name>
     <value>memberof,ismemberof</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>SYNC_LDAP_USERNAME_CASE_CONVERSION</name>
     <value>none</value>
     <description>possible values:  none, lower, upper</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>SYNC_LDAP_GROUPNAME_CASE_CONVERSION</name>
     <value>none</value>
     <description>possible values:  none, lower, upper</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>logdir</name>
     <value>logs</value>
     <description>user sync log path</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

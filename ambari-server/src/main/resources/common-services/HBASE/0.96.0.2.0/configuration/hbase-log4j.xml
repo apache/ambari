@@ -19,7 +19,9 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_final="false" supports_adding_forbidden="true">
+
   <property>
     <name>content</name>
     <display-name>hbase-log4j template</display-name>
@@ -141,7 +143,6 @@ log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

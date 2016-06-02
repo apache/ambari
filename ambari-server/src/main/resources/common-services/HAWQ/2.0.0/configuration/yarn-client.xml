@@ -15,8 +15,10 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
+
 <configuration>
-  <!-- RPC client configuration -->
+
+	<!-- RPC client configuration -->
   <property>
     <name>rpc.client.timeout</name>
     <value>3600000</value>
@@ -29,9 +31,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.connect.tcpnodelay</name>
     <value>true</value>
@@ -42,9 +43,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.max.idle</name>
     <value>10000</value>
@@ -56,9 +56,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.ping.interval</name>
     <value>10000</value>
@@ -71,9 +70,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.connect.timeout</name>
     <value>600000</value>
@@ -86,9 +84,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.connect.retry</name>
     <value>10</value>
@@ -100,9 +97,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.read.timeout</name>
     <value>3600000</value>
@@ -115,9 +111,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.write.timeout</name>
     <value>3600000</value>
@@ -130,9 +125,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>rpc.client.socket.linger.timeout</name>
     <value>-1</value>
@@ -145,9 +139,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>yarn.client.failover.max.attempts</name>
     <value>15</value>
@@ -159,7 +152,6 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

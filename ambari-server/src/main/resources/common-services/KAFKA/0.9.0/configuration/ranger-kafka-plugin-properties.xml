@@ -19,42 +19,39 @@
  */
 -->
 <configuration supports_final="true">
+
   <property>
     <name>policy_user</name>
     <value>ambari-qa</value>
     <display-name>Policy user for KAFKA</display-name>
     <description>This user must be system user and also present at Ranger admin portal</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
-  </property>
+  </property> 
+
   <property>
     <name>hadoop.rpc.protection</name>
-    <value/>
+    <value></value>
     <description>Used for repository creation on ranger admin</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>common.name.for.certificate</name>
-    <value/>
+    <value></value>
     <description>Common name for certificate, this value should match what is specified in repo within ranger admin</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
   <property>
     <name>zookeeper.connect</name>
     <value>localhost:2181</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Used for repository creation on ranger admin</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger-kafka-plugin-enabled</name>
     <value>No</value>
@@ -70,17 +67,15 @@
       <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
     <value>kafka</value>
     <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <value>kafka</value>
@@ -90,7 +85,6 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

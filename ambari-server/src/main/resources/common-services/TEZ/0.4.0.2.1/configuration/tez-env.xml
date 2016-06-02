@@ -19,20 +19,20 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_adding_forbidden="true">
   <property>
     <name>tez_user</name>
     <display-name>Tez User</display-name>
     <value>tez</value>
     <property-type>USER</property-type>
-    <description/>
+    <description></description>
     <value-attributes>
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <!-- tez-env.sh -->
   <property>
     <name>content</name>
@@ -51,7 +51,5 @@ export JAVA_HOME={{java64_home}}
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

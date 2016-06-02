@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
@@ -20,11 +19,11 @@
  */
 -->
 <configuration supports_final="false">
+
   <property>
     <name>*.shared.libs</name>
     <value>activemq-all,ant,geronimo-j2ee-management,jms,json-simple,oozie-client,spring-jms,commons-lang3,commons-el</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
+
 </configuration>

@@ -20,6 +20,7 @@
  */
 -->
 <configuration>
+
   <property>
     <name>logsearch.collection.service.logs.numshards</name>
     <value>5</value>
@@ -32,9 +33,8 @@
       <unit>int</unit>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.collection.service.logs.replication.factor</name>
     <value>1</value>
@@ -47,9 +47,8 @@
       <unit>int</unit>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.collection.audit.logs.numshards</name>
     <value>5</value>
@@ -62,9 +61,8 @@
       <unit>int</unit>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.collection.audit.logs.replication.factor</name>
     <value>1</value>
@@ -77,65 +75,56 @@
       <unit>int</unit>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.solr.collection.service.logs</name>
     <value>hadoop_logs</value>
     <display-name>Log Search Solr Service Logs Collection</display-name>
     <description>Name for the service logs collection</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.solr.collection.audit.logs</name>
     <value>audit_logs</value>
     <display-name>Log Search Solr Audit Logs Collection</display-name>
     <description>Name for the audit logs collection</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.service.logs.fields</name>
     <value>logtime,level,event_count,ip,type,seq_num,path,file,line_number,host,log_message,id</value>
     <display-name>Log Search Solr Service Logs Fields</display-name>
     <description>Solr fields for service logs</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.service.logs.split.interval.mins</name>
     <value>15</value>
     <display-name>Log Search Service Logs split interval</display-name>
     <description>Will create multiple collections and use alias. Valid values are single,hour_week</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.audit.logs.split.interval.mins</name>
     <value>15</value>
     <display-name>Log Search Audit Logs split interval</display-name>
     <description>Will switch the shard after the interval specified. Valid values are none and greater than 1
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.logfeeder.include.default.level</name>
     <value>fatal,error,warn</value>
     <description>Include default Logfeeder log levels for Log Search</description>
     <display-name>Logfeeder log levels</display-name>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>logsearch.solr.metrics.collector.hosts</name>
     <value>{metrics_collector_hosts}</value>
     <description>Metrics collector hosts for pushing metrics by Log Search Solr</description>
     <display-name>Metrics collector hosts</display-name>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>logsearch.external.auth.enabled</name>

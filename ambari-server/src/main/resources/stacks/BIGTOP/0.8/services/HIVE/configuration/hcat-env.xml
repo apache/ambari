@@ -19,6 +19,7 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_adding_forbidden="true">
   <!-- hcat-env.sh -->
   <property>
@@ -54,7 +55,6 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
 </configuration>

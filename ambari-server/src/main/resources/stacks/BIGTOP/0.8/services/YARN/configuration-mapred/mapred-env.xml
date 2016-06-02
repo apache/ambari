@@ -19,20 +19,17 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_adding_forbidden="true">
   <property>
     <name>mapred_log_dir_prefix</name>
     <value>/var/log/hadoop-mapreduce</value>
     <description>Mapreduce Log Dir Prefix</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapred_pid_dir_prefix</name>
     <value>/var/run/hadoop-mapreduce</value>
     <description>Mapreduce PID Dir Prefix</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapred_user</name>
@@ -44,16 +41,13 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>jobhistory_heapsize</name>
     <value>900</value>
     <description>Value for JobHistoryServer heap_size variable in hadoop-env.sh</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
   <!-- mapred-env.sh -->
   <property>
     <name>content</name>
@@ -75,7 +69,5 @@ export HADOOP_MAPRED_ROOT_LOGGER=INFO,RFA
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

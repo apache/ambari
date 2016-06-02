@@ -17,30 +17,25 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <configuration>
   <property>
     <name>metrics_grafana_log_dir</name>
     <value>/var/log/ambari-metrics-grafana</value>
     <display-name>Metrics Grafana log dir</display-name>
     <description>Metrics Grafana log directory.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_grafana_pid_dir</name>
     <value>/var/run/ambari-metrics-grafana</value>
     <display-name>Metrics Grafana pid dir</display-name>
     <description>Metrics Grafana pid directory.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_grafana_data_dir</name>
     <value>/var/lib/ambari-metrics-grafana</value>
     <display-name>Metrics Grafana data dir</display-name>
     <description>Metrics Grafana data directory.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metrics_grafana_username</name>
@@ -55,12 +50,10 @@
       <type>db_user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property require-input="true">
     <name>metrics_grafana_password</name>
-    <value/>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Grafana Admin Password</display-name>
     <description>
@@ -72,8 +65,6 @@
       <overridable>false</overridable>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>content</name>
@@ -93,7 +84,6 @@ export AMS_GRAFANA_LOG_DIR={{ams_grafana_log_dir}}
 # AMS UI Server PID Dir
 export AMS_GRAFANA_PID_DIR={{ams_grafana_pid_dir}}
     </value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

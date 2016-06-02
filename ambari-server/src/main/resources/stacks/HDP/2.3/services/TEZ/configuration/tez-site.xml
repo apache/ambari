@@ -16,6 +16,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+
 <configuration supports_final="true">
   <property>
     <name>tez.am.view-acls</name>
@@ -26,9 +27,8 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.optimize.local.fetch</name>
     <value>true</value>
@@ -36,9 +36,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.task.generate.counters.per.io</name>
     <value>true</value>
@@ -46,9 +45,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.sorter.class</name>
     <value>PIPELINED</value>
@@ -67,9 +65,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.pipelined.sorter.sort.threads</name>
     <value>2</value>
@@ -83,9 +80,8 @@
         <name>tez.runtime.sorter.class</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.io.sort.mb</name>
     <value>272</value>
@@ -100,27 +96,23 @@
         <name>tez.runtime.sorter.class</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.history.logging.service.class</name>
     <value>org.apache.tez.dag.history.logging.ats.ATSV15HistoryLoggingService</value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.counters.max</name>
     <value>10000</value>
     <description>The number of allowed counters for the executing DAG</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.counters.max.groups</name>
     <value>3000</value>
     <description>The number of allowed counter groups for the executing DAG</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

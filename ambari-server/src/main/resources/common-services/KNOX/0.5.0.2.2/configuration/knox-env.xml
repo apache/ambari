@@ -19,11 +19,13 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_final="false" supports_adding_forbidden="true">
   <!-- knox-env.sh -->
+
   <property require-input="true">
     <name>knox_master_secret</name>
-    <value/>
+    <value></value>
     <display-name>Knox Master Secret</display-name>
     <property-type>PASSWORD</property-type>
     <description>password to use as the master secret</description>
@@ -32,9 +34,8 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>knox_user</name>
     <display-name>Knox User</display-name>
@@ -45,9 +46,8 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>knox_group</name>
     <display-name>Knox Group</display-name>
@@ -57,9 +57,8 @@
     <value-attributes>
       <type>user</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>knox_pid_dir</name>
     <value>/var/run/knox</value>
@@ -70,19 +69,17 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
+
   <property>
     <name>knox_principal_name</name>
     <description>Knox principal name</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>knox_keytab_path</name>
     <description>Knox keytab path</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

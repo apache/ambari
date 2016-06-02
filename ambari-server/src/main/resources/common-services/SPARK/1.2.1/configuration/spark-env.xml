@@ -19,6 +19,7 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_adding_forbidden="true">
   <property>
     <name>spark_user</name>
@@ -29,9 +30,8 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>spark_group</name>
     <display-name>Spark Group</display-name>
@@ -41,9 +41,8 @@
     <value-attributes>
       <type>user</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>spark_log_dir</name>
     <value>/var/log/spark</value>
@@ -51,18 +50,16 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>spark_pid_dir</name>
     <value>/var/run/spark</value>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>spark_daemon_memory</name>
     <value>1024</value>
@@ -71,9 +68,9 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
-  </property>
+   </property>
+
+
   <!-- spark-env.sh -->
   <property>
     <name>content</name>
@@ -132,17 +129,14 @@ fi
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>spark_thrift_cmd_opts</name>
     <description>additional spark thrift server commandline options</description>
-    <value/>
+    <value></value>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>
