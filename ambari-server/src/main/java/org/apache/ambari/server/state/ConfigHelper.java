@@ -105,6 +105,8 @@ public class ConfigHelper {
   public static final String CLUSTER_ENV_RETRY_ENABLED = "command_retry_enabled";
   public static final String CLUSTER_ENV_RETRY_COMMANDS = "commands_to_retry";
   public static final String CLUSTER_ENV_RETRY_MAX_TIME_IN_SEC = "command_retry_max_time_in_sec";
+  public static final String CLUSTER_ENV_STACK_FEATURES_PROPERTY = "stack_features";
+  public static final String CLUSTER_ENV_STACK_TOOLS_PROPERTY = "stack_tools";
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";

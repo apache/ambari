@@ -181,6 +181,7 @@ gpgcheck=0</value>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
+  <!-- Define stack_tools property in the base stack. DO NOT override this property for each stack version -->
   <property>
     <name>stack_tools</name>
     <value/>
@@ -189,10 +190,14 @@ gpgcheck=0</value>
     <value-attributes>
       <property-file-name>stack_tools.json</property-file-name>
       <property-file-type>json</property-file-type>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
     </value-attributes>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
+  <!-- Define stack_features property in the base stack. DO NOT override this property for each stack version -->
   <property>
     <name>stack_features</name>
     <value/>
@@ -201,6 +206,9 @@ gpgcheck=0</value>
     <value-attributes>
       <property-file-name>stack_features.json</property-file-name>
       <property-file-type>json</property-file-type>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
     </value-attributes>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
@@ -209,6 +217,11 @@ gpgcheck=0</value>
     <name>stack_root</name>
     <value>/usr/hdp</value>
     <description>Stack root folder</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
