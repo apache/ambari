@@ -209,6 +209,12 @@
       The maximum number of virtual cores that can be used for query execution in a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
       The default is 16.
     </description>
+    <depends-on>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
