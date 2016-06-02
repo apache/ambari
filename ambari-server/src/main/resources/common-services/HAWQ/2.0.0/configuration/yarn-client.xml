@@ -29,8 +29,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.connect.tcpnodelay</name>
@@ -42,8 +42,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.max.idle</name>
@@ -56,8 +56,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.ping.interval</name>
@@ -71,8 +71,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.connect.timeout</name>
@@ -86,8 +86,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.connect.retry</name>
@@ -100,8 +100,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.read.timeout</name>
@@ -115,8 +115,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.write.timeout</name>
@@ -130,8 +130,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rpc.client.socket.linger.timeout</name>
@@ -145,8 +145,8 @@
       <minimum>0</minimum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>yarn.client.failover.max.attempts</name>
@@ -159,7 +159,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

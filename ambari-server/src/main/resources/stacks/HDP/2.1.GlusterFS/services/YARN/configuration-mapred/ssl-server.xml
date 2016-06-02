@@ -21,15 +21,15 @@
     <name>ssl.server.truststore.location</name>
     <value>/etc/security/serverKeys/all.jks</value>
     <description>Location of the trust store file.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ssl.server.truststore.type</name>
     <value>jks</value>
     <description>Optional. Default value is "jks".</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ssl.server.truststore.password</name>
@@ -39,29 +39,29 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ssl.server.truststore.reload.interval</name>
     <value>10000</value>
     <description>Truststore reload interval, in milliseconds.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ssl.server.keystore.type</name>
     <value>jks</value>
     <description>Optional. Default value is "jks".</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ssl.server.keystore.location</name>
     <value>/etc/security/serverKeys/keystore.jks</value>
     <description>Location of the keystore file.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ssl.server.keystore.password</name>
@@ -71,8 +71,8 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ssl.server.keystore.keypassword</name>
@@ -82,7 +82,7 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

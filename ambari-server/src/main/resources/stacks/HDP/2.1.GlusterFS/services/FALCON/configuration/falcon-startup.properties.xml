@@ -25,50 +25,50 @@
     <name>*.workflow.engine.impl</name>
     <value>org.apache.falcon.workflow.engine.OozieWorkflowEngine</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.oozie.process.workflow.builder</name>
     <value>org.apache.falcon.workflow.OozieProcessWorkflowBuilder</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.oozie.feed.workflow.builder</name>
     <value>org.apache.falcon.workflow.OozieFeedWorkflowBuilder</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.SchedulableEntityManager.impl</name>
     <value>org.apache.falcon.resource.SchedulableEntityManager</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.ConfigSyncService.impl</name>
     <value>org.apache.falcon.resource.ConfigSyncService</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.ProcessInstanceManager.impl</name>
     <value>org.apache.falcon.resource.InstanceManager</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.catalog.service.impl</name>
     <value>org.apache.falcon.catalog.HiveCatalogService</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.application.services</name>
@@ -80,8 +80,8 @@
       org.apache.falcon.service.LogCleanupService
     </value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.configstore.listeners</name>
@@ -91,186 +91,186 @@
       org.apache.falcon.service.SharedLibraryHostingService
     </value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.broker.impl.class</name>
     <value>org.apache.activemq.ActiveMQConnectionFactory</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.shared.libs</name>
     <value>activemq-core,ant,geronimo-j2ee-management,hadoop-distcp,jms,json-simple,oozie-client,spring-jms</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!--common properties-->
   <property>
     <name>*.domain</name>
     <value>${falcon.app.type}</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.config.store.uri</name>
     <value>file:///hadoop/falcon/store</value>
     <description>Location to store user entity configurations</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.system.lib.location</name>
     <value>${falcon.home}/server/webapp/${falcon.app.type}/WEB-INF/lib</value>
     <description>Location of libraries that is shipped to Hadoop</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.retry.recorder.path</name>
     <value>${falcon.log.dir}/retry</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.cleanup.service.frequency</name>
     <value>days(1)</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.broker.url</name>
     <value>tcp://localhost:61616</value>
     <description>Default Active MQ url</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.broker.ttlInMins</name>
     <value>4320</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.entity.topic</name>
     <value>FALCON.ENTITY.TOPIC</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.max.retry.failure.count</name>
     <value>1</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.internal.queue.size</name>
     <value>1000</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!--properties without default values-->
   <property>
     <name>*.falcon.http.authentication.cookie.domain</name>
     <value>EXAMPLE.COM</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.blacklisted.users</name>
     <value/>
     <description>Comma separated list of black listed users</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!--authentication properties-->
   <property>
     <name>*.falcon.authentication.type</name>
     <value>simple</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.type</name>
     <value>simple</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.token.validity</name>
     <value>36000</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.signature.secret</name>
     <value>falcon</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.simple.anonymous.allowed</name>
     <value>true</value>
     <description>Indicates if anonymous requests are allowed when using 'simple' authentication</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.kerberos.name.rules</name>
     <value>DEFAULT</value>
     <description>The kerberos names rules is to resolve kerberos principal names, refer to Hadoop's KerberosName for more details.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!--kerberos params, must be set during security enabling-->
   <property>
     <name>*.falcon.service.authentication.kerberos.principal</name>
     <value>falcon/_HOST@EXAMPLE.COM</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.service.authentication.kerberos.keytab</name>
     <value>/etc/security/keytabs/falcon.service.keytab</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.dfs.namenode.kerberos.principal</name>
     <value>nn/_HOST@EXAMPLE.COM</value>
     <description>name node principal to talk to config store</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.kerberos.principal</name>
     <value>HTTP/_HOST@EXAMPLE.COM</value>
     <description>Indicates the Kerberos principal to be used for HTTP endpoint</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>*.falcon.http.authentication.kerberos.keytab</name>
     <value>/etc/security/keytabs/spnego.service.keytab</value>
     <description>Location of the keytab file with the credentials for the HTTP principal</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

@@ -23,8 +23,8 @@
     <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.application.classpath</name>
@@ -34,74 +34,74 @@
     <description>
       CLASSPATH for MR applications. A comma-separated list of CLASSPATH entries.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.application.framework.path</name>
     <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.admin-command-opts</name>
     <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
     <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
     <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.enabled</name>
     <value>1</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.interval-ms</name>
     <value>1000</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.timeout-ms</name>
     <value>30000</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.job.emit-timeline-data</name>
     <value>false</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.bind-host</name>
     <value>0.0.0.0</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

@@ -27,15 +27,15 @@
       This is memory that accounts for things like VM overheads, interned strings,
       other native overheads, etc.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property><name>spark.driver.extraLibraryPath</name>
      <value>{{spark_hadoop_lib_native}}</value>
      <description>
        Set a special library path to use when launching the driver JVM.
      </description>
-  <on-ambari-upgrade add="false" change="true" delete="true"/><on-stack-upgrade add="true" change="true" delete="false"/></property>
+  <on-ambari-upgrade add="true" change="false" delete="false"/><on-stack-upgrade add="true" change="false" delete="false"/></property>
   <property>
     <name>spark.yarn.driver.memoryOverhead</name>
     <value>384</value>
@@ -44,8 +44,8 @@
       This is memory that accounts for things like VM overheads, interned strings,
       other native overheads, etc.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.scheduler.heartbeat.interval-ms</name>
@@ -53,8 +53,8 @@
     <description>
       The interval in ms in which the Spark application master heartbeats into the YARN ResourceManager.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.max.executor.failures</name>
@@ -62,8 +62,8 @@
     <description>
       The maximum number of executor failures before failing the application.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.queue</name>
@@ -71,8 +71,8 @@
     <description>
       The name of the YARN queue to which the application is submitted.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.containerLauncherMaxThreads</name>
@@ -80,8 +80,8 @@
     <description>
       The maximum number of threads to use in the application master for launching executor containers.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.submit.file.replication</name>
@@ -90,8 +90,8 @@
       HDFS replication level for the files uploaded into HDFS for the application.
       These include things like the Spark jar, the app jar, and any distributed cache files/archives.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.preserve.staging.files</name>
@@ -100,8 +100,8 @@
       Set to true to preserve the staged files (Spark jar, app jar, distributed cache files) at the
       end of the job rather then delete them.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.services</name>
@@ -109,8 +109,8 @@
     <description>
       Service required for publishing events to the YARN Application Timeline Service.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.history.provider</name>
@@ -118,8 +118,8 @@
     <description>
       Name of the class implementing the application history backend which publishes to YARN Application Timeline Service.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.history.ui.port</name>
@@ -127,8 +127,8 @@
     <description>
       The port to which the web interface of the History Server binds.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.history.kerberos.principal</name>
@@ -136,8 +136,8 @@
     <description>
       Kerberos principal name for the Spark History Server.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.history.kerberos.keytab</name>
@@ -145,28 +145,28 @@
     <description>
       Location of the kerberos keytab file for the Spark History Server.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.yarn.history.YarnHistoryProvider</value>
     <description>Name of history provider class</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.historyServer.address</name>
     <value>{{spark_history_server_host}}:{{spark_history_ui_port}}</value>
     <description>The address of the Spark history server (i.e. host.com:18080). The address should not contain a scheme (http://). Defaults to not being set since the history server is an optional service. This address is given to the YARN ResourceManager when the Spark application finishes to link the application from the ResourceManager UI to the Spark history server UI.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>spark.yarn.max.executor.failures</name>
     <value>3</value>
     <description>The maximum number of executor failures before failing the application.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

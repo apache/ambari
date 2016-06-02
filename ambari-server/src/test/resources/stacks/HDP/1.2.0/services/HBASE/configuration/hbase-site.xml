@@ -32,8 +32,8 @@
     into /tmp.  Change this configuration else all data will be lost
     on machine restart.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.cluster.distributed</name>
@@ -43,8 +43,8 @@
       false, startup will run all HBase and ZooKeeper daemons together
       in the one JVM.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.tmp.dir</name>
@@ -54,30 +54,30 @@
     than '/tmp' (The '/tmp' directory is often cleared on
     machine restart).
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.master.info.bindAddress</name>
     <value/>
     <description>The bind address for the HBase Master web UI
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.master.info.port</name>
     <value/>
     <description>The port for the HBase Master web UI.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.info.port</name>
     <value/>
     <description>The port for the HBase RegionServer web UI.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
@@ -85,8 +85,8 @@
     <description>Maximum size of all memstores in a region server before new
       updates are blocked and flushes are forced. Defaults to 40% of heap
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.handler.count</name>
@@ -95,8 +95,8 @@
     Same property is used by the Master for count of master handlers.
     Default is 10.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>
@@ -105,8 +105,8 @@
     HStoreFiles in a region.  Default: 1 day.
     Set to 0 to disable automated major compactions.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.master.lease.thread.wakefrequency</name>
@@ -115,8 +115,8 @@
     This value has been reduced due to the other reduced values above so that
     the master will notice a dead region server sooner. The default is 15 seconds.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
@@ -127,8 +127,8 @@
       the minimum possible flushing to occur when updates are blocked due to
       memstore limiting.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
@@ -140,8 +140,8 @@
     resultant flush files take a long time to compact or split, or
     worse, we OOME
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.memstore.flush.size</name>
@@ -151,8 +151,8 @@
     exceeds this number of bytes.  Value is checked by a thread that runs
     every hbase.server.thread.wakefrequency.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.memstore.mslab.enabled</name>
@@ -163,8 +163,8 @@
       heavy write loads. This can reduce the frequency of stop-the-world
       GC pauses on large heaps.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
@@ -174,8 +174,8 @@
     grown to exceed this value, the hosting HRegion is split in two.
     Default: 1G.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.client.scanner.caching</name>
@@ -187,8 +187,8 @@
     Do not set this value such that the time between invocations is greater
     than the scanner timeout; i.e. hbase.regionserver.lease.period
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>zookeeper.session.timeout</name>
@@ -200,8 +200,8 @@
       "The client sends a requested timeout, the server responds with the
       timeout that it can give the client. " In milliseconds.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.client.keyvalue.maxsize</name>
@@ -213,8 +213,8 @@
     to set this to a fraction of the maximum region size. Setting it to zero
     or less disables the check.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hstore.compactionThreshold</name>
@@ -225,8 +225,8 @@
     is run to rewrite all HStoreFiles files as one.  Larger numbers
     put off compaction but when it runs, it takes longer to complete.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hstore.blockingStoreFiles</name>
@@ -237,8 +237,8 @@
     blocked for this HRegion until a compaction is completed, or
     until hbase.hstore.blockingWaitTime has been exceeded.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hfile.block.cache.size</name>
@@ -248,8 +248,8 @@
         used by HFile/StoreFile. Default of 0.25 means allocate 25%.
         Set to 0 to disable but it's not recommended.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- The following properties configure authentication information for
        HBase processes when using Kerberos security.  There are no default
@@ -260,8 +260,8 @@
     <description>Full path to the kerberos keytab file to use for logging in
     the configured HMaster server principal.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.master.kerberos.principal</name>
@@ -272,8 +272,8 @@
     portion, it will be replaced with the actual hostname of the running
     instance.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.keytab.file</name>
@@ -281,8 +281,8 @@
     <description>Full path to the kerberos keytab file to use for logging in
     the configured HRegionServer server principal.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.kerberos.principal</name>
@@ -294,8 +294,8 @@
     running instance.  An entry for this principal must exist in the file
     specified in hbase.regionserver.keytab.file
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- Additional configuration specific to HBase security -->
   <property>
@@ -305,8 +305,8 @@
     full privileges, regardless of stored ACLs, across the cluster.
     Only used when HBase security is enabled.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.coprocessor.region.classes</name>
@@ -317,8 +317,8 @@
     it in HBase's classpath and add the fully qualified class name here.
     A coprocessor can also be loaded on demand by setting HTableDescriptor.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.coprocessor.master.classes</name>
@@ -330,8 +330,8 @@
       implementing your own MasterObserver, just put it in HBase's classpath
       and add the fully qualified class name here.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
@@ -339,8 +339,8 @@
     <description>Property from ZooKeeper's config zoo.cfg.
     The port at which the clients will connect.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!--
   The following three properties are used together to create the list of
@@ -356,8 +356,8 @@
     list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
     this is the list of servers which we will start/stop ZooKeeper on.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- End of properties used to generate ZooKeeper host:port quorum list. -->
   <property>
@@ -368,8 +368,8 @@
     You must ensure that this config. is true serverside too when running hbase
     (You will have to restart your cluster after setting it).
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>dfs.client.read.shortcircuit</name>
@@ -378,15 +378,15 @@
     Hadoop servers should be configured to allow short circuit read
     for the hbase user for this to take effect
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>dfs.client.read.shortcircuit.skip.checksum</name>
     <value/>
     <description>Enable/disbale skipping the checksum check</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.optionalcacheflushinterval</name>
@@ -395,7 +395,7 @@
       Amount of time to wait since the last time a region was flushed before
       invoking an optional cache flush. Default 60,000.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

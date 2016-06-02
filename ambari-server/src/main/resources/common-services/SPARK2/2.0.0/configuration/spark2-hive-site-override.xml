@@ -23,15 +23,15 @@ limitations under the License.
     <description>
       Disable impersonation in Hive Server 2.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.client.socket.timeout</name>
     <value>1800</value>
     <description>MetaStore Client socket timeout in seconds</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.client.connect.retry.delay</name>
@@ -39,8 +39,8 @@ limitations under the License.
     <description>
       Expects a time value - number of seconds for the client to wait between consecutive connection attempts
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.thrift.port</name>
@@ -48,8 +48,8 @@ limitations under the License.
     <description>
       TCP port number to listen on, default 10015.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.transport.mode</name>
@@ -58,7 +58,7 @@ limitations under the License.
       Expects one of [binary, http].
       Transport mode of HiveServer2.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

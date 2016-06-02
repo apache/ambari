@@ -22,8 +22,8 @@
     <name>hadoop.http.authentication.simple.anonymous.allowed</name>
     <value>true</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hadoop.security.key.provider.path</name>
@@ -49,7 +49,7 @@
         <name>ranger.service.https.attrib.ssl.enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>
