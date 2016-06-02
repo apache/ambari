@@ -440,7 +440,7 @@ App.InstallerController = App.WizardController.extend({
    */
   setStacks: function () {
     App.db.setStacks(App.Stack.find().slice());
-    this.set('content.stacks', stacks);
+    this.set('content.stacks', App.Stack.find());
     App.db.setOses(App.OperatingSystem.find().slice());
     App.db.setRepos(App.Repository.find().slice());
   },
