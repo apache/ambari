@@ -24,18 +24,13 @@ __all__ = ["get_stack_tool", "get_stack_tool_name", "get_stack_tool_path",
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
 
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.utils import pad
 
+
 STACK_SELECTOR_NAME = "stack_selector"
 CONF_SELECTOR_NAME = "conf_selector"
-
-# Format
-# SELECTOR_NAME : ( "tool-name", "tool-path", "tool-package" )
-_DEFAULT_STACK_TOOLS = {
-  STACK_SELECTOR_NAME: ("hdp-select", "/usr/bin/hdp-select", "hdp-select"),
-  CONF_SELECTOR_NAME: ("conf-select", "/usr/bin/conf-select", "conf-select")
-}
 
 def get_stack_tool(name):
   """
@@ -44,12 +39,12 @@ def get_stack_tool(name):
   :return: tool_name, tool_path, tool_package
   """
   from resource_management.libraries.functions.default import default
+  stack_tools = None
   stack_tools_config = default("/configurations/cluster-env/stack_tools", None)
-  stack_tools = _DEFAULT_STACK_TOOLS
   if stack_tools_config:
     stack_tools = json.loads(stack_tools_config)
 
-  if name is None or name.lower() not in stack_tools:
+  if not stack_tools or not name or name.lower() not in stack_tools:
     Logger.warning("Cannot find config for {0} stack tool in {1}".format(str(name), str(stack_tools)))
     return (None, None, None)
 

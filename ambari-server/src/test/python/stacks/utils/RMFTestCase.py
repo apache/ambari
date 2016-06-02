@@ -100,6 +100,9 @@ class RMFTestCase(TestCase):
     else:
       raise RuntimeError("Please specify either config_file_path or config_dict parameter")
 
+    self.config_dict["configurations"]["cluster-env"]["stack_tools"] = RMFTestCase.get_stack_tools()
+    self.config_dict["configurations"]["cluster-env"]["stack_features"] = RMFTestCase.get_stack_features()
+
     if config_overrides:
       for key, value in config_overrides.iteritems():
         self.config_dict[key] = value
@@ -162,6 +165,24 @@ class RMFTestCase(TestCase):
   @staticmethod
   def _getCommonServicesFolder():
     return os.path.join(RMFTestCase.get_src_folder(), PATH_TO_COMMON_SERVICES)
+
+  @staticmethod
+  def get_stack_tools():
+    """
+    Read stack_tools config property from resources/stacks/HDP/2.0.6/properties/stack_tools.json
+    """
+    stack_tools_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACKS, "2.0.6", "properties", "stack_tools.json")
+    with open(stack_tools_file, "r") as f:
+      return f.read()
+
+  @staticmethod
+  def get_stack_features():
+    """
+    Read stack_features config property from resources/stacks/HDP/2.0.6/properties/stack_features.json
+    """
+    stack_features_file = os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACKS, "2.0.6", "properties", "stack_features.json")
+    with open(stack_features_file, "r") as f:
+      return f.read()
 
   @staticmethod
   def _getStackTestsFolder():

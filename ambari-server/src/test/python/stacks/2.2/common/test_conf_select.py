@@ -54,6 +54,7 @@ class TestConfSelect(RMFTestCase):
 
   @patch("resource_management.core.shell.call")
   @patch("resource_management.libraries.functions.conf_select._valid", new = MagicMock(return_value=True))
+  @patch("resource_management.libraries.functions.stack_tools.get_stack_tool_path", new = MagicMock(return_value="/usr/bin/conf-select"))
   def test_create_seeds_configuration_directories(self, shell_call_mock):
     """
     Tests that conf-select seeds new directories

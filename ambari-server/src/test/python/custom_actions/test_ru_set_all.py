@@ -80,6 +80,9 @@ class TestRUSetAll(RMFTestCase):
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
 
+    json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
+    json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
+
     config_dict = ConfigDictionary(json_payload)
 
     family_mock.return_value = True
@@ -114,6 +117,8 @@ class TestRUSetAll(RMFTestCase):
 
     json_payload['hostLevelParams']['stack_version'] = "2.3"
     json_payload['commandParams']['version'] = "2.3.0.0-1234"
+    json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
+    json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
 
     config_dict = ConfigDictionary(json_payload)
 
@@ -169,6 +174,8 @@ class TestRUSetAll(RMFTestCase):
       json_payload['commandParams']['target_stack'] = "HDP-2.3"
       json_payload['commandParams']['upgrade_direction'] = "downgrade"
       json_payload['hostLevelParams']['stack_version'] = "2.2"
+      json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
+      json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
 
       config_dict = ConfigDictionary(json_payload)
 
@@ -205,6 +212,8 @@ class TestRUSetAll(RMFTestCase):
       json_payload['commandParams']['target_stack'] = "HDP-2.3"
       json_payload['commandParams']['upgrade_direction'] = "downgrade"
       json_payload['hostLevelParams']['stack_version'] = "2.3"
+      json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
+      json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
 
       # reset config
       config_dict = ConfigDictionary(json_payload)
@@ -231,6 +240,8 @@ class TestRUSetAll(RMFTestCase):
       json_payload['commandParams']['target_stack'] = "HDP-2.2"
       json_payload['commandParams']['upgrade_direction'] = "downgrade"
       json_payload['hostLevelParams']['stack_version'] = "2.2"
+      json_payload["configurations"]["cluster-env"]["stack_tools"] = self.get_stack_tools()
+      json_payload["configurations"]["cluster-env"]["stack_features"] = self.get_stack_features()
 
       # reset config
       config_dict = ConfigDictionary(json_payload)
