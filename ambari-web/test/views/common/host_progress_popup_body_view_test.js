@@ -24,8 +24,11 @@ describe('App.HostProgressPopupBodyView', function () {
   beforeEach(function () {
     view = App.HostProgressPopupBodyView.create({
       controller: Em.Object.create({
-        dataSourceController: Em.Object.create({})
-      })
+        dataSourceController: Em.Object.create({}),
+        setBackgroundOperationHeader: Em.K,
+        hosts: []
+      }),
+      parentView: Em.Object.create()
     });
   });
 
@@ -249,6 +252,55 @@ describe('App.HostProgressPopupBodyView', function () {
 
         });
       });
+    });
+  });
+
+  describe("#resetState()", function () {
+
+    beforeEach(function() {
+      sinon.stub(view.get('controller'), 'setBackgroundOperationHeader');
+      sinon.stub(view, 'setOnStart');
+      sinon.stub(view, 'rerender');
+      sinon.stub(view, 'updateSelectView');
+    });
+
+    afterEach(function() {
+      view.get('controller').setBackgroundOperationHeader.restore();
+      view.setOnStart.restore();
+      view.rerender.restore();
+      view.updateSelectView.restore();
+    });
+
+    it("should set properties of parentView", function() {
+      view.set('parentView.isOpen', true);
+      expect(JSON.stringify(view.get('parentView'))).to.be.equal(JSON.stringify({
+        "isOpen": true,
+        "isLogWrapHidden": true,
+        "isTaskListHidden": true,
+        "isHostListHidden": true,
+        "isServiceListHidden": false
+      }));
+    });
+
+    it("setBackgroundOperationHeader should be called", function() {
+      view.set('parentView.isOpen', true);
+      expect(view.get('controller').setBackgroundOperationHeader.calledWith(false)).to.be.true;
+    });
+
+    it("controller.hosts should be empty", function() {
+      view.set('controller.hosts', [{}]);
+      view.set('parentView.isOpen', true);
+      expect(view.get('controller.hosts')).to.be.empty;
+    });
+
+    it("setOnStart should be called", function() {
+      view.set('parentView.isOpen', true);
+      expect(view.setOnStart.calledOnce).to.be.true;
+    });
+
+    it("rerender should be called", function() {
+      view.set('parentView.isOpen', true);
+      expect(view.rerender.calledOnce).to.be.true;
     });
   });
 });
