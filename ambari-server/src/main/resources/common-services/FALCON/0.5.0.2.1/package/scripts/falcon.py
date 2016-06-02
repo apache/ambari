@@ -130,17 +130,6 @@ def falcon(type, action = None, upgrade_type=None):
         owner = params.falcon_user,
         mode = 0777)
 
-      if params.falcon_store_uri[0:4] == "hdfs":
-        params.HdfsResource(params.falcon_store_uri,
-          type = "directory",
-          action = "create_on_execute",
-          owner = params.falcon_user,
-          mode = 0755)
-      elif params.falcon_store_uri[0:4] == "file":
-        Directory(params.falcon_store_uri[7:],
-          owner = params.falcon_user,
-          create_parents = True)
-
       if params.supports_hive_dr:
         params.HdfsResource(params.dfs_data_mirroring_dir,
           type = "directory",
