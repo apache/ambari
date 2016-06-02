@@ -253,7 +253,7 @@ lib_dir_available = os.path.exists(jdbc_libs_dir)
 if sqla_db_used:
   jars_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/*")
   libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
-  downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
+  downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 
 hdfs_share_dir = format("{oozie_hdfs_user_dir}/share")
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]

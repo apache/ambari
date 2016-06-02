@@ -66,12 +66,12 @@ def hive_service_interactive(name, action='start', upgrade_type=None):
 
       path_to_jdbc = params.target_hive_interactive
       if not params.jdbc_jar_name:
-        path_to_jdbc = format("{hive_interactive_lib}/") + params.default_connectors_map[params.hive_jdbc_driver]
+        path_to_jdbc = format("{hive_interactive_lib}/") + \
+                       params.default_connectors_map[params.hive_jdbc_driver] if params.hive_jdbc_driver in params.default_connectors_map else None
         if not os.path.isfile(path_to_jdbc):
           path_to_jdbc = format("{hive_interactive_lib}/") + "*"
           error_message = "Error! Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.hive_jdbc_driver] + \
                 " in hive lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
-          print error_message
           Logger.error(error_message)
 
       db_connection_check_command = format(

@@ -285,7 +285,7 @@ lib_dir_available = os.path.exists(jdbc_libs_dir)
 if sqla_db_used:
   jars_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/java/*")
   libs_path_in_archive = format("{tmp_dir}/sqla-client-jdbc/native/lib64/*")
-  downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
+  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
   libs_in_hive_lib = format("{jdbc_libs_dir}/*")
 
 
