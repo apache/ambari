@@ -1746,7 +1746,18 @@ thead.view-permission-header > tr > th {
 #stack-versions .no-version-alert {
   text-align: center;
 }
-
+#stack-versions table {
+  table-layout: fixed;
+}
+#stack-versions table .text-search-container {
+  font-weight: normal;
+  position: relative;
+}
+#stack-versions table .text-search-container .close {
+  position: absolute;
+  right: 15px;
+  top: 38px;
+}
 .pull-up {
   margin-top: -2px;
 }

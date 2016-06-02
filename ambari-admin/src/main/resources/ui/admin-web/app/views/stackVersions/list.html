@@ -40,13 +40,15 @@
                 ng-options="item.label for item in filter.stack.options track by item.value"
           ></select>
       </th>
-      <th class="col-medium">
+      <th class="col-medium text-search-container">
         <label>{{'common.name' | translate}}</label>
         <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.name" placeholder="{{'common.any' | translate}}">
+        <button type="button" class="close clearfilter" ng-show="filter.name" ng-click="filter.name=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
       </th>
-      <th class="col-medium">
+      <th class="col-medium text-search-container">
         <label>{{'common.version' | translate}}</label>
         <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.version" placeholder="{{'common.any' | translate}}">
+        <button type="button" class="close clearfilter" ng-show="filter.version" ng-click="filter.version=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
       </th>
       <th class="col-small">
         <label>{{'common.cluster' | translate}}</label>
@@ -56,7 +58,7 @@
                 ng-options="item.label for item in filter.cluster.options track by item.value"
           ></select>
       </th>
-      <th></th>
+      <th class="col-small"></th>
     </tr>
     </thead>
     <tbody>
