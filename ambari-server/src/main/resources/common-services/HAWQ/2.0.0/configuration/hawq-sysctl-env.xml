@@ -27,9 +27,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.shmmni</name>
     <value>4096</value>
@@ -41,9 +40,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.shmall</name>
     <value>4000000000</value>
@@ -55,9 +53,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.sem</name>
     <value>250 512000 100 2048</value>
@@ -68,9 +65,8 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.sysrq</name>
     <value>1</value>
@@ -84,9 +80,8 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.core_uses_pid</name>
     <value>1</value>
@@ -100,9 +95,8 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.msgmnb</name>
     <value>65536</value>
@@ -114,9 +108,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.msgmax</name>
     <value>65536</value>
@@ -128,9 +121,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.msgmni</name>
     <value>2048</value>
@@ -142,9 +134,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.ipv4.tcp_syncookies</name>
     <value>0</value>
@@ -158,9 +149,8 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.ipv4.ip_forward</name>
     <value>0</value>
@@ -174,9 +164,8 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.ipv4.conf.default.accept_source_route</name>
     <value>0</value>
@@ -190,9 +179,8 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.ipv4.tcp_tw_recycle</name>
     <value>1</value>
@@ -206,9 +194,8 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.ipv4.tcp_max_syn_backlog</name>
     <value>200000</value>
@@ -220,9 +207,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.ipv4.conf.all.arp_filter</name>
     <value>1</value>
@@ -236,9 +222,8 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.ipv4.ip_local_port_range</name>
     <value>1025 65535</value>
@@ -249,9 +234,8 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.core.netdev_max_backlog</name>
     <value>200000</value>
@@ -263,9 +247,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>fs.nr_open</name>
     <value>3000000</value>
@@ -277,9 +260,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.threads-max</name>
     <value>798720</value>
@@ -291,9 +273,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>kernel.pid_max</name>
     <value>798720</value>
@@ -305,9 +286,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.core.rmem_max</name>
     <value>2097152</value>
@@ -319,9 +299,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>net.core.wmem_max</name>
     <value>2097152</value>
@@ -333,9 +312,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>vm.overcommit_memory</name>
     <display-name>VM Overcommit</display-name>
@@ -354,9 +332,8 @@
       <maximum>2</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>vm.overcommit_ratio</name>
     <display-name>VM Overcommit Ratio</display-name>
@@ -368,7 +345,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

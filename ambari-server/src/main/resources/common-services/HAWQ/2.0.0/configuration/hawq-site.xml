@@ -16,6 +16,7 @@
    limitations under the License.
 -->
 <configuration>
+
   <property>
     <name>hawq_master_address_host</name>
     <display-name>HAWQ Master</display-name>
@@ -26,9 +27,8 @@
     <value-attributes>
       <type>componentHost</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_master_address_port</name>
     <display-name>HAWQ Master Port</display-name>
@@ -41,9 +41,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_standby_address_host</name>
     <display-name>HAWQ Standby Master</display-name>
@@ -54,9 +53,8 @@
     <value-attributes>
       <type>componentHost</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_segment_address_port</name>
     <display-name>HAWQ Segment Port</display-name>
@@ -69,9 +67,8 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_dfs_url</name>
     <display-name>HAWQ DFS URL</display-name>
@@ -84,9 +81,8 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_master_directory</name>
     <display-name>HAWQ Master Directory</display-name>
@@ -100,9 +96,8 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_segment_directory</name>
     <display-name>HAWQ Segment Directory</display-name>
@@ -116,9 +111,8 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_master_temp_directory</name>
     <display-name>HAWQ Master Temp Directories</display-name>
@@ -131,9 +125,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_segment_temp_directory</name>
     <display-name>HAWQ Segment Temp Directories</display-name>
@@ -146,9 +139,8 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <!-- HAWQ resource manager parameters -->
   <property>
     <name>hawq_global_rm_type</name>
@@ -174,9 +166,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_rm_memory_limit_perseg</name>
     <display-name>Segment Memory Usage Limit</display-name>
@@ -198,9 +189,8 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_rm_nvcore_limit_perseg</name>
     <display-name>Segment Virtual Core Usage Limit</display-name>
@@ -215,9 +205,8 @@
       <maximum>64</maximum>
       <increment-step>4</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_rm_yarn_address</name>
     <value>localhost:8032</value>
@@ -236,9 +225,8 @@
       <type>string</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_rm_yarn_scheduler_address</name>
     <value>localhost:8030</value>
@@ -257,9 +245,8 @@
       <type>string</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_rm_yarn_queue_name</name>
     <value>default</value>
@@ -270,9 +257,8 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hawq_rm_yarn_app_name</name>
     <value>hawq</value>
@@ -283,9 +269,8 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>default_hash_table_bucket_number</name>
     <display-name>Default buckets for Hash Distributed tables</display-name>
@@ -302,10 +287,9 @@
       <maximum>10000</maximum>
       <increment-step>100</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  <property>
+
+    <property>
     <name>hawq_rm_nvseg_perquery_perseg_limit</name>
     <display-name>Virtual Segments Limit per Query (per Segment Node)</display-name>
     <value>6</value>
@@ -318,12 +302,11 @@
       <type>int</type>
       <minimum>1</minimum>
       <maximum>16</maximum>
-      <increment-step>1</increment-step>
+       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  <property>
+
+   <property>
     <name>hawq_rm_nvseg_perquery_limit</name>
     <display-name>Virtual Segments Limit per Query (Total)</display-name>
     <value>512</value>
@@ -336,9 +319,8 @@
       <type>int</type>
       <minimum>1</minimum>
       <maximum>10000</maximum>
-      <increment-step>100</increment-step>
+       <increment-step>100</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
@@ -27,8 +26,6 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property require-input="false">
     <name>metadata_pid_dir</name>
@@ -37,8 +34,6 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metadata_user</name>
@@ -50,22 +45,16 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metadata_opts</name>
     <value>-Xmx1024m -Dlog4j.configuration=atlas-log4j.xml</value>
     <description>Metadata Server command line options.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metadata_classpath</name>
     <value> </value>
     <description>Metadata Server additional classpath.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property require-input="false">
     <name>metadata_data_dir</name>
@@ -74,15 +63,11 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property require-input="false">
     <name>metadata_expanded_war_dir</name>
     <value>./server/webapp</value>
     <description>Atlas expanded WAR directory.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>metadata_conf_file</name>
@@ -93,22 +78,16 @@
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>atlas_solr_shards</name>
     <value>1</value>
     <description>The number of shards set for LogSearch SOLR.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>atlas_solr_shards</name>
     <value>1</value>
     <description>The number of shards set for collections created in LogSearch SOLR.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- metadata-env.sh -->
   <property>
@@ -150,7 +129,5 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

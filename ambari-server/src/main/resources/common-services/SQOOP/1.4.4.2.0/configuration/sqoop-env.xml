@@ -19,6 +19,7 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_adding_forbidden="true">
   <!-- sqoop-env.sh -->
   <property>
@@ -42,13 +43,11 @@ export HIVE_HOME=${HIVE_HOME:-{{hive_home}}}
 export ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}
 
 # add libthrift in hive to sqoop class path first so hive imports work
-export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2&gt; /dev/null`:${SQOOP_USER_CLASSPATH}"
+export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}"
     </value>
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>sqoop_user</name>
@@ -60,14 +59,10 @@ export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2&gt; /dev/nul
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>jdbc_drivers</name>
     <description>Comma separated list of additional JDBC drivers class names</description>
     <value> </value>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
-  </property>
+  </property>  
 </configuration>

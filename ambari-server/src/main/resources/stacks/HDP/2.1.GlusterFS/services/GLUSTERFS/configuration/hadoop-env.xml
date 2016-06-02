@@ -19,6 +19,7 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>hadoop_pid_dir_prefix</name>
@@ -30,19 +31,15 @@
       <editable-only-at-install>true</editable-only-at-install>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  <property>
+ <property>
     <name>hadoop_heapsize</name>
     <value>1024</value>
-    <display-name>Hadoop maximum Java heap size</display-name>
-    <description>Hadoop maximum Java heap size</description>
-    <value-attributes>
-      <unit>MB</unit>
-    </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+   <display-name>Hadoop maximum Java heap size</display-name>
+   <description>Hadoop maximum Java heap size</description>
+   <value-attributes>
+     <unit>MB</unit>
+   </value-attributes>
   </property>
   <property>
     <name>glusterfs_user</name>
@@ -52,8 +49,6 @@
     <value-attributes>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hdfs_log_dir_prefix</name>
@@ -65,8 +60,6 @@
       <editable-only-at-install>true</editable-only-at-install>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>namenode_heapsize</name>
@@ -78,22 +71,16 @@
       <editable-only-at-install>true</editable-only-at-install>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>namenode_host</name>
-    <value/>
+    <value></value>
     <description>NameNode Host.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>snamenode_host</name>
-    <value/>
+    <value></value>
     <description>Secondary NameNode.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>proxyuser_group</name>
@@ -103,16 +90,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hdfs_user</name>
     <display-name>HDFS User</display-name>
     <value>hdfs</value>
     <description>User to run HDFS as</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!--
   <property>
@@ -121,7 +104,7 @@
     <description>Proxy user group.</description>
   </property>
   -->
-  <!-- hadoop-env.sh -->
+    <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
     <display-name>hadoop-env template</display-name>
@@ -215,12 +198,12 @@ export HADOOP_IDENT_STRING=$USER
 # Use libraries from standard classpath
 JAVA_JDBC_LIBS=""
 #Add libraries required by mysql connector
-for jarFile in `ls /usr/share/java/*mysql* 2&gt;/dev/null`
+for jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`
 do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
 #Add libraries required by oracle connector
-for jarFile in `ls /usr/share/java/*ojdbc* 2&gt;/dev/null`
+for jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`
 do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
@@ -239,9 +222,8 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
     </value>
     <value-attributes>
-      <type>content</type>
+        <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

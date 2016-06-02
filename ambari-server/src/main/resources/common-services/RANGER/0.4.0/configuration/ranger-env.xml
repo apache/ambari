@@ -19,6 +19,7 @@
  */
 -->
 <configuration supports_final="true" supports_adding_forbidden="true">
+
   <property>
     <name>ranger_user</name>
     <value>ranger</value>
@@ -29,9 +30,8 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger_group</name>
     <value>ranger</value>
@@ -42,45 +42,41 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger_admin_log_dir</name>
     <value>/var/log/ranger/admin</value>
-    <description/>
+    <description></description>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger_usersync_log_dir</name>
     <value>/var/log/ranger/usersync</value>
-    <description/>
+    <description></description>
     <value-attributes>
       <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger_admin_username</name>
     <value>amb_ranger_admin</value>
     <property-type>TEXT</property-type>
     <display-name>Ranger Admin username for Ambari</display-name>
     <description>This is the ambari user created for creating repositories and policies in Ranger Admin for each plugin</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger_admin_password</name>
-    <value/>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Ranger Admin user's password for Ambari</display-name>
     <description>This is the ambari user password created for creating repositories and policies in Ranger Admin for each plugin</description>
@@ -88,16 +84,14 @@
       <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>admin_username</name>
     <value>admin</value>
     <description>This is the username for default admin user that is used for creating ambari user in Ranger Admin</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
-  </property>
+  </property>  
+
   <property>
     <name>admin_password</name>
     <value>admin</value>
@@ -106,31 +100,27 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
   <property>
     <name>oracle_home</name>
     <value>-</value>
     <property-type>TEXT</property-type>
     <description>Oracle Home needs to be set to path where oracle is installed, this will help install Ranger Admin when used with Oracle as database.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>xml_configurations_supported</name>
     <value>false</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
+
   <property>
     <name>ranger_pid_dir</name>
     <value>/var/run/ranger</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
+
   <property>
     <name>ranger-hdfs-plugin-enabled</name>
     <value>No</value>
@@ -151,9 +141,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger-hive-plugin-enabled</name>
     <value>No</value>
@@ -174,9 +163,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger-hbase-plugin-enabled</name>
     <value>No</value>
@@ -197,9 +185,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger-storm-plugin-enabled</name>
     <value>No</value>
@@ -220,9 +207,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ranger-knox-plugin-enabled</name>
     <value>No</value>
@@ -243,9 +229,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>bind_anonymous</name>
     <display-name>Bind Anonymous</display-name>
@@ -266,9 +251,8 @@
       <selection-cardinality>1</selection-cardinality>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>xasecure.audit.destination.hdfs</name>
     <value>false</value>
@@ -289,9 +273,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
@@ -304,9 +287,8 @@
         <name>fs.defaultFS</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>xasecure.audit.destination.db</name>
     <value>true</value>
@@ -327,7 +309,6 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

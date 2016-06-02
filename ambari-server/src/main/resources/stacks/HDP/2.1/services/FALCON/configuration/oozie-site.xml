@@ -16,6 +16,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+
 <configuration supports_final="true">
   <property>
     <name>oozie.service.ELService.ext.functions.coord-job-submit-instances</name>
@@ -39,9 +40,8 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>oozie.service.ELService.ext.functions.coord-action-create-inst</name>
     <value>
@@ -65,9 +65,8 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>oozie.service.ELService.ext.functions.coord-action-create</name>
     <value>
@@ -91,9 +90,8 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>oozie.service.ELService.ext.functions.coord-job-submit-data</name>
     <value>
@@ -118,9 +116,8 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>oozie.service.ELService.ext.functions.coord-action-start</name>
     <value>
@@ -147,9 +144,8 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>oozie.service.ELService.ext.functions.coord-sla-submit</name>
     <value>
@@ -162,9 +158,8 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>oozie.service.ELService.ext.functions.coord-sla-create</name>
     <value>
@@ -177,9 +172,8 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
   <property>
     <name>oozie.service.HadoopAccessorService.supported.filesystems</name>
     <value>*</value>
@@ -189,18 +183,18 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+  
   <!--web ui should add following properties to oozie site accordingly to FALCON_USER-->
   <!--<property>-->
-  <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.hosts</name>-->
-  <!--<value>*</value>-->
-  <!--<description>Falcon proxyuser hosts</description>-->
+    <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.hosts</name>-->
+    <!--<value>*</value>-->
+    <!--<description>Falcon proxyuser hosts</description>-->
   <!--</property>-->
+
   <!--<property>-->
-  <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.groups</name>-->
-  <!--<value>*</value>-->
-  <!--<description>Falcon proxyuser groups</description>-->
+    <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.groups</name>-->
+    <!--<value>*</value>-->
+    <!--<description>Falcon proxyuser groups</description>-->
   <!--</property>-->
 </configuration>

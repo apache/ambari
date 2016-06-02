@@ -16,9 +16,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+
 <configuration>
   <!-- Put your site-specific accumulo configurations here. The available configuration values along with their defaults are documented in docs/config.html Unless
     you are simply testing at your workstation, you will most definitely need to change the three entries below. -->
+
   <property>
     <name>instance.volumes</name>
     <value>hdfs://localhost:8020/apps/accumulo/data</value>
@@ -27,9 +29,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>instance.zookeeper.host</name>
     <value>localhost:2181</value>
@@ -39,9 +40,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>instance.zookeeper.timeout</name>
     <value>30s</value>
@@ -49,9 +49,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tserver.memory.maps.max</name>
     <value>1G</value>
@@ -59,10 +58,9 @@
       map, where incoming writes are sorted.  If native maps are enabled
       (tserver.memory.maps.native.enabled) this memory is
       off-heap. Ensure that table.compaction.minor.logs.threshold *
-      tserver.walog.max.size &gt;= tserver.memory.maps.max.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+      tserver.walog.max.size >= tserver.memory.maps.max.</description>
   </property>
+
   <property>
     <name>tserver.memory.maps.native.enabled</name>
     <value>true</value>
@@ -72,38 +70,33 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tserver.cache.data.size</name>
     <value>128M</value>
     <description>Size of on-heap block cache for data blocks.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tserver.cache.index.size</name>
     <value>256M</value>
     <description>Size of on-heap block cache for index blocks.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tserver.sort.buffer.size</name>
     <value>200M</value>
     <description>Amount of memory to use for sorting walogs when
       recovering from tserver failure.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tserver.walog.max.size</name>
     <value>1G</value>
     <description>Maximum size of each write-ahead log.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>master.port.client</name>
     <value>9999</value>
@@ -111,9 +104,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>trace.port.client</name>
     <value>12234</value>
@@ -122,9 +114,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tserver.port.client</name>
     <value>9997</value>
@@ -132,9 +123,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>gc.port.client</name>
     <value>50092</value>
@@ -143,9 +133,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>monitor.port.client</name>
     <value>50095</value>
@@ -153,9 +142,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>monitor.port.log4j</name>
     <value>4560</value>
@@ -164,9 +152,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>trace.user</name>
     <value>trace</value>
@@ -176,9 +163,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>general.classpaths</name>
     <value>
@@ -203,7 +189,5 @@ $HADOOP_PREFIX/share/hadoop/yarn/lib/jersey.*.jar
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

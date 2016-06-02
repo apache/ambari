@@ -19,47 +19,37 @@
  * limitations under the License.
  */
 -->
+
 <configuration>
   <property>
     <name>ganglia_conf_dir</name>
     <value>/etc/ganglia/hdp</value>
     <description>Config directory for Ganglia</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ganglia_runtime_dir</name>
     <value>/var/run/ganglia/hdp</value>
     <description>Run directories for Ganglia</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ganglia_runtime_dir</name>
     <value>/var/run/ganglia/hdp</value>
     <description>Run directories for Ganglia</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>gmetad_user</name>
     <value>nobody</value>
     <description>User </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
-  <property>
+    <property>
     <name>gmond_user</name>
     <value>nobody</value>
     <description>User </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>rrdcached_base_dir</name>
     <value>/var/lib/ganglia/rrds</value>
     <description>Default directory for saving the rrd files on ganglia server</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

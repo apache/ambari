@@ -19,6 +19,7 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_adding_forbidden="true">
   <property>
     <name>hbase_log_dir</name>
@@ -29,8 +30,6 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_pid_dir</name>
@@ -42,8 +41,6 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
@@ -57,8 +54,6 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_regionserver_xmn_max</name>
@@ -73,8 +68,6 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
@@ -84,8 +77,6 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <value-attributes>
       <type>float</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_master_heapsize</name>
@@ -99,8 +90,6 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_user</name>
@@ -112,23 +101,18 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_user_nofile_limit</name>
     <value>32000</value>
     <description>Max open files limit setting for HBASE user.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hbase_user_nproc_limit</name>
     <value>16000</value>
     <description>Max number of processes limit setting for HBASE user.</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hbase_java_io_tmpdir</name>
     <value>/tmp</value>
@@ -136,21 +120,18 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hbase_principal_name</name>
     <description>HBase principal name</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>hbase_user_keytab</name>
     <description>HBase keytab path</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <!-- hbase-env.sh -->
   <property>
     <name>content</name>
@@ -227,7 +208,7 @@ export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
+
 </configuration>

@@ -19,7 +19,9 @@
  * limitations under the License.
  */
 -->
+
 <configuration>
+
   <property>
     <name>content</name>
     <value>
@@ -188,10 +190,9 @@ log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender
 log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
 
       </value>
-    <value-attributes>
-      <type>content</type>
-    </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+      <value-attributes>
+          <type>content</type>
+      </value-attributes>
   </property>
+
 </configuration>

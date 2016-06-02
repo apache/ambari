@@ -16,7 +16,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+
 <configuration supports_final="true">
+
   <property>
     <name>hive.default.fileformat.managed</name>
     <value>TextFile</value>
@@ -25,9 +27,8 @@ limitations under the License.
       External tables will be created with default file format. Leaving this null 
       will result in using the default file format for all tables.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>datanucleus.rdbms.datastoreAdapterClassName</name>
     <description>Datanucleus Class, This property used only when hive db is SQL Anywhere</description>
@@ -37,9 +38,8 @@ limitations under the License.
         <name>hive_database</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>atlas.hook.hive.minThreads</name>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
@@ -47,9 +47,8 @@ limitations under the License.
     <description>
       Minimum number of threads maintained by Atlas hook.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <name>atlas.hook.hive.maxThreads</name>
@@ -57,7 +56,6 @@ limitations under the License.
     <description>
       Maximum number of threads used by Atlas hook.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

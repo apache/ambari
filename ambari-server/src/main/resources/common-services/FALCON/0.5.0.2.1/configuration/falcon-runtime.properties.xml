@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
@@ -23,36 +22,26 @@
   <property>
     <name>*.domain</name>
     <value>${falcon.app.type}</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>*.log.cleanup.frequency.minutes.retention</name>
     <value>hours(6)</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>*.log.cleanup.frequency.hours.retention</name>
     <value>minutes(1)</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>*.log.cleanup.frequency.days.retention</name>
     <value>days(7)</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
   <property>
     <name>*.log.cleanup.frequency.months.retention</name>
     <value>months(3)</value>
-    <description/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <description></description>
   </property>
 </configuration>

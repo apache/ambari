@@ -30,8 +30,6 @@
       1) embedded: Metrics stored on local FS, HBase in Standalone mode
       2) distributed: HBase daemons writing to HDFS
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.webapp.address</name>
@@ -39,8 +37,6 @@
     <description>
       The address of the metrics service web application.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.rpc.address</name>
@@ -48,8 +44,6 @@
     <description>
       The address of the metrics service rpc listeners.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.aggregator.checkpoint.dir</name>
@@ -62,8 +56,6 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.interval</name>
@@ -76,8 +68,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.interval</name>
@@ -90,8 +80,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.daily.aggregator.minute.interval</name>
@@ -100,8 +88,6 @@
       Time in seconds to sleep for the day resolution host based
       aggregator. Default resolution is 24 hours.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.interval</name>
@@ -114,8 +100,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.interval</name>
@@ -124,8 +108,6 @@
       Time in seconds to sleep for the day resolution cluster wide
       aggregator. Default is 24 hours.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.interval</name>
@@ -138,8 +120,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.interval</name>
@@ -152,8 +132,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier</name>
@@ -163,8 +141,6 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier</name>
@@ -178,8 +154,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier</name>
@@ -193,8 +167,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier</name>
@@ -208,8 +180,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier</name>
@@ -223,8 +193,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier</name>
@@ -238,8 +206,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier</name>
@@ -249,8 +215,6 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.disabled</name>
@@ -258,8 +222,6 @@
     <description>
       Disable host based daily aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.disabled</name>
@@ -268,8 +230,6 @@
     <description>
       Disable host based hourly aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.disabled</name>
@@ -278,8 +238,6 @@
     <description>
       Disable host based minute aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.disabled</name>
@@ -287,8 +245,6 @@
     <description>
       Disable cluster based daily aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.disabled</name>
@@ -297,8 +253,6 @@
     <description>
       Disable cluster based hourly aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.disabled</name>
@@ -307,8 +261,6 @@
     <description>
       Disable cluster based minute aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.disabled</name>
@@ -317,8 +269,6 @@
     <description>
       Disable cluster based second aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.timeslice.interval</name>
@@ -330,8 +280,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.ttl</name>
@@ -339,8 +287,6 @@
     <description>
       Host based daily resolution data purge interval in seconds. Default is 1 year.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.ttl</name>
@@ -348,8 +294,6 @@
     <description>
       Host based hourly resolution data purge interval in seconds. Default is 30 days.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.ttl</name>
@@ -357,8 +301,6 @@
     <description>
       Host based minute resolution data purge interval in seconds. Default is 7 days.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.ttl</name>
@@ -366,8 +308,6 @@
     <description>
       Cluster wide second resolution data purge interval in seconds. Default is 7 days.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
@@ -375,8 +315,6 @@
     <description>
       Cluster wide minute resolution data purge interval in seconds. Default is 30 days.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.ttl</name>
@@ -384,8 +322,6 @@
     <description>
       Cluster wide hourly resolution data purge interval in seconds. Default is 1 year.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.ttl</name>
@@ -393,8 +329,6 @@
     <description>
       Cluster wide daily resolution data purge interval in seconds. Default is 2 years.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.ttl</name>
@@ -408,8 +342,6 @@
         <name>timeline.metrics.service.operation.mode</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.hbase.data.block.encoding</name>
@@ -419,8 +351,6 @@
       Default encoding is FAST_DIFF. This can be changed only before creating
       tables.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.hbase.compression.scheme</name>
@@ -430,8 +360,6 @@
       scheme. Default compression is SNAPPY. Disable by setting to None.
       This can be changed only before creating tables.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.default.result.limit</name>
@@ -444,8 +372,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.checkpointDelay</name>
@@ -458,8 +384,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.resultset.fetchSize</name>
@@ -471,8 +395,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- Phoenix properties that would manifest in the hbase-site.xml on the client side -->
   <property>
@@ -482,8 +404,6 @@
       Percentage of total heap memory (i.e. Runtime.getRuntime().maxMemory())
       that all threads may use.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>phoenix.spool.directory</name>
@@ -495,8 +415,6 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.cluster.aggregator.appIds</name>
@@ -505,8 +423,6 @@
       List of application ids to use for aggregating host level metrics for
       an application. Example: bytes_read across Yarn Nodemanagers.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.use.groupBy.aggregators</name>
@@ -515,8 +431,6 @@
       Use a groupBy aggregated query to perform host level aggregations vs
       in-memory aggregations.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.host.aggregate.splitpoints</name>
@@ -543,8 +457,6 @@
         <name>hbase_regionserver_heapsize</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregate.splitpoints</name>
@@ -571,8 +483,6 @@
         <name>hbase_regionserver_heapsize</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.sink.report.interval</name>
@@ -581,8 +491,6 @@
       Time in seconds to sleep before report metrics to collector.
       Default resolution is 1 minute.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.sink.collection.period</name>
@@ -590,8 +498,6 @@
     <description>
       The interval between two service metrics data exports.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.watcher.disabled</name>
@@ -605,8 +511,6 @@
         <name>timeline.metrics.service.operation.mode</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.watcher.initial.delay</name>
@@ -615,8 +519,6 @@
       The time to delay first watcher check execution
       Default resolution is 10 minutes.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.watcher.delay</name>
@@ -626,8 +528,6 @@
       watcher check execution and the commencement of the next
       Default resolution is 30 seconds.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.watcher.timeout</name>
@@ -636,8 +536,6 @@
       The maximum time to wait for a single watcher check execution
       Default resolution is 30 seconds.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.hbase.fifo.compaction.enabled</name>
@@ -645,8 +543,6 @@
     <description>
       Enable Compaction policy for lower for Precision and Minute aggregate tables.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.aggregators.skip.blockcache.enabled</name>
@@ -655,8 +551,6 @@
       Skip block cache on aggregator queries to allow, HBase block
       utilization only for user queries.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cache.commit.interval</name>
@@ -667,8 +561,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cache.size</name>
@@ -676,8 +568,6 @@
     <description>
       Size of array blocking queue used to cache metrics
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cache.enabled</name>
@@ -685,8 +575,6 @@
     <description>
       If set to true PhoenixHBaseAccessor will use cache to store metrics before committing them
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.http.policy</name>
@@ -698,8 +586,6 @@
       - HTTP_ONLY : Service is provided only on http
       - HTTPS_ONLY : Service is provided only on https
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.hbase.init.check.enabled</name>
@@ -707,8 +593,6 @@
     <description>
       Enable Initialization check for HBase tables during Metrics service startup.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.interpolation.enabled</name>
@@ -716,8 +600,6 @@
     <description>
       Enable Linear interpolation for missing slices of data, while aggregating.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>timeline.metrics.service.metadata.filters</name>
@@ -726,7 +608,6 @@
       Commas separated list of regular expressions that match metric names
       which prevents certain metrics from ending up in metadata cache.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

@@ -37,7 +37,6 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class PropertyInfoTest {
@@ -97,30 +96,6 @@ public class PropertyInfoTest {
   }
 
   @Test
-  public void testUpgradeBehaviorTag() throws JAXBException {
-    // given
-    String xml =
-      "<property>\n" +
-      "  <name>prop_name</name>\n" +
-      "  <value>prop_val</value>\n" +
-      "  <on-ambari-upgrade add=\"false\" change=\"true\" delete=\"true\"/>\n" +
-      "  <on-stack-upgrade add=\"true\" change=\"true\" delete=\"false\"/>\n" +
-      "</property>";
-
-    // when
-    PropertyInfo propertyInfo = propertyInfoFrom(xml);
-
-    // then
-    assertFalse(propertyInfo.getPropertyAmbariUpgradeBehavior().isAdd());
-    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isChange());
-    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isDelete());
-
-    assertTrue(propertyInfo.getPropertyStackUpgradeBehavior().isAdd());
-    assertTrue(propertyInfo.getPropertyStackUpgradeBehavior().isChange());
-    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isDelete());
-  }
-
-  @Test
   public void testUnknownPropertyType() throws Exception {
     // Given
     String xml =
@@ -142,14 +117,14 @@ public class PropertyInfoTest {
   }
 
   public static PropertyInfo propertyInfoFrom(String xml) throws JAXBException {
-    JAXBContext jaxbCtx = JAXBContext.newInstance(PropertyInfo.class, PropertyUpgradeBehavior.class);
+    JAXBContext jaxbCtx = JAXBContext.newInstance(PropertyInfo.class);
     Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
 
     return unmarshaller.unmarshal(
       new StreamSource(
         new ByteArrayInputStream(xml.getBytes())
-      ),
-      PropertyInfo.class
+      )
+      , PropertyInfo.class
     ).getValue();
   }
 }

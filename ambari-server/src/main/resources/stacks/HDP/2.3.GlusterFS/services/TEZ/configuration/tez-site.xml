@@ -16,6 +16,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
+
 <configuration supports_final="true">
   <property>
     <name>tez.am.view-acls</name>
@@ -23,9 +24,8 @@
     <description>AM view ACLs. This allows the specified users/groups to view the status of the AM and all DAGs that run within this AM.
       Value format: Comma separated list of users, followed by whitespace, followed by a comma separated list of groups.
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.optimize.local.fetch</name>
     <value>true</value>
@@ -33,9 +33,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.task.generate.counters.per.io</name>
     <value>true</value>
@@ -43,9 +42,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.sorter.class</name>
     <value>PIPELINED</value>
@@ -64,9 +62,8 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.pipelined.sorter.sort.threads</name>
     <value>2</value>
@@ -80,9 +77,8 @@
         <name>tez.runtime.sorter.class</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>tez.runtime.io.sort.mb</name>
     <value>272</value>
@@ -97,7 +93,6 @@
         <name>tez.runtime.sorter.class</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>

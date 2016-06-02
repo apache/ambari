@@ -19,6 +19,7 @@
  * limitations under the License.
  */
 -->
+
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property require-input="true">
     <name>kdc_type</name>
@@ -31,9 +32,8 @@
       <type>componentHost</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>manage_identities</name>
     <description>
@@ -47,9 +47,8 @@
       <overridable>false</overridable>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>manage_auth_to_local</name>
     <description>
@@ -62,9 +61,8 @@
       <overridable>false</overridable>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>install_packages</name>
     <display-name>Install OS-specific Kerberos client package(s)</display-name>
@@ -78,9 +76,8 @@
       <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property require-input="true">
     <name>ldap_url</name>
     <display-name>LDAP url</display-name>
@@ -93,9 +90,8 @@
       <visible>false</visible>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property require-input="true">
     <name>container_dn</name>
     <display-name>Container DN</display-name>
@@ -107,9 +103,8 @@
       <overridable>false</overridable>
     </value-attributes>
     <value/>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property require-input="true">
     <name>encryption_types</name>
     <display-name>Encryption Types</display-name>
@@ -121,9 +116,8 @@
       <type>multiLine</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property require-input="true">
     <name>realm</name>
     <description>
@@ -136,9 +130,8 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property require-input="true">
     <name>kdc_hosts</name>
     <description>
@@ -151,9 +144,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property require-input="true">
     <name>admin_server_host</name>
     <display-name>Kadmin host</display-name>
@@ -165,9 +157,8 @@
       <type>host</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>executable_search_paths</name>
     <display-name>Executable Search Paths</display-name>
@@ -179,9 +170,8 @@
       <overridable>false</overridable>
       <type>multiLine</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>password_length</name>
     <display-name>Password Length</display-name>
@@ -192,9 +182,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>password_min_lowercase_letters</name>
     <display-name>Password Minimum # Lowercase Letters</display-name>
@@ -206,9 +195,8 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>password_min_uppercase_letters</name>
     <display-name>Password Minimum # Uppercase Letters</display-name>
@@ -220,9 +208,8 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>password_min_digits</name>
     <display-name>Password Minimum # Digits</display-name>
@@ -234,9 +221,8 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>password_min_punctuation</name>
     <display-name>Password Minimum # Punctuation Characters</display-name>
@@ -248,9 +234,8 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>password_min_whitespace</name>
     <display-name>Password Minimum # Whitespace Characters</display-name>
@@ -262,9 +247,8 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>service_check_principal_name</name>
     <display-name>Test Kerberos Principal</display-name>
@@ -275,9 +259,8 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>case_insensitive_username_rules</name>
     <display-name>Enable case insensitive username rules</display-name>
@@ -289,9 +272,8 @@
       <overridable>false</overridable>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>ad_create_attributes_template</name>
     <display-name>Account Attribute Template</display-name>
@@ -321,24 +303,22 @@
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
-    <name>create_ambari_principal</name>
-    <description>
+  <name>create_ambari_principal</name>
+  <description>
     Indicates whether Ambari should create the principal, keytab for itself, used by different views.
   </description>
-    <value>true</value>
-    <display-name>Create Ambari Principal &amp; Keytab</display-name>
-    <value-attributes>
-      <visible>true</visible>
-      <overridable>false</overridable>
-      <type>boolean</type>
-    </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
-  </property>
+  <value>true</value>
+  <display-name>Create Ambari Principal &amp; Keytab</display-name>
+  <value-attributes>
+    <visible>true</visible>
+    <overridable>false</overridable>
+    <type>boolean</type>
+  </value-attributes>
+</property>
+
   <property>
     <name>kdc_create_attributes</name>
     <display-name>Principal Attributes</display-name>
@@ -350,9 +330,8 @@
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>group</name>
     <display-name>IPA Group</display-name>
@@ -364,9 +343,8 @@
       <empty-value-valid>true</empty-value-valid>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>set_password_expiry</name>
     <display-name>Set IPA principal password expiry</display-name>
@@ -382,9 +360,8 @@
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
   <property>
     <name>password_chat_timeout</name>
     <display-name>Set IPA kinit password chat timeout</display-name>
@@ -398,7 +375,6 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
+
 </configuration>
