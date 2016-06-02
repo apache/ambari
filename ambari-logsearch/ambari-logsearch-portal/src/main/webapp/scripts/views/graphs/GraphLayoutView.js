@@ -60,7 +60,7 @@ define(['require',
              * @constructs
              */
             initialize: function(options) {
-                _.extend(this, _.pick(options, 'vent', 'globalVent', 'params', 'viewType', 'showDatePicker', 'showUnit'));
+                _.extend(this, _.pick(options, 'vent', 'globalVent', 'params', 'viewType', 'showDatePicker', 'showUnit','futureDate'));
                 /* if (this.showDatePicker) {
                      this.graphVent = new Backbone.Wreqr.EventAggregator();
                  }*/
@@ -231,8 +231,23 @@ define(['require',
                                 x: that.dateUtil.getMomentObject(object.name), //(new Date(object.name)).toUTCString(),
                                 y: parseFloat(object.value)
                             }
-                        })
+                        });
                     };
+
+                    if(!that.futureDate){
+                        var date = moment().add(1,"hours").format("YYYY-MM-DDTHH:mm:ss.SSSSZ");
+                        var newObj =[];
+                        for(i = 0 ;i < Obj.values.length ;i++){
+                                if(moment(date).isAfter(that.dateUtil.getMomentObject(Obj.values[i].x))){
+                                    newObj[i] = {
+                                                     x : that.dateUtil.getMomentObject(Obj.values[i].x),
+                                                     y : Obj.values[i].y
+                                                 }
+                                }
+                        }
+                        Obj.values = newObj;                      
+                    }
+
                     if (that.histogramView) {
                         Obj['color'] = ((model.get('name') === 'ERROR') ? ("#E81D1D") :
                             (model.get('name') === 'INFO') ? ("#2577B5") :
@@ -244,7 +259,8 @@ define(['require',
                         Obj['color'] = color[i];
                     }
                     data.push(Obj);
-                })
+                });
+
                 if (that.histogramView) {
                     for (var i = data.length - 1; i >= 0; i--) {
                         dataL.push(data[i])
