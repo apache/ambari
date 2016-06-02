@@ -102,8 +102,6 @@ def hive_interactive(name=None):
   '''
   remove_atlas_hook_if_exists(merged_hive_interactive_site)
 
-  # Anything TODO for attributes
-
   # Merge tez-interactive with tez-site
   XmlConfig("tez-site.xml",
             conf_dir = params.tez_interactive_config_dir,
