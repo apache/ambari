@@ -31,15 +31,16 @@
 <form class="form-horizontal create-user-form" role="form" novalidate name="form" autocomplete="off">
 
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
-    <label for="clustername" class="col-sm-2 control-label">{{'views.clusterName' | translate}}</label>
+    <label for="clustername" class="col-sm-2 control-label">{{'views.clusterName' | translate}}*</label>
     <div class="col-sm-10">
-      <input type="text" id="clustername" class="form-control" name="cluster_name" ng-pattern="/[a-zA-Z0-9\-]*/" placeholder="Cluster Name" ng-model="cluster.cluster_name" required autocomplete="off">
+      <input type="text" id="clustername" class="form-control" name="cluster_name" ng-pattern="nameValidationPattern" placeholder="Cluster Name" ng-model="cluster.cluster_name" required autocomplete="off">
       <div class="alert alert-danger top-margin" ng-show="form.cluster_name.$error.required && form.submitted"> {{'common.alerts.fieldIsRequired' | translate}}</div>
+      <div class="alert alert-danger top-margin" ng-show='form.cluster_name.$error.pattern && form.submitted'>{{'views.alerts.noSpecialCharsOrSpaces' | translate}}</div>
     </div>
   </div>
 
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
-    <label for="clusterurl" class="col-sm-2 control-label">{{'users.ambariClusterURL' | translate}}</label>
+    <label for="clusterurl" class="col-sm-2 control-label">{{'users.ambariClusterURL' | translate}}*</label>
     <div class="col-sm-10">
       <input type="text" id="clusterurl" class="form-control" name="cluster_url" placeholder="Ambari Cluster URL" ng-model="cluster.cluster_url" required autocomplete="off">
       <div class="alert alert-danger top-margin" ng-show="form.cluster_url.$error.required && form.submitted"> {{'common.alerts.fieldIsRequired' | translate}}</div>
@@ -47,7 +48,7 @@
   </div>
 
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}" style="display: none" >
-    <label for="clusteruser" class="col-sm-2 control-label"> {{'users.roles.clusterUser' | translate}}</label>
+    <label for="clusteruser" class="col-sm-2 control-label"> {{'users.roles.clusterUser' | translate}}*</label>
     <div class="col-sm-10">
       <input type="text" id="clusteruser" class="form-control" name="cluster_user" placeholder="Cluster User" ng-model="cluster.cluster_user" required autocomplete="off">
       <div class="alert alert-danger top-margin" ng-show="form.cluster_user.$error.required && form.submitted"> {{'common.alerts.fieldIsRequired' | translate}}</div>

@@ -24,6 +24,8 @@ angular.module('ambariAdminConsole')
   $scope.cluster = {};
   $scope.instancesAffected = [];
 
+  $scope.nameValidationPattern = /^\s*\w*\s*$/;
+
   $scope.openChangePwdDialog = function() {
     var modalInstance = $modal.open({
       templateUrl: 'views/remoteClusters/modals/changePassword.html',
