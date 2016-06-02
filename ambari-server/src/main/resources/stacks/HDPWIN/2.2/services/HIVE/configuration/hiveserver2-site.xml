@@ -27,8 +27,8 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.authorization.manager</name>
@@ -41,8 +41,8 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.authorization.enabled</name>
@@ -69,7 +69,7 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

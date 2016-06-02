@@ -22,29 +22,29 @@
     <name>dfs.namenode.startup.delay.block.deletion.sec</name>
     <value>3600</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>dfs.journalnode.edits.dir</name>
     <value>/hadoop/hdfs/journalnode</value>
     <description>The path where the JournalNode daemon will store its local state. </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>dfs.client.retry.policy.enabled</name>
     <value>false</value>
     <description>Enables HDFS client retry in the event of a NameNode failure.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>dfs.content-summary.limit</name>
     <value>5000</value>
     <description>Dfs content summary limit.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>dfs.encryption.key.provider.uri</name>
@@ -70,7 +70,7 @@
         <name>ranger.service.https.attrib.ssl.enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

@@ -21,22 +21,22 @@
     <name>tez.lib.uris</name>
     <value>hdfs:///apps/tez/,hdfs:///apps/tez/lib/</value>
     <description>The location of the Tez libraries which will be localized for DAGs</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.log.level</name>
     <value>INFO</value>
     <description>Root Logging level passed to the Tez app master</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.staging-dir</name>
     <value>/tmp/${user.name}/staging</value>
     <description>The staging dir used while submitting DAGs</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.resource.memory.mb</name>
@@ -45,16 +45,16 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- tez picks the java opts from yarn.app.mapreduce.am.command-opts for MR tasks. Likewise for the AM memory MB -->
   <property>
     <name>tez.am.java.opts</name>
     <value>-server -Xmx1024m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC</value>
     <description>Java options for the Tez AppMaster process. The -Xmx parameter value is generally 0.8 times tez.am.resource.memory.mb config.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.shuffle-vertex-manager.min-src-fraction</name>
@@ -62,8 +62,8 @@
     <description>In case of a ScatterGather connection, the fraction of source tasks which should
       complete before tasks for the current vertex are schedule
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.shuffle-vertex-manager.max-src-fraction</name>
@@ -72,15 +72,15 @@
       completed, all tasks on the current vertex can be scheduled. Number of tasks ready for
       scheduling on the current vertex scales linearly between min-fraction and max-fraction
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
     <value>250</value>
     <description>The maximum heartbeat interval between the AM and RM in milliseconds</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.grouping.split-waves</name>
@@ -92,8 +92,8 @@
     <value-attributes>
       <type>float</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.grouping.min-size</name>
@@ -104,8 +104,8 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.grouping.max-size</name>
@@ -116,31 +116,31 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.container.reuse.enabled</name>
     <value>true</value>
     <description>Configuration to specify whether container should be reused</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.container.reuse.rack-fallback.enabled</name>
     <value>true</value>
     <description>Whether to reuse containers for rack local tasks. Active only if reuse is enabled
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.container.reuse.non-local-fallback.enabled</name>
     <value>true</value>
     <description>Whether to reuse containers for non-local tasks. Active only if reuse is enabled
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.container.session.delay-allocation-millis</name>
@@ -150,8 +150,8 @@
       it immediately. Only active when reuse is enabled. Set to -1 to never release a container
       in a session
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.container.reuse.locality.delay-allocation-millis</name>
@@ -159,8 +159,8 @@
     <description>The amount of time to wait before assigning a container to the next level of
       locality. NODE -&gt; RACK -&gt; NON_LOCAL
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.task.get-task.sleep.interval-ms.max</name>
@@ -168,8 +168,8 @@
     <description>The maximum amount of time, in seconds, to wait before a task asks an AM for
       another task
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.am.env</name>
@@ -178,8 +178,8 @@
         Additional execution environment entries for tez. This is not an additive property. You must preserve the original value if
         you want to have access to native libraries.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- Client Submission timeout value when submitting DAGs to a session -->
   <property>
@@ -188,8 +188,8 @@
     <description>Time (in seconds) to wait for AM to come up when trying to submit a DAG from
       the client
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.session.am.dag.submit.timeout.secs</name>
@@ -205,8 +205,8 @@
       <increment-step>600</increment-step>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- Configuration for runtime components -->
   <!-- These properties can be set on a per edge basis by configuring the payload for each
@@ -218,8 +218,8 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.runtime.intermediate-output.compress.codec</name>
@@ -227,8 +227,8 @@
     <description>The coded to be used if compressing intermediate output. Only
       applicable if tez.runtime.intermediate-output.should-compress is enabled.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.runtime.intermediate-input.is-compressed</name>
@@ -237,23 +237,23 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>tez.runtime.intermediate-input.compress.codec</name>
     <value>org.apache.hadoop.io.compress.SnappyCodec</value>
     <description>The coded to be used when reading intermediate compressed input.
     Only applicable if tez.runtime.intermediate-input.is-compressed is enabled.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- Configuration for ATS integration -->
   <property>
     <name>tez.yarn.ats.enabled</name>
     <value>true</value>
     <description>Whether to send history events to YARN Application Timeline Server</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

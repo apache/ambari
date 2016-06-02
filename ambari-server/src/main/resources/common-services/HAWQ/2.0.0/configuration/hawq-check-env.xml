@@ -89,7 +89,7 @@ dfs.namenode.accesstime.precision = -1
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>

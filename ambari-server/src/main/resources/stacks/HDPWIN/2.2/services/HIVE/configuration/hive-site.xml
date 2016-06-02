@@ -36,8 +36,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.zookeeper.quorum</name>
@@ -49,22 +49,22 @@ limitations under the License.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.connect.retries</name>
     <value>24</value>
     <description>Number of retries while opening a connection to metastore</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.failure.retries</name>
     <value>24</value>
     <description>Number of retries upon failure of Thrift metastore calls</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.client.connect.retry.delay</name>
@@ -73,8 +73,8 @@ limitations under the License.
       Expects a time value with unit (d/day, h/hour, m/min, s/sec, ms/msec, us/usec, ns/nsec), which is sec if not specified.
       Number of seconds for the client to wait between consecutive connection attempts
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.client.socket.timeout</name>
@@ -83,15 +83,15 @@ limitations under the License.
       Expects a time value with unit (d/day, h/hour, m/min, s/sec, ms/msec, us/usec, ns/nsec), which is sec if not specified.
       MetaStore Client socket timeout in seconds
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.mapjoin.bucket.cache.size</name>
     <value>10000</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.authorization.manager</name>
@@ -106,23 +106,23 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.cluster.delegation.token.store.class</name>
     <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
     <description>The delegation token store implementation.
       Set to org.apache.hadoop.hive.thrift.ZooKeeperTokenStore for load-balanced cluster.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
     <value>localhost:2181</value>
     <description>The ZooKeeper token store connect string.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.support.dynamic.service.discovery</name>
@@ -132,38 +132,38 @@ limitations under the License.
       when it is brought up. JDBC/ODBC clients should use the ZooKeeper ensemble: hive.zookeeper.quorum
       in their connection string.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>fs.hdfs.impl.disable.cache</name>
     <value>false</value>
     <deleted>true</deleted>
     <description>Disable HDFS filesystem cache.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>fs.file.impl.disable.cache</name>
     <value>false</value>
     <deleted>true</deleted>
     <description>Disable local filesystem cache.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.scratchdir</name>
     <value>/tmp/hive</value>
     <description>HDFS root scratch dir for Hive jobs which gets created with write all (733) permission. For each connecting user, an HDFS scratch dir: ${hive.exec.scratchdir}/&lt;username&gt; is created, with ${hive.scratch.dir.permission}.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.submitviachild</name>
     <value>false</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.submit.local.task.via.child</name>
@@ -173,8 +173,8 @@ limitations under the License.
       separate JVM (true recommended) or not.
       Avoids the overhead of spawning new JVM, but can lead to out-of-memory issues.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.compress.output</name>
@@ -183,8 +183,8 @@ limitations under the License.
       This controls whether the final outputs of a query (to a local/HDFS file or a Hive table) is compressed.
       The compression codec and other options are determined from Hadoop config variables mapred.output.compress*
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.compress.intermediate</name>
@@ -193,8 +193,8 @@ limitations under the License.
       This controls whether intermediate files produced by Hive between multiple map-reduce jobs are compressed.
       The compression codec and other options are determined from Hadoop config variables mapred.output.compress*
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.reducers.bytes.per.reducer</name>
@@ -206,10 +206,10 @@ limitations under the License.
       <minimum>64</minimum>
       <maximum>4294967296</maximum>
       <unit>B</unit>
-      <step-increment/>
+      <increment-step/>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.reducers.max</name>
@@ -218,8 +218,8 @@ limitations under the License.
       max number of reducers will be used. If the one specified in the configuration parameter mapred.reduce.tasks is
       negative, Hive will use this one as the max number of reducers when automatically determine number of reducers.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.pre.hooks</name>
@@ -229,8 +229,8 @@ limitations under the License.
       A pre-execution hook is specified as the name of a Java class which implements the
       org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext interface.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.post.hooks</name>
@@ -240,8 +240,8 @@ limitations under the License.
       A post-execution hook is specified as the name of a Java class which implements the
       org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext interface.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.failure.hooks</name>
@@ -251,36 +251,36 @@ limitations under the License.
       An on-failure hook is specified as the name of Java class which implements the
       org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext interface.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.parallel</name>
     <value>false</value>
     <description>Whether to execute jobs in parallel</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.parallel.thread.number</name>
     <value>8</value>
     <description>How many jobs at most can be executed in parallel</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.mapred.reduce.tasks.speculative.execution</name>
     <value>false</value>
     <description>Whether speculative execution for reducers should be turned on. </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.dynamic.partition</name>
     <value>true</value>
     <description>Whether or not to allow dynamic partitions in DML/DDL.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.dynamic.partition.mode</name>
@@ -311,44 +311,44 @@ limitations under the License.
         <name>hive_txn_acid</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.max.dynamic.partitions</name>
     <value>5000</value>
     <description>Maximum number of dynamic partitions allowed to be created in total.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.max.dynamic.partitions.pernode</name>
     <value>2000</value>
     <description>Maximum number of dynamic partitions allowed to be created in each mapper/reducer node.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.max.created.files</name>
     <value>100000</value>
     <description>Maximum number of HDFS files created by all mappers/reducers in a MapReduce job.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.warehouse.dir</name>
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
     <property-type>NOT_MANAGED_HDFS_PATH</property-type>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.uris</name>
     <value>thrift://localhost:9083</value>
     <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionPassword</name>
@@ -359,8 +359,8 @@ limitations under the License.
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
@@ -380,22 +380,22 @@ limitations under the License.
         <type>hive-site</type>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.server.max.threads</name>
     <value>100000</value>
     <description>Maximum number of worker threads in the Thrift server's pool.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.kerberos.keytab.file</name>
     <value>/etc/security/keytabs/hive.service.keytab</value>
     <description>The path to the Kerberos Keytab file containing the metastore Thrift server's service principal.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.kerberos.principal</name>
@@ -404,29 +404,29 @@ limitations under the License.
       The service principal for the metastore Thrift server.
       The special string _HOST will be replaced automatically with the correct host name.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.cluster.delegation.token.store.zookeeper.znode</name>
     <value>/hive/cluster/delegation</value>
     <description>The root path for token store data.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.cache.pinobjtypes</name>
     <value>Table,Database,Type,FieldSchema,Order</value>
     <description>List of comma separated metastore object types that should be pinned in the cache</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.pre.event.listeners</name>
     <value>org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener</value>
     <description>List of comma separated listeners for metastore events.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.metastore.authorization.storage.checks</name>
@@ -437,8 +437,8 @@ limitations under the License.
       question doesn't have permissions to delete the corresponding directory
       on the storage).
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
@@ -454,8 +454,8 @@ limitations under the License.
         <type>hive-env</type>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
@@ -466,22 +466,22 @@ limitations under the License.
       <type>db_user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.map.aggr</name>
     <value>true</value>
     <description>Whether to use map-side aggregation in Hive Group By queries</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.cbo.enable</name>
     <value>true</value>
     <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.mapjoin.optimized.hashtable</name>
@@ -490,22 +490,22 @@ limitations under the License.
       Whether Hive should use memory-optimized hash table for MapJoin. Only works on Tez,
       because memory-optimized hashtable cannot be serialized.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.smbjoin.cache.rows</name>
     <value>10000</value>
     <description>How many rows with the same key value should be cached in memory per smb joined table.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.map.aggr.hash.percentmemory</name>
     <value>0.5</value>
     <description>Portion of total memory to be used by map-side group aggregation hash table</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.map.aggr.hash.force.flush.memory.threshold</name>
@@ -514,8 +514,8 @@ limitations under the License.
       The max memory to be used by map-side group aggregation hash table.
       If the memory usage is higher than this number, force to flush data
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.map.aggr.hash.min.reduction</name>
@@ -524,36 +524,36 @@ limitations under the License.
       Hash aggregation will be turned off if the ratio between hash  table size and input rows is bigger than this number.
       Set to 1 to make sure hash aggregation is never turned off.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.merge.mapfiles</name>
     <value>true</value>
     <description>Merge small files at the end of a map-only job</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.merge.mapredfiles</name>
     <value>false</value>
     <description>Merge small files at the end of a map-reduce job</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.merge.tezfiles</name>
     <value>false</value>
     <description>Merge small files at the end of a Tez DAG</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.merge.size.per.task</name>
     <value>256000000</value>
     <description>Size of merged files at the end of the job</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.merge.smallfiles.avgsize</name>
@@ -563,15 +563,15 @@ limitations under the License.
       map-reduce job to merge the output files into bigger files. This is only done for map-only jobs
       if hive.merge.mapfiles is true, and for map-reduce jobs if hive.merge.mapredfiles is true.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.merge.rcfile.block.level</name>
     <value>true</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.merge.orcfile.stripe.level</name>
@@ -582,8 +582,8 @@ limitations under the License.
       for small ORC files. Note that enabling this config will not honor padding tolerance
       config (hive.exec.orc.block.padding.tolerance).
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.orc.default.stripe.size</name>
@@ -597,8 +597,8 @@ limitations under the License.
       <unit>B</unit>
       <increment-step>8388608</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.orc.default.compress</name>
@@ -619,8 +619,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.orc.compression.strategy</name>
@@ -630,8 +630,8 @@ limitations under the License.
       Define the compression strategy to use while writing data.
       This changes the compression level of higher level compression codec (like ZLIB).
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.orc.splits.include.file.footer</name>
@@ -640,22 +640,22 @@ limitations under the License.
       If turned on splits generated by orc will include metadata about the stripes in the file. This
       data is read remotely (from the client or HS2 machine) and sent to all the tasks.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.orc.compute.splits.num.threads</name>
     <value>10</value>
     <description>How many threads orc should use to create splits in parallel.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.auto.convert.join</name>
     <value>true</value>
     <description>Whether Hive enables the optimization about converting common join into mapjoin based on the input file size</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.auto.convert.join.noconditionaltask</name>
@@ -665,22 +665,22 @@ limitations under the License.
       If this parameter is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than the
       specified size, the join is directly converted to a mapjoin (there is no conditional task).
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.limit.optimize.enable</name>
     <value>true</value>
     <description>Whether to enable to optimization to trying a smaller subset of data for simple LIMIT first.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.cpu.vcores</name>
     <value>-1</value>
     <description>By default Tez will ask for however many cpus map-reduce is configured to use per container. This can be used to overwrite.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.log.level</name>
@@ -689,8 +689,8 @@ limitations under the License.
       The log level to use for tasks executing as part of the DAG.
       Used only if hive.tez.java.opts is used to configure Java options.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.enforce.bucketing</name>
@@ -717,29 +717,29 @@ limitations under the License.
         <name>hive_txn_acid</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.enforce.sorting</name>
     <value>true</value>
     <description>Whether sorting is enforced. If true, while inserting into the table, sorting is enforced.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.enforce.sortmergebucketmapjoin</name>
     <value>true</value>
     <description>If the user asked for sort-merge bucketed map-side join, and it cannot be performed, should the query fail or not ?</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.auto.convert.sortmerge.join</name>
     <value>true</value>
     <description>Will the join be automatically converted to a sort-merge join, if the joined tables pass the criteria for sort-merge join.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.auto.convert.sortmerge.join.to.mapjoin</name>
@@ -754,36 +754,36 @@ limitations under the License.
       with few files (10 files), the sort-merge join will only use 10 mappers, and a simple map-only join might be faster
       if the complete small table can fit in memory, and a map-join can be performed.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.constant.propagation</name>
     <value>true</value>
     <description>Whether to enable constant propagation optimizer</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.metadataonly</name>
     <value>true</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.null.scan</name>
     <value>true</value>
     <description>Dont scan relations which are guaranteed to not generate any rows</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.bucketmapjoin</name>
     <value>true</value>
     <description>Whether to try bucket mapjoin</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.reducededuplication</name>
@@ -792,8 +792,8 @@ limitations under the License.
       Remove extra map-reduce jobs if the data is already clustered by the same key which needs to be used again.
       This should always be set to true. Since it is a new feature, it has been made configurable.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.reducededuplication.min.reducer</name>
@@ -803,8 +803,8 @@ limitations under the License.
       That means if reducer-num of the child RS is fixed (order by or forced bucketing) and small, it can make very slow, single MR.
       The optimization will be automatically disabled if number of reducers would be less than specified value.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.sort.dynamic.partition</name>
@@ -829,15 +829,15 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.stats.autogather</name>
     <value>true</value>
     <description>A flag to gather statistics automatically during the INSERT OVERWRITE command.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.stats.dbclass</name>
@@ -846,8 +846,8 @@ limitations under the License.
       Expects one of the pattern in [jdbc(:.*), hbase, counter, custom, fs].
       The storage that stores temporary Hive statistics. Currently, jdbc, hbase, counter and custom type are supported.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.stats.fetch.partition.stats</name>
@@ -881,8 +881,8 @@ limitations under the License.
         <name>hive.cbo.enable</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.stats.fetch.column.stats</name>
@@ -914,22 +914,22 @@ limitations under the License.
         <name>hive.cbo.enable</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.zookeeper.client.port</name>
     <value>2181</value>
     <description>The port of ZooKeeper servers to talk to. If the list of Zookeeper servers specified in hive.zookeeper.quorum,does not contain port numbers, this value is used.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.zookeeper.namespace</name>
     <value>hive_zookeeper_namespace</value>
     <description>The parent node under which all ZooKeeper nodes are created.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.txn.manager</name>
@@ -956,8 +956,8 @@ limitations under the License.
         <name>hive_txn_acid</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.txn.max.open.batch</name>
@@ -968,8 +968,8 @@ limitations under the License.
       streaming data into Hive.  But it will also increase the number of
       open transactions at any given time, possibly impacting read performance.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.support.concurrency</name>
@@ -998,8 +998,8 @@ limitations under the License.
         <name>hive_txn_acid</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.cli.print.header</name>
@@ -1007,8 +1007,8 @@ limitations under the License.
     <description>
       Whether to print the names of the columns in query output.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.compactor.worker.timeout</name>
@@ -1018,8 +1018,8 @@ limitations under the License.
       Time before a given compaction in working state is declared a failure
       and returned to the initiated state.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.compactor.check.interval</name>
@@ -1029,15 +1029,15 @@ limitations under the License.
       Time between checks to see if any partitions need compacted.
       This should be kept high because each check for compaction requires many calls against the NameNode.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.compactor.delta.pct.threshold</name>
     <value>0.1f</value>
     <description>Percentage (by size) of base that deltas can be before major compaction is initiated.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.fetch.task.conversion</name>
@@ -1051,8 +1051,8 @@ limitations under the License.
       1. minimal : SELECT STAR, FILTER on partition columns, LIMIT only
       2. more    : SELECT, FILTER, LIMIT only (support TABLESAMPLE and virtual columns)
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.fetch.task.conversion.threshold</name>
@@ -1062,8 +1062,8 @@ limitations under the License.
       is calculated by summation of file lengths. If it's not native, storage handler for the table
       can optionally implement org.apache.hadoop.hive.ql.metadata.InputEstimator interface.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.fetch.task.aggr</name>
@@ -1073,8 +1073,8 @@ limitations under the License.
       final aggregations in single reduce task. If this is set true, Hive delegates final aggregation
       stage to fetch task, possibly decreasing the query time.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.authorization.enabled</name>
@@ -1101,8 +1101,8 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.authenticator.manager</name>
@@ -1117,8 +1117,8 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.metastore.authorization.manager</name>
@@ -1135,15 +1135,15 @@ limitations under the License.
         <name>hive_security_authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.metastore.authorization.auth.reads</name>
     <value>true</value>
     <description>If this is true, metastore authorizer authorizes read actions on database, table</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.security.metastore.authenticator.manager</name>
@@ -1152,29 +1152,29 @@ limitations under the License.
       authenticator manager class name to be used in the metastore for authentication.
       The user defined authenticator should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.logging.operation.enabled</name>
     <value>true</value>
     <description>When true, HS2 will save operation logs</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.logging.operation.log.location</name>
     <value>${system:java.io.tmpdir}/${system:user.name}/operation_logs</value>
     <description>Top level directory where operation logs are stored if logging functionality is enabled</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.zookeeper.namespace</name>
     <value>hiveserver2</value>
     <description>The parent node in ZooKeeper used by HiveServer2 when supporting dynamic service discovery.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.transport.mode</name>
@@ -1183,22 +1183,22 @@ limitations under the License.
       Expects one of [binary, http].
       Transport mode of HiveServer2.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.thrift.http.port</name>
     <value>10001</value>
     <description>Port number of HiveServer2 Thrift interface when hive.server2.transport.mode is 'http'.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.thrift.http.path</name>
     <value>cliservice</value>
     <description>Path component of URL endpoint when in HTTP mode.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.thrift.port</name>
@@ -1210,8 +1210,8 @@ limitations under the License.
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.thrift.sasl.qop</name>
@@ -1225,22 +1225,22 @@ limitations under the License.
       "auth-conf" - authentication plus integrity and confidentiality protection
       This is applicable only if HiveServer2 is configured to use Kerberos authentication.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.thrift.max.worker.threads</name>
     <value>500</value>
     <description>Maximum number of Thrift worker threads</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.allow.user.substitution</name>
     <value>true</value>
     <description>Allow alternate user to be specified as part of HiveServer2 open connection request.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.spnego.keytab</name>
@@ -1257,8 +1257,8 @@ limitations under the License.
       hive.server2.authentication.spnego.keytab
       are specified.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication</name>
@@ -1291,8 +1291,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.spnego.principal</name>
@@ -1304,8 +1304,8 @@ limitations under the License.
       and HTTP transport mode is used.
       This needs to be set only if SPNEGO is to be used in authentication.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.enable.doAs</name>
@@ -1329,8 +1329,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.table.type.mapping</name>
@@ -1342,8 +1342,8 @@ limitations under the License.
       HIVE : Exposes Hive's native table types like MANAGED_TABLE, EXTERNAL_TABLE, VIRTUAL_VIEW
       CLASSIC : More generic types like TABLE and VIEW
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.use.SSL</name>
@@ -1364,15 +1364,15 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.conf.restricted.list</name>
     <value>hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role</value>
     <description>Comma separated list of configuration options which are immutable at runtime</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.user.install.directory</name>
@@ -1382,8 +1382,8 @@ limitations under the License.
       it will upload the hive jar to "hive.user.install.directory/user.name"
       and use it to run queries.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.vectorized.groupby.maxentries</name>
@@ -1392,8 +1392,8 @@ limitations under the License.
       Max number of entries in the vector group by aggregation hashtables.
       Exceeding this will trigger a flush irrelevant of memory pressure condition.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.prewarm.enabled</name>
@@ -1414,8 +1414,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.prewarm.numcontainers</name>
@@ -1428,8 +1428,8 @@ limitations under the License.
       <maximum>20</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.tez.default.queues</name>
@@ -1456,8 +1456,8 @@ limitations under the License.
         <name>yarn.scheduler.capacity.root.queues</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.convert.join.bucket.mapjoin.tez</name>
@@ -1466,8 +1466,8 @@ limitations under the License.
       Whether joins can be automatically converted to bucket map joins in hive
       when tez is used as the execution engine.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.auto.reducer.parallelism</name>
@@ -1492,15 +1492,15 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.max.partition.factor</name>
     <value>2.0</value>
     <description>When auto reducer parallelism is enabled this factor will be used to over-partition data in shuffle edges.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.min.partition.factor</name>
@@ -1509,8 +1509,8 @@ limitations under the License.
       When auto reducer parallelism is enabled this factor will be used to put a lower limit to the number
       of reducers that tez specifies.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.dynamic.partition.pruning</name>
@@ -1531,29 +1531,29 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.dynamic.partition.pruning.max.event.size</name>
     <value>1048576</value>
     <description>Maximum size of events sent by processors in dynamic pruning. If this size is crossed no pruning will take place.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.dynamic.partition.pruning.max.data.size</name>
     <value>104857600</value>
     <description>Maximum total data size of events in dynamic pruning.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.tez.smb.number.waves</name>
     <value>0.5</value>
     <description>The number of waves in which to run the SMB join. Account for cluster being occupied. Ideally should be 1 wave.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- missing from HiveConf -->
   <property>
@@ -1561,16 +1561,16 @@ limitations under the License.
     <value>1024</value>
     <deleted>true</deleted>
     <description>Hive Java heap size</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.enable.impersonation</name>
     <value>true</value>
     <deleted>true</deleted>
     <description>Enable user impersonation for HiveServer2</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>ambari.hive.db.schema.name</name>
@@ -1581,16 +1581,16 @@ limitations under the License.
       <type>database</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
     <value>true</value>
     <deleted>true</deleted>
     <description>Required to Enable the conversion of an SMB (Sort-Merge-Bucket) to a map-join SMB.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.mapjoin.mapreduce</name>
@@ -1601,8 +1601,8 @@ limitations under the License.
       job (for e.g a group by), each map-only job is merged with the following
       map-reduce job.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <!-- performance -->
   <property>
@@ -1627,8 +1627,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.auto.convert.join.noconditionaltask.size</name>
@@ -1643,7 +1643,7 @@ limitations under the License.
       <minimum>8192</minimum>
       <maximum>17179869184</maximum>
       <unit>B</unit>
-      <step-increment/>
+      <increment-step/>
     </value-attributes>
     <depends-on>
       <property>
@@ -1651,8 +1651,8 @@ limitations under the License.
         <name>hive.tez.container.size</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.vectorized.execution.reduce.enabled</name>
@@ -1661,8 +1661,8 @@ limitations under the License.
       This flag should be set to true to enable vectorized mode of the reduce-side of query execution.
       The default value is true.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.optimize.index.filter</name>
@@ -1683,8 +1683,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.execution.engine</name>
@@ -1708,22 +1708,22 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.vectorized.groupby.checkinterval</name>
     <value>4096</value>
     <description>Number of entries added to the group by aggregation hash before a recomputation of average entry size is performed.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.vectorized.groupby.flush.percent</name>
     <value>0.1</value>
     <description>Percent of entries in the group by aggregation hash flushed when the memory threshold is exceeded.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.compute.query.using.stats</name>
@@ -1754,15 +1754,15 @@ limitations under the License.
         <name>hive.cbo.enable</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.limit.pushdown.memory.usage</name>
     <value>0.04</value>
     <description>The max memory to be used for hash in RS operator for top K selection.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.tez.sessions.per.default.queue</name>
@@ -1779,8 +1779,8 @@ limitations under the License.
       <maximum>10</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.tez.initialize.default.sessions</name>
@@ -1805,8 +1805,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.orc.encoding.strategy</name>
@@ -1838,8 +1838,8 @@ limitations under the License.
         <name>hive_exec_orc_storage_strategy</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.exec.orc.compression.strategy</name>
@@ -1869,8 +1869,8 @@ limitations under the License.
         <name>hive_exec_orc_storage_strategy</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.vectorized.execution.reduce.enabled</name>
@@ -1894,8 +1894,8 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.ldap.url</name>
@@ -1906,8 +1906,8 @@ limitations under the License.
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.ldap.baseDN</name>
@@ -1918,8 +1918,8 @@ limitations under the License.
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.kerberos.keytab</name>
@@ -1930,8 +1930,8 @@ limitations under the License.
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.kerberos.principal</name>
@@ -1942,8 +1942,8 @@ limitations under the License.
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.pam.services</name>
@@ -1954,8 +1954,8 @@ limitations under the License.
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
   <property>
     <name>hive.server2.custom.authentication.class</name>
@@ -1966,7 +1966,7 @@ limitations under the License.
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" change="false" delete="false"/>
+    <on-stack-upgrade add="true" change="false" delete="false"/>
   </property>
 </configuration>
