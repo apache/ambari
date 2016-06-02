@@ -1208,8 +1208,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
       LOG.debug("Detected JMX protocol is null for clusterName = " + clusterName +
           ", componentName = " + componentName);
       LOG.debug("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
-          ", componentName = " + componentName +
-          componentName);
+          ", componentName = " + componentName);
       jmxProtocolString = "http";
     }
     if (LOG.isDebugEnabled()) {
