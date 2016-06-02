@@ -142,7 +142,8 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       "hawq-site": {
         "properties": {
           "hawq_rm_memory_limit_perseg": "67108864KB",
-          "hawq_rm_nvcore_limit_perseg": "16"
+          "hawq_rm_nvcore_limit_perseg": "16",
+          "hawq_global_rm_type": "yarn"
         }
       }
     }
@@ -217,16 +218,18 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     # Case 1:
     # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 4, c6404.ambari.apache.org - 2
+    # hawq_global_rm_type: yarn
     # Non HAWQ Hosts Core Count: c6401.ambari.apache.org - 1
-    # Recommend hawq_rm_nvcore_limit_perseg as 2
+    # Do not recommend hawq_rm_nvcore_limit_perseg when rm type is yarn
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "2")
+    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "16")
 
     # Case 2:
-    # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 2, c6404.ambari.apache.org - 2
+    # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 4, c6404.ambari.apache.org - 2
+    # hawq_global_rm_type: none
     # Non HAWQ Hosts Core Count: c6401.ambari.apache.org - 1
-    # Recommend hawq_rm_nvcore_limit_perseg as 2
-    hosts["items"][1]["Hosts"]["cpu_count"] = 2
+    # Recommend hawq_rm_nvcore_limit_perseg when rm type is none
+    configurations["hawq-site"]["properties"]["hawq_global_rm_type"] = "none"
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "2")
 

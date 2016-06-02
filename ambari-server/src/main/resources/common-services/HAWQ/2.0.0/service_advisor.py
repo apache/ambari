@@ -168,7 +168,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           buckets = factor * numSegments
         putHawqSiteProperty('default_hash_table_bucket_number', buckets)
 
-      if "hawq_rm_nvcore_limit_perseg" in hawq_site:
+      if "hawq_global_rm_type" in hawq_site and hawq_site["hawq_global_rm_type"] == "none" and "hawq_rm_nvcore_limit_perseg" in hawq_site:
         putHawqSiteProperty('hawq_rm_nvcore_limit_perseg', minHawqHostsCoreCount)
 
       # update YARN RM urls with the values from yarn-site if YARN is installed
