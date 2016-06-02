@@ -194,13 +194,15 @@ hdp23properties.push({
     "name": "ranger.sso.providerurl",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
-    "category": "KnoxSSOSettings"
+    "category": "KnoxSSOSettings",
+    "index": 2
   },
   {
     "name": "ranger.sso.publicKey",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
-    "category": "KnoxSSOSettings"
+    "category": "KnoxSSOSettings",
+    "index": 3
   },
   {
     "name": "ranger.sso.cookiename",
@@ -212,7 +214,8 @@ hdp23properties.push({
     "name": "ranger.sso.enabled",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
-    "category": "KnoxSSOSettings"
+    "category": "KnoxSSOSettings",
+    "index": 1
   },
   {
     "name": "ranger.sso.query.param.originalurl",

@@ -120,6 +120,12 @@
             <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.credential.alias" />
             <transfer operation="delete" delete-key="ranger.jpa.audit.jdbc.dialect" />
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property">
+            <type>ranger-admin-site</type>
+            <transfer operation="delete" delete-key="ranger.sso.cookiename" />
+            <transfer operation="delete" delete-key="ranger.sso.query.param.originalurl" />
+          </definition>
         </changes>
       </component>
     </service>
