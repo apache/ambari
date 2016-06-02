@@ -152,12 +152,12 @@ def kms(upgrade_type=None):
     else:
       path_to_jdbc = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
       if not os.path.isfile(path_to_jdbc):
-        path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + params.default_connectors_map[params.db_flavor.lower()]
+        path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + \
+                       params.default_connectors_map[params.db_flavor.lower()] if params.db_flavor.lower() in params.default_connectors_map else None
         if not os.path.isfile(path_to_jdbc):
           path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + "*"
           error_message = "Error! Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.db_flavor] + \
                 " in ranger kms lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
-          print error_message
           Logger.error(error_message)
 
       cp = cp + os.pathsep + path_to_jdbc

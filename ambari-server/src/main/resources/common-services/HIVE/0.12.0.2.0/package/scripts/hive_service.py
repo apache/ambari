@@ -98,26 +98,19 @@ def hive_service(name, action='start', upgrade_type=None):
        params.hive_jdbc_driver == "org.postgresql.Driver" or \
        params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
 
-      path_to_jdbc = params.target_hive
-      if not params.jdbc_jar_name:
-        path_to_jdbc = format("{hive_lib}/") + params.default_connectors_map[params.hive_jdbc_driver]
-        if not os.path.isfile(path_to_jdbc):
-          path_to_jdbc = format("{hive_lib}/") + "*"
-          error_message = "Error! Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.hive_jdbc_driver] + \
-                          " in hive lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
-          print error_message
-          Logger.error(error_message)
+      validation_called = False
 
-      db_connection_check_command = format(
-        "{java64_home}/bin/java -cp {check_db_connection_jar}:{path_to_jdbc} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
-      
-      try:
-        Execute(db_connection_check_command,
-              path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
-      except:
-        show_logs(params.hive_log_dir, params.hive_user)
-        raise
-        
+      if params.target_hive is not None:
+        validation_called = True
+        validate_connection(params.target_hive, params.hive_lib)
+      if params.target_hive2 is not None:
+        validation_called = True
+        validate_connection(params.target_hive2, params.hive_lib2)
+
+      if not validation_called:
+        emessage = "ERROR! DB connection check should be executed at least one time!"
+        Logger.error(emessage)
+
   elif action == 'stop':
 
     daemon_kill_cmd = format("{sudo} kill {pid}")
@@ -146,6 +139,30 @@ def hive_service(name, action='start', upgrade_type=None):
     File(pid_file,
          action = "delete"
     )
+
+def validate_connection(target_path_to_jdbc, hive_lib_path):
+  import params
+
+  path_to_jdbc = target_path_to_jdbc
+  if not params.jdbc_jar_name:
+    path_to_jdbc = format("{hive_lib_path}/") + \
+                   params.default_connectors_map[params.hive_jdbc_driver] if params.hive_jdbc_driver in params.default_connectors_map else None
+    if not os.path.isfile(path_to_jdbc):
+      path_to_jdbc = format("{hive_lib_path}/") + "*"
+      error_message = "Error! Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.hive_jdbc_driver] + \
+                      " in hive lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
+      Logger.error(error_message)
+
+  db_connection_check_command = format(
+    "{java64_home}/bin/java -cp {check_db_connection_jar}:{path_to_jdbc} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}")
+
+  try:
+    Execute(db_connection_check_command,
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
+  except:
+    show_logs(params.hive_log_dir, params.hive_user)
+    raise
+
 
 def check_fs_root(conf_dir, execution_path):
   import params
