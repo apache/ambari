@@ -1220,7 +1220,7 @@ describe('App.ConfigInitializer', function () {
   });
 
   describe('#_filterMountPoint', function() {
-    var cases = [
+    [
       {
         mPoint: {
           mountpoint: '/'
@@ -1366,7 +1366,7 @@ describe('App.ConfigInitializer', function () {
     ].forEach(function(test) {
       it('mount point "{0}" should be {1}'.format(test.mPoint.mountpoint, test.e ? 'valid' : 'invalid'), function() {
         var fFn = App.ConfigInitializer._filterMountPoint(test.localDB);
-        expect(fFn(test.mPoint)).to.be.eql(test.e);
+        expect(fFn(test.mPoint)).to.be.equal(test.e);
       });
     });
   });

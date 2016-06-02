@@ -246,7 +246,7 @@ App.WizardStep1Controller = Em.Controller.extend({
    */
   doRestoreDefaultValue: function (event) {
     var repo = event.contexts[0];
-    repo.set('baseUrl', repo.get('latestBaseUrl'));
+    repo.set('baseUrl', repo.get('baseUrlInit'));
   },
 
   /**

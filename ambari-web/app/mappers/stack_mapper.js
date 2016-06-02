@@ -75,6 +75,7 @@ App.stackMapper = App.QuickDataMapper.create({
   configRepository: {
     id: 'id',
     base_url: 'base_url',
+    base_url_init: 'base_url',
     default_base_url: 'default_base_url',
     latest_base_url: 'latest_base_url',
     mirrors_list: 'mirrors_list',
@@ -118,7 +119,7 @@ App.stackMapper = App.QuickDataMapper.create({
       operatingSystems.id = stack.id + "-" + operatingSystems.os_type;
       operatingSystems.stack_id = operatingSystems.stack_name + "-" + operatingSystems.stack_version;
       operatingSystems.repositories = repositoriesArray;
-      operatingSystems.is_selected = (ops.isSelected == true || ops.isSelected == undefined);
+      operatingSystems.is_selected = ops.isSelected == true || ops.isSelected == undefined;
       resultOS.push(this.parseIt(operatingSystems, this.get('configOS')));
       operatingSystemsArray.pushObject(operatingSystems);
         
