@@ -55,6 +55,7 @@ class StackFeature:
   COPY_TARBALL_TO_HDFS = "copy_tarball_to_hdfs"
   SPARK_16PLUS = "spark_16plus"
   SPARK_THRIFTSERVER = "spark_thriftserver"
+  SPARK_LIVY = "spark_livy"
   STORM_KERBEROS = "storm_kerberos"
   STORM_AMS = "storm_ams"
   CREATE_KAFKA_BROKER_ID = "create_kafka_broker_id"
