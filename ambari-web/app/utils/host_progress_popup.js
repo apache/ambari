@@ -91,9 +91,9 @@ App.HostPopup = Em.Object.create({
   servicesInfo: [],
 
   /**
-   * @type {?wrappedHost[]}
+   * @type {wrappedHost[]}
    */
-  hosts: null,
+  hosts: [],
 
   /**
    * @type {?object[]}
@@ -697,8 +697,10 @@ App.HostPopup = Em.Object.create({
     existedHosts.forEach(function (host) {
       var newHostInfo = hostsMap[host.get('name')];
       //update only hosts with changed tasks or currently opened tasks of host
-      var hostShouldBeUpdated = !this.get('isBackgroundOperations') || newHostInfo.isModified || this.get('currentHostName') === host.get('name');
-      if (newHostInfo && hostShouldBeUpdated) {
+      if (newHostInfo &&
+          (!this.get('isBackgroundOperations') ||
+            newHostInfo.isModified ||
+            this.get('currentHostName') === host.get('name'))) {
         var hostStatus = self.getStatus(newHostInfo.logTasks);
         var hostProgress = self.getProgress(newHostInfo.logTasks);
         host.setProperties({

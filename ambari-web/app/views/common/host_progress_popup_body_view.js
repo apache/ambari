@@ -373,6 +373,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
         isServiceListHidden: false
       });
       this.get("controller").setBackgroundOperationHeader(false);
+      this.get('controller.hosts').clear();
       this.setOnStart();
       this.rerender();
     }
