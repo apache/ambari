@@ -32,7 +32,7 @@ describe('App.Repository', function () {
     model = getModel();
   });
 
-  App.TestAliases.testAsComputedNotEqualProperties(getModel(), 'undo', 'baseUrl', 'latestBaseUrl');
+  App.TestAliases.testAsComputedNotEqualProperties(getModel(), 'undo', 'baseUrl', 'baseUrlInit');
 
   App.TestAliases.testAsComputedAlias(getModel(), 'isSelected', 'operatingSystem.isSelected', 'boolean');
 

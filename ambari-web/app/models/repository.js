@@ -25,6 +25,7 @@ App.Repository = DS.Model.extend({
   repoId: DS.attr('string'),
   osType: DS.attr('string'),
   baseUrl: DS.attr('string'),
+  baseUrlInit: DS.attr('string'),
   defaultBaseUrl: DS.attr('string'),
   latestBaseUrl: DS.attr('string'),
   repoName: DS.attr('string'),
@@ -53,7 +54,7 @@ App.Repository = DS.Model.extend({
     return this.get('repoName').contains('UTILS');
   }.property('repoName'),
 
-  undo: Em.computed.notEqualProperties('baseUrl', 'latestBaseUrl'),
+  undo: Em.computed.notEqualProperties('baseUrl', 'baseUrlInit'),
 
   notEmpty: Em.computed.notEqual('baseUrl', ''),
 
