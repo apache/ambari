@@ -533,6 +533,12 @@
     </value-attributes>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
+    <depends-on>
+      <property>
+        <type>gateway-site</type>
+        <name>gateway.port</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>ranger.sso.publicKey</name>
@@ -564,6 +570,10 @@
     <description/>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>ranger.sso.query.param.originalurl</name>

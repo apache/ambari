@@ -48,6 +48,9 @@
     <description>The keystore pass to be used </description>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
   <property>
     <name>https.attrib.keyAlias</name>

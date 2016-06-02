@@ -170,4 +170,62 @@
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
+  <property>
+    <name>ranger.sso.cookiename</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>ranger.sso.query.param.originalurl</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.user.searchfilter</name>
+    <value>(sAMAccountName={0})</value>
+    <description>Search filter used for Bind Authentication</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.ldap.user.searchfilter</name>
+    <display-name>User Search Filter</display-name>
+    <value>(uid={0})</value>
+    <description>Search filter used for Bind Authentication</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.kms.service.user.hdfs</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hadoop-env</type>
+        <name>hdfs_user</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>ranger.kms.service.user.hive</name>
+    <value></value>
+    <description></description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_user</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>

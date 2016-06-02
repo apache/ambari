@@ -1218,7 +1218,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       {'service_name': 'KNOX', 'audit_file': 'ranger-knox-audit'},
       {'service_name': 'KAFKA', 'audit_file': 'ranger-kafka-audit'},
       {'service_name': 'STORM', 'audit_file': 'ranger-storm-audit'},
-      {'service_name': 'RANGER_KMS', 'audit_file': 'ranger-kms-site'}
+      {'service_name': 'RANGER_KMS', 'audit_file': 'ranger-kms-audit'}
     ]
 
     for item in range(len(ranger_services)):
@@ -1238,6 +1238,18 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
               else:
                 rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
               putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
+
+    if "HDFS" in servicesList:
+      hdfs_user = None
+      if "hadoop-env" in services["configurations"] and "hdfs_user" in services["configurations"]["hadoop-env"]["properties"]:
+        hdfs_user = services["configurations"]["hadoop-env"]["properties"]["hdfs_user"]
+        putRangerAdminProperty('ranger.kms.service.user.hdfs', hdfs_user)
+
+    if "HIVE" in servicesList:
+      hive_user = None
+      if "hive-env" in services["configurations"] and "hive_user" in services["configurations"]["hive-env"]["properties"]:
+        hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
+        putRangerAdminProperty('ranger.kms.service.user.hive', hive_user)
 
   def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = getSiteProperties(configurations, "ranger-tagsync-site")

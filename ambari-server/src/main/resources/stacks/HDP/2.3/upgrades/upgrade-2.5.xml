@@ -445,6 +445,7 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag" />
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_admin_properties" />
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_ranger_admin_site" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property" />
 
           <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
             <script>scripts/ranger_admin.py</script>
