@@ -96,6 +96,8 @@ public class ExecutionScheduleManager {
     "RequestExecution";
   protected static final String DEFAULT_API_PATH = "api/v1";
 
+  public static final String USER_ID_HEADER = "X-Authenticated-User-ID";
+
   protected Client ambariClient;
   protected WebResource ambariWebResource;
 
@@ -521,7 +523,7 @@ public class ExecutionScheduleManager {
 
       body = requestExecution.getRequestBody(batchId);
 
-      BatchRequestResponse batchRequestResponse = performApiRequest(uri, body, type);
+      BatchRequestResponse batchRequestResponse = performApiRequest(uri, body, type, requestExecution.getAuthenticatedUserId());
 
       updateBatchRequest(executionId, batchId, clusterName, batchRequestResponse, false);
 
@@ -668,10 +670,10 @@ public class ExecutionScheduleManager {
     return convertToBatchRequestResponse(response);
   }
 
-  protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method) {
+  protected BatchRequestResponse performApiRequest(String relativeUri, String body, String method, Integer userId) {
     ClientResponse response;
     try {
-      response = ambariWebResource.path(relativeUri).method(method, ClientResponse.class, body);
+      response = ambariWebResource.path(relativeUri).header(USER_ID_HEADER, userId).method(method, ClientResponse.class, body);
     } catch (UniformInterfaceException e) {
       response = e.getResponse();
     }

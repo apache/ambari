@@ -356,6 +356,7 @@ public class ExecutionScheduleManagerTest {
     String uri = "clusters";
     String type = "post";
     String body = "body";
+    Integer userId = 1;
     Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
     executionMap.put(executionId, requestExecutionMock);
 
@@ -378,11 +379,12 @@ public class ExecutionScheduleManagerTest {
 
     expect(requestExecutionMock.getBatchRequest(eq(batchId))).andReturn(batchRequestMock).once();
     expect(requestExecutionMock.getRequestBody(eq(batchId))).andReturn(body).once();
+    expect(requestExecutionMock.getAuthenticatedUserId()).andReturn(userId).once();
 
     expect(batchRequestMock.getUri()).andReturn(uri).once();
     expect(batchRequestMock.getType()).andReturn(type).once();
 
-    expect(scheduleManager.performApiRequest(eq(uri), eq(body), eq(type))).andReturn(batchRequestResponse).once();
+    expect(scheduleManager.performApiRequest(eq(uri), eq(body), eq(type), eq(userId))).andReturn(batchRequestResponse).once();
 
     scheduleManager.updateBatchRequest(eq(executionId), eq(batchId), eq(clusterName), eq(batchRequestResponse), eq(false));
     expectLastCall().once();

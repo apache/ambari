@@ -25,6 +25,7 @@
   <http use-expressions="true"
         disable-url-rewriting="true" entry-point-ref="ambariEntryPoint">
     <intercept-url pattern="/**" access="isAuthenticated()"/>
+    <custom-filter ref="ambariUserAuthorizationFilter" before="BASIC_AUTH_FILTER"/>
     <custom-filter ref="ambariAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
     <custom-filter ref="ambariJwtAuthenticationFilter" after="BASIC_AUTH_FILTER" />
     <custom-filter ref="ambariAuthorizationFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
@@ -34,9 +35,7 @@
 
   <authentication-manager alias="authenticationManager">
 
-    <authentication-provider user-service-ref="ambariLocalUserService">
-      <password-encoder ref="passwordEncoder"/>
-    </authentication-provider>
+    <authentication-provider ref="ambariLocalAuthenticationProvider"/>
 
     <authentication-provider ref="ambariLdapAuthenticationProvider"/>
 

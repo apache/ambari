@@ -4327,6 +4327,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  public int getAuthId() {
+    return AuthorizationHelper.getAuthenticatedId();
+  }
+
+  @Override
   public Set<RootServiceResponse> getRootServices(
       Set<RootServiceRequest> requests) throws AmbariException {
     Set<RootServiceResponse> response = new HashSet<RootServiceResponse>();

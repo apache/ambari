@@ -98,6 +98,26 @@ public class AuthorizationHelper {
   }
 
   /**
+   * Gets the ID of the logged-in user.  Thread-safe due to use of
+   * thread-local.
+   *
+   * @return the ID of the logged-in user
+   */
+  public static int getAuthenticatedId() {
+    SecurityContext securityContext = SecurityContextHolder.getContext();
+
+    Authentication authentication = securityContext.getAuthentication();
+    AmbariUserAuthentication auth;
+    if (authentication instanceof AmbariUserAuthentication) {
+      auth = (AmbariUserAuthentication) authentication;
+    } else {
+      return -1;
+    }
+
+    return auth.getPrincipal().getUserId();
+  }
+
+  /**
    * Determines if the authenticated user (from application's security context) is authorized to
    * perform an operation on the specific resource by matching the authenticated user's
    * authorizations with the one indicated.

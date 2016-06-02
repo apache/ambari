@@ -119,6 +119,11 @@ public class Users {
     return (null == userEntity) ? null : new User(userEntity);
   }
 
+  public User getUser(Integer userId) {
+    UserEntity userEntity = userDAO.findByPK(userId);
+    return (null == userEntity) ? null : new User(userEntity);
+  }
+
   /**
    * Modifies password of local user
    * @throws AmbariException

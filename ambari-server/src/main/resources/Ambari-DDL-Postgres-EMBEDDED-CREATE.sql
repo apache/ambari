@@ -356,6 +356,7 @@ CREATE TABLE ambari.requestschedule (
   status varchar(255),
   batch_separation_seconds smallint,
   batch_toleration_limit smallint,
+  authenticated_user_id INTEGER,
   create_user varchar(255),
   create_timestamp bigint,
   update_user varchar(255),

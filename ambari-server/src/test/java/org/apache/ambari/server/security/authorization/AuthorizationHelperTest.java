@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -144,6 +145,32 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
     user = AuthorizationHelper.getAuthenticatedName();
     Assert.assertEquals("admin", user);
 
+  }
+
+  @Test
+  public void testAuthId() throws Exception {
+    Integer userId = AuthorizationHelper.getAuthenticatedId();
+    Assert.assertEquals(Integer.valueOf(-1), userId);
+
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    UserEntity userEntity = new UserEntity();
+    userEntity.setUserId(1);
+    userEntity.setPrincipal(principalEntity);
+    User user = new User(userEntity);
+    Authentication auth = new AmbariUserAuthentication(null, user, null);
+    SecurityContextHolder.getContext().setAuthentication(auth);
+
+    userId = AuthorizationHelper.getAuthenticatedId();
+    Assert.assertEquals(Integer.valueOf(1), userId);
+  }
+
+  @Test
+  public void testAuthWithoutId() throws Exception {
+    Authentication auth = new UsernamePasswordAuthenticationToken("admin", null);
+    SecurityContextHolder.getContext().setAuthentication(auth);
+
+    Integer userId = AuthorizationHelper.getAuthenticatedId();
+    Assert.assertEquals(Integer.valueOf(-1), userId);
   }
 
   @Test

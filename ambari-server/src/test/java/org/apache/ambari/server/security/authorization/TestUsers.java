@@ -20,6 +20,7 @@ package org.apache.ambari.server.security.authorization;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -165,6 +166,23 @@ public class TestUsers {
     assertEquals("user", users.getAnyUser("user").getUserName());
     assertEquals("user_ldap", users.getAnyUser("user_ldap").getUserName());
     Assert.assertNull(users.getAnyUser("non_existing"));
+  }
+
+  @Test
+  public void testGetUserById() throws Exception {
+    users.createUser("user", "user", true, false, false);
+    User createdUser = users.getUser("user", UserType.LOCAL);
+    User userById = users.getUser(createdUser.getUserId());
+
+    assertNotNull(userById);
+    assertEquals(createdUser.getUserId(), userById.getUserId());
+  }
+
+  @Test
+  public void testGetUserByInvalidId() throws Exception {
+    User userById = users.getUser(-1);
+
+    assertNull(userById);
   }
 
   @Test

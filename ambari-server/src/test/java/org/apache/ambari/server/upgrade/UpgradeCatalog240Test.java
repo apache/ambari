@@ -285,6 +285,8 @@ public class UpgradeCatalog240Test {
 
     Capture<DBAccessor.DBColumnInfo> capturedClusterHandleColumn = EasyMock.newCapture();
     dbAccessor.renameColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), anyString() , capture(capturedClusterHandleColumn));
+    Capture<DBAccessor.DBColumnInfo> requestScheduleUserIdInfo = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog240.REQUESTSCHEDULE_TABLE), capture(requestScheduleUserIdInfo));
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
@@ -411,8 +413,8 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals(UpgradeCatalog240.ALERT_TARGET_ENABLED_COLUMN, targetEnabledColumnInfo.getName());
     Assert.assertEquals(Short.class, targetEnabledColumnInfo.getType());
     Assert.assertEquals(1, targetEnabledColumnInfo.getDefaultValue());
-    Assert.assertEquals(false, targetEnabledColumnInfo.isNullable());    
-    
+    Assert.assertEquals(false, targetEnabledColumnInfo.isNullable());
+
     assertEquals(expectedCaptures, actualCaptures);
 
     // Verify blueprint_setting columns
@@ -462,6 +464,13 @@ public class UpgradeCatalog240Test {
     DBAccessor.DBColumnInfo clusterHandleColumn = capturedClusterHandleColumn.getValue();
     Assert.assertEquals(UpgradeCatalog240.CLUSTER_HANDLE_COLUMN, clusterHandleColumn.getName());
     Assert.assertEquals(Long.class, clusterHandleColumn.getType());
+
+    // Verify authenticated_user_id column
+    DBAccessor.DBColumnInfo requestScheduleUserIdInfoValue = requestScheduleUserIdInfo.getValue();
+    Assert.assertNotNull(requestScheduleUserIdInfoValue);
+    Assert.assertEquals("authenticated_user_id", requestScheduleUserIdInfoValue.getName());
+    Assert.assertEquals(Integer.class, requestScheduleUserIdInfoValue.getType());
+    Assert.assertEquals(null, requestScheduleUserIdInfoValue.getDefaultValue());
 
     verify(dbAccessor);
   }

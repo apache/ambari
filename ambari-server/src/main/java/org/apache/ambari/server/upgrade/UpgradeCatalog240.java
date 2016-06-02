@@ -154,6 +154,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String VIEWINSTANCE_TABLE = "viewinstance";
   public static final String SHORT_URL_COLUMN = "short_url";
   public static final String CLUSTER_HANDLE_COLUMN = "cluster_handle";
+  public static final String REQUESTSCHEDULE_TABLE = "requestschedule";
+  public static final String AUTHENTICATED_USER_ID_COLUMN = "authenticated_user_id";
   protected static final String CLUSTER_VERSION_TABLE = "cluster_version";
   protected static final String HOST_VERSION_TABLE = "host_version";
   protected static final String PHOENIX_QUERY_SERVER_PRINCIPAL_KEY = "phoenix.queryserver.kerberos.principal";
@@ -275,6 +277,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateViewInstanceEntityTable();
     createRemoteClusterTable();
     updateViewInstanceTable();
+    updateRequestScheduleEntityTable();
   }
 
   private void createRemoteClusterTable() throws SQLException {
@@ -322,6 +325,11 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       SHORT_URL_COLUMN, VIEWURL_TABLE, URL_ID_COLUMN, false);
     dbAccessor.addColumn(VIEWINSTANCE_TABLE,
       new DBColumnInfo(CLUSTER_TYPE_COLUMN, String.class, 100, ClusterType.LOCAL_AMBARI.name(), false));
+  }
+
+  private void updateRequestScheduleEntityTable() throws SQLException {
+    dbAccessor.addColumn(REQUESTSCHEDULE_TABLE,
+      new DBColumnInfo(AUTHENTICATED_USER_ID_COLUMN, Integer.class, null, null, true));
   }
 
   private void updateClusterTableDDL() throws SQLException {

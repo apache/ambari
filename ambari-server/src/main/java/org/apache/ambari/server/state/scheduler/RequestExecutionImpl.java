@@ -30,7 +30,6 @@ import org.apache.ambari.server.orm.dao.RequestScheduleBatchRequestDAO;
 import org.apache.ambari.server.orm.dao.RequestScheduleDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
-import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntityPK;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -174,7 +173,8 @@ public class RequestExecutionImpl implements RequestExecution {
         requestScheduleEntity.getCreateUser(),
         DateUtils.convertToReadableTime(requestScheduleEntity.getCreateTimestamp()),
         requestScheduleEntity.getUpdateUser(),
-        DateUtils.convertToReadableTime(requestScheduleEntity.getUpdateTimestamp())
+        DateUtils.convertToReadableTime(requestScheduleEntity.getUpdateTimestamp()),
+        requestScheduleEntity.getAuthenticatedUserId()
       );
       return response;
     } finally {
@@ -340,6 +340,11 @@ public class RequestExecutionImpl implements RequestExecution {
   }
 
   @Override
+  public void setAuthenticatedUserId(Integer username) {
+    requestScheduleEntity.setAuthenticatedUserId(username);
+  }
+
+  @Override
   public void setCreateUser(String username) {
     requestScheduleEntity.setCreateUser(username);
   }
@@ -359,6 +364,11 @@ public class RequestExecutionImpl implements RequestExecution {
   public String getUpdateTime() {
     return DateUtils.convertToReadableTime
       (requestScheduleEntity.getUpdateTimestamp());
+  }
+
+  @Override
+  public Integer getAuthenticatedUserId() {
+    return requestScheduleEntity.getAuthenticatedUserId();
   }
 
   @Override
