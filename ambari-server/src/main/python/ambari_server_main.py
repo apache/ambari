@@ -317,10 +317,6 @@ def server_process_main(options, scmStatus=None):
   update_properties(properties)
   param_list = generate_child_process_param_list(ambari_user, java_exe, class_path, debug_start, suspend_mode)
 
-
-  if not os.path.exists(configDefaults.PID_DIR):
-    os.makedirs(configDefaults.PID_DIR, 0755)
-
   # The launched shell process and sub-processes should have a group id that
   # is different from the parent.
   def make_process_independent():

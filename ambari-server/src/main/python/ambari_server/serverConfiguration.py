@@ -390,8 +390,15 @@ class ServerConfigDefaults(object):
     
   def check_if_directories_writable(self, directories):
     for directory in directories:
+      if not os.path.isdir(directory):
+        try:
+          os.makedirs(directory, 0755)
+        except Exception as ex:
+          # permission denied here is expected when ambari runs as non-root
+          print_info_msg("Could not create {0}. Reason: {1}".format(directory, ex))
+      
       if not os.path.isdir(directory) or not os.access(directory, os.W_OK):
-        raise FatalException(-1, "Unable to access {0} directory. Confirm the directory is created and is writable by the Ambari Server user account '{1}'".format(directory, getpass.getuser()))
+        raise FatalException(-1, "Unable to access {0} directory. Confirm the directory is created and is writable by Ambari Server user account '{1}'".format(directory, getpass.getuser()))
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ServerConfigDefaultsWindows(ServerConfigDefaults):
