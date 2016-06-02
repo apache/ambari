@@ -146,10 +146,6 @@ class TestFalconServer(RMFTestCase):
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore', hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0777,
     )
-    self.assertResourceCalled('Directory', '/hadoop/falcon/store',
-        owner = 'falcon',
-        create_parents = True,
-    )
     self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
@@ -321,10 +317,6 @@ class TestFalconServer(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
         mode = 0777,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/falcon/store',
-        owner = 'falcon',
-        create_parents = True,
     )
     self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
