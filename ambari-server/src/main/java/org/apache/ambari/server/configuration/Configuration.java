@@ -169,9 +169,9 @@ public class Configuration {
   public static final String REQUEST_CONNECT_TIMEOUT = "views.request.connect.timeout.millis";
   public static final String REQUEST_CONNECT_TIMEOUT_DEFAULT = "5000";
   public static final String AMBARI_REQUEST_READ_TIMEOUT = "views.ambari.request.read.timeout.millis";
-  public static final String AMBARI_REQUEST_READ_TIMEOUT_DEFAULT= "10000";
+  public static final String AMBARI_REQUEST_READ_TIMEOUT_DEFAULT= "45000";
   public static final String AMBARI_REQUEST_CONNECT_TIMEOUT = "views.ambari.request.connect.timeout.millis";
-  public static final String AMBARI_REQUEST_CONNECT_TIMEOUT_DEFAULT = "5000";
+  public static final String AMBARI_REQUEST_CONNECT_TIMEOUT_DEFAULT = "30000";
   public static final String SERVER_JDBC_POSTGRES_SCHEMA_NAME = "server.jdbc.postgres.schema";
   public static final String OJDBC_JAR_NAME_KEY = "db.oracle.jdbc.name";
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
