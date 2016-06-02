@@ -137,10 +137,12 @@ angular.module('ambariAdminConsole')
     $scope.fillStacks = function() {
       var options = [{label: $t('common.all'), value: ''}];
       angular.forEach($scope.stacks, function (stack) {
-        options.push({
-          label: stack.displayName,
-          value: stack.displayName
-        });
+        if (stack.active) {
+          options.push({
+            label: stack.displayName,
+            value: stack.displayName
+          });
+        }
       });
       $scope.filter.stack.options = options;
       if (!$scope.filter.stack.current) {
