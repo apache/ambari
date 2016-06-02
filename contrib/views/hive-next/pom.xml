@@ -20,7 +20,7 @@
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>hive-jdbc</artifactId>
   <version>2.0.0.0-SNAPSHOT</version>
-  <name>Hive</name>
+  <name>Hive Jdbc</name>
 
   <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
