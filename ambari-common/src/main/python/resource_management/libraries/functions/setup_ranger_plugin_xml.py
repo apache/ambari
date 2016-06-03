@@ -49,7 +49,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
                         component_user_principal = None, component_user_keytab = None):
 
-  if audit_db_is_enabled and component_driver_curl_source and not component_driver_curl_source.endswith("/None"):
+  if audit_db_is_enabled and component_driver_curl_source is not None and not component_driver_curl_source.endswith("/None"):
     if previous_jdbc_jar and os.path.isfile(previous_jdbc_jar):
       File(previous_jdbc_jar, action='delete')
 

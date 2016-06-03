@@ -186,7 +186,7 @@ if has_ranger_admin:
   downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
   driver_source = format("{jdk_location}/{jdbc_jar}") if stack_supports_ranger_audit_db else None
   driver_target = format("{kms_home}/ews/webapp/lib/{jdbc_jar}") if stack_supports_ranger_audit_db else None
-  xa_previous_jdbc_jar_name = format("{kms_home}/ews/webapp/lib/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
+  xa_previous_jdbc_jar = format("{kms_home}/ews/webapp/lib/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
 
 repo_config_username = config['configurations']['kms-properties']['REPOSITORY_CONFIG_USERNAME']
 repo_config_password = unicode(config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD'])

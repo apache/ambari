@@ -139,8 +139,7 @@ def kms(upgrade_type=None):
       create_parents = True
     )
 
-    if upgrade_type is not None:
-      copy_jdbc_connector(stack_version=params.version)
+    copy_jdbc_connector()
 
     File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
       content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -152,12 +151,12 @@ def kms(upgrade_type=None):
       cp = cp + os.pathsep + format("{kms_home}/ews/webapp/lib/sajdbc4.jar")
     else:
       path_to_jdbc = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
-      if not params.jdbc_jar_name:
-        path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + params.default_connectors_map[params.db_flavor]
+      if not os.path.isfile(path_to_jdbc):
+        path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + params.default_connectors_map[params.db_flavor.lower()]
         if not os.path.isfile(path_to_jdbc):
           path_to_jdbc = format("{kms_home}/ews/webapp/lib/") + "*"
           error_message = "Error! Sorry, but we can't find jdbc driver with default name " + params.default_connectors_map[params.db_flavor] + \
-                " in oozie lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
+                " in ranger kms lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
           print error_message
           Logger.error(error_message)
 
@@ -172,7 +171,7 @@ def kms(upgrade_type=None):
 
     Execute(db_connection_check_command, path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10, environment=env_dict)
 
-    if params.xa_audit_db_is_enabled and params.jdbc_jar:
+    if params.xa_audit_db_is_enabled and params.driver_source is not None and not params.driver_source.endswith("/None"):
       if params.xa_previous_jdbc_jar and os.path.isfile(params.xa_previous_jdbc_jar):
         File(params.xa_previous_jdbc_jar, action='delete')
 
@@ -302,15 +301,15 @@ def kms(upgrade_type=None):
 def copy_jdbc_connector(stack_version=None):
   import params
 
-  if not params.jdbc_jar_name:
-    return
-
-  if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
-    File(params.previous_jdbc_jar, action='delete')
+  if params.driver_curl_source and not params.driver_curl_source.endswith("/None"):
+    if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
+      File(params.previous_jdbc_jar, action='delete')
 
   kms_home = params.kms_home
   if stack_version is not None:
     kms_home = format("{stack_root}/{stack_version}/ranger-kms")
+
+  driver_curl_target = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
 
   File(params.downloaded_custom_connector,
     content = DownloadSource(params.driver_curl_source),

@@ -61,8 +61,7 @@ def setup_ranger_admin(upgrade_type=None):
     create_parents = True
   )
 
-  if upgrade_type is not None:
-    copy_jdbc_connector()
+  copy_jdbc_connector()
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
     content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
@@ -272,6 +271,10 @@ def password_validation(password):
 def copy_jdbc_connector(stack_version=None):
   import params
 
+  if params.driver_curl_source and not params.driver_curl_source.endswith("/None"):
+    if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
+      File(params.previous_jdbc_jar, action='delete')
+
   File(params.downloaded_custom_connector,
     content = DownloadSource(params.driver_curl_source),
     mode = 0644
@@ -280,6 +283,8 @@ def copy_jdbc_connector(stack_version=None):
   ranger_home = params.ranger_home
   if stack_version is not None:
     ranger_home = format("{stack_root}/{stack_version}/ranger-admin")
+
+  driver_curl_target = format("{ranger_home}/ews/lib/{jdbc_jar_name}")
 
   if params.db_flavor.lower() == 'sqla':
     Execute(('tar', '-xvf', params.downloaded_custom_connector, '-C', params.tmp_dir), sudo = True)
