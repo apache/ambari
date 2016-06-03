@@ -31,6 +31,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
+import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -824,6 +826,14 @@ public interface AmbariManagementController {
    * @return CredentialStoreService
    */
   CredentialStoreService getCredentialStoreService();
+
+  /**
+   * Gets an {@link AmbariEventPublisher} which can be used to send and receive
+   * {@link AmbariEvent}s.
+   *
+   * @return
+   */
+  AmbariEventPublisher getAmbariEventPublisher();
 
 }
 
