@@ -5716,7 +5716,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertTrue('properties' in configurations['core-site'])
     # Avoid an unnecessary sort in the stack advisor, sort here for easy comparison
     actualHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
-    expectedHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    expectedHosts = expected_configuration['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
     self.assertEquals(splitAndSort(actualHosts), splitAndSort(expectedHosts))
     # Do a simple check for hbase-site
     self.assertTrue('hbase-site' in configurations)
@@ -5841,7 +5841,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertTrue('hadoop.proxyuser.HTTP.hosts' in configurations['core-site']['properties'])
     # Avoid an unnecessary sort in the stack advisor, sort here for easy comparison
     actualHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
-    expectedHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    expectedHosts = expected_configuration['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
     self.assertEquals(splitAndSort(actualHosts), splitAndSort(expectedHosts))
     # Do a simple check for hbase-site
     self.assertTrue('hbase-site' in configurations)
@@ -5967,7 +5967,7 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertTrue('properties' in configurations['core-site'])
     # Avoid an unnecessary sort in the stack advisor, sort here for easy comparison
     actualHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
-    expectedHosts = configurations['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
+    expectedHosts = expected_configuration['core-site']['properties']['hadoop.proxyuser.HTTP.hosts']
     self.assertEquals(splitAndSort(actualHosts), splitAndSort(expectedHosts))
     # Do a simple check for hbase-site
     self.assertTrue('hbase-site' in configurations)
