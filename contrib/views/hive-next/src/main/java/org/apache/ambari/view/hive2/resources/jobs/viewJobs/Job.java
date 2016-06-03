@@ -28,14 +28,14 @@ import java.io.Serializable;
  * Interface for ExecuteJob bean to create Proxy for it
  */
 public interface Job extends Serializable,Indexed,PersonalResource {
-  public static final String JOB_STATE_UNKNOWN = "UNKNOWN";
-  public static final String JOB_STATE_INITIALIZED = "INITIALIZED";
-  public static final String JOB_STATE_RUNNING = "RUNNING";
-  public static final String JOB_STATE_FINISHED = "SUCCEEDED";
-  public static final String JOB_STATE_CANCELED = "CANCELED";
-  public static final String JOB_STATE_CLOSED = "CLOSED";
-  public static final String JOB_STATE_ERROR = "ERROR";
-  public static final String JOB_STATE_PENDING = "PENDING";
+  String JOB_STATE_UNKNOWN = "UNKNOWN";
+  String JOB_STATE_INITIALIZED = "INITIALIZED";
+  String JOB_STATE_RUNNING = "RUNNING";
+  String JOB_STATE_FINISHED = "SUCCEEDED";
+  String JOB_STATE_CANCELED = "CANCELED";
+  String JOB_STATE_CLOSED = "CLOSED";
+  String JOB_STATE_ERROR = "ERROR";
+  String JOB_STATE_PENDING = "PENDING";
 
   String getId();
 

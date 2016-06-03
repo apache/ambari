@@ -21,7 +21,6 @@ package org.apache.ambari.view.hive2.resources.jobs;
 import org.apache.ambari.view.hive2.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive2.persistence.utils.Indexed;
 import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
-import org.apache.ambari.view.hive2.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.hive2.resources.IResourceManager;
 import org.apache.ambari.view.hive2.resources.files.FileService;
 import org.apache.ambari.view.hive2.resources.jobs.atsJobs.HiveQueryId;
@@ -63,21 +62,18 @@ public class Aggregator {
     LoggerFactory.getLogger(Aggregator.class);
 
   private final IATSParser ats;
-  private final IOperationHandleResourceManager operationHandleResourceManager;
   private IResourceManager<Job> viewJobResourceManager;
 
   public Aggregator(IResourceManager<Job> jobResourceManager,
-                    IOperationHandleResourceManager operationHandleResourceManager,
                     IATSParser ats) {
     this.viewJobResourceManager = jobResourceManager;
-    this.operationHandleResourceManager = operationHandleResourceManager;
     this.ats = ats;
   }
 
   public List<Job> readAll(String username) {
-    Set<String> addedOperationIds = new HashSet<String>();
+    Set<String> addedOperationIds = new HashSet<>();
 
-    List<Job> allJobs = new LinkedList<Job>();
+    List<Job> allJobs = new LinkedList<>();
     for (HiveQueryId atsHiveQuery : ats.getHiveQueryIdsList(username)) {
 
       TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
@@ -99,22 +95,6 @@ public class Aggregator {
       allJobs.add(atsJob);
 
       addedOperationIds.add(atsHiveQuery.operationId);
-    }
-
-    //cover case when operationId is present, but not exists in ATS
-    //e.g. optimized queries without executing jobs, like "SELECT * FROM TABLE"
-    for (Job job : viewJobResourceManager.readAll(new OnlyOwnersFilteringStrategy(username))) {
-      List<StoredOperationHandle> operationHandles = operationHandleResourceManager.readJobRelatedHandles(job);
-      assert operationHandles.size() <= 1;
-
-      if (operationHandles.size() > 0) {
-        StoredOperationHandle operationHandle = operationHandles.get(0);
-
-        if (!addedOperationIds.contains(hexStringToUrlSafeBase64(operationHandle.getGuid()))) {
-          //e.g. query without hadoop job: select * from table
-          allJobs.add(job);
-        }
-      }
     }
 
     return allJobs;
@@ -219,10 +199,10 @@ public class Aggregator {
   }
 
   protected Job getJobByOperationId(final String opId) throws ItemNotFound {
-    List<StoredOperationHandle> operationHandles = operationHandleResourceManager.readAll(new FilteringStrategy() {
+    List<Job> operationHandles = viewJobResourceManager.readAll(new FilteringStrategy() {
       @Override
       public boolean isConform(Indexed item) {
-        StoredOperationHandle opHandle = (StoredOperationHandle) item;
+        Job opHandle = (Job) item;
         return opHandle.getGuid().equals(opId);
       }
 
@@ -235,7 +215,7 @@ public class Aggregator {
     if (operationHandles.size() != 1)
       throw new ItemNotFound();
 
-    return viewJobResourceManager.read(operationHandles.get(0).getJobId());
+    return viewJobResourceManager.read(operationHandles.get(0).getId());
   }
 
   protected static String urlSafeBase64ToHexString(String urlsafeBase64) {
@@ -248,12 +228,4 @@ public class Aggregator {
     return sb.toString();
   }
 
-  protected static String hexStringToUrlSafeBase64(String hexString) {
-    byte[] decoded = new byte[hexString.length() / 2];
-
-    for (int i = 0; i < hexString.length(); i += 2) {
-      decoded[i / 2] = (byte) Integer.parseInt(String.format("%c%c", hexString.charAt(i), hexString.charAt(i + 1)), 16);
-    }
-    return Base64.encodeBase64URLSafeString(decoded);
-  }
 }
