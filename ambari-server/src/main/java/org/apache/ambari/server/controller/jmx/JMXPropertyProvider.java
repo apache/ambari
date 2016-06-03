@@ -218,7 +218,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
     String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
 
-    String protocol = getJMXProtocol(clusterName, componentName);
+    String protocol = jmxHostProvider.getJMXProtocol(clusterName, componentName);
 
     boolean httpsEnabled = false;
 
@@ -398,9 +398,6 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     return port;
   }
 
-  private String getJMXProtocol(String clusterName, String componentName) {
-    return jmxHostProvider.getJMXProtocol(clusterName, componentName);
-  }
 
   private Set<String> getHosts(Resource resource, String clusterName, String componentName) {
     return hostNamePropertyId == null ?

@@ -38,27 +38,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.TransactionalLocks;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
-import org.apache.ambari.server.state.PropertyInfo.PropertyType;
-import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.upgrade.UpgradeCatalog170;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
@@ -110,6 +90,11 @@ public class ConfigHelper {
 
   public static final String HTTP_ONLY = "HTTP_ONLY";
   public static final String HTTPS_ONLY = "HTTPS_ONLY";
+
+  /**
+   * The tag given to newly created versions.
+   */
+  public static final String FIRST_VERSION_TAG = "version1";
 
   /**
    * Used to ensure that methods which rely on the completion of
@@ -831,10 +816,9 @@ public class ConfigHelper {
                                String authenticatedUserName,
                                String serviceVersionNote) throws AmbariException {
 
-    String tag = "version1";
-
     // create the configuration history entry
-    Config baseConfig = createConfig(cluster, controller, configType, tag, properties, propertyAttributes);
+    Config baseConfig = createConfig(cluster, controller, configType, FIRST_VERSION_TAG, properties,
+        propertyAttributes);
 
     if (baseConfig != null) {
       cluster.addDesiredConfig(authenticatedUserName,
@@ -888,10 +872,9 @@ public class ConfigHelper {
 
     for (Map.Entry<String, Map<String, String>> entry : batchProperties.entrySet()) {
       String type = entry.getKey();
-      String tag = "version1";
       Map<String, String> properties = entry.getValue();
 
-      Config baseConfig = createConfig(cluster, controller, type, tag, properties,
+      Config baseConfig = createConfig(cluster, controller, type, FIRST_VERSION_TAG, properties,
         Collections.<String, Map<String,String>>emptyMap());
 
       if (null != baseConfig) {
