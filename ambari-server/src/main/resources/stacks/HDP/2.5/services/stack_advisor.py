@@ -196,29 +196,39 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     appendCoreSiteProperty = self.updateProperty(configurations, "core-site", services)
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    if 'KERBEROS' in servicesList:
+    if "cluster-env" in services["configurations"] \
+         and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
+         and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
+      # Set the master's UI to readonly
       putHbaseSiteProperty('hbase.master.ui.readonly', 'true')
 
       phoenix_query_server_hosts = self.get_phoenix_query_server_hosts(services, hosts)
+      Logger.debug("Calculated Phoenix Query Server hosts: %s" % str(phoenix_query_server_hosts))
       if phoenix_query_server_hosts:
+        Logger.debug("Attempting to update hadoop.proxyuser.HTTP.hosts with %s" % str(phoenix_query_server_hosts))
         # The PQS hosts we want to ensure are set
         new_value = ','.join(phoenix_query_server_hosts)
         # Compute the unique set of hosts for the property
         def updateCallback(originalValue, newValue):
+          Logger.debug("Original hadoop.proxyuser.HTTP.hosts value %s, appending %s" % (originalValue, newValue))
           # Only update the original value if it's not whitespace only
           if originalValue and not originalValue.isspace():
             hosts = originalValue.split(',')
             # Add in the new hosts if we have some
             if newValue and not newValue.isspace():
               hosts.extend(newValue.split(','))
-            # Return the combined (unique) list of hosts
-            return ','.join(set(hosts))
+            # Return the combined (uniqued) list of hosts
+            result = ','.join(set(hosts))
+            Logger.debug("Setting final to %s" % result)
+            return result
           else:
+            Logger.debug("Setting final value to %s" % newValue)
             return newValue
         # Update the proxyuser setting, deferring to out callback to merge results together
         appendCoreSiteProperty('hadoop.proxyuser.HTTP.hosts', new_value, updateCallback)
+      else:
+        Logger.debug("No phoenix query server hosts to update")
     else:
       putHbaseSiteProperty('hbase.master.ui.readonly', 'false')
 

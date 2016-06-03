@@ -43,11 +43,6 @@
             "hbase.bulkload.staging.dir": "/apps/hbase/staging",
             "hbase.master.ui.readonly": "true"
           }
-        },
-        {
-          "core-site": {
-            "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/phoenix_query_server_hosts}"
-          }
         }
       ],
       "components": [
