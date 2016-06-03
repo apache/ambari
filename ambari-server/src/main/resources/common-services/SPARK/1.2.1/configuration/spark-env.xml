@@ -120,7 +120,7 @@ export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
 export JAVA_HOME={{java_home}}
 
 #Memory for Master, Worker and history server (default: 1024MB)
-export SPARK_DAEMON_MEMORY={{spark_daemon_memory}}
+export SPARK_DAEMON_MEMORY={{spark_daemon_memory}}m
 
 if [ -d "/etc/tez/conf/" ]; then
   export TEZ_CONF_DIR=/etc/tez/conf
