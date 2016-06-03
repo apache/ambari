@@ -103,14 +103,37 @@ public class PropertyInfoTest {
       "<property>\n" +
       "  <name>prop_name</name>\n" +
       "  <value>prop_val</value>\n" +
-      "  <on-ambari-upgrade add=\"false\" change=\"true\" delete=\"true\"/>\n" +
-      "  <on-stack-upgrade add=\"true\" change=\"true\" delete=\"false\"/>\n" +
+      "  <on-ambari-upgrade add=\"true\" change=\"true\" delete=\"true\"/>\n" +
+      "  <on-stack-upgrade add=\"false\" change=\"false\" delete=\"false\"/>\n" +
       "</property>";
 
     // when
     PropertyInfo propertyInfo = propertyInfoFrom(xml);
 
     // then
+    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isAdd());
+    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isChange());
+    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isDelete());
+
+    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isAdd());
+    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isChange());
+    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isDelete());
+  }
+
+  @Test
+  public void testBehaviorWithoutUpgradeTags() throws JAXBException {
+    // given
+    String xml =
+        "<property>\n" +
+            "  <name>prop_name</name>\n" +
+            "  <value>prop_val</value>\n" +
+            "</property>";
+
+    // when
+    PropertyInfo propertyInfo = propertyInfoFrom(xml);
+
+    // then
+
     assertFalse(propertyInfo.getPropertyAmbariUpgradeBehavior().isAdd());
     assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isChange());
     assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isDelete());

@@ -89,7 +89,15 @@ public class PropertyInfo {
   }
 
   public PropertyInfo() {
+    propertyStackUpgradeBehavior = new PropertyUpgradeBehavior();
+    propertyStackUpgradeBehavior.setAdd(true);
+    propertyStackUpgradeBehavior.setChange(true);
+    propertyStackUpgradeBehavior.setDelete(false);
 
+    propertyAmbariUpgradeBehavior = new PropertyUpgradeBehavior();
+    propertyAmbariUpgradeBehavior.setAdd(false);
+    propertyAmbariUpgradeBehavior.setChange(true);
+    propertyAmbariUpgradeBehavior.setDelete(true);
   }
 
   public String getName() {
