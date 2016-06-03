@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
@@ -222,7 +223,15 @@ public class ConfigImpl implements Config {
       readWriteLock.writeLock().lock();
       try {
         if (properties == null) {
-          properties = gson.<Map<String, String>>fromJson(entity.getData(), Map.class);
+          try {
+            properties = gson.<Map<String, String>>fromJson(entity.getData(), Map.class);
+          } catch (JsonSyntaxException e){
+            String msg = String.format(
+                "Malformed JSON stored in the database for %s configuration record with config_id %d",
+                entity.getType(), entity.getConfigId());
+            LOG.error(msg);
+            throw new JsonSyntaxException(msg, e);
+          }
         }
       } finally {
         readWriteLock.writeLock().unlock();
