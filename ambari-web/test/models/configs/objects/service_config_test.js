@@ -69,6 +69,15 @@ var serviceConfig,
       'isRequiredByAgent': false,
       'isValid': true,
       'isValidOverride': false
+    }),
+    Em.Object.create({
+      'name': 'p7',
+      'isVisible': true,
+      'hiddenBySection': false,
+      'isRequiredByAgent': false,
+      'isValid': true,
+      'isRequired': true,
+      'isValidOverride': false
     })
   ];
 
@@ -82,14 +91,14 @@ describe('App.ServiceConfig', function () {
 
   describe('#activeProperties', function() {
     it('returns collection of properties that should be shown', function() {
-      expect(serviceConfig.get('activeProperties').mapProperty('name')).to.be.eql(['p1','p4','p5']);
+      expect(serviceConfig.get('activeProperties').mapProperty('name')).to.be.eql(['p1','p4','p5','p7']);
     });
   });
 
   describe('#configsWithErrors', function() {
     it('returns collection of properties with errors', function() {
-      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5']);
-    })
+      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5', 'p7']);
+    });
   });
 
   describe('#errorCount', function() {

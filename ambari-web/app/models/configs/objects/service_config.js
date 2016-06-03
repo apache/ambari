@@ -46,7 +46,7 @@ App.ServiceConfig = Ember.Object.extend({
    */
   activeProperties: function() {
     return this.get('configs').filter(function(c) {
-      return c.get('isVisible') && !c.get('hiddenBySection') && c.get('isRequiredByAgent');
+      return c.get('isVisible') && !c.get('hiddenBySection') && (c.get('isRequiredByAgent') || c.get('isRequired'));
     });
   }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection', 'configs.@each.isRequiredByAgent'),
 
