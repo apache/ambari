@@ -24,8 +24,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -36,8 +36,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos7</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -48,8 +48,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/suse11sp3</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -60,8 +60,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/suse11sp3</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -72,8 +72,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -84,8 +84,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/debian6</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -96,8 +96,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
@@ -108,8 +108,8 @@
       <reponame>HDP</reponame>
     </repo>
     <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12</baseurl>
+      <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
