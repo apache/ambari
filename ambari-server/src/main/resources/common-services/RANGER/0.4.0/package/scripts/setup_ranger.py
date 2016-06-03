@@ -42,11 +42,9 @@ def setup_ranger_admin(upgrade_type=None):
 
   check_db_connnection()
 
-  if not params.jdbc_jar_name:
-    return
-
-  if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
-    File(params.previous_jdbc_jar, action='delete')
+  if params.driver_curl_source and not params.driver_curl_source.endswith("/None"):
+    if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
+      File(params.previous_jdbc_jar, action='delete')
 
   File(params.downloaded_custom_connector,
       content = DownloadSource(params.driver_curl_source),
