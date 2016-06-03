@@ -22,10 +22,6 @@ import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
 
 public interface JobController {
 
-  //OperationHandleController.OperationStatus getStatus() throws ItemNotFound, HiveClientException, NoOperationStatusSetException;
-
-  //TODO: New implementation
-
   void submit() throws Throwable;
 
   void cancel() throws ItemNotFound;
@@ -37,12 +33,6 @@ public interface JobController {
    * @return unproxied bean object
    */
   Job getJobPOJO();
-
-  //Cursor getResults() throws ItemNotFound;
-
-  //TODO: New implementation
-
-  boolean hasResults() throws ItemNotFound;
 
   void afterCreation();
 

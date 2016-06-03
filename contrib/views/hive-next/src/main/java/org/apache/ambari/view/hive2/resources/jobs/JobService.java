@@ -93,8 +93,6 @@ public class JobService extends BaseService {
   ViewResourceHandler handler;
 
   private JobResourceManager resourceManager;
-  private IOperationHandleResourceManager opHandleResourceManager;
-  //private UserLocalConnection connectionLocal = new UserLocalConnection();
 
   protected final static Logger LOG =
       LoggerFactory.getLogger(JobService.class);
@@ -108,17 +106,11 @@ public class JobService extends BaseService {
     return resourceManager;
   }
 
-  protected IOperationHandleResourceManager getOperationHandleResourceManager() {
-    if (opHandleResourceManager == null) {
-      opHandleResourceManager = new OperationHandleResourceManager(getSharedObjectsFactory());
-    }
-    return opHandleResourceManager;
-  }
 
   protected Aggregator getAggregator() {
     if (aggregator == null) {
       IATSParser atsParser = getSharedObjectsFactory().getATSParser();
-      aggregator = new Aggregator(getResourceManager(), getOperationHandleResourceManager(), atsParser);
+      aggregator = new Aggregator(getResourceManager(), atsParser);
     }
     return aggregator;
   }
