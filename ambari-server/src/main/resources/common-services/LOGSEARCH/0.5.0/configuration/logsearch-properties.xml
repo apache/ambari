@@ -133,7 +133,7 @@
 
   <property>
     <name>logsearch.logfeeder.include.default.level</name>
-    <value>fatal,error,warn</value>
+    <value>FATAL,ERROR,WARN</value>
     <description>Include default Logfeeder log levels for Log Search</description>
     <display-name>Logfeeder log levels</display-name>
     <on-ambari-upgrade add="false" change="true" delete="true"/>

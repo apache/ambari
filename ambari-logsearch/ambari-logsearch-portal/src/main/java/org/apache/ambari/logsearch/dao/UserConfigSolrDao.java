@@ -134,7 +134,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
 
     } else {
       String logfeederDefaultLevels = PropertiesUtil.getProperty(
-          "logfeeder.include.default.level", DEFAULT_LEVELS);
+          "logsearch.logfeeder.include.default.level", DEFAULT_LEVELS);
       JSONArray levelJsonArray = new JSONArray();
       try {
         String levelArray[] = logfeederDefaultLevels.split(",");
