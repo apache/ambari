@@ -59,24 +59,25 @@ angular.module('ambariAdminConsole')
             index: 2,
             displayName: $t('versions.enterURL'),
             url: "",
-            placeholder: "Enter URL to Version Definition File",
+            placeholder: "Enter URL to Version Definition File"
           };
           $scope.readInfoButtonDisabled = function () {
             return $scope.option1.index == $scope.selectedLocalOption.index ? !$scope.option1.file : !$scope.option2.url;
           };
           $scope.onFileSelect = function(e){
+            $scope.option1.file = '';
             if (e.files && e.files.length == 1) {
               var file = e.files[0];
               var reader = new FileReader();
               reader.onload = (function () {
                 return function (e) {
                   $scope.option1.file = e.target.result;
+                  $scope.$apply();
                 };
               })(file);
               reader.readAsText(file);
-            } else {
-              $scope.option1.file = '';
             }
+            $scope.$apply();
           };
           /**
            * Load selected file to current page content
