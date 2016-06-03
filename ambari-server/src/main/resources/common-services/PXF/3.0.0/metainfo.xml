@@ -28,7 +28,7 @@
 
         <component>
           <name>PXF</name>
-          <displayName>PXF</displayName>
+          <displayName>PXF Agent</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
@@ -37,7 +37,7 @@
             <timeout>600</timeout>
           </commandScript>
           <bulkCommands>
-            <displayName>PXF</displayName>
+            <displayName>PXF Agent</displayName>
           </bulkCommands>
         </component>
       </components>
