@@ -79,6 +79,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "DELETE", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "GET", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "POST", true);
@@ -116,6 +120,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "DELETE", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "GET", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "POST", true);
@@ -153,6 +161,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "DELETE", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "GET", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "POST", true);
@@ -190,6 +202,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "DELETE", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "GET", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "POST", true);
@@ -227,6 +243,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "GET", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "PUT", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "POST", true);
+    urlTests.put("/api/v1/clusters/c1/config_groups", "DELETE", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "GET", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/configurations", "POST", true);

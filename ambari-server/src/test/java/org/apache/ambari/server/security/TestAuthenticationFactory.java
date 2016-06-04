@@ -184,6 +184,7 @@ public class TestAuthenticationFactory {
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
         RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
         RoleAuthorization.CLUSTER_MODIFY_CONFIGS,
+        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
         RoleAuthorization.CLUSTER_TOGGLE_ALERTS,
         RoleAuthorization.CLUSTER_MANAGE_ALERTS,
         RoleAuthorization.CLUSTER_TOGGLE_KERBEROS,
@@ -267,6 +268,7 @@ public class TestAuthenticationFactory {
         RoleAuthorization.CLUSTER_VIEW_METRICS,
         RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
         RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS,
         RoleAuthorization.HOST_VIEW_CONFIGS,
         RoleAuthorization.HOST_VIEW_METRICS,
         RoleAuthorization.HOST_VIEW_STATUS_INFO,

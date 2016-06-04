@@ -255,9 +255,24 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     testGetResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
+  public void testGetResourcesAsClusterOperator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
   public void testGetResourcesAsServiceAdministrator() throws Exception {
     testGetResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesAsServiceOperator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test
+  public void testGetResourcesAsClusterUser() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterUser());
   }
 
   private void testGetResources(Authentication authentication) throws Exception {
@@ -304,9 +319,24 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     testGetResourcesWithPredicate(TestAuthenticationFactory.createClusterAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
+  public void testGetResourcesWithPredicateAsClusterOperator() throws Exception {
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
   public void testGetResourcesWithPredicateAsServiceAdministrator() throws Exception {
     testGetResourcesWithPredicate(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesWithPredicateAsServiceOperator() throws Exception {
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test
+  public void testGetResourcesWithPredicateAsClusterUser() throws Exception {
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createClusterUser());
   }
 
   private void testGetResourcesWithPredicate(Authentication authentication) throws Exception {
@@ -445,7 +475,7 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     testGetResourcesWithInvalidKerberosDescriptorType(TestAuthenticationFactory.createClusterAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testGetResourcesWithInvalidKerberosDescriptorTypeAsServiceAdministrator() throws Exception {
     testGetResourcesWithInvalidKerberosDescriptorType(TestAuthenticationFactory.createServiceAdministrator());
   }
@@ -514,9 +544,24 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     testGetResourcesWithoutPredicate(TestAuthenticationFactory.createClusterAdministrator());
   }
 
-  @Test(expected = AuthorizationException.class)
+  @Test
+  public void testGetResourcesWithoutPredicateAsClusterOperator() throws Exception {
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
   public void testGetResourcesWithoutPredicateAsServiceAdministrator() throws Exception {
     testGetResourcesWithoutPredicate(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesWithoutPredicateAsServiceOperator() throws Exception {
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test
+  public void testGetResourcesWithoutPredicateAsClusterUser() throws Exception {
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createClusterUser());
   }
 
   private void testGetResourcesWithoutPredicate(Authentication authentication) throws Exception {
