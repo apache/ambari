@@ -80,6 +80,7 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_CLUSTER_HOSTS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/hosts.*";
   private static final String API_CLUSTER_CONFIGURATIONS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/configurations.*";
   private static final String API_CLUSTER_HOST_COMPONENTS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/host_components.*";
+  private static final String API_CLUSTER_CONFIG_GROUPS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/config_groups.*";
   private static final String API_STACK_VERSIONS_PATTERN = API_VERSION_PREFIX + "/stacks/.*?/versions/.*";
   private static final String API_HOSTS_ALL_PATTERN = API_VERSION_PREFIX + "/hosts.*";
   private static final String API_ALERT_TARGETS_ALL_PATTERN = API_VERSION_PREFIX + "/alert_targets.*";
@@ -310,6 +311,7 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(API_CLUSTER_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTER_CONFIGURATIONS_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTER_HOST_COMPONENTS_ALL_PATTERN) ||
+        requestURI.matches(API_CLUSTER_CONFIG_GROUPS_ALL_PATTERN) ||
         requestURI.matches(API_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_ALERT_TARGETS_ALL_PATTERN) ||
         requestURI.matches(API_PRIVILEGES_ALL_PATTERN) ||

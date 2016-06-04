@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -52,6 +53,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 
@@ -65,9 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -86,8 +86,8 @@ public class ConfigGroupResourceProviderTest {
 
   @BeforeClass
   public static void setupAuthentication() {
-    // Set authenticated user so that authorization checks will pass
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    // Clear authenticated user so that authorization checks will pass
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Before
@@ -119,7 +119,36 @@ public class ConfigGroupResourceProviderTest {
   }
 
   @Test
-  public void testCreateConfigGroup() throws Exception {
+  public void testCreateConfigGroupAsAmbariAdministrator() throws Exception {
+    testCreateConfigGroup(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testCreateConfigGroupAsClusterAdministrator() throws Exception {
+    testCreateConfigGroup(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testCreateConfigGroupAsClusterOperator() throws Exception {
+    testCreateConfigGroup(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
+  public void testCreateConfigGroupAsServiceAdministrator() throws Exception {
+    testCreateConfigGroup(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateConfigGroupAsServiceOperator() throws Exception {
+    testCreateConfigGroup(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateConfigGroupAsClusterUser() throws Exception {
+    testCreateConfigGroup(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void testCreateConfigGroup(Authentication authentication) throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -195,6 +224,8 @@ public class ConfigGroupResourceProviderTest {
 
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     provider.createResources(request);
 
     verify(managementController, clusters, cluster, configGroupFactory,
@@ -207,7 +238,36 @@ public class ConfigGroupResourceProviderTest {
   }
 
   @Test
-  public void testDuplicateNameConfigGroup() throws Exception {
+  public void testDuplicateNameConfigGroupAsAmbariAdministrator() throws Exception {
+    testDuplicateNameConfigGroup(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testDuplicateNameConfigGroupAsClusterAdministrator() throws Exception {
+    testDuplicateNameConfigGroup(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testDuplicateNameConfigGroupAsClusterOperator() throws Exception {
+    testDuplicateNameConfigGroup(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
+  public void testDuplicateNameConfigGroupAsServiceAdministrator() throws Exception {
+    testDuplicateNameConfigGroup(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDuplicateNameConfigGroupAsServiceOperator() throws Exception {
+    testDuplicateNameConfigGroup(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDuplicateNameConfigGroupAsClusterUser() throws Exception {
+    testDuplicateNameConfigGroup(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void testDuplicateNameConfigGroup(Authentication authentication) throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -251,9 +311,13 @@ public class ConfigGroupResourceProviderTest {
     propertySet.add(properties);
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     Exception exception = null;
     try {
       provider.createResources(request);
+    } catch (AuthorizationException e){
+      throw e;
     } catch (Exception e) {
       exception = e;
     }
@@ -264,6 +328,7 @@ public class ConfigGroupResourceProviderTest {
     assertNotNull(exception);
     assertTrue(exception instanceof ResourceAlreadyExistsException);
   }
+
   @Test
   public void testUpdateConfigGroupWithWrongConfigType() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -358,6 +423,9 @@ public class ConfigGroupResourceProviderTest {
         ("Cluster100").and().
         property(ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID).equals
         (25L).toPredicate();
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     SystemException systemException = null;
     try {
       provider.updateResources(request, predicate);
@@ -369,8 +437,38 @@ public class ConfigGroupResourceProviderTest {
     verify(managementController, clusters, cluster,
         configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
   }
+
   @Test
-  public void testUpdateConfigGroup() throws Exception {
+  public void testUpdateConfigGroupAsAmbariAdministrator() throws Exception {
+    testUpdateConfigGroup(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testUpdateConfigGroupAsClusterAdministrator() throws Exception {
+    testUpdateConfigGroup(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testUpdateConfigGroupAsClusterOperator() throws Exception {
+    testUpdateConfigGroup(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
+  public void testUpdateConfigGroupAsServiceAdministrator() throws Exception {
+    testUpdateConfigGroup(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateConfigGroupAsServiceOperator() throws Exception {
+    testUpdateConfigGroup(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateConfigGroupAsClusterUser() throws Exception {
+    testUpdateConfigGroup(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void testUpdateConfigGroup(Authentication authentication) throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
@@ -467,15 +565,46 @@ public class ConfigGroupResourceProviderTest {
       property(ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID).equals
       (25L).toPredicate();
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     provider.updateResources(request, predicate);
 
     verify(managementController, clusters, cluster,
       configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
   }
 
-  @SuppressWarnings("unchecked")
   @Test
-  public void testGetConfigGroup() throws Exception {
+  public void testGetConfigGroupAsAmbariAdministrator() throws Exception {
+    testGetConfigGroup(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetConfigGroupAsClusterAdministrator() throws Exception {
+    testGetConfigGroup(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetConfigGroupAsClusterOperator() throws Exception {
+    testGetConfigGroup(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
+  public void testGetConfigGroupAsServiceAdministrator() throws Exception {
+    testGetConfigGroup(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetConfigGroupAsServiceOperator() throws Exception {
+    testGetConfigGroup(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test
+  public void testGetConfigGroupAsClusterUser() throws Exception {
+    testGetConfigGroup(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @SuppressWarnings("unchecked")
+  private void testGetConfigGroup(Authentication authentication) throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -576,6 +705,8 @@ public class ConfigGroupResourceProviderTest {
       .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).and().property
       (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
       .equals("Cluster100").toPredicate();
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     resources = resourceProvider.getResources(request, predicate);
 
@@ -693,7 +824,36 @@ public class ConfigGroupResourceProviderTest {
   }
 
   @Test
-  public void testDeleteConfigGroup() throws Exception {
+  public void testDeleteConfigGroupAsAmbariAdministrator() throws Exception {
+    testDeleteConfigGroup(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testDeleteConfigGroupAsClusterAdministrator() throws Exception {
+    testDeleteConfigGroup(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testDeleteConfigGroupAsClusterOperator() throws Exception {
+    testDeleteConfigGroup(TestAuthenticationFactory.createClusterOperator());
+  }
+
+  @Test
+  public void testDeleteConfigGroupAsServiceAdministrator() throws Exception {
+    testDeleteConfigGroup(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteConfigGroupAsServiceOperator() throws Exception {
+    testDeleteConfigGroup(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteConfigGroupAsClusterUser() throws Exception {
+    testDeleteConfigGroup(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void testDeleteConfigGroup(Authentication authentication) throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -719,6 +879,8 @@ public class ConfigGroupResourceProviderTest {
       (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
       .equals("Cluster100").and().property(ConfigGroupResourceProvider
         .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).toPredicate();
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     resourceProvider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 

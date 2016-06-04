@@ -77,7 +77,10 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
   private static final Set<String> PROPERTY_IDS;
   private static final Map<Type, String> KEY_PROPERTY_IDS;
 
-  private static final Set<RoleAuthorization> REQUIRED_GET_AUTHORIZATIONS = EnumSet.of(RoleAuthorization.CLUSTER_TOGGLE_KERBEROS);
+  private static final Set<RoleAuthorization> REQUIRED_GET_AUTHORIZATIONS = EnumSet.of(RoleAuthorization.CLUSTER_TOGGLE_KERBEROS,
+      RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+      RoleAuthorization.HOST_VIEW_CONFIGS,
+      RoleAuthorization.SERVICE_VIEW_CONFIGS);
 
   static {
     Set<String> set;
