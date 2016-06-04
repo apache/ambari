@@ -1841,6 +1841,15 @@ thead.view-permission-header > tr > th {
   visibility: hidden;
 }
 
+.role-details-modal .table-section-title {
+  font-weight: bold;
+}
+
+.role-details-modal .table-section-title .table-cell {
+  width: 100%;
+}
+
+
 .proxied-field-wrap {
   display:block;
   position:absolute;

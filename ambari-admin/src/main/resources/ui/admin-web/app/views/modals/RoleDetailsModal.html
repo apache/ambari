@@ -33,11 +33,18 @@
     <div class="table-cell">{{roles[roles.length - 1].permission_label}}</div>
   </div>
   <div class="table-body">
-    <div class="table-row-wrapper">
-      <div class="table-row" ng-repeat="auth in orderedAuthorizations">
-        <div class="table-cell">{{authHash[auth]}}</div>
-        <div class="table-cell text-center" ng-repeat="role in roles">
-          <i class="glyphicon glyphicon-ok green-icon" ng-show="role.authHash[auth]"></i>
+    <div ng-repeat="level in orderedLevels">
+      <div class="table-row-wrapper table-section-title">
+        <div class="table-row">
+          <div class="table-cell" colspan="{{roles.length + 1}}">{{'users.roles.permissionLevel' | translate: '{level: getLevelName(level)}'}}</div>
+        </div>
+      </div>
+      <div class="table-row-wrapper">
+        <div class="table-row" ng-repeat="auth in orderedAuthorizations" ng-if="authHash[level][auth]">
+          <div class="table-cell">{{authHash[level][auth]}}</div>
+          <div class="table-cell text-center" ng-repeat="role in roles">
+            <i class="glyphicon glyphicon-ok green-icon" ng-show="role.authHash[auth]"></i>
+          </div>
         </div>
       </div>
     </div>

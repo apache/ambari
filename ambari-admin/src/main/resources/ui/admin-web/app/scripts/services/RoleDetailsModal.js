@@ -36,20 +36,34 @@ angular.module('ambariAdminConsole')
           $scope.title = '';
           $scope.orderedRoles = ['AMBARI.ADMINISTRATOR'].concat(Cluster.orderedRoles).reverse();
           $scope.orderedAuthorizations = Cluster.orderedAuthorizations;
+          $scope.orderedLevels = Cluster.orderedLevels;
           $scope.authHash = {};
-          roles.map(function(r) {
-            r.authorizations.map(function(auth) {
-              $scope.authHash[auth.authorization_id] = auth.authorization_name;
+          $scope.getLevelName = function (key) {
+            return key.charAt(0) + key.slice(1).toLowerCase();
+          };
+          angular.forEach(roles, function (r) {
+            angular.forEach(r.authorizations, function (auth) {
+              var match = auth.authorization_id.match(/(\w+)\./),
+                levelKey = match && match[1],
+                isLevelDisplayed = $scope.orderedAuthorizations.some(function (item) {
+                  return !item.indexOf(levelKey);
+                });
+              if (isLevelDisplayed) {
+                if (!$scope.authHash[levelKey]) {
+                  $scope.authHash[levelKey] = {};
+                }
+                if (!$scope.authHash[levelKey][auth.authorization_id]) {
+                  $scope.authHash[levelKey][auth.authorization_id] = auth.authorization_name;
+                }
+                if (!r.authHash) {
+                  r.authHash = {};
+                }
+                r.authHash[auth.authorization_id] = true;
+              }
             });
           });
           $scope.roles = roles.sort(function(a, b) {
             return $scope.orderedRoles.indexOf(a.permission_name) - $scope.orderedRoles.indexOf(b.permission_name);
-          }).map(function(r) {
-            r.authHash = {};
-            r.authorizations.map(function(a) {
-              r.authHash[a.authorization_id] = true;
-            });
-            return r;
           });
           $scope.ok = function() {
             $modalInstance.dismiss();

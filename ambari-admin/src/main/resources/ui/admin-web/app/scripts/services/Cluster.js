@@ -78,6 +78,8 @@ angular.module('ambariAdminConsole')
       "AMBARI.SET_SERVICE_USERS_GROUPS"
     ],
 
+    orderedLevels: ['SERVICE', 'HOST', 'CLUSTER', 'AMBARI'],
+
     ineditableRoles : ['VIEW.USER', 'AMBARI.ADMINISTRATOR'],
 
     getAllClusters: function() {
