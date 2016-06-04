@@ -352,7 +352,8 @@ angular.module('ambariAdminConsole')
         'ambariAdmin': 'Ambari Administrator',
         'viewUser': 'View User',
         'none': 'None',
-        'oneRolePerUser': 'Only 1 role allowed per user'
+        'oneRolePerUser': 'Only 1 role allowed per user',
+        'permissionLevel': '{{level}}-level Permissions'
       },
 
       'alerts': {
