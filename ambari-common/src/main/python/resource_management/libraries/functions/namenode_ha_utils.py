@@ -24,6 +24,8 @@ from resource_management.core.base import Fail
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.decorator import retry
+from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
+
 
 __all__ = ["get_namenode_states", "get_active_namenode",
            "get_property_for_active_namenode", "get_nameservice"]
@@ -75,7 +77,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
   # ie dfs.namenode.http-address.hacluster.nn1
   nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
   for nn_unique_id in nn_unique_ids:
-    is_https_enabled = is_empty(hdfs_site['dfs.http.policy']) and hdfs_site['dfs.http.policy'].upper() == "HTTPS_ONLY"
+    is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
 
     rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,nn_unique_id)
     if not is_https_enabled:
