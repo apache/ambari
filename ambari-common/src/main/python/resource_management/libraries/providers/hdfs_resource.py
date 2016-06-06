@@ -34,6 +34,8 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions import namenode_ha_utils
+from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
+
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import subprocess
@@ -133,13 +135,7 @@ class WebHDFSUtil:
                                                                           security_enabled, run_user)
     http_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.http-address',
                                                                          security_enabled, run_user)
-
-    # check for dfs.http.policy and after that for deprecated(for newer stacks) dfs.https.enable
-    self.is_https_enabled = False
-    if not is_empty(hdfs_site['dfs.http.policy']):
-      self.is_https_enabled = hdfs_site['dfs.http.policy'].lower() == "https_only"
-    elif not is_empty(hdfs_site['dfs.https.enable']):
-      self.is_https_enabled = hdfs_site['dfs.https.enable']
+    self.is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
 
     address = https_nn_address if self.is_https_enabled else http_nn_address
     protocol = "https" if self.is_https_enabled else "http"

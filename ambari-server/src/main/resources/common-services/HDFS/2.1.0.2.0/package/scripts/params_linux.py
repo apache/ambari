@@ -43,6 +43,8 @@ from resource_management.libraries.functions.format_jvm_option import format_jvm
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
+
 
 
 config = Script.get_config()
@@ -420,8 +422,8 @@ policy_user = config['configurations']['ranger-hdfs-plugin-properties']['policy_
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 
-is_https_enabled = config['configurations']['hdfs-site']['dfs.https.enable'] if \
-  not is_empty(config['configurations']['hdfs-site']['dfs.https.enable']) else False
+is_https_enabled = is_https_enabled_in_hdfs(config['configurations']['hdfs-site']['dfs.http.policy'],
+                                            config['configurations']['hdfs-site']['dfs.https.enable'])
 
 if has_ranger_admin:
   enable_ranger_hdfs = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
