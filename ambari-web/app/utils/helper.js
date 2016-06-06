@@ -518,6 +518,7 @@ App.format = {
     'UPGRADE': 'Upgrade',
     'RESTART': 'Restart',
     'SERVICE_CHECK': 'Check',
+    'SET_KEYTAB': 'Set Keytab:',
     'Excluded:': 'Decommission:',
     'Included:': 'Recommission:'
   },
