@@ -47,10 +47,13 @@ from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
 from resource_management.libraries.functions.version import compare_versions
+from ambari_commons.os_utils import get_used_ram
 
 logger = logging.getLogger(__name__)
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
+
+AGENT_RAM_OVERUSE_MESSAGE = "Ambari-agent RAM usage {used_ram} MB went above {config_name}={max_ram} MB. Restarting ambari-agent to clean the RAM."
 
 class Controller(threading.Thread):
 
@@ -89,6 +92,9 @@ class Controller(threading.Thread):
     cache_dir = config.get('agent', 'cache_dir')
     if cache_dir is None:
       cache_dir = '/var/lib/ambari-agent/cache'
+
+    self.max_ram_soft = int(config.get('agent','memory_threshold_soft_mb', default=0))
+    self.max_ram_hard = int(config.get('agent','memory_threshold_hard_mb', default=0))
 
     stacks_cache_dir = os.path.join(cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
     common_services_cache_dir = os.path.join(cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
@@ -278,6 +284,15 @@ class Controller(threading.Thread):
             self.isRegistered = False
             self.repeatRegistration = True
             return
+
+        used_ram = get_used_ram()/1000
+        # dealing with a possible memory leaks
+        if self.max_ram_soft and used_ram >= self.max_ram_soft and not self.actionQueue.tasks_in_progress_or_pending():
+          logger.error(AGENT_RAM_OVERUSE_MESSAGE.format(used_ram=used_ram, config_name="memory_threshold_soft_mb", max_ram=self.max_ram_soft))
+          self.restartAgent()
+        if self.max_ram_hard and used_ram >= self.max_ram_hard:
+          logger.error(AGENT_RAM_OVERUSE_MESSAGE.format(used_ram=used_ram, config_name="memory_threshold_hard_mb", max_ram=self.max_ram_hard))
+          self.restartAgent()
 
         if serverId != self.responseId + 1:
           logger.error("Error in responseId sequence - restarting")

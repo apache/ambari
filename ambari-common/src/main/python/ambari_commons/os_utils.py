@@ -22,6 +22,7 @@ import re
 import os
 import shutil
 import string
+import resource
 from ambari_commons import OSCheck
 from string import Template
 
@@ -42,6 +43,11 @@ else:
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
+def get_used_ram():
+  """
+  Returns resident RAM used by current process in kilobytes
+  """
+  return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
 def is_valid_filepath(filepath):
   if not filepath or not os.path.exists(filepath) or os.path.isdir(filepath):
