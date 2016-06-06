@@ -82,10 +82,9 @@ import org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.PropertyUpgradeBehavior;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -991,7 +990,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   public void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack, String userName)
-      throws AmbariException {
+    throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
     if (null == targetRve) {
       LOG.info("Could not find version entity for {}; not setting new configs", version);
@@ -1023,12 +1022,18 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         break;
     }
 
-    Map<String, Map<String, String>> updatedConfigurationsByType = null;
+    Map<String, Map<String, String>> newConfigurationsByType = null;
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
     if (direction == Direction.UPGRADE) {
+      // populate a map of default configurations for the old stack (this is
+      // used when determining if a property has been customized and should be
+      // overriden with the new stack value)
+      Map<String, Map<String, String>> oldStackDefaultConfigurationsByType = configHelper.getDefaultProperties(
+          currentStackId, cluster);
+
       // populate a map with default configurations from the new stack
-      Map<String, Set<PropertyInfo>> newConfigurationsByType = configHelper.getDefaultProperties(targetStackId, cluster);
+      newConfigurationsByType = configHelper.getDefaultProperties(targetStackId, cluster);
 
       // We want to skip updating config-types of services that are not in the upgrade pack.
       // Care should be taken as some config-types could be in services that are in and out
@@ -1078,52 +1083,83 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         }
       }
 
-      // overlay new configuration on top of existing configurations
-
-      // create map of existing configurations
-      Map<String, Map<String, String>> existingPropertiesByType = new HashMap<>();
+      // now that the map has been populated with the default configurations
+      // from the stack/service, overlay the existing configurations on top
       Map<String, DesiredConfig> existingDesiredConfigurationsByType = cluster.getDesiredConfigs();
-      for (String configurationType : existingDesiredConfigurationsByType.keySet()) {
-        if (skipConfigTypes.contains(configurationType)) {
-          LOG.info("RU: Skipping config-configurationType {} as upgrade-pack contains no updates to its service", configurationType);
+      for (Map.Entry<String, DesiredConfig> existingEntry : existingDesiredConfigurationsByType.entrySet()) {
+        String configurationType = existingEntry.getKey();
+        if(skipConfigTypes.contains(configurationType)) {
+          LOG.info("RU: Skipping config-type {} as upgrade-pack contains no updates to its service", configurationType);
           continue;
         }
-        Map<String, String> existingProperties = cluster.getDesiredConfigByType(configurationType).getProperties();
-        existingPropertiesByType.put(configurationType, existingProperties);
-      }
 
-      // for every existing configuration, see if an entry exists:
-      // - if it does not exist and marked as ADD_ON_UPGRADE, then add it
-      // - if it does exist and marked as DELETE_ON_UPGRADE, then remove it
-      // - if it does exist and marked as CHANGE_ON_UPGRADE, then update it
-      for (Map.Entry<String, Set<PropertyInfo>> newPropertyEntry : newConfigurationsByType.entrySet()) {
-
-        String configurationType = newPropertyEntry.getKey();
-        Map<String, String> existingProperties = existingPropertiesByType.get(configurationType);
-        if (existingProperties == null) {
-          existingProperties = new HashMap<>();
-          existingPropertiesByType.put(configurationType, existingProperties);
+        // NPE sanity, although shouldn't even happen since we are iterating
+        // over the desired configs to start with
+        Config currentClusterConfig = cluster.getDesiredConfigByType(configurationType);
+        if (null == currentClusterConfig) {
+          continue;
         }
 
-        for (PropertyInfo propertyInfo : newPropertyEntry.getValue()) {
+        // get the existing configurations
+        Map<String, String> existingConfigurations = currentClusterConfig.getProperties();
 
-          String propertyName = propertyInfo.getName();
-          String propertyValue = propertyInfo.getValue();
-          PropertyUpgradeBehavior propertyStackUpgradeBehavior = propertyInfo.getPropertyStackUpgradeBehavior();
+        // if the new stack configurations don't have the type, then simple add
+        // all of the existing in
+        Map<String, String> newDefaultConfigurations = newConfigurationsByType.get(
+            configurationType);
+        if (null == newDefaultConfigurations) {
+          newConfigurationsByType.put(configurationType, existingConfigurations);
+          continue;
+        } else {
+          // TODO, should we remove existing configs whose value is NULL even though they don't have a value in the new stack?
 
-          if (!existingProperties.containsKey(propertyName) && propertyStackUpgradeBehavior.isAdd()) {
-            existingProperties.put(propertyName, propertyValue);
-          } else if (existingProperties.containsKey(propertyName)) {
-            if (propertyStackUpgradeBehavior.isDelete()) {
-              existingProperties.remove(propertyName);
-            } else if (propertyStackUpgradeBehavior.isChange()) {
-              existingProperties.put(propertyName, propertyValue);
+          // Remove any configs in the new stack whose value is NULL, unless they currently exist and the value is not NULL.
+          Iterator<Map.Entry<String, String>> iter = newDefaultConfigurations.entrySet().iterator();
+          while (iter.hasNext()) {
+            Map.Entry<String, String> entry = iter.next();
+            if (entry.getValue() == null) {
+              iter.remove();
             }
           }
         }
-      }
 
-      updatedConfigurationsByType = existingPropertiesByType;
+        // for every existing configuration, see if an entry exists; if it does
+        // not exist, then put it in the map, otherwise we'll have to compare
+        // the existing value to the original stack value to see if its been
+        // customized
+        for (Map.Entry<String, String> existingConfigurationEntry : existingConfigurations.entrySet()) {
+          String existingConfigurationKey = existingConfigurationEntry.getKey();
+          String existingConfigurationValue = existingConfigurationEntry.getValue();
+
+          // if there is already an entry, we now have to try to determine if
+          // the value was customized after stack installation
+          if (newDefaultConfigurations.containsKey(existingConfigurationKey)) {
+            String newDefaultConfigurationValue = newDefaultConfigurations.get(
+                existingConfigurationKey);
+            if (!StringUtils.equals(existingConfigurationValue, newDefaultConfigurationValue)) {
+              // the new default is different from the existing cluster value;
+              // only override the default value if the existing value differs
+              // from the original stack
+              Map<String, String> configurationTypeDefaultConfigurations = oldStackDefaultConfigurationsByType.get(
+                  configurationType);
+              if (null != configurationTypeDefaultConfigurations) {
+                String oldDefaultValue = configurationTypeDefaultConfigurations.get(
+                    existingConfigurationKey);
+                if (!StringUtils.equals(existingConfigurationValue, oldDefaultValue)) {
+                  // at this point, we've determined that there is a difference
+                  // between default values between stacks, but the value was
+                  // also customized, so keep the customized value
+                  newDefaultConfigurations.put(existingConfigurationKey,
+                      existingConfigurationValue);
+                }
+              }
+            }
+          } else {
+            // there is no entry in the map, so add the existing key/value pair
+            newDefaultConfigurations.put(existingConfigurationKey, existingConfigurationValue);
+          }
+        }
+      }
     } else {
       // downgrade
       cluster.applyLatestConfigurations(cluster.getCurrentStackVersion());
@@ -1134,8 +1170,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         new StackId(targetStack.getStackName(), targetStack.getStackVersion()), true);
 
     // !!! configs must be created after setting the stack version
-    if (null != updatedConfigurationsByType) {
-      configHelper.createConfigTypes(cluster, getManagementController(), updatedConfigurationsByType,
+    if (null != newConfigurationsByType) {
+      configHelper.createConfigTypes(cluster, getManagementController(), newConfigurationsByType,
           userName, "Configuration created for Upgrade");
     }
   }
