@@ -45,6 +45,16 @@
           "https_default_port": "10502",
           "regex": "\\w*:(\\d+)",
           "site": "hive-interactive-site"
+        },
+        "protocol":{
+          "type":"https",
+          "checks":[
+            {
+              "property":"hive.server2.webui.use.ssl",
+              "desired":"true",
+              "site":"hive-interactive-site"
+            }
+          ]
         }
       }
     ]
