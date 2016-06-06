@@ -17,67 +17,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.script import Script
+from resource_management.core.logger import Logger
+from resource_management.core.source import DownloadSource
+from resource_management.core.resources import File, Package
 
-import sys
-from resource_management import *
-import shutil, tempfile, subprocess, traceback
-from resource_management.core import shell
-
-openr_location = 'http://104.196.87.250/msft-r/'
-rserver_location = 'http://104.196.87.250/msft-r/'
-#openr_location = '/ambari/contrib/msr/'
-#rserver_location = '/ambari/contrib/msr/'
+rpm_location = 'http://104.196.87.250/msft-r/8.1/'
+rpms = ['microsoft-r-server-mro-8.0.rpm',
+        'microsoft-r-server-intel-mkl-8.0.rpm',
+        'microsoft-r-server-packages-8.0.rpm',
+        'microsoft-r-server-hadoop-8.0.rpm']
 
 class MicrosoftR(Script):
   def install(self, env):
-    print 'Install R Server'
-    tmp_dir = tempfile.mkdtemp()
-    print 'Using temp dir: ' + tmp_dir
-    try:
-      print 'Download R Open'
-      if "http" in openr_location:
-        subprocess.call(['wget', openr_location + 'MRO-for-MRS-8.0.0.el6.x86_64.rpm'], cwd=tmp_dir)
-      else:
-        shell.call('cp ' + openr_location + '/MRO-for-MRS-8.0.0.el6.x86_64.rpm ' + tmp_dir)
+    Logger.info('Installing R Server Client...')
+    tmp_dir = Script.tmp_dir
+    Logger.debug('Using temp dir: {0}'.format(tmp_dir))
+    Logger.info("Will download and install the following rpm's from {0}: {1}".format(rpm_location, rpms))
 
-      print 'Install R Open'
-      subprocess.call(['yum', 'install', '-y', 'MRO-for-MRS-8.0.0.el6.x86_64.rpm'], cwd=tmp_dir)
+    for rpm in rpms:
+      Logger.info('Downloading {0}'.format(rpm))
+      rpmFile = '{0}/{1}'.format(tmp_dir, rpm)
+      File(rpmFile, \
+           content = DownloadSource(rpm_location + rpm), \
+           mode = 0644)
+      Logger.info('Installing {0}'.format(rpm))
+      Package(rpmFile)
 
-      print 'Download R Server'
-      if "http" in rserver_location:
-        subprocess.call(['wget', rserver_location + 'Microsoft-R-Server-8.0.0-RHEL6.tar.gz'], cwd=tmp_dir)
-      else:
-        shell.call('cp ' + rserver_location + 'Microsoft-R-Server-8.0.0-RHEL6.tar.gz ' + tmp_dir)
-
-      print 'Install R Server'
-      subprocess.call(['tar', '-xzvf', 'Microsoft-R-Server-8.0.0-RHEL6.tar.gz'], cwd=tmp_dir)
-      subprocess.call([tmp_dir + '/rrent/install.sh', '-a', '-y', '-p', '/usr/lib64/MRO-for-MRS-8.0.0/R-3.2.2'], cwd = tmp_dir + '/rrent')
-
-      print 'Create symlink to hadoop library'
-      _, libhdfs = shell.call('find /usr/hdp/ -name libhdfs.so')
-      shell.call('ln -s ' + libhdfs + ' /usr/lib64/libhdfs.so')
-
-      print 'Create /share on hadoop' # This is not strictly required, but needed to run the example
-      shell.call('sudo -u hdfs hadoop fs -mkdir -p /share')
-      shell.call('sudo -u hdfs hadoop fs -chmod uog+rwx /share')
-
-      print 'Configure R Server for the ambari-qa user'
-      shell.call('sudo -u hdfs hadoop fs -mkdir -p /user/RevoShare/ambari-qa')
-      shell.call('sudo -u hdfs hadoop fs -chmod uog+rwx /user/RevoShare/ambari-qa')
-      shell.call('mkdir -p /var/RevoShare/ambari-qa')
-      shell.call('chmod oug+rwx /var/RevoShare/ambari-qa')
-      shell.call('sudo -u ambari-qa echo ". /usr/lib64/MRS-8.0/scripts/RevoHadoopEnvVars.site" >> ~ambari-qa/.bashrc')
-
-      print 'Installed R Server'
-    except Exception as ex:
-      print "An error occured while installing Microsoft R"
-      traceback.print_exc()
-    finally:
-      print 'Cleaning up'
-      shutil.rmtree(tmp_dir)
+    Logger.info('Installed R Server')
 
   def configure(self, env):
-    print 'Configure R Server. Nothing to do.'
+    Logger.info('Configure R Server. Nothing to do.')
 
 if __name__ == "__main__":
   MicrosoftR().execute()
