@@ -143,6 +143,9 @@ define([
                   data.metricname.lastIndexOf("_metric"));
                   var aliasSuffix = ' on ' + tableSuffix;
                 }
+                if(templateSrv.variables[0].query === "callers") {
+                  alias = data.metricname.substring(data.metricname.indexOf('(')+1, data.metricname.indexOf(')'));
+                }
                 timeSeries = {
                   target: alias + aliasSuffix,
                   datapoints: []
@@ -236,6 +239,16 @@ define([
               getMetricsData(target)
             );
           };
+          var getNnAppIdData = function(target) {
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform
+            + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision).then(
+              allHostMetricsData(target)
+            );
+          };
 
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
@@ -318,6 +331,22 @@ define([
                   target.kbMetric = target.metric.replace('*', target.kbTopic);
                   return getKafkaAppIdData(target);
                 }));
+              });
+            }
+            //Templatized Dashboard for Call Queues
+            if (templateSrv.variables[0].query === "callers") {
+              var allCallers = templateSrv.variables.filter(function(variable) { return variable.query === "callers";});
+              var selectedCallers = (_.isEmpty(allCallers)) ? "" : allCallers[0].options.filter(function(user)
+              { return user.selected; }).map(function(callerName) { return callerName.value; });
+              selectedCallers = templateSrv._values.Callers.lastIndexOf('}') > 0 ? templateSrv._values.Callers.slice(1,-1) :
+                templateSrv._values.Callers;
+              var selectedCaller = selectedCallers.split(',');
+              _.forEach(selectedCaller, function(processCaller) {
+                  metricsPromises.push(_.map(options.targets, function(target) {
+                    target.nnCaller = processCaller;
+                    target.nnMetric = target.metric.replace('*', target.nnCaller);
+                    return getNnAppIdData(target);
+                  }));
               });
             }
 
@@ -458,6 +487,22 @@ define([
               });
           }
 
+          //Templated Variables for Call Queue Metrics
+          if(interpolated === "callers") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var nnCallers = allMetrics["namenode"];
+                var extractCallers = nnCallers.filter(/./.test.bind(new 
+                  RegExp("ipc.client.org.apache.hadoop.ipc.DecayRpcScheduler.Caller", 'g')));
+                var callers = _.sortBy(_.uniq(_.map(extractCallers, function(caller) { 
+                  return caller.substring(caller.indexOf('(')+1, caller.indexOf(')')) })));
+                return _.map(callers, function (callers) {
+                  return {
+                    text: callers
+                  };
+                });
+              });
+          }
           // Templated Variable for YARN Queues.
           // It will search the cluster and populate the queues.
           if(interpolated === "yarnqueues") {
