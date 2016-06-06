@@ -19,7 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
-
+from resource_management.libraries.functions.is_empty import is_empty
 
 """
 Check both dfs.http.policy and deprecated dfs.https.enable

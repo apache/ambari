@@ -21,10 +21,12 @@ limitations under the License.
 # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import ambari_simplejson as json
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 
 def check_stack_feature(stack_feature, stack_version):
   """
   Given a stack_feature and a specific stack_version, it validates that the feature is supported by the stack_version.
+  IMPORTANT, notice that the mapping of feature to version comes from cluster-env if it exists there.
   :param stack_feature: Feature name to check if it is supported by the stack. For example: "rolling_upgrade"
   :param stack_version: Version of the stack
   :return: Will return True if successful, otherwise, False. 
@@ -35,6 +37,7 @@ def check_stack_feature(stack_feature, stack_version):
   stack_features_config = default("/configurations/cluster-env/stack_features", None)
 
   if not stack_version:
+    Logger.debug("Cannot determine if feature %s is supported since did not provide a stack version." % stack_feature)
     return False
 
   if stack_features_config:

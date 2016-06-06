@@ -31,6 +31,7 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.core.logger import Logger
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -130,7 +131,7 @@ def falcon(type, action = None, upgrade_type=None):
         owner = params.falcon_user,
         mode = 0777)
 
-      if params.supports_hive_dr:
+      if params.supports_data_mirroring:
         params.HdfsResource(params.dfs_data_mirroring_dir,
           type = "directory",
           action = "create_on_execute",
@@ -141,7 +142,19 @@ def falcon(type, action = None, upgrade_type=None):
           mode = 0770,
           source = params.local_data_mirroring_dir)
 
+      if params.supports_falcon_extensions:
+        params.HdfsResource(params.falcon_extensions_dest_dir,
+                            type = "directory",
+                            action = "create_on_execute",
+                            owner = params.falcon_user,
+                            group = params.proxyuser_group,
+                            recursive_chown = True,
+                            recursive_chmod = True,
+                            mode = 0770,
+                            source = params.falcon_extensions_source_dir)
+      # At least one HDFS Dir should be created, so execute the change now.
       params.HdfsResource(None, action = "execute")
+
       Directory(params.falcon_local_dir,
         owner = params.falcon_user,
         create_parents = True,
