@@ -85,7 +85,7 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
@@ -131,14 +131,14 @@
     <name>oozie_user_nofile_limit</name>
     <value>32000</value>
     <description>Max open files limit setting for OOZIE user.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>oozie_user_nproc_limit</name>
     <value>16000</value>
     <description>Max number of processes limit setting for OOZIE user.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <!-- oozie-env.sh -->

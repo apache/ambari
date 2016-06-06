@@ -166,7 +166,7 @@ gpgcheck=0</value>
       <overridable>false</overridable>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
@@ -178,7 +178,7 @@ gpgcheck=0</value>
       <overridable>false</overridable>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <!-- Define stack_tools property in the base stack. DO NOT override this property for each stack version -->
@@ -236,21 +236,21 @@ gpgcheck=0</value>
     <name>ignore_bad_mounts</name>
     <value>false</value>
     <description>For properties handled by handle_mounted_dirs this will make Ambari not to create any directories.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>create_dirs_on_root</name>
     <value>true</value>
     <description>For properties handled by handle_mounted_dirs this will make Ambari to create not-existent unknown directories on / partition</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>one_dir_per_partition</name>
     <value>true</value>
     <description>For properties handled by handle_mounted_dirs this will make Ambari </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-ambari-upgrade add="true" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 </configuration>
