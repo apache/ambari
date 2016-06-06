@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -356,7 +357,7 @@ public class RepositoryVersionResourceProviderTest {
     }
 
     StackEntity bigtop = new StackEntity();
-    stackEntity.setStackName("BIGTOP");
+    bigtop.setStackName("BIGTOP");
     entity.setStack(bigtop);
     try {
       RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity);
@@ -383,6 +384,23 @@ public class RepositoryVersionResourceProviderTest {
       Assert.fail("Should throw exception: Base url http://example.com/repo1 is already defined for another repository version");
     } catch (Exception ex) {
     }
+
+    final RepositoryVersionEntity entity3 = new RepositoryVersionEntity();
+    entity3.setId(3l);
+    entity3.setDisplayName("name2");
+    entity3.setStack(stackEntity);
+    entity3.setVersion("1.1");
+    entity3.setOperatingSystems("[{\"OperatingSystems/ambari_managed_repositories\": true, \"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
+
+    try {
+      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity3);
+      Assert.fail("Expected exception");
+    } catch (AmbariException e) {
+      // expected
+    }
+
+    entity3.setOperatingSystems("[{\"OperatingSystems/ambari_managed_repositories\": false, \"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity3);
 
   }
 
