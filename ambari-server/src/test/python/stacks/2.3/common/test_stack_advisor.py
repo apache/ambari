@@ -2032,9 +2032,11 @@ class TestHDP23StackAdvisor(TestCase):
     services["configurations"]["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "24",
                                                               "hawq_rm_nvseg_perquery_limit": "512",
                                                               "hawq_rm_yarn_address": "localhost:8032",
-                                                              "hawq_rm_yarn_scheduler_address": "localhost:8030"}}
+                                                              "hawq_rm_yarn_scheduler_address": "localhost:8030",
+                                                              "hawq_global_rm_type":  "none"}}
 
     services["configurations"]["hdfs-client"] = {"properties": {"output.replace-datanode-on-failure": "true"}}
+    services["configurations"]["hawq-sysctl-env"] = {"properties": {}}
 
     services["configurations"]["yarn-site"] = {"properties": {"yarn.resourcemanager.address": "host1:8050",
                                                               "yarn.resourcemanager.scheduler.address": "host1:8030"}}
@@ -2073,11 +2075,11 @@ class TestHDP23StackAdvisor(TestCase):
 
     # Test 5 - with no segments
     configurations = {}
-    services["configurations"]["hawq-site"] = {"properties":{'hawq-site': {'properties': {}}}}
+    services["configurations"]["hawq-site"] = {"properties":{"hawq_global_rm_type": "none"}}
     hawqSegmentComponent["hostnames"] = []
     serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, {'hdfs-client': {'properties': {'output.replace-datanode-on-failure': 'false'}},
-                                       'hawq-site': {'properties': {}},  'hdfs-site': {'properties': {'dfs.allow.truncate': 'true'}}})
+    self.assertEquals(configurations["hdfs-client"]["properties"]["output.replace-datanode-on-failure"], "false")
+    self.assertTrue("default_hash_table_bucket_number" not in configurations["hawq-site"])
 
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
