@@ -180,7 +180,7 @@
   <property>
     <name>hawq_rm_memory_limit_perseg</name>
     <display-name>Segment Memory Usage Limit</display-name>
-    <value>67108864KB</value>
+    <value>65535MB</value>
     <description>
       The maximum memory that can be used by a HAWQ segment when Resource Manager ('hawq_global_rm_type') is set to Standalone ('none').
       Its value depends on vm.overcommit_memory, vm.overcommit_ratio and system memory on HAWQ hosts.
@@ -193,6 +193,10 @@
       <property>
         <type>hawq-sysctl-env</type>
         <name>vm.overcommit_memory</name>
+      </property>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
       </property>
     </depends-on>
     <value-attributes>
@@ -237,6 +241,10 @@
         <type>yarn-site</type>
         <name>yarn.resourcemanager.address</name>
       </property>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
     </depends-on>
     <value-attributes>
       <type>string</type>
@@ -258,6 +266,10 @@
         <type>yarn-site</type>
         <name>yarn.resourcemanager.scheduler.address</name>
       </property>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
     </depends-on>
     <value-attributes>
       <type>string</type>
@@ -273,6 +285,12 @@
       The name of the YARN queue to register with HAWQ's resource manager.
       The default is 'default'.
     </description>
+    <depends-on>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>string</type>
     </value-attributes>
@@ -286,6 +304,12 @@
       The name of the YARN application to register with HAWQ's resource manager.
       The default is 'hawq'.
     </description>
+    <depends-on>
+      <property>
+        <type>hawq-site</type>
+        <name>hawq_global_rm_type</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>string</type>
     </value-attributes>

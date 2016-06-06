@@ -144,54 +144,56 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       minHawqHostsMemory = min([host['Hosts']['total_mem'] for host in hosts['items'] if host['Hosts']['host_name'] in hawqHosts])
       minHawqHostsCoreCount = min([host['Hosts']['cpu_count'] for host in hosts['items'] if host['Hosts']['host_name'] in hawqHosts])
 
-    if "hawq-site" in services["configurations"]:
-      hawq_site = services["configurations"]["hawq-site"]["properties"]
-      putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
+    hawq_site = services["configurations"]["hawq-site"]["properties"]
+    putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
+    putHawqSitePropertyAttribute = self.putPropertyAttribute(configurations, "hawq-site")
+    hawq_sysctl_env = services["configurations"]["hawq-sysctl-env"]["properties"]
+    putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
 
-      # remove master port when master is colocated with Ambari server
-      if self.isHawqMasterComponentOnAmbariServer(stackAdvisor, services) and "hawq_master_address_port" in hawq_site:
-        putHawqSiteProperty('hawq_master_address_port', '')
+    # remove master port when master is colocated with Ambari server
+    if self.isHawqMasterComponentOnAmbariServer(stackAdvisor, services) and "hawq_master_address_port" in hawq_site:
+      putHawqSiteProperty('hawq_master_address_port', '')
 
-      # update query limits if segments are deployed
-      if numSegments and "default_hash_table_bucket_number" in hawq_site and "hawq_rm_nvseg_perquery_limit" in hawq_site:
-        factor_min = 1
-        factor_max = 6
-        limit = int(hawq_site["hawq_rm_nvseg_perquery_limit"])
-        factor = limit / numSegments
-        # if too many segments or default limit is too low --> stick with the limit
-        if factor < factor_min:
-          buckets = limit
-        # if the limit is large and results in factor > max --> limit factor to max
-        elif factor > factor_max:
-          buckets = factor_max * numSegments
-        else:
-          buckets = factor * numSegments
-        putHawqSiteProperty('default_hash_table_bucket_number', buckets)
+    # update query limits if segments are deployed
+    if numSegments and "default_hash_table_bucket_number" in hawq_site and "hawq_rm_nvseg_perquery_limit" in hawq_site:
+      factor_min = 1
+      factor_max = 6
+      limit = int(hawq_site["hawq_rm_nvseg_perquery_limit"])
+      factor = limit / numSegments
+      # if too many segments or default limit is too low --> stick with the limit
+      if factor < factor_min:
+        buckets = limit
+      # if the limit is large and results in factor > max --> limit factor to max
+      elif factor > factor_max:
+        buckets = factor_max * numSegments
+      else:
+        buckets = factor * numSegments
+      putHawqSiteProperty('default_hash_table_bucket_number', buckets)
 
-      if "hawq_global_rm_type" in hawq_site and hawq_site["hawq_global_rm_type"] == "none" and "hawq_rm_nvcore_limit_perseg" in hawq_site:
-        putHawqSiteProperty('hawq_rm_nvcore_limit_perseg', minHawqHostsCoreCount)
 
-      # update YARN RM urls with the values from yarn-site if YARN is installed
-      if "YARN" in servicesList and "yarn-site" in services["configurations"]:
-        yarn_site = services["configurations"]["yarn-site"]["properties"]
-        for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
-          if hs_prop in hawq_site and ys_prop in yarn_site:
-            putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
+    # update YARN RM urls with the values from yarn-site if YARN is installed
+    if "YARN" in servicesList and "yarn-site" in services["configurations"]:
+      yarn_site = services["configurations"]["yarn-site"]["properties"]
+      for hs_prop, ys_prop in self.getHAWQYARNPropertyMapping().items():
+        if hs_prop in hawq_site and ys_prop in yarn_site:
+          putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
 
-    if "hawq-sysctl-env" in services["configurations"] and "vm.overcommit_memory" in services["configurations"]["hawq-sysctl-env"]["properties"]:
+    putHawqSiteProperty('hawq_rm_nvcore_limit_perseg', minHawqHostsCoreCount)
+
+
+    if "vm.overcommit_memory" in hawq_sysctl_env:
       MEM_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
       # Set the value for hawq_rm_memory_limit_perseg based on vm.overcommit value and RAM available on HAWQ Hosts
       # If value of hawq_rm_memory_limit_perseg is 67108864KB, it indicates hawq is being added and recommendation
       # has not be made yet, since after recommendation it will be in GB in case its 67108864KB.
-      if "vm.overcommit_ratio" in services["configurations"]["hawq-sysctl-env"]["properties"]:
-        vm_overcommit_ratio = int(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"])
-      else:
-        vm_overcommit_ratio = 50
-      if "hawq_rm_memory_limit_perseg" in services["configurations"]["hawq-site"]["properties"] and services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] == "67108864KB":
+      vm_overcommit_ratio = int(hawq_sysctl_env["vm.overcommit_ratio"]) if "vm.overcommit_ratio" in hawq_sysctl_env else 50
+      if "hawq_rm_memory_limit_perseg" in hawq_site and hawq_site["hawq_rm_memory_limit_perseg"] == "65535MB":
         vm_overcommit_mem_value = 2 if minHawqHostsMemory >= MEM_THRESHOLD else 1
       else:
         # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
-        vm_overcommit_mem_value = int(services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"])
+        vm_overcommit_mem_value = int(hawq_sysctl_env["vm.overcommit_memory"])
+      putHawqSysctlEnvProperty("vm.overcommit_ratio", vm_overcommit_ratio)
+      putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_mem_value)
       host_ram_kb = minHawqHostsMemory * vm_overcommit_ratio / 100 if vm_overcommit_mem_value == 2 else minHawqHostsMemory
       host_ram_gb = float(host_ram_kb) / (1024 * 1024)
       recommended_mem_percentage = {
@@ -208,9 +210,19 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         unit = "MB"
       # hawq_rm_memory_limit_perseg does not support decimal value so trim decimal using int
       putHawqSiteProperty("hawq_rm_memory_limit_perseg", "{0}{1}".format(int(recommended_mem), unit))
-      putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
-      putHawqSysctlEnvProperty("vm.overcommit_ratio", vm_overcommit_ratio)
-      putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_mem_value)
+
+    # Show / Hide properties based on the value of hawq_global_rm_type
+    YARN_MODE = True if hawq_site["hawq_global_rm_type"].lower() == "yarn" else False
+    yarn_mode_properties_visibility = {
+      "hawq_rm_memory_limit_perseg": False,
+      "hawq_rm_nvcore_limit_perseg": False,
+      "hawq_rm_yarn_app_name": True,
+      "hawq_rm_yarn_queue_name": True,
+      "hawq_rm_yarn_scheduler_address": True,
+      "hawq_rm_yarn_address": True
+    }
+    for property, visible_status in yarn_mode_properties_visibility.iteritems():
+      putHawqSitePropertyAttribute(property, "visible", str(visible_status if YARN_MODE else not visible_status).lower())
 
     # set output.replace-datanode-on-failure in HAWQ hdfs-client depending on the cluster size
     if "hdfs-client" in services["configurations"]:
@@ -338,14 +350,3 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(MIN_NUM_SEGMENT_THRESHOLD)))})
 
     return stackAdvisor.toConfigurationValidationProblems(validationItems, "hdfs-client")
-
-  def putPropertyAttribute(self, config, configType):
-    if configType not in config:
-      config[configType] = {}
-    def appendPropertyAttribute(key, attribute, attributeValue):
-      if "property_attributes" not in config[configType]:
-        config[configType]["property_attributes"] = {}
-      if key not in config[configType]["property_attributes"]:
-        config[configType]["property_attributes"][key] = {}
-      config[configType]["property_attributes"][key][attribute] = attributeValue if isinstance(attributeValue, list) else str(attributeValue)
-    return appendPropertyAttribute

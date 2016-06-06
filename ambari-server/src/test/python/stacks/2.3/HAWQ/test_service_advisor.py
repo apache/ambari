@@ -141,7 +141,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       },
       "hawq-site": {
         "properties": {
-          "hawq_rm_memory_limit_perseg": "67108864KB",
+          "hawq_rm_memory_limit_perseg": "65535MB",
           "hawq_rm_nvcore_limit_perseg": "16",
           "hawq_global_rm_type": "yarn"
         }
@@ -220,19 +220,8 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 4, c6404.ambari.apache.org - 2
     # hawq_global_rm_type: yarn
     # Non HAWQ Hosts Core Count: c6401.ambari.apache.org - 1
-    # Do not recommend hawq_rm_nvcore_limit_perseg when rm type is yarn
-    self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
-    self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "16")
-
-    # Case 2:
-    # HAWQ Hosts Core Count: c6401.ambari.apache.org - 2, c6402.ambari.apache.org - 4, c6404.ambari.apache.org - 2
-    # hawq_global_rm_type: none
-    # Non HAWQ Hosts Core Count: c6401.ambari.apache.org - 1
-    # Recommend hawq_rm_nvcore_limit_perseg when rm type is none
-    configurations["hawq-site"]["properties"]["hawq_global_rm_type"] = "none"
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEquals(configurations["hawq-site"]["properties"]["hawq_rm_nvcore_limit_perseg"], "2")
-
 
     ## Test if vm.overcommit_memory is set correctly
 
@@ -242,7 +231,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
 
     # Case 2: One machine has total_mem below 32GB
     hosts["items"][0]["Hosts"]["total_mem"] = 33554431
-    services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] = "67108864KB"
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] = "65535MB"
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEquals(configurations["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"], "1")
 
@@ -264,7 +253,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hosts["items"][0]["Hosts"]["total_mem"] = 67108864
     hosts["items"][1]["Hosts"]["total_mem"] = 77108864
     hosts["items"][3]["Hosts"]["total_mem"] = 87108864
-    services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] = "67108864KB"
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] = "65535MB"
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "24GB")
 
@@ -290,3 +279,29 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_ratio"] = 75
     self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "730GB")
+
+    ## Test if the properties are set to visible / invisible based on the value of hawq_global_rm_type
+
+    # Case 1: When hawq_global_rm_type is yarn
+    services["configurations"]["hawq-site"]["properties"]["hawq_global_rm_type"] = "yarn"
+    properties_visible_status = {"hawq_rm_memory_limit_perseg": "false",
+                  "hawq_rm_nvcore_limit_perseg": "false",
+                  "hawq_rm_yarn_app_name":"true",
+                  "hawq_rm_yarn_queue_name": "true",
+                  "hawq_rm_yarn_scheduler_address": "true",
+                  "hawq_rm_yarn_address": "true"}
+    self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
+    for property, status in properties_visible_status.iteritems():
+      self.assertEqual(configurations["hawq-site"]["property_attributes"][property]["visible"], status)
+
+    # Case 2: When hawq_global_rm_type is none
+    services["configurations"]["hawq-site"]["properties"]["hawq_global_rm_type"] = "none"
+    properties_visible_status = {"hawq_rm_memory_limit_perseg": "true",
+                                 "hawq_rm_nvcore_limit_perseg": "true",
+                                 "hawq_rm_yarn_app_name": "false",
+                                 "hawq_rm_yarn_queue_name": "false",
+                                 "hawq_rm_yarn_scheduler_address": "false",
+                                 "hawq_rm_yarn_address": "false"}
+    self.serviceAdvisor.getServiceConfigurationRecommendations(self.stackAdvisor, configurations, None, services, hosts)
+    for property, status in properties_visible_status.iteritems():
+      self.assertEqual(configurations["hawq-site"]["property_attributes"][property]["visible"], status)
