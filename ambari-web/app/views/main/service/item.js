@@ -291,7 +291,9 @@ App.MainServiceItemView = Em.View.extend({
       options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
     }
 
-    options.push(actionMap.DELETE_SERVICE);
+    if (App.isAuthorized("SERVICE.ADD_DELETE_SERVICES")) {
+      options.push(actionMap.DELETE_SERVICE);
+    }
 
     if (this.get('maintenance.length')) {
       this.get('maintenance').forEach(function(option, index) {
