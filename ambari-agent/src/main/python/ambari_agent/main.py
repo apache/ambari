@@ -27,6 +27,7 @@ import traceback
 import getpass
 import os
 import time
+import locale
 import platform
 import ConfigParser
 import ProcessHelper
@@ -48,10 +49,6 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
-
-# use the host's locale for numeric formatting
-import locale
-locale.setlocale(locale.LC_ALL, '')
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
@@ -267,6 +264,12 @@ def main(heartbeat_stop_callback=None):
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
+
+  # use the host's locale for numeric formatting
+  try:
+    locale.setlocale(locale.LC_ALL, '')
+  except locale.Error as ex:
+    logger.warning("Cannot set locale for ambari-agent. Please check your systemwide locale settings. Failed due to: {0}.".format(str(ex)))
 
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)
