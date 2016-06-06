@@ -28,6 +28,7 @@ from resource_management.libraries.script.script import Script
 import os
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
 
 config = Script.get_config()
@@ -42,6 +43,12 @@ version = default("/commandParams/version", None)
 
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
+upgrade_direction = default("/commandParams/upgrade_direction", None)
+
+# current host stack version
+current_version = default("/hostLevelParams/current_version", None)
+current_version_formatted = format_stack_version(current_version)
+
 etc_prefix_dir = "/etc/falcon"
 
 # hadoop params
@@ -61,6 +68,11 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
   falcon_root = server_role_dir_mapping[command_role]
   falcon_webapp_dir = format('{stack_root}/current/{falcon_root}/webapp')
   falcon_home = format('{stack_root}/current/{falcon_root}')
+
+  # Extensions dir is only available in HDP 2.5 and higher
+  falcon_extensions_source_dir = os.path.join(stack_root, "current", falcon_root, "extensions")
+  # Dir in HDFS
+  falcon_extensions_dest_dir = "/apps/falcon/extensions"
 else:
   falcon_webapp_dir = '/var/lib/falcon/webapp'
   falcon_home = '/usr/lib/falcon'
@@ -110,6 +122,13 @@ smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_princi
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 supports_hive_dr = config['configurations']['falcon-env']['supports_hive_dr']
+# HDP 2.4 still supported the /usr/$STACK/$VERSION/falcon/data-mirroring folder.
+# In HDP 2.5, it was replaced with Falcon Extensions. data mirroring XOR falcon extensions
+supports_data_mirroring = supports_hive_dr and (stack_version_formatted and not check_stack_feature(StackFeature.FALCON_EXTENSIONS, stack_version_formatted))
+
+# Falcon Extensions were supported in HDP 2.5 and higher.
+supports_falcon_extensions = (stack_version_formatted and check_stack_feature(StackFeature.FALCON_EXTENSIONS, stack_version_formatted))
+
 local_data_mirroring_dir = format('{stack_root}/current/falcon-server/data-mirroring')
 dfs_data_mirroring_dir = "/apps/data-mirroring"
 

@@ -29,12 +29,13 @@ from resource_management.libraries.functions.security_commons import cached_kini
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_PROPERTIES
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.constants import StackFeature, Direction
 
 from falcon import falcon
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.constants import StackFeature
+
 
 class FalconServer(Script):
   def configure(self, env, upgrade_type=None):
@@ -85,6 +86,23 @@ class FalconServerLinux(FalconServer):
     Logger.info("Executing Falcon Server Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
     stack_select.select("falcon-server", params.version)
+
+    # Must be an Upgrade direction from a version less than when the feature is supported to a
+    # version at or after the feature is supported.
+    if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and \
+        check_stack_feature(StackFeature.FALCON_EXTENSIONS, params.stack_version_formatted) and \
+        not check_stack_feature(StackFeature.FALCON_EXTENSIONS, params.current_version_formatted):
+      params.HdfsResource(params.falcon_extensions_dest_dir,
+                          type = "directory",
+                          action = "create_on_execute",
+                          owner = params.falcon_user,
+                          group = params.proxyuser_group,
+                          recursive_chown = True,
+                          recursive_chmod = True,
+                          mode = 0770,
+                          source = params.falcon_extensions_source_dir)
+      params.HdfsResource(None, action="execute")
+
     falcon_server_upgrade.pre_start_restore()
 
   def security_status(self, env):

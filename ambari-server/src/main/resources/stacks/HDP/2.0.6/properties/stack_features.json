@@ -166,6 +166,11 @@
       "max_version": "2.2.0.0"
     },
     {
+      "name": "falcon_extensions",
+      "description": "Falcon Extension",
+      "min_version": "2.5.0.0"
+    },
+    {
       "name": "hive_metastore_upgrade_schema",
       "description": "Hive metastore upgrade schema support (AMBARI-11176)",
       "min_version": "2.3.0.0"
