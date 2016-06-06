@@ -421,6 +421,8 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
             return role + Em.I18n.t('installer.step9.serviceStatus.stop.failed');
         }
         break;
+      case 'CUSTOM_COMMAND':
+        role = App.format.commandDetail(task.command_detail, task.request_input);
       case 'EXECUTE' :
       case 'SERVICE_CHECK' :
         switch (task.status) {
