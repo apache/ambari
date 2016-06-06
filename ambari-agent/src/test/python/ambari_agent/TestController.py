@@ -412,10 +412,11 @@ class TestController(unittest.TestCase):
                         exceptionMessage, str(e))
 
 
+  @patch.object(ExitHelper, "exit")
   @patch.object(threading._Event, "wait")
   @patch("time.sleep")
   @patch("ambari_simplejson.dumps")
-  def test_heartbeatWithServer(self, dumpsMock, sleepMock, event_mock):
+  def test_heartbeatWithServer(self, dumpsMock, sleepMock, event_mock, exit_mock):
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -509,7 +510,7 @@ class TestController(unittest.TestCase):
     self.controller.DEBUG_STOP_HEARTBEATING = False
     self.controller.heartbeatWithServer()
 
-    restartAgent.assert_called_once_with()
+    restartAgent.assert_called_with()
 
     # executionCommands
     self.controller.responseId = 1
@@ -539,7 +540,7 @@ class TestController(unittest.TestCase):
     self.controller.restartAgent = restartAgent
     self.controller.heartbeatWithServer()
 
-    restartAgent.assert_called_once_with()
+    restartAgent.assert_called_with()
 
     # actionQueue not idle
     self.controller.responseId = 1
@@ -675,10 +676,11 @@ class TestController(unittest.TestCase):
     self.controller.addToStatusQueue = Controller.Controller.addToStatusQueue
     pass
 
+  @patch.object(ExitHelper, "exit")
   @patch.object(threading._Event, "wait")
   @patch("time.sleep")
   @patch("ambari_simplejson.dumps")
-  def test_recoveryHbCmd(self, dumpsMock, sleepMock, event_mock):
+  def test_recoveryHbCmd(self, dumpsMock, sleepMock, event_mock, exit_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out
