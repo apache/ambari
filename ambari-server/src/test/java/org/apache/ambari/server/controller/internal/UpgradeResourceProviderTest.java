@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static com.google.common.collect.ImmutableMap.of;
-import static com.google.common.collect.Sets.newHashSet;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -83,8 +81,6 @@ import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.PropertyUpgradeBehavior;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -146,7 +142,7 @@ public class UpgradeResourceProviderTest {
     expect(
         configHelper.getDefaultProperties(EasyMock.anyObject(StackId.class),
             EasyMock.anyObject(Cluster.class))).andReturn(
-        new HashMap<String, Set<PropertyInfo>>()).anyTimes();
+        new HashMap<String, Map<String, String>>()).anyTimes();
 
 
     EasyMock.replay(configHelper);
@@ -1092,57 +1088,59 @@ public class UpgradeResourceProviderTest {
     StackId stack211 = new StackId("HDP-2.1.1");
     StackId stack220 = new StackId("HDP-2.2.0");
 
-    Set<PropertyInfo> stack211FirstConfig = newHashSet(
-        createProperty("1", "one", new PropertyUpgradeBehavior(true,false,false)),
-        createProperty("11", "one-one", new PropertyUpgradeBehavior(true,false,false))
-    );
-    Set<PropertyInfo> stack211SecondConfig = newHashSet(createProperty("2", "two", new PropertyUpgradeBehavior(true,false,false)));
-    Set<PropertyInfo> stack211ThirdConfig = newHashSet(createProperty("3", "three", new PropertyUpgradeBehavior(true,false,false)));
+    Map<String, Map<String, String>> stack211Configs = new HashMap<String, Map<String, String>>();
+    Map<String, String> stack211FooType = new HashMap<String, String>();
+    Map<String, String> stack211BarType = new HashMap<String, String>();
+    Map<String, String> stack211BazType = new HashMap<String, String>();
+    stack211Configs.put("foo-site", stack211FooType);
+    stack211Configs.put("bar-site", stack211BarType);
+    stack211Configs.put("baz-site", stack211BazType);
+    stack211FooType.put("1", "one");
+    stack211FooType.put("11", "one-one");
+    stack211BarType.put("2", "two");
+    stack211BazType.put("3", "three");
 
-    Map<String, Set<PropertyInfo>> stack211Configs = new HashMap<>(of(
-        "first-site", stack211FirstConfig,
-        "second-site", stack211SecondConfig,
-        "third-site", stack211ThirdConfig
-    ));
+    Map<String, Map<String, String>> stack220Configs = new HashMap<String, Map<String, String>>();
+    Map<String, String> stack220FooType = new HashMap<String, String>();
+    Map<String, String> stack220BazType = new HashMap<String, String>();
+    Map<String, String> stack220FlumeEnvType = new HashMap<String, String>();
+    stack220Configs.put("foo-site", stack220FooType);
+    stack220Configs.put("baz-site", stack220BazType);
+    stack220Configs.put("flume-env", stack220FlumeEnvType);
+    stack220FooType.put("1", "one-new");
+    stack220FooType.put("111", "one-one-one");
+    stack220BazType.put("3", "three-new");
+    stack220FlumeEnvType.put("flume_env_key", "flume-env-value");
 
-    Set<PropertyInfo> stack220FirstConfig = newHashSet(
-        createProperty("1", "one-new", new PropertyUpgradeBehavior(false,false,true)),
-        createProperty("11", "any", new PropertyUpgradeBehavior(false,true,false)),
-        createProperty("111", "one-one-one", new PropertyUpgradeBehavior(true,false,false)),
-        createProperty("2", "two", new PropertyUpgradeBehavior(false,false,true))
-    );
-    Set<PropertyInfo> stack220ThirdConfig = newHashSet(createProperty("3", "three-ignored", new PropertyUpgradeBehavior(false,false,false)));
-    Set<PropertyInfo> stack220FlumeEnvConfig = newHashSet(createProperty("flume_env_key", "flume-env-value", new PropertyUpgradeBehavior(false,false,false)));
-    Map<String, Set<PropertyInfo>> stack220Configs = new HashMap<>(of(
-        "first-site", stack220FirstConfig,
-        "third-site", stack220ThirdConfig,
-        "flume-env", stack220FlumeEnvConfig
-    ));
+    Map<String, String> clusterFooType = new HashMap<String, String>();
+    Map<String, String> clusterBarType = new HashMap<String, String>();
+    Map<String, String> clusterBazType = new HashMap<String, String>();
 
-    Map<String, String> firstConfigProperties = new HashMap<>(of("1", "one", "11", "one-one"));
-    Map<String, String> secondConfigProperties = new HashMap<>(of("2", "two"));
-    Map<String, String> thirdConfigProperties = new HashMap<>(of("3", "three-changed"));
+    Config fooConfig = EasyMock.createNiceMock(Config.class);
+    Config barConfig = EasyMock.createNiceMock(Config.class);
+    Config bazConfig = EasyMock.createNiceMock(Config.class);
 
-    Config firstConfig = EasyMock.createNiceMock(Config.class);
-    Config secondConfig = EasyMock.createNiceMock(Config.class);
-    Config thirdConfig = EasyMock.createNiceMock(Config.class);
+    clusterFooType.put("1", "one");
+    clusterFooType.put("11", "one-one");
+    clusterBarType.put("2", "two");
+    clusterBazType.put("3", "three-changed");
 
-    expect(firstConfig.getProperties()).andReturn(firstConfigProperties);
-    expect(secondConfig.getProperties()).andReturn(secondConfigProperties);
-    expect(thirdConfig.getProperties()).andReturn(thirdConfigProperties);
+    expect(fooConfig.getProperties()).andReturn(clusterFooType);
+    expect(barConfig.getProperties()).andReturn(clusterBarType);
+    expect(bazConfig.getProperties()).andReturn(clusterBazType);
 
-    Map<String, DesiredConfig> desiredConfigurations = new HashMap<>();
-    desiredConfigurations.put("first-site", null);
-    desiredConfigurations.put("second-site", null);
-    desiredConfigurations.put("third-site", null);
+    Map<String, DesiredConfig> desiredConfigurations = new HashMap<String, DesiredConfig>();
+    desiredConfigurations.put("foo-site", null);
+    desiredConfigurations.put("bar-site", null);
+    desiredConfigurations.put("baz-site", null);
 
     Cluster cluster = EasyMock.createNiceMock(Cluster.class);
     expect(cluster.getCurrentStackVersion()).andReturn(stack211);
     expect(cluster.getDesiredStackVersion()).andReturn(stack220);
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
-    expect(cluster.getDesiredConfigByType("first-site")).andReturn(firstConfig);
-    expect(cluster.getDesiredConfigByType("second-site")).andReturn(secondConfig);
-    expect(cluster.getDesiredConfigByType("third-site")).andReturn(thirdConfig);
+    expect(cluster.getDesiredConfigByType("foo-site")).andReturn(fooConfig);
+    expect(cluster.getDesiredConfigByType("bar-site")).andReturn(barConfig);
+    expect(cluster.getDesiredConfigByType("baz-site")).andReturn(bazConfig);
 
     // setup the config helper for placeholder resolution
     EasyMock.reset(configHelper);
@@ -1164,7 +1162,7 @@ public class UpgradeResourceProviderTest {
 
     EasyMock.expectLastCall().once();
 
-    EasyMock.replay(configHelper, cluster, firstConfig, secondConfig, thirdConfig);
+    EasyMock.replay(configHelper, cluster, fooConfig, barConfig, bazConfig);
 
     UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -1173,22 +1171,21 @@ public class UpgradeResourceProviderTest {
     upgradeResourceProvider.applyStackAndProcessConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgrade, "admin");
 
     Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
-    Map<String, String> resultingFirstConfig = expectedConfigurations.get("first-site");
-    Map<String, String> resultingSecondConfig = expectedConfigurations.get("second-site");
-    Map<String, String> resultingThirdConfig = expectedConfigurations.get("third-site");
+    Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");
+    Map<String, String> expectedBarType = expectedConfigurations.get("bar-site");
+    Map<String, String> expectedBazType = expectedConfigurations.get("baz-site");
 
     // As the upgrade pack did not have any Flume updates, its configs should not be updated.
     assertFalse(expectedConfigurations.containsKey("flume-env"));
 
     // the really important values are one-new and three-changed; one-new
-    // indicates that the new stack value is changed since it was marked CHANGE_ON_UPGRADE
+    // indicates that the new stack value is changed since it was not customized
     // while three-changed represents that the customized value was preserved
     // even though the stack value changed
-    assertEquals("one-new", resultingFirstConfig.get("1"));
-    assertEquals(null, resultingFirstConfig.get("11"));
-    assertEquals("one-one-one", resultingFirstConfig.get("111"));
-    assertEquals("two", resultingSecondConfig.get("2"));
-    assertEquals("three-changed", resultingThirdConfig.get("3"));
+    assertEquals("one-new", expectedFooType.get("1"));
+    assertEquals("one-one", expectedFooType.get("11"));
+    assertEquals("two", expectedBarType.get("2"));
+    assertEquals("three-changed", expectedBazType.get("3"));
   }
 
   /**
@@ -1197,18 +1194,6 @@ public class UpgradeResourceProviderTest {
    */
   private UpgradeResourceProvider createProvider(AmbariManagementController amc) {
     return new UpgradeResourceProvider(amc);
-  }
-
-  private PropertyInfo createProperty(String name, String value) {
-    return createProperty(name, value, null);
-  }
-
-  private PropertyInfo createProperty(String name, String value, PropertyUpgradeBehavior propertyStackUpgradeBehavior) {
-    PropertyInfo propertyInfo = new PropertyInfo();
-    propertyInfo.setName(name);
-    propertyInfo.setValue(value);
-    propertyInfo.setPropertyStackUpgradeBehavior(propertyStackUpgradeBehavior);
-    return propertyInfo;
   }
 
   private RequestStatus testCreateResources() throws Exception {

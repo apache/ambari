@@ -124,7 +124,7 @@ public class UpgradeResourceProviderHDP22Test {
         "placeholder-rendered-properly").anyTimes();
 
     expect(configHelper.getDefaultProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Cluster.class))).andReturn(
-        new HashMap<String, Set<org.apache.ambari.server.state.PropertyInfo>>()).anyTimes();
+        new HashMap<String, Map<String, String>>()).anyTimes();
 
     expect(configHelper.getEffectiveConfigAttributes(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
         new HashMap<String, Map<String, Map<String, String>>>()).anyTimes();

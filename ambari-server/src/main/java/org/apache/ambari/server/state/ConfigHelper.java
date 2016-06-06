@@ -1021,9 +1021,9 @@ public class ConfigHelper {
    *         default configurations.
    * @throws AmbariException
    */
-  public Map<String, Set<PropertyInfo>> getDefaultProperties(StackId stack, Cluster cluster)
+  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, Cluster cluster)
       throws AmbariException {
-    Map<String, Set<PropertyInfo>> defaultPropertiesByType = new HashMap<String, Set<PropertyInfo>>();
+    Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<String, Map<String, String>>();
 
     // populate the stack (non-service related) properties first
     Set<org.apache.ambari.server.state.PropertyInfo> stackConfigurationProperties = ambariMetaInfo.getStackProperties(
@@ -1033,10 +1033,11 @@ public class ConfigHelper {
       String type = ConfigHelper.fileNameToConfigType(stackDefaultProperty.getFilename());
 
       if (!defaultPropertiesByType.containsKey(type)) {
-        defaultPropertiesByType.put(type, new HashSet<PropertyInfo>());
+        defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
 
-      defaultPropertiesByType.get(type).add(stackDefaultProperty);
+      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+          stackDefaultProperty.getValue());
     }
 
     // for every installed service, populate the default service properties
@@ -1049,10 +1050,11 @@ public class ConfigHelper {
         String type = ConfigHelper.fileNameToConfigType(serviceDefaultProperty.getFilename());
 
         if (!defaultPropertiesByType.containsKey(type)) {
-          defaultPropertiesByType.put(type, new HashSet<PropertyInfo>());
+          defaultPropertiesByType.put(type, new HashMap<String, String>());
         }
 
-        defaultPropertiesByType.get(type).add(serviceDefaultProperty);
+        defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+            serviceDefaultProperty.getValue());
       }
     }
 
