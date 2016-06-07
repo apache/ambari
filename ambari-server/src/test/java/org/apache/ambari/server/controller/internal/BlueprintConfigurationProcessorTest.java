@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -7533,6 +7534,42 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("host1:6188",
       clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
   }
+
+  @Test
+  public void testAmsPropertiesSpecialAddressMultipleCollectors() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> amsSite = new HashMap<String, String>();
+    //default
+    amsSite.put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
+    properties.put("ams-site", amsSite);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents1.add("METRICS_COLLECTOR");
+    hgComponents2.add("METRICS_COLLECTOR");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents1, Collections.singleton("host2"));
+
+    Collection<TestHostGroup> hostGroups = new LinkedList<>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("0.0.0.0:6188",
+      clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
+  }
+
   @Test
   public void testStackPasswordPropertyFilter() throws Exception{
 	Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();

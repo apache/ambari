@@ -2627,10 +2627,13 @@ public class BlueprintConfigurationProcessor {
         if (isSpecialNetworkAddress(origValue)) {
           value = origValue.replace(BIND_ALL_IP_ADDRESS, "localhost");
         }
-        return super.updateForClusterCreate(propertyName, value, properties, topology);
+        int metricsCollectorsCount = topology.getHostAssignmentsForComponent("METRICS_COLLECTOR").size();
+        if (metricsCollectorsCount == 1) {
+          return super.updateForClusterCreate(propertyName, value, properties, topology);
+        }
+        return origValue;
       }
     });
-
   }
 
   /**
