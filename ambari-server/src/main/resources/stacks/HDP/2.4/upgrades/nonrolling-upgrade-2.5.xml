@@ -296,6 +296,11 @@
         <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
       </execute-stage>
 
+      <!--FALCON-->
+      <execute-stage service="FALCON" component="FALCON_SERVER" title="Apply config changes for Falcon">
+        <task xsi:type="configure" id="hdp_2_5_0_0_falcon_server_adjust_services_property"/>
+      </execute-stage>
+
       <!-- RANGER -->
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger Admin">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag"/>
