@@ -1501,6 +1501,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ranger-storm-plugin-properties")
 
   def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    parentValidationProblems = super(HDP22StackAdvisor, self).validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     validationItems = []
     if "yarn_cgroups_enabled" in properties:
       yarn_cgroups_enabled = properties["yarn_cgroups_enabled"].lower() == "true"
@@ -1511,7 +1512,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       if not security_enabled and yarn_cgroups_enabled:
         validationItems.append({"config-name": "yarn_cgroups_enabled",
                               "item": self.getWarnItem("CPU Isolation should only be enabled if security is enabled")})
-    return self.toConfigurationValidationProblems(validationItems, "yarn-env")
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "yarn-env")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
   def validateYARNRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []

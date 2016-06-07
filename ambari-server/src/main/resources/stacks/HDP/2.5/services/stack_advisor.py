@@ -1095,69 +1095,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.error("Problem retrieving YARN queues. Skipping updating HIVE Server Interactve "
                    "'hive.server2.tez.default.queues' property attributes.")
 
-  """
-  Gets all YARN leaf queues.
-  """
-  def getAllYarnLeafQueues(self, capacitySchedulerProperties):
-    config_list = capacitySchedulerProperties.keys()
-    yarn_queues = []
-    leafQueueNames = set()
-    if 'yarn.scheduler.capacity.root.queues' in config_list:
-      yarn_queues = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.queues')
-
-    if yarn_queues:
-      toProcessQueues = yarn_queues.split(",")
-      while len(toProcessQueues) > 0:
-        queue = toProcessQueues.pop()
-        queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
-        if queueKey in capacitySchedulerProperties:
-          # If parent queue, add children
-          subQueues = capacitySchedulerProperties[queueKey].split(",")
-          for subQueue in subQueues:
-            toProcessQueues.append(queue + "." + subQueue)
-        else:
-          # Leaf queue
-          queueName = queue.split(".")[-1]
-          leafQueueNames.add(queueName)
-    return leafQueueNames
-
-  """
-  Returns the dictionary of configs for 'capacity-scheduler'.
-  """
-  def getCapacitySchedulerProperties(self, services):
-    capacity_scheduler_properties = dict()
-    received_as_key_value_pair = True
-    if "capacity-scheduler" in services['configurations']:
-      if "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
-        cap_sched_props_as_str = services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]
-        if cap_sched_props_as_str:
-          cap_sched_props_as_str = str(cap_sched_props_as_str).split('\n')
-          if len(cap_sched_props_as_str) > 0 and cap_sched_props_as_str[0] != 'null':
-            # Received confgs as one "\n" separated string
-            for property in cap_sched_props_as_str:
-              key, sep, value = property.partition("=")
-              capacity_scheduler_properties[key] = value
-            Logger.info("'capacity-scheduler' configs is passed-in as a single '\\n' separated string. "
-                        "count(services['configurations']['capacity-scheduler']['properties']['capacity-scheduler']) = "
-                        "{0}".format(len(capacity_scheduler_properties)))
-            received_as_key_value_pair = False
-          else:
-            Logger.info("Passed-in services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'] is 'null'.")
-        else:
-          Logger.info("'capacity-schdeuler' configs not passed-in as single '\\n' string in "
-                      "services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'].")
-      if not capacity_scheduler_properties:
-        # Received configs as a dictionary (Generally on 1st invocation).
-        capacity_scheduler_properties = services['configurations']["capacity-scheduler"]["properties"]
-        Logger.info("'capacity-scheduler' configs is passed-in as a dictionary. "
-                    "count(services['configurations']['capacity-scheduler']['properties']) = {0}".format(len(capacity_scheduler_properties)))
-    else:
-      Logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
-
-    Logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}"\
-                .format(received_as_key_value_pair, capacity_scheduler_properties.items()))
-    return capacity_scheduler_properties, received_as_key_value_pair
-
   def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendRangerKMSConfigurations(configurations, clusterData, services, hosts)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

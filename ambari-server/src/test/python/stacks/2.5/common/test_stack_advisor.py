@@ -6166,6 +6166,81 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hbase-site']['properties']['hbase.master.ui.readonly'],
         expected_configuration['hbase-site']['properties']['hbase.master.ui.readonly'])
 
+  def test_validationYARNServicecheckQueueName(self):
+    servicesInfo = [
+      {
+        "name": "YARN",
+        "components": []
+      }
+    ]
+    services = self.prepareServices(servicesInfo)
+    services["configurations"] = {"yarn-env":{"properties":{"service_check.queue.name": "default"}},
+                                  "capacity-scheduler":{"properties":{"capacity-scheduler":
+                                                                        "yarn.scheduler.capacity.ndfqueue.minimum-user-limit-percent=100\n" +
+                                                                        "yarn.scheduler.capacity.maximum-am-resource-percent=0.2\n" +
+                                                                        "yarn.scheduler.capacity.maximum-applications=10000\n" +
+                                                                        "yarn.scheduler.capacity.node-locality-delay=40\n" +
+                                                                        "yarn.scheduler.capacity.root.accessible-node-labels=*\n" +
+                                                                        "yarn.scheduler.capacity.root.acl_administer_queue=*\n" +
+                                                                        "yarn.scheduler.capacity.root.capacity=100\n" +
+                                                                        "yarn.scheduler.capacity.root.ndfqueue.acl_administer_jobs=*\n" +
+                                                                        "yarn.scheduler.capacity.root.ndfqueue.acl_submit_applications=*\n" +
+                                                                        "yarn.scheduler.capacity.root.ndfqueue.capacity=100\n" +
+                                                                        "yarn.scheduler.capacity.root.ndfqueue.maximum-capacity=100\n" +
+                                                                        "yarn.scheduler.capacity.root.ndfqueue.state=RUNNING\n" +
+                                                                        "yarn.scheduler.capacity.root.ndfqueue.user-limit-factor=1\n" +
+                                                                        "yarn.scheduler.capacity.root.queues=ndfqueue\n"}}}
+    hosts = self.prepareHosts([])
+    result = self.stackAdvisor.validateConfigurations(services, hosts)
+    expectedItems = [
+      {'message': 'service_check.queue.name is not exist, or not corresponds to existing leaf queue', 'level': 'ERROR'}
+    ]
+    self.assertValidationResult(expectedItems, result)
+
+  def assertValidationResult(self, expectedItems, result):
+    actualItems = []
+    for item in result["items"]:
+      next = {"message": item["message"], "level": item["level"]}
+      try:
+        next["host"] = item["host"]
+      except KeyError, err:
+        pass
+      actualItems.append(next)
+    self.checkEqual(expectedItems, actualItems)
+
+  def checkEqual(self, l1, l2):
+    if not len(l1) == len(l2) or not sorted(l1) == sorted(l2):
+      raise AssertionError("list1={0}, list2={1}".format(l1, l2))
+
+  def prepareServices(self, servicesInfo):
+    services = { "Versions" : { "stack_name" : "HDP", "stack_version" : "2.5" } }
+    services["services"] = []
+
+    for serviceInfo in servicesInfo:
+      nextService = {"StackServices":{"service_name" : serviceInfo["name"]}}
+      nextService["components"] = []
+      for component in serviceInfo["components"]:
+        nextComponent = {
+          "StackServiceComponents": {
+            "component_name": component["name"],
+            "cardinality": component["cardinality"],
+            "component_category": component["category"],
+            "is_master": component["is_master"]
+          }
+        }
+        try:
+          nextComponent["StackServiceComponents"]["hostnames"] = component["hostnames"]
+        except KeyError:
+          nextComponent["StackServiceComponents"]["hostnames"] = []
+        try:
+          nextComponent["StackServiceComponents"]["display_name"] = component["display_name"]
+        except KeyError:
+          nextComponent["StackServiceComponents"]["display_name"] = component["name"]
+        nextService["components"].append(nextComponent)
+      services["services"].append(nextService)
+
+    return services
+
   def test_phoenixQueryServerNoChangesWithUnsecure(self):
     self.maxDiff = None
     phoenix_query_server_hosts = ["c6402.ambari.apache.org"]
