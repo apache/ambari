@@ -61,7 +61,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       {
         type: 'hawq-site',
         properties: {
-          'hawq_dfs_url': 'localhost:8020/hawq_default'
+          'hawq_dfs_url': 'localhost:8020/hawq_data'
         }
       }
     ]
@@ -364,7 +364,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           name: 'hawq_dfs_url',
           filename: 'hawq-site'
         },
-        value: nameServiceId + '/hawq_default'
+        value: nameServiceId + '/hawq_data'
       }
     ]).forEach(function (test) {
       describe(test.config.name, function () {

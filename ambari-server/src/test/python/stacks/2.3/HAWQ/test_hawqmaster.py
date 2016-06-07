@@ -170,7 +170,7 @@ class TestHawqMaster(RMFTestCase):
 
     self.__asserts_for_configure()
 
-    self.assertResourceCalled('HdfsResource', '/hawq_default',
+    self.assertResourceCalled('HdfsResource', '/hawq_data',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         default_fs = u'hdfs://c6401.ambari.apache.org:8020',
         hdfs_site = self.getConfig()['configurations']['hdfs-site'],

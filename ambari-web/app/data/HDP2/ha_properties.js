@@ -270,8 +270,8 @@ module.exports =
         "displayName": "hawq_dfs_url",
         "description": "URL for Accessing HDFS",
         "isReconfigurable": false,
-        "recommendedValue": "haCluster/hawq_default",
-        "value": "haCluster/hawq_default",
+        "recommendedValue": "haCluster/hawq_data",
+        "value": "haCluster/hawq_data",
         "category": "HAWQ",
         "filename": "hawq-site",
         "serviceName": 'MISC'

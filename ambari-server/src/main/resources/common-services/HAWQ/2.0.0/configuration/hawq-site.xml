@@ -75,7 +75,7 @@
   <property>
     <name>hawq_dfs_url</name>
     <display-name>HAWQ DFS URL</display-name>
-    <value>localhost:8020/hawq_default</value>
+    <value>localhost:8020/hawq_data</value>
     <description>
       URL for accessing HDFS.
     </description>

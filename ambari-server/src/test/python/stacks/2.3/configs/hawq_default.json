@@ -660,7 +660,7 @@
             "hawq_rm_yarn_queue_name": "default", 
             "hawq_rm_yarn_address": "c6402.ambari.apache.org:8032", 
             "hawq_re_cgroup_mount_point": "/sys/fs/cgroup", 
-            "hawq_dfs_url": "c6401.ambari.apache.org:8020/hawq_default", 
+            "hawq_dfs_url": "c6401.ambari.apache.org:8020/hawq_data", 
             "hawq_global_rm_type": "none", 
             "hawq_segment_directory": "/data/hawq/segment", 
             "hawq_rm_memory_limit_perseg": "64GB", 
