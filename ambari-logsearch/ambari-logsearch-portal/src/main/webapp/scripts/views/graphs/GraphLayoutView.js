@@ -231,7 +231,7 @@ define(['require',
                                 x: that.dateUtil.getMomentObject(object.name), //(new Date(object.name)).toUTCString(),
                                 y: parseFloat(object.value)
                             }
-                        });
+                        })
                     };
 
                     if(!that.futureDate){
