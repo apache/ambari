@@ -85,7 +85,7 @@ module.exports = Em.Application.create({
    */
   upgradeAborted: function () {
     return this.get('upgradeState') === "ABORTED" && !App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeState', 'App.router.mainAdminStackAndUpgradeController.isSuspended'),
+  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
 
   /**
    * flag is true when upgrade process is suspended
@@ -93,7 +93,7 @@ module.exports = Em.Application.create({
    */
   upgradeSuspended: function () {
     return this.get('upgradeState') === "ABORTED" && App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeState', 'App.router.mainAdminStackAndUpgradeController.isSuspended'),
+  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
 
   /**
    * RU is running
