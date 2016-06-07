@@ -1161,7 +1161,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'SERVICE.MOVE', 'Move to another host' FROM dual UNION ALL
   SELECT 'SERVICE.ENABLE_HA', 'Enable HA' FROM dual UNION ALL
   SELECT 'SERVICE.TOGGLE_ALERTS', 'Enable/disable service-level alerts' FROM dual UNION ALL
-  SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add Service to cluster' FROM dual UNION ALL
+  SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add/delete services' FROM dual UNION ALL
   SELECT 'HOST.VIEW_METRICS', 'View metrics' FROM dual UNION ALL
   SELECT 'HOST.VIEW_STATUS_INFO', 'View status information' FROM dual UNION ALL
   SELECT 'HOST.VIEW_CONFIGS', 'View configuration' FROM dual UNION ALL

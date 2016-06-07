@@ -1158,7 +1158,7 @@ insert into adminpermission(permission_id, permission_name, resource_type_id, pe
     SELECT 'SERVICE.MOVE', 'Move to another host' UNION ALL
     SELECT 'SERVICE.ENABLE_HA', 'Enable HA' UNION ALL
     SELECT 'SERVICE.TOGGLE_ALERTS', 'Enable/disable service-level alerts' UNION ALL
-    SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add Service to cluster' UNION ALL
+    SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add/delete services' UNION ALL
     SELECT 'HOST.VIEW_METRICS', 'View metrics' UNION ALL
     SELECT 'HOST.VIEW_STATUS_INFO', 'View status information' UNION ALL
     SELECT 'HOST.VIEW_CONFIGS', 'View configuration' UNION ALL
