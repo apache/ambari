@@ -505,8 +505,12 @@ define(['require',
 		onCompareButtonClick:function(){
 			var dateRangeLabel = 'Last 1 Hour';
 			var time = this.dateUtil.getRelativeDateFromString(dateRangeLabel);
-			if(this.componetList.length >= 1){
-				this.globalVent.trigger("render:comparison:tab",{
+			if(this.componetList.length == 1){
+				Utils.alertPopup({
+                        msg: "Minimum two components are required for comparison. Please select one more component and try again."
+                });
+			}else{
+					this.globalVent.trigger("render:comparison:tab",{
 					params:_.extend({},this.searchParams,{from:time[0].toJSON(),to:time[1].toJSON(),dateRangeLabel : dateRangeLabel}),
 					componetList:this.componetList,
 					globalVent : this.globalVent

@@ -146,7 +146,6 @@ define(['require',
 			},this);
 			
 			this.listenTo(this.globalVent,"reinitialize:serviceLogs",function(options){
-				this.toggleSearchBackToBasicSearch(options);
             	this.vent.trigger("reinitialize:filter:tree reinitialize:filter:include:exclude reinitialize:filter:bubbleTable"+
             			" reinitialize:filter:mustNot reinitialize:filter:mustBe reinitialize:filter:level reinitialize:filter:logtime",options);
             },this);
@@ -162,7 +161,6 @@ define(['require',
 			this.renderLogSnapShot();
 			this.renderEventHistory();
 //			this.fetchLogLevelCounts({q:"*:*"});
-			this.renderAdvanceSearch();
 			this.componentsList.fetch({reset:true});
 		},
 		onShow:function(){
