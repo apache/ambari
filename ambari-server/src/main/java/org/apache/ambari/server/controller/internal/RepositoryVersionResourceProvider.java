@@ -471,15 +471,17 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
 
       for (RepositoryEntity repositoryEntity : os.getRepositories()) {
         String baseUrl = repositoryEntity.getBaseUrl();
-        if (existingRepoUrls.contains(baseUrl)) {
+        if (os.isAmbariManagedRepos() && existingRepoUrls.contains(baseUrl)) {
           throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
                   "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
       }
     }
+
     if (osRepositoryVersion.isEmpty()) {
       throw new AmbariException("At least one set of repositories for OS should be provided");
     }
+
     for (String os: osRepositoryVersion) {
       if (!osSupported.contains(os)) {
         throw new AmbariException("Operating system type " + os + " is not supported by stack " + requiredStackId);
