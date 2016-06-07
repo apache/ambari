@@ -36,34 +36,4 @@
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
 
-  <property>
-    <name>tez.runtime.report.partition.stats</name>
-    <value>true</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
-  </property>
-  <property>
-    <name>tez.runtime.pipelined-shuffle.enabled</name>
-    <value>false</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
-  </property>
-  <property>
-    <name>tez.runtime.pipelined.sorter.lazy-allocate.memory</name>
-    <value>true</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
-  </property>
-  <property>
-    <name>tez.grouping.node.local.only</name>
-    <value>true</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
-  </property>
-  <property>
-    <name>tez.runtime.shuffle.fetch.verify-disk-checksum</name>
-    <value>false</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
-  </property>
 </configuration>
