@@ -127,9 +127,11 @@
     </div>
   </div>
 </div>
-<div class="row">
-  <div class="btn btn-group-md col-md-offset-5">
-    <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveAdvanced">Save</button>
-    <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isSchedulerDirty::disabled"}} name="cancelAdvanced" {{action 'rollbackSchedulerProps'}}>Cancel</button>
+{{#if isOperator}}
+  <div class="row">
+    <div class="btn btn-group-md col-md-offset-5">
+      <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveAdvanced">Save</button>
+      <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isSchedulerDirty::disabled"}} name="cancelAdvanced" {{action 'rollbackSchedulerProps'}}>Cancel</button>
+    </div>
   </div>
-</div>
+{{/if}}
