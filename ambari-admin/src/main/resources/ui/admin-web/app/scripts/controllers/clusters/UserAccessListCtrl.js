@@ -161,20 +161,17 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         user.original_perm = effectivePrivilege.permission_name;
         user.editable = (Cluster.ineditableRoles.indexOf(effectivePrivilege.permission_name) === -1);
 
-        //add a new privilege of type USER only if it is also the effective privilege considering the user's Group privileges
-        var curIndex = $scope.getRoleRank(user.permission_name);
-        var prevIndex = -1;
-        if (privilegesOfTypeGroup.length !== 0) {
-          prevIndex = $scope.getRoleRank(effectivePrivilegeFromGroups.permission_name);
-        }
-        if ((curIndex === 6) || (curIndex <= prevIndex)) {
+        var userIndex = $scope.getRoleRank(user.permission_name);
+        var groupIndex = $scope.getRoleRank(effectivePrivilegeFromGroups.permission_name);
+
+        // Process when it's NONE privilege or higher than current effective group privilege
+        if (userIndex <= groupIndex || user.permission_name == $scope.NONE_ROLE.permission_name) {
           var privilege_ids = [];
           privilegesOfTypeUser.forEach(function(privilegeOfTypeUser) {
             privilege_ids.push(privilegeOfTypeUser.privilege_id);
           });
 
-          //delete all privileges of type USER, if they exist
-          //then add the privilege for the user, after which the user displays the effective privilege
+          // Purge existing user level privileges if there is any
           if(privilege_ids.length !== 0) {
             Cluster.deleteMultiplePrivileges(
                 $routeParams.id,
