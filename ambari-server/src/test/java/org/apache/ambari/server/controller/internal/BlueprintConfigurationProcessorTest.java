@@ -7335,7 +7335,7 @@ public class BlueprintConfigurationProcessorTest {
     // setup properties that include host information
     hawqSite.put("hawq_master_address_host", "localhost");
     hawqSite.put("hawq_standby_address_host", "localhost");
-    hawqSite.put("hawq_dfs_url", createHostAddress("localhost", expectedPortNamenode) + "/hawq_default");
+    hawqSite.put("hawq_dfs_url", createHostAddress("localhost", expectedPortNamenode) + "/hawq_data");
 
     Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
@@ -7366,7 +7366,7 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals(expectedHostNameHawqMaster, hawqSite.get("hawq_master_address_host"));
     assertEquals(expectedHostNameHawqStandby, hawqSite.get("hawq_standby_address_host"));
-    assertEquals(createHostAddress(expectedHostNameNamenode, expectedPortNamenode) + "/hawq_default", hawqSite.get("hawq_dfs_url"));
+    assertEquals(createHostAddress(expectedHostNameNamenode, expectedPortNamenode) + "/hawq_data", hawqSite.get("hawq_dfs_url"));
   }
 
   @Test

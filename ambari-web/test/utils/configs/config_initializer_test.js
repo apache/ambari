@@ -617,8 +617,8 @@ describe('App.ConfigInitializer', function () {
       {
         config: 'hawq_dfs_url',
         localDB: getLocalDBForSingleComponent('NAMENODE'),
-        rValue: 'localhost:8020/hawq_default',
-        expectedValue: 'h1:8020/hawq_default'
+        rValue: 'localhost:8020/hawq_data',
+        expectedValue: 'h1:8020/hawq_data'
       },
       {
         config: 'hawq_rm_yarn_address',
