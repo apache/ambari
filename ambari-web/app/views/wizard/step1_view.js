@@ -89,7 +89,6 @@ App.WizardStep1View = Em.View.extend({
     classNames: [''],
     checked: Em.computed.alias('controller.selectedStack.usePublicRepo'),
     type: 'radio',
-    disabled: Em.computed.alias('controller.networkIssuesExist'),
 
     click: function () {
       this.get('controller').usePublicRepo();
