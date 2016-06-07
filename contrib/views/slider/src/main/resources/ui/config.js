@@ -52,7 +52,7 @@ exports.config = {
           'vendor/scripts/common/bs-popover.min.js',
           'vendor/scripts/common/ember-i18n-1.4.1.js',
           'vendor/scripts/common/bootstrap.js',
-          'vendor/scripts/common/moment.js'
+          'vendor/scripts/common/moment.min.js'
         ]
       }
     },
@@ -106,7 +106,7 @@ exports.config = {
               'vendor/scripts/common/bs-popover.min.js',
               'vendor/scripts/common/ember-i18n-1.4.1.js',
               'vendor/scripts/common/bootstrap.js',
-              'vendor/scripts/common/moment.js'
+              'vendor/scripts/common/moment.min.js'
             ]
           }
         }

@@ -61,7 +61,7 @@ exports.config =
           'vendor/scripts/underscore.js',
           'vendor/scripts/backbone.js',
           'vendor/scripts/visualsearch.js',
-          'vendor/scripts/moment.js',
+          'vendor/scripts/moment.min.js',
           'vendor/scripts/moment-timezone-with-data-2010-2020.js',
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js',
