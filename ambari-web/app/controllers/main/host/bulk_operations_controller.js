@@ -61,6 +61,9 @@ App.BulkOperationsController = Em.Controller.extend({
         else if (operationData.action === 'REINSTALL'){
           this.bulkOperationForHostsReinstall(operationData, hosts);
         }
+        else if (operationData.action === 'DELETE'){
+          this.bulkOperationForHostsDeleteDryRun(operationData, hosts);
+        }
         else {
           if (operationData.action === 'PASSIVE_STATE') {
             this.bulkOperationForHostsPassiveState(operationData, hosts);
@@ -251,6 +254,205 @@ App.BulkOperationsController = Em.Controller.extend({
         },
         success: 'bulkOperationForHostComponentsSuccessCallback'
       });
+    });
+  },
+
+  /**
+   * Calling dry_run for bulk delete selected hosts
+   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+   * @param {Ember.Enumerable} hosts - list of affected hosts
+   */
+  bulkOperationForHostsDeleteDryRun: function (operationData, hosts) {
+    var self = this;
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+      return App.ajax.send({
+        name: 'common.hosts.delete',
+        sender: self,
+        data: {
+          urlParams: "/?dry_run=true",
+          query: 'Hosts/host_name.in(' + hosts.mapProperty('hostName').join(',') + ')',
+          hosts: hosts.mapProperty('hostName')
+        },
+        success: 'bulkOperationForHostsDeleteDryRunCallback',
+        error: 'bulkOperationForHostsDeleteDryRunCallback'
+      });
+    });
+  },
+
+  /**
+   * Show popup after dry_run for bulk delete hosts
+   * @method bulkOperationForHostsDeleteDryRunCallback
+   */
+  bulkOperationForHostsDeleteDryRunCallback: function (arg0, arg1, arg2, arg3, arg4) {
+    var self = this;
+    var deletableHosts = [];
+    var undeletableHosts = [];
+    if (arg1 == "error") {
+      var request = arg0;
+      var params = arg4;
+      var response = JSON.parse(request.responseText);
+      var host = Ember.Object.create({
+        error: {
+          key: params.hosts[0],
+          code: response.status,
+          message: response.message
+        },
+        isCollapsed: true,
+        isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
+      });
+      undeletableHosts.push(host);
+    } else {
+      var data = arg0;
+      var params = arg2;
+      if (data) {
+        data.deleteResult.forEach(function (host) {
+          if (host.deleted) {
+            deletableHosts.push(host);
+          } else {
+            var _host = Ember.Object.create({
+              error: host.error,
+              isCollapsed: true,
+              isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
+            });
+            undeletableHosts.push(_host);
+          }
+        });
+      } else {
+        var host = {
+          deleted: {
+            key: params.hosts[0]
+          }
+        };
+        deletableHosts.push(host);
+      }
+    }
+
+    if (undeletableHosts.length) {
+      return App.ModalPopup.show({
+        header: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.header'),
+
+        primary: deletableHosts.length ? Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.primary').format(deletableHosts.length) : null,
+
+        onPrimary: function () {
+          this._super();
+          self.bulkOperationForHostsDelete(deletableHosts);
+        },
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/host/delete_hosts_dry_run_popup'),
+          message: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.message').format(undeletableHosts.length),
+          undeletableHosts: undeletableHosts,
+          onToggleHost: function (host) {
+            host.contexts[0].toggleProperty('isCollapsed');
+          }
+        })
+      });
+    } else if (deletableHosts.length) {
+      this.bulkOperationForHostsDelete(deletableHosts);
+    }
+  },
+
+  /**
+   * Bulk delete selected hosts
+   * @param {Ember.Enumerable} hosts - list of affected hosts
+   */
+  bulkOperationForHostsDelete: function (hosts) {
+    var self = this;
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+      return App.ModalPopup.show({
+        header: Em.I18n.t('hosts.bulkOperation.deleteHosts.confirmation.header'),
+
+        onPrimary: function () {
+          this._super();
+          return App.ajax.send({
+            name: 'common.hosts.delete',
+            sender: self,
+            data: {
+              query: 'Hosts/host_name.in(' + hosts.mapProperty('deleted.key').join(',') + ')',
+              hosts: hosts.mapProperty('deleted.key')
+            },
+            success: 'bulkOperationForHostsDeleteCallback',
+            error: 'bulkOperationForHostsDeleteCallback'
+          });
+        },
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/host/delete_hosts_popup'),
+          hosts: hosts
+        })
+      });
+    });
+  },
+
+  /**
+   * Show popup after bulk delete hosts
+   * @method bulkOperationForHostsDeleteCallback
+   */
+  bulkOperationForHostsDeleteCallback: function (arg0, arg1, arg2, arg3, arg4) {
+    var deletedHosts = [];
+    var undeletableHosts = [];
+    if (arg1 == "error") {
+      var request = arg0;
+      var params = arg4;
+      var response = JSON.parse(request.responseText);
+      var host = Ember.Object.create({
+        error: {
+          key: params.hosts[0],
+          code: response.status,
+          message: response.message
+        },
+        isCollapsed: true,
+        isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
+      });
+      undeletableHosts.push(host);
+    } else {
+      var data = arg0;
+      var params = arg2;
+      if (data) {
+        data.deleteResult.forEach(function (host) {
+          if (host.deleted) {
+            deletedHosts.push(host);
+          } else {
+            var _host = Ember.Object.create({
+              error: host.error,
+              isCollapsed: true,
+              isBodyVisible: Em.computed.ifThenElse('isCollapsed', 'display: none;', 'display: block;')
+            });
+            undeletableHosts.push(_host);
+          }
+        });
+      } else {
+        var host = {
+          deleted: {
+            key: params.hosts[0]
+          }
+        };
+        deletedHosts.push(host);
+      }
+    }
+
+    return App.ModalPopup.show({
+      header: Em.I18n.t('hosts.bulkOperation.deleteHosts.result.header'),
+
+      secondary: null,
+
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/delete_hosts_result_popup'),
+        message: Em.I18n.t('hosts.bulkOperation.deleteHosts.dryRun.message').format(undeletableHosts.length),
+        undeletableHosts: undeletableHosts,
+        deletedHosts: deletedHosts,
+        onToggleHost: function (host) {
+          host.contexts[0].toggleProperty('isCollapsed');
+        }
+      }),
+
+      onPrimary: function () {
+        location.reload();
+        this._super();
+      },
+
+      onClose: function () {
+        location.reload();
+        this._super();
+      }
     });
   },
 

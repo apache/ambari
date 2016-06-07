@@ -285,6 +285,20 @@ var urls = {
     }
   },
 
+  'common.hosts.delete': {
+    'real': '/clusters/{clusterName}/hosts{urlParams}',
+    'type': 'DELETE',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            query: data.query
+          },
+        })
+      }
+    }
+  },
+
   'common.service.passive': {
     'real': '/clusters/{clusterName}/services/{serviceName}',
     'mock': '',
