@@ -114,7 +114,6 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 
-import junit.framework.Assert;
 import org.junit.rules.TemporaryFolder;
 
 public class UpgradeCatalog240Test {
@@ -501,6 +500,7 @@ public class UpgradeCatalog240Test {
     Method updatePhoenixConfigs = UpgradeCatalog240.class.getDeclaredMethod("updatePhoenixConfigs");
     Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateFalconConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateFalconConfigs");
+    Method fixAuthorizationDescriptions = UpgradeCatalog240.class.getDeclaredMethod("fixAuthorizationDescriptions");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -535,6 +535,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updatePhoenixConfigs)
             .addMockedMethod(updateKerberosDescriptorArtifacts)
             .addMockedMethod(updateFalconConfigs)
+            .addMockedMethod(fixAuthorizationDescriptions)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -564,6 +565,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updatePhoenixConfigs();
     upgradeCatalog240.updateKerberosDescriptorArtifacts();
     upgradeCatalog240.updateFalconConfigs();
+    upgradeCatalog240.fixAuthorizationDescriptions();
 
     replay(upgradeCatalog240, dbAccessor);
 

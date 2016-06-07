@@ -27,7 +27,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -372,6 +371,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateHDFSWidgetDefinition();
     updateTezViewProperty();
     upgradeCapSchedulerView();
+    fixAuthorizationDescriptions();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
@@ -2426,5 +2426,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     }
   }
 
-
+  void fixAuthorizationDescriptions() throws SQLException {
+    // Change the description of the SERVICE.ADD_DELETE_SERVICES authorization to "Add/delete services"
+    dbAccessor.executeUpdate("UPDATE roleauthorization SET authorization_name='Add/delete services' WHERE authorization_id='SERVICE.ADD_DELETE_SERVICES'");
+  }
 }

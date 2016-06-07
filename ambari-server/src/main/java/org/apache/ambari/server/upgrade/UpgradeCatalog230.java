@@ -194,7 +194,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     createRoleAuthorization(roleAuthorizationDAO, "SERVICE.MOVE", "Move to another host");
     createRoleAuthorization(roleAuthorizationDAO, "SERVICE.ENABLE_HA", "Enable HA");
     createRoleAuthorization(roleAuthorizationDAO, "SERVICE.TOGGLE_ALERTS", "Enable/disable service-level alerts");
-    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.ADD_DELETE_SERVICES", "Add Service to cluster");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.ADD_DELETE_SERVICES", "Add/delete services");
 
     createRoleAuthorization(roleAuthorizationDAO, "HOST.VIEW_METRICS", "View metrics");
     createRoleAuthorization(roleAuthorizationDAO, "HOST.VIEW_STATUS_INFO", "View status information");

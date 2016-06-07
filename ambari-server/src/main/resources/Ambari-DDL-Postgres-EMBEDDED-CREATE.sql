@@ -1295,7 +1295,7 @@ INSERT INTO ambari.roleauthorization(authorization_id, authorization_name)
   SELECT 'SERVICE.MOVE', 'Move to another host' UNION ALL
   SELECT 'SERVICE.ENABLE_HA', 'Enable HA' UNION ALL
   SELECT 'SERVICE.TOGGLE_ALERTS', 'Enable/disable service-level alerts' UNION ALL
-  SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add Service to cluster' UNION ALL
+  SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add/delete services' UNION ALL
   SELECT 'HOST.VIEW_METRICS', 'View metrics' UNION ALL
   SELECT 'HOST.VIEW_STATUS_INFO', 'View status information' UNION ALL
   SELECT 'HOST.VIEW_CONFIGS', 'View configuration' UNION ALL
