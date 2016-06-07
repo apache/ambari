@@ -29,6 +29,8 @@
             mode, Livy will enable debugging options, such as reporting possible routes on a 404.
             defaults to development
         </description>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <property>
@@ -37,6 +39,8 @@
         <description>
             What port to start the server on. Defaults to 8998.
         </description>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <property>
@@ -46,6 +50,8 @@
             Time in milliseconds on how long Livy will wait before timing out an idle session.
             Default is one hour.
         </description>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <property>
@@ -54,6 +60,8 @@
         <description>
             If livy should use proxy users when submitting a job.
         </description>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
 </configuration>

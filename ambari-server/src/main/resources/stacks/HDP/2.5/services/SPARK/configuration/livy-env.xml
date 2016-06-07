@@ -30,6 +30,8 @@
             <type>user</type>
             <overridable>false</overridable>
         </value-attributes>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <property>
@@ -41,6 +43,8 @@
         <value-attributes>
             <type>user</type>
         </value-attributes>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <property>
@@ -50,6 +54,8 @@
         <value-attributes>
             <type>directory</type>
         </value-attributes>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <property>
@@ -58,6 +64,8 @@
         <value-attributes>
             <type>directory</type>
         </value-attributes>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <property>
@@ -66,6 +74,8 @@
         <value-attributes>
             <type>directory</type>
         </value-attributes>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
     <!-- livy-env.sh -->
@@ -87,6 +97,8 @@
         <value-attributes>
             <type>content</type>
         </value-attributes>
+        <on-ambari-upgrade add="false" change="true" delete="true"/>
+        <on-stack-upgrade add="true" change="true" delete="false"/>
     </property>
 
 </configuration>
