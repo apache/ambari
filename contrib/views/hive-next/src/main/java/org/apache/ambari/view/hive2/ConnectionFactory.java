@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive2;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive2.client.ConnectionConfig;
@@ -28,23 +29,23 @@ import java.util.List;
 
 public class ConnectionFactory {
 
-  private static String ZK_HIVE_DYN_SERVICE_DISCOVERY_KEY = "hive.server2.support.dynamic.service.discovery";
-  private static String ZK_HIVE_NAMESPACE_KEY = "hive.server2.zookeeper.namespace";
-  private static String ZK_HIVE_QUORUM = "hive.zookeeper.quorum";
+  private static final String ZK_HIVE_DYN_SERVICE_DISCOVERY_KEY = "hive.server2.support.dynamic.service.discovery";
+  private static final String ZK_HIVE_NAMESPACE_KEY = "hive.server2.zookeeper.namespace";
+  private static final String ZK_HIVE_QUORUM = "hive.zookeeper.quorum";
 
-  private static String AMBARI_HIVE_SERVICE_NAME = "HIVE";
-  private static String AMBARI_HIVESERVER_COMPONENT_NAME = "HIVE_SERVER";
+  private static final  String AMBARI_HIVE_SERVICE_NAME = "HIVE";
+  private static final String AMBARI_HIVESERVER_COMPONENT_NAME = "HIVE_SERVER";
 
-  private static String HIVE_SITE = "hive-site";
-  private static String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
+  private static final String HIVE_SITE = "hive-site";
+  private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
 
-  private static String HIVE_JDBC_URL_KEY = "hive.jdbc.url";
+  private static final String HIVE_JDBC_URL_KEY = "hive.jdbc.url";
   private static final String HIVE_SESSION_PARAMS = "hive.session.params";
 
-  private static String BINARY_PORT_KEY = "hive.server2.thrift.port";
-  private static String HTTP_PORT_KEY = "hive.server2.thrift.http.port";
-  private static String HIVE_TRANSPORT_MODE_KEY = "hive.server2.transport.mode";
-  private static String HTTP_PATH_KEY = "hive.server2.thrift.http.path";
+  private static final String BINARY_PORT_KEY = "hive.server2.thrift.port";
+  private static final String HTTP_PORT_KEY = "hive.server2.thrift.http.port";
+  private static final String HIVE_TRANSPORT_MODE_KEY = "hive.server2.transport.mode";
+  private static final String HTTP_PATH_KEY = "hive.server2.thrift.http.path";
 
 
   public static ConnectionConfig create(ViewContext context) {
@@ -106,7 +107,14 @@ public class ConnectionFactory {
     if (namespace == null) {
       namespace = context.getCluster().getConfigurationValue(HIVE_INTERACTIVE_SITE, ZK_HIVE_NAMESPACE_KEY);
     }
-    return String.format("jdbc:hive2://%s/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=%s", quorum, namespace);
+
+    String sessionParams = context.getProperties().get(HIVE_SESSION_PARAMS);
+
+    String formatted = String.format("jdbc:hive2://%s/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=%s", quorum, namespace);
+    if(!Strings.isNullOrEmpty(sessionParams)){
+      return formatted + ";" + sessionParams;
+    }
+    return formatted;
   }
 
   private static boolean zookeeperConfigured(ViewContext context) {

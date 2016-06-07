@@ -24,19 +24,19 @@ import akka.actor.PoisonPill;
 import akka.actor.Props;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive2.ConnectionDelegate;
+import org.apache.ambari.view.hive2.actor.message.AsyncJob;
+import org.apache.ambari.view.hive2.actor.message.HiveMessage;
 import org.apache.ambari.view.hive2.actor.message.RegisterActor;
+import org.apache.ambari.view.hive2.actor.message.ResultReady;
+import org.apache.ambari.view.hive2.actor.message.StartLogAggregation;
+import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
+import org.apache.ambari.view.hive2.actor.message.lifecycle.InactivityCheck;
+import org.apache.ambari.view.hive2.internal.Either;
 import org.apache.ambari.view.hive2.persistence.Storage;
 import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl;
-import org.apache.ambari.view.hive2.ConnectionDelegate;
-import org.apache.ambari.view.hive2.actor.message.AsyncJob;
-import org.apache.ambari.view.hive2.actor.message.HiveMessage;
-import org.apache.ambari.view.hive2.actor.message.ResultReady;
-import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
-import org.apache.ambari.view.hive2.actor.message.lifecycle.InactivityCheck;
-import org.apache.ambari.view.hive2.actor.message.StartLogAggregation;
-import org.apache.ambari.view.hive2.internal.Either;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.hive.jdbc.HiveConnection;
 import org.apache.hive.jdbc.HiveStatement;
@@ -46,7 +46,6 @@ import scala.concurrent.duration.Duration;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class AsyncJdbcConnector extends JdbcConnector {
@@ -123,7 +122,7 @@ public class AsyncJdbcConnector extends JdbcConnector {
 
       logAggregator = getContext().actorOf(
         Props.create(LogAggregator.class, system, hdfsApi, currentStatement.get(), message.getLogFile())
-        .withDispatcher("akka.actor.misc-dispatcher"), message.getUsername() + ":" + message.getJobId() + "-logAggregator"
+        .withDispatcher("akka.actor.misc-dispatcher"),   message.getJobId() + ":" +"-logAggregator"
       );
       deathWatch.tell(new RegisterActor(logAggregator),self());
 
@@ -135,7 +134,7 @@ public class AsyncJdbcConnector extends JdbcConnector {
         // tell the result holder to assign the result set for further operations
         resultSetActor = getContext().actorOf(Props.create(ResultSetIterator.class, self(),
           resultSetOptional.get(),storage).withDispatcher("akka.actor.result-dispatcher"),
-          "ResultSetActor:ResultSetIterator:JobId:"+ jobId+":" + UUID.randomUUID().toString());
+          "ResultSetActor:ResultSetIterator:JobId:"+ jobId );
         deathWatch.tell(new RegisterActor(resultSetActor),self());
         parent.tell(new ResultReady(jobId,username, Either.<ActorRef, ActorRef>left(resultSetActor)), self());
 
@@ -147,7 +146,7 @@ public class AsyncJdbcConnector extends JdbcConnector {
         ActorRef asyncQueryExecutor = getContext().actorOf(
                 Props.create(AsyncQueryExecutor.class, parent, currentStatement.get(),storage,jobId,username)
                   .withDispatcher("akka.actor.result-dispatcher"),
-                message.getUsername() + ":" + message.getJobId() + "-asyncQueryExecutor");
+                 message.getJobId() + "-asyncQueryExecutor");
         deathWatch.tell(new RegisterActor(asyncQueryExecutor),self());
         parent.tell(new ResultReady(jobId,username, Either.<ActorRef, ActorRef>right(asyncQueryExecutor)), self());
 

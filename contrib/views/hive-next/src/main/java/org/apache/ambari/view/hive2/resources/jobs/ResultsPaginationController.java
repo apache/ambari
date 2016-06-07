@@ -190,17 +190,6 @@ public class ResultsPaginationController {
     }
   }
 
-  public static Response.ResponseBuilder emptyResponse() {
-    ResultsResponse resultsResponse = new ResultsResponse();
-    resultsResponse.setSchema(new ArrayList<ColumnDescription>());
-    resultsResponse.setRows(new ArrayList<Object[]>());
-    resultsResponse.setReadCount(0);
-    resultsResponse.setHasNext(false);
-    resultsResponse.setOffset(0);
-    resultsResponse.setHasResults(false);
-    return Response.ok(resultsResponse);
-  }
-
   private <T> List<T> filter(List<T> list, Set<Integer> selectedColumns) {
     List<T> filtered = Lists.newArrayList();
     for(int i: selectedColumns) {
@@ -266,10 +255,6 @@ public class ResultsPaginationController {
 
     public void setReadCount(int readCount) {
       this.readCount = readCount;
-    }
-
-    public int getReadCount() {
-      return readCount;
     }
 
     public void setHasNext(boolean hasNext) {

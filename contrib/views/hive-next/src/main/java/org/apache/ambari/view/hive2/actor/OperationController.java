@@ -235,7 +235,7 @@ public class OperationController extends HiveActor {
         Props.create(AsyncJdbcConnector.class, viewContext, hdfsApi, system, self(),
           deathWatch, connectionSupplier.get(viewContext),
           storageSupplier.get(viewContext)).withDispatcher("akka.actor.jdbc-connector-dispatcher"),
-        username + ":" + "jobId:" + jobId + ":" + UUID.randomUUID().toString() + ":asyncjdbcConnector");
+         "jobId:" + jobId + ":-asyncjdbcConnector");
       deathWatch.tell(new RegisterActor(subActor),self());
 
     }
@@ -300,7 +300,7 @@ public class OperationController extends HiveActor {
         Props.create(SyncJdbcConnector.class, viewContext, hdfsApi, system, self(),
           deathWatch, connectionSupplier.get(viewContext),
           storageSupplier.get(viewContext)).withDispatcher("akka.actor.jdbc-connector-dispatcher"),
-        username + ":" + UUID.randomUUID().toString() + ":SyncjdbcConnector" );
+          UUID.randomUUID().toString() + ":SyncjdbcConnector" );
       deathWatch.tell(new RegisterActor(subActor),self());
 
     }

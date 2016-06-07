@@ -45,7 +45,7 @@ public class DeathWatch extends HiveActor {
         if(message instanceof Terminated){
             Terminated terminated = (Terminated) message;
             ActorRef actor = terminated.actor();
-            LOG.info("Received deathwatch for actor "+ actor);
+            LOG.info("Received terminate for actor "+ actor);
             LOG.info("Termination for {} at {}", actor,new Date());
 
         }
