@@ -445,6 +445,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
       host.checkboxes.forEach(function(checkbox) {
         checkbox.isInstalled = installedComponents.contains(checkbox.component);
+        if (checkbox.isInstalled) {
+          checkbox.checked = true;
+        }
       });
     });
   },
@@ -494,14 +497,17 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       var checkboxes = host.checkboxes;
       var hostComponents = recommendedMap[host.hostName] || [];
       checkboxes.forEach(function (checkbox) {
-        var checked = hostComponents.contains(checkbox.component);
+        var checked;
+        if (!checkbox.isDisabled) {
+          checked = hostComponents.contains(checkbox.component);
 
-        if (checkbox.component === 'CLIENT' && !checked) {
-          checked = hostComponents.some(function(componentName) {
-            return clientComponentsMap[componentName];
-          });
+          if (checkbox.component === 'CLIENT' && !checked) {
+            checked = hostComponents.some(function (componentName) {
+              return clientComponentsMap[componentName];
+            });
+          }
+          checkbox.checked = checked;
         }
-        checkbox.checked = checked;
       });
     });
   },
