@@ -5670,12 +5670,6 @@ class TestHDP25StackAdvisor(TestCase):
                       self.expected_hive_interactive_site_default['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'default')
 
-
-
-
-
-
-
   def test_recommendAtlasConfigurations(self):
     self.maxDiff = None
     configurations = {
@@ -5705,11 +5699,13 @@ class TestHDP25StackAdvisor(TestCase):
     expected = {
       'application-properties': {
         'properties': {
-          'atlas.graph.index.search.solr.zookeeper-url': '{{solr_zookeeper_url}}',
-          "atlas.audit.hbase.zookeeper.quorum": "",
-          "atlas.graph.storage.hostname": "",
-          "atlas.kafka.bootstrap.servers": "",
-          "atlas.kafka.zookeeper.connect": ""
+          'atlas.graph.index.search.solr.zookeeper-url': 'c6401.ambari.apache.org:2181/logsearch',
+          "atlas.audit.hbase.zookeeper.quorum": "c6401.ambari.apache.org",
+          "atlas.graph.storage.hostname": "c6401.ambari.apache.org",
+          "atlas.kafka.bootstrap.servers": "c6401.ambari.apache.org:6667",
+          "atlas.kafka.zookeeper.connect": "c6401.ambari.apache.org",
+          'atlas.server.address.id1': "c6401.ambari.apache.org:21000",
+          'atlas.server.ids': "id1"
         }
       },
       "logsearch-solr-env": {
@@ -5721,7 +5717,7 @@ class TestHDP25StackAdvisor(TestCase):
     services = {
       "services": [
         {
-          "href": "/api/v1/stacks/HDP/versions/2.2/services/ATLAS",
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/LOGSEARCH",
           "StackServices": {
             "service_name": "LOGSEARCH",
             "service_version": "2.6.0.2.2",
@@ -5738,7 +5734,103 @@ class TestHDP25StackAdvisor(TestCase):
                 "display_name": "solr",
                 "is_client": "false",
                 "is_master": "true",
-                "hostnames": []
+                "hostnames": ["c6401.ambari.apache.org"]
+              },
+              "dependencies": []
+            }
+          ]
+        },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/ZOOKEEPER",
+          "StackServices": {
+            "service_name": "ZOOKEEPER",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "ZOOKEEPER_SERVER",
+                "display_name": "zk",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": ["c6401.ambari.apache.org"]
+              },
+              "dependencies": []
+            }
+          ]
+        },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/HBASE",
+          "StackServices": {
+            "service_name": "HBASE",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "HBASE_MASTER",
+                "display_name": "zk",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": ["c6401.ambari.apache.org"]
+              },
+              "dependencies": []
+            }
+          ]
+        },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/ATLAS",
+          "StackServices": {
+            "service_name": "ATLAS",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "ATLAS_SERVER",
+                "display_name": "atlas",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": ["c6401.ambari.apache.org"]
+              },
+              "dependencies": []
+            }
+          ]
+        },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/KAFKA",
+          "StackServices": {
+            "service_name": "KAFKA",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "KAFKA_BROKER",
+                "display_name": "atlas",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": ["c6401.ambari.apache.org"]
               },
               "dependencies": []
             }
@@ -5752,12 +5844,25 @@ class TestHDP25StackAdvisor(TestCase):
             "atlas.audit.hbase.zookeeper.quorum": "",
             "atlas.graph.storage.hostname": "",
             "atlas.kafka.bootstrap.servers": "",
-            "atlas.kafka.zookeeper.connect": ""
+            "atlas.kafka.zookeeper.connect": "",
+            'atlas.server.address.id1': "",
+            'atlas.server.ids': ""
           }
         },
         "logsearch-solr-env": {
           "properties": {
             "logsearch_solr_znode": "/logsearch"
+          }
+        },
+        "hbase-site": {
+          "properties": {
+            "hbase.zookeeper.quorum": "c6401.ambari.apache.org"
+          }
+        },
+        "kafka-broker": {
+          "properties": {
+            "zookeeper.connect": "c6401.ambari.apache.org",
+            "port": "6667"
           }
         }
       },

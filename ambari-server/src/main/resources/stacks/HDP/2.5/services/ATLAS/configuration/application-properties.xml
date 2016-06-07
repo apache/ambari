@@ -29,7 +29,7 @@
   </property>
   <property>
     <name>atlas.server.ids</name>
-    <value>{{server_ids}}</value>
+    <value></value>
     <description>List of Atlas server ids for HA feature.</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -40,7 +40,7 @@
   </property>
   <property>
     <name>atlas.server.address.id1</name>
-    <value>{{server_hosts}}</value>
+    <value></value>
     <description>Mapping of Atlas server ids to hosts.</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -58,14 +58,14 @@
   </property>
   <property>
     <name>atlas.graph.storage.hostname</name>
-    <value>{{hbase_zookeeper_quorum}}</value>
+    <value></value>
     <description/>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>atlas.audit.hbase.zookeeper.quorum</name>
-    <value>{{hbase_zookeeper_quorum}}</value>
+    <value></value>
     <description/>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
@@ -86,7 +86,7 @@
   </property>
   <property>
     <name>atlas.graph.index.search.solr.zookeeper-url</name>
-    <value>{{solr_zookeeper_url}}</value>
+    <value></value>
     <description>The ZooKeeper quorum setup for Solr as comma separated value.</description>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
@@ -121,14 +121,14 @@
   </property>
   <property>
     <name>atlas.kafka.bootstrap.servers</name>
-    <value>{{kafka_bootstrap_servers}}</value>
+    <value></value>
     <description>Comma separated list of Kafka broker endpoints in host:port form</description>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
   </property>
   <property>
     <name>atlas.kafka.zookeeper.connect</name>
-    <value>{{kafka_zookeeper_connect}}</value>
+    <value></value>
     <description>Comma separated list of servers forming Zookeeper quorum used by Kafka.</description>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>
