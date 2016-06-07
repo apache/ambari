@@ -1603,6 +1603,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @return {App.ModalPopup}
    */
   openUpgradeDialog: function () {
+    App.propertyDidChange('upgradeSuspended');
     App.router.transitionTo('admin.stackUpgrade');
   },
 
