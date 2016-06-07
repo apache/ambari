@@ -195,6 +195,10 @@ limitations under the License.
         <type>capacity-scheduler</type>
         <name>yarn.scheduler.capacity.root.queues</name>
       </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.queue.name</name>
+      </property>
     </depends-on>
     <on-ambari-upgrade add="false" change="true" delete="true"/>
     <on-stack-upgrade add="true" change="true" delete="false"/>

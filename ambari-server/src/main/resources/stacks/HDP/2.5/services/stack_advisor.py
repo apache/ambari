@@ -29,6 +29,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     super(HDP25StackAdvisor, self).__init__()
     Logger.initialize_logger()
     self.HIVE_INTERACTIVE_SITE = 'hive-interactive-site'
+    self.YARN_ROOT_DEFAULT_QUEUE_NAME = 'default'
 
   def createComponentLayoutRecommendations(self, services, hosts):
     parentComponentLayoutRecommendations = super(HDP25StackAdvisor, self).createComponentLayoutRecommendations(
@@ -254,10 +255,23 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'true')
       putHiveInteractiveEnvProperty('hive_server_interactive_host', hsi_host)
 
-      # Update 'hive.llap.daemon.queue.name' if capacity scheduler is changed.
-      if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
-          'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
-        self.setLlapDaemonQueueNamePropAttributes(services, configurations)
+      # Update 'hive.llap.daemon.queue.name' property attributes if capacity scheduler is changed.
+      if self.HIVE_INTERACTIVE_SITE in services['configurations']:
+        if 'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+          self.setLlapDaemonQueueNamePropAttributes(services, configurations)
+
+          # Update 'hive.server2.tez.default.queues' value
+          hive_tez_default_queue = None
+          if 'hive-interactive-site' in configurations and \
+              'hive.llap.daemon.queue.name' in configurations[self.HIVE_INTERACTIVE_SITE]['properties']:
+            hive_tez_default_queue = configurations[self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
+            Logger.info("'hive.llap.daemon.queue.name' value from configurations : '{0}'".format(hive_tez_default_queue))
+          if not hive_tez_default_queue:
+            hive_tez_default_queue = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
+            Logger.info("'hive.llap.daemon.queue.name' value from services : '{0}'".format(hive_tez_default_queue))
+          if hive_tez_default_queue:
+            putHiveInteractiveSiteProperty("hive.server2.tez.default.queues", hive_tez_default_queue)
+            Logger.info("Updated 'hive.server2.tez.default.queues' config : '{0}'".format(hive_tez_default_queue))
     else:
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
 
@@ -643,13 +657,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Check if 'hive.tez.container.size' is modified in current ST invocation.
     if 'hive-site' in configurations and 'hive.tez.container.size' in configurations['hive-site']['properties']:
       hive_container_size = float(configurations['hive-site']['properties']['hive.tez.container.size'])
-      Logger.info("''hive.tez.container.size'' read from configurations as : {0}".format(hive_container_size))
+      Logger.info("'hive.tez.container.size' read from configurations as : {0}".format(hive_container_size))
 
     if not hive_container_size:
       # Check if 'hive.tez.container.size' is input in services array.
       if 'hive.tez.container.size' in services['configurations']['hive-site']['properties']:
         hive_container_size = float(services['configurations']['hive-site']['properties']['hive.tez.container.size'])
-        Logger.info("''hive.tez.container.size'' read from services as : {0}".format(hive_container_size))
+        Logger.info("'hive.tez.container.size' read from services as : {0}".format(hive_container_size))
 
     if not hive_container_size:
       raise Fail("Couldn't retrieve Hive Server 'hive.tez.container.size' config.")
@@ -668,14 +682,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Check if 'yarn.scheduler.minimum-allocation-mb' is modified in current ST invocation.
     if 'yarn-site' in configurations and 'yarn.scheduler.minimum-allocation-mb' in configurations['yarn-site']['properties']:
       yarn_min_container_size = float(configurations['yarn-site']['properties']['yarn.scheduler.minimum-allocation-mb'])
-      Logger.info("''yarn.scheduler.minimum-allocation-mb'' read from configurations as : {0}".format(yarn_min_container_size))
+      Logger.info("'yarn.scheduler.minimum-allocation-mb' read from configurations as : {0}".format(yarn_min_container_size))
 
     if not yarn_min_container_size:
       # Check if 'yarn.scheduler.minimum-allocation-mb' is input in services array.
       if 'yarn-site' in services['configurations'] and \
           'yarn.scheduler.minimum-allocation-mb' in services['configurations']['yarn-site']['properties']:
         yarn_min_container_size = float(services['configurations']['yarn-site']['properties']['yarn.scheduler.minimum-allocation-mb'])
-        Logger.info("''yarn.scheduler.minimum-allocation-mb'' read from services as : {0}".format(yarn_min_container_size))
+        Logger.info("'yarn.scheduler.minimum-allocation-mb' read from services as : {0}".format(yarn_min_container_size))
 
     if not yarn_min_container_size:
       raise Fail("Couldn't retrieve YARN's 'yarn.scheduler.minimum-allocation-mb' config.")
@@ -705,7 +719,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Check if 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
     if 'yarn-site' in configurations and 'yarn.nodemanager.resource.memory-mb' in configurations['yarn-site']['properties']:
       yarn_nm_mem_in_mb = float(configurations['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb'])
-      Logger.info("''yarn.nodemanager.resource.memory-mb'' read from configurations as : {0}".format(yarn_nm_mem_in_mb))
+      Logger.info("'yarn.nodemanager.resource.memory-mb' read from configurations as : {0}".format(yarn_nm_mem_in_mb))
       print "from services : ",services['configurations']['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb']
 
     if not yarn_nm_mem_in_mb:
@@ -732,14 +746,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Check if 'tez.am.resource.memory.mb' is modified in current ST invocation.
     if 'tez-interactive-site' in configurations and 'tez.am.resource.memory.mb' in configurations['tez-interactive-site']['properties']:
       llap_daemon_container_size = float(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'])
-      Logger.info("''tez.am.resource.memory.mb'' read from configurations as : {0}".format(llap_daemon_container_size))
+      Logger.info("'tez.am.resource.memory.mb' read from configurations as : {0}".format(llap_daemon_container_size))
 
     if not llap_daemon_container_size:
       # Check if 'tez.am.resource.memory.mb' is input in services array.
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
           'tez.am.resource.memory.mb' in services['configurations']['tez-interactive-site']['properties']:
         llap_daemon_container_size = float(services['configurations']['tez-interactive-site']['properties']['tez.am.resource.memory.mb'])
-        Logger.info("''tez.am.resource.memory.mb'' read from services as : {0}".format(llap_daemon_container_size))
+        Logger.info("'tez.am.resource.memory.mb' read from services as : {0}".format(llap_daemon_container_size))
 
 
     if not llap_daemon_container_size:
@@ -940,7 +954,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             Logger.info("Adjusted 'default' queue capacity to : {0}%".format(adjusted_default_queue_cap))
 
           # Update Hive 'hive.llap.daemon.queue.name' prop to use 'llap' queue.
-          putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', 'llap')
+          putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', llap_queue_name)
+          putHiveInteractiveSiteProperty('hive.server2.tez.default.queues', llap_queue_name)
           putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "minimum", llap_min_reqd_cap_percentage)
           putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "maximum", 100)
 
@@ -1014,7 +1029,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             .format(llap_queue_name, DEFAULT_MAX_CAPACITY))
 
           # Update Hive 'hive.llap.daemon.queue.name' prop to use 'default' queue.
-          putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', 'default')
+          putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', self.YARN_ROOT_DEFAULT_QUEUE_NAME)
+          putHiveInteractiveSiteProperty('hive.server2.tez.default.queues', self.YARN_ROOT_DEFAULT_QUEUE_NAME)
       else:
         Logger.debug("Not removing '{0}' queue as number of Queues not equal to 2. Current YARN queues : {1}".format(llap_queue_name, list(leafQueueNames)))
     else:
