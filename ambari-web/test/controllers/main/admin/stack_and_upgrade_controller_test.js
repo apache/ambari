@@ -307,15 +307,25 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#openUpgradeDialog()", function () {
-    before(function () {
+    var mock = {
+      observer: Em.K
+    };
+    beforeEach(function () {
       sinon.stub(App.router, 'transitionTo', Em.K);
-    });
-    after(function () {
-      App.router.transitionTo.restore();
-    });
-    it("should open dialog", function () {
+      sinon.spy(mock, 'observer');
+      Em.addObserver(App, 'upgradeSuspended', mock, 'observer');
       controller.openUpgradeDialog();
+    });
+    afterEach(function () {
+      App.router.transitionTo.restore();
+      mock.observer.restore();
+      Em.removeObserver(App, 'upgradeSuspended', mock, 'observer');
+    });
+    it('should open dialog', function () {
       expect(App.router.transitionTo.calledWith('admin.stackUpgrade')).to.be.true;
+    });
+    it('upgradeSuspended should receive actual value', function () {
+      expect(mock.observer.calledOnce).to.be.true;
     });
   });
 
