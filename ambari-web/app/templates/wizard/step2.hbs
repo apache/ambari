@@ -145,19 +145,19 @@
 
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
-      <a class="btn pull-left installer-back-btn" {{action back}} {{bindAttr disabled="App.router.btnClickInProgress"}}>
+      <button class="btn pull-left installer-back-btn" {{action back}} {{bindAttr disabled="App.router.btnClickInProgress"}}>
         &larr; {{t common.back}}
         {{#if App.router.backBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
         {{/if}}
-      </a>
+      </button>
     {{/unless}}
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action evaluateStep target="controller"}}>
+    <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action evaluateStep target="controller"}}>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
       {{t installer.step2.registerAndConfirm}} &rarr;
-    </a>
+    </button>
   </div>
 
 </div>

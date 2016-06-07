@@ -155,7 +155,7 @@
       {{view.acceptButtonText}}
     </a>
     {{#if view.isCancelButtonVisible}}
-      <a class="btn pull-right mrm" {{action onCancel target="controller"}}>{{t common.cancel}}</a>
+      <button class="btn pull-right mrm" {{action onCancel target="controller"}}>{{t common.cancel}}</button>
     {{/if}}
     {{#if App.router.nextBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="pull-right"}}
