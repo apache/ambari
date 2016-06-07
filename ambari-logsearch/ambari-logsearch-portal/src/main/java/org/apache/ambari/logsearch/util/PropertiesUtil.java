@@ -18,20 +18,45 @@
  */
 package org.apache.ambari.logsearch.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
 public class PropertiesUtil extends PropertyPlaceholderConfigurer {
+  static Logger logger = Logger.getLogger(PropertiesUtil.class);
   private static Map<String, String> propertiesMap;
+  private static final String LOGSEARCH_PROP_FILE="logsearch.properties";
 
   private PropertiesUtil() {
 
+  }
+  
+ static {
+    propertiesMap = new HashMap<String, String>();
+    Properties properties = new Properties();
+    URL fileCompleteUrl = Thread.currentThread()
+        .getContextClassLoader().getResource(LOGSEARCH_PROP_FILE);
+    try {
+      File file = new File(fileCompleteUrl.toURI());
+      properties.load(new FileInputStream(file.getAbsoluteFile()));
+    } catch (IOException | URISyntaxException e) {
+      logger.error("error loading prop for protocol config",e);
+    }
+    for (String key : properties.stringPropertyNames()) {
+      String value = properties.getProperty(key);
+      propertiesMap.put(key, value);
+    }
   }
 
   @Override
