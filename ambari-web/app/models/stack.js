@@ -70,7 +70,7 @@ App.Stack = DS.Model.extend({
   restoreReposBaseUrls: function () {
     this.get('operatingSystems').forEach(function (os) {
       os.get('repositories').forEach(function (repo) {
-        repo.set('baseUrl', repo.get('latestBaseUrl'));
+        repo.set('baseUrl', repo.get('baseUrlInit'));
       });
     });
   }
