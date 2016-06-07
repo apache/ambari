@@ -127,39 +127,8 @@ if security_enabled:
 else:
     smoke_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
 
-# kafka
-kafka_bootstrap_servers = ""
-kafka_broker_hosts = default('/clusterHostInfo/kafka_broker_hosts', [])
-
-if not len(kafka_broker_hosts) == 0:
-  kafka_broker_port = default("/configurations/kafka-broker/port", 6667)
-  kafka_bootstrap_servers = kafka_broker_hosts[0] + ":" + str(kafka_broker_port)
-
-kafka_zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)
-
 # hbase
-hbase_zookeeper_quorum = default('/configurations/hbase-site/hbase.zookeeper.quorum', None)
 hbase_conf_dir = "/etc/hbase/conf"
-
-# atlas HA
-atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
-
-id = 1
-server_ids = ""
-server_hosts = ""
-first_id = True
-for host in atlas_hosts:
-  server_id = "id" + str(id)
-  server_host = host + ":" + metadata_port
-  if first_id:
-    server_ids = server_id
-    server_hosts = server_host
-  else:
-    server_ids += "," + server_id
-    server_hosts += "\n" + "atlas.server.address." + server_id + "=" + server_host
-
-  id += 1
-  first_id = False
 
 atlas_search_backend = default("/configurations/application-properties/atlas.graph.index.search.backend", "")
 search_backend_solr = atlas_search_backend.startswith('solr')
@@ -183,18 +152,12 @@ zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
 # get comma separated lists of zookeeper hosts from clusterHostInfo
 index = 0
 zookeeper_quorum = ""
-solr_zookeeper_url = ""
-
 for host in zookeeper_hosts:
   zookeeper_host = host
   if zookeeper_port is not None:
     zookeeper_host = host + ":" + str(zookeeper_port)
 
-  if logsearch_solr_znode is not None:
-    solr_zookeeper_url += zookeeper_host + logsearch_solr_znode
-
   zookeeper_quorum += zookeeper_host
   index += 1
   if index < len(zookeeper_hosts):
     zookeeper_quorum += ","
-    solr_zookeeper_url += ","
