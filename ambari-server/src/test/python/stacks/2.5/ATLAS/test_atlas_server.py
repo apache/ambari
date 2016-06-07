@@ -94,18 +94,6 @@ class TestAtlasServer(RMFTestCase):
                               group='hadoop',
                               mode=0644,
                               )
-    self.assertResourceCalled('File', '/etc/atlas/conf/users-credentials.properties',
-                              content=StaticFile('users-credentials.properties'),
-                              owner='atlas',
-                              group='hadoop',
-                              mode=0644,
-                              )
-    self.assertResourceCalled('File', '/etc/atlas/conf/policy-store.txt',
-                              content=StaticFile('policy-store.txt'),
-                              owner='atlas',
-                              group='hadoop',
-                              mode=0644,
-                              )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr-client',
                               owner='solr',
                               group='solr',

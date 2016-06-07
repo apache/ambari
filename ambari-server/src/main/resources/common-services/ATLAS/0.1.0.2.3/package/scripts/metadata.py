@@ -95,20 +95,6 @@ def metadata(type='server'):
          content=InlineTemplate(params.metadata_log4j_content)
     )
 
-    File(format("{conf_dir}/users-credentials.properties"),
-         mode=0644,
-         owner=params.metadata_user,
-         group=params.user_group,
-         content=StaticFile('users-credentials.properties')
-    )
-
-    File(format("{conf_dir}/policy-store.txt"),
-         mode=0644,
-         owner=params.metadata_user,
-         group=params.user_group,
-         content=StaticFile('policy-store.txt')
-    )
-
     if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
       solr_cloud_util.setup_solr_client(params.config)
 
