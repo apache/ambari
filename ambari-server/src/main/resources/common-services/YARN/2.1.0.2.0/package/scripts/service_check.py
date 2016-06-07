@@ -100,7 +100,8 @@ class ServiceCheckDefault(ServiceCheck):
 
     yarn_distrubuted_shell_check_params = ["yarn org.apache.hadoop.yarn.applications.distributedshell.Client",
                                            "-shell_command", "ls", "-num_containers", "{number_of_nm}",
-                                           "-jar", "{path_to_distributed_shell_jar}", "-timeout", "300000"]
+                                           "-jar", "{path_to_distributed_shell_jar}", "-timeout", "300000",
+                                           "--queue", "{service_check_queue_name}"]
     yarn_distrubuted_shell_check_cmd = format(" ".join(yarn_distrubuted_shell_check_params))
 
     if params.security_enabled:
