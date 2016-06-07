@@ -498,6 +498,7 @@ App.AssignMasterComponents = Em.Mixin.create({
   clearStep: function () {
     this.setProperties({
       hosts: [],
+      isLoaded: false,
       selectedServicesMasters: [],
       servicesMasters: []
     });
@@ -527,6 +528,7 @@ App.AssignMasterComponents = Em.Mixin.create({
     self.get('addableComponents').forEach(function (componentName) {
       self.updateComponent(componentName);
     }, self);
+    self.set('isLoaded', true);
     if (self.thereIsNoMasters() && !self.get('mastersToCreate').length) {
       App.router.send('next');
     }
@@ -597,7 +599,6 @@ App.AssignMasterComponents = Em.Mixin.create({
     }
     this.set("hosts", result);
     this.sortHosts(this.get('hosts'));
-    this.set('isLoaded', true);
   },
 
   /**

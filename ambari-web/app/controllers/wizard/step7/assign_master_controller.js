@@ -115,7 +115,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       },
       showWarningPopup: function() {
         var mainPopupContext = this;
-        var warningPopup = App.ModalPopup.show({
+        App.ModalPopup.show({
           encodeBody: false,
           header: Em.I18n.t('common.warning'),
           primaryClass: 'btn-warning',
@@ -230,7 +230,6 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
       this.set("hosts", result);
       this.sortHosts(result);
-      this.set('isLoaded', true);
     }
   },
 
@@ -373,7 +372,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @method submit
    */
   submit: function () {
-    var self  = this;
+    var self = this;
     App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
       self.get('popup').hide();
       var context = self.get('configWidgetContext');
