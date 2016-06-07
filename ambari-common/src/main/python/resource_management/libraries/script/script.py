@@ -664,6 +664,8 @@ class Script(object):
         services_to_skip = ['RANGER', 'RANGER_KMS']
         if service_name in services_to_skip:
           Logger.info('Temporarily skipping status check for {0} service only.'.format(service_name))
+        elif is_stack_upgrade:
+          Logger.info('Skipping status check for {0} service during upgrade'.format(service_name))
         else:
           self.status(env)
           raise Fail("Stop command finished but process keep running.")

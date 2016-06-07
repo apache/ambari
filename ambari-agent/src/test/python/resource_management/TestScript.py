@@ -36,6 +36,7 @@ from resource_management.libraries.script import Script
 from resource_management.core.environment import Environment
 from mock.mock import MagicMock, patch
 
+
 class TestScript(TestCase):
 
   def setUp(self):
@@ -114,7 +115,6 @@ class TestScript(TestCase):
     script.put_structured_out({"1": "3"})
     self.assertEqual(open_mock.call_count, 3)
     self.assertEqual(Script.structuredOut, {"1": "3", "2": "2"})
-
 
   def tearDown(self):
     # enable stdout
