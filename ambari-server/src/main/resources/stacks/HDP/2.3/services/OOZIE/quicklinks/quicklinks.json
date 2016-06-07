@@ -27,6 +27,7 @@
     "links": [
       {
         "name": "resourcemanager_ui",
+        "component_name": "OOZIE_SERVER",
         "label": "Oozie Web UI",
         "requires_user_name": "true",
         "url":"%@://%@:%@/oozie?user.name=%@",
