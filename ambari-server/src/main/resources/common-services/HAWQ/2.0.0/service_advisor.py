@@ -36,7 +36,7 @@ except Exception as e:
 
 class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
 
-  def getHostsForMasterComponent(self, stackAdvisor, services, hosts, component, hostsList, hostsComponentsMap):
+  def getHostsForMasterComponent(self, services, hosts, component, hostsList):
     if component["StackServiceComponents"]["component_name"] == 'HAWQSTANDBY':
       # Do not recommend HAWQSTANDBY on single node cluster, or cluster with no active hosts
       if len(hostsList) <= 1:
@@ -56,24 +56,21 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           return availableHosts[:1]
         return [ambariServerHost]
 
-    return stackAdvisor.getHostsForMasterComponent(services, hosts, component, hostsList, hostsComponentsMap)
+    return super(HAWQ200ServiceAdvisor, self).getHostsForMasterComponent(services, hosts, component, hostsList)
 
-  def isComponentNotPreferableOnAmbariServerHost(self, componentName):
-    return componentName in ('HAWQMASTER', 'HAWQSTANDBY')
+  def getNotPreferableOnServerComponents(self):
+    return ['HAWQMASTER', 'HAWQSTANDBY']
 
-  def getComponentLayoutScheme(self, componentName):
-    if componentName == 'HAWQMASTER':
-      return {6: 2, 31: 1, "else": 5}
+  def getComponentLayoutSchemes(self):
+    return {
+      'HAWQMASTER': {6: 2, 31: 1, "else": 5},
+      'HAWQSTANDBY': {6: 1, 31: 2, "else": 3}
+    }
 
-    if componentName == 'HAWQSTANDBY':
-      return {6: 1, 31: 2, "else": 3}
-
-    return None
-
-  def colocateService(self, stackAdvisor, hostsComponentsMap, serviceComponents):
+  def colocateService(self, hostsComponentsMap, serviceComponents):
     # colocate HAWQSEGMENT with DATANODE, if no hosts have been allocated for HAWQSEGMENT
     hawqSegment = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
-    if not stackAdvisor.isComponentHostsPopulated(hawqSegment):
+    if not self.isComponentHostsPopulated(hawqSegment):
       for hostName in hostsComponentsMap.keys():
         hostComponents = hostsComponentsMap[hostName]
         if {"name": "DATANODE"} in hostComponents and {"name": "HAWQSEGMENT"} not in hostComponents:
@@ -81,7 +78,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         if {"name": "DATANODE"} not in hostComponents and {"name": "HAWQSEGMENT"} in hostComponents:
           hostComponents.remove({"name": "HAWQSEGMENT"})
 
-  def getComponentLayoutValidations(self, stackAdvisor, services, hosts):
+  def getServiceComponentLayoutValidations(self, services, hosts):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
@@ -107,13 +104,13 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       message = "HAWQ Master and HAWQ Standby Master cannot be deployed on the same host."
       items.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
-    if len(hawqMasterHosts) ==  1 and hostsCount > 1 and stackAdvisor.isLocalHost(hawqMasterHosts[0]):
+    if len(hawqMasterHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqMasterHosts[0]):
       message = "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. " \
                 "If you are using port 5432 for Postgres, you must either deploy the HAWQ Master on a different host " \
                 "or configure a different port for the HAWQ Masters in the HAWQ Configuration page."
       items.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": hawqMasterHosts[0] } )
 
-    if len(hawqStandbyHosts) ==  1 and hostsCount > 1 and stackAdvisor.isLocalHost(hawqStandbyHosts[0]):
+    if len(hawqStandbyHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqStandbyHosts[0]):
       message = "The default Postgres port (5432) on the Ambari Server conflicts with the default HAWQ Masters port. " \
                 "If you are using port 5432 for Postgres, you must either deploy the HAWQ Standby Master on a different host " \
                 "or configure a different port for the HAWQ Masters in the HAWQ Configuration page."
@@ -121,13 +118,13 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
 
     return items
 
-  def isHawqMasterComponentOnAmbariServer(self, stackAdvisor, services):
+  def isHawqMasterComponentOnAmbariServer(self, services):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
     hawqMasterComponentHosts = [hostname for component in componentsList if component["StackServiceComponents"]["component_name"] in ("HAWQMASTER", "HAWQSTANDBY") for hostname in component["StackServiceComponents"]["hostnames"]]
-    return any([stackAdvisor.isLocalHost(host) for host in hawqMasterComponentHosts])
+    return any([self.isLocalHost(host) for host in hawqMasterComponentHosts])
 
-  def getServiceConfigurationRecommendations(self, stackAdvisor, configurations, clusterData, services, hosts):
+  def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
 
     # Set dfs.allow.truncate to true
@@ -151,7 +148,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
 
     # remove master port when master is colocated with Ambari server
-    if self.isHawqMasterComponentOnAmbariServer(stackAdvisor, services) and "hawq_master_address_port" in hawq_site:
+    if self.isHawqMasterComponentOnAmbariServer(services) and "hawq_master_address_port" in hawq_site:
       putHawqSiteProperty('hawq_master_address_port', '')
 
     # update query limits if segments are deployed
@@ -170,7 +167,6 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         buckets = factor * numSegments
       putHawqSiteProperty('default_hash_table_bucket_number', buckets)
 
-
     # update YARN RM urls with the values from yarn-site if YARN is installed
     if "YARN" in servicesList and "yarn-site" in services["configurations"]:
       yarn_site = services["configurations"]["yarn-site"]["properties"]
@@ -179,7 +175,6 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
 
     putHawqSiteProperty('hawq_rm_nvcore_limit_perseg', minHawqHostsCoreCount)
-
 
     if "vm.overcommit_memory" in hawq_sysctl_env:
       MEM_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
@@ -236,14 +231,14 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
   def getHAWQYARNPropertyMapping(self):
     return { "hawq_rm_yarn_address": "yarn.resourcemanager.address", "hawq_rm_yarn_scheduler_address": "yarn.resourcemanager.scheduler.address" }
 
-  def getConfigurationsValidationItems(self, stackAdvisor, configurations, recommendedDefaults, services, hosts):
+  def getConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     siteName = "hawq-site"
     method = self.validateHAWQSiteConfigurations
-    items = self.validateConfigurationsForSite(stackAdvisor, configurations, recommendedDefaults, services, hosts, siteName, method)
+    items = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
 
     siteName = "hdfs-client"
     method = self.validateHAWQHdfsClientConfigurations
-    resultItems = self.validateConfigurationsForSite(stackAdvisor, configurations, recommendedDefaults, services, hosts, siteName, method)
+    resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
     items.extend(resultItems)
     return items
 
@@ -270,13 +265,13 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
                               "item": self.getErrorItem(
                               "Multiple directories for " + display_name + " are not allowed.")})
 
-  def validateHAWQSiteConfigurations(self, stackAdvisor, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHAWQSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
 
     hawq_site = properties
     validationItems = []
 
     # 1. Check if HAWQ master/standby port numbers don't conflict with Ambari ports. Both Ambari and HAWQ use postgres DB and 5432 port.
-    if self.isHawqMasterComponentOnAmbariServer(stackAdvisor, services) and self.isHawqMasterPortConflict(configurations):
+    if self.isHawqMasterComponentOnAmbariServer(services) and self.isHawqMasterPortConflict(configurations):
       prop_name = 'hawq_master_address_port'
       validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
@@ -325,9 +320,9 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       message = "Default buckets for Hash Distributed tables parameter value should not be greater than the value of Virtual Segments Limit per Query (Total) parameter, currently set to {0}.".format(hawq_site["hawq_rm_nvseg_perquery_limit"])
       validationItems.append({"config-name": "default_hash_table_bucket_number", "item": self.getErrorItem(message)})
 
-    return stackAdvisor.toConfigurationValidationProblems(validationItems, "hawq-site")
+    return self.toConfigurationValidationProblems(validationItems, "hawq-site")
 
-  def validateHAWQHdfsClientConfigurations(self, stackAdvisor, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHAWQHdfsClientConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hdfs_client = properties
     validationItems = []
 
@@ -345,8 +340,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         message = "{0} should be set to true (checked) for clusters with more than {1} HAWQ Segments"
       elif numSegments <= MIN_NUM_SEGMENT_THRESHOLD and value != 'FALSE':
         message = "{0} should be set to false (unchecked) for clusters with {1} or less HAWQ Segments"
-
       if message:
         validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(MIN_NUM_SEGMENT_THRESHOLD)))})
 
-    return stackAdvisor.toConfigurationValidationProblems(validationItems, "hdfs-client")
+    return self.toConfigurationValidationProblems(validationItems, "hdfs-client")

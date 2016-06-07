@@ -33,10 +33,10 @@ except Exception as e:
 
 class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
 
-  def colocateService(self, stackAdvisor, hostsComponentsMap, serviceComponents):
+  def colocateService(self, hostsComponentsMap, serviceComponents):
     # colocate PXF with NAMENODE and DATANODE, if no hosts have been allocated for PXF
     pxf = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "PXF"][0]
-    if not stackAdvisor.isComponentHostsPopulated(pxf):
+    if not self.isComponentHostsPopulated(pxf):
       for hostName in hostsComponentsMap.keys():
         hostComponents = hostsComponentsMap[hostName]
         if ({"name": "NAMENODE"} in hostComponents or {"name": "DATANODE"} in hostComponents) \
@@ -46,13 +46,12 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
             and {"name": "PXF"} in hostComponents:
           hostsComponentsMap[hostName].remove({"name": "PXF"})
 
-  def getComponentLayoutValidations(self, stackAdvisor, services, hosts):
+  def getServiceComponentLayoutValidations(self, services, hosts):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
 
     pxfHosts = self.getHosts(componentsList, "PXF")
     expectedPxfHosts = set(self.getHosts(componentsList, "NAMENODE") + self.getHosts(componentsList, "DATANODE"))
-
     items = []
 
     # Generate WARNING if any PXF is not colocated with NAMENODE or DATANODE
@@ -65,7 +64,7 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
 
     return items
 
-  def getServiceConfigurationRecommendations(self, stackAdvisor, configurations, clusterData, services, hosts):
+  def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
     if "hbase-env" in services["configurations"]:
       hbase_env = services["configurations"]["hbase-env"]["properties"]
       if "content" in hbase_env:
@@ -77,7 +76,7 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
           putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
           putHbaseEnvProperty("content", content)
 
-  def validatePXFHBaseEnvConfigurations(self, stackAdvisor, properties, recommendedDefaults, configurations, services, hosts):
+  def validatePXFHBaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     # Check if HBASE_CLASSPATH should has the location of pxf-hbase.jar
     hbase_env = properties
     validationItems = []
@@ -85,10 +84,10 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
       message = "HBASE_CLASSPATH must contain the location of pxf-hbase.jar"
       validationItems.append({"config-name": "content", "item": self.getWarnItem(message)})
 
-    return stackAdvisor.toConfigurationValidationProblems(validationItems, "hbase-env")
+    return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
-  def getConfigurationsValidationItems(self, stackAdvisor, configurations, recommendedDefaults, services, hosts):
+  def getConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     siteName = "hbase-env"
     method = self.validatePXFHBaseEnvConfigurations
-    items = self.validateConfigurationsForSite(stackAdvisor, configurations, recommendedDefaults, services, hosts, siteName, method)
+    items = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
     return items
