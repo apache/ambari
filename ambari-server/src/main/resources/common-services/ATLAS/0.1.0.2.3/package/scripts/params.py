@@ -62,9 +62,6 @@ log_dir = config['configurations']['atlas-env']['metadata_log_dir']
 conf_dir = status_params.conf_dir # "/etc/metadata/conf"
 conf_file = status_params.conf_file
 
-atlas_login_credentials_file = os.path.join(conf_dir, "users-credentials.properties")
-atlas_policy_store_file = os.path.join(conf_dir, "policy-store.txt")
-
 # service locations
 hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf") if 'HADOOP_HOME' in os.environ else '/etc/hadoop/conf'
 
