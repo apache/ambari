@@ -210,6 +210,8 @@ App.Queue = DS.Model.extend({
     return this.get('_overCapacity') || !Em.isEmpty(this.get('labels').filterBy('overCapacity'));
   }.property('_overCapacity','labels.@each.overCapacity'),
 
+  isInvalidMaxCapacity: false,
+
   //new queue flag
   isNewQueue:DS.attr('boolean', {defaultValue: false}),
 
@@ -244,4 +246,3 @@ App.Queue = DS.Model.extend({
     }
   }.observes('labels','default_node_label_expression')
 });
-

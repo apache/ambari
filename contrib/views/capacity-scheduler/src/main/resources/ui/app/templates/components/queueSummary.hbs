@@ -21,43 +21,46 @@
     <div class="panel panel-default">
       <div class="panel-body">
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-sm-5">
             <label>Name</label>
           </div>
-          <div class="col-sm-4">
+          <div class="col-sm-6">
             <span>{{queue.name}}</span>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-sm-5">
             <label>Path</label>
           </div>
-          <div class="col-sm-4">
+          <div class="col-sm-6">
             <span>{{queue.path}}</span>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-sm-5">
             <label>Capacity</label>
           </div>
-          <div class="col-sm-4">
+          <div class="col-sm-5">
             <span>{{queue.capacity}}%</span>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-sm-5">
             <label>Absolute Capacity</label>
           </div>
-          <div class="col-sm-4">
+          <div class="col-sm-5">
             <span>{{effectiveCapacity}}%</span>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-sm-5">
             <label>State</label>
           </div>
-          <div class="col-sm-4">
-            <span {{bind-attr class="isRunningState:text-success:text-danger"}}>{{queueState}}</span>
+          <div class="col-sm-6">
+            <span {{bind-attr class="qStateColor"}}>{{queueState}}</span>
+            {{#if isDirtyState}}
+              {{warning-info class="yellow-warning" tooltip="Not Yet Saved"}}
+            {{/if}}
           </div>
         </div>
       </div>

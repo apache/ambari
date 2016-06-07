@@ -165,8 +165,14 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
          this.set('content.maximum_applications', null);
        }
      }
-     return this.get('content.maximum_applications') || this.get('scheduler.maximum_applications');
-   }.property('content.maximum_applications', 'scheduler.maximum_applications'),
+     var schedulerMaxApps = this.get('scheduler.maximum_applications'),
+     absoluteCapacity = this.get('content.absolute_capacity');
+     if (this.get('content.maximum_applications')) {
+       return this.get('content.maximum_applications');
+     } else {
+       return Math.round(schedulerMaxApps * (absoluteCapacity / 100));
+     }
+   }.property('content.maximum_applications', 'content.absolute_capacity', 'scheduler.maximum_applications'),
 
    /**
     * Returns maximum AM resource percent for a queue if defined,
@@ -180,8 +186,14 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
          this.set('content.maximum_am_resource_percent', null);
        }
      }
-     return this.get('content.maximum_am_resource_percent') || this.get('scheduler.maximum_am_resource_percent');
-   }.property('content.maximum_am_resource_percent', 'scheduler.maximum_am_resource_percent'),
+     var schedulerResoucePercent = this.get('scheduler.maximum_am_resource_percent'),
+     absoluteCapacity = this.get('content.absolute_capacity');
+     if (this.get('content.maximum_am_resource_percent')) {
+        return this.get('content.maximum_am_resource_percent')
+     } else {
+       return (schedulerResoucePercent * (absoluteCapacity / 100));
+     }
+   }.property('content.maximum_am_resource_percent', 'content.absolute_capacity', 'scheduler.maximum_am_resource_percent'),
 
    /**
     * Sets ACL value to '*' or ' ' and returns '*' and 'custom' respectively.

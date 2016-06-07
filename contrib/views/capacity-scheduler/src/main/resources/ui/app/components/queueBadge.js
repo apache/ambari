@@ -30,6 +30,19 @@ App.WarnBadgeComponent = Em.Component.extend({
   }.on('didInsertElement'),
 });
 
+App.WarningInfoComponent = Em.Component.extend({
+  layout:Em.Handlebars.compile('<i class="fa fa-fw fa-lg fa-warning"></i>'),
+  tagName:'span',
+  tooltip:'Warning',
+  initTooltip: function(){
+    var tipMsg = this.get('tooltip');
+    this.$().tooltip({
+      title:tipMsg,
+      placement:'bottom'
+    });
+  }.on('didInsertElement'),
+});
+
 App.QueueBadgeComponent = Em.Component.extend({
   layoutName:'components/queueBadge',
   tagName:'span',

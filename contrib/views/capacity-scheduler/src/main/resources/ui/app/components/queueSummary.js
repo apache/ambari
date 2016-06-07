@@ -21,6 +21,8 @@
  var _runState = 'RUNNING';
  var _stopState = 'STOPPED';
 
+ var _notStartedState = 'NOT STARTED';
+
  App.QueueSummaryComponent = Ember.Component.extend({
    layoutName: 'components/queueSummary',
    queue: null,
@@ -31,11 +33,27 @@
    }.property('queue.state'),
 
    queueState: function() {
-     if (this.get('isRunningState')) {
+     if (this.get('queue.isNewQueue')) {
+       return _notStartedState;
+     } else if (this.get('isRunningState')) {
        return _runState;
      } else {
        return _stopState;
      }
+   }.property('queue.state'),
+
+   qStateColor: function() {
+     if (this.get('queue.isNewQueue')) {
+       return 'text-info';
+     } else if (this.get('isRunningState')) {
+       return 'text-success';
+     } else {
+       return 'text-danger';
+     }
+   }.property('queue.state'),
+
+   isDirtyState: function() {
+     return this.get('queue').changedAttributes().hasOwnProperty('state');
    }.property('queue.state'),
 
    effectiveCapacity: function() {
@@ -46,7 +64,8 @@
        effectiveCapacityRatio *= (currentQ.get('capacity') / 100);
        currentQ = allQueues.findBy('id', currentQ.get('parentPath').toLowerCase()) || null;
      }
-     var effectiveCapacityPercent = Math.round(effectiveCapacityRatio * 100);
+     var effectiveCapacityPercent = effectiveCapacityRatio * 100;
+     this.get('queue').set('absolute_capacity', effectiveCapacityPercent || null);
      return effectiveCapacityPercent;
    }.property('queue.capacity', 'allQueues.@each.capacity', 'allQueues.length')
  });
