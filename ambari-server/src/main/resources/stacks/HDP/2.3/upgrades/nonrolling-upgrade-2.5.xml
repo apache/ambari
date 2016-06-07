@@ -340,6 +340,11 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
       </execute-stage>
 
+      <!--FALCON-->
+      <execute-stage service="FALCON" component="FALCON_SERVER" title="Apply config changes for Falcon">
+        <task xsi:type="configure" id="hdp_2_5_0_0_falcon_server_adjust_services_property"/>
+      </execute-stage>
+
       <!-- KAFKA  -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">
         <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>

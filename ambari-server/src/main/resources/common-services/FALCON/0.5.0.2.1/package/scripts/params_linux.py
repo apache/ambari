@@ -72,7 +72,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE,
   # Extensions dir is only available in HDP 2.5 and higher
   falcon_extensions_source_dir = os.path.join(stack_root, "current", falcon_root, "extensions")
   # Dir in HDFS
-  falcon_extensions_dest_dir = "/apps/falcon/extensions"
+  falcon_extensions_dest_dir = default("/configurations/falcon-startup.properties/*.extension.store.uri", "/apps/falcon/extensions")
 else:
   falcon_webapp_dir = '/var/lib/falcon/webapp'
   falcon_home = '/usr/lib/falcon'
