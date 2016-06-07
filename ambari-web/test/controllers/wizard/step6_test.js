@@ -259,11 +259,13 @@ describe('App.WizardStep6Controller', function () {
       checkboxes: [
         {
           component: 'C1',
-          isInstalled: false
+          isInstalled: false,
+          checked: false
         },
         {
           component: 'C2',
-          isInstalled: false
+          isInstalled: false,
+          checked: false
         }
       ]
     }];
@@ -288,6 +290,8 @@ describe('App.WizardStep6Controller', function () {
       controller.setInstalledComponents(hostsObj);
       expect(hostsObj[0].checkboxes[0].isInstalled).to.be.true;
       expect(hostsObj[0].checkboxes[1].isInstalled).to.be.false;
+      expect(hostsObj[0].checkboxes[0].checked).to.be.true;
+      expect(hostsObj[0].checkboxes[1].checked).to.be.false;
     });
   });
 
@@ -369,15 +373,23 @@ describe('App.WizardStep6Controller', function () {
       checkboxes: [
         {
           component: 'C1',
-          checked: false
+          checked: false,
+          isDisabled: false
         },
         {
           component: 'C2',
-          checked: false
+          checked: false,
+          isDisabled: true
+        },
+        {
+          component: 'C3',
+          checked: false,
+          isDisabled: false
         },
         {
           component: 'CLIENT',
-          checked: false
+          checked: false,
+          isDisabled: false
         }
       ]
     }];
@@ -389,6 +401,7 @@ describe('App.WizardStep6Controller', function () {
             name: 'g1',
             components: [
               {name: 'C1'},
+              {name: 'C2'},
               {name: 'C_CLIENT'}
             ]
           }
@@ -418,16 +431,22 @@ describe('App.WizardStep6Controller', function () {
       expect(hostsObj[0].checkboxes[0].checked).to.be.true;
     });
 
-    it("C2 should not be checked", function() {
+    it("C2 should not be checked, as it is disabled", function() {
       controller.set('content.recommendations', recommendations);
       controller.selectRecommendedComponents(hostsObj);
       expect(hostsObj[0].checkboxes[1].checked).to.be.false;
     });
 
+    it("C3 should not be checked", function() {
+      controller.set('content.recommendations', recommendations);
+      controller.selectRecommendedComponents(hostsObj);
+      expect(hostsObj[0].checkboxes[2].checked).to.be.false;
+    });
+
     it("CLIENT should be checked", function() {
       controller.set('content.recommendations', recommendations);
       controller.selectRecommendedComponents(hostsObj);
-      expect(hostsObj[0].checkboxes[2].checked).to.be.true;
+      expect(hostsObj[0].checkboxes[3].checked).to.be.true;
     });
   });
 
