@@ -88,7 +88,8 @@ describe('App.RMHighAvailabilityWizardView', function () {
             host_name: 'host1',
             cpu_count: 1,
             total_mem: 1,
-            disk_info: {}
+            disk_info: {},
+            maintenance_state: 'OFF'
           }
         }
       ]
@@ -111,7 +112,8 @@ describe('App.RMHighAvailabilityWizardView', function () {
           "memory": 1,
           "disk_info": {},
           "bootStatus": "REGISTERED",
-          "isInstalled": true
+          "isInstalled": true,
+          "maintenance_state": "OFF"
         }
       });
       expect(App.db.setHosts.calledWith({
@@ -121,7 +123,8 @@ describe('App.RMHighAvailabilityWizardView', function () {
           "memory": 1,
           "disk_info": {},
           "bootStatus": "REGISTERED",
-          "isInstalled": true
+          "isInstalled": true,
+          "maintenance_state": "OFF"
         }
       })).to.be.true;
     });
