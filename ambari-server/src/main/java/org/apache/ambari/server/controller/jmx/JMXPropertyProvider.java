@@ -86,6 +86,19 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
   private static final Map<String, String> DEFAULT_JMX_PORTS = new HashMap<String, String>();
 
+  /**
+   * When Ambari queries NameNode's HA state (among other metrics), it retrieves all metrics from "NN_URL:port/jmx".
+   * But some metrics may compete for the NameNode lock and a request to /jmx may take much time.
+   * <p>
+   * The properties from this map will be retrieved using a provided URL query.
+   * Even if JMX is locked and a request for all metrics is waiting (/jmx is unavailable),
+   * HAState will be updated via a separate JMX call.
+   * <p>
+   * Currently org.apache.hadoop.jmx.JMXJsonServlet can provide only one property per a request,
+   * each property from this list adds a request to JMX.
+   */
+  private static final Map<String, Map<String, String>> AD_HOC_PROPERTIES = new HashMap<>();
+
   static {
     DEFAULT_JMX_PORTS.put("NAMENODE",           "50070");
     DEFAULT_JMX_PORTS.put("DATANODE",           "50075");
@@ -96,6 +109,10 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     DEFAULT_JMX_PORTS.put("NODEMANAGER",         "8042");
     DEFAULT_JMX_PORTS.put("JOURNALNODE",         "8480");
     DEFAULT_JMX_PORTS.put("STORM_REST_API",      "8745");
+
+    AD_HOC_PROPERTIES.put("NAMENODE",
+        Collections.singletonMap("metrics/dfs/FSNamesystem/HAState",
+                                 "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
   }
 
   protected final static Logger LOG =
@@ -249,17 +266,40 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
         // check to see if there is a cached value and use it if there is
         JMXMetricHolder jmxMetricHolder = metricsRetrievalService.getCachedJMXMetric(jmxUrl);
-        if (null == jmxMetricHolder) {
-          return resource;
-        }
 
         // if the ticket becomes invalid (timeout) then bail out
         if (!ticket.isValid()) {
           return resource;
         }
 
-        getHadoopMetricValue(jmxMetricHolder, ids, resource, request, ticket);
+        if (null != jmxMetricHolder) {
+          getHadoopMetricValue(jmxMetricHolder, ids, resource, request, ticket);
+        }
 
+        if (AD_HOC_PROPERTIES.containsKey(componentName)) {
+          for (String propertyId : ids) {
+            for (String adHocId : AD_HOC_PROPERTIES.get(componentName).keySet()) {
+              String queryURL = null;
+              // if all metrics from "metrics/dfs/FSNamesystem" were requested, retrieves HAState.
+              if (adHocId.equals(propertyId) || adHocId.startsWith(propertyId + '/')) {
+                queryURL = AD_HOC_PROPERTIES.get(componentName).get(adHocId);
+              }
+              if (queryURL != null) {
+                String adHocUrl = getSpec(protocol, hostName, port, queryURL);
+                metricsRetrievalService.submitJMXRequest(streamProvider, adHocUrl);
+                JMXMetricHolder adHocJMXMetricHolder = metricsRetrievalService.getCachedJMXMetric(adHocUrl);
+
+                // if the ticket becomes invalid (timeout) then bail out
+                if (!ticket.isValid()) {
+                  return resource;
+                }
+                if (null != adHocJMXMetricHolder) {
+                  getHadoopMetricValue(adHocJMXMetricHolder, Collections.singleton(propertyId), resource, request, ticket);
+                }
+              }
+            }
+          }
+        }
       } catch (IOException e) {
         AmbariException detailedException = new AmbariException(String.format(
             "Unable to get JMX metrics from the host %s for the component %s. Spec: %s", hostName,
