@@ -89,7 +89,7 @@ class TestLogFeeder(RMFTestCase):
                               )
 
     logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'hbase', 'hdfs', 'hive', 'kafka',
-                                    'knox', 'logsearch', 'oozie', 'ranger', 'storm', 'yarn', 'zookeeper']
+                                    'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'storm', 'yarn', 'zookeeper']
 
     logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag
                                                                                   in logfeeder_supported_services]

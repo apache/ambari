@@ -230,6 +230,8 @@ hbase_log_dir = default('/configurations/hbase-env/hbase_log_dir', '/var/log/hba
 hdfs_log_dir_prefix = default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')
 hive_log_dir = default('/configurations/hive-env/hive_log_dir', '/var/log/hive')
 kafka_log_dir = default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')
+nifi_master_log_dir = default('/configurations/nifi-bootstrap-env/nifi_master_log_dir', '/var/log/nifi_master')
+nifi_node_log_dir = default('/configurations/nifi-bootstrap-env/nifi_nod_log_dir', '/var/log/nifi_node')
 oozie_log_dir = default('/configurations/oozie-env/oozie_log_dir', '/var/log/oozie')
 ranger_usersync_log_dir = default('/configurations/ranger-env/ranger_usersync_log_dir', '/var/log/ranger/usersync')
 ranger_admin_log_dir = default('/configurations/ranger-env/ranger_admin_log_dir', '/var/log/ranger/admin')
@@ -308,7 +310,7 @@ logfeeder_log_filter_enable = str(default('/configurations/logfeeder-properties/
 logfeeder_solr_config_interval = default('/configurations/logfeeder-properties/logfeeder.solr.config.interval', 5)
 
 logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'hbase', 'hdfs', 'hive', 'kafka',
-                                'knox', 'logsearch', 'oozie', 'ranger', 'storm', 'yarn', 'zookeeper']
+                                'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'storm', 'yarn', 'zookeeper']
 
 logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in
                                                                               logfeeder_supported_services]
