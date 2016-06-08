@@ -303,16 +303,17 @@ public class AmbariLdapDataPopulatorTest {
     expect(users.getAllUsers()).andReturn(Collections.EMPTY_LIST);
     expect(configuration.getLdapServerProperties()).andReturn(new LdapServerProperties()).anyTimes();
 
-    Set<LdapGroupDto> groupDtos = Sets.newHashSet();
     LdapGroupDto group1Dto = new LdapGroupDto();
     group1Dto.setGroupName("group1");
     group1Dto.setMemberAttributes(Sets.newHashSet("group2"));
+    Set<LdapGroupDto> groupDtos1 = Sets.newHashSet();
+    groupDtos1.add(group1Dto);
 
     LdapGroupDto group2Dto = new LdapGroupDto();
     group2Dto.setGroupName("group2");
     group2Dto.setMemberAttributes(Collections.EMPTY_SET);
-    groupDtos.add(group1Dto);
-    groupDtos.add(group2Dto);
+    Set<LdapGroupDto> groupDtos2 = Sets.newHashSet();
+    groupDtos2.add(group2Dto);
 
     LdapBatchDto batchInfo = new LdapBatchDto();
     replay(configuration, users, group1, group2);
@@ -325,8 +326,8 @@ public class AmbariLdapDataPopulatorTest {
 
     expect(dataPopulator.getLdapUserByMemberAttr(anyString())).andReturn(null).anyTimes();
     expect(dataPopulator.getLdapGroupByMemberAttr("group2")).andReturn(group2Dto);
-    expect(dataPopulator.getLdapGroups("group1")).andReturn(groupDtos).anyTimes();
-    expect(dataPopulator.getLdapGroups("group2")).andReturn(groupDtos).anyTimes();
+    expect(dataPopulator.getLdapGroups("group1")).andReturn(groupDtos1).anyTimes();
+    expect(dataPopulator.getLdapGroups("group2")).andReturn(groupDtos2).anyTimes();
 
     replay(dataPopulator);
     // WHEN
