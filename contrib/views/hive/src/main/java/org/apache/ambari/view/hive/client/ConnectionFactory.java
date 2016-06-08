@@ -113,7 +113,7 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
     if ((auth == null || auth.isEmpty()) && context.getCluster() != null) {
       params.putAll(getDefaultAuthParams());
     } else if(auth == null || auth.isEmpty()) {
-      params.put("auth","NOSASL");
+      params.put("auth","NONE");
     } else {
       for (String param : auth.split(";")) {
         String[] keyvalue = param.split("=");

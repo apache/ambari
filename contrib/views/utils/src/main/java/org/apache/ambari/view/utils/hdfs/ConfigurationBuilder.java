@@ -69,7 +69,7 @@ public class ConfigurationBuilder {
 
   public static final String DFS_WEBHDFS_ENABLED = "dfs.webhdfs.enabled";
   public static final String DFS_HTTP_POLICY = "dfs.http.policy";
-  public static final String DFS_HTTP_POLICY_HTTPS_ONLY = "HTTPS";
+  public static final String DFS_HTTP_POLICY_HTTPS_ONLY = "HTTPS_ONLY";
 
   public static final String DFS_NAMENODE_HTTP_ADDERSS = "dfs.namenode.http-address";
   public static final String DFS_NAMENODE_HTTPS_ADDERSS = "dfs.namenode.https-address";
@@ -77,7 +77,6 @@ public class ConfigurationBuilder {
 
   private Configuration conf = new Configuration();
   private ViewContext context;
-  private AmbariApi ambariApi = null;
   private AuthConfigurationBuilder authParamsBuilder;
   private Map<String, String> authParams;
   private URI defaultFsUri;
@@ -87,7 +86,6 @@ public class ConfigurationBuilder {
    */
   public ConfigurationBuilder(ViewContext context) {
     this.context = context;
-    this.ambariApi = new AmbariApi(context);
     this.authParamsBuilder = new AuthConfigurationBuilder(context);
   }
 
