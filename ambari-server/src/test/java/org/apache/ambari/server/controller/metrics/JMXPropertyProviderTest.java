@@ -24,9 +24,11 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +36,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
@@ -72,6 +75,15 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "state");
 
   public static final int NUMBER_OF_RESOURCES = 400;
+
+  public static final Map<String, Map<String, PropertyInfo>> jmxPropertyIds = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent);
+  public static final Map<String, Map<String, PropertyInfo>> jmxPropertyIdsWithHAState;
+
+  static {
+    jmxPropertyIdsWithHAState = new HashMap<>(jmxPropertyIds);
+    jmxPropertyIdsWithHAState.get("NAMENODE").put("metrics/dfs/FSNamesystem/HAState", new PropertyInfo("Hadoop:service=NameNode,name=FSNamesystem.tag#HAState", false, true));
+  }
+
   private static MetricPropertyProviderFactory metricPropertyProviderFactory;
 
   @BeforeClass
@@ -126,6 +138,7 @@ public class JMXPropertyProviderTest {
     testPopulateResourcesUnhealthyResource();
     testPopulateResourcesMany();
     testPopulateResourcesTimeout();
+    testPopulateResources_HAState_request();
   }
 
   @Test
@@ -139,6 +152,7 @@ public class JMXPropertyProviderTest {
     testPopulateResourcesUnhealthyResource();
     testPopulateResourcesMany();
     testPopulateResourcesTimeout();
+    testPopulateResources_HAState_request();
   }
 
   @Test
@@ -152,6 +166,7 @@ public class JMXPropertyProviderTest {
     testPopulateResourcesUnhealthyResource();
     testPopulateResourcesMany();
     testPopulateResourcesTimeout();
+    testPopulateResources_HAState_request();
   }
 
   @Test(expected = AuthorizationException.class)
@@ -167,6 +182,7 @@ public class JMXPropertyProviderTest {
     testPopulateResourcesUnhealthyResource();
     testPopulateResourcesMany();
     testPopulateResourcesTimeout();
+    testPopulateResources_HAState_request();
   }
 
   public void testPopulateResources() throws Exception {
@@ -174,7 +190,7 @@ public class JMXPropertyProviderTest {
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
     TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
     JMXPropertyProvider propertyProvider = metricPropertyProviderFactory.createJMXPropertyProvider(
-      PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+      jmxPropertyIdsWithHAState,
       streamProvider,
       hostProvider,
       metricsHostProvider,
@@ -194,7 +210,10 @@ public class JMXPropertyProviderTest {
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"), streamProvider.getLastSpec());
+    List<String> expectedSpecs = new ArrayList<String>();
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"));
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
+    Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
 
     // see test/resources/hdfs_namenode_jmx.json for values
     Assert.assertEquals(13670605, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
@@ -326,12 +345,84 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"), streamProvider.getLastSpec());
+    List<String> expectedSpecs = new ArrayList<String>();
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"));
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
+    Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
 
     // see test/resources/hdfs_namenode_jmx.json for values
     Assert.assertEquals(184320, resource.getPropertyValue("metrics/dfs/FSNamesystem/CapacityUsed"));
     Assert.assertEquals(21, resource.getPropertyValue("metrics/dfs/FSNamesystem/UnderReplicatedBlocks"));
     Assert.assertNull(resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
+  }
+
+  public void testPopulateResources_HAState_request() throws Exception {
+    TestStreamProvider streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+    TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
+
+    JMXPropertyProvider propertyProvider = metricPropertyProviderFactory.createJMXPropertyProvider(
+      jmxPropertyIdsWithHAState,
+      streamProvider,
+      hostProvider,
+      metricsHostProvider,
+      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+      PropertyHelper.getPropertyId("HostRoles", "host_name"),
+      PropertyHelper.getPropertyId("HostRoles", "component_name"),
+      PropertyHelper.getPropertyId("HostRoles", "state"));
+
+    // namenode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // request with an empty set should get all supported properties
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Request request = PropertyHelper.getReadRequest(Collections.singleton("metrics/dfs/FSNamesystem"), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    List<String> expectedSpecs = new ArrayList<String>();
+    expectedSpecs.add(propertyProvider.getSpec("http","domu-12-31-39-0e-34-e1.compute-1.internal","50070","/jmx"));
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
+
+    Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
+
+    // see test/resources/hdfs_namenode_jmx.json for values
+    Assert.assertEquals(184320, resource.getPropertyValue("metrics/dfs/FSNamesystem/CapacityUsed"));
+    Assert.assertEquals(21, resource.getPropertyValue("metrics/dfs/FSNamesystem/UnderReplicatedBlocks"));
+    Assert.assertEquals("customState", resource.getPropertyValue("metrics/dfs/FSNamesystem/HAState"));
+    Assert.assertNull(resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
+
+    // namenode
+    resource = new ResourceImpl(Resource.Type.HostComponent);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    streamProvider.getSpecs().clear();
+
+    // request with an empty set should get all supported properties
+    // only ask for one property
+    temporalInfoMap = new HashMap<String, TemporalInfo>();
+    request = PropertyHelper.getReadRequest(Collections.singleton("metrics/dfs/FSNamesystem/CapacityUsed"), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    // HAState isn't requested. It shouldn't be retrieved.
+    expectedSpecs.clear();
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"));
+    Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
+
+    // see test/resources/hdfs_namenode_jmx.json for values
+    Assert.assertEquals(184320, resource.getPropertyValue("metrics/dfs/FSNamesystem/CapacityUsed"));
+    Assert.assertNull(resource.getPropertyValue("metrics/dfs/FSNamesystem/HAState"));
+    Assert.assertNull(resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
+
   }
 
   public void testPopulateResourcesWithUnknownPort() throws Exception {
@@ -360,7 +451,10 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"), streamProvider.getLastSpec());
+    List<String> expectedSpecs = new ArrayList<String>();
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"));
+    expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
+    Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
 
     // see test/resources/hdfs_namenode_jmx.json for values
     Assert.assertEquals(13670605, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
