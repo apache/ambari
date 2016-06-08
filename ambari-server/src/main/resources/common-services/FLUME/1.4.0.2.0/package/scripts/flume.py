@@ -112,6 +112,7 @@ def flume(action = None):
     Directory(params.flume_log_dir,
               group=params.user_group,
               owner=params.flume_user,
+              create_parents=True,
               cd_access="a",
               mode=0755,
     )
