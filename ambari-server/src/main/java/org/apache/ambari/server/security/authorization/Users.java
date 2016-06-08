@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -447,7 +446,7 @@ public class Users {
   /**
    * Grants AMBARI.ADMINISTRATOR privilege to provided user.
    *
-   * @param user user
+   * @param userId user id
    */
   public synchronized void grantAdminPrivilege(Integer userId) {
     final UserEntity user = userDAO.findByPK(userId);
@@ -466,7 +465,7 @@ public class Users {
   /**
    * Revokes AMBARI.ADMINISTRATOR privilege from provided user.
    *
-   * @param user user
+   * @param userId user id
    */
   public synchronized void revokeAdminPrivilege(Integer userId) {
     final UserEntity user = userDAO.findByPK(userId);
@@ -711,6 +710,23 @@ public class Users {
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
   }
 
+  /**
+   * Gets the explicit and implicit authorities for the given user.
+   * <p>
+   * The explicit authorities are the authorities that have be explicitly set by assigning roles to
+   * a user.  For example the Cluster Operator role on a given cluster gives that the ability to
+   * start and stop services in that cluster, among other privileges for that particular cluster.
+   * <p>
+   * The implicit authorities are the authorities that have been given to the roles themselves which
+   * in turn are granted to the users that have been assigned those roles. For example if the
+   * Cluster User role for a given cluster has been given View User access on a specified File View
+   * instance, then all users who have the Cluster User role for that cluster will implicitly be
+   * granted View User access on that File View instance.
+   *
+   * @param userName the username for the relevant user
+   * @param userType the user type for the relevant user
+   * @return the users collection of implicit and explicit granted authorities
+   */
   public Collection<AmbariGrantedAuthority> getUserAuthorities(String userName, UserType userType) {
     UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
     if (userEntity == null) {
@@ -730,10 +746,34 @@ public class Users {
 
     List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
 
+    // A list of principals representing roles/permissions. This collection of roles will be used to
+    // find additional authorizations inherited by the authenticated user based on the assigned roles.
+    // For example a File View instance may be set to be accessible to all authenticated user with
+    // the Cluster User role.
+    List<PrincipalEntity> rolePrincipals = new ArrayList<PrincipalEntity>();
+
     Set<AmbariGrantedAuthority> authorities = new HashSet<>(privilegeEntities.size());
 
     for (PrivilegeEntity privilegeEntity : privilegeEntities) {
+      // Add the principal representing the role associated with this PrivilegeEntity to the collection
+      // of roles for the authenticated user.
+      PrincipalEntity rolePrincipal = privilegeEntity.getPermission().getPrincipal();
+      if(rolePrincipal != null) {
+        rolePrincipals.add(rolePrincipal);
+      }
+
       authorities.add(new AmbariGrantedAuthority(privilegeEntity));
+    }
+
+    // If the collections of assigned roles is not empty find the inherited authorizations that are
+    // give to the roles and add them to the collection of (Granted) authorities for the user.
+    if(!rolePrincipals.isEmpty()) {
+      // For each "role" see if any privileges have been granted...
+      List<PrivilegeEntity> rolePrivilegeEntities = privilegeDAO.findAllByPrincipal(rolePrincipals);
+
+      for (PrivilegeEntity privilegeEntity : rolePrivilegeEntities) {
+        authorities.add(new AmbariGrantedAuthority(privilegeEntity));
+      }
     }
 
     return authorities;
