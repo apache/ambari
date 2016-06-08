@@ -246,6 +246,15 @@ export default function() {
     return [200, {"Content-Type": "application/json"}, JSON.stringify(files)];
   });
 
+  this.delete(baseUrl + '/fileResources/1', function (req) {
+    return [200, {"Content-Type": "application/json"}, JSON.stringify({})];
+  });
+
+  this.put(baseUrl + '/udfs/1', function (req) {
+    return [200, {"Content-Type": "application/json"}, JSON.stringify({})];
+  });
+
+
   this.get(baseUrl + '/fileResources/1', function (req) {
     var files = {
       "fileResources": [
@@ -272,6 +281,10 @@ export default function() {
     };
 
     return [200, {"Content-Type": "application/json"}, JSON.stringify(data)];
+  });
+
+  this.delete(baseUrl + '/savedQueries/1', function (req) {
+    return [200, {"Content-Type": "application/json"}, JSON.stringify({})];
   });
 
   this.get(baseUrl + '/api/v1/views/TEZ/versions/1', function (req) {

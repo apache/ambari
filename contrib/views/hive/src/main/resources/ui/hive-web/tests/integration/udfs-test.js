@@ -89,3 +89,21 @@ test('User is able to add udf', function() {
     equal(find('#content .table tbody tr').length, 3);
   });
 });
+
+
+test('Can delete file resource', function (assert) {
+  assert.expect(1);
+
+  visit('/udfs');
+  click('.fa-gear:first');
+  click('.dropdown-menu li:first');
+  click('.dropdown-toggle:first');
+  click('.fa-remove:first');
+
+  andThen(function () {
+    click('.modal-footer .btn-success');
+    click('tr.ember-view:first .btn-success');
+  });
+
+  assert.equal($('tr.ember-view:first td:first').text().trim().length, 0, 'File Resource Deleted');
+});
