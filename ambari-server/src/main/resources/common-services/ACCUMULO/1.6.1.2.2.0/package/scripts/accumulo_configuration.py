@@ -215,7 +215,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                  logoutput=True,
                  user=params.accumulo_user)
       finally:
-        os.remove(passfile)
+        File(passfile, action = "delete")
 
   if name == 'tracer':
     if params.security_enabled and params.has_secure_user_auth:
