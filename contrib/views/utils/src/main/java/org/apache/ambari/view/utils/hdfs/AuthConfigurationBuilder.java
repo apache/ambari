@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.utils.hdfs;
 
+import com.google.common.base.Strings;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.ambari.view.utils.ambari.NoClusterAssociatedException;
@@ -38,11 +39,9 @@ public class AuthConfigurationBuilder {
   private Map<String, String> params = new HashMap<String, String>();
 
   private ViewContext context;
-  private AmbariApi ambariApi;
 
   public AuthConfigurationBuilder(ViewContext context) {
     this.context = context;
-    this.ambariApi = new AmbariApi(context);
   }
 
   /**
@@ -54,13 +53,15 @@ public class AuthConfigurationBuilder {
     String auth;
     auth = context.getProperties().get("webhdfs.auth");
 
-    if ((auth == null || auth.isEmpty()) && context.getCluster() != null) {
-      auth = getConfigurationFromAmbari();
-    } else  {
-      auth = "auth=SIMPLE";
-      LOG.warn(String.format("HDFS090 Authentication parameters could not be determined. %s assumed.", auth));
+    if (Strings.isNullOrEmpty(auth)) {
+      if (context.getCluster() != null) {
+        auth = getConfigurationFromAmbari();
+      } else {
+        auth = "auth=SIMPLE";
+        LOG.warn(String.format("HDFS090 Authentication parameters could not be determined. %s assumed.", auth));
+      }
     }
-
+    LOG.debug("Hdfs auth params : {}", auth);
     parseAuthString(auth);
   }
 
