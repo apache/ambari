@@ -225,7 +225,7 @@
       {
         "config": "hive-interactive-site/hive.llap.daemon.queue.name",
         "widget": {
-          "type": "list"
+          "type": "combo"
         }
       },
       {
