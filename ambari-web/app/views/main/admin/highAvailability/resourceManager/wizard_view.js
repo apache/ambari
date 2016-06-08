@@ -19,60 +19,14 @@
 
 var App = require('app');
 
-App.RMHighAvailabilityWizardView = Em.View.extend(App.WizardMenuMixin, {
+App.RMHighAvailabilityWizardView = Em.View.extend(App.WizardMenuMixin, App.WizardHostsLoading, {
 
   templateName: require('templates/main/admin/highAvailability/resourceManager/wizard'),
-
-  /**
-   * @type {boolean}
-   * @default false
-   */
-  isLoaded: false,
 
   didInsertElement: function() {
     var currentStep = this.get('controller.currentStep');
     if (currentStep > 3) {
       this.get('controller').setLowerStepsDisable(currentStep);
     }
-  },
-
-  willInsertElement: function() {
-    this.set('isLoaded', false);
-    this.loadHosts();
-  },
-
-  /**
-   * load hosts from server
-   */
-  loadHosts: function () {
-    return App.ajax.send({
-      name: 'hosts.high_availability.wizard',
-      data: {},
-      sender: this,
-      success: 'loadHostsSuccessCallback',
-      error: 'loadHostsErrorCallback'
-    });
-  },
-
-  loadHostsSuccessCallback: function (data, opt, params) {
-    var hosts = {};
-
-    data.items.forEach(function (item) {
-      hosts[item.Hosts.host_name] = {
-        name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
-        bootStatus: "REGISTERED",
-        isInstalled: true
-      };
-    });
-    App.db.setHosts(hosts);
-    this.set('controller.content.hosts', hosts);
-    this.set('isLoaded', true);
-  },
-
-  loadHostsErrorCallback: function(){
-    this.set('isLoaded', true);
   }
 });
