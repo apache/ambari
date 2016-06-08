@@ -441,7 +441,7 @@ class ActionQueue(threading.Thread):
       for i in range(len(chunks)):
         logger.info("Cmd log for taskId={0} and chunk {1}/{2} of log for command: \n".format(taskId, i+1, len(chunks)) + chunks[i])
     else:
-      logger.info("Cmd log for taskId={0}: ".format(taskId), text)
+      logger.info("Cmd log for taskId={0}: ".format(taskId) + text)
 
   def get_retry_delay(self, last_delay):
     """
