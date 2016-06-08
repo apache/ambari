@@ -219,11 +219,15 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     beforeEach(function () {
       sinon.stub(controller, 'updateUpgradeData', Em.K);
       sinon.stub(controller, 'setDBProperty', Em.K);
+      sinon.stub(controller, 'finish');
     });
     afterEach(function () {
       controller.updateUpgradeData.restore();
       controller.setDBProperty.restore();
+      controller.finish.restore();
+      App.set('upgradeState', 'INIT');
     });
+
     it("correct data", function() {
       var data = {
         "Upgrade": {
@@ -242,12 +246,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.updateUpgradeData.calledOnce).to.be.true;
       expect(controller.setDBProperty.calledWith('upgradeState', 'UPGRADED')).to.be.true;
     });
+
     it("data is null", function() {
       var data = null;
       controller.loadUpgradeDataSuccessCallback(data);
       expect(controller.updateUpgradeData.called).to.be.false;
       expect(controller.setDBProperty.called).to.be.false;
     });
+
+    it("finish should be called", function() {
+      var data = {
+        "Upgrade": {
+          "request_status": "COMPLETED"
+        }
+      };
+      controller.loadUpgradeDataSuccessCallback(data);
+      expect(controller.finish.calledOnce).to.be.true;
+    });
+
     retryCases.forEach(function (item) {
       it(item.title, function () {
         var data = {

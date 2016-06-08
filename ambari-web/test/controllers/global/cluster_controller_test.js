@@ -489,6 +489,33 @@ describe('App.clusterController', function () {
 
     });
 
+    describe("has completed upgrade request", function() {
+
+      beforeEach(function () {
+        data.upgradeData = {items: [
+          {
+            Upgrade: {
+              request_id: 1,
+              request_status: 'COMPLETED'
+            }
+          }
+        ]};
+        controller.restoreUpgradeState();
+      });
+
+      it('getAllUpgrades is called once', function () {
+        expect(controller.getAllUpgrades.calledOnce).to.be.true;
+      });
+
+      it('restoreLastUpgrade should not be called', function () {
+        expect(upgradeController.restoreLastUpgrade.called).to.be.false;
+      });
+
+      it('loadStackVersionsToModel should not be called', function () {
+        expect(upgradeController.loadStackVersionsToModel.called).to.be.false;
+      });
+    });
+
     describe("does not have upgrade request", function() {
 
       beforeEach(function () {
