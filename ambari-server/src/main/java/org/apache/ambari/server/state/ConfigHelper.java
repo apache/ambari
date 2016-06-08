@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -51,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -68,6 +72,18 @@ public class ConfigHelper {
   public static final String CLUSTER_DEFAULT_TAG = "tag";
   private final boolean STALE_CONFIGS_CACHE_ENABLED;
   private final int STALE_CONFIGS_CACHE_EXPIRATION_TIME;
+
+  /**
+   * A cache of which {@link ServiceComponentHost}s have stale configurations.
+   * This cache may be invalidated within the context of a running transaction
+   * which could potentially cause old data to be re-cached before the
+   * transaction has completed.
+   * <p/>
+   * As a result, all invalidations of this cache should be done on a separate
+   * thread using the {@link LockArea#STALE_CONFIG_CACHE}.
+   *
+   * @see #cacheInvalidationExecutor
+   */
   private final Cache<ServiceComponentHost, Boolean> staleConfigsCache;
 
   private static final Logger LOG =
@@ -95,6 +111,25 @@ public class ConfigHelper {
    * The tag given to newly created versions.
    */
   public static final String FIRST_VERSION_TAG = "version1";
+
+  /**
+   * A {@link ThreadFactory} for the {@link #cacheInvalidationExecutor}.
+   */
+  private final ThreadFactory cacheInvalidationThreadFactory = new ThreadFactoryBuilder().setNameFormat(
+      "ambari-stale-config-invalidator-%d").setDaemon(true).build();
+
+  /**
+   * Used to invalidate the {@link #staleConfigsCache} on a separate thread.
+   * This helps ensure that the {@link TransactionalLock} /
+   * {@link LockArea#STALE_CONFIG_CACHE} doesn't cause a deadlock with the
+   * "cluster global lock".
+   * <p/>
+   * Cache invalidations must happen after the transaction which invoked them
+   * has completed, otherwise it's possible to cache invalid data before the
+   * transaction is committed.
+   */
+  private final ExecutorService cacheInvalidationExecutor = Executors.newSingleThreadExecutor(
+      cacheInvalidationThreadFactory);
 
   /**
    * Used to ensure that methods which rely on the completion of
@@ -449,34 +484,32 @@ public class ConfigHelper {
     }
 
     if (stale == null) {
-      ReadWriteLock lock = transactionLocks.getLock(LockArea.STALE_CONFIG_CACHE);
-      lock.readLock().lock();
-
-      try {
-        stale = calculateIsStaleConfigs(sch, desiredConfigs);
-        staleConfigsCache.put(sch, stale);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Cache configuration staleness for host {} and component {} as {}",
-              sch.getHostName(), sch.getServiceComponentName(), stale);
-        }
-      } finally {
-        lock.readLock().unlock();
+      stale = calculateIsStaleConfigs(sch, desiredConfigs);
+      staleConfigsCache.put(sch, stale);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Cache configuration staleness for host {} and component {} as {}",
+            sch.getHostName(), sch.getServiceComponentName(), stale);
       }
     }
     return stale;
   }
 
   /**
-   * Invalidates cached isStale values for hostname
+   * Invalidates the stale configuration cache for all
+   * {@link ServiceComponentHost}s for the given host. This will execute the
+   * invalidation on a separate thread. The thread will attempt to acquire the
+   * {@link LockArea#STALE_CONFIG_CACHE} lock which is why this action is
+   * performed on a separate thread. This way, it won't interfere with any
+   * cluster global locks already acquired.
    *
    * @param hostname
    */
   public void invalidateStaleConfigsCache(String hostname) {
     try {
       for (Cluster cluster : clusters.getClustersForHost(hostname)) {
-        for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
-          invalidateStaleConfigsCache(sch);
-        }
+        List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostname);
+        Runnable invalidationRunnable = new StaleConfigInvalidationRunnable(serviceComponentHosts);
+        cacheInvalidationExecutor.execute(invalidationRunnable);
       }
     } catch (AmbariException e) {
       LOG.warn("Unable to find clusters for host " + hostname);
@@ -484,19 +517,28 @@ public class ConfigHelper {
   }
 
   /**
-   * Invalidates isStale cache
+   * Invalidates the stale configuration cache for keys. This will execute the
+   * invalidation on a separate thread. The thread will attempt to acquire the
+   * {@link LockArea#STALE_CONFIG_CACHE} lock which is why this action is
+   * performed on a separate thread. This way, it won't interfere with any
+   * cluster global locks already acquired.
    */
   public void invalidateStaleConfigsCache() {
-    staleConfigsCache.invalidateAll();
+    Runnable invalidationRunnable = new StaleConfigInvalidationRunnable();
+    cacheInvalidationExecutor.execute(invalidationRunnable);
   }
 
   /**
-   * Invalidates cached isStale value for sch
-   *
-   * @param sch
+   * Invalidates the stale configuration cache for a single
+   * {@link ServiceComponentHost}. This will execute the invalidation on a
+   * separate thread. The thread will attempt to acquire the
+   * {@link LockArea#STALE_CONFIG_CACHE} lock which is why this action is
+   * performed on a separate thread. This way, it won't interfere with any
+   * cluster global locks already acquired.
    */
   public void invalidateStaleConfigsCache(ServiceComponentHost sch) {
-    staleConfigsCache.invalidate(sch);
+    Runnable invalidationRunnable = new StaleConfigInvalidationRunnable(Collections.singletonList(sch));
+    cacheInvalidationExecutor.execute(invalidationRunnable);
   }
 
   /**
@@ -1279,5 +1321,52 @@ public class ConfigHelper {
     return filename.substring(0, extIndex);
   }
 
+  /**
+   * Invalidates the {@link ConfigHelper#staleConfigsCache} after acquiring a
+   * lock around {@link LockArea#STALE_CONFIG_CACHE}. It is necessary to acquire
+   * this lock since the event which caused the config to become stale, such as
+   * a new configuration being created, may not have had its transaction
+   * committed yet.
+   */
+  private final class StaleConfigInvalidationRunnable implements Runnable {
+
+    private final List<ServiceComponentHost> m_keysToInvalidate;
+
+    /**
+     * Constructor.
+     *
+     */
+    private StaleConfigInvalidationRunnable() {
+      m_keysToInvalidate = null;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param keysToInvalidate
+     *          the keys to invalidate in the cache.
+     */
+    private StaleConfigInvalidationRunnable(List<ServiceComponentHost> keysToInvalidate) {
+      m_keysToInvalidate = keysToInvalidate;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void run() {
+      ReadWriteLock lock = transactionLocks.getLock(LockArea.STALE_CONFIG_CACHE);
+      lock.writeLock().lock();
+      try {
+        if (null == m_keysToInvalidate || m_keysToInvalidate.isEmpty()) {
+          staleConfigsCache.invalidateAll();
+        } else {
+          staleConfigsCache.invalidateAll(m_keysToInvalidate);
+        }
+      } finally {
+        lock.writeLock().unlock();
+      }
+    }
+  }
 
 }

@@ -41,9 +41,6 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
-import org.apache.ambari.annotations.TransactionalLock;
-import org.apache.ambari.annotations.TransactionalLock.LockArea;
-import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -2798,7 +2795,6 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
-  @TransactionalLock(lockArea = LockArea.STALE_CONFIG_CACHE, lockType = LockType.WRITE)
   void selectConfig(String type, String tag, String user) {
     Collection<ClusterConfigMappingEntity> entities =
         clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
@@ -2827,7 +2823,6 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
-  @TransactionalLock(lockArea = LockArea.STALE_CONFIG_CACHE, lockType = LockType.WRITE)
   ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
 
     String serviceName = null;
