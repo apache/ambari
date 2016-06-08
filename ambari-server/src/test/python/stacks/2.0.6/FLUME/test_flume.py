@@ -239,6 +239,7 @@ class TestFlumeHandler(RMFTestCase):
                               '/var/log/flume',
                               owner = 'flume',
                               group = 'hadoop',
+                              create_parents = True,
                               cd_access = 'a', 
                               mode=0755
     )
@@ -292,6 +293,7 @@ class TestFlumeHandler(RMFTestCase):
                               '/var/log/flume',
                               owner = 'flume',
                               group = 'hadoop',
+                              create_parents = True,
                               cd_access = 'a',
                               mode=0755)
 
@@ -463,6 +465,7 @@ class TestFlumeHandler(RMFTestCase):
                               owner = 'flume',
                               cd_access = 'a',
                               group = 'hadoop',
+                              create_parents = True,
                               mode=0755)
 
     self.assertResourceCalled('Directory',
@@ -516,6 +519,7 @@ class TestFlumeHandler(RMFTestCase):
                               '/var/log/flume',
                               owner = 'flume',
                               group = 'hadoop',
+                              create_parents = True,
                               cd_access = 'a', 
                               mode=0755)
 
