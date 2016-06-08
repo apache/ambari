@@ -19,15 +19,28 @@
 package org.apache.ambari.view.hive2.actor;
 
 import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import akka.actor.Cancellable;
 import akka.actor.PoisonPill;
+import akka.actor.Props;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive2.ConnectionDelegate;
 import org.apache.ambari.view.hive2.actor.message.Connect;
+import org.apache.ambari.view.hive2.actor.message.FetchError;
+import org.apache.ambari.view.hive2.actor.message.FetchResult;
+import org.apache.ambari.view.hive2.actor.message.GetColumnMetadataJob;
+import org.apache.ambari.view.hive2.actor.message.HiveJob;
 import org.apache.ambari.view.hive2.actor.message.HiveMessage;
-import org.apache.ambari.view.hive2.actor.message.JobExecutionCompleted;
+import org.apache.ambari.view.hive2.actor.message.ResultInformation;
+import org.apache.ambari.view.hive2.actor.message.ResultNotReady;
+import org.apache.ambari.view.hive2.actor.message.RunStatement;
+import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
+import org.apache.ambari.view.hive2.actor.message.job.CancelJob;
+import org.apache.ambari.view.hive2.actor.message.job.ExecuteNextStatement;
+import org.apache.ambari.view.hive2.actor.message.job.ExecutionFailed;
+import org.apache.ambari.view.hive2.actor.message.job.Failure;
+import org.apache.ambari.view.hive2.actor.message.job.NoResult;
+import org.apache.ambari.view.hive2.actor.message.job.ResultSetHolder;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.CleanUp;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.DestroyConnector;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.FreeConnector;
@@ -38,22 +51,28 @@ import org.apache.ambari.view.hive2.internal.Connectable;
 import org.apache.ambari.view.hive2.internal.ConnectionException;
 import org.apache.ambari.view.hive2.persistence.Storage;
 import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
+import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl;
 import org.apache.ambari.view.hive2.utils.HiveActorConfiguration;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
-import org.apache.hive.jdbc.HiveStatement;
+import org.apache.hive.jdbc.HiveConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 
 /**
  * Wraps one Jdbc connection per user, per instance. This is used to delegate execute the statements and
- * creates child actors to delegate the resultset extraction, YARN/ATS querying for ExecuteJob info and Log Aggregation
+ * creates child actors to delegate the ResultSet extraction, YARN/ATS querying for ExecuteJob info and Log Aggregation
  */
-public abstract class JdbcConnector extends HiveActor {
+public class JdbcConnector extends HiveActor {
 
   private final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -67,9 +86,7 @@ public abstract class JdbcConnector extends HiveActor {
    */
   private static final long MAX_TERMINATION_INACTIVITY_INTERVAL = 10 * 60 * 1000;
 
-  protected final ViewContext viewContext;
-  protected final ActorSystem system;
-  protected final Storage storage;
+  private final Storage storage;
 
   /**
    * Keeps track of the timestamp when the last activity has happened. This is
@@ -81,47 +98,57 @@ public abstract class JdbcConnector extends HiveActor {
   /**
    * Akka scheduler to tick at an interval to deal with inactivity of this actor
    */
-  protected Cancellable inactivityScheduler;
+  private Cancellable inactivityScheduler;
 
   /**
    * Akka scheduler to tick at an interval to deal with the inactivity after which
-   * the actor should be killed and connectable should be released
+   * the actor should be killed and connection should be released
    */
-  protected Cancellable terminateActorScheduler;
+  private Cancellable terminateActorScheduler;
 
-  protected Connectable connectable = null;
-  protected final ActorRef deathWatch;
-  protected final ConnectionDelegate connectionDelegate;
-  protected final ActorRef parent;
-  protected final HdfsApi hdfsApi;
+  private Connectable connectable = null;
+  private final ActorRef deathWatch;
+  private final ConnectionDelegate connectionDelegate;
+  private final ActorRef parent;
+  private ActorRef statementExecutor = null;
+  private final HdfsApi hdfsApi;
 
   /**
    * true if the actor is currently executing any job.
    */
-  protected boolean executing = false;
-
-  /**
-   * true if the currently executing job is async job.
-   */
-  private boolean async = true;
+  private boolean executing = false;
+  private HiveJob.Type executionType = HiveJob.Type.SYNC;
 
   /**
    * Returns the timeout configurations.
    */
   private final HiveActorConfiguration actorConfiguration;
-  protected String username;
-  protected String jobId;
+  private String username;
+  private Optional<String> jobId = Optional.absent();
+  private Optional<String> logFile = Optional.absent();
+  private int statementsCount = 0;
 
-  public JdbcConnector(ViewContext viewContext, HdfsApi hdfsApi, ActorSystem system, ActorRef parent, ActorRef deathWatch,
+  private ActorRef commandSender = null;
+
+  private ActorRef resultSetIterator = null;
+  private boolean isFailure = false;
+  private Failure failure = null;
+  private boolean isCancelCalled = false;
+
+  /**
+   * For every execution, this will hold the statements that are left to execute
+   */
+  private Queue<String> statementQueue = new ArrayDeque<>();
+
+  public JdbcConnector(ViewContext viewContext, ActorRef parent, ActorRef deathWatch, HdfsApi hdfsApi,
                        ConnectionDelegate connectionDelegate, Storage storage) {
-    this.viewContext = viewContext;
     this.hdfsApi = hdfsApi;
-    this.system = system;
     this.parent = parent;
     this.deathWatch = deathWatch;
     this.connectionDelegate = connectionDelegate;
     this.storage = storage;
     this.lastActivityTimestamp = System.currentTimeMillis();
+    resultSetIterator = null;
     actorConfiguration = new HiveActorConfiguration(viewContext);
   }
 
@@ -136,8 +163,6 @@ public abstract class JdbcConnector extends HiveActor {
       keepAlive();
     } else if (message instanceof CleanUp) {
       cleanUp();
-    } else if (message instanceof JobExecutionCompleted) {
-      jobExecutionCompleted();
     } else {
       handleNonLifecycleMessage(hiveMessage);
     }
@@ -148,19 +173,205 @@ public abstract class JdbcConnector extends HiveActor {
     keepAlive();
     if (message instanceof Connect) {
       connect((Connect) message);
+    } else if (message instanceof SQLStatementJob) {
+      runStatementJob((SQLStatementJob) message);
+    } else if (message instanceof GetColumnMetadataJob) {
+      runGetMetaData((GetColumnMetadataJob) message);
+    } else if (message instanceof ExecuteNextStatement) {
+      executeNextStatement();
+    } else if (message instanceof ResultInformation) {
+      gotResultBack((ResultInformation) message);
+    } else if (message instanceof CancelJob) {
+      cancelJob((CancelJob) message);
+    } else if (message instanceof FetchResult) {
+      fetchResult((FetchResult) message);
+    } else if (message instanceof FetchError) {
+      fetchError((FetchError) message);
     } else {
-      handleJobMessage(hiveMessage);
+      unhandled(message);
     }
-
   }
 
-  protected abstract void handleJobMessage(HiveMessage message);
+  private void fetchError(FetchError message) {
+    if (isFailure) {
+      sender().tell(Optional.of(failure), self());
+      return;
+    }
+    sender().tell(Optional.absent(), self());
+  }
 
-  protected abstract boolean isAsync();
+  private void fetchResult(FetchResult message) {
+    if (isFailure) {
+      sender().tell(failure, self());
+      return;
+    }
 
-  protected abstract void notifyFailure();
+    if (executing) {
+      sender().tell(new ResultNotReady(jobId.get(), username), self());
+      return;
+    }
+    sender().tell(Optional.fromNullable(resultSetIterator), self());
+  }
 
-  protected abstract void cleanUpChildren();
+  private void cancelJob(CancelJob message) {
+    if (!executing || connectionDelegate == null) {
+      LOG.error("Cannot cancel job for user as currently the job is not running or started. JobId: {}", message.getJobId());
+      return;
+    }
+    LOG.info("Cancelling job for user. JobId: {}, user: {}", message.getJobId(), username);
+    try {
+      isCancelCalled = true;
+      connectionDelegate.cancel();
+    } catch (SQLException e) {
+      LOG.error("Failed to cancel job. JobId: {}. {}", message.getJobId(), e);
+    }
+  }
+
+  private void gotResultBack(ResultInformation message) {
+    Optional<Failure> failureOptional = message.getFailure();
+    if (failureOptional.isPresent()) {
+      Failure failure = failureOptional.get();
+      processFailure(failure);
+      return;
+    }
+    if (statementQueue.size() == 0) {
+      // This is the last resultSet
+      processResult(message.getResultSet());
+    } else {
+      self().tell(new ExecuteNextStatement(), self());
+    }
+  }
+
+  private void processCancel() {
+    executing = false;
+    if (isAsync() && jobId.isPresent()) {
+      LOG.error("Job canceled by user for JobId: {}", jobId.get());
+      updateJobStatus(jobId.get(), Job.JOB_STATE_CANCELED);
+    }
+  }
+
+  private void processFailure(Failure failure) {
+    executing = false;
+    isFailure = true;
+    this.failure = failure;
+    if (isAsync() && jobId.isPresent()) {
+      if(isCancelCalled) {
+        processCancel();
+        return;
+      }
+      updateJobStatus(jobId.get(), Job.JOB_STATE_ERROR);
+    } else {
+      // Send for sync execution
+      commandSender.tell(new ExecutionFailed(failure.getMessage(), failure.getError()), self());
+      cleanUpWithTermination();
+    }
+  }
+
+  private void processResult(Optional<ResultSet> resultSetOptional) {
+    executing = false;
+
+    if (isAsync() && jobId.isPresent()) {
+      updateJobStatus(jobId.get(), Job.JOB_STATE_FINISHED);
+    }
+
+    if (resultSetOptional.isPresent()) {
+      ActorRef resultSetActor = getContext().actorOf(Props.create(ResultSetIterator.class, self(),
+        resultSetOptional.get(), isAsync()).withDispatcher("akka.actor.result-dispatcher"),
+        "ResultSetIterator:" + UUID.randomUUID().toString());
+      resultSetIterator = resultSetActor;
+      if (!isAsync()) {
+        commandSender.tell(new ResultSetHolder(resultSetActor), self());
+      }
+    } else {
+      resultSetIterator = null;
+      if (!isAsync()) {
+        commandSender.tell(new NoResult(), self());
+      }
+    }
+  }
+
+  private void executeNextStatement() {
+    if (statementQueue.isEmpty()) {
+      jobExecutionCompleted();
+      return;
+    }
+
+    int index = statementsCount - statementQueue.size();
+    String statement = statementQueue.poll();
+    if (statementExecutor == null) {
+      statementExecutor = getStatementExecutor();
+    }
+
+    if (isAsync()) {
+      statementExecutor.tell(new RunStatement(index, statement, jobId.get(), true, logFile.get(), true), self());
+    } else {
+      statementExecutor.tell(new RunStatement(index, statement), self());
+    }
+  }
+
+  private void runStatementJob(SQLStatementJob message) {
+    executing = true;
+    jobId = message.getJobId();
+    logFile = message.getLogFile();
+    executionType = message.getType();
+    commandSender = getSender();
+
+    if (!checkConnection()) return;
+
+    for (String statement : message.getStatements()) {
+      statementQueue.add(statement);
+    }
+    statementsCount = statementQueue.size();
+
+    if (isAsync() && jobId.isPresent()) {
+      updateJobStatus(jobId.get(), Job.JOB_STATE_RUNNING);
+      startInactivityScheduler();
+    }
+    self().tell(new ExecuteNextStatement(), self());
+  }
+
+  public boolean checkConnection() {
+    if (connectable == null) {
+      notifyConnectFailure();
+      return false;
+    }
+
+    Optional<HiveConnection> connectionOptional = connectable.getConnection();
+    if (!connectionOptional.isPresent()) {
+      notifyConnectFailure();
+      return false;
+    }
+    return true;
+  }
+
+  private void runGetMetaData(GetColumnMetadataJob message) {
+    if (!checkConnection()) return;
+    executing = true;
+    executionType = message.getType();
+    commandSender = getSender();
+    statementExecutor = getStatementExecutor();
+    statementExecutor.tell(message, self());
+  }
+
+  private ActorRef getStatementExecutor() {
+    return getContext().actorOf(Props.create(StatementExecutor.class, hdfsApi, storage, connectable.getConnection().get(), connectionDelegate).withDispatcher("akka.actor.result-dispatcher"), "StatementExecutor");
+  }
+
+  private boolean isAsync() {
+    return executionType == HiveJob.Type.ASYNC;
+  }
+
+  private void notifyConnectFailure() {
+    executing = false;
+    isFailure = true;
+    this.failure = new Failure("Cannot connect to hive", new SQLException("Cannot connect to hive"));
+    if (isAsync()) {
+      updateJobStatus(jobId.get(), Job.JOB_STATE_ERROR);
+    } else {
+      sender().tell(new ExecutionFailed("Cannot connect to hive"), ActorRef.noSender());
+      cleanUpWithTermination();
+    }
+  }
 
   private void keepAlive() {
     lastActivityTimestamp = System.currentTimeMillis();
@@ -173,16 +384,14 @@ public abstract class JdbcConnector extends HiveActor {
     this.executing = false;
   }
 
-  protected Optional<String> getJobId() {
-    return Optional.fromNullable(jobId);
-  }
-
   protected Optional<String> getUsername() {
     return Optional.fromNullable(username);
   }
 
   private void connect(Connect message) {
-    this.username = message.getUsername();
+    username = message.getUsername();
+    jobId = message.getJobId();
+    executionType = message.getType();
     // check the connectable
     if (connectable == null) {
       connectable = message.getConnectable();
@@ -195,30 +404,25 @@ public abstract class JdbcConnector extends HiveActor {
     } catch (ConnectionException e) {
       // set up job failure
       // notify parent about job failure
-      this.notifyFailure();
-      cleanUp();
+      notifyConnectFailure();
       return;
     }
-
-    this.terminateActorScheduler = system.scheduler().schedule(
-      Duration.Zero(), Duration.create(60 * 1000, TimeUnit.MILLISECONDS),
-      this.getSelf(), new TerminateInactivityCheck(), system.dispatcher(), null);
-
+    startTerminateInactivityScheduler();
   }
 
-  protected void updateGuidInJob(String jobId, HiveStatement statement) {
-    String yarnAtsGuid = statement.getYarnATSGuid();
+  private void updateJobStatus(String jobid, String status) {
     try {
-      JobImpl job = storage.load(JobImpl.class, jobId);
-      job.setGuid(yarnAtsGuid);
+      JobImpl job = storage.load(JobImpl.class, jobid);
+      job.setStatus(status);
       storage.store(JobImpl.class, job);
     } catch (ItemNotFound itemNotFound) {
-      // Cannot do anything if the job is not present
+      // Cannot do anything
     }
   }
 
+
   private void checkInactivity() {
-    LOG.info("Inactivity check, executing status: {}", executing);
+    LOG.debug("Inactivity check, executing status: {}", executing);
     if (executing) {
       keepAlive();
       return;
@@ -233,11 +437,11 @@ public abstract class JdbcConnector extends HiveActor {
   private void checkTerminationInactivity() {
     if (!isAsync()) {
       // Should not terminate if job is sync. Will terminate after the job is finished.
-      stopTeminateInactivityScheduler();
+      stopTerminateInactivityScheduler();
       return;
     }
 
-    LOG.info("Termination check, executing status: {}", executing);
+    LOG.debug("Termination check, executing status: {}", executing);
     if (executing) {
       keepAlive();
       return;
@@ -249,27 +453,26 @@ public abstract class JdbcConnector extends HiveActor {
     }
   }
 
-  protected void cleanUp() {
-    if(jobId != null) {
-      LOG.debug("{} :: Cleaning up resources for inactivity for jobId: {}", self().path().name(), jobId);
+  private void cleanUp() {
+    if (jobId.isPresent()) {
+      LOG.debug("{} :: Cleaning up resources for inactivity for jobId: {}", self().path().name(), jobId.get());
     } else {
       LOG.debug("{} ::Cleaning up resources with inactivity for Sync execution.", self().path().name());
     }
     this.executing = false;
     cleanUpStatementAndResultSet();
-    cleanUpChildren();
     stopInactivityScheduler();
-    parent.tell(new FreeConnector(username, jobId, isAsync()), self());
+    parent.tell(new FreeConnector(username, jobId.orNull(), isAsync()), self());
   }
 
-  protected void cleanUpWithTermination() {
-    LOG.debug("{} :: Cleaning up resources with inactivity for Sync execution.", self().path().name());
+  private void cleanUpWithTermination() {
+    this.executing = false;
+    LOG.debug("{} :: Cleaning up resources with inactivity for execution.", self().path().name());
     cleanUpStatementAndResultSet();
 
-    cleanUpChildren();
     stopInactivityScheduler();
-    stopTeminateInactivityScheduler();
-    parent.tell(new DestroyConnector(username, jobId, isAsync()), this.self());
+    stopTerminateInactivityScheduler();
+    parent.tell(new DestroyConnector(username, jobId.orNull(), isAsync()), this.self());
     self().tell(PoisonPill.getInstance(), ActorRef.noSender());
   }
 
@@ -279,10 +482,25 @@ public abstract class JdbcConnector extends HiveActor {
     connectionDelegate.closeResultSet();
   }
 
-  private void stopTeminateInactivityScheduler() {
+  private void startTerminateInactivityScheduler() {
+    this.terminateActorScheduler = getContext().system().scheduler().schedule(
+      Duration.Zero(), Duration.create(60 * 1000, TimeUnit.MILLISECONDS),
+      this.getSelf(), new TerminateInactivityCheck(), getContext().dispatcher(), null);
+  }
+
+  private void stopTerminateInactivityScheduler() {
     if (!(terminateActorScheduler == null || terminateActorScheduler.isCancelled())) {
       terminateActorScheduler.cancel();
     }
+  }
+
+  private void startInactivityScheduler() {
+    if (inactivityScheduler != null) {
+      inactivityScheduler.cancel();
+    }
+    inactivityScheduler = getContext().system().scheduler().schedule(
+      Duration.Zero(), Duration.create(15 * 1000, TimeUnit.MILLISECONDS),
+      this.self(), new InactivityCheck(), getContext().dispatcher(), null);
   }
 
   private void stopInactivityScheduler() {
@@ -294,12 +512,10 @@ public abstract class JdbcConnector extends HiveActor {
   @Override
   public void postStop() throws Exception {
     stopInactivityScheduler();
-    stopTeminateInactivityScheduler();
+    stopTerminateInactivityScheduler();
 
     if (connectable.isOpen()) {
       connectable.disconnect();
     }
   }
-
-
 }

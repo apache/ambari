@@ -49,13 +49,13 @@ public class LogAggregator extends HiveActor {
   private final HdfsApi hdfsApi;
   private final HiveStatement statement;
   private final String logFile;
-  private final ActorSystem system;
 
   private Cancellable moreLogsScheduler;
   private ActorRef parent;
+  private boolean hasStartedFetching = false;
+  private boolean shouldFetchMore = true;
 
-  public LogAggregator(ActorSystem system, HdfsApi hdfsApi, HiveStatement statement, String logFile) {
-    this.system = system;
+  public LogAggregator(HdfsApi hdfsApi, HiveStatement statement, String logFile) {
     this.hdfsApi = hdfsApi;
     this.statement = statement;
     this.logFile = logFile;
@@ -82,25 +82,36 @@ public class LogAggregator extends HiveActor {
 
   private void start() {
     parent = this.getSender();
-    this.moreLogsScheduler = system.scheduler().schedule(
+    hasStartedFetching = false;
+    shouldFetchMore = true;
+    if (!(moreLogsScheduler == null || moreLogsScheduler.isCancelled())) {
+      moreLogsScheduler.cancel();
+    }
+    this.moreLogsScheduler = getContext().system().scheduler().schedule(
       Duration.Zero(), Duration.create(AGGREGATION_INTERVAL, TimeUnit.MILLISECONDS),
-      this.getSelf(), new GetMoreLogs(), system.dispatcher(), null);
+      this.getSelf(), new GetMoreLogs(), getContext().dispatcher(), null);
   }
 
   private void getMoreLogs() throws SQLException, HdfsApiException {
-    if (statement.hasMoreLogs()) {
-      List<String> logs = statement.getQueryLog();
+    List<String> logs = statement.getQueryLog();
+    if (logs.size() > 0 && shouldFetchMore) {
       String allLogs = Joiner.on("\n").skipNulls().join(logs);
       HdfsUtil.putStringToFile(hdfsApi, logFile, allLogs);
+      if(!statement.hasMoreLogs()) {
+        shouldFetchMore = false;
+      }
     } else {
-      moreLogsScheduler.cancel();
-      parent.tell(new LogAggregationFinished(), ActorRef.noSender());
+      // Cancel the timer only when log fetching has been started
+      if(!shouldFetchMore) {
+        moreLogsScheduler.cancel();
+        parent.tell(new LogAggregationFinished(), ActorRef.noSender());
+      }
     }
   }
 
   @Override
   public void postStop() throws Exception {
-    if(moreLogsScheduler != null && !moreLogsScheduler.isCancelled()){
+    if (moreLogsScheduler != null && !moreLogsScheduler.isCancelled()) {
       moreLogsScheduler.cancel();
     }
 

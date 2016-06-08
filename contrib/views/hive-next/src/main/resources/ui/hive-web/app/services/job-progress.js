@@ -93,6 +93,15 @@ export default Ember.Service.extend({
       } else {
         job.set('retrievingProgress');
       }
+    }, function() {
+      console.log("Failed to fetch progress. Retrying.");
+      if (job.get('model.isRunning')) {
+        Ember.run.later(function () {
+          self.reloadProgress(job);
+        }, 1000);
+      } else {
+        job.set('retrievingProgress');
+      }
     });
   },
 

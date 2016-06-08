@@ -19,29 +19,26 @@
 package org.apache.ambari.view.hive2.actor.message;
 
 import akka.actor.ActorRef;
-import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
-import org.apache.ambari.view.hive2.internal.Either;
+import com.google.common.base.Optional;
 
 /**
- *
  * Fetch the result for
- *
  */
 public class ResultReady extends FetchResult {
-    private Either<ActorRef, ActorRef> result;
+  private final ActorRef result;
 
 
-    public ResultReady(String jobId, String username, Either<ActorRef, ActorRef> result) {
-        super(jobId, username);
-        this.result = result;
-    }
+  public ResultReady(String jobId, String username, ActorRef result) {
+    super(jobId, username);
+    this.result = result;
+  }
 
-    public Either<ActorRef, ActorRef> getResult() {
-        return result;
-    }
+  public ResultReady(String jobId, String username) {
+    this(jobId, username, null);
+  }
 
-    public void setResult(Either<ActorRef, ActorRef> result) {
-        this.result = result;
-    }
+  public Optional<ActorRef> getResult() {
+    return Optional.fromNullable(result);
+  }
 }
 

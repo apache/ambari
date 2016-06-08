@@ -18,28 +18,33 @@
 
 package org.apache.ambari.view.hive2.actor.message;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 
-public class DDLJob extends HiveJob {
+public class SQLStatementJob extends HiveJob {
 
   public static final String SEMICOLON = ";";
   private String[] statements;
 
-  public DDLJob(Type type, String[] statements, String username, ViewContext viewContext) {
+  private final String jobId;
+  private final String logFile;
+
+  public SQLStatementJob(Type type, String[] statements, String username, String jobId, String logFile, ViewContext viewContext) {
     super(type, username, viewContext);
     this.statements = new String[statements.length];
+    this.jobId = jobId;
+    this.logFile = logFile;
     for (int i = 0; i < statements.length; i++) {
       this.statements[i] = clean(statements[i]);
-
     }
-
+  }
+  public SQLStatementJob(Type type, String[] statements, String username, ViewContext viewContext) {
+    this(type, statements, username, null, null, viewContext);
   }
 
   private String clean(String statement) {
@@ -50,24 +55,11 @@ public class DDLJob extends HiveJob {
     return Arrays.asList(statements);
   }
 
-  /**
-   * Get the statements to be executed synchronously
-   *
-   * @return
-   */
-  public Collection<String> getSyncStatements() {
-    if (!(statements.length > 1))
-      return Collections.emptyList();
-    else
-      return ImmutableList.copyOf(Arrays.copyOfRange(statements, 0, statements.length - 1));
+  public Optional<String> getJobId() {
+    return Optional.fromNullable(jobId);
   }
 
-  /**
-   * Get the statement to be executed asynchronously
-   *
-   * @return async statement
-   */
-  public String getAsyncStatement() {
-    return statements[statements.length - 1];
+  public Optional<String> getLogFile() {
+    return Optional.fromNullable(logFile);
   }
 }

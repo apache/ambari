@@ -30,6 +30,8 @@ import org.apache.ambari.view.hive2.client.HiveClientException;
 import org.apache.ambari.view.hive2.client.Row;
 import org.apache.ambari.view.hive2.utils.BadRequestFormattedException;
 import org.apache.ambari.view.hive2.utils.HiveClientFormattedException;
+import org.apache.ambari.view.hive2.utils.ResultFetchFormattedException;
+import org.apache.ambari.view.hive2.utils.ResultNotReadyFormattedException;
 import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.apache.hadoop.hbase.util.Strings;
@@ -113,8 +115,8 @@ public class ResultsPaginationController {
         if (resultSet.isResettable()) {
           resultSet.reset();
         }
-      } catch (HiveClientException ex) {
-        throw new HiveClientFormattedException(ex);
+      } catch (ResultNotReadyFormattedException | ResultFetchFormattedException ex) {
+        throw ex;
       } catch (Exception ex) {
         throw new ServiceFormattedException(ex.getMessage(), ex);
       }

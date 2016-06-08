@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,6 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive2.actor.message;
+package org.apache.ambari.view.hive2.utils;
 
-public class JobExecutionCompleted {}
+public class ResultFetchFormattedException extends ServiceFormattedException {
+  private final static int STATUS = 500;
+
+  public ResultFetchFormattedException(String message, Throwable exception) {
+    super(message, exception, STATUS);
+  }
+}

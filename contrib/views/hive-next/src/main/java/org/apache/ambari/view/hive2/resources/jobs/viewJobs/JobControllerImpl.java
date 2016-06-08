@@ -19,6 +19,10 @@
 package org.apache.ambari.view.hive2.resources.jobs.viewJobs;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive2.ConnectionFactory;
+import org.apache.ambari.view.hive2.ConnectionSystem;
+import org.apache.ambari.view.hive2.actor.message.HiveJob;
+import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
 import org.apache.ambari.view.hive2.client.AsyncJobRunner;
 import org.apache.ambari.view.hive2.client.AsyncJobRunnerImpl;
 import org.apache.ambari.view.hive2.client.ConnectionConfig;
@@ -32,9 +36,6 @@ import org.apache.ambari.view.hive2.utils.BadRequestFormattedException;
 import org.apache.ambari.view.hive2.utils.FilePaginator;
 import org.apache.ambari.view.hive2.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
-import org.apache.ambari.view.hive2.ConnectionFactory;
-import org.apache.ambari.view.hive2.ConnectionSystem;
-import org.apache.ambari.view.hive2.actor.message.AsyncJob;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
@@ -106,7 +107,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
         String query = getQueryForJob();
         ConnectionSystem system = ConnectionSystem.getInstance();
         AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
-        AsyncJob asyncJob = new AsyncJob(job.getId(), context.getUsername(), getStatements(jobDatabase, query), job.getLogFile(), context);
+        SQLStatementJob asyncJob = new SQLStatementJob(HiveJob.Type.ASYNC, getStatements(jobDatabase, query), context.getUsername(), job.getId(), job.getLogFile(), context);
         asyncJobRunner.submitJob(getHiveConnectionConfig(), asyncJob, job);
 
     }
@@ -122,7 +123,9 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
     @Override
     public void cancel() throws ItemNotFound {
-        //TODO: Cancel job
+      ConnectionSystem system = ConnectionSystem.getInstance();
+      AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
+      asyncJobRunner.cancelJob(job.getId(), context.getUsername());
     }
 
     @Override
