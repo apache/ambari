@@ -73,7 +73,7 @@ public class AmbariApi {
    * @return response
    * @throws AmbariApiException
    */
-  public String requestClusterAPI(String path) throws AmbariApiException {
+  public String requestClusterAPI(String path) throws AmbariApiException, AmbariHttpException {
     return requestClusterAPI(path, "GET", null, null);
   }
 
@@ -86,7 +86,7 @@ public class AmbariApi {
    * @return response
    * @throws AmbariApiException IO error or not associated with cluster
    */
-  public String requestClusterAPI(String path, String method, String data, Map<String, String> headers) throws AmbariApiException {
+  public String requestClusterAPI(String path, String method, String data, Map<String, String> headers) throws AmbariApiException, AmbariHttpException {
     String response;
 
     try {
@@ -104,8 +104,6 @@ public class AmbariApi {
       response = IOUtils.toString(inputStream);
     } catch (IOException e) {
       throw new AmbariApiException("RA040 I/O error while requesting Ambari", e);
-    } catch (AmbariHttpException e) {
-      throw new AmbariApiException("RA040 Request to Ambari is unsuccessful with response code "+e.getResponseCode(), e);
     }
     return response;
   }
