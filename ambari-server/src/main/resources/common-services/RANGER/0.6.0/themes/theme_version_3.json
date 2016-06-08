@@ -78,26 +78,6 @@
       "configuration-layout": "default",
       "configs": [
         {
-          "config": "ranger-env/ranger-atlas-plugin-enabled",
-          "subsection-name": "section-ranger-plugin-row1-col2",
-          "depends-on": [
-            {
-              "resource": "service",
-              "if": "ATLAS",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
           "config": "ranger-tagsync-site/ranger.tagsync.source.atlas",
           "subsection-name": "subsection-ranger-tagsync-row1-col1"
         },
@@ -370,12 +350,6 @@
         "config": "ranger-tagsync-site/ranger.tagsync.source.file",
         "widget": {
           "type": "checkbox"
-        }
-      },
-      {
-        "config": "ranger-env/ranger-atlas-plugin-enabled",
-        "widget": {
-          "type": "toggle"
         }
       },
       {

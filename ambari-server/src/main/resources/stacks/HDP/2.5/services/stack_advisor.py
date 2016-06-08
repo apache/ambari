@@ -173,7 +173,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
-    putAtlasRangerPluginProperty = self.putProperty(configurations, "ranger-atlas-plugin-properties", services)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
@@ -272,22 +271,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putAtlasApplicationProperty('atlas.graph.storage.hostname', "")
       putAtlasApplicationProperty('atlas.audit.hbase.zookeeper.quorum', "")
-
-    if "ranger-env" in services["configurations"] and "ranger-atlas-plugin-properties" in services["configurations"] and \
-        "ranger-atlas-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
-      ranger_atlas_plugin_enabled = services["configurations"]["ranger-env"]["properties"]["ranger-atlas-plugin-enabled"]
-      putAtlasRangerPluginProperty('ranger-atlas-plugin-enabled', ranger_atlas_plugin_enabled)
-
-    ranger_atlas_plugin_enabled = ''
-    if 'ranger-atlas-plugin-properties' in configurations and 'ranger-atlas-plugin-enabled' in configurations['ranger-atlas-plugin-properties']['properties']:
-      ranger_atlas_plugin_enabled = configurations['ranger-atlas-plugin-properties']['properties']['ranger-atlas-plugin-enabled']
-    elif 'ranger-atlas-plugin-properties' in services['configurations'] and 'ranger-atlas-plugin-enabled' in services['configurations']['ranger-atlas-plugin-properties']['properties']:
-      ranger_atlas_plugin_enabled = services['configurations']['ranger-atlas-plugin-properties']['properties']['ranger-atlas-plugin-enabled']
-
-    if ranger_atlas_plugin_enabled and (ranger_atlas_plugin_enabled.lower() == 'Yes'.lower()):
-      putAtlasApplicationProperty('atlas.authorizer.impl','org.apache.ranger.authorization.atlas.authorizer.RangerAtlasAuthorizer')
-    else:
-      putAtlasApplicationProperty('atlas.authorizer.impl','org.apache.atlas.authorize.SimpleAtlasAuthorizer')
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
@@ -1277,8 +1260,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       {'service_name': 'KNOX', 'audit_file': 'ranger-knox-audit'},
       {'service_name': 'KAFKA', 'audit_file': 'ranger-kafka-audit'},
       {'service_name': 'STORM', 'audit_file': 'ranger-storm-audit'},
-      {'service_name': 'RANGER_KMS', 'audit_file': 'ranger-kms-audit'},
-      {'service_name': 'ATLAS', 'audit_file': 'ranger-atlas-audit'}
+      {'service_name': 'RANGER_KMS', 'audit_file': 'ranger-kms-audit'}
     ]
 
     for item in range(len(ranger_services)):

@@ -240,11 +240,6 @@
       "name": "spark_livy",
       "description": "Livy as slave component of spark",
       "min_version": "2.5.0.0"
-    },
-    {
-      "name": "atlas_ranger_plugin_support",
-      "description": "Atlas Ranger plugin support",
-      "min_version": "2.5.0.0"
     }
   ]
 }

@@ -21,8 +21,6 @@ import os
 from resource_management import Script
 from resource_management.libraries.functions import  get_kinit_path, format
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
 
 
 config = Script.get_config()
@@ -40,5 +38,3 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
