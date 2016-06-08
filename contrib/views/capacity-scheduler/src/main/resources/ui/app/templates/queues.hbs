@@ -113,6 +113,9 @@
 
 {{!-- QUEUE --}}
 <div class="col-md-8 queue-area">
+  {{#unless isOperator}}
+    <div class="alert alert-warning"><strong>Warning!</strong> You do not have permission to edit the Capacity Scheduler configuration. Contact your Cluster administrator.</div>
+  {{/unless}}
   {{outlet}}
 </div>
 

@@ -144,6 +144,12 @@ public class ConfigurationService {
     try {
       JSONObject configurations = readFromCluster("");
       response = Response.ok(configurations).build();
+    } catch (AmbariHttpException ex) {
+      if (ex.getResponseCode() == 403) {
+        throw new ServiceFormattedException("You do not have permission to view Capacity Scheduler configuration. Contact your Cluster administrator", ex);
+      } else {
+        throw new ServiceFormattedException(ex.getMessage(), ex);
+      }
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -279,7 +285,7 @@ public class ConfigurationService {
     return false;
   }
 
-  private JSONObject readFromCluster(String url) {
+  private JSONObject readFromCluster(String url) throws AmbariHttpException {
     String response = ambariApi.requestClusterAPI(url);
     if (response == null || response.isEmpty()) {
       return null;
@@ -308,7 +314,7 @@ public class ConfigurationService {
     return jsonObject;
   }
 
-  private JSONObject getConfigurationFromAmbari(String versionTag) {
+  private JSONObject getConfigurationFromAmbari(String versionTag) throws AmbariHttpException {
     String url = String.format(CONFIGURATION_URL_BY_TAG, versionTag);
     JSONObject responseJSON = readFromCluster(url);
     return  responseJSON;
@@ -319,7 +325,7 @@ public class ConfigurationService {
    *
    * @return    the capacity scheduler version tag
    */
-  private String getVersionTag() {
+  private String getVersionTag() throws AmbariHttpException {
     JSONObject json = getDesiredConfigs();
     JSONObject clusters = (JSONObject) json.get("Clusters");
     JSONObject configs = (JSONObject) clusters.get("desired_configs");
@@ -332,7 +338,7 @@ public class ConfigurationService {
    *
    * @return    the cluster name
    */
-  private String getClusterName() {
+  private String getClusterName() throws AmbariHttpException {
     JSONObject json = getDesiredConfigs();
     JSONObject clusters = (JSONObject) json.get("Clusters");
     return (String) clusters.get("cluster_name");
@@ -343,7 +349,7 @@ public class ConfigurationService {
    *
    * @return  the desired config JSON object
    */
-  private JSONObject getDesiredConfigs() {
+  private JSONObject getDesiredConfigs() throws AmbariHttpException {
     JSONObject response = readFromCluster(VERSION_TAG_URL);
     return response;
   }
