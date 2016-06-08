@@ -38,3 +38,49 @@ class TestPackagesAnalyzer(TestCase):
     result = packages_analyzer.getInstalledPackageVersion("package1")
     self.assertEqual(result, '0.0.1-SNAPSHOT')
     self.assertEqual(checked_call_mock.call_args_list, [call("rpm -q --queryformat '%{version}-%{release}' package1 | sed -e 's/\\.el[0-9]//g'", stderr=-1)])
+
+  def test_perform_package_analysis(self):
+    installedPackages = [
+      ["hadoop-a", "2.3", "HDP"], ["zk", "3.1", "HDP"], ["webhcat", "3.1", "HDP"],
+      ["hadoop-b", "2.3", "HDP-epel"], ["epel", "3.1", "HDP-epel"], ["epel-2", "3.1", "HDP-epel"],
+      ["hadoop-c", "2.3", "Ambari"], ["ambari-s", "3.1", "Ambari"],
+      ["ganglia", "2.3", "GANGLIA"], ["rrd", "3.1", "RRD"],
+      ["keeper-1", "2.3", "GANGLIA"], ["keeper-2", "3.1", "base"],["def-def.x86", "2.2", "DEF.3"],
+      ["def.1", "1.2", "NewDEF"]
+    ]
+    availablePackages = [
+      ["hadoop-d", "2.3", "HDP"], ["zk-2", "3.1", "HDP"], ["pig", "3.1", "HDP"],
+      ["epel-3", "2.3", "HDP-epel"], ["hadoop-e", "3.1", "HDP-epel"],
+      ["ambari-a", "3.1", "Ambari"],
+      ["keeper-3", "3.1", "base"]
+    ]
+
+    packagesToLook = ["^webhcat.*$", "^hadoop.*$", "^.+-def.*$"]
+    reposToIgnore = ["ambari"]
+    additionalPackages = ["ganglia", "rrd"]
+
+    repos = []
+    packages_analyzer.getInstalledRepos(packagesToLook, installedPackages + availablePackages, reposToIgnore, repos)
+    self.assertEqual(3, len(repos))
+    expected = ["HDP", "HDP-epel", "DEF.3"]
+    for repo in expected:
+      self.assertTrue(repo in repos)
+
+    packagesInstalled = packages_analyzer.getInstalledPkgsByRepo(repos, ["epel"], installedPackages)
+    self.assertEqual(5, len(packagesInstalled))
+    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "def-def.x86"]
+    for repo in expected:
+      self.assertTrue(repo in packagesInstalled)
+
+    additionalPkgsInstalled = packages_analyzer.getInstalledPkgsByNames(
+      additionalPackages, installedPackages)
+    self.assertEqual(2, len(additionalPkgsInstalled))
+    expected = ["ganglia", "rrd"]
+    for additionalPkg in expected:
+      self.assertTrue(additionalPkg in additionalPkgsInstalled)
+
+    allPackages = list(set(packagesInstalled + additionalPkgsInstalled))
+    self.assertEqual(7, len(allPackages))
+    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "ganglia", "rrd", "def-def.x86"]
+    for package in expected:
+      self.assertTrue(package in allPackages)
