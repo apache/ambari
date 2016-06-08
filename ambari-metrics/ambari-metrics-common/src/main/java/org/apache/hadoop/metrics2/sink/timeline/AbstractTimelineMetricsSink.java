@@ -51,10 +51,8 @@ import java.net.URL;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -93,7 +91,7 @@ public abstract class AbstractTimelineMetricsSink {
 
   // Single element cache with fixed expiration - Helps adjacent Sinks as
   // well as timed refresh
-  protected Supplier targetCollectorHostSupplier;
+  protected Supplier<String> targetCollectorHostSupplier;
 
   protected final List<String> allKnownLiveCollectors = new ArrayList<>();
 
@@ -201,7 +199,7 @@ public abstract class AbstractTimelineMetricsSink {
     String collectorHost;
     // Get cached target
     if (targetCollectorHostSupplier != null) {
-      collectorHost = (String) targetCollectorHostSupplier.get();
+      collectorHost = targetCollectorHostSupplier.get();
       // Last X attempts have failed - force refresh
       if (failedCollectorConnectionsCounter.get() > RETRY_COUNT_BEFORE_COLLECTOR_FAILOVER) {
         targetCollectorHostSupplier = null;
@@ -322,9 +320,9 @@ public abstract class AbstractTimelineMetricsSink {
 
     // Auto expire and re-calculate after 1 hour
     if (targetCollectorHostSupplier != null) {
-      Object targetCollector = targetCollectorHostSupplier.get();
+      String targetCollector = targetCollectorHostSupplier.get();
       if (targetCollector != null) {
-        return (String) targetCollector;
+        return targetCollector;
       }
     }
 
@@ -361,15 +359,15 @@ public abstract class AbstractTimelineMetricsSink {
     }
 
     // Lookup Zookeeper for live hosts - max 10 seconds wait time
-    if (allKnownLiveCollectors.size() == 0) {
+    if (allKnownLiveCollectors.size() == 0 && getZookeeperQuorum() != null) {
       allKnownLiveCollectors.addAll(collectorHAHelper.findLiveCollectorHostsFromZNode());
     }
 
     if (allKnownLiveCollectors.size() != 0) {
       targetCollectorHostSupplier = Suppliers.memoizeWithExpiration(
-        new Supplier() {
+        new Supplier<String>() {
           @Override
-          public Object get() {
+          public String get() {
             return metricSinkWriteShardStrategy.findCollectorShard(new ArrayList<>(allKnownLiveCollectors));
           }
         },  // random.nextInt(max - min + 1) + min # (60 to 75 minutes)
@@ -379,7 +377,7 @@ public abstract class AbstractTimelineMetricsSink {
         TimeUnit.MINUTES
       );
 
-      return (String) targetCollectorHostSupplier.get();
+      return targetCollectorHostSupplier.get();
     }
     return null;
   }
