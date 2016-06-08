@@ -22,8 +22,11 @@ import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +55,10 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Binder;
@@ -62,6 +69,8 @@ import com.google.inject.Module;
 /**
  * Tests {@link StaleAlertRunnableTest}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ StaleAlertRunnable.class, ManagementFactory.class })
 public class StaleAlertRunnableTest {
 
   private final static long CLUSTER_ID = 1;
@@ -84,6 +93,7 @@ public class StaleAlertRunnableTest {
 
   private AlertEventPublisher m_eventPublisher;
   private EventBus m_synchronizedBus;
+  private RuntimeMXBean m_runtimeMXBean;
 
   /**
    *
@@ -113,12 +123,16 @@ public class StaleAlertRunnableTest {
     clusterMap.put(CLUSTER_NAME, m_cluster);
 
     // mock the definition for the alert
+    expect(m_definition.getDefinitionId()).andReturn(1L).atLeastOnce();
     expect(m_definition.getDefinitionName()).andReturn(DEFINITION_NAME).atLeastOnce();
     expect(m_definition.getServiceName()).andReturn(DEFINITION_SERVICE).atLeastOnce();
     expect(m_definition.getComponentName()).andReturn(DEFINITION_COMPONENT).atLeastOnce();
     expect(m_definition.getLabel()).andReturn(DEFINITION_LABEL).atLeastOnce();
     expect(m_definition.getEnabled()).andReturn(true).atLeastOnce();
     expect(m_definition.getScheduleInterval()).andReturn(DEFINITION_INTERVAL).atLeastOnce();
+    expect(m_definition.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
+
+    expect(m_definition.getSource()).andReturn("{\"type\" : \"SERVER\"}").anyTimes();
 
     // mock the cluster
     expect(m_cluster.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
@@ -134,8 +148,16 @@ public class StaleAlertRunnableTest {
     expect(m_alertsDao.findCurrentByCluster(CLUSTER_ID)).andReturn(
         m_currentAlerts).atLeastOnce();
 
+    // mock out the uptime to be a while (since most tests are not testing
+    // system uptime)
+    m_runtimeMXBean = EasyMock.createNiceMock(RuntimeMXBean.class);
+    PowerMock.mockStatic(ManagementFactory.class);
+    expect(ManagementFactory.getRuntimeMXBean()).andReturn(m_runtimeMXBean).atLeastOnce();
+    PowerMock.replay(ManagementFactory.class);
+    expect(m_runtimeMXBean.getUptime()).andReturn(360000L);
+
     replay(m_definition, m_cluster, m_clusters,
-        m_definitionDao, m_alertsDao);
+        m_definitionDao, m_alertsDao, m_runtimeMXBean);
     }
 
   /**
@@ -260,7 +282,7 @@ public class StaleAlertRunnableTest {
    */
   @Test
   public void testStaleAlertInMaintenaceMode() {
-    // create current alerts that are not stale
+    // create current alerts that are stale
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
     definition.setClusterId(CLUSTER_ID);
     definition.setDefinitionName("foo-definition");
@@ -319,6 +341,96 @@ public class StaleAlertRunnableTest {
     assertEquals(DEFINITION_NAME, alert.getName());
 
     verify(m_cluster, m_clusters, m_definitionDao);
+  }
+
+  /**
+   * Tests that stale alerts are not reported if the server has not be running
+   * long enough.
+   */
+  @Test
+  public void testStaleAlertWithServerUptime() {
+    // reset the Runtime MX bean to a low value
+    reset(m_runtimeMXBean);
+    expect(m_runtimeMXBean.getUptime()).andReturn(1000L);
+    replay(m_runtimeMXBean);
+
+    // create current alerts that are stale (5 minute interval)
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setClusterId(CLUSTER_ID);
+    definition.setDefinitionName("foo-definition");
+    definition.setServiceName("HDFS");
+    definition.setComponentName("NAMENODE");
+    definition.setEnabled(true);
+    definition.setScheduleInterval(5);
+
+    // create current alerts that are stale
+    AlertCurrentEntity current1 = createNiceMock(AlertCurrentEntity.class);
+    AlertHistoryEntity history1 = createNiceMock(AlertHistoryEntity.class);
+
+    expect(current1.getAlertHistory()).andReturn(history1).atLeastOnce();
+    expect(history1.getAlertDefinition()).andReturn(definition).atLeastOnce();
+
+    // use a timestamp that would trigger the alert, say 3x the interval ago (so
+    // 15 minutes ago)
+    long now = System.currentTimeMillis();
+    long staleTime = now - (definition.getScheduleInterval() * 60 * 1000 * 3);
+
+    expect(current1.getMaintenanceState()).andReturn(MaintenanceState.OFF).atLeastOnce();
+    expect(current1.getLatestTimestamp()).andReturn(staleTime).atLeastOnce();
+
+    replay(current1, history1);
+
+    m_currentAlerts.add(current1);
+
+    // precondition that no events were fired
+    assertEquals(0, m_listener.getAlertEventReceivedCount(AlertReceivedEvent.class));
+
+    // instantiate and inject mocks
+    StaleAlertRunnable runnable = new StaleAlertRunnable(m_definition.getDefinitionName());
+    m_injector.injectMembers(runnable);
+
+    // run the alert
+    runnable.run();
+
+    // ensure that our mock MX bean was used
+    verify(m_runtimeMXBean);
+
+    // verify that our uptime was too short so nothing should have been
+    // triggered
+    assertEquals(1, m_listener.getAlertEventReceivedCount(AlertReceivedEvent.class));
+    List<AlertEvent> events = m_listener.getAlertEventInstances(AlertReceivedEvent.class);
+    assertEquals(1, events.size());
+
+    AlertReceivedEvent event = (AlertReceivedEvent) events.get(0);
+    Alert alert = event.getAlert();
+    assertEquals("AMBARI", alert.getService());
+    assertEquals("AMBARI_SERVER", alert.getComponent());
+    assertEquals(AlertState.OK, alert.getState());
+    assertEquals(DEFINITION_NAME, alert.getName());
+
+    // now reset the mocks to indicate that Ambari has been up long enough
+    m_listener.reset();
+    long uptime = definition.getScheduleInterval() * 60 * 1000 * 4;
+    reset(m_runtimeMXBean);
+    expect(m_runtimeMXBean.getUptime()).andReturn(uptime);
+    replay(m_runtimeMXBean);
+
+    // run the alert again and verify that the same stale alert caused a
+    // CRITICAL
+    runnable.run();
+
+    // recheck for the stale alert
+    events = m_listener.getAlertEventInstances(AlertReceivedEvent.class);
+    assertEquals(1, events.size());
+
+    event = (AlertReceivedEvent) events.get(0);
+    alert = event.getAlert();
+    assertEquals("AMBARI", alert.getService());
+    assertEquals("AMBARI_SERVER", alert.getComponent());
+    assertEquals(AlertState.CRITICAL, alert.getState());
+    assertEquals(DEFINITION_NAME, alert.getName());
+
+    assertEquals(1, m_listener.getAlertEventReceivedCount(AlertReceivedEvent.class));
   }
 
   /**

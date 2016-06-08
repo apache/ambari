@@ -48,7 +48,6 @@ import org.apache.ambari.server.state.alert.ParameterizedSource.AlertParameter;
 import org.apache.ambari.server.state.alert.ServerSource;
 import org.apache.ambari.server.state.services.AmbariServerAlertService;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -385,34 +384,6 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
         alertState);
 
     return new PerformanceResult(resultLabel, alertState);
-  }
-
-  /**
-   * Converts the given value to an integer safely.
-   *
-   * @param value
-   * @param defaultValue
-   * @return
-   */
-  int getThresholdValue(Object value, int defaultValue) {
-    if (null == value) {
-      return defaultValue;
-    }
-
-    if (value instanceof Number) {
-      return ((Number) value).intValue();
-    }
-
-    if (!(value instanceof String)) {
-      value = value.toString();
-    }
-
-    if (!NumberUtils.isNumber((String) value)) {
-      return defaultValue;
-    }
-
-    Number number = NumberUtils.createNumber((String) value);
-    return number.intValue();
   }
 
   /**

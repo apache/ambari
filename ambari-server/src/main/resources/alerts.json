@@ -25,7 +25,18 @@
         "enabled": true,
         "source": {
           "type": "SERVER",
-          "class": "org.apache.ambari.server.alerts.StaleAlertRunnable"
+          "class": "org.apache.ambari.server.alerts.StaleAlertRunnable",
+          "parameters": [
+            {
+              "name": "stale.interval.multiplier",
+              "display_name": "Interval Multiplier",
+              "value": 2,
+              "type": "NUMERIC",
+              "description": "The number of intervals which must pass before an an alert is considered stale. This value is a multiplier for each alert's individual interval.",
+              "units": "Intervals",
+              "threshold": "CRITICAL"
+            }
+          ]
         }
       },
       {
