@@ -244,6 +244,8 @@
                      replace-with="org.apache.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer" />
             <replace key="ui.filter" find="backtype.storm.security.auth.KerberosPrincipalToLocal"
                      replace-with="org.apache.storm.security.auth.KerberosPrincipalToLocal" />
+            <replace key="storm.principal.tolocal" find="backtype.storm.security.auth.KerberosPrincipalToLocal"
+                     replace-with="org.apache.storm.security.auth.KerberosPrincipalToLocal" />
             <set key="client.jartransformer.class" value="org.apache.storm.hack.StormShadeTransformer" />
           </definition>          
         </changes>
