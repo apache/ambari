@@ -747,7 +747,8 @@ class JDKSetupLinux(JDKSetup):
     self.CREATE_JDK_DIR_CMD = "/bin/mkdir -p {0}"
     self.CHMOD_JDK_DIR_CMD = "chmod a+x {0}"
     self.SET_JCE_PERMISSIONS = "chown {0} {1}/{2}/*"
-
+    self.SET_JCE_JAR_MODE = "chmod 664 {0}/{1}/{2}"
+    self.SET_JCE_FILE_MODE = "chmod 644 {0}/{1}/{2}"
     # use --no-same-owner when running as root to prevent uucp as the user (AMBARI-6478)
     self.UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 
@@ -785,7 +786,9 @@ class JDKSetupLinux(JDKSetup):
 
   def adjust_jce_permissions(self, jdk_path):
     ambari_user = read_ambari_user()
-    cmd = self.SET_JCE_PERMISSIONS.format(ambari_user, jdk_path,configDefaults.JDK_SECURITY_DIR)
+    cmd = self.SET_JCE_PERMISSIONS.format(ambari_user, jdk_path, configDefaults.JDK_SECURITY_DIR)
+    cmd += " && " + self.SET_JCE_FILE_MODE.format(jdk_path, configDefaults.JDK_SECURITY_DIR, "*")
+    cmd += " && " + self.SET_JCE_JAR_MODE.format(jdk_path, configDefaults.JDK_SECURITY_DIR, "*.jar")
     process = subprocess.Popen(cmd,
                            stdout=subprocess.PIPE,
                            stdin=subprocess.PIPE,

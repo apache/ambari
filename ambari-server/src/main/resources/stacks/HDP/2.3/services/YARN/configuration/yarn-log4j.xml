@@ -75,7 +75,7 @@ log4j.appender.EWMA.messageAgeLimitSeconds=${yarn.ewma.messageAgeLimitSeconds}
 log4j.appender.EWMA.maxUniqueMessages=${yarn.ewma.maxUniqueMessages}
 
 # Audit logging for ResourceManager
-rm.audit.logger=INFO,RMAUDIT
+rm.audit.logger=${hadoop.root.logger}
 log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger=${rm.audit.logger}
 log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger=false
 log4j.appender.RMAUDIT=org.apache.log4j.DailyRollingFileAppender
@@ -85,7 +85,7 @@ log4j.appender.RMAUDIT.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n
 log4j.appender.RMAUDIT.DatePattern=.yyyy-MM-dd
 
 # Audit logging for NodeManager
-nm.audit.logger=INFO,NMAUDIT
+nm.audit.logger=${hadoop.root.logger}
 log4j.logger.org.apache.hadoop.yarn.server.nodemanager.NMAuditLogger=${nm.audit.logger}
 log4j.additivity.org.apache.hadoop.yarn.server.nodemanager.NMAuditLogger=false
 log4j.appender.NMAUDIT=org.apache.log4j.DailyRollingFileAppender
