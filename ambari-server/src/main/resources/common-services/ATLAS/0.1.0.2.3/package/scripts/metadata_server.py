@@ -30,6 +30,8 @@ from resource_management.libraries.functions.security_commons import build_expec
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
+from resource_management.core.logger import Logger
+from setup_ranger_atlas import setup_ranger_atlas
 
 class MetadataServer(Script):
 
@@ -69,7 +71,13 @@ class MetadataServer(Script):
 
     daemon_cmd = format('source {params.conf_dir}/atlas-env.sh ; {params.metadata_start_script}')
     no_op_test = format('ls {params.pid_file} >/dev/null 2>&1 && ps -p `cat {params.pid_file}` >/dev/null 2>&1')
-    
+
+    if params.stack_supports_atlas_ranger_plugin:
+      Logger.info('Atlas plugin is enabled, configuring Atlas plugin.')
+      setup_ranger_atlas(upgrade_type = upgrade_type)
+    else:
+      Logger.info('Atlas plugin is not supported or enabled.')
+
     try:
       Execute(daemon_cmd,
               user=params.metadata_user,
@@ -83,15 +91,15 @@ class MetadataServer(Script):
     import params
     env.set_params(params)
     daemon_cmd = format('source {params.conf_dir}/atlas-env.sh; {params.metadata_stop_script}')
-    
+
     try:
       Execute(daemon_cmd,
               user=params.metadata_user,
-      )
+              )
     except:
       show_logs(params.log_dir, params.metadata_user)
       raise
-    
+
     File(params.pid_file, action="delete")
 
   def status(self, env):
@@ -114,9 +122,9 @@ class MetadataServer(Script):
     props_read_check = ['atlas.authentication.keytab',
                         'atlas.http.authentication.kerberos.keytab']
     atlas_site_expectations = build_expectations('application',
-                                                    props_value_check,
-                                                    props_empty_check,
-                                                    props_read_check)
+                                                 props_value_check,
+                                                 props_empty_check,
+                                                 props_read_check)
 
     atlas_expectations = {}
     atlas_expectations.update(atlas_site_expectations)
@@ -153,11 +161,11 @@ class MetadataServer(Script):
         issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
       self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
       self.put_structured_out({"securityState": "UNSECURED"})
-      
+
   def get_log_folder(self):
     import params
     return params.log_dir
-  
+
   def get_user(self):
     import params
     return params.metadata_user
