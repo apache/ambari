@@ -302,6 +302,11 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       var lastUpgradeData = data.items.sortProperty('Upgrade.request_id').pop();
       var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
 
+      //completed upgrade shouldn't be restored
+      if (lastUpgradeData && lastUpgradeData.Upgrade.request_status === "COMPLETED") {
+        return;
+      }
+
       if (!Em.isNone(dbUpgradeState)) {
         App.set('upgradeState', dbUpgradeState);
       }

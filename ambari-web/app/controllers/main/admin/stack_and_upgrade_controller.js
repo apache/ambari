@@ -390,6 +390,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         isRetryPending: false
       });
     }
+    if (data.Upgrade.request_status === 'COMPLETED') {
+      this.finish();
+    }
   },
 
   /**
@@ -1541,28 +1544,26 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * and clean auxiliary data
    */
   finish: function () {
-    if (App.get('upgradeState') === 'COMPLETED') {
-      var upgradeVersion = this.get('upgradeVersion') && this.get('upgradeVersion').match(/[a-zA-Z]+\-\d+\.\d+/);
-      this.setDBProperties({
-        upgradeId: undefined,
-        upgradeState: 'INIT',
-        upgradeVersion: undefined,
-        currentVersion: undefined,
-        upgradeTypeDisplayName: undefined,
-        upgradeType: undefined,
-        failuresTolerance: undefined,
-        isDowngrade: undefined,
-        downgradeAllowed: undefined
-      });
-      App.clusterStatus.setClusterStatus({
-        localdb: App.db.data
-      });
-      if (upgradeVersion && upgradeVersion[0]) {
-        App.set('currentStackVersion', upgradeVersion[0]);
-      }
-      App.set('upgradeState', 'INIT');
+    var upgradeVersion = this.get('upgradeVersion') && this.get('upgradeVersion').match(/[a-zA-Z]+\-\d+\.\d+/);
+    this.setDBProperties({
+      upgradeId: undefined,
+      upgradeState: 'INIT',
+      upgradeVersion: undefined,
+      currentVersion: undefined,
+      upgradeTypeDisplayName: undefined,
+      upgradeType: undefined,
+      failuresTolerance: undefined,
+      isDowngrade: undefined,
+      downgradeAllowed: undefined
+    });
+    App.clusterStatus.setClusterStatus({
+      localdb: App.db.data
+    });
+    if (upgradeVersion && upgradeVersion[0]) {
+      App.set('currentStackVersion', upgradeVersion[0]);
     }
-  }.observes('App.upgradeState'),
+    App.set('upgradeState', 'INIT');
+  },
 
   /**
    * Check <code>App.upgradeState</code> for HOLDING
