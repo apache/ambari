@@ -204,13 +204,23 @@ export default Ember.Controller.extend({
   getVisualExplainJson: function (job, originalModel) {
     var self = this;
     var defer = Ember.RSVP.defer();
+    var attempt = 3;
 
-    job.save().then(function () {
+    var getResult = function() {
       self.get('results').getResultsJson(job).then(function (json) {
         defer.resolve(json);
       }, function (err) {
-        defer.reject(err);
+        if(err.status === 409 && attempt > 0) {
+          attempt--;
+          Ember.run.later(self, getResult, 3000); // Retry after 3 seconds
+        } else {
+          defer.reject(err);
+        }
       });
+    };
+
+    job.save().then(function () {
+      Ember.run.later(self, getResult, 1000);
     }, function (err) {
       defer.reject(err);
     });

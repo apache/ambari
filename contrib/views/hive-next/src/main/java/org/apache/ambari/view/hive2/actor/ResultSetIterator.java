@@ -21,23 +21,18 @@ package org.apache.ambari.view.hive2.actor;
 import akka.actor.ActorRef;
 import com.google.common.collect.Lists;
 import org.apache.ambari.view.hive2.actor.message.CursorReset;
-import org.apache.ambari.view.hive2.actor.message.JobExecutionCompleted;
-import org.apache.ambari.view.hive2.actor.message.ResetCursor;
-import org.apache.ambari.view.hive2.client.ColumnDescription;
-import org.apache.ambari.view.hive2.client.ColumnDescriptionShort;
-import org.apache.ambari.view.hive2.client.Row;
-import org.apache.ambari.view.hive2.persistence.Storage;
-import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
-import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
-import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl;
-import org.apache.ambari.view.hive2.actor.message.AdvanceCursor;
 import org.apache.ambari.view.hive2.actor.message.HiveMessage;
+import org.apache.ambari.view.hive2.actor.message.ResetCursor;
 import org.apache.ambari.view.hive2.actor.message.job.FetchFailed;
 import org.apache.ambari.view.hive2.actor.message.job.Next;
 import org.apache.ambari.view.hive2.actor.message.job.NoMoreItems;
 import org.apache.ambari.view.hive2.actor.message.job.Result;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.CleanUp;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.KeepAlive;
+import org.apache.ambari.view.hive2.client.ColumnDescription;
+import org.apache.ambari.view.hive2.client.ColumnDescriptionShort;
+import org.apache.ambari.view.hive2.client.Row;
+import org.apache.ambari.view.hive2.persistence.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,33 +53,26 @@ public class ResultSetIterator extends HiveActor {
 
   private List<ColumnDescription> columnDescriptions;
   private int columnCount;
-  private Storage storage;
   boolean async = false;
-  private boolean jobCompleteMessageSent = false;
-
-
   private boolean metaDataFetched = false;
 
-  public ResultSetIterator(ActorRef parent, ResultSet resultSet, int batchSize) {
+  public ResultSetIterator(ActorRef parent, ResultSet resultSet, int batchSize, boolean isAsync) {
     this.parent = parent;
     this.resultSet = resultSet;
     this.batchSize = batchSize;
-  }
-
-
-  public ResultSetIterator(ActorRef parent, ResultSet resultSet, Storage storage) {
-    this(parent, resultSet);
-    this.storage = storage;
-    this.async = true;
+    this.async = isAsync;
   }
 
   public ResultSetIterator(ActorRef parent, ResultSet resultSet) {
-    this(parent, resultSet, DEFAULT_BATCH_SIZE);
+    this(parent, resultSet, DEFAULT_BATCH_SIZE, true);
+  }
+
+  public ResultSetIterator(ActorRef parent, ResultSet resultSet, boolean isAsync) {
+    this(parent, resultSet, DEFAULT_BATCH_SIZE, isAsync);
   }
 
   @Override
   void handleMessage(HiveMessage hiveMessage) {
-    LOG.info("Result set Iterator wil handle message {}", hiveMessage);
     sendKeepAlive();
     Object message = hiveMessage.getMessage();
     if (message instanceof Next) {
@@ -96,39 +84,6 @@ public class ResultSetIterator extends HiveActor {
 
     if (message instanceof KeepAlive) {
       sendKeepAlive();
-    }
-    if (message instanceof AdvanceCursor) {
-      AdvanceCursor moveCursor = (AdvanceCursor) message;
-      advanceCursor(moveCursor);
-    }
-
-  }
-
-  private void advanceCursor(AdvanceCursor moveCursor) {
-    String jobid = moveCursor.getJob();
-    try {
-      // Block here so that we can update the job status
-      resultSet.next();
-      // Resetting the resultset as it needs to fetch from the beginning when the result is asked for.
-      resultSet.beforeFirst();
-      LOG.info("Job execution successful. Setting status in db.");
-      updateJobStatus(jobid, Job.JOB_STATE_FINISHED);
-      sendJobCompleteMessageIfNotDone();
-    } catch (SQLException e) {
-      LOG.error("Failed to reset the cursor after advancing. Setting error state in db.", e);
-      updateJobStatus(jobid, Job.JOB_STATE_ERROR);
-      sender().tell(new FetchFailed("Failed to reset the cursor after advancing", e), self());
-      cleanUpResources();
-    }
-  }
-
-  private void updateJobStatus(String jobid, String status) {
-    try {
-      JobImpl job = storage.load(JobImpl.class, jobid);
-      job.setStatus(status);
-      storage.store(JobImpl.class, job);
-    } catch (ItemNotFound itemNotFound) {
-      // Cannot do anything
     }
   }
 
@@ -164,7 +119,6 @@ public class ResultSetIterator extends HiveActor {
       while (resultSet.next() && index < batchSize) {
         index++;
         rows.add(getRowFromResultSet(resultSet));
-        sendJobCompleteMessageIfNotDone();
       }
 
       if (index == 0) {
@@ -182,13 +136,6 @@ public class ResultSetIterator extends HiveActor {
       LOG.error("Failed to fetch next batch for the Resultset", ex);
       sender().tell(new FetchFailed("Failed to fetch next batch for the Resultset", ex), self());
       cleanUpResources();
-    }
-  }
-
-  private void sendJobCompleteMessageIfNotDone() {
-    if (!jobCompleteMessageSent) {
-      jobCompleteMessageSent = true;
-      parent.tell(new JobExecutionCompleted(), self());
     }
   }
 

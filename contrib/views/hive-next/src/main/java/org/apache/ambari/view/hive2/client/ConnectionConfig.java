@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive2.client;
 
 import org.apache.ambari.view.hive2.actor.message.Connect;
+import org.apache.ambari.view.hive2.actor.message.HiveJob;
 
 public class ConnectionConfig {
   private final String username;
@@ -45,6 +46,10 @@ public class ConnectionConfig {
 
   public Connect createConnectMessage() {
     return new Connect(username, password, jdbcUrl);
+  }
+
+  public Connect createConnectMessage(String jobId) {
+    return new Connect(jobId, username, password, jdbcUrl);
   }
 
 

@@ -19,18 +19,21 @@
 package org.apache.ambari.view.hive2.client;
 
 import com.google.common.base.Optional;
-import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
-import org.apache.ambari.view.hive2.actor.message.AsyncJob;
+import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
 import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
+import org.apache.ambari.view.hive2.actor.message.job.Failure;
+import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 
 public interface AsyncJobRunner {
 
-    void submitJob(ConnectionConfig connectionConfig, AsyncJob asyncJob, Job job);
+  void submitJob(ConnectionConfig connectionConfig, SQLStatementJob asyncJob, Job job);
 
-    Optional<NonPersistentCursor> getCursor(String jobId, String username);
+  void cancelJob(String jobId, String username);
 
-    Optional<NonPersistentCursor> resetAndGetCursor(String jobId, String username);
+  Optional<NonPersistentCursor> getCursor(String jobId, String username);
 
-    Optional<AsyncExecutionFailed> getError(String jobId, String username);
+  Optional<NonPersistentCursor> resetAndGetCursor(String jobId, String username);
+
+  Optional<Failure> getError(String jobId, String username);
 
 }

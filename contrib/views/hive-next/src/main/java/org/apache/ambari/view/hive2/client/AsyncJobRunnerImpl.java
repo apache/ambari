@@ -23,16 +23,21 @@ import akka.actor.ActorSystem;
 import akka.actor.Inbox;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive2.actor.message.CursorReset;
-import org.apache.ambari.view.hive2.actor.message.FetchError;
-import org.apache.ambari.view.hive2.actor.message.ResetCursor;
-import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
-import org.apache.ambari.view.hive2.actor.message.AsyncJob;
 import org.apache.ambari.view.hive2.actor.message.Connect;
+import org.apache.ambari.view.hive2.actor.message.CursorReset;
 import org.apache.ambari.view.hive2.actor.message.ExecuteJob;
+import org.apache.ambari.view.hive2.actor.message.FetchError;
 import org.apache.ambari.view.hive2.actor.message.FetchResult;
+import org.apache.ambari.view.hive2.actor.message.ResetCursor;
+import org.apache.ambari.view.hive2.actor.message.ResultNotReady;
+import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
 import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
-import org.apache.ambari.view.hive2.internal.Either;
+import org.apache.ambari.view.hive2.actor.message.job.CancelJob;
+import org.apache.ambari.view.hive2.actor.message.job.Failure;
+import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
+import org.apache.ambari.view.hive2.utils.ResultFetchFormattedException;
+import org.apache.ambari.view.hive2.utils.ResultNotReadyFormattedException;
+import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
@@ -54,28 +59,38 @@ public class AsyncJobRunnerImpl implements AsyncJobRunner {
   }
 
 
+  @Override
+  public void submitJob(ConnectionConfig config, SQLStatementJob job, Job jobp) {
+    Connect connect = config.createConnectMessage(jobp.getId());
+    ExecuteJob executeJob = new ExecuteJob(connect, job);
+    controller.tell(executeJob, ActorRef.noSender());
+  }
 
-    @Override
-    public void submitJob(ConnectionConfig config, AsyncJob job, Job jobp) {
-        Connect connect = config.createConnectMessage();
-        ExecuteJob executeJob = new ExecuteJob(connect, job);
-        controller.tell(executeJob,ActorRef.noSender());
-    }
+  @Override
+  public void cancelJob(String jobId, String username) {
+    controller.tell(new CancelJob(jobId, username), ActorRef.noSender());
+  }
 
   @Override
   public Optional<NonPersistentCursor> getCursor(String jobId, String username) {
     Inbox inbox = Inbox.create(system);
     inbox.send(controller, new FetchResult(jobId, username));
     Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
-    Either<ActorRef, ActorRef> result = (Either<ActorRef, ActorRef>) receive;
-    if (result.isRight()) {
-      return Optional.absent();
-
-    } else if (result.isLeft()) {
-      return Optional.of(new NonPersistentCursor(context, system, result.getLeft()));
+    if(receive instanceof ResultNotReady) {
+      String errorString = "Result not ready for job: " + jobId + ", username: " + username + ". Try after sometime.";
+      LOG.info(errorString);
+      throw new ResultNotReadyFormattedException(errorString, new Exception(errorString));
+    } else if(receive instanceof  Failure) {
+      Failure failure = (Failure) receive;
+      throw new ResultFetchFormattedException(failure.getMessage(), failure.getError());
+    } else {
+      Optional<ActorRef> iterator = (Optional<ActorRef>) receive;
+      if(iterator.isPresent()) {
+        return Optional.of(new NonPersistentCursor(context, system, iterator.get()));
+      } else {
+        return Optional.absent();
+      }
     }
-
-    return Optional.absent();
   }
 
   @Override
@@ -83,33 +98,37 @@ public class AsyncJobRunnerImpl implements AsyncJobRunner {
     Inbox inbox = Inbox.create(system);
     inbox.send(controller, new FetchResult(jobId, username));
     Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
-    Either<ActorRef, ActorRef> result = (Either<ActorRef, ActorRef>) receive;
-    if (result.isRight()) {
-      return Optional.absent();
-
-    } else if (result.isLeft()) {
-      // Reset the result set cursor
-      inbox.send(result.getLeft(), new ResetCursor());
-      Object resetResult = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
-      if (resetResult instanceof CursorReset) {
-        return Optional.of(new NonPersistentCursor(context, system, result.getLeft()));
+    if(receive instanceof ResultNotReady) {
+      String errorString = "Result not ready for job: " + jobId + ", username: " + username + ". Try after sometime.";
+      LOG.info(errorString);
+      throw new ResultNotReadyFormattedException(errorString, new Exception(errorString));
+    } else if(receive instanceof  Failure) {
+      Failure failure = (Failure) receive;
+      throw new ResultFetchFormattedException(failure.getMessage(), failure.getError());
+    } else {
+      Optional<ActorRef> iterator = (Optional<ActorRef>) receive;
+      if(iterator.isPresent()) {
+        inbox.send(iterator.get(), new ResetCursor());
+        Object resetResult = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
+        if (resetResult instanceof CursorReset) {
+          return Optional.of(new NonPersistentCursor(context, system, iterator.get()));
+        } else {
+          return Optional.absent();
+        }
       } else {
         return Optional.absent();
       }
-
     }
-
-    return Optional.absent();
   }
 
-    @Override
-    public Optional<AsyncExecutionFailed> getError(String jobId, String username) {
-        Inbox inbox = Inbox.create(system);
-        inbox.send(controller, new FetchError(jobId, username));
-        Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
-        Optional<AsyncExecutionFailed>  result = (Optional<AsyncExecutionFailed>) receive;
-        return result;
-    }
+  @Override
+  public Optional<Failure> getError(String jobId, String username) {
+    Inbox inbox = Inbox.create(system);
+    inbox.send(controller, new FetchError(jobId, username));
+    Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
+    Optional<Failure> result = (Optional<Failure>) receive;
+    return result;
+  }
 
 
 }

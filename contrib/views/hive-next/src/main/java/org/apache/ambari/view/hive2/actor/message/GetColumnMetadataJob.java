@@ -24,6 +24,7 @@ public class GetColumnMetadataJob extends HiveJob {
   private final String schemaPattern;
   private final String tablePattern;
   private final String columnPattern;
+
   public GetColumnMetadataJob(String username, ViewContext viewContext,
                               String schemaPattern, String tablePattern, String columnPattern) {
     super(Type.SYNC, username, viewContext);

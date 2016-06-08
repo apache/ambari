@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive2.actor.message;
 
+import com.google.common.base.Optional;
 import org.apache.ambari.view.hive2.internal.Connectable;
 import org.apache.ambari.view.hive2.internal.HiveConnectionWrapper;
 
@@ -26,15 +27,27 @@ import org.apache.ambari.view.hive2.internal.HiveConnectionWrapper;
  */
 public class Connect {
 
+  private final HiveJob.Type type;
+  private final String jobId;
   private final String username;
   private final String password;
   private final String jdbcUrl;
 
 
-  public Connect(String username, String password, String jdbcUrl) {
+  private Connect(HiveJob.Type type, String jobId, String username, String password, String jdbcUrl) {
+    this.type = type;
+    this.jobId = jobId;
     this.username = username;
     this.password = password;
     this.jdbcUrl = jdbcUrl;
+  }
+
+  public Connect(String jobId, String username, String password, String jdbcUrl) {
+    this(HiveJob.Type.ASYNC, jobId, username, password, jdbcUrl);
+  }
+
+  public Connect(String username, String password, String jdbcUrl) {
+    this(HiveJob.Type.SYNC, null, username, password, jdbcUrl);
   }
 
   public Connectable getConnectable(){
@@ -53,4 +66,11 @@ public class Connect {
     return jdbcUrl;
   }
 
+  public HiveJob.Type getType() {
+    return type;
+  }
+
+  public Optional<String> getJobId() {
+    return Optional.fromNullable(jobId);
+  }
 }

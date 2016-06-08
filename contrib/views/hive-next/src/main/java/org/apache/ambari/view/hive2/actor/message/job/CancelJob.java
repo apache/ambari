@@ -16,31 +16,25 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive2.actor.message;
+package org.apache.ambari.view.hive2.actor.message.job;
 
-import com.google.common.base.Optional;
+/**
+ * Message to cancel the currently running job. This is used for stopping execution of a job from api
+ */
+public class CancelJob {
+  private final String jobId;
+  private final String username;
 
-import java.sql.Statement;
+  public CancelJob(String jobId, String username) {
+    this.jobId = jobId;
+    this.username = username;
+  }
 
-public class AssignStatement {
+  public String getJobId() {
+    return jobId;
+  }
 
-    private Statement resultSet;
-
-    public AssignStatement(Statement statement) {
-        this.resultSet = statement;
-    }
-
-
-    public Statement getStatement() {
-        return resultSet;
-    }
-
-    @Override
-    public String toString() {
-        return "AssignStatement{" +
-                "resultSet=" + resultSet +
-                '}';
-    }
-
-
+  public String getUsername() {
+    return username;
+  }
 }

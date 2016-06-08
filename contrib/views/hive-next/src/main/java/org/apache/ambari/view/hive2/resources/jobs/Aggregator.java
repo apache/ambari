@@ -163,11 +163,6 @@ public class Aggregator {
       !viewJob.getStatus().equalsIgnoreCase(tezDagId.status)) {
       viewJob.setDagId(tezDagId.entity);
       viewJob.setApplicationId(tezDagId.applicationId);
-      if (!(viewJob.getStatus().equalsIgnoreCase(Job.JOB_STATE_FINISHED)
-        || (viewJob.getStatus().equalsIgnoreCase(Job.JOB_STATE_ERROR))
-        || viewJob.getStatus().equalsIgnoreCase(Job.JOB_STATE_CANCELED))) {
-        viewJob.setStatus(tezDagId.status);
-      }
       viewJobResourceManager.update(viewJob, viewJob.getId());
     }
   }
@@ -190,8 +185,6 @@ public class Aggregator {
     if (atsHiveQuery.dagNames != null && atsHiveQuery.dagNames.size() > 0)
       atsJob.setDagName(atsHiveQuery.dagNames.get(0));
     atsJob.setDagId(atsTezDag.entity);
-    if (atsTezDag.status != null && !atsTezDag.status.equals(TezDagId.STATUS_UNKNOWN))
-      atsJob.setStatus(atsTezDag.status);
     if (atsHiveQuery.starttime != 0)
       atsJob.setDateSubmitted(atsHiveQuery.starttime);
     atsJob.setDuration(atsHiveQuery.duration);

@@ -16,12 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive2.actor.message;
+package org.apache.ambari.view.hive2.actor.message.job;
 
-import org.apache.ambari.view.ViewContext;
+import org.apache.hive.jdbc.HiveStatement;
 
-public class SyncJob extends DDLJob {
-  public SyncJob(String username, String[] statements,ViewContext viewContext) {
-    super(Type.SYNC, statements, username,viewContext);
+public class UpdateYarnAtsGuid {
+  private final HiveStatement statement;
+  private final String jobId;
+  public UpdateYarnAtsGuid(HiveStatement statement, String jobId) {
+    this.statement = statement;
+    this.jobId = jobId;
+  }
+
+  public HiveStatement getStatement() {
+    return statement;
+  }
+
+  public String getJobId() {
+    return jobId;
   }
 }

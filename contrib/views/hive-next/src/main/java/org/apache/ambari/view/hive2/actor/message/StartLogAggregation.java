@@ -18,4 +18,17 @@
 
 package org.apache.ambari.view.hive2.actor.message;
 
-public class StartLogAggregation {}
+public class StartLogAggregation {
+  private String statement;
+
+  public StartLogAggregation() {
+  }
+
+  public StartLogAggregation(String statement) {
+    this.statement = statement;
+  }
+
+  public String getStatement() {
+    return statement;
+  }
+}

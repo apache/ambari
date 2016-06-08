@@ -22,7 +22,8 @@ import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive2.BaseService;
-import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
+import org.apache.ambari.view.hive2.ConnectionSystem;
+import org.apache.ambari.view.hive2.actor.message.job.Failure;
 import org.apache.ambari.view.hive2.backgroundjobs.BackgroundJobController;
 import org.apache.ambari.view.hive2.client.AsyncJobRunner;
 import org.apache.ambari.view.hive2.client.AsyncJobRunnerImpl;
@@ -42,7 +43,6 @@ import org.apache.ambari.view.hive2.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.hive2.utils.NotFoundFormattedException;
 import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive2.utils.SharedObjectsFactory;
-import org.apache.ambari.view.hive2.ConnectionSystem;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -130,10 +130,10 @@ public class JobService extends BaseService {
       JobController jobController = getResourceManager().readController(jobId);
 
       Job job = jobController.getJob();
-      if(job.getStatus().equals(Job.JOB_STATE_ERROR)){
+      if(job.getStatus().equals(Job.JOB_STATE_ERROR) || job.getStatus().equals(Job.JOB_STATE_CANCELED)){
         ConnectionSystem system = ConnectionSystem.getInstance();
         final AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
-        Optional<AsyncExecutionFailed> error = asyncJobRunner.getError(jobId, context.getUsername());
+        Optional<Failure> error = asyncJobRunner.getError(jobId, context.getUsername());
         if(error.isPresent()){
           throw new Exception(error.get().getError());
         }

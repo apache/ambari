@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,17 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive2.actor;
+package org.apache.ambari.view.hive2.utils;
 
-import akka.actor.UntypedActor;
-import org.apache.ambari.view.hive2.actor.message.HiveMessage;
+public class ResultNotReadyFormattedException extends ServiceFormattedException {
+  private final static int STATUS = 409;
 
-/**
- * Queries YARN/ATS time to time to fetch the status of the ExecuteJob and updates database
- */
-public class YarnAtsParser extends HiveActor {
-  @Override
-  public void handleMessage(HiveMessage hiveMessage) {
-
+  public ResultNotReadyFormattedException(String message, Throwable exception) {
+    super(message, exception, STATUS);
   }
 }

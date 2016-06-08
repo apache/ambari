@@ -28,13 +28,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive2.utils.HiveActorConfiguration;
-import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive2.actor.message.Connect;
 import org.apache.ambari.view.hive2.actor.message.ExecuteJob;
 import org.apache.ambari.view.hive2.actor.message.GetColumnMetadataJob;
 import org.apache.ambari.view.hive2.actor.message.HiveJob;
-import org.apache.ambari.view.hive2.actor.message.SyncJob;
+import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
 import org.apache.ambari.view.hive2.actor.message.job.ExecutionFailed;
 import org.apache.ambari.view.hive2.actor.message.job.FetchFailed;
 import org.apache.ambari.view.hive2.actor.message.job.Next;
@@ -42,6 +40,8 @@ import org.apache.ambari.view.hive2.actor.message.job.NoMoreItems;
 import org.apache.ambari.view.hive2.actor.message.job.NoResult;
 import org.apache.ambari.view.hive2.actor.message.job.Result;
 import org.apache.ambari.view.hive2.actor.message.job.ResultSetHolder;
+import org.apache.ambari.view.hive2.utils.HiveActorConfiguration;
+import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
@@ -144,7 +144,7 @@ public class DDLDelegatorImpl implements DDLDelegator {
 
   private Optional<Result> getRowsFromDB(ConnectionConfig config, String[] statements) {
     Connect connect = config.createConnectMessage();
-    HiveJob job = new SyncJob(config.getUsername(), statements, context);
+    HiveJob job = new SQLStatementJob(HiveJob.Type.SYNC, statements, config.getUsername(), context);
     ExecuteJob execute = new ExecuteJob(connect, job);
 
     LOG.info("Executing query: {}, for user: {}", getJoinedStatements(statements), job.getUsername());
