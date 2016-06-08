@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import re
 import sys
 import logging
 import subprocess
@@ -191,17 +192,13 @@ def getInstalledRepos(hintPackages, allPackages, ignoreRepos, repoList):
   Gets all installed repos by name based on repos that provide any package
   contained in hintPackages
   Repos starting with value in ignoreRepos will not be returned
+  hintPackages must be regexps.
   """
   allRepos = []
   for hintPackage in hintPackages:
     for item in allPackages:
-      if 0 == item[0].find(hintPackage):
-        if not item[2] in allRepos:
-          allRepos.append(item[2])
-      elif hintPackage[0] == '*':
-        if item[0].find(hintPackage[1:]) > 0:
-          if not item[2] in allRepos:
-            allRepos.append(item[2])
+      if re.match(hintPackage, item[0]) and not item[2] in allRepos:
+        allRepos.append(item[2])
 
   for repo in allRepos:
     ignore = False

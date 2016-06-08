@@ -81,10 +81,10 @@ THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
 class CheckHost(Script):
   # Package prefixes that are used to find repos (then repos are used to find other packages)
   PACKAGES = [
-    "hadoop", "zookeeper", "webhcat", "oozie", "ambari", "*-manager-server-db",
-    "*-manager-daemons", "mahout", "spark", "falcon", "hbase", "kafka", "knox",
-    "slider", "sqoop", "storm", "flume","hcatalog", "phoenix", "ranger", "accumulo", "hive_*",
-    "pig_", "pig-", "pig." # there's a default 'pigz' package which we should avoid
+    "^hadoop.*$", "^zookeeper.*$", "^webhcat.*$", "^oozie.*$", "^ambari.*$", "^.+-manager-server-db.*$",
+    "^.+-manager-daemons.*$", "^mahout[_\-]\d.*$", "^spark.*$", "^falcon.*$", "^hbase.*$", "^kafka.*$", "^knox.*$",
+    "^slider.*$", "^sqoop.*$", "^storm.*$", "^flume.*$","^hcatalog.*$", "^phoenix.*$", "^ranger.*$", "^accumulo.*$", "^hive_.*$",
+    "^pig[_\-.].*$" # there's a default 'pigz' package which we should avoid
   ]
   
 
