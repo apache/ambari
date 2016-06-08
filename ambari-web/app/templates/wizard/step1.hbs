@@ -99,8 +99,8 @@
       <div class="accordion-body version-contents-body">
         <div class="accordion-inner">
           <div class="alert alert-info" role="alert">{{t installer.step1.useLocalRepo.infoForm.alert.baseUrl}}</div>
-          {{#if view.hasValidationErrors}}
-            <div class="alert alert-warning" role="alert">{{t installer.step1.useLocalRepo.infoForm.alert.warning}}</div>
+          {{#if view.showWarning}}
+            <div class="alert">{{t installer.step1.attentionNeeded}}</div>
           {{/if}}
 
           {{! OSes and Repositories }}
@@ -203,9 +203,6 @@
       </div>
     </div>
   </form>
-  {{/if}}
-  {{#if view.invalidFormatUrlExist}}
-    <div class="alert">{{t installer.step1.attentionNeeded}}</div>
   {{/if}}
   {{#if view.invalidUrlExist}}
     <div class="alert">

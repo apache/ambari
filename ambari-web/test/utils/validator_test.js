@@ -465,7 +465,7 @@ describe('validator', function () {
 
   describe('#isValidBaseUrl()', function() {
     var tests = [
-      {m: '"" - invalid', i: '', e: false},
+      {m: '"" - valid', i: '', e: true},
       {m: '"http://" - valid', i: 'http://', e: true},
       {m: '"https://" - valid', i: 'https://', e: true},
       {m: '"ftp://" - valid', i: 'ftp://', e: true},

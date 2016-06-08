@@ -818,10 +818,10 @@ App.InstallerController = App.WizardController.extend({
     var stackVersion = nameVersionCombo.split('-')[1];
     var dfd = $.Deferred();
     if (selectedStack && selectedStack.get('operatingSystems')) {
-      this.set('validationCnt', selectedStack.get('repositories').filterProperty('isSelected').length);
+      this.set('validationCnt', selectedStack.get('repositories').filterProperty('isSelected').filterProperty('isEmpty', false).length);
       var verifyBaseUrl = !wizardStep1Controller.get('skipValidationChecked') && !wizardStep1Controller.get('selectedStack.useRedhatSatellite');
       selectedStack.get('operatingSystems').forEach(function (os) {
-        if (os.get('isSelected')) {
+        if (os.get('isSelected') && !os.get('isEmpty')) {
           os.get('repositories').forEach(function (repo) {
             repo.setProperties({
               errorTitle: '',
@@ -850,6 +850,8 @@ App.InstallerController = App.WizardController.extend({
               error: 'checkRepoURLErrorCallback'
             });
           }, this);
+        } else if (os.get('isSelected') && os.get('isEmpty')) {
+          os.set('isSelected', false);
         }
       }, this);
     }

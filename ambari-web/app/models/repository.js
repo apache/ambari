@@ -43,6 +43,10 @@ App.Repository = DS.Model.extend({
     return !validator.isValidBaseUrl(this.get('baseUrl'));
   }.property('baseUrl'),
 
+  isEmpty: function() {
+    return this.get('baseUrl') == '';
+  }.property('baseUrl'),
+
   invalidError: function() {
     return this.get('validation') === App.Repository.validation.INVALID;
   }.property('validation'),

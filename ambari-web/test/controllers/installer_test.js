@@ -79,14 +79,17 @@ describe('App.InstallerController', function () {
         stackNameVersion: 'nn-cc',
         repositories: Em.A([
           Em.Object.create({
-            isSelected: true
+            isSelected: true,
+            isEmpty: false
           })
         ]),
         operatingSystems: Em.A([
           Em.Object.create({
             isSelected: true,
+            isEmpty: false,
             repositories: Em.A([
               Em.Object.create({
+                isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
                 validation: ''
@@ -115,14 +118,17 @@ describe('App.InstallerController', function () {
           "stackNameVersion": 'nn-cc',
           "repositories": [
             {
-              "isSelected": true
+              "isSelected": true,
+              "isEmpty": false
             }
           ],
           "operatingSystems": [
             {
               "isSelected": true,
+              "isEmpty": false,
               "repositories": [
                 {
+                  "isEmpty": false,
                   "errorTitle": "",
                   "errorContent": "",
                   "validation": "icon-repeat"
@@ -151,16 +157,19 @@ describe('App.InstallerController', function () {
         repositories: Em.A([
           Em.Object.create({
             repoId: 11,
-            isSelected: true
+            isSelected: true,
+            isEmpty: false
           })
         ]),
         operatingSystems: Em.A([
           Em.Object.create({
             isSelected: true,
+            isEmpty: false,
             id: 1,
             repositories: Em.A([
               Em.Object.create({
                 repoId: 11,
+                isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
                 validation: ''
@@ -196,16 +205,19 @@ describe('App.InstallerController', function () {
           "repositories": [
             {
               "repoId": 11,
-              "isSelected": true
+              "isSelected": true,
+              "isEmpty": false
             }
           ],
           "operatingSystems": [
             {
               "isSelected": true,
+              "isEmpty": false,
               "id": 1,
               "repositories": [
                 {
                   "repoId": 11,
+                  "isEmpty": false,
                   "errorTitle": "1",
                   "errorContent": "1",
                   "validation": "icon-ok"
