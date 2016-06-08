@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -372,6 +373,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateTezViewProperty();
     upgradeCapSchedulerView();
     fixAuthorizationDescriptions();
+    removeAuthorizations();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
@@ -2070,6 +2072,31 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           }
         }
       }
+    }
+  }
+
+  /**
+   * Removes unnecessary authorizations(alert management) from CLUSTER.OPERATOR and SERVICE.ADMINISTRATOR.
+   */
+  void removeAuthorizations(){
+    List<PermissionEntity> peList = new ArrayList<>();
+
+    for(String name : Arrays.asList("CLUSTER.OPERATOR", "SERVICE.ADMINISTRATOR")) {
+      PermissionEntity pe = permissionDAO.findPermissionByNameAndType(name, resourceTypeDAO.findByName("CLUSTER"));
+      if (pe != null) {
+        peList.add(pe);
+      }
+    }
+
+    for(PermissionEntity pe : peList) {
+      Collection<RoleAuthorizationEntity> authorizations = pe.getAuthorizations();
+      for (Iterator<RoleAuthorizationEntity> iterator = authorizations.iterator(); iterator.hasNext();) {
+        RoleAuthorizationEntity authorization = iterator.next();
+        if ("SERVICE.TOGGLE_ALERTS".equals(authorization.getAuthorizationId()) || "SERVICE.MANAGE_ALERTS".equals(authorization.getAuthorizationId())) {
+          iterator.remove();
+        }
+      }
+      permissionDAO.merge(pe);
     }
   }
 
