@@ -20,6 +20,7 @@ import Ember from 'ember';
 import { test } from 'ember-qunit';
 import startApp from '../helpers/start-app';
 import api from '../helpers/api-mock';
+import '../helpers/dbclick';
 
 var App;
 var server;
@@ -103,4 +104,23 @@ test('Can save query', function() {
   });
 
   click('.modal-footer .btn-danger');
+});
+
+test('Can change tab title', function (assert) {
+  assert.expect(1);
+
+  visit('/');
+
+  andThen(function () {
+    dblclick('.query-editor-panel tabs li:first a');
+
+    andThen(function () {
+      fillIn('.modal-body input', 'WS');
+      click('.modal-footer .btn-success');
+
+      andThen(function () {
+        assert.equal(find('.query-editor-panel tabs li:first a').text().trim(), 'WS', 'Tab renamed');
+      });
+    });
+  });
 });

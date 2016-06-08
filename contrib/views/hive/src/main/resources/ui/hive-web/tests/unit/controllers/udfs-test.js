@@ -19,7 +19,11 @@
 import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
-moduleFor('controller:udfs', 'UdfsController', {});
+moduleFor('controller:udfs', 'UdfsController', {
+  needs: [
+    'model:file-resource'
+  ]
+});
 
 test('controller is initialized', function() {
   expect(3);
@@ -57,4 +61,22 @@ test('add', function() {
   Ember.run(function () {
     component.send('add');
   });
+});
+
+test('handleAddFileResource', function (assert) {
+  assert.expect(2);
+
+  var udf = Ember.Object.create({
+    isEditingResource: false,
+    fileResource: null
+  });
+
+  var controller = this.subject();
+
+  Ember.run(function () {
+    controller.send('handleAddFileResource', udf);
+  });
+
+  assert.ok(udf.get('fileResource'), 'File Resource created');
+  assert.ok(udf.get('isEditingResource'), 'Editing mode in enabled');
 });
