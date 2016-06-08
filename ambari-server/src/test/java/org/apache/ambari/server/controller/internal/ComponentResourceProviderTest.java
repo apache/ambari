@@ -226,9 +226,6 @@ public class ComponentResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-    expect(serviceComponent1.getName()).andReturn("Component100");
-    expect(serviceComponent2.getName()).andReturn("Component101");
-    expect(serviceComponent3.getName()).andReturn("Component102");
 
     expect(cluster.getServices()).andReturn(Collections.singletonMap("Service100", service)).anyTimes();
 
@@ -244,9 +241,9 @@ public class ComponentResourceProviderTest {
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0,
               true /* recovery enabled */, "Component102 Client"));
 
-    expect(ambariMetaInfo.getComponent(null, null, null, "Component100")).andReturn(componentInfo1);
-    expect(ambariMetaInfo.getComponent(null, null, null, "Component101")).andReturn(componentInfo2);
-    expect(ambariMetaInfo.getComponent(null, null, null, "Component102")).andReturn(componentInfo1);
+    expect(ambariMetaInfo.getComponent((String) anyObject(),
+        (String) anyObject(), (String) anyObject(), (String) anyObject()))
+        .andReturn(componentInfo1).times(2).andReturn(componentInfo2);
 
     expect(componentInfo1.getCategory()).andReturn("MASTER").anyTimes();
     expect(componentInfo2.getCategory()).andReturn("SLAVE").anyTimes();

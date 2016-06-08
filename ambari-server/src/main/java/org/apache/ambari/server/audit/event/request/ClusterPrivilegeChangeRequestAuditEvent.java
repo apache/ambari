@@ -23,8 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -69,7 +67,7 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      SortedSet<String> roleSet = new TreeSet<String>();
+      Set<String> roleSet = new HashSet<String>();
       roleSet.addAll(users.keySet());
       roleSet.addAll(groups.keySet());
 

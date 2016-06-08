@@ -20,7 +20,6 @@ package org.apache.ambari.server.audit.event.request;
 
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -58,7 +57,7 @@ public class ChangeRepositoryVersionRequestAuditEvent extends RequestAuditEvent 
      * Details of the repositories
      * os type -> list of repositories, where a repository is a key-value map of the properties (repo_id, repo_name, base_url)
      */
-    private SortedMap<String, List<Map<String, String>>> repos;
+    private Map<String, List<Map<String, String>>> repos;
 
     public ChangeRepositoryVersionAuditEventBuilder() {
       super.withOperation("Repository version change");
@@ -126,7 +125,7 @@ public class ChangeRepositoryVersionRequestAuditEvent extends RequestAuditEvent 
       return this;
     }
 
-    public ChangeRepositoryVersionAuditEventBuilder withRepos(SortedMap<String, List<Map<String, String>>> repos) {
+    public ChangeRepositoryVersionAuditEventBuilder withRepos(Map<String, List<Map<String, String>>> repos) {
       this.repos = repos;
       return this;
     }

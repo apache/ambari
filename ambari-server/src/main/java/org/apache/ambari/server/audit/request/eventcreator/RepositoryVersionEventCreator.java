@@ -23,8 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
@@ -137,9 +135,9 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
    * @param request
    * @return a map of repositories
    */
-  private SortedMap<String, List<Map<String, String>>> getRepos(Request request) {
+  private Map<String, List<Map<String, String>>> getRepos(Request request) {
 
-    SortedMap<String, List<Map<String, String>>> result = new TreeMap<String, List<Map<String, String>>>();
+    Map<String, List<Map<String, String>>> result = new HashMap<String, List<Map<String, String>>>();
 
     Map<String, Object> first = Iterables.getFirst(request.getBody().getPropertySets(), null);
 
@@ -155,8 +153,8 @@ public class RepositoryVersionEventCreator implements RequestAuditEventCreator {
    * @param set
    * @return
    */
-  private SortedMap<String, List<Map<String, String>>> createResultForOperationSystems(Set<Object> set) {
-    SortedMap<String, List<Map<String, String>>> result = new TreeMap<String, List<Map<String, String>>>();
+  private Map<String, List<Map<String, String>>> createResultForOperationSystems(Set<Object> set) {
+    Map<String, List<Map<String, String>>> result = new HashMap<String, List<Map<String, String>>>();
     for (Object entry : set) {
       if (entry instanceof Map) {
         Map<String, Object> map = (Map<String, Object>) entry;
