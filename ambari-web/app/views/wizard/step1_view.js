@@ -69,7 +69,14 @@ App.WizardStep1View = Em.View.extend({
    *
    * @type {bool}
    */
-  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress'),
+  isSubmitDisabled: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress'),
+
+  /**
+   * Show warning message flag
+   *
+   * @type {bool}
+   */
+  showWarning: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled'),
 
   /**
    * Onclick handler for recheck repos urls. Used in Advanced Repository Options.
@@ -178,6 +185,19 @@ App.WizardStep1View = Em.View.extend({
    * @type {bool}
    */
   isNoOsChecked: Em.computed.everyBy('controller.selectedStack.operatingSystems', 'isSelected', false),
+
+  /**
+   * If all OSes are empty
+   * @type {bool}
+   */
+  isNoOsFilled: function () {
+    if (this.get('controller.selectedStack.useRedhatSatellite')) {
+      return false;
+    }
+    var operatingSystems = this.get('controller.selectedStack.operatingSystems');
+    var selectedOS = operatingSystems.filterProperty('isSelected', true);
+    return selectedOS.everyProperty('isEmpty', true);
+  }.property('controller.selectedStack.operatingSystems.@each.isSelected', 'controller.selectedStack.operatingSystems.@each.isEmpty', 'controller.selectedStack.useRedhatSatellite'),
 
   popoverView: Em.View.extend({
     tagName: 'i',

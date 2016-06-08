@@ -607,7 +607,7 @@ Em.I18n.translations = {
     'you are responsible for configuring the repository channel in Satellite/Spacewalk and confirming the repositories for the selected <b>stack version</b> are available on the hosts in the cluster. ' +
     'Refer to the Ambari documentation for more information.',
   'installer.step1.addOs.disabled.tooltip':'All Operating Systems have been added',
-  'installer.step1.attentionNeeded':'<b>Attention:</b> Repository Base URLs are REQUIRED before you can proceed.',
+  'installer.step1.attentionNeeded':'<b>Attention:</b> Repository Base URLs of at least one OS are REQUIRED before you can proceed. Please make sure they are in correct format with its protocol.',
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',
   'installer.step1.retryRepoUrls': 'Click <b>here</b> to retry.',
