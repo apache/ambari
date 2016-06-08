@@ -79,9 +79,9 @@ change_files_permissions() {
         ambari-sudo.sh chown -R $current_user "$KEYSDIR"
     fi
 	ambari-sudo.sh mkdir -p "$AMBARI_PID_DIR"
-	ambari-sudo.sh chown -R $current_user "$AMBARI_PID_DIR"
+	ambari-sudo.sh chown -R $current_user "$AMBARI_PID_DIR/"
 	ambari-sudo.sh mkdir -p "$AMBARI_AGENT_LOG_DIR"
-	ambari-sudo.sh chown -R $current_user "$AMBARI_AGENT_LOG_DIR"
+	ambari-sudo.sh chown -R $current_user "$AMBARI_AGENT_LOG_DIR/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
