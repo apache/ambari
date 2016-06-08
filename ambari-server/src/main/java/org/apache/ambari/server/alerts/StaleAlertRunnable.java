@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.alerts;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,9 +35,15 @@ import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.alert.ParameterizedSource.AlertParameter;
+import org.apache.ambari.server.state.alert.ServerSource;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.services.AmbariServerAlertService;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -47,6 +55,11 @@ import com.google.inject.Inject;
  * description of the alerts that are stale.
  */
 public class StaleAlertRunnable extends AlertRunnable {
+  /**
+   * Logger.
+   */
+  private final static Logger LOG = LoggerFactory.getLogger(StaleAlertRunnable.class);
+
   /**
    * The message for the alert when all services have run in their designated
    * intervals.
@@ -72,10 +85,31 @@ public class StaleAlertRunnable extends AlertRunnable {
   private static final int MINUTES_PER_HOUR = 60;
 
   /**
+   * The multiplier for the interval of the definition which is being checked
+   * for staleness. If this value is {@code 2}, then alerts are considered stale
+   * if they haven't run in more than 2x their interval value.
+   */
+  private static final int INTERVAL_WAIT_FACTOR_DEFAULT = 2;
+
+  /**
+   * A parameter which exposes the interval multipler to use for calculating
+   * staleness. If this does not exist, then
+   * {@link #INTERVAL_WAIT_FACTOR_DEFAULT} will be used.
+   */
+  private static final String STALE_INTERVAL_MULTIPLIER_PARAM_KEY = "stale.interval.multiplier";
+
+  /**
    * Used to get the current alerts and the last time they ran.
    */
   @Inject
   private AlertsDAO m_alertsDao;
+
+  /**
+   * Used for converting {@link AlertDefinitionEntity} into
+   * {@link AlertDefinition} instances.
+   */
+  @Inject
+  private AlertDefinitionFactory m_definitionFactory;
 
   /**
    * Constructor.
@@ -91,8 +125,17 @@ public class StaleAlertRunnable extends AlertRunnable {
    */
   @Override
   List<Alert> execute(Cluster cluster, AlertDefinitionEntity myDefinition) {
-    Set<String> staleAlerts = new TreeSet<String>();
-    Map<String, Set<String>> staleHostAlerts = new HashMap<>();
+    // get the multiplier
+    int waitFactor = getWaitFactorMultiplier(myDefinition);
+
+    // use the uptime of the Ambari Server as a way to determine if we need to
+    // give the alert more time to report in
+    RuntimeMXBean rb = ManagementFactory.getRuntimeMXBean();
+    long uptime = rb.getUptime();
+
+    int totalStaleAlerts = 0;
+    Set<String> staleAlertGroupings = new TreeSet<String>();
+    Map<String, Set<String>> staleAlertsByHost = new HashMap<>();
     Set<String> hostsWithStaleAlerts = new TreeSet<>();
 
     // get the cluster's current alerts
@@ -102,7 +145,8 @@ public class StaleAlertRunnable extends AlertRunnable {
     long now = System.currentTimeMillis();
 
     // for each current alert, check to see if the last time it ran is
-    // more than 2x its interval value (indicating it hasn't run)
+    // more than INTERVAL_WAIT_FACTOR * its interval value (indicating it hasn't
+    // run)
     for (AlertCurrentEntity current : currentAlerts) {
       AlertHistoryEntity history = current.getAlertHistory();
       AlertDefinitionEntity currentDefinition = history.getAlertDefinition();
@@ -130,37 +174,52 @@ public class StaleAlertRunnable extends AlertRunnable {
       // convert minutes to milliseconds for the definition's interval
       long intervalInMillis = currentDefinition.getScheduleInterval() * MINUTE_TO_MS_CONVERSION;
 
-      // if the last time it was run is >= 2x the interval, it's stale
+      // if the server hasn't been up long enough to consider this alert stale,
+      // then don't mark it stale - this is to protect against cases where
+      // Ambari was down for a while and after startup it hasn't received the
+      // alert because it has a longer interval than this stale alert check:
+      //
+      // Stale alert check - every 5 minutes
+      // Foo alert cehck - every 10 minutes
+      // Ambari down for 35 minutes for upgrade
+      if (uptime <= waitFactor * intervalInMillis) {
+        continue;
+      }
+
+      // if the last time it was run is >= INTERVAL_WAIT_FACTOR * the interval,
+      // it's stale
       long timeDifference = now - current.getLatestTimestamp();
-      if (timeDifference >= 2 * intervalInMillis) {
+      if (timeDifference >= waitFactor * intervalInMillis) {
+        // increase the count
+        totalStaleAlerts++;
 
         // it is technically possible to have a null/blank label; if so,
         // default to the name of the definition
         String label = currentDefinition.getLabel();
         if (StringUtils.isEmpty(label)) {
           label = currentDefinition.getDefinitionName();
-          }
+        }
 
         if (null != history.getHostName()) {
           // keep track of the host, if not null
           String hostName = history.getHostName();
           hostsWithStaleAlerts.add(hostName);
-          if (!staleHostAlerts.containsKey(hostName)) {
-            staleHostAlerts.put(hostName, new TreeSet<String>());
-            }
+          if (!staleAlertsByHost.containsKey(hostName)) {
+            staleAlertsByHost.put(hostName, new TreeSet<String>());
+          }
 
-          staleHostAlerts.get(hostName).add(MessageFormat.format(TIMED_LABEL_MSG, label,
+          staleAlertsByHost.get(hostName).add(MessageFormat.format(TIMED_LABEL_MSG, label,
               millisToHumanReadableStr(timeDifference)));
         } else {
           // non host alerts
-          staleAlerts.add(label);
-          }
+          staleAlertGroupings.add(label);
         }
+      }
     }
 
-    for (String host : staleHostAlerts.keySet()) {
-      staleAlerts.add(MessageFormat.format(HOST_LABEL_MSG, host,
-          StringUtils.join(staleHostAlerts.get(host), ",\n  ")));
+    for (String host : staleAlertsByHost.keySet()) {
+      staleAlertGroupings.add(MessageFormat.format(HOST_LABEL_MSG, host,
+          StringUtils.join(staleAlertsByHost.get(host), ",\n  ")));
     }
 
     AlertState alertState = AlertState.OK;
@@ -168,10 +227,10 @@ public class StaleAlertRunnable extends AlertRunnable {
 
     // if there are stale alerts, mark as CRITICAL with the list of
     // alerts
-    if (!staleAlerts.isEmpty()) {
+    if (!staleAlertGroupings.isEmpty()) {
       alertState = AlertState.CRITICAL;
-      alertText = MessageFormat.format(STALE_ALERTS_MSG, staleAlerts.size(),
-          hostsWithStaleAlerts.size(), StringUtils.join(staleAlerts, ",\n"));
+      alertText = MessageFormat.format(STALE_ALERTS_MSG, totalStaleAlerts,
+          hostsWithStaleAlerts.size(), StringUtils.join(staleAlertGroupings, ",\n"));
     }
 
     Alert alert = new Alert(myDefinition.getDefinitionName(), null, myDefinition.getServiceName(),
@@ -208,6 +267,50 @@ public class StaleAlertRunnable extends AlertRunnable {
       result += min + "m ";
     }
     return result.trim();
+  }
+
+  /**
+   * Gets the wait factor multiplier off of the definition, returning
+   * {@link #INTERVAL_WAIT_FACTOR_DEFAULT} if not specified. This will look for
+   * {@link #STALE_INTERVAL_MULTIPLIER_PARAM_KEY} in the definition parameters.
+   * The value returned from this method will be guaranteed to be in the range
+   * of 2 to 10.
+   *
+   * @param entity
+   *          the definition to read
+   * @return the wait factor interval multiplier
+   */
+  private int getWaitFactorMultiplier(AlertDefinitionEntity entity) {
+    // start with the default
+    int waitFactor = INTERVAL_WAIT_FACTOR_DEFAULT;
+
+    // coerce the entity into a business object so that the list of parameters
+    // can be extracted and used for threshold calculation
+    try {
+      AlertDefinition definition = m_definitionFactory.coerce(entity);
+      ServerSource serverSource = (ServerSource) definition.getSource();
+      List<AlertParameter> parameters = serverSource.getParameters();
+      for (AlertParameter parameter : parameters) {
+        Object value = parameter.getValue();
+
+        if (StringUtils.equals(parameter.getName(), STALE_INTERVAL_MULTIPLIER_PARAM_KEY)) {
+          waitFactor = getThresholdValue(value, INTERVAL_WAIT_FACTOR_DEFAULT);
+        }
+      }
+
+      if (waitFactor < 2 || waitFactor > 10) {
+        LOG.warn(
+            "The interval multipler of {} is outside the valid range for {} and will be set to 2",
+            waitFactor, entity.getLabel());
+
+        waitFactor = 2;
+      }
+    } catch (Exception exception) {
+      LOG.error("Unable to read the {} parameter for {}", STALE_INTERVAL_MULTIPLIER_PARAM_KEY,
+          StaleAlertRunnable.class.getSimpleName(), exception);
+    }
+
+    return waitFactor;
   }
 }
 
