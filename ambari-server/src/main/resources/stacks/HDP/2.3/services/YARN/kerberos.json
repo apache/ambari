@@ -161,6 +161,9 @@
               "keytab": {
                 "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.keytab"
               }
+            },
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
             }
           ]
         }
