@@ -25,9 +25,6 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 
 import status_params
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.is_empty import is_empty
 
 # server configurations
 config = Script.get_config()
@@ -162,96 +159,3 @@ for host in zookeeper_hosts:
   index += 1
   if index < len(zookeeper_hosts):
     zookeeper_quorum += ","
-
-# for create_hdfs_directory
-hadoop_bin_dir = status_params.hadoop_bin_dir
-namenode_host = set(default("/clusterHostInfo/namenode_host", []))
-has_namenode = not len(namenode_host) == 0
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None
-hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']  if has_namenode else None
-hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None
-hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
-dfs_type = default("/commandParams/dfs_type", "")
-
-import functools
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-#create partial functions with common arguments for every HdfsResource call
-#to create hdfs directory we need to call params.HdfsResource in code
-
-HdfsResource = functools.partial(
-  HdfsResource,
-  user = hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir,
-  principal_name = hdfs_principal_name,
-  hdfs_site = hdfs_site,
-  default_fs = default_fs,
-  immutable_paths = get_not_managed_resources(),
-  dfs_type = dfs_type
-)
-
-# Atlas Ranger plugin configurations
-stack_supports_atlas_ranger_plugin = stack_version_formatted and check_stack_feature(StackFeature.ATLAS_RANGER_PLUGIN_SUPPORT, stack_version_formatted)
-stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
-retryAble = default("/commandParams/command_retry_enabled", False)
-
-ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
-has_ranger_admin = not len(ranger_admin_hosts) == 0
-is_supported_atlas_ranger = config['configurations']['atlas-env']['is_supported_atlas_ranger']
-xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
-enable_ranger_atlas = False
-metadata_server_host = atlas_hosts[0]
-metadata_server_url = format('{metadata_protocol}://{metadata_server_host}:{metadata_port}')
-
-
-
-if has_ranger_admin and is_supported_atlas_ranger:
-  repo_name = str(config['clusterName']) + '_atlas'
-  ssl_keystore_password = unicode(config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
-  ssl_truststore_password = unicode(config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
-  credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
-  xa_audit_hdfs_is_enabled = default('/configurations/ranger-atlas-audit/xasecure.audit.destination.hdfs', False)
-  enable_ranger_atlas = config['configurations']['ranger-atlas-plugin-properties']['ranger-atlas-plugin-enabled']
-  enable_ranger_atlas = not is_empty(enable_ranger_atlas) and enable_ranger_atlas.lower() == 'yes'
-  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-
-  downloaded_custom_connector = None
-  driver_curl_source = None
-  driver_curl_target = None
-
-  ranger_env = config['configurations']['ranger-env']
-  ranger_plugin_properties = config['configurations']['ranger-atlas-plugin-properties']
-
-  ranger_atlas_audit = config['configurations']['ranger-atlas-audit']
-  ranger_atlas_audit_attrs = config['configuration_attributes']['ranger-atlas-audit']
-  ranger_atlas_security = config['configurations']['ranger-atlas-security']
-  ranger_atlas_security_attrs = config['configuration_attributes']['ranger-atlas-security']
-  ranger_atlas_policymgr_ssl = config['configurations']['ranger-atlas-policymgr-ssl']
-  ranger_atlas_policymgr_ssl_attrs = config['configuration_attributes']['ranger-atlas-policymgr-ssl']
-
-  policy_user = config['configurations']['ranger-atlas-plugin-properties']['policy_user']
-
-  atlas_repository_configuration = {
-    'username' : config['configurations']['ranger-atlas-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
-    'password' : unicode(config['configurations']['ranger-atlas-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
-    'atlas.rest.address' : metadata_server_url,
-    'commonNameForCertificate' : config['configurations']['ranger-atlas-plugin-properties']['common.name.for.certificate'],
-    'ambari.service.check.user' : policy_user
-  }
-  if security_enabled:
-    atlas_repository_configuration['policy.download.auth.users'] = metadata_user
-    atlas_repository_configuration['tag.download.auth.users'] = metadata_user
-
-  atlas_ranger_plugin_repo = {
-    'isEnabled': 'true',
-    'configs': atlas_repository_configuration,
-    'description': 'atlas repo',
-    'name': repo_name,
-    'type': 'atlas',
-    }
