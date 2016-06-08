@@ -967,8 +967,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
   }
 
   private void testUpdateResources(Authentication authentication) throws Exception {
+    AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
     Resource.Type type = Resource.Type.Host;
-
     Injector injector = createInjector();
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = injector.getInstance(Clusters.class);
