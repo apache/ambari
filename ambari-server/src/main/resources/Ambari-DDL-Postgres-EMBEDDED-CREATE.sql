@@ -1383,10 +1383,8 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'SERVICE.MANAGE_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
@@ -1412,10 +1410,8 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
-  SELECT permission_id, 'SERVICE.MANAGE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
-  SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL

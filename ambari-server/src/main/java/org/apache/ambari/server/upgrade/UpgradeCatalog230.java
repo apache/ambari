@@ -34,11 +34,14 @@ import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import javax.persistence.EntityManager;
 
 
 /**
@@ -340,6 +343,13 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
             new String[]{"'" + permissionId + "'", "'" + authorizationId + "'"}, false);
       }
     }
+
+    // hack, lets make changes visible to EclipseLink, to edit this data in 240 upgrade catalog
+    JpaEntityManager jem = (JpaEntityManager)getEntityManagerProvider().get().getDelegate();
+    if (jem != null) {
+      jem.getServerSession().getIdentityMapAccessor().invalidateAll();
+    }
+
   }
 
 

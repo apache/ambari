@@ -501,6 +501,7 @@ public class UpgradeCatalog240Test {
     Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateFalconConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateFalconConfigs");
     Method fixAuthorizationDescriptions = UpgradeCatalog240.class.getDeclaredMethod("fixAuthorizationDescriptions");
+    Method removeAuthorizations = UpgradeCatalog240.class.getDeclaredMethod("removeAuthorizations");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -536,6 +537,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateKerberosDescriptorArtifacts)
             .addMockedMethod(updateFalconConfigs)
             .addMockedMethod(fixAuthorizationDescriptions)
+            .addMockedMethod(removeAuthorizations)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -566,6 +568,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateKerberosDescriptorArtifacts();
     upgradeCatalog240.updateFalconConfigs();
     upgradeCatalog240.fixAuthorizationDescriptions();
+    upgradeCatalog240.removeAuthorizations();
 
     replay(upgradeCatalog240, dbAccessor);
 
