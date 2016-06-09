@@ -255,7 +255,6 @@ public class DataStoreImpl implements DataStore {
     if (!initialized) {
       synchronized (this) {
         if (!initialized) {
-          initialized = true;
           try {
             for (ViewEntityEntity viewEntityEntity : viewInstanceEntity.getEntities()){
 
@@ -266,9 +265,9 @@ public class DataStoreImpl implements DataStore {
               entityMap.put(name, viewEntityEntity);
               entityClassMap.put(clazz, name);
             }
-
             configureTypes(jpaDynamicHelper, classLoader);
 
+            initialized = true;
           } catch (Exception e) {
             throwPersistenceException("Can't initialize data store for view " +
                 viewInstanceEntity.getViewName() + "." + viewInstanceEntity.getName(), e);
