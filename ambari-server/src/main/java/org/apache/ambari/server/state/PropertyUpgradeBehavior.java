@@ -33,15 +33,15 @@ public class PropertyUpgradeBehavior {
   @XmlAttribute(name="delete", required = true)
   private boolean delete;
 
-  @XmlAttribute(name="change", required = true)
-  private boolean change;
+  @XmlAttribute(name="update", required = true)
+  private boolean update;
 
   public PropertyUpgradeBehavior() {}
 
-  public PropertyUpgradeBehavior(boolean add, boolean delete, boolean change) {
+  public PropertyUpgradeBehavior(boolean add, boolean delete, boolean update) {
     this.add = add;
     this.delete = delete;
-    this.change = change;
+    this.update = update;
   }
 
   public void setAdd( boolean add )
@@ -54,9 +54,9 @@ public class PropertyUpgradeBehavior {
     this.delete = delete;
   }
 
-  public void setChange( boolean change )
+  public void setUpdate(boolean update )
   {
-    this.change = change;
+    this.update = update;
   }
 
   public boolean isAdd() {
@@ -67,7 +67,7 @@ public class PropertyUpgradeBehavior {
     return delete;
   }
 
-  public boolean isChange() {
-    return change;
+  public boolean isUpdate() {
+    return update;
   }
 }
