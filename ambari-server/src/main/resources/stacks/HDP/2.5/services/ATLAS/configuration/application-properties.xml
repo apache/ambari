@@ -83,15 +83,42 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>atlas.login.method</name>
-    <value>file</value>
-    <description>Atlas login method (e.g. file).</description>
+    <name>atlas.authentication.method.kerberos</name>
+    <value>false</value>
+    <description>Indicates whether or not Kerberos is enabled.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>atlas.login.credentials.file</name>
+    <name>atlas.authentication.method.file</name>
+    <value>true</value>
+    <description>Indicates whether or not file based authentication is enabled.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap</name>
+    <value>false</value>
+    <description>Indicates whether or not LDAP authentication is enabled.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.file.filename</name>
     <value>{{conf_dir}}/users-credentials.properties</value>
     <description>File path for file based login.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.type</name>
+    <value>ldap</value>
+    <description>The LDAP type (ldap or ad).</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.url</name>
+    <value/>
+    <description>The LDAP URL.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
