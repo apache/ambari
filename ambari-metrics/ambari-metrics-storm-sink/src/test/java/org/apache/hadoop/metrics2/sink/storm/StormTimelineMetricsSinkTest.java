@@ -28,9 +28,12 @@ import static org.easymock.EasyMock.verify;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import backtype.storm.metric.api.IMetricsConsumer;
@@ -52,8 +55,7 @@ public class StormTimelineMetricsSinkTest {
   public void testNumericMetricMetricSubmission() throws InterruptedException, IOException {
     StormTimelineMetricsSink stormTimelineMetricsSink = new StormTimelineMetricsSink();
     TimelineMetricsCache timelineMetricsCache = createNiceMock(TimelineMetricsCache.class);
-    expect(timelineMetricsCache.getTimelineMetric("key1"))
-        .andReturn(new TimelineMetric()).once();
+    expect(timelineMetricsCache.getTimelineMetric("testComponent.42.key1")).andReturn(new TimelineMetric()).once();
     timelineMetricsCache.putTimelineMetric(anyObject(TimelineMetric.class));
     expectLastCall().once();
     stormTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
@@ -61,6 +63,29 @@ public class StormTimelineMetricsSinkTest {
     stormTimelineMetricsSink.handleDataPoints(
         new IMetricsConsumer.TaskInfo("localhost", 1234, "testComponent", 42, 20000L, 60),
         Collections.singleton(new IMetricsConsumer.DataPoint("key1", 42)));
+    verify(timelineMetricsCache);
+  }
+
+  @Test
+  @Ignore // TODO: Fix for failover
+  public void testMapMetricMetricSubmission() throws InterruptedException, IOException {
+    StormTimelineMetricsSink stormTimelineMetricsSink = new StormTimelineMetricsSink();
+    TimelineMetricsCache timelineMetricsCache = createNiceMock(TimelineMetricsCache.class);
+    expect(timelineMetricsCache.getTimelineMetric("testComponent.42.key1.field1"))
+        .andReturn(new TimelineMetric()).once();
+    expect(timelineMetricsCache.getTimelineMetric("testComponent.42.key1.field2"))
+        .andReturn(new TimelineMetric()).once();
+    timelineMetricsCache.putTimelineMetric(anyObject(TimelineMetric.class));
+    expectLastCall().once();
+    stormTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
+    replay(timelineMetricsCache);
+
+    Map<String, Object> valueMap = new HashMap<>();
+    valueMap.put("field1", 53);
+    valueMap.put("field2", 64.12);
+    stormTimelineMetricsSink.handleDataPoints(
+        new IMetricsConsumer.TaskInfo("localhost", 1234, "testComponent", 42, 20000L, 60),
+        Collections.singleton(new IMetricsConsumer.DataPoint("key1", valueMap)));
     verify(timelineMetricsCache);
   }
 }
