@@ -87,22 +87,6 @@ class FalconServerLinux(FalconServer):
     conf_select.select(params.stack_name, "falcon", params.version)
     stack_select.select("falcon-server", params.version)
 
-    # Must be an Upgrade direction from a version less than when the feature is supported to a
-    # version at or after the feature is supported.
-    if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and \
-        check_stack_feature(StackFeature.FALCON_EXTENSIONS, params.stack_version_formatted) and \
-        not check_stack_feature(StackFeature.FALCON_EXTENSIONS, params.current_version_formatted):
-      params.HdfsResource(params.falcon_extensions_dest_dir,
-                          type = "directory",
-                          action = "create_on_execute",
-                          owner = params.falcon_user,
-                          group = params.proxyuser_group,
-                          recursive_chown = True,
-                          recursive_chmod = True,
-                          mode = 0770,
-                          source = params.falcon_extensions_source_dir)
-      params.HdfsResource(None, action="execute")
-
     falcon_server_upgrade.pre_start_restore()
 
   def security_status(self, env):

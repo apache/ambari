@@ -122,8 +122,8 @@ smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_princi
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 supports_hive_dr = config['configurations']['falcon-env']['supports_hive_dr']
-# HDP 2.4 still supported the /usr/$STACK/$VERSION/falcon/data-mirroring folder.
-# In HDP 2.5, it was replaced with Falcon Extensions. data mirroring XOR falcon extensions
+# HDP 2.4 still supported the /usr/$STACK/$VERSION/falcon/data-mirroring folder, which had to be copied to HDFS
+# In HDP 2.5, an empty data-mirroring folder has to be created, and the extensions folder has to be uploaded to HDFS.
 supports_data_mirroring = supports_hive_dr and (stack_version_formatted and not check_stack_feature(StackFeature.FALCON_EXTENSIONS, stack_version_formatted))
 
 # Falcon Extensions were supported in HDP 2.5 and higher.
