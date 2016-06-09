@@ -19,6 +19,7 @@ package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,9 +73,13 @@ public class ViewExtractor {
     String archivePath = archiveDir.getAbsolutePath();
 
     try {
+      // Remove directory if jar was updated since last extracting
+      if (archiveDir.exists() && viewArchive.lastModified() > archiveDir.lastModified()) {
+        FileUtils.deleteDirectory(archiveDir);
+      }
+
       // Skip if the archive has already been extracted
       if (!archiveDir.exists()) {
-
         String msg = "Creating archive folder " + archivePath + ".";
 
         view.setStatusDetail(msg);
