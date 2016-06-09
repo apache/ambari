@@ -81,7 +81,7 @@
                   {{/if}}
                 {{/if}}
                 {{#if isExistingClusterDataLoaded}}
-                  {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+                  {{#isAuthorized "AMBARI.MANAGE_SETTINGS"}}
                     <li><a href="" {{action showSettingsPopup target="App.router.userSettingsController"}}>{{t app.settings}}</a></li>
                   {{/isAuthorized}}
                 {{/if}}

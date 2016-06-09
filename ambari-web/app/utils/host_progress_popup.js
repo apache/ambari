@@ -851,13 +851,6 @@ App.HostPopup = Em.Object.create({
       classNames: ['sixty-percent-width-modal', 'host-progress-popup', 'full-height-modal'],
 
       /**
-       * for the checkbox: do not show this dialog again
-       *
-       * @type {bool}
-       */
-      hasFooterCheckbox: true,
-
-      /**
        * Auto-display BG-popup
        *
        * @type {bool}
