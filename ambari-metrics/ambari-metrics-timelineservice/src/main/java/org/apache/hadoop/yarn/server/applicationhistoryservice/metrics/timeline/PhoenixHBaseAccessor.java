@@ -850,7 +850,7 @@ public class PhoenixHBaseAccessor {
                                          Map<String, List<Function>> metricFunctions,
                                          ResultSet rs) throws SQLException, IOException {
     String metricName = rs.getString("METRIC_NAME");
-    List<Function> functions = metricFunctions.get(metricName);
+    List<Function> functions = findMetricFunctions(metricFunctions, metricName);
 
     // Apply aggregation function if present
     if ((functions != null && !functions.isEmpty())) {
@@ -990,7 +990,7 @@ public class PhoenixHBaseAccessor {
       ResultSet rs) throws SQLException {
 
     String metricName = rs.getString("METRIC_NAME");
-    List<Function> functions = metricFunctions.get(metricName);
+    List<Function> functions = findMetricFunctions(metricFunctions, metricName);
 
     for (Function aggregateFunction : functions) {
       SingleValuedTimelineMetric metric;
@@ -1027,7 +1027,7 @@ public class PhoenixHBaseAccessor {
       try {
         rs = stmt.executeQuery();
         while (rs.next()) {
-          List<Function> functions = metricFunctions.get(metricName);
+          List<Function> functions = findMetricFunctions(metricFunctions, metricName);
           if (functions != null) {
             for (Function f : functions) {
               SingleValuedTimelineMetric metric =
@@ -1106,6 +1106,22 @@ public class PhoenixHBaseAccessor {
     if (condition.isEmpty()) {
       throw new IllegalArgumentException("No filter criteria specified.");
     }
+  }
+
+  private List<Function> findMetricFunctions(Map<String, List<Function>> metricFunctions,
+      String metricName) {
+    if (metricFunctions.containsKey(metricName)) {
+      return metricFunctions.get(metricName);
+    }
+
+    for (Map.Entry<String, List<Function>> nameToFunctions : metricFunctions.entrySet()) {
+      String metricRegEx = nameToFunctions.getKey().replace("%", ".*");
+      if (metricName.matches(metricRegEx)) {
+        return nameToFunctions.getValue();
+      }
+    }
+
+    return null;
   }
 
   public void saveHostAggregateRecords(Map<TimelineMetric, MetricHostAggregate> hostAggregateMap,
