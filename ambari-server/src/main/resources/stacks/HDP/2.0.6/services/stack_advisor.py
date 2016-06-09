@@ -1392,6 +1392,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ ]
+    if not services:
+      return self.toConfigurationValidationProblems(validationItems, "yarn-env")
     yarnEnvProperties = getSiteProperties(configurations, "yarn-env")
     capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
     leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
