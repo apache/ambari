@@ -103,8 +103,7 @@ public class PropertyInfoTest {
       "<property>\n" +
       "  <name>prop_name</name>\n" +
       "  <value>prop_val</value>\n" +
-      "  <on-ambari-upgrade add=\"true\" change=\"true\" delete=\"true\"/>\n" +
-      "  <on-stack-upgrade add=\"false\" change=\"false\" delete=\"false\"/>\n" +
+      "  <on-ambari-upgrade add=\"true\" update=\"true\" delete=\"true\"/>\n" +
       "</property>";
 
     // when
@@ -112,12 +111,8 @@ public class PropertyInfoTest {
 
     // then
     assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isAdd());
-    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isChange());
+    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isUpdate());
     assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isDelete());
-
-    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isAdd());
-    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isChange());
-    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isDelete());
   }
 
   @Test
@@ -134,13 +129,9 @@ public class PropertyInfoTest {
 
     // then
 
-    assertFalse(propertyInfo.getPropertyAmbariUpgradeBehavior().isAdd());
-    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isChange());
-    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isDelete());
-
-    assertTrue(propertyInfo.getPropertyStackUpgradeBehavior().isAdd());
-    assertTrue(propertyInfo.getPropertyStackUpgradeBehavior().isChange());
-    assertFalse(propertyInfo.getPropertyStackUpgradeBehavior().isDelete());
+    assertTrue(propertyInfo.getPropertyAmbariUpgradeBehavior().isAdd());
+    assertFalse(propertyInfo.getPropertyAmbariUpgradeBehavior().isUpdate());
+    assertFalse(propertyInfo.getPropertyAmbariUpgradeBehavior().isDelete());
   }
 
   @Test
