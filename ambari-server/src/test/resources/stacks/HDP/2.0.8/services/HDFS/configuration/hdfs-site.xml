@@ -23,8 +23,7 @@
     <description>Determines where on the local filesystem the DFS name node
       should store the name table.</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.support.append</name>
@@ -32,14 +31,12 @@
     <description>to enable dfs append</description>
     <final>true</final>
     <deleted>false</deleted>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.webhdfs.enabled</name>
     <value>true</value>
     <description>to enable webhdfs</description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

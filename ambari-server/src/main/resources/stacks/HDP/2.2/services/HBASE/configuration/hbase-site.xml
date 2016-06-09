@@ -26,8 +26,7 @@
     <description>A staging directory in default file system (HDFS)
     for bulk loading.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hstore.flush.retries.number</name>
@@ -36,8 +35,7 @@
     <description>
     The number of times the region flush operation will be retried.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>
@@ -56,8 +54,7 @@
       <maximum>2592000000</maximum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction.jitter</name>
@@ -66,8 +63,7 @@
       a given amount of time either side of hbase.hregion.majorcompaction. The smaller the number,
       the closer the compactions will happen to the hbase.hregion.majorcompaction
       interval.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
@@ -95,8 +91,7 @@
         </entry>
       </entries>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.bucketcache.ioengine</name>
@@ -106,8 +101,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.bucketcache.size</name>
@@ -116,8 +110,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.bucketcache.percentage.in.combinedcache</name>
@@ -126,8 +119,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.wal.codec</name>
@@ -139,8 +131,7 @@
         <name>phoenix_sql_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.region.server.rpc.scheduler.factory.class</name>
@@ -154,8 +145,7 @@
         <name>phoenix_sql_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.rpc.controllerfactory.class</name>
@@ -169,8 +159,7 @@
         <name>phoenix_sql_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>phoenix.functions.allowUserDefinedFunctions</name>
@@ -181,8 +170,7 @@
         <name>phoenix_sql_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.coprocessor.regionserver.classes</name>
@@ -196,8 +184,7 @@
         <name>hbase.security.authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.hstore.compaction.max</name>
@@ -238,8 +225,7 @@
         </entry>
       </entries>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.size</name>
@@ -256,8 +242,7 @@
       <maximum>0.8</maximum>
       <increment-step>0.01</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.coprocessor.master.classes</name>
@@ -282,8 +267,7 @@
         <name>ranger-hbase-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.coprocessor.region.classes</name>
@@ -311,8 +295,7 @@
         <name>ranger-hbase-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hbase.security.authorization</name>
@@ -339,7 +322,6 @@
         <name>ranger-hbase-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

@@ -28,39 +28,34 @@
       of directories then the name table is replicated in all of the
       directories, for redundancy. </description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.support.append</name>
     <value/>
     <description>to enable dfs append</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.webhdfs.enabled</name>
     <value/>
     <description>to enable webhdfs</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.socket.write.timeout</name>
     <value>0</value>
     <description>DFS Client write socket timeout</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.failed.volumes.tolerated</name>
     <value/>
     <description>#of failed disks dn would tolerate</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.block.local-path-access.user</name>
@@ -69,8 +64,7 @@
     circuit reads.
     </description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.data.dir</name>
@@ -82,8 +76,7 @@
   Directories that do not exist are ignored.
   </description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.hosts.exclude</name>
@@ -92,8 +85,7 @@
     not permitted to connect to the namenode.  The full pathname of the
     file must be specified.  If the value is empty, no hosts are
     excluded.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.hosts</name>
@@ -102,31 +94,27 @@
     permitted to connect to the namenode. The full pathname of the file
     must be specified.  If the value is empty, all hosts are
     permitted.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.replication.max</name>
     <value>50</value>
     <description>Maximal block replication.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.replication</name>
     <value/>
     <description>Default block replication.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.heartbeat.interval</name>
     <value>3</value>
     <description>Determines datanode heartbeat interval in seconds.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.safemode.threshold.pct</name>
@@ -137,8 +125,7 @@
         Values less than or equal to 0 mean not to start in safe mode.
         Values greater than 1 will make safe mode permanent.
         </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.balance.bandwidthPerSec</name>
@@ -148,27 +135,23 @@
         can utilize for the balancing purpose in term of
         the number of bytes per second.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.address</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.http.address</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.block.size</name>
     <value>134217728</value>
     <description>The default block size for new files.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.http.address</name>
@@ -176,8 +159,7 @@
     <description>The name of the default file system.  Either the
 literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.du.reserved</name>
@@ -185,8 +167,7 @@ literal string "local" or a host:port for HDFS.</description>
     <value/>
     <description>Reserved space in bytes per volume. Always leave this much space free for non dfs use.
 </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.ipc.address</name>
@@ -195,29 +176,25 @@ literal string "local" or a host:port for HDFS.</description>
 The datanode ipc server address and port.
 If the port is 0 then the server will start on a free port.
 </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.blockreport.initialDelay</name>
     <value>120</value>
     <description>Delay for first block report in seconds.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.namenode.handler.count</name>
     <value>40</value>
     <description>The number of server threads for the namenode.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.max.xcievers</name>
     <value>4096</value>
     <description>PRIVATE CONFIG VARIABLE</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!-- Permissions configuration -->
   <property>
@@ -226,8 +203,7 @@ If the port is 0 then the server will start on a free port.
     <description>
 The octal umask used when creating files and directories.
 </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.web.ugi</name>
@@ -236,8 +212,7 @@ The octal umask used when creating files and directories.
     <description>The user account used by the web interface.
 Syntax: USERNAME,GROUP1,GROUP2, ...
 </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.permissions</name>
@@ -249,28 +224,24 @@ but all other behavior is unchanged.
 Switching from one parameter value to the other does not change the mode,
 owner or group of files or directories.
 </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.permissions.supergroup</name>
     <value>hdfs</value>
     <description>The name of the group of super-users.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.namenode.handler.count</name>
     <value>100</value>
     <description>Added to grow Queue size so that more client connections are allowed</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>ipc.server.max.response.size</name>
     <value>5242880</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.block.access.token.enable</name>
@@ -279,8 +250,7 @@ owner or group of files or directories.
 If "true", access tokens are used as capabilities for accessing datanodes.
 If "false", no access tokens are checked on accessing datanodes.
 </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.namenode.kerberos.principal</name>
@@ -288,8 +258,7 @@ If "false", no access tokens are checked on accessing datanodes.
     <description>
 Kerberos principal name for the NameNode
 </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.secondary.namenode.kerberos.principal</name>
@@ -297,8 +266,7 @@ Kerberos principal name for the NameNode
     <description>
         Kerberos principal name for the secondary NameNode.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!--
   This is KRB DOMAIN specific. The FQDN of the namenode has to be mentioned.
@@ -307,30 +275,26 @@ Kerberos principal name for the NameNode
     <name>dfs.namenode.kerberos.https.principal</name>
     <value/>
     <description>The Kerberos principal for the host that the NameNode runs on.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.secondary.namenode.kerberos.https.principal</name>
     <value/>
     <description>The Kerberos principal for the hostthat the secondary NameNode runs on.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <!-- cluster variant -->
     <name>dfs.secondary.http.address</name>
     <value/>
     <description>Address of secondary namenode web server</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.secondary.https.port</name>
     <value>50490</value>
     <description>The https port where secondary-namenode binds</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.web.authentication.kerberos.principal</name>
@@ -340,8 +304,7 @@ Kerberos principal name for the NameNode
       The HTTP Kerberos principal MUST start with 'HTTP/' per Kerberos
       HTTP SPENGO specification.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.web.authentication.kerberos.keytab</name>
@@ -350,8 +313,7 @@ Kerberos principal name for the NameNode
       The Kerberos keytab file with the credentials for the
       HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.kerberos.principal</name>
@@ -359,8 +321,7 @@ Kerberos principal name for the NameNode
     <description>
         The Kerberos principal that the DataNode runs as. "_HOST" is replaced by the real host name.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.namenode.keytab.file</name>
@@ -368,8 +329,7 @@ Kerberos principal name for the NameNode
     <description>
         Combined keytab file containing the namenode service and host principals.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.secondary.namenode.keytab.file</name>
@@ -377,8 +337,7 @@ Kerberos principal name for the NameNode
     <description>
         Combined keytab file containing the namenode service and host principals.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.keytab.file</name>
@@ -386,22 +345,19 @@ Kerberos principal name for the NameNode
     <description>
         The filename of the keytab file for the DataNode.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.https.port</name>
     <value>50470</value>
     <description>The https port where namenode binds</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.https.address</name>
     <value/>
     <description>The https address where namenode binds</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.data.dir.perm</name>
@@ -410,8 +366,7 @@ Kerberos principal name for the NameNode
 directories. The datanode will not come up if the permissions are
 different on existing dfs.data.dir directories. If the directories
 don't exist, they will be created with this permission.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.access.time.precision</name>
@@ -420,29 +375,25 @@ don't exist, they will be created with this permission.</description>
                The default value is 1 hour. Setting a value of 0 disables
                access times for HDFS.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.cluster.administrators</name>
     <value> hdfs</value>
     <description>ACL for who all can view the default servlets in the HDFS</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>ipc.server.read.threadpool.size</name>
     <value>5</value>
     <description/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.datanode.failed.volumes.tolerated</name>
     <value>0</value>
     <description>Number of failed disks datanode would tolerate</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>dfs.namenode.check.stale.datanode</name>
@@ -452,7 +403,6 @@ don't exist, they will be created with this permission.</description>
       for more than 30s (i.e. in a stale state) are used for reads only if all
       other remote replicas have failed.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

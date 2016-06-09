@@ -25,8 +25,7 @@
     <value>{default_config_files}</value>
     <description>Comma separated config files in grok format</description>
     <display-name>Logfeeder config files</display-name>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>logfeeder.checkpoint.folder</name>
@@ -36,16 +35,14 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>logfeeder.metrics.collector.hosts</name>
     <value>{metrics_collector_hosts}</value>
     <description>Metrics collector hosts for pushing metrics by Logfeeder</description>
     <display-name>Metrics collector hosts</display-name>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>logfeeder.log.filter.enable</name>
@@ -55,8 +52,7 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>logfeeder.solr.config.interval</name>
@@ -66,7 +62,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

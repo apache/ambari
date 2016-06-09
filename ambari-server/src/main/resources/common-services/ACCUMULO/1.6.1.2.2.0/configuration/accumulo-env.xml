@@ -32,8 +32,7 @@
       <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property require-input="true">
     <name>instance_secret</name>
@@ -48,8 +47,7 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property require-input="false">
     <name>trace_password</name>
@@ -63,8 +61,7 @@
       <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_log_dir</name>
@@ -75,8 +72,7 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_pid_dir</name>
@@ -88,8 +84,7 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_instance_name</name>
@@ -100,8 +95,7 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_user</name>
@@ -113,8 +107,7 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_master_heapsize</name>
@@ -126,8 +119,7 @@
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_tserver_heapsize</name>
@@ -138,8 +130,7 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_monitor_heapsize</name>
@@ -151,8 +142,7 @@
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_gc_heapsize</name>
@@ -164,8 +154,7 @@
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_other_heapsize</name>
@@ -176,8 +165,7 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_monitor_bind_all</name>
@@ -187,20 +175,17 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_user_keytab</name>
     <description>Accumulo keytab path</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>accumulo_principal_name</name>
     <description>Accumulo principal name</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>content</name>
@@ -226,8 +211,7 @@ export ACCUMULO_KILL_CMD='kill -9 %p'
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>server_content</name>
@@ -255,7 +239,6 @@ export ACCUMULO_KILL_CMD='kill -9 %p'
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

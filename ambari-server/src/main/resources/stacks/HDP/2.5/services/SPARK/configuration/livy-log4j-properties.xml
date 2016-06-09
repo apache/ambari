@@ -18,12 +18,11 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_final="false" supports_adding_forbidden="true">
-    <property>
-        <name>content</name>
-        <description>Livy-log4j-Properties</description>
-        <value>
+  <property>
+    <name>content</name>
+    <description>Livy-log4j-Properties</description>
+    <value>
             # Set everything to be logged to the console
             log4j.rootCategory=INFO, console
             log4j.appender.console=org.apache.log4j.ConsoleAppender
@@ -33,11 +32,10 @@
 
             log4j.logger.org.eclipse.jetty=WARN
         </value>
-        <value-attributes>
-            <type>content</type>
-            <show-property-name>false</show-property-name>
-        </value-attributes>
-        <on-ambari-upgrade add="false" change="true" delete="true"/>
-        <on-stack-upgrade add="true" change="true" delete="false"/>
-    </property>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
+  </property>
 </configuration>

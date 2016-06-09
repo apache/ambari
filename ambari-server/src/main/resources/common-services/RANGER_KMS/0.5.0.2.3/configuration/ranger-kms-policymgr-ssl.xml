@@ -23,8 +23,7 @@
     <name>xasecure.policymgr.clientssl.keystore</name>
     <value>/etc/ranger/kms/ranger-plugin-keystore.jks</value>
     <description>Java Keystore files</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>xasecure.policymgr.clientssl.keystore.password</name>
@@ -34,15 +33,13 @@
       <type>password</type>
     </value-attributes>
     <description>password for keystore</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>xasecure.policymgr.clientssl.truststore</name>
     <value>/etc/ranger/kms/ranger-plugin-truststore.jks</value>
     <description>java truststore file</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>xasecure.policymgr.clientssl.truststore.password</name>
@@ -52,21 +49,18 @@
       <type>password</type>
     </value-attributes>
     <description>java truststore password</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>java keystore credential file</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>xasecure.policymgr.clientssl.truststore.credential.file</name>
     <value>jceks://file{{credential_file}}</value>
     <description>java truststore credential file</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

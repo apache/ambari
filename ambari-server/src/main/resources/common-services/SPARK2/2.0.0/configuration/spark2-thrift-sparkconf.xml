@@ -25,8 +25,7 @@
     <description>
       The name of the YARN queue to which the application is submitted.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.driver.extraLibraryPath</name>
@@ -34,15 +33,13 @@
     <description>
        Set a special library path to use when launching the driver JVM.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
     <description>Name of history provider class</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.history.fs.logDirectory</name>
@@ -52,8 +49,7 @@
       Base directory for history spark application log. It is the same value
       as in spark-defaults.xml.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.eventLog.enabled</name>
@@ -62,8 +58,7 @@
     <description>
       Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.eventLog.dir</name>
@@ -73,8 +68,7 @@
       Base directory in which Spark events are logged, if spark.eventLog.enabled is true. It is the same value
       as in spark-defaults.xml.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.master</name>
@@ -83,8 +77,7 @@
       The deploying mode of spark application, by default it is yarn-client for thrift-server but local mode for there's
       only one nodemanager.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.scheduler.allocation.file</name>
@@ -92,8 +85,7 @@
     <description>
       Scheduler configuration file for thriftserver.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.scheduler.mode</name>
@@ -101,8 +93,7 @@
     <description>
       The scheduling mode between jobs submitted to the same SparkContext.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.shuffle.service.enabled</name>
@@ -110,8 +101,7 @@
     <description>
       Enables the external shuffle service.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.hadoop.cacheConf</name>
@@ -119,8 +109,7 @@
     <description>
       Specifies whether HadoopRDD caches the Hadoop configuration object
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.dynamicAllocation.enabled</name>
@@ -128,8 +117,7 @@
     <description>
       Whether to use dynamic resource allocation, which scales the number of executors registered with this application up and down based on the workload.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.dynamicAllocation.initialExecutors</name>
@@ -137,8 +125,7 @@
     <description>
       Initial number of executors to run if dynamic allocation is enabled.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.dynamicAllocation.maxExecutors</name>
@@ -146,8 +133,7 @@
     <description>
       Upper bound for the number of executors if dynamic allocation is enabled.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>spark.dynamicAllocation.minExecutors</name>
@@ -155,7 +141,6 @@
     <description>
       Lower bound for the number of executors if dynamic allocation is enabled.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

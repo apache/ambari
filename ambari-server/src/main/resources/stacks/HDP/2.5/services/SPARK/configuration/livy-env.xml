@@ -19,70 +19,59 @@
  * limitations under the License.
  */
 -->
-
 <configuration supports_adding_forbidden="true">
-    <property>
-        <name>livy_user</name>
-        <display-name>Livy User</display-name>
-        <value>livy</value>
-        <property-type>USER</property-type>
-        <value-attributes>
-            <type>user</type>
-            <overridable>false</overridable>
-        </value-attributes>
-        <on-ambari-upgrade add="false" change="true" delete="true"/>
-        <on-stack-upgrade add="true" change="true" delete="false"/>
-    </property>
-
-    <property>
-        <name>livy_group</name>
-        <display-name>Livy Group</display-name>
-        <value>livy</value>
-        <property-type>GROUP</property-type>
-        <description>livy group</description>
-        <value-attributes>
-            <type>user</type>
-        </value-attributes>
-        <on-ambari-upgrade add="false" change="true" delete="true"/>
-        <on-stack-upgrade add="true" change="true" delete="false"/>
-    </property>
-
-    <property>
-        <name>livy_log_dir</name>
-        <value>/var/log/livy</value>
-        <description>Livy Log Dir</description>
-        <value-attributes>
-            <type>directory</type>
-        </value-attributes>
-        <on-ambari-upgrade add="false" change="true" delete="true"/>
-        <on-stack-upgrade add="true" change="true" delete="false"/>
-    </property>
-
-    <property>
-        <name>livy_pid_dir</name>
-        <value>/var/run/livy</value>
-        <value-attributes>
-            <type>directory</type>
-        </value-attributes>
-        <on-ambari-upgrade add="false" change="true" delete="true"/>
-        <on-stack-upgrade add="true" change="true" delete="false"/>
-    </property>
-
-    <property>
-        <name>spark_home</name>
-        <value>/usr/hdp/current/spark-client</value>
-        <value-attributes>
-            <type>directory</type>
-        </value-attributes>
-        <on-ambari-upgrade add="false" change="true" delete="true"/>
-        <on-stack-upgrade add="true" change="true" delete="false"/>
-    </property>
-
-    <!-- livy-env.sh -->
-    <property>
-        <name>content</name>
-        <description>This is the jinja template for livy-env.sh file</description>
-        <value>
+  <property>
+    <name>livy_user</name>
+    <display-name>Livy User</display-name>
+    <value>livy</value>
+    <property-type>USER</property-type>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
+  </property>
+  <property>
+    <name>livy_group</name>
+    <display-name>Livy Group</display-name>
+    <value>livy</value>
+    <property-type>GROUP</property-type>
+    <description>livy group</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
+  </property>
+  <property>
+    <name>livy_log_dir</name>
+    <value>/var/log/livy</value>
+    <description>Livy Log Dir</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
+  </property>
+  <property>
+    <name>livy_pid_dir</name>
+    <value>/var/run/livy</value>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
+  </property>
+  <property>
+    <name>spark_home</name>
+    <value>/usr/hdp/current/spark-client</value>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
+  </property>
+  <!-- livy-env.sh -->
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for livy-env.sh file</description>
+    <value>
             #!/usr/bin/env bash
 
             # - SPARK_HOME      Spark which you would like to use in livy
@@ -94,11 +83,9 @@
         export LIVY_PID_DIR={{livy_pid_dir}}
         export LIVY_SERVER_JAVA_OPTS="-Xmx2g"
         </value>
-        <value-attributes>
-            <type>content</type>
-        </value-attributes>
-        <on-ambari-upgrade add="false" change="true" delete="true"/>
-        <on-stack-upgrade add="true" change="true" delete="false"/>
-    </property>
-
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
+  </property>
 </configuration>

@@ -21,14 +21,12 @@
   <property>
     <name>yarn.node-labels.manager-class</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.recovery.enabled</name>
     <value>true</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.acl.enable</name>
@@ -40,8 +38,7 @@
         <name>ranger-yarn-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.authorization-provider</name>
@@ -52,8 +49,7 @@
         <name>ranger-yarn-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.admin.acl</name>
@@ -62,37 +58,32 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!--ats v1.5 properties-->
   <property>
     <name>yarn.timeline-service.version</name>
     <value>1.5</value>
     <description>Timeline service version we&#x2019;re currently using.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.store-class</name>
     <value>org.apache.hadoop.yarn.server.timeline.EntityGroupFSTimelineStore</value>
     <description>Main storage class for YARN timeline server.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.active-dir</name>
     <value>/ats/active/</value>
     <description>DFS path to store active application&#x2019;s timeline data</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.done-dir</name>
     <value>/ats/done/</value>
     <description>DFS path to store done application&#x2019;s timeline data</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes</name>
@@ -101,36 +92,31 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!-- advanced ats v1.5 properties-->
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.summary-store</name>
     <!-- Use rolling leveldb, advanced -->
     <value>org.apache.hadoop.yarn.server.timeline.RollingLevelDBTimelineStore</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.scan-interval-seconds</name>
     <!-- Default is 60 seconds, advanced -->
     <value>60</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.cleaner-interval-seconds</name>
     <!-- 3600 is default, advanced -->
     <value>3600</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.retain-seconds</name>
     <!-- 7 days is default, advanced -->
     <value>604800</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

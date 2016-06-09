@@ -31,8 +31,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.url</name>
@@ -44,8 +43,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
@@ -58,8 +56,7 @@
       the Oozie configuration directory; though the path can be absolute (i.e. to point
       to Hadoop client conf/ directories in the local filesystem.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!-- New/Updated properties for 2.1 -->
   <property>
@@ -100,8 +97,7 @@
       org.apache.oozie.service.JobsConcurrencyService
     </value>
     <description>List of Oozie services</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>oozie.services.ext</name>
@@ -111,7 +107,6 @@
       To add/replace services defined in 'oozie.services' with custom implementations.
       Class names must be separated by commas.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>
