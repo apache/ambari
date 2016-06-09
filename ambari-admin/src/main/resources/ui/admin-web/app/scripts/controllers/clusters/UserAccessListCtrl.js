@@ -142,7 +142,7 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
     if ($scope.isUserActive) {
       Cluster.getPrivilegesForResource({
           nameFilter : user.user_name,
-          typeFilter : $scope.currentTypeFilter,
+          typeFilter : $scope.currentTypeFilter
       }).then(function(data) {
         var arrayOfPrivileges = data.items[0].privileges;
         var privilegesOfTypeUser = [];
