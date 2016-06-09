@@ -21,11 +21,23 @@ package org.apache.ambari.view.hive.resources.jobs;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.backgroundjobs.BackgroundJobController;
-import org.apache.ambari.view.hive.client.*;
+import org.apache.ambari.view.hive.client.Connection;
+import org.apache.ambari.view.hive.client.Cursor;
+import org.apache.ambari.view.hive.client.HiveAuthCredentials;
+import org.apache.ambari.view.hive.client.HiveClientException;
+import org.apache.ambari.view.hive.client.UserLocalConnection;
+import org.apache.ambari.view.hive.client.UserLocalHiveAuthCredentials;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
-import org.apache.ambari.view.hive.resources.jobs.viewJobs.*;
-import org.apache.ambari.view.hive.utils.*;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobController;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobInfo;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobResourceManager;
+import org.apache.ambari.view.hive.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.hive.utils.NotFoundFormattedException;
+import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -36,11 +48,28 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.io.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -397,20 +426,50 @@ public class JobService extends BaseService {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getList() {
+  public List<Job> getList(@QueryParam("startTime") long startTime, @QueryParam("endTime") long endTime) {
     try {
-      LOG.debug("Getting all job");
-      List<Job> allJobs = getAggregator().readAll(context.getUsername());
+
+      LOG.debug("Getting all job: startTime: {}, endTime: {}",startTime,endTime);
+      List<Job> allJobs = getAggregator().readAllForUserByTime(context.getUsername(),startTime, endTime);
       for(Job job : allJobs) {
         job.setSessionTag(null);
       }
 
-      JSONObject object = new JSONObject();
-      object.put("jobs", allJobs);
-      return Response.ok(object).build();
+      LOG.info("allJobs : {}", allJobs);
+      return allJobs;
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * fetch the jobs with given info.
+   * provide as much info about the job so that next api can optimize the fetch process.
+   * @param jobInfos
+   * @return
+   */
+  @Path("/getList")
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public List<Job> getList(List<JobInfo> jobInfos) {
+    try {
+      LOG.debug("fetching jobs with ids :{}", jobInfos);
+      List<Job> allJobs = getAggregator().readJobsByIds(jobInfos);
+      for(Job job : allJobs) {
+        job.setSessionTag(null);
+      }
+
+      return allJobs;
+    } catch (WebApplicationException ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
+      throw ex;
+    } catch (Exception ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }

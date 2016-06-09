@@ -31,7 +31,7 @@ import java.util.HashMap;
 
 public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   protected final static Logger LOG =
-      LoggerFactory.getLogger(ATSRequestsDelegateImpl.class);
+    LoggerFactory.getLogger(ATSRequestsDelegateImpl.class);
   public static final String EMPTY_ENTITIES_JSON = "{ \"entities\" : [  ] }";
 
   private ViewContext context;
@@ -76,7 +76,7 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   }
 
   @Override
-  public JSONObject hiveQueryIdList(String username) {
+  public JSONObject hiveQueryIdsForUser(String username) {
     String hiveQueriesListUrl = atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID?primaryFilter=requestuser:" + username;
     String response = readFromWithDefault(hiveQueriesListUrl, "{ \"entities\" : [  ] }");
     return (JSONObject) JSONValue.parse(response);
@@ -85,7 +85,7 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   @Override
   public JSONObject hiveQueryIdByOperationId(String operationId) {
     String hiveQueriesListUrl = hiveQueryIdOperationIdUrl(operationId);
-    String response = readFromWithDefault(hiveQueriesListUrl, "{ \"entities\" : [  ] }");
+    String response = readFromWithDefault(hiveQueriesListUrl, EMPTY_ENTITIES_JSON);
     return (JSONObject) JSONValue.parse(response);
   }
 
@@ -100,6 +100,35 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   public JSONObject tezDagByEntity(String entity) {
     String tezDagEntityUrl = tezDagEntityUrl(entity);
     String response = readFromWithDefault(tezDagEntityUrl, EMPTY_ENTITIES_JSON);
+    return (JSONObject) JSONValue.parse(response);
+  }
+
+  /**
+   * fetches the HIVE_QUERY_ID from ATS for given user between given time period
+   * @param username: username for which to fetch hive query IDs
+   * @param startTime: time in miliseconds, inclusive
+   * @param endTime: time in miliseconds, exclusive
+   * @return
+   */
+  @Override
+  public JSONObject hiveQueryIdsForUserByTime(String username, long startTime, long endTime) {
+    StringBuilder url = new StringBuilder();
+    url.append(atsUrl).append("/ws/v1/timeline/HIVE_QUERY_ID?")
+      .append("windowStart=").append(startTime)
+      .append("&windowEnd=").append(endTime)
+      .append("&primaryFilter=requestuser:").append(username);
+    String hiveQueriesListUrl = url.toString();
+
+    String response = readFromWithDefault(hiveQueriesListUrl, EMPTY_ENTITIES_JSON);
+    return (JSONObject) JSONValue.parse(response);
+  }
+
+  @Override
+  public JSONObject hiveQueryEntityByEntityId(String hiveEntityId) {
+    StringBuilder url = new StringBuilder();
+    url.append(atsUrl).append("/ws/v1/timeline/HIVE_QUERY_ID/").append(hiveEntityId);
+    String hiveQueriesListUrl = url.toString();
+    String response = readFromWithDefault(hiveQueriesListUrl, EMPTY_ENTITIES_JSON);
     return (JSONObject) JSONValue.parse(response);
   }
 

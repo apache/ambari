@@ -197,6 +197,7 @@ TRANSLATIONS = {
     stoppingJob: 'Stopping...',
     close: 'Close',
     clearFilters: 'Clear filters',
+    refresh: 'Refresh',
     expand: 'Expand message',
     collapse: 'Collapse message',
     previousPage: 'previous',
@@ -214,7 +215,7 @@ TRANSLATIONS = {
     noTablesMatch: 'No tables match',
     noColumnsMatch: 'No columns match',
     table: 'Table ',
-    hoursShort: "{{hours}} hrs",
+    hrsShort: "{{hours}} hrs",
     minsShort: "{{minutes}} mins",
     secsShort: "{{seconds}} secs"
   },

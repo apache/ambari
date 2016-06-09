@@ -18,7 +18,11 @@
 
 package org.apache.ambari.view.hive.resources.jobs;
 
-import org.apache.ambari.view.hive.resources.jobs.atsJobs.*;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSParser;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSRequestsDelegate;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.HiveQueryId;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.TezDagId;
 import org.apache.commons.codec.binary.Base64;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -39,15 +43,15 @@ public class ATSParserTest {
   public void testGetHiveJobsList() throws Exception {
     IATSParser jobLoader = new ATSParser(new ATSRequestsDelegateStub());
 
-    List<HiveQueryId> jobs = jobLoader.getHiveQueryIdsList("hive");
+    List<HiveQueryId> jobs = jobLoader.getHiveQueryIdsForUser("hive");
 
     Assert.assertEquals(1, jobs.size());
 
     HiveQueryId job = jobs.get(0);
     Assert.assertEquals("hive_20150209144848_c3a5a07b-c3b6-4f57-a6d5-3dadecdd6fd0", job.entity);
-    Assert.assertEquals(1423493324L, job.starttime);
+    Assert.assertEquals(1423493324355L, job.starttime);
     Assert.assertEquals("hive", job.user);
-    Assert.assertEquals(1423493342L - 1423493324L, job.duration);
+    Assert.assertEquals((1423493342843L - 1423493324355L) / 1000L, job.duration);
     Assert.assertEquals("select count(*) from z", job.query);
 
     Assert.assertEquals(1, job.dagNames.size());
@@ -57,7 +61,7 @@ public class ATSParserTest {
     Assert.assertTrue(HiveQueryId.ATS_15_RESPONSE_VERSION > job.version);
 
     jobLoader = new ATSParser(new ATSV15RequestsDelegateStub());
-    List<HiveQueryId> jobsv2 = jobLoader.getHiveQueryIdsList("hive");
+    List<HiveQueryId> jobsv2 = jobLoader.getHiveQueryIdsForUser("hive");
     Assert.assertEquals(1, jobsv2.size());
     HiveQueryId jobv2 = jobsv2.get(0);
     Assert.assertTrue(HiveQueryId.ATS_15_RESPONSE_VERSION <= jobv2.version);
@@ -90,7 +94,7 @@ public class ATSParserTest {
      * This returns the version field that the ATS v1.5 returns.
      */
     @Override
-    public JSONObject hiveQueryIdList(String username) {
+    public JSONObject hiveQueryIdsForUser(String username) {
       return (JSONObject) JSONValue.parse(
         "{ \"entities\" : [ { \"domain\" : \"DEFAULT\",\n" +
           "        \"entity\" : \"hive_20150209144848_c3a5a07b-c3b6-4f57-a6d5-3dadecdd6fd0\",\n" +
@@ -120,6 +124,16 @@ public class ATSParserTest {
 
   protected static class ATSRequestsDelegateStub implements ATSRequestsDelegate {
 
+
+    public JSONObject hiveQueryIdsForUserByTime(String username, long startTime, long endTime) {
+      throw new NotImplementedException();
+    }
+
+    @Override
+    public JSONObject hiveQueryEntityByEntityId(String hiveEntityId) {
+      return null;
+    }
+
     @Override
     public String hiveQueryIdDirectUrl(String entity) {
       return null;
@@ -146,7 +160,7 @@ public class ATSParserTest {
     }
 
     @Override
-    public JSONObject hiveQueryIdList(String username) {
+    public JSONObject hiveQueryIdsForUser(String username) {
       return (JSONObject) JSONValue.parse(
           "{ \"entities\" : [ { \"domain\" : \"DEFAULT\",\n" +
               "        \"entity\" : \"hive_20150209144848_c3a5a07b-c3b6-4f57-a6d5-3dadecdd6fd0\",\n" +
