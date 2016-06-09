@@ -17,5 +17,10 @@
 }}
 {{#if App.supports.hostComboSearchBox}}
 <br/>
+{{#if view.errMsg}}
+<div class="alert alert-error">
+    {{view.errMsg}}
+</div>
+{{/if}}
 <div id="combo_search_box"></div>
 {{/if}}
