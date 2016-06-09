@@ -25,8 +25,7 @@ limitations under the License.
       External tables will be created with default file format. Leaving this null 
       will result in using the default file format for all tables.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>datanucleus.rdbms.datastoreAdapterClassName</name>
@@ -37,8 +36,7 @@ limitations under the License.
         <name>hive_database</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>atlas.hook.hive.minThreads</name>
@@ -47,8 +45,7 @@ limitations under the License.
     <description>
       Minimum number of threads maintained by Atlas hook.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
@@ -57,7 +54,6 @@ limitations under the License.
     <description>
       Maximum number of threads used by Atlas hook.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

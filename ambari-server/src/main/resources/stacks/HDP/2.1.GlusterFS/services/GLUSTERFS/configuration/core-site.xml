@@ -23,20 +23,17 @@
     <name>fs.AbstractFileSystem.glusterfs.impl</name>
     <display-name>GlusterFS fs impl</display-name>
     <value>org.apache.hadoop.fs.local.GlusterFs</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>fs.glusterfs.impl</name>
     <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
     <display-name>GlusterFS Abstract File System Implementation</display-name>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>fs.defaultFS</name>
     <value>glusterfs:///localhost:8020</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

@@ -28,7 +28,6 @@
       <type>password</type>
     </value-attributes>
     <description>HSM partition password</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

@@ -40,8 +40,7 @@
         <name>mapreduce.map.memory.mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.map.sort.spill.percent</name>
@@ -53,8 +52,7 @@
       is already in progress, so spills may be larger than this threshold when
       it is set to less than .5
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.task.io.sort.factor</name>
@@ -63,8 +61,7 @@
       The number of streams to merge at once while sorting files.
       This determines the number of open file handles.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!-- map/reduce properties -->
   <property>
@@ -73,8 +70,7 @@
     <description>
       Administrators for MapReduce applications.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.parallelcopies</name>
@@ -83,8 +79,7 @@
       The default number of parallel transfers run by reduce during
       the copy(shuffle) phase.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.map.speculative</name>
@@ -93,8 +88,7 @@
       If true, then multiple instances of some map tasks
       may be executed in parallel.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.speculative</name>
@@ -103,8 +97,7 @@
       If true, then multiple instances of some reduce tasks may be
       executed in parallel.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.job.reduce.slowstart.completedmaps</name>
@@ -113,8 +106,7 @@
       Fraction of the number of maps in the job which should be complete before
       reduces are scheduled for the job.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.job.counters.max</name>
@@ -122,8 +114,7 @@
     <description>
       Limit on the number of counters allowed per job.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.merge.percent</name>
@@ -134,8 +125,7 @@
       storing in-memory map outputs, as defined by
       mapreduce.reduce.shuffle.input.buffer.percent.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.input.buffer.percent</name>
@@ -144,8 +134,7 @@
       The percentage of memory to be allocated from the maximum heap
       size to storing map outputs during the shuffle.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.output.fileoutputformat.compress.type</name>
@@ -154,8 +143,7 @@
       If the job outputs are to compressed as SequenceFiles, how should
       they be compressed? Should be one of NONE, RECORD or BLOCK.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.input.buffer.percent</name>
@@ -166,8 +154,7 @@
       remaining map outputs in memory must consume less than this threshold before
       the reduce can begin.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!-- copied from kryptonite configuration -->
   <property>
@@ -176,8 +163,7 @@
     <description>
       Should the outputs of the maps be compressed before being sent across the network. Uses SequenceFile compression.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.task.timeout</name>
@@ -187,8 +173,7 @@
       terminated if it neither reads an input, writes an output, nor
       updates its status string.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.map.memory.mb</name>
@@ -212,8 +197,7 @@
         <name>yarn.scheduler.minimum-allocation-mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.memory.mb</name>
@@ -237,8 +221,7 @@
         <name>yarn.scheduler.minimum-allocation-mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.shuffle.port</name>
@@ -248,8 +231,7 @@
       ShuffleHandler is a service run at the NodeManager to facilitate
       transfers of intermediate Map outputs to requesting Reducers.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.intermediate-done-dir</name>
@@ -257,8 +239,7 @@
     <description>
       Directory where history files are written by MapReduce jobs.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.done-dir</name>
@@ -267,24 +248,21 @@
       Directory where history files are managed by the MR JobHistory Server.
     </description>
     <property-type>NOT_MANAGED_HDFS_PATH</property-type>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.address</name>
     <value>localhost:10020</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Enter your JobHistoryServer hostname.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.webapp.address</name>
     <value>localhost:19888</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Enter your JobHistoryServer hostname.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.framework.name</name>
@@ -293,8 +271,7 @@
       The runtime framework for executing MapReduce jobs. Can be one of local,
       classic or yarn.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.staging-dir</name>
@@ -302,8 +279,7 @@
     <description>
       The staging dir used while submitting jobs.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.resource.mb</name>
@@ -327,8 +303,7 @@
         <name>yarn.scheduler.minimum-allocation-mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.command-opts</name>
@@ -353,8 +328,7 @@
         <name>yarn.app.mapreduce.am.resource.mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.admin-command-opts</name>
@@ -376,29 +350,25 @@
         <name>yarn.app.mapreduce.am.resource.mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.log.level</name>
     <value>INFO</value>
     <description>MR App Master process log level.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>This property stores Java options for map tasks.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>This property stores Java options for reduce tasks.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.application.classpath</name>
@@ -407,8 +377,7 @@
       CLASSPATH for MR applications. A comma-separated list of CLASSPATH
       entries.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.am.max-attempts</name>
@@ -419,8 +388,7 @@
       set by resourcemanager. Otherwise, it will be override. The default number is
       set to 2, to allow at least one retry for AM.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.map.java.opts</name>
@@ -435,8 +403,7 @@
         <name>mapreduce.map.memory.mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.java.opts</name>
@@ -451,8 +418,7 @@
         <name>mapreduce.reduce.memory.mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.map.log.level</name>
@@ -461,8 +427,7 @@
       The logging level for the map task. The allowed levels are:
       OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE and ALL.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.log.level</name>
@@ -471,8 +436,7 @@
       The logging level for the reduce task. The allowed levels are:
       OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE and ALL.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.admin.user.env</name>
@@ -482,8 +446,7 @@
       This is not an additive property. You must preserve the original value if
       you want your map and reduce tasks to have access to native libraries (compression, etc)
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.output.fileoutputformat.compress</name>
@@ -491,10 +454,8 @@
     <description>
       Should the job outputs be compressed?
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
-
   <property>
     <name>mapreduce.jobhistory.http.policy</name>
     <value>HTTP_ONLY</value>
@@ -503,7 +464,6 @@
       The following values are supported: - HTTP_ONLY : Service is provided only
       on http - HTTPS_ONLY : Service is provided only on https
     </description>
-    <on-ambari-upgrade add="true" change="false" delete="false"/>
-    <on-stack-upgrade add="true" change="false" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>

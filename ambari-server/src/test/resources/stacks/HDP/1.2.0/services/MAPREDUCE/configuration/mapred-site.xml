@@ -23,29 +23,25 @@
     <name>io.sort.mb</name>
     <value/>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>io.sort.record.percent</name>
     <value>.2</value>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>io.sort.spill.percent</name>
     <value/>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>io.sort.factor</name>
     <value>100</value>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!-- map/reduce properties -->
   <property>
@@ -57,8 +53,7 @@
   killing them, and killing them very quickly (1/4 second) to guarantee
   that we do not leave VMs around for later jobs.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.tracker.handler.count</name>
@@ -67,16 +62,14 @@
     The number of server threads for the JobTracker. This should be roughly
     4% of the number of tasktracker nodes.
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.system.dir</name>
     <value>/mapred/system</value>
     <description>No description</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.tracker</name>
@@ -84,8 +77,7 @@
     <value/>
     <description>No description</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.tracker.http.address</name>
@@ -93,8 +85,7 @@
     <value/>
     <description>No description</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <!-- cluster specific -->
@@ -102,63 +93,54 @@
     <value/>
     <description>No description</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.cluster.administrators</name>
     <value> hadoop</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.reduce.parallel.copies</name>
     <value>30</value>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.tasktracker.map.tasks.maximum</name>
     <value/>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.tasktracker.reduce.tasks.maximum</name>
     <value/>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>tasktracker.http.threads</name>
     <value>50</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.map.tasks.speculative.execution</name>
     <value>false</value>
     <description>If true, then multiple instances of some map tasks
                may be executed in parallel.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.reduce.tasks.speculative.execution</name>
     <value>false</value>
     <description>If true, then multiple instances of some reduce tasks
                may be executed in parallel.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.reduce.slowstart.completed.maps</name>
     <value>0.05</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.inmem.merge.threshold</name>
@@ -169,8 +151,7 @@
   0 indicates we want to DON'T have any threshold and instead depend only on
   the ramfs's memory consumption to trigger the merge.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.shuffle.merge.percent</name>
@@ -180,8 +161,7 @@
   storing in-memory map outputs, as defined by
   mapred.job.shuffle.input.buffer.percent.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.shuffle.input.buffer.percent</name>
@@ -189,8 +169,7 @@
     <description>The percentage of memory to be allocated from the maximum heap
   size to storing map outputs during the shuffle.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.map.output.compression.codec</name>
@@ -198,8 +177,7 @@
     <description>If the map outputs are compressed, how should they be
       compressed
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.output.compression.type</name>
@@ -207,20 +185,17 @@
     <description>If the job outputs are to compressed as SequenceFiles, how should
                they be compressed? Should be one of NONE, RECORD or BLOCK.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.completeuserjobs.maximum</name>
     <value>5</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.taskScheduler</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.restart.recover</name>
@@ -228,8 +203,7 @@
     <description>"true" to enable (job) recovery upon restart,
                "false" to start afresh
     </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.reduce.input.buffer.percent</name>
@@ -239,8 +213,7 @@
   remaining map outputs in memory must consume less than this threshold before
   the reduce can begin.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.input.limit</name>
@@ -249,15 +222,13 @@
   is 10 Gb.)  If the estimated input size of the reduce is greater than
   this value, job is failed. A value of -1 means that there is no limit
   set. </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <!-- copied from kryptonite configuration -->
   <property>
     <name>mapred.compress.map.output</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.task.timeout</name>
@@ -266,15 +237,13 @@
   terminated if it neither reads an input, writes an output, nor
   updates its status string.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>jetty.connector</name>
     <value>org.mortbay.jetty.nio.SelectChannelConnector</value>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.task.tracker.task-controller</name>
@@ -282,69 +251,58 @@
     <description>
      TaskController which is used to launch and manage task execution.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.child.root.logger</name>
     <value>INFO,TLA</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.child.java.opts</name>
     <value/>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.cluster.map.memory.mb</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.cluster.reduce.memory.mb</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.map.memory.mb</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.reduce.memory.mb</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.cluster.max.map.memory.mb</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.cluster.max.reduce.memory.mb</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.hosts</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.hosts.exclude</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.max.tracker.blacklists</name>
@@ -352,26 +310,22 @@
     <description>
     if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.healthChecker.script.path</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.healthChecker.interval</name>
     <value>135000</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.healthChecker.script.timeout</name>
     <value>60000</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.tracker.persist.jobstatus.active</name>
@@ -379,8 +333,7 @@
     <description>Indicates if persistency of job status information is
   active or not.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.tracker.persist.jobstatus.hours</name>
@@ -390,8 +343,7 @@
     queue and between jobtracker restarts. With a zero value the job status
     information is not persisted at all in DFS.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.tracker.persist.jobstatus.dir</name>
@@ -400,35 +352,30 @@
    in a file system to be available after it drops of the memory queue and
    between jobtracker restarts.
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.retirejob.check</name>
     <value>10000</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.retirejob.interval</name>
     <value>0</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.tracker.history.completed.location</name>
     <value>/mapred/history/done</value>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.task.maxvmem</name>
     <value/>
     <final>true</final>
     <description>No description</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.maxtasks.per.job</name>
@@ -436,20 +383,17 @@
     <final>true</final>
     <description>The maximum number of tasks for a single job.
   A value of -1 indicates that there is no maximum.  </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.fileoutputcommitter.marksuccessfuljobs</name>
     <value>false</value>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.userlog.retain.hours</name>
     <value/>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.job.reuse.jvm.num.tasks</name>
@@ -458,8 +402,7 @@
     How many tasks to run per jvm. If set to -1, there is no limit
   </description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobtracker.kerberos.principal</name>
@@ -467,8 +410,7 @@
     <description>
       JT user name key.
  </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.tasktracker.kerberos.principal</name>
@@ -476,15 +418,13 @@
     <description>
        tt user name key. "_HOST" is replaced by the host name of the task tracker.
    </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>hadoop.job.history.user.location</name>
     <value>none</value>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobtracker.keytab.file</name>
@@ -492,37 +432,32 @@
     <description>
        The keytab for the jobtracker principal.
    </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.tasktracker.keytab.file</name>
     <value/>
     <description>The filename of the keytab for the task tracker</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.task.tracker.http.address</name>
     <value/>
     <description>Http address for task tracker.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobtracker.staging.root.dir</name>
     <value>/user</value>
     <description>The Path prefix for where the staging directories should be placed. The next level is always the user's
    name. It is a path in the default file system.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.tasktracker.group</name>
     <value>hadoop</value>
     <description>The group that the task controller uses for accessing the task controller. The mapred user must be a member and users should *not* be members.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobtracker.split.metainfo.maxsize</name>
@@ -531,8 +466,7 @@
     <description>If the size of the split metainfo file is larger than this, the JobTracker will fail the job during
     initialize.
    </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.history.server.embedded</name>
@@ -540,8 +474,7 @@
     <description>Should job history server be embedded within Job tracker
 process</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.history.server.http.address</name>
@@ -549,8 +482,7 @@ process</description>
     <value/>
     <description>Http address of the history server</description>
     <final>true</final>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.kerberos.principal</name>
@@ -558,16 +490,14 @@ process</description>
     <value/>
     <description>Job history user name key. (must map to same user as JT
 user)</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.keytab.file</name>
     <!-- cluster variant -->
     <value/>
     <description>The keytab for the job history server principal.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.blacklist.fault-timeout-window</name>
@@ -575,8 +505,7 @@ user)</description>
     <description>
     3-hour sliding window (value is in minutes)
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.jobtracker.blacklist.fault-bucket-width</name>
@@ -584,14 +513,12 @@ user)</description>
     <description>
     15-minute bucket size (value is in minutes)
   </description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
   <property>
     <name>mapred.queue.names</name>
     <value>default</value>
     <description> Comma separated list of queues configured for this jobtracker.</description>
-    <on-ambari-upgrade add="false" change="true" delete="true"/>
-    <on-stack-upgrade add="true" change="true" delete="false"/>
+    <on-ambari-upgrade add="true" update="false" delete="false"/>
   </property>
 </configuration>
