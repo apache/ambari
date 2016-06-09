@@ -595,7 +595,8 @@
             "yarn_user": "yarn", 
             "resourcemanager_heapsize": "1024", 
             "yarn_log_dir_prefix": "/var/log/hadoop-yarn",
-            "is_supported_yarn_ranger": "false"
+            "is_supported_yarn_ranger": "false",
+            "service_check.queue.name": "default"
         },
         "cluster-env": {
             "managed_hdfs_resource_property_names": "",
