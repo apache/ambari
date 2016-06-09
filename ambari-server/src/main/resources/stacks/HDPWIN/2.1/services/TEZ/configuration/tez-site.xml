@@ -21,6 +21,6 @@
     <name>tez.staging-dir</name>
     <value>c:\hadoop\temp\${user.name}\staging</value>
     <description>The staging dir used while submitting DAGs</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

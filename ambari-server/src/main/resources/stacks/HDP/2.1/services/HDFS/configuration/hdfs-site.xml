@@ -22,12 +22,12 @@
     <name>dfs.namenode.audit.log.async</name>
     <value>true</value>
     <description>Whether to enable async auditlog</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.namenode.fslock.fair</name>
     <value>false</value>
     <description>Whether fsLock is fair</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

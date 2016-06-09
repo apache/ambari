@@ -22,6 +22,6 @@
     <name>dfs.namenode.startup.delay.block.deletion.sec</name>
     <value>3600</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

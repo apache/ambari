@@ -41,7 +41,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.ELService.ext.functions.coord-action-create-inst</name>
@@ -68,7 +68,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.ELService.ext.functions.coord-action-create</name>
@@ -95,7 +95,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.ELService.ext.functions.coord-job-submit-data</name>
@@ -123,7 +123,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.ELService.ext.functions.coord-action-start</name>
@@ -153,7 +153,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.ELService.ext.functions.coord-sla-submit</name>
@@ -167,7 +167,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.ELService.ext.functions.coord-sla-create</name>
@@ -181,7 +181,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.supported.filesystems</name>
@@ -192,7 +192,7 @@
     <value-attributes>
       <type>custom</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!--web ui should add following properties to oozie site accordingly to FALCON_USER-->
   <!--<property>-->

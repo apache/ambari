@@ -28,12 +28,12 @@
       they are accumulated to exceed certain threshold (e.g., 1MB) in memory.
       One needs to make sure the directory has enough space.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nfs.exports.allowed.hosts</name>
     <value>* rw</value>
     <display-name>Allowed hosts</display-name>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -29,6 +29,6 @@
       Directory to store aggregator checkpoints. Change to a permanent
       location so that checkpoint ar not lost.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

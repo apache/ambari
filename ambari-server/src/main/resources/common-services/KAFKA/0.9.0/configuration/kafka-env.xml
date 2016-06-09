@@ -23,6 +23,6 @@
   <property>
     <name>is_supported_kafka_ranger</name>
     <value>true</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

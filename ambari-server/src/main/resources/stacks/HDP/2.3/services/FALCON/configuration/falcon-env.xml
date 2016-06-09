@@ -24,6 +24,6 @@
     <name>supports_hive_dr</name>
     <value>true</value>
     <description>Enable support of Falcon Hive DR</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

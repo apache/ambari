@@ -29,7 +29,7 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_pid_dir</name>
@@ -41,7 +41,7 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_regionserver_xmn_max</name>
@@ -55,14 +55,14 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <value-attributes>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
     <value>0.2</value>
     <display-name>RegionServers -Xmn in -Xmx ratio</display-name>
     <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_user</name>
@@ -74,7 +74,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_max_direct_memory_size</name>
@@ -84,7 +84,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>phoenix_sql_enabled</name>
@@ -105,7 +105,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- hbase-env.sh -->
   <property>
@@ -187,6 +187,6 @@ export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

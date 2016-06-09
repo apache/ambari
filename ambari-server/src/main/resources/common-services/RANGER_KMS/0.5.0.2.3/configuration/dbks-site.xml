@@ -23,7 +23,7 @@
     <name>hadoop.kms.blacklist.DECRYPT_EEK</name>
     <value>hdfs</value>
     <description>Blacklist for decrypt EncryptedKey CryptoExtension operations</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.db.encrypt.key.password</name>
@@ -33,7 +33,7 @@
       <type>password</type>
     </value-attributes>
     <description>Password used for encrypting Master Key</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jpa.jdbc.url</name>
@@ -57,13 +57,13 @@
         <name>db_name</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jpa.jdbc.user</name>
     <value>{{db_user}}</value>
     <description>Database username used for operation</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jpa.jdbc.password</name>
@@ -73,31 +73,31 @@
       <type>password</type>
     </value-attributes>
     <description>Database user's password</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jpa.jdbc.credential.provider.path</name>
     <value>/etc/ranger/kms/rangerkms.jceks</value>
     <description>Credential provider path</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jpa.jdbc.credential.alias</name>
     <value>ranger.ks.jdbc.password</value>
     <description>Credential alias used for password</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.masterkey.credential.alias</name>
     <value>ranger.ks.masterkey.password</value>
     <description>Credential alias used for masterkey</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jpa.jdbc.dialect</name>
     <value>{{jdbc_dialect}}</value>
     <description>Dialect used for database</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jpa.jdbc.driver</name>
@@ -113,12 +113,12 @@
         <name>DB_FLAVOR</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.jdbc.sqlconnectorjar</name>
     <value>{{ews_lib_jar_path}}</value>
     <description>Driver used for database</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

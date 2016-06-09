@@ -21,12 +21,12 @@ limitations under the License.
     <name>hive.metastore.schema.verification.record.version</name>
     <value>false</value>
     <description>Prevents metastore from overwriting the version number</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.schema.verification</name>
     <value>false</value>
     <description>Prevents metastore from complaining about version difference</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

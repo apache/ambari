@@ -21,7 +21,7 @@
     <value>10000</value>
     <description>Maximum number of applications that can be pending and running.</description>
     <final>true</final>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.maximum-am-resource-percent</name>
@@ -29,13 +29,13 @@
     <deleted>true</deleted>
     <description>Maximum percent of resources in the cluster.</description>
     <final>false</final>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property require-input="true">
     <name>yarn.scheduler.capacity.root.queues</name>
     <value>default</value>
     <deleted>false</deleted>
     <description>The queues at the this level (root is the root queue).</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

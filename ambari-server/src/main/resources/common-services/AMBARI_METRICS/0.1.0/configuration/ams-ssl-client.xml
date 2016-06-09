@@ -21,19 +21,19 @@
     <name>ssl.client.truststore.location</name>
     <value>/etc/security/clientKeys/all.jks</value>
     <description>Location of the trust store file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ssl.client.truststore.type</name>
     <value>jks</value>
     <description>Optional. Default value is "jks".</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ssl.client.truststore.password</name>
     <value>bigdata</value>
     <property-type>PASSWORD</property-type>
     <description>Password to open the trust store file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

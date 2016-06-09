@@ -22,7 +22,7 @@
     <name>hadoop.http.authentication.simple.anonymous.allowed</name>
     <value>true</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop.security.key.provider.path</name>
@@ -48,22 +48,22 @@
         <name>ranger.service.https.attrib.ssl.enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- HDFS properties required for HAWQ -->
   <property>
     <name>ipc.client.connection.maxidletime</name>
     <value>3600000</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ipc.client.connect.timeout</name>
     <value>300000</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ipc.server.listen.queue.size</name>
     <value>3300</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -25,6 +25,6 @@
     <value>c:\\\\hadoop\\\\zookeeper</value>
     <display-name>ZooKeeper directory</display-name>
     <description>Data directory for ZooKeeper.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

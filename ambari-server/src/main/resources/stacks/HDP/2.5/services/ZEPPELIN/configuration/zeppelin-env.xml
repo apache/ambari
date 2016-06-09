@@ -109,6 +109,6 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 # export ZEPPELIN_SPARK_MAXRESULT
 
   </value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

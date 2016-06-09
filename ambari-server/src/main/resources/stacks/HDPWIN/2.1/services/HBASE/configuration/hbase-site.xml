@@ -23,7 +23,7 @@
   <property>
     <name>dfs.domain.socket.path</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.tmp.dir</name>
@@ -34,6 +34,6 @@
       than '/tmp' (The '/tmp' directory is often cleared on
       machine restart).
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

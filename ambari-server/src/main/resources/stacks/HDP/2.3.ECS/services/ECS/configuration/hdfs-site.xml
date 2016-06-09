@@ -23,11 +23,11 @@
   <property>
     <name>dfs.permissions.enabled</name>
     <value>true</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.permissions.superusergroup</name>
     <value>hdfs</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

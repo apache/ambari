@@ -30,7 +30,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.datanode.data.dir</name>
@@ -43,7 +43,7 @@
     Directories that do not exist are ignored.
     </description>
     <final>true</final>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.hosts.exclude</name>
@@ -52,7 +52,7 @@
       not permitted to connect to the namenode.  The full pathname of the
       file must be specified.  If the value is empty, no hosts are
       excluded.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.hosts</name>
@@ -61,7 +61,7 @@
       permitted to connect to the namenode. The full pathname of the file
       must be specified.  If the value is empty, all hosts are
       permitted.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.namenode.checkpoint.dir</name>
@@ -75,27 +75,27 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.client.read.shortcircuit</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.client.read.shortcircuit.streams.cache.size</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.domain.socket.path</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dfs.journalnode.edits.dir</name>
     <value>c:\hadoop\hdfs\journalnode</value>
     <description>The path where the JournalNode daemon will store its local state. </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

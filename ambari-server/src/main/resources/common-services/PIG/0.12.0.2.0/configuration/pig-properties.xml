@@ -88,6 +88,6 @@ hcat.bin=/usr/bin/hcat
       <empty-value-valid>true</empty-value-valid>
       <show-property-name>false</show-property-name>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

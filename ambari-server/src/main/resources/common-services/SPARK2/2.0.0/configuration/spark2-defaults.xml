@@ -25,7 +25,7 @@
     <description>
       The name of the YARN queue to which the application is submitted.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.driver.extraLibraryPath</name>
@@ -33,7 +33,7 @@
     <description>
        Set a special library path to use when launching the driver JVM.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.history.provider</name>
@@ -41,7 +41,7 @@
     <description>
       Name of history provider
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.history.ui.port</name>
@@ -49,7 +49,7 @@
     <description>
       The port to which the web interface of the History Server binds.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.history.fs.logDirectory</name>
@@ -57,7 +57,7 @@
     <description>
       Base directory for history spark application log.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.history.kerberos.principal</name>
@@ -65,7 +65,7 @@
     <description>
       Kerberos principal name for the Spark History Server.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.history.kerberos.keytab</name>
@@ -73,7 +73,7 @@
     <description>
       Location of the kerberos keytab file for the Spark History Server.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.eventLog.enabled</name>
@@ -81,7 +81,7 @@
     <description>
         Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.eventLog.dir</name>
@@ -89,12 +89,12 @@
     <description>
         Base directory in which Spark events are logged, if spark.eventLog.enabled is true.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.yarn.historyServer.address</name>
     <value>{{spark_history_server_host}}:{{spark_history_ui_port}}</value>
     <description>The address of the Spark history server (i.e. host.com:18081). The address should not contain a scheme (http://). Defaults to not being set since the history server is an optional service. This address is given to the YARN ResourceManager when the Spark application finishes to link the application from the ResourceManager UI to the Spark history server UI.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

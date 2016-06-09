@@ -24,19 +24,19 @@
     <name>storm.thrift.transport</name>
     <value>{{storm_thrift_transport}}</value>
     <description>The transport plug-in that used for Thrift client/server communication.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>_storm.thrift.nonsecure.transport</name>
     <value>backtype.storm.security.auth.SimpleTransportPlugin</value>
     <description>The transport plug-in that used for non-secure mode for for Thrift client/server communication.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>_storm.thrift.secure.transport</name>
     <value>backtype.storm.security.auth.kerberos.KerberosSaslTransportPlugin</value>
     <description>The transport plug-in that used for secure mode for Thrift client/server communication.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>java.library.path</name>
@@ -45,7 +45,7 @@
       for the java.library.path value. java.library.path tells the JVM where
       to look for native libraries. It is necessary to set this config correctly since
       Storm uses the ZeroMQ and JZMQ native libs. </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.childopts</name>
@@ -54,7 +54,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>worker.childopts</name>
@@ -63,19 +63,19 @@
     <value-attributes>
       <type>multiLine</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ui.childopts</name>
     <value>-Xmx768m _JAAS_PLACEHOLDER</value>
     <description>Childopts for Storm UI Java process.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ui.filter</name>
     <value>null</value>
     <description>Class for Storm UI authentication</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.childopts</name>
@@ -84,31 +84,31 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logviewer.childopts</name>
     <value>-Xmx128m _JAAS_PLACEHOLDER</value>
     <description>Childopts for log viewer java process.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>drpc.childopts</name>
     <value>-Xmx768m _JAAS_PLACEHOLDER</value>
     <description>Childopts for Storm DRPC Java process.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>_storm.min.ruid</name>
     <value>null</value>
     <description>min.user.id is set to the first real user id on the system. If value is 'null' than default value will be taken from key UID_MIN of /etc/login.defs otherwise the specified value will be used for all hosts.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.log.dir</name>
     <value>{{log_dir}}</value>
     <description>Log directory for Storm.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.authorizer</name>
@@ -119,6 +119,6 @@
         <name>ranger-storm-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

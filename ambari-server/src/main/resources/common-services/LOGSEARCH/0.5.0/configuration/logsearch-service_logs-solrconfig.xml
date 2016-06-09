@@ -30,7 +30,7 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_service_logs_merge_factor</name>
@@ -44,7 +44,7 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- solrconfig.xml -->
   <property>
@@ -57,6 +57,6 @@
       <property-file-name>service_logs-solrconfig.xml.j2</property-file-name>
       <property-file-type>xml</property-file-type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

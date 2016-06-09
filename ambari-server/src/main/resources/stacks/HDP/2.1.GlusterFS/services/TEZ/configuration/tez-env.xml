@@ -25,6 +25,6 @@
     <display-name>Tez User</display-name>
     <value>tez</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

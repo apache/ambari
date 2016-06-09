@@ -23,7 +23,7 @@
       Maximum number of applications that can be pending and running.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.maximum-am-resource-percent</name>
@@ -34,7 +34,7 @@
       applications.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.queues</name>
@@ -43,7 +43,7 @@
       The queues at the this level (root is the root queue).
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.capacity</name>
@@ -55,14 +55,14 @@
       or less.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.capacity</name>
     <value>100</value>
     <description>Default queue target capacity.</description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.user-limit-factor</name>
@@ -71,7 +71,7 @@
       Default queue user limit a percentage from 0.0 to 1.0.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.maximum-capacity</name>
@@ -80,7 +80,7 @@
       The maximum capacity of the default queue. 
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.state</name>
@@ -89,7 +89,7 @@
       The state of the default queue. State can be one of RUNNING or STOPPED.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.acl_submit_applications</name>
@@ -98,7 +98,7 @@
       The ACL of who can submit jobs to the default queue.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default.acl_administer_jobs</name>
@@ -107,7 +107,7 @@
       The ACL of who can administer jobs on the default queue.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.acl_administer_queue</name>
@@ -117,7 +117,7 @@
       allocations.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.node-locality-delay</name>
@@ -129,7 +129,7 @@
       approximately number of nodes in one rack which is 40.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.default.minimum-user-limit-percent</name>
@@ -138,6 +138,6 @@
       Default minimum queue resource limit depends on the number of users who have submitted applications.
     </description>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

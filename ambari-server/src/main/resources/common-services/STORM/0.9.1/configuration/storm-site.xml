@@ -27,7 +27,7 @@
        for the java.library.path value. java.library.path tells the JVM where
        to look for native libraries. It is necessary to set this config correctly since
        Storm uses the ZeroMQ and JZMQ native libs. </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.local.dir</name>
@@ -38,7 +38,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.servers</name>
@@ -49,7 +49,7 @@
       <type>multiLine</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.port</name>
@@ -58,7 +58,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.root</name>
@@ -67,7 +67,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.session.timeout</name>
@@ -76,7 +76,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.connection.timeout</name>
@@ -85,7 +85,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.retry.times</name>
@@ -94,7 +94,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.retry.interval</name>
@@ -104,7 +104,7 @@
       <unit>ms</unit>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.zookeeper.retry.intervalceiling.millis</name>
@@ -114,13 +114,13 @@
       <type>int</type>
       <unit>ms</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.cluster.mode</name>
     <value>distributed</value>
     <description>The mode this Storm cluster is running in. Either "distributed" or "local".</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.local.mode.zmq</name>
@@ -133,19 +133,19 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.thrift.transport</name>
     <value>backtype.storm.security.auth.SimpleTransportPlugin</value>
     <description>The transport plug-in for Thrift client/server communication.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.transport</name>
     <value>backtype.storm.messaging.netty.Context</value>
     <description>The transporter for communication among Storm tasks.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.host</name>
@@ -156,7 +156,7 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.thrift.port</name>
@@ -166,7 +166,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.thrift.max_buffer_size</name>
@@ -176,7 +176,7 @@
       <type>int</type>
       <unit>bytes</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.childopts</name>
@@ -186,7 +186,7 @@
       <type>multiLine</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.task.timeout.secs</name>
@@ -196,7 +196,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.supervisor.timeout.secs</name>
@@ -205,7 +205,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.monitor.freq.secs</name>
@@ -219,7 +219,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.cleanup.inbox.freq.secs</name>
@@ -229,7 +229,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.inbox.jar.expiration.secs</name>
@@ -245,7 +245,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.task.launch.secs</name>
@@ -256,7 +256,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.reassign</name>
@@ -266,7 +266,7 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.file.copy.expiration.secs</name>
@@ -277,7 +277,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.topology.validator</name>
@@ -285,7 +285,7 @@
     <description>A custom class that implements ITopologyValidator that is run whenever a
        topology is submitted. Can be used to provide business-specific logic for
        whether topologies are allowed to run or not.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ui.port</name>
@@ -294,31 +294,31 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ui.childopts</name>
     <value>-Xmx768m</value>
     <description>Childopts for Storm UI Java process.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logviewer.port</name>
     <value>8000</value>
     <description>HTTP UI port for log viewer.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logviewer.childopts</name>
     <value>-Xmx128m</value>
     <description>Childopts for log viewer java process.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logviewer.appender.name</name>
     <value>A1</value>
     <description>Appender name used by log viewer to determine log directory.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>drpc.port</name>
@@ -327,7 +327,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>drpc.worker.threads</name>
@@ -336,7 +336,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>drpc.queue.size</name>
@@ -345,7 +345,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>drpc.invocations.port</name>
@@ -354,7 +354,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>drpc.request.timeout.secs</name>
@@ -366,33 +366,33 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>drpc.childopts</name>
     <value>-Xmx768m</value>
     <description>Childopts for Storm DRPC Java process.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>transactional.zookeeper.root</name>
     <value>/transactional</value>
     <description>The root directory in ZooKeeper for metadata about TransactionalSpouts.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>transactional.zookeeper.servers</name>
     <value>null</value>
     <description>The list of zookeeper servers in which to keep the transactional state. If null (which is default),
        will use storm.zookeeper.servers</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>transactional.zookeeper.port</name>
     <value>null</value>
     <description>The port to use to connect to the transactional zookeeper servers. If null (which is default),
        will use storm.zookeeper.port</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.slots.ports</name>
@@ -400,7 +400,7 @@
     <description>A list of ports that can run workers on this supervisor. Each worker uses one port, and
        the supervisor will only run one worker per port. Use this configuration to tune
        how many workers run on each machine.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.childopts</name>
@@ -410,7 +410,7 @@
       <type>multiLine</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.worker.start.timeout.secs</name>
@@ -423,7 +423,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.worker.timeout.secs</name>
@@ -433,7 +433,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.monitor.frequency.secs</name>
@@ -443,7 +443,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.heartbeat.frequency.secs</name>
@@ -453,7 +453,7 @@
       <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>worker.childopts</name>
@@ -462,19 +462,19 @@
     <value-attributes>
       <type>multiLine</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>worker.heartbeat.frequency.secs</name>
     <value>1</value>
     <description>How often this worker should heartbeat to the supervisor.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>task.heartbeat.frequency.secs</name>
     <value>3</value>
     <description>How often a task should heartbeat its status to the master.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>task.refresh.poll.secs</name>
@@ -484,13 +484,13 @@
        In general though, when a reassignment happens other tasks will be notified
        almost immediately. This configuration is here just in case that notification doesn't
        come through.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zmq.threads</name>
     <value>1</value>
     <description>The number of threads that should be used by the zeromq context in each worker process.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zmq.linger.millis</name>
@@ -498,14 +498,14 @@
     <description>How long a connection should retry sending messages to a target host when
        the connection is closed. This is an advanced configuration and can almost
        certainly be ignored.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zmq.hwm</name>
     <value>0</value>
     <description>The high water for the ZeroMQ push sockets used for networking. Use this config to prevent buffer explosion
        on the networking layer.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.netty.server_worker_threads</name>
@@ -514,7 +514,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.netty.client_worker_threads</name>
@@ -523,7 +523,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.netty.buffer_size</name>
@@ -533,7 +533,7 @@
       <type>int</type>
       <unit>bytes</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.netty.max_retries</name>
@@ -542,7 +542,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.netty.max_wait_ms</name>
@@ -552,7 +552,7 @@
       <type>int</type>
       <unit>ms</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.netty.min_wait_ms</name>
@@ -562,26 +562,26 @@
       <type>int</type>
       <unit>ms</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.enable.message.timeouts</name>
     <value>true</value>
     <description>True if Storm should timeout messages or not. Defaults to true. This is meant to be used
        in unit tests to prevent tuples from being accidentally timed out during the test.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.debug</name>
     <value>false</value>
     <description>When set to true, Storm will log every message that's emitted.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.optimize</name>
     <value>true</value>
     <description>Whether or not the master should optimize topologies by running multiple tasks in a single thread where appropriate.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.workers</name>
@@ -590,7 +590,7 @@
        topology. Each process will execute some number of tasks as threads within
        them. This parameter should be used in conjunction with the parallelism hints
        on each component in the topology to tune the performance of a topology.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.acker.executors</name>
@@ -600,7 +600,7 @@
       If this is set to 0, then Storm will immediately ack tuples as soon
        as they come off the spout, effectively disabling reliability.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.message.timeout.secs</name>
@@ -609,7 +609,7 @@
        emitted by a spout. If the message is not acked within this time frame, Storm
        will fail the message on the spout. Some spouts implementations will then replay
        the message at a later time.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.skip.missing.kryo.registrations</name>
@@ -622,14 +622,14 @@
        a single application may not have the code for the other serializers used by other apps.
        By setting this config to true, Storm will ignore that it doesn't have those other serializations
        rather than throw an error.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.max.task.parallelism</name>
     <value>null</value>
     <description>The maximum parallelism allowed for a component in this topology. This configuration is
        typically used in testing to limit the number of threads spawned in local mode.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.max.spout.pending</name>
@@ -640,117 +640,117 @@
        A pending tuple is one that has been emitted from a spout but has not been acked or failed yet.
        Note that this config parameter has no effect for unreliable spouts that don't tag
        their tuples with a message id.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.state.synchronization.timeout.secs</name>
     <value>60</value>
     <description>The maximum amount of time a component gives a source of state to synchronize before it requests
        synchronization again.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.stats.sample.rate</name>
     <value>0.05</value>
     <description>The percentage of tuples to sample to produce stats for a task.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.builtin.metrics.bucket.size.secs</name>
     <value>60</value>
     <description>The time period that builtin metrics data in bucketed into.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.fall.back.on.java.serialization</name>
     <value>true</value>
     <description>Whether or not to use Java serialization in a topology.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.worker.childopts</name>
     <value>null</value>
     <description>Topology-specific options for the worker child process. This is used in addition to WORKER_CHILDOPTS.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.executor.receive.buffer.size</name>
     <value>1024</value>
     <description>The size of the Disruptor receive queue for each executor. Must be a power of 2.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.executor.send.buffer.size</name>
     <value>1024</value>
     <description>The size of the Disruptor send queue for each executor. Must be a power of 2.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.receiver.buffer.size</name>
     <value>8</value>
     <description>The maximum number of messages to batch from the thread receiving off the network to the
        executor queues. Must be a power of 2.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.transfer.buffer.size</name>
     <value>1024</value>
     <description>The size of the Disruptor transfer queue for each worker.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.tick.tuple.freq.secs</name>
     <value>null</value>
     <description>How often a tick tuple from the "__system" component and "__tick" stream should be sent
        to tasks. Meant to be used as a component-specific configuration.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.worker.shared.thread.pool.size</name>
     <value>4</value>
     <description>The size of the shared thread pool for worker tasks to make use of. The thread pool can be accessed
        via the TopologyContext.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.disruptor.wait.strategy</name>
     <value>com.lmax.disruptor.BlockingWaitStrategy</value>
     <description>Configure the wait strategy used for internal queuing. Can be used to tradeoff latency
        vs. throughput.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.executor.send.buffer.size</name>
     <value>1024</value>
     <description>The size of the Disruptor send queue for each executor. Must be a power of 2.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.receiver.buffer.size</name>
     <value>8</value>
     <description>The maximum number of messages to batch from the thread receiving off the network to the
        executor queues. Must be a power of 2.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.transfer.buffer.size</name>
     <value>1024</value>
     <description>The size of the Disruptor transfer queue for each worker.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.tick.tuple.freq.secs</name>
     <value>null</value>
     <description>How often a tick tuple from the "__system" component and "__tick" stream should be sent
        to tasks. Meant to be used as a component-specific configuration.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.worker.shared.thread.pool.size</name>
     <value>4</value>
     <description>The size of the shared thread pool for worker tasks to make use of. The thread pool can be accessed
        via the TopologyContext.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.spout.wait.strategy</name>
@@ -760,13 +760,13 @@
 
        1. nextTuple emits no tuples
        2. The spout has hit maxSpoutPending and can't emit any more tuples</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.sleep.spout.wait.strategy.time.ms</name>
     <value>1</value>
     <description>The amount of milliseconds the SleepEmptyEmitStrategy should sleep for.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.error.throttle.interval.secs</name>
@@ -774,7 +774,7 @@
     <description>The interval in seconds to use for determining whether to throttle error reported to Zookeeper. For example,
        an interval of 10 seconds with topology.max.error.report.per.interval set to 5 will only allow 5 errors to be
        reported to Zookeeper per task for every 10 second interval of time.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.max.error.report.per.interval</name>
@@ -782,7 +782,7 @@
     <description>The interval in seconds to use for determining whether to throttle error reported to Zookeeper. For example,
        an interval of 10 seconds with topology.max.error.report.per.interval set to 5 will only allow 5 errors to be
        reported to Zookeeper per task for every 10 second interval of time.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.kryo.factory</name>
@@ -790,20 +790,20 @@
     <description>Class that specifies how to create a Kryo instance for serialization. Storm will then apply
        topology.kryo.register and topology.kryo.decorators on top of this. The default implementation
        implements topology.fall.back.on.java.serialization and turns references off.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.tuple.serializer</name>
     <value>backtype.storm.serialization.types.ListDelegateSerializer</value>
     <description>The serializer class for ListDelegate (tuple payload).
        The default serializer will be ListDelegateSerializer</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.trident.batch.emit.interval.millis</name>
     <value>500</value>
     <description>How often a batch can be emitted in a Trident topology.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dev.zookeeper.path</name>
@@ -811,7 +811,7 @@
     <description>The path to use as the zookeeper dir when running a zookeeper server via
        "storm dev-zookeeper". This zookeeper instance is only intended for development;
        it is not a production grade zookeeper setup.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>metrics.reporter.register</name>
@@ -819,7 +819,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>atlas.cluster.name</name>
@@ -830,6 +830,6 @@
         <name>atlas.cluster.name</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

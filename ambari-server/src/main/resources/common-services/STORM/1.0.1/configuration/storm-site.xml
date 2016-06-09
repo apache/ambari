@@ -24,25 +24,25 @@
     <name>storm.thrift.transport</name>
     <value>{{storm_thrift_transport}}</value>
     <description>The transport plug-in that used for Thrift client/server communication.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>_storm.thrift.nonsecure.transport</name>
     <value>org.apache.storm.security.auth.SimpleTransportPlugin</value>
     <description>The transport plug-in that used for non-secure mode for for Thrift client/server communication.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>_storm.thrift.secure.transport</name>
     <value>org.apache.storm.security.auth.kerberos.KerberosSaslTransportPlugin</value>
     <description>The transport plug-in that used for secure mode for Thrift client/server communication.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>storm.messaging.transport</name>
     <value>org.apache.storm.messaging.netty.Context</value>
     <description>The transporter for communication among Storm tasks.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.topology.validator</name>
@@ -50,7 +50,7 @@
     <description>A custom class that implements ITopologyValidator that is run whenever a
        topology is submitted. Can be used to provide business-specific logic for
        whether topologies are allowed to run or not.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.spout.wait.strategy</name>
@@ -60,7 +60,7 @@
 
        1. nextTuple emits no tuples
        2. The spout has hit maxSpoutPending and can't emit any more tuples</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.kryo.factory</name>
@@ -68,19 +68,19 @@
     <description>Class that specifies how to create a Kryo instance for serialization. Storm will then apply
        topology.kryo.register and topology.kryo.decorators on top of this. The default implementation
        implements topology.fall.back.on.java.serialization and turns references off.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>topology.tuple.serializer</name>
     <value>org.apache.storm.serialization.types.ListDelegateSerializer</value>
     <description>The serializer class for ListDelegate (tuple payload).
        The default serializer will be ListDelegateSerializer</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>client.jartransformer.class</name>
     <description>Storm Topology backward comptability transformer</description>
     <value>org.apache.storm.hack.StormShadeTransformer</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

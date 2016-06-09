@@ -23,6 +23,6 @@
   <property>
     <name>hbase.rootdir</name>
     <value/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

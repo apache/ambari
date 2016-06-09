@@ -23,11 +23,11 @@
   <property>
     <name>storm.local.dir</name>
     <value>c:\hadoop\storm</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dev.zookeeper.path</name>
     <value>c:\hadoop\temp\dev-storm-zookeeper</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

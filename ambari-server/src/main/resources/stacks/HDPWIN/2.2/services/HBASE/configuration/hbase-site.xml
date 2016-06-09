@@ -27,7 +27,7 @@
     <description>
     The number of times the region flush operation will be retried.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>
@@ -48,7 +48,7 @@
       <maximum>2592000000</maximum>
       <unit>milliseconds</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction.jitter</name>
@@ -57,7 +57,7 @@
       a given amount of time either side of hbase.hregion.majorcompaction. The smaller the number,
       the closer the compactions will happen to the hbase.hregion.majorcompaction
       interval.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
@@ -86,7 +86,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.bucketcache.ioengine</name>
@@ -96,7 +96,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.bucketcache.size</name>
@@ -105,7 +105,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.bucketcache.percentage.in.combinedcache</name>
@@ -114,7 +114,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.size</name>
@@ -124,7 +124,7 @@
       Updates are blocked and flushes are forced until size of all memstores
       in a region server hits hbase.regionserver.global.memstore.size.lower.limit.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.hstore.compaction.max</name>
@@ -165,7 +165,7 @@
         </entry>
       </entries>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.global.memstore.size</name>
@@ -182,6 +182,6 @@
       <maximum>0.8</maximum>
       <increment-step>0.01</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
