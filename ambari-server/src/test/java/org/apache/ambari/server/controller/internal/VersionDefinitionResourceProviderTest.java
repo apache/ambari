@@ -420,10 +420,95 @@ public class VersionDefinitionResourceProviderTest {
     Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
     Assert.assertEquals("2.2.1.0", res.getPropertyValue("VersionDefinition/repository_version"));
     Assert.assertNotNull(res.getPropertyValue("VersionDefinition/show_available"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
+
+    Set<String> validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
+    Assert.assertNotNull(validation);
+    Assert.assertEquals(0, validation.size());
 
     getRequest = PropertyHelper.getReadRequest("VersionDefinition");
     results = versionProvider.getResources(getRequest, null);
     Assert.assertEquals(0, results.size());
+  }
+
+  @Test
+  public void testCreateDryWithValidation() throws Exception {
+    AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
+    // ensure that all of the latest repo retrieval tasks have completed
+    StackManager sm = ami.getStackManager();
+    int maxWait = 15000;
+    int waitTime = 0;
+    while (waitTime < maxWait && ! sm.haveAllRepoUrlsBeenResolved()) {
+      Thread.sleep(5);
+      waitTime += 5;
+    }
+
+    if (waitTime >= maxWait) {
+      fail("Latest Repo tasks did not complete");
+    }
+
+
+    // !!! make sure we have none
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
+
+    Request getRequest = PropertyHelper.getReadRequest("VersionDefinition");
+    Set<Resource> results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(0, results.size());
+
+
+    // !!! create one
+    Map<String, Object> createMap = new HashMap<>();
+    createMap.put("VersionDefinition/available", "HDP-2.2.0-2.2.1.0");
+
+    Request createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), null);
+    versionProvider.createResources(createRequest);
+
+    results = versionProvider.getResources(getRequest, null);
+    Assert.assertEquals(1, results.size());
+
+
+    // !!! create one, but a dry run to make sure we get two validation errors
+    Map<String, String> infoProps = Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true");
+
+    createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), infoProps);
+    RequestStatus status = versionProvider.createResources(createRequest);
+
+    Assert.assertEquals(1, status.getAssociatedResources().size());
+
+    Resource res = status.getAssociatedResources().iterator().next();
+    // because we aren't using subresources, but return subresource-like properties, the key is an empty string
+    Assert.assertTrue(res.getPropertiesMap().containsKey(""));
+    Map<String, Object> resMap = res.getPropertiesMap().get("");
+    Assert.assertTrue(resMap.containsKey("operating_systems"));
+
+    Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
+    Assert.assertEquals("2.2.1.0", res.getPropertyValue("VersionDefinition/repository_version"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/show_available"));
+    Assert.assertEquals("HDP-2.2.0.4", res.getPropertyValue("VersionDefinition/display_name"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
+
+    Set<String> validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
+    Assert.assertEquals(3, validation.size());
+
+    // dry-run with a changed name.  should get one validation error about version
+    createMap.put(VersionDefinitionResourceProvider.VERSION_DEF_DISPLAY_NAME, "HDP-2.2.0.4-a");
+    createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), infoProps);
+    status = versionProvider.createResources(createRequest);
+
+    Assert.assertEquals(1, status.getAssociatedResources().size());
+
+    res = status.getAssociatedResources().iterator().next();
+    Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
+    Assert.assertEquals("2.2.1.0", res.getPropertyValue("VersionDefinition/repository_version"));
+    Assert.assertEquals("HDP-2.2.0.4-a", res.getPropertyValue("VersionDefinition/display_name"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/show_available"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
+
+    validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
+    Assert.assertEquals(2, validation.size());
 
   }
 }

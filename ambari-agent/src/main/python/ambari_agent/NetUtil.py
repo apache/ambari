@@ -61,7 +61,7 @@ class NetUtil:
     logger.info("Connecting to " + url)
     responseBody = ""
 
-    ssl_verify_cert = self.config.get("security","ssl_verify_cert") != "0"
+    ssl_verify_cert = self.config.get("security","ssl_verify_cert", "0") != "0"
 
     try:
       parsedurl = urlparse(url)

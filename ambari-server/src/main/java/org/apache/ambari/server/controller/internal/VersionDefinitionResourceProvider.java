@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.node.ArrayNode;
@@ -98,6 +99,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_AVAILABLE_SERVICES       = "VersionDefinition/services";
   protected static final String VERSION_DEF_STACK_SERVICES           = "VersionDefinition/stack_services";
   protected static final String VERSION_DEF_STACK_DEFAULT            = "VersionDefinition/stack_default";
+  protected static final String VERSION_DEF_DISPLAY_NAME             = "VersionDefinition/display_name";
+  protected static final String VERSION_DEF_VALIDATION               = "VersionDefinition/validation";
   protected static final String SHOW_AVAILABLE                       = "VersionDefinition/show_available";
 
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemResourceDefinition().getPluralName();
@@ -146,6 +149,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       VERSION_DEF_AVAILABLE_SERVICES,
       VERSION_DEF_STACK_SERVICES,
       VERSION_DEF_STACK_DEFAULT,
+      VERSION_DEF_DISPLAY_NAME,
+      VERSION_DEF_VALIDATION,
       SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
       SHOW_AVAILABLE);
 
@@ -197,13 +202,12 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     final String definitionUrl = (String) properties.get(VERSION_DEF_DEFINITION_URL);
     final String definitionBase64 = (String) properties.get(VERSION_DEF_DEFINITION_BASE64);
     final String definitionName = (String) properties.get(VERSION_DEF_AVAILABLE_DEFINITION);
-
+    final Set<String> validations = new HashSet<>();
     final boolean dryRun = request.isDryRunRequest();
 
     XmlHolder xmlHolder = createResources(new Command<XmlHolder>() {
       @Override
       public XmlHolder invoke() throws AmbariException {
-
 
         XmlHolder holder = null;
         if (null != definitionUrl) {
@@ -212,6 +216,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           holder = loadXml(Base64.decodeBase64(definitionBase64));
         } else if (null != definitionName) {
           VersionDefinitionXml xml = s_metaInfo.get().getVersionDefinition(definitionName);
+
           if (null == xml) {
             throw new AmbariException(String.format("Version %s not found", definitionName));
           }
@@ -228,22 +233,53 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           throw new AmbariException("Cannot determine creation method");
         }
 
+        // !!! must be in this anonymous method because things throw AmbariException
+
         toRepositoryVersionEntity(holder);
 
-        if (!dryRun) {
+        try {
           RepositoryVersionResourceProvider.validateRepositoryVersion(s_repoVersionDAO,
               s_metaInfo.get(), holder.entity);
+        } catch (AmbariException e) {
+          if (dryRun) {
+            validations.add(e.getMessage());
+          } else {
+            throw e;
+          }
         }
 
         checkForParent(holder);
 
-        if (!dryRun) {
-          s_repoVersionDAO.create(holder.entity);
-        }
-
         return holder;
       }
     });
+
+    if (StringUtils.isNotBlank(ObjectUtils.toString(properties.get(VERSION_DEF_DISPLAY_NAME)))) {
+      xmlHolder.xml.release.display = properties.get(VERSION_DEF_DISPLAY_NAME).toString();
+      xmlHolder.entity.setDisplayName(properties.get(VERSION_DEF_DISPLAY_NAME).toString());
+    }
+
+    if (s_repoVersionDAO.findByDisplayName(xmlHolder.entity.getDisplayName()) != null) {
+      String err = String.format("Repository version with name %s already exists.",
+          xmlHolder.entity.getDisplayName());
+
+      if (dryRun) {
+        validations.add(err);
+      } else {
+        throw new IllegalArgumentException(err);
+      }
+    }
+
+    if (s_repoVersionDAO.findByStackAndVersion(xmlHolder.entity.getStack(), xmlHolder.entity.getVersion()) != null) {
+      String err = String.format("Repository version for stack %s and version %s already exists.",
+              xmlHolder.entity.getStackId(), xmlHolder.entity.getVersion());
+
+      if (dryRun) {
+        validations.add(err);
+      } else {
+        throw new IllegalArgumentException(err);
+      }
+    }
 
     final Resource res;
 
@@ -258,10 +294,12 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         VERSION_DEF_RELEASE_COMPATIBLE_WITH,
         VERSION_DEF_RELEASE_NOTES,
         VERSION_DEF_RELEASE_VERSION,
+        VERSION_DEF_DISPLAY_NAME,
         VERSION_DEF_AVAILABLE_SERVICES,
+        VERSION_DEF_VALIDATION,
         VERSION_DEF_STACK_SERVICES);
 
-      res = toResource(null, xmlHolder.xml, ids);
+      res = toResource(null, xmlHolder.xml, ids, validations);
       // !!! if the definition name is not null, it can only be from available
       if (null != definitionName) {
         res.setProperty(SHOW_AVAILABLE, true);
@@ -269,12 +307,14 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
       addSubresources(res, xmlHolder.entity);
     } else {
+
+      s_repoVersionDAO.create(xmlHolder.entity);
+
       res = toResource(xmlHolder.entity, Collections.<String>emptySet());
       notifyCreate(Resource.Type.VersionDefinition, request);
     }
 
-    RequestStatusImpl status = new RequestStatusImpl(null,
-        Collections.singleton(res));
+    RequestStatusImpl status = new RequestStatusImpl(null, Collections.singleton(res));
 
     return status;
   }
@@ -302,12 +342,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             Boolean.parseBoolean(propertyMap.get(SHOW_AVAILABLE).toString())) {
 
           for (Entry<String, VersionDefinitionXml> entry : s_metaInfo.get().getVersionDefinitions().entrySet()) {
-            Resource res = toResource(entry.getKey(), entry.getValue(), requestPropertyIds);
+            Resource res = toResource(entry.getKey(), entry.getValue(), requestPropertyIds, null);
             res.setProperty(SHOW_AVAILABLE, true);
             results.add(res);
-
           }
-
         } else {
           String id = (String) propertyMap.get(VERSION_DEF_ID);
 
@@ -325,7 +363,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
                 throw new NoSuchResourceException(String.format("Could not find version %s",
                     id));
               }
-              Resource res = toResource(id, xml, requestPropertyIds);
+              Resource res = toResource(id, xml, requestPropertyIds, null);
               res.setProperty(SHOW_AVAILABLE, true);
               results.add(res);
             }
@@ -522,7 +560,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * @return the resource
    * @throws SystemException
    */
-  private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds) throws SystemException {
+  private Resource toResource(String id, VersionDefinitionXml xml, Set<String> requestedIds,
+      Set<String> validations) throws SystemException {
 
     Resource resource = new ResourceImpl(Resource.Type.VersionDefinition);
     resource.setProperty(VERSION_DEF_ID, id);
@@ -547,6 +586,11 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     setResourceProperty(resource, VERSION_DEF_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_VERSION, xml.release.version, requestedIds);
     setResourceProperty(resource, VERSION_DEF_STACK_DEFAULT, xml.isStackDefault(), requestedIds);
+    setResourceProperty(resource, VERSION_DEF_DISPLAY_NAME, xml.release.display, requestedIds);
+
+    if (null != validations) {
+      setResourceProperty(resource, VERSION_DEF_VALIDATION, validations, requestedIds);
+    }
 
     setResourceProperty(resource, VERSION_DEF_AVAILABLE_SERVICES, xml.getAvailableServices(stack), requestedIds);
     setResourceProperty(resource, VERSION_DEF_STACK_SERVICES, xml.getStackServices(stack), requestedIds);
@@ -591,6 +635,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     setResourceProperty(resource, VERSION_DEF_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_VERSION, xml.release.version, requestedIds);
     setResourceProperty(resource, VERSION_DEF_STACK_DEFAULT, xml.isStackDefault(), requestedIds);
+    setResourceProperty(resource, VERSION_DEF_DISPLAY_NAME, xml.release.display, requestedIds);
 
     StackInfo stack = null;
 
