@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', 'UserConstants', '$translate', function($scope, User, $modal, $rootScope, UserConstants, $translate) {
+  .controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', 'UserConstants', '$translate', 'Settings', function($scope, User, $modal, $rootScope, UserConstants, $translate, Settings) {
   var $t = $translate.instant;
   $scope.constants = {
     admin: $t('users.ambariAdmin'),
@@ -71,6 +71,9 @@ angular.module('ambariAdminConsole')
   ];
   $scope.currentActiveFilter = $scope.activeFilterOptions[0];
 
+  if (!Settings.isJWTSupported) {
+    delete UserConstants.TYPES.JWT;
+  }
   $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
     .concat(Object.keys(UserConstants.TYPES).map(function(key) {
       return {

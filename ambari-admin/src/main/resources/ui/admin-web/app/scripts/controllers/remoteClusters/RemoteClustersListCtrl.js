@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('RemoteClustersListCtrl', ['$scope', '$routeParams', '$translate', 'RemoteCluster' ,'UserConstants', function ($scope, $routeParams, $translate, RemoteCluster, UserConstants) {
+.controller('RemoteClustersListCtrl', ['$scope', '$routeParams', '$translate', 'RemoteCluster', function ($scope, $routeParams, $translate, RemoteCluster) {
   var $t = $translate.instant;
 
   $scope.clusterName = $routeParams.clusterName;
