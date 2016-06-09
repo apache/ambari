@@ -826,10 +826,10 @@ Em.I18n.translations = {
   'installer.step4.serviceCheck.popup.body':'You did not select {0}, but it is needed by other services you selected. We will automatically add {0}. Is this OK?',
   'installer.step4.limitedFunctionality.popup.header':'Limited Functionality Warning',
   'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
-  'installer.step4.smartSenseCheck.popup.body':'SmartSense securely collections diagnostic data from the cluster and ' +
-  'provides both recommendations as well as automated analysis for troubleshooting support cases. If you do not ' +
-  'install the SmartSense service, no recommendations will be provided and data must be gathered manually for ' +
-  'troubleshooting support cases. Are you sure you want to proceed without SmartSense?',
+  'installer.step4.smartSenseCheck.popup.body':'SmartSense securely collects cluster diagnostics in order to send you recommendations and automate analysis for ' +
+  'troubleshooting support cases. If you choose not to install SmartSense, you will not receive any recommendations, and you ' +
+  'will need to collect configuration and logs manually for troubleshooting support cases. ' +
+  'Are you sure you want to proceed without SmartSense?',
   'installer.step4.rangerRequirements.popup.header': 'Ranger Requirements',
   'installer.step4.rangerRequirements.popup.body.requirements': '<ol><li>You must have an <strong>MySQL/Oracle/Postgres/MSSQL/SQL Anywhere Server</strong> database instance running to be used by Ranger.</li>' +
     '<li>In Assign Masters step of this wizard, you will be prompted to specify which host for the Ranger Admin. On that host, you <strong>must have DB Client installed</strong> for Ranger to access to the database. (Note: This is applicable for only Ranger 0.4.0)</li>' +
