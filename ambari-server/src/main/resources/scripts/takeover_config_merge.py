@@ -30,6 +30,7 @@ import xml
 import xml.etree.ElementTree as ET
 import StringIO
 import ConfigParser
+from optparse import OptionGroup
 
 logger = logging.getLogger('AmbariTakeoverConfigMerge')
 
@@ -150,6 +151,8 @@ class XmlParser(Parser):  # Used DOM parser to read data into a map
 class ConfigMerge:
 
   CONTENT_UNKNOWN_FILES_MAPPING_FILE = {}
+  LEFT_INPUT_DIR = "/tmp/left"
+  RIGHT_INPUT_DIR = "/tmp/right"
   INPUT_DIR = '/etc/hadoop'
   OUTPUT_DIR = '/tmp'
   OUT_FILENAME = 'ambari_takeover_config_merge.out'
@@ -165,14 +168,18 @@ class ConfigMerge:
 
 
   config_files_map = {}
+  left_file_paths = None
+  right_file_paths = None
 
-  def __init__(self, config_files_map):
+  def __init__(self, config_files_map=None, left_file_paths=None, right_file_paths=None):
     self.config_files_map = config_files_map
+    self.left_file_paths = left_file_paths
+    self.right_file_paths = right_file_paths
 
   @staticmethod
-  def get_all_supported_files_grouped_by_name(extensions=SUPPORTED_EXTENSIONS):
+  def get_all_supported_files_grouped_by_name(extensions=SUPPORTED_EXTENSIONS, directory=INPUT_DIR):
     filePaths = {}
-    for dirName, subdirList, fileList in os.walk(ConfigMerge.INPUT_DIR, followlinks=True):
+    for dirName, subdirList, fileList in os.walk(directory, followlinks=True):
       for file in fileList:
         root, ext = os.path.splitext(file)
         if ext in extensions:
@@ -333,6 +340,124 @@ class ConfigMerge:
       logger.info("Script successfully finished")
       return 0
 
+  def perform_diff(self):
+    configurations_conflicts = {}
+    attributes_conflicts = {}
+    file_conflicts = []
+    matches_configs = []
+
+    for right_configs_names in self.right_file_paths:
+      for left_configs_names in self.left_file_paths:
+        if right_configs_names == left_configs_names:
+          matches_configs.append(right_configs_names)
+
+    for match_config in matches_configs:
+      configurations_conflicts[match_config], attributes_conflicts[match_config] = ConfigMerge.configuration_diff(self.left_file_paths[match_config], self.right_file_paths[match_config])
+
+    file_conflicts = ConfigMerge.get_missing_files(self.right_file_paths, matches_configs, ConfigMerge.LEFT_INPUT_DIR) + \
+                     ConfigMerge.get_missing_files(self.left_file_paths, matches_configs, ConfigMerge.RIGHT_INPUT_DIR)
+
+    configuration_diff_output = None
+    configuration_diff_output = ConfigMerge.format_diff_output(file_conflicts, configurations_conflicts, attributes_conflicts)
+
+    if configuration_diff_output and configuration_diff_output != "":
+      conflict_filename = os.path.join(ConfigMerge.OUTPUT_DIR, "file-diff.txt")
+      logger.warn(
+        "You have file diff conflicts. Please check {0}".format(conflict_filename))
+      with open(conflict_filename, "w") as fp:
+        fp.write(configuration_diff_output)
+
+    logger.info("Script successfully finished")
+    return 0
+
+  @staticmethod
+  def format_diff_output(file_conflicts, configurations_conflicts, attributes_conflicts):
+    output = ""
+    if file_conflicts:
+      output += "======= File diff conflicts ====== \n\n"
+      for file_conflict in file_conflicts:
+        output+=str(file_conflict)+"\n"
+
+    if configurations_conflicts:
+      output += "\n\n======= Property diff conflicts ====== "
+      for config_name, property in configurations_conflicts.iteritems():
+          if property:
+            output+= "\n\n||| " + config_name + " |||\n"
+            output+= "\n".join(str(p) for p in property)
+
+    if attributes_conflicts:
+      output += "\n\n======= Final attribute diff conflicts ====== "
+      for config_name, property_with_attribute in attributes_conflicts.iteritems():
+        if property_with_attribute:
+          output+= "\n\n||| " + config_name + " |||\n"
+          output+= "\n".join(str(p) for p in property_with_attribute)
+
+    return output
+
+  @staticmethod
+  def configuration_diff(left, right):
+    properties_conflicts = []
+    attributes_conflicts = []
+    left_path, left_parser = left[0]
+    left_configurations, left_attributes = left_parser.read_data_to_map(left_path)
+    right_path, right_parser = right[0]
+    right_configurations, right_attributes = right_parser.read_data_to_map(right_path)
+
+    matches_configs = []
+    matches_attributes = []
+
+    matches_configs, properties_conflicts = ConfigMerge.get_conflicts_and_matches(left_configurations, right_configurations, left_path, right_path)
+    properties_conflicts += ConfigMerge.get_missing_properties(left_configurations, matches_configs, right_path) + \
+                            ConfigMerge.get_missing_properties(right_configurations, matches_configs, left_path)
+
+    if left_attributes and right_attributes:
+      matches_attributes, attributes_conflicts = ConfigMerge.get_conflicts_and_matches(left_attributes, right_attributes, left_path, right_path)
+      attributes_conflicts += ConfigMerge.get_missing_attributes(left_attributes, matches_attributes, right_path) + \
+                              ConfigMerge.get_missing_attributes(right_attributes, matches_attributes, left_path)
+    elif left_attributes:
+      attributes_conflicts = ConfigMerge.get_missing_attributes(left_attributes, matches_attributes, right_path)
+
+    elif right_attributes:
+      attributes_conflicts = ConfigMerge.get_missing_attributes(right_attributes, matches_attributes, left_path)
+
+    return properties_conflicts, attributes_conflicts
+
+  @staticmethod
+  def get_conflicts_and_matches(left_items, right_items, left_path, right_path):
+    matches = []
+    conflicts = []
+    for left_key, left_value in left_items.iteritems():
+      for right_key, right_value in right_items.iteritems():
+        if left_key == right_key:
+          matches.append(right_key)
+          if left_value != right_value:
+            conflicts.append({right_key : [{left_path : left_value}, {right_path :right_value}]})
+    return matches, conflicts
+
+  @staticmethod
+  def get_missing_attributes(attributes, matches, file_path):
+    conflicts = []
+    for key, value in attributes.iteritems():
+      if not key in matches:
+        conflicts.append({key : "Final attribute is missing in {0} file".format(file_path)})
+    return conflicts
+
+  @staticmethod
+  def get_missing_properties(configurations, matches, file_path):
+    conflicts = []
+    for key, value in configurations.iteritems():
+      if not key in matches:
+        conflicts.append({key : "Property is missing in {0} file".format(file_path)})
+    return conflicts
+
+  @staticmethod
+  def get_missing_files(config_file_paths, matches, input_dir):
+    conflicts = []
+    for file_name in config_file_paths:
+      if file_name not in matches:
+        conflicts.append({file_name : "Configurations file is missing for {0} directory".format(input_dir)})
+    return conflicts
+
 def main():
   tempDir = tempfile.gettempdir()
   outputDir = os.path.join(tempDir)
@@ -348,14 +473,27 @@ def main():
                          'blueprint.\n\nThis script only works with *.xml *.yaml '
                          'and *.properties extensions of files.')
 
+  parser.add_option("-a", "--action", dest="action", default = "merge",
+                    help="Script action. (merge/diff) [default: merge]")
+
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
                     default=False, help="output verbosity.")
   parser.add_option("-o", "--outputdir", dest="outputDir", default=outputDir,
                     metavar="FILE", help="Output directory. [default: /tmp]")
-  parser.add_option("-i", "--inputdir", dest="inputDir", help="Input directory.")
-
   parser.add_option("-u", '--unknown-files-mapping-file',dest="unknown_files_mapping_file",
                     metavar="FILE", help=CONFIG_MAPPING_HELP_TEXT, default="takeover_files_mapping.json")
+
+
+  merge_options_group = OptionGroup(parser, "Required options for action 'merge'")
+  merge_options_group.add_option("-i", "--inputdir", dest="inputDir", help="Input directory.")
+
+  parser.add_option_group(merge_options_group)
+
+  diff_options_group = OptionGroup(parser, "Required options for action 'diff'")
+  diff_options_group.add_option("-l", "--leftInputDir", dest="leftInputDir", help="Left input directory.")
+  diff_options_group.add_option("-r", "--rightInputDir", dest="rightInputDir", help="Right input directory.")
+
+  parser.add_option_group(diff_options_group)
 
   (options, args) = parser.parse_args()
 
@@ -365,7 +503,6 @@ def main():
   else:
     logger.setLevel(logging.INFO)
 
-  ConfigMerge.INPUT_DIR = options.inputDir
   ConfigMerge.OUTPUT_DIR = options.outputDir
 
   if not os.path.exists(ConfigMerge.OUTPUT_DIR):
@@ -390,13 +527,39 @@ def main():
   else:
     logger.warning("Config mapping file was not found at {0}. "
                    "Please provide it at the given path or provide a different path to it using -u option.".format(options.unknown_files_mapping_file))
+  if options.action == "merge" :
+    ConfigMerge.INPUT_DIR = options.inputDir
+    file_paths = ConfigMerge.get_all_supported_files_grouped_by_name(ConfigMerge.INPUT_DIR)
+    logger.info("Writing logs into '{0}' file".format(logegr_file_name))
+    logger.debug("Following configuration files found:\n{0}".format(file_paths.items()))
+    config_merge = ConfigMerge(config_files_map=file_paths)
+    return config_merge.perform_merge()
 
-  filePaths = ConfigMerge.get_all_supported_files_grouped_by_name()
-  logger.info("Writing logs into '{0}' file".format(logegr_file_name))
-  logger.debug("Following configuration files found:\n{0}".format(filePaths.items()))
-  configMerge = ConfigMerge(filePaths)
+  elif options.action == "diff" :
+    if options.leftInputDir and os.path.isdir(options.leftInputDir):
+      ConfigMerge.LEFT_INPUT_DIR = options.leftInputDir
+    else:
+      logger.error("Directory \"{0}\" doesn't exist. Use option \"-h\" for details".format(options.leftInputDir))
+      return -1
 
-  return configMerge.perform_merge()
+    if options.rightInputDir and os.path.isdir(options.rightInputDir):
+      ConfigMerge.RIGHT_INPUT_DIR = options.rightInputDir
+    else:
+      logger.error("Directory \"{0}\" doesn't exist. Use option \"-h\" for details".format(options.rightInputDir))
+      return -1
+
+    logger.info("Writing logs into '{0}' file".format(logegr_file_name))
+
+    left_file_paths = ConfigMerge.get_all_supported_files_grouped_by_name(directory=ConfigMerge.LEFT_INPUT_DIR)
+    logger.debug("Following configuration files found:\n{0} for left directory".format(left_file_paths.items()))
+    right_file_paths = ConfigMerge.get_all_supported_files_grouped_by_name(directory=ConfigMerge.RIGHT_INPUT_DIR)
+    logger.debug("Following configuration files found:\n{0} for right directory".format(right_file_paths.items()))
+    config_merge = ConfigMerge(left_file_paths=left_file_paths , right_file_paths=right_file_paths)
+    return config_merge.perform_diff()
+
+  else:
+    logger.error("Action \"{0}\" doesn't supports by script. Use option \"-h\" for details".format(options.action))
+    return -1
 
 if __name__ == "__main__":
   try:
