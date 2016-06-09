@@ -18,23 +18,28 @@
 
 package org.apache.ambari.view.hive.resources.uploads.parsers;
 
+import org.apache.directory.api.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import static org.apache.ambari.view.hive.client.ColumnDescription.*;
+import static org.apache.ambari.view.hive.client.ColumnDescription.DataTypes;
 
 public class ParseUtils {
 
   protected final static Logger LOG =
     LoggerFactory.getLogger(ParseUtils.class);
 
-  final public static String[] DATE_FORMATS = {"mm/dd/yyyy", "dd/mm/yyyy", "mm-dd-yyyy" /*add more formatss*/};
+  final public static DataTypes[] dataTypeList = {DataTypes.BOOLEAN, DataTypes.INT, DataTypes.BIGINT, DataTypes.DOUBLE, DataTypes.CHAR, DataTypes.TIMESTAMP, DataTypes.DATE, DataTypes.STRING};
+  private static final String HIVE_DATE_FORMAT = "yyyy-MM-dd";
 
-  final public static DataTypes [] dataTypeList = {DataTypes.BOOLEAN,DataTypes.INT,DataTypes.BIGINT,DataTypes.DOUBLE,DataTypes.CHAR,DataTypes.DATE,DataTypes.STRING};
+  // no strict checking required as it is done by Date parsing
+  private static final String HIVE_DATE_FORMAT_REGEX = "^[0-9]{4}-[0-9]?[1-9]-[0-9]?[0-9]$";
+
 
   public static boolean isInteger(Object object) {
     if (object == null)
@@ -59,16 +64,11 @@ public class ParseUtils {
       return true;
 
     String strValue = object.toString();
-    if (strValue.equalsIgnoreCase("true") || strValue.equalsIgnoreCase("false"))
-      return true;
-    else
-      return false;
+    return strValue.equalsIgnoreCase("true") || strValue.equalsIgnoreCase("false");
   }
 
   public static boolean isString(Object object) {
-    if (object == null)
-      return false;
-    else return true; // any non null can always be interpreted as a string
+    return object != null;
   }
 
   public static boolean isLong(Object object) {
@@ -109,10 +109,8 @@ public class ParseUtils {
       return true;
 
     String str = object.toString().trim();
-    if (str.length() == 1)
-      return true;
+    return str.length() == 1;
 
-    return false;
   }
 
   public static boolean isDate(Object object) {
@@ -123,12 +121,35 @@ public class ParseUtils {
       return true;
 
     String str = object.toString();
-    for (String format : DATE_FORMATS) {
-      try {
-        Date i = new SimpleDateFormat(format).parse(str);
-        return true;
-      } catch (Exception e) {
+    if (Strings.isNotEmpty(str)) {
+      str = str.trim();
+      if (str.matches(HIVE_DATE_FORMAT_REGEX)) {
+        try {
+          SimpleDateFormat sdf = new SimpleDateFormat(HIVE_DATE_FORMAT);
+          sdf.setLenient(false);
+          Date date = sdf.parse(str);
+          return true;
+        } catch (Exception e) {
+          LOG.debug("error while parsing as date string {}, format {}", str, HIVE_DATE_FORMAT, e);
+        }
       }
+    }
+    return false;
+  }
+
+  public static boolean isTimeStamp(Object object) {
+    if (object == null)
+      return false;
+
+    if (object instanceof Date)
+      return true;
+
+    String str = object.toString();
+    try {
+      Timestamp ts = Timestamp.valueOf(str);
+      return true;
+    } catch (Exception e) {
+      LOG.debug("error while parsing as timestamp string {}", str, e);
     }
 
     return false;
@@ -141,6 +162,7 @@ public class ParseUtils {
     if (isLong(object)) return DataTypes.BIGINT;
     if (isDouble(object)) return DataTypes.DOUBLE;
     if (isChar(object)) return DataTypes.CHAR;
+    if (isTimeStamp(object)) return DataTypes.TIMESTAMP;
     if (isDate(object)) return DataTypes.DATE;
 
     return DataTypes.STRING;
@@ -161,6 +183,8 @@ public class ParseUtils {
         return isChar(object);
       case DATE:
         return isDate(object);
+      case TIMESTAMP:
+        return isTimeStamp(object);
       case STRING:
         return isString(object);
 
@@ -171,7 +195,7 @@ public class ParseUtils {
   }
 
   public static DataTypes detectHiveColumnDataType(List<Object> colValues) {
-    boolean found = true;
+    boolean found;
     for(DataTypes datatype : dataTypeList){
       found = true;
       for(Object object : colValues){
