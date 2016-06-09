@@ -334,12 +334,12 @@ public class ViewRegistryTest {
     jarFiles.put(viewArchive, viewJarFile);
 
     // set expectations
-    expect(configuration.getViewsDir()).andReturn(viewDir);
+    expect(configuration.getViewsDir()).andReturn(viewDir).anyTimes();
     if (System.getProperty("os.name").contains("Windows")) {
-      expect(viewDir.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views");
+      expect(viewDir.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views").anyTimes();
     }
     else {
-      expect(viewDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views");
+      expect(viewDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views").anyTimes();
     }
 
     expect(configuration.getViewExtractionThreadPoolCoreSize()).andReturn(2).anyTimes();

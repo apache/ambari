@@ -97,14 +97,17 @@ import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.cluster.Cluster;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
+import org.apache.ambari.view.migration.ViewDataMigrationException;
 import org.apache.ambari.view.validation.Validator;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import javax.xml.bind.JAXBException;
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -190,6 +193,11 @@ public class ViewRegistry {
    * The logger.
    */
   protected final static Logger LOG = LoggerFactory.getLogger(ViewRegistry.class);
+
+  /**
+   * View Data Migration Utility
+   */
+  protected ViewDataMigrationUtility viewDataMigrationUtility;
 
   /**
    * View data access object.
@@ -304,7 +312,6 @@ public class ViewRegistry {
    */
   @Inject
   RemoteAmbariClusterDAO remoteAmbariClusterDAO;
-
 
  // ----- Constructors -----------------------------------------------------
 
@@ -709,12 +716,14 @@ public class ViewRegistry {
     }
 
     List<PrivilegeEntity> sourceInstancePrivileges = privilegeDAO.findByResourceId(sourceInstanceEntity.getResource().getId());
-    for (PrivilegeEntity privilegeEntity : sourceInstancePrivileges) {
-      privilegeDAO.detach(privilegeEntity);
-      privilegeEntity.setResource(targetInstanceEntity.getResource());
-      privilegeEntity.setId(null);
-      privilegeDAO.create(privilegeEntity);
-      privilegeEntity.getPrincipal().getPrivileges().add(privilegeEntity);
+    for (PrivilegeEntity sourcePrivilege : sourceInstancePrivileges) {
+      PrivilegeEntity targetPrivilege = new PrivilegeEntity();
+      targetPrivilege.setPrincipal(sourcePrivilege.getPrincipal());
+      targetPrivilege.setResource(targetInstanceEntity.getResource());
+      targetPrivilege.setPermission(sourcePrivilege.getPermission());
+      privilegeDAO.create(targetPrivilege);
+
+      targetPrivilege.getPrincipal().getPrivileges().add(sourcePrivilege);
     }
   }
 
@@ -1582,6 +1591,7 @@ public class ViewRegistry {
                       @Override
                       public void run() {
                         readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, serverVersion);
+                        migrateDataFromPreviousVersion(viewDefinition, serverVersion);
                       }
                     });
                   }
@@ -1590,6 +1600,13 @@ public class ViewRegistry {
                 String msg = "Caught exception reading view archive " + archiveFile.getAbsolutePath();
                 LOG.error(msg, e);
               }
+            }
+          }
+
+          for(ViewEntity view : getDefinitions()) {
+            if (view.getStatus() == ViewDefinition.ViewStatus.DEPLOYED) {
+              // migrate views that are not need extraction, for ones that need call will be done in the runnable.
+              migrateDataFromPreviousVersion(view, serverVersion);
             }
           }
 
@@ -1630,7 +1647,7 @@ public class ViewRegistry {
       // extract the archive and get the class loader
       ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
 
-      configureViewLogging(viewDefinition,cl);
+      configureViewLogging(viewDefinition, cl);
 
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
           configuration.isViewValidationEnabled());
@@ -1658,6 +1675,39 @@ public class ViewRegistry {
       }
     } catch (Exception e) {
       String msg = "Caught exception loading view " + viewDefinition.getName();
+
+      setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
+      LOG.error(msg, e);
+    }
+  }
+
+  private void migrateDataFromPreviousVersion(ViewEntity viewDefinition, String serverVersion) {
+    if (!viewDefinitions.containsKey(viewDefinition.getName())) { // migrate only registered views to avoid recursive calls
+      LOG.debug("Cancel auto migration of not loaded view: " + viewDefinition.getName() + ".");
+      return;
+    }
+    try {
+
+      for (ViewInstanceEntity instance : viewDefinition.getInstances()) {
+        LOG.debug("Try to migrate the data from previous version of: " + viewDefinition.getName() + "/" +
+            instance.getInstanceName() + ".");
+        ViewInstanceEntity latestUnregisteredView = getLatestUnregisteredInstance(serverVersion, instance);
+
+        if (latestUnregisteredView != null) {
+          String instanceName = instance.getViewEntity().getName() + "/" + instance.getName();
+          try {
+            LOG.info("Found previous version of the view instance " + instanceName + ": " +
+                latestUnregisteredView.getViewEntity().getName() + "/" + latestUnregisteredView.getName());
+            getViewDataMigrationUtility().migrateData(instance, latestUnregisteredView, true);
+            LOG.info("View data migrated: " + viewDefinition.getName() + ".");
+          } catch (ViewDataMigrationException e) {
+            LOG.error("Error occurred during migration", e);
+          }
+        }
+      }
+
+    } catch (Exception e) {
+      String msg = "Caught exception migrating data in view " + viewDefinition.getName();
 
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
@@ -1972,8 +2022,89 @@ public class ViewRegistry {
     return url.substring(0,index);
   }
 
+  /**
+   * From all extracted views in the work directory finds ones that are present only in
+   * extracted version (not registered in the registry during startup).
+   * If jar is not exists, that means that this view is previous version of view.
+   * Finds latest between unregistered instances and returns it.
+   *
+   * @param serverVersion server version
+   * @param instance view instance entity
+   * @return latest unregistered instance of same name of same view.
+   */
+  private ViewInstanceEntity getLatestUnregisteredInstance(String serverVersion, ViewInstanceEntity instance)
+      throws JAXBException, IOException, SAXException {
+    File viewDir = configuration.getViewsDir();
 
+    String extractedArchivesPath = viewDir.getAbsolutePath() +
+        File.separator + EXTRACTED_ARCHIVES_DIR;
 
+    File extractedArchivesDir = new File(extractedArchivesPath);
+    File[] extractedArchives = extractedArchivesDir.listFiles();
+
+    // find all view archives from previous Ambari versions
+    Map<ViewInstanceEntity, Long> unregInstancesTimestamps = new HashMap<>();
+    if (extractedArchives != null) {
+
+      for (File archiveDir : extractedArchives) {
+        if (archiveDir.isDirectory()) {
+          ViewConfig uViewConfig = archiveUtility.getViewConfigFromExtractedArchive(archiveDir.getPath(), false);
+          if (!uViewConfig.isSystem()) {
+            // load prev versions of same view
+            if (!uViewConfig.getName().equals(instance.getViewEntity().getViewName())) {
+              continue;
+            }
+
+            // check if it's not registered yet. It means that jar file is not present while directory in
+            // work dir present, so maybe it's prev version of view.
+            if (viewDefinitions.containsKey(ViewEntity.getViewName(uViewConfig.getName(), uViewConfig.getVersion()))) {
+              continue;
+            }
+
+            LOG.debug("Unregistered extracted view found: " + archiveDir.getPath());
+
+            ViewEntity uViewDefinition = new ViewEntity(uViewConfig, configuration, archiveDir.getPath());
+            readViewArchive(uViewDefinition, archiveDir, archiveDir, serverVersion);
+            for (ViewInstanceEntity instanceEntity : uViewDefinition.getInstances()) {
+              LOG.debug(uViewDefinition.getName() + " instance found: " + instanceEntity.getInstanceName());
+              unregInstancesTimestamps.put(instanceEntity, archiveDir.lastModified());
+            }
+          }
+        }
+      }
+
+    }
+
+    // Find latest previous version
+    long latestPrevInstanceTimestamp = 0;
+    ViewInstanceEntity latestPrevInstance = null;
+    for (ViewInstanceEntity unregInstance : unregInstancesTimestamps.keySet()) {
+      if (unregInstance.getName().equals(instance.getName())) {
+        if (unregInstancesTimestamps.get(unregInstance) > latestPrevInstanceTimestamp) {
+          latestPrevInstance = unregInstance;
+          latestPrevInstanceTimestamp = unregInstancesTimestamps.get(latestPrevInstance);
+        }
+      }
+    }
+    if (latestPrevInstance != null) {
+      LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " found: " +
+          latestPrevInstance.getViewEntity().getName() + "/" + latestPrevInstance.getName());
+    } else {
+      LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " not found");
+    }
+    return latestPrevInstance;
+  }
+
+  protected ViewDataMigrationUtility getViewDataMigrationUtility() {
+    if (viewDataMigrationUtility == null) {
+      viewDataMigrationUtility = new ViewDataMigrationUtility(this);
+    }
+    return viewDataMigrationUtility;
+  }
+
+  protected void setViewDataMigrationUtility(ViewDataMigrationUtility viewDataMigrationUtility) {
+    this.viewDataMigrationUtility = viewDataMigrationUtility;
+  }
 
   /**
    * Module for stand alone view registry.

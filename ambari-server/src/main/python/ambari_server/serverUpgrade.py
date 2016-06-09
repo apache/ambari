@@ -404,11 +404,6 @@ def upgrade(args):
   for admin_views_dir in admin_views_dirs:
     shutil.rmtree(admin_views_dir)
 
-  # Remove ambari views directory for the rest of the jars, at the time of upgrade. At restart all jars present in Ambari will be extracted into work directory
-  views_dir =  get_views_dir(properties)
-  for views in views_dir:
-    shutil.rmtree(views)
-
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
     args.warnings.append("Existing LDAP configuration is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")

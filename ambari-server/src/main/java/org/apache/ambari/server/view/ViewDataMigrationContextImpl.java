@@ -20,6 +20,7 @@ package org.apache.ambari.server.view;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -119,6 +120,7 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
   }
 
   @Override
+  @Transactional
   public void putCurrentInstanceData(String user, String key, String value) {
     putInstanceData(currentInstanceDefinition, user, key, value);
   }
@@ -135,6 +137,7 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
   }
 
   @Override
+  @Transactional
   public void copyAllObjects(Class originEntityClass, Class currentEntityClass, EntityConverter entityConverter)
       throws ViewDataMigrationException {
     try{
@@ -209,6 +212,7 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
   }
 
   @Override
+  @Transactional
   public void putOriginInstanceData(String user, String key, String value) {
     putInstanceData(originInstanceDefinition, user, key, value);
   }
@@ -227,15 +231,37 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
    * @param value               the value
    */
   private static void putInstanceData(ViewInstanceEntity instanceDefinition, String user, String name, String value) {
-    ViewInstanceDataEntity viewInstanceDataEntity = new ViewInstanceDataEntity();
-    viewInstanceDataEntity.setViewName(instanceDefinition.getViewName());
-    viewInstanceDataEntity.setViewInstanceName(instanceDefinition.getName());
-    viewInstanceDataEntity.setName(name);
-    viewInstanceDataEntity.setUser(user);
-    viewInstanceDataEntity.setValue(value);
-    viewInstanceDataEntity.setViewInstanceEntity(instanceDefinition);
+    ViewInstanceDataEntity oldInstanceDataEntity = getInstanceData(instanceDefinition, user, name);
+    if (oldInstanceDataEntity != null) {
+      instanceDefinition.getData().remove(oldInstanceDataEntity);
+    }
 
-    instanceDefinition.getData().add(viewInstanceDataEntity);
+    ViewInstanceDataEntity instanceDataEntity = new ViewInstanceDataEntity();
+    instanceDataEntity.setViewName(instanceDefinition.getViewName());
+    instanceDataEntity.setViewInstanceName(instanceDefinition.getName());
+    instanceDataEntity.setName(name);
+    instanceDataEntity.setUser(user);
+    instanceDataEntity.setValue(value);
+    instanceDataEntity.setViewInstanceEntity(instanceDefinition);
+
+    instanceDefinition.getData().add(instanceDataEntity);
+  }
+
+  /**
+   * Get the instance data entity for the given key and user.
+   *
+   * @param user owner of the data
+   * @param key the key
+   * @return the instance data entity associated with the given key and user
+   */
+  private static ViewInstanceDataEntity getInstanceData(ViewInstanceEntity instanceDefinition, String user, String key) {
+    for (ViewInstanceDataEntity viewInstanceDataEntity : instanceDefinition.getData()) {
+      if (viewInstanceDataEntity.getName().equals(key) &&
+          viewInstanceDataEntity.getUser().equals(user)) {
+        return viewInstanceDataEntity;
+      }
+    }
+    return null;
   }
 
   /**
