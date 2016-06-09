@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'User', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', '$translate', function($scope, $routeParams, User, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, $translate) {
+.controller('UsersShowCtrl', ['$scope', '$routeParams', 'Cluster', 'User', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', '$translate', function($scope, $routeParams, Cluster, User, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, $translate) {
 
   var $t = $translate.instant;
 
@@ -179,8 +179,28 @@ angular.module('ambariAdminConsole')
         instanceName: '"' + $scope.user.user_name + '"'
       })
     ).then(function() {
-      User.delete($scope.user.user_name).then(function() {
-        $location.path('/users');
+      Cluster.getPrivilegesForResource({
+        nameFilter : $scope.user.user_name,
+        typeFilter : {value: 'USER'}
+      }).then(function(data) {
+        var privilegesIds = [];
+        var deleteCallback = function () {
+          User.delete($scope.user.user_name).then(function() {
+            $location.path('/users');
+          });
+        };
+        if (data.items && data.items.length) {
+          angular.forEach(data.items[0].privileges, function(privilege) {
+            privilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+          });
+        }
+        if (privilegesIds.length) {
+          Cluster.deleteMultiplePrivileges($routeParams.id, privilegesIds).then(function() {
+            deleteCallback();
+          });
+        } else {
+          deleteCallback();
+        }
       });
     });
   };
