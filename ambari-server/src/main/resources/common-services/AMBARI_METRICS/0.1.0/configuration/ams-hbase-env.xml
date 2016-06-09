@@ -33,7 +33,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_pid_dir</name>
@@ -42,7 +42,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_classpath_additional</name>
@@ -51,7 +51,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
@@ -74,7 +74,7 @@
         <name>hbase.rootdir</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>regionserver_xmn_size</name>
@@ -90,7 +90,7 @@
         <name>hbase.cluster.distributed</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_master_xmn_size</name>
@@ -108,7 +108,7 @@
         <name>hbase.cluster.distributed</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_master_maxperm_size</name>
@@ -118,13 +118,13 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
     <value>0.2</value>
     <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase_master_heapsize</name>
@@ -147,7 +147,7 @@
         <name>hbase.rootdir</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>max_open_files_limit</name>
@@ -155,7 +155,7 @@
     <description>
         The maximum number of open file descriptors by process
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- hbase-env.sh -->
   <property>
@@ -257,6 +257,6 @@ export HBASE_HOME={{ams_hbase_home_dir}}
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

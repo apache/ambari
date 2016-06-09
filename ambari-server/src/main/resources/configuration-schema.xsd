@@ -41,7 +41,6 @@
       <xs:element name="deleted" type="xs:boolean" minOccurs="0"/>
       <xs:element name="final" type="xs:boolean" minOccurs="0"/>
       <xs:element name="on-ambari-upgrade" type="propertyUpgradeBehavior" minOccurs="1"/>
-      <xs:element name="on-stack-upgrade" type="propertyUpgradeBehavior" minOccurs="1"/>
       <xs:element name="property-type" minOccurs="0">
         <xs:simpleType>
           <xs:list itemType="propertyType"/>
@@ -68,9 +67,9 @@
   </xs:complexType>
 
   <xs:complexType name="propertyUpgradeBehavior">
-    <xs:attribute name="add" type="xs:boolean" use="required"/>
-    <xs:attribute name="delete" type="xs:boolean" use="required"/>
-    <xs:attribute name="change" type="xs:boolean" use="required"/>
+    <xs:attribute name="add" type="xs:boolean" use="optional" default="true"/>
+    <xs:attribute name="delete" type="xs:boolean" use="optional"/>
+    <xs:attribute name="change" type="xs:boolean" use="optional"/>
   </xs:complexType>
 
   <xs:complexType name="valueAttributesInfo">

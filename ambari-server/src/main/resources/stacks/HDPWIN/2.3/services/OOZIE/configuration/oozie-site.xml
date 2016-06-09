@@ -37,7 +37,7 @@
         <name>oozie.db.schema.name</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.create.db.schema</name>
@@ -48,7 +48,7 @@
       If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.
       If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.driver</name>
@@ -66,7 +66,7 @@
         <name>oozie_database</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
@@ -79,7 +79,7 @@
       the Oozie configuration directory; though the path can be absolute (i.e. to point
       to Hadoop client conf/ directories in the local filesystem.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.coord.check.maximum.frequency</name>
@@ -89,7 +89,7 @@
       this check or submit coordinators with frequencies faster than 5 minutes: doing so can cause unintended behavior and
       additional system stress.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.services</name>
@@ -133,16 +133,16 @@
       All services to be created and managed by Oozie Services singleton.
       Class names must be separated by commas.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.SchemaService.wf.ext.schemas</name>
     <value>shell-action-0.1.xsd,shell-action-0.2.xsd,shell-action-0.3.xsd,email-action-0.1.xsd,email-action-0.2.xsd,hive-action-0.2.xsd,hive-action-0.3.xsd,hive-action-0.4.xsd,hive-action-0.5.xsd,sqoop-action-0.2.xsd,sqoop-action-0.3.xsd,sqoop-action-0.4.xsd,ssh-action-0.1.xsd,ssh-action-0.2.xsd,distcp-action-0.1.xsd,distcp-action-0.2.xsd,oozie-sla-0.1.xsd,oozie-sla-0.2.xsd</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.AuthorizationService.security.enabled</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

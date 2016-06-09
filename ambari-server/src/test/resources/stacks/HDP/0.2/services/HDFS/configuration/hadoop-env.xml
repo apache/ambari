@@ -24,55 +24,55 @@
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>
     <description>Hadoop Log Dir Prefix</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop_pid_dir_prefix</name>
     <value>/var/run/hadoop</value>
     <description>Hadoop PID Dir Prefix</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop_heapsize</name>
     <value>1024</value>
     <description>Hadoop maximum Java heap size</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_heapsize</name>
     <value>1024</value>
     <description>NameNode Java heap size</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_newsize</name>
     <value>200</value>
     <description>Default size of Java new generation for NameNode (Java option -XX:NewSize) Note: The value of NameNode new generation size (default size of Java new generation for NameNode (Java option -XX:NewSize)) should be 1/8 of maximum heap size (-Xmx). Ensure that the value of the namenode_opt_newsize property is 1/8 the value of maximum heap size (-Xmx).</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_maxnewsize</name>
     <value>200</value>
     <description>NameNode maximum new generation size</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_permsize</name>
     <value>128</value>
     <description>NameNode permanent generation size</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>namenode_opt_maxpermsize</name>
     <value>256</value>
     <description>NameNode maximum permanent generation size</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>dtnode_heapsize</name>
     <value>1024</value>
     <description>DataNode maximum Java heap size</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>proxyuser_group</name>
@@ -82,46 +82,46 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>security_enabled</name>
     <value>false</value>
     <description>Hadoop Security</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kerberos_domain</name>
     <value>EXAMPLE.COM</value>
     <description>Kerberos realm.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hdfs_user</name>
     <display-name>HDFS User</display-name>
     <value>hdfs</value>
     <description>User and Groups.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ignore_groupsusers_create</name>
     <value>false</value>
     <description>Whether to ignores failures on users and group creation</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>smokeuser</name>
     <display-name>Smoke User</display-name>
     <value>ambari-qa</value>
     <description>User executing service checks</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>user_group</name>
     <display-name>Hadoop Group</display-name>
     <value>hadoop</value>
     <description>Proxy user group.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- hadoop-env.sh -->
   <property>
@@ -242,6 +242,6 @@ export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-a
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

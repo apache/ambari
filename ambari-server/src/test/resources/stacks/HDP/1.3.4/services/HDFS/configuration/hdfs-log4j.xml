@@ -191,6 +191,6 @@ log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

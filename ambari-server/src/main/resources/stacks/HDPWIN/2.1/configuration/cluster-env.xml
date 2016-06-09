@@ -32,7 +32,7 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property require-input="true">
     <name>hadoop.user.password</name>
@@ -45,19 +45,19 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>security_enabled</name>
     <value>false</value>
     <description>Hadoop Security</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kerberos_domain</name>
     <value>EXAMPLE.COM</value>
     <description>Kerberos realm.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ignore_groupsusers_create</name>
@@ -70,7 +70,7 @@
       <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>smokeuser</name>
@@ -83,13 +83,13 @@
       <visible>false</visible>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>smokeuser_keytab</name>
     <value>/etc/security/keytabs/smokeuser.headless.keytab</value>
     <description>Path to smoke test user keytab file</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>user_group</name>
@@ -102,6 +102,6 @@
       <visible>false</visible>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

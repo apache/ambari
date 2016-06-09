@@ -27,7 +27,7 @@ limitations under the License.
       <overridable>false</overridable>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ambari.hive.db.schema.name</name>
@@ -38,7 +38,7 @@ limitations under the License.
       <type>database</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
@@ -59,7 +59,7 @@ limitations under the License.
         <type>hive-site</type>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
@@ -75,7 +75,7 @@ limitations under the License.
         <type>hive-env</type>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
@@ -86,7 +86,7 @@ limitations under the License.
       <type>db_user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property require-input="true">
     <name>javax.jdo.option.ConnectionPassword</name>
@@ -98,34 +98,34 @@ limitations under the License.
       <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.warehouse.dir</name>
     <value>/apps/hive/warehouse</value>
     <description>location of default database for the warehouse</description>
     <property-type>NOT_MANAGED_HDFS_PATH</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.sasl.enabled</name>
     <value>false</value>
     <description>If true, the metastore thrift interface will be secured with SASL.
      Clients must authenticate with Kerberos.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.cache.pinobjtypes</name>
     <value>Table,Database,Type,FieldSchema,Order</value>
     <description>List of comma separated metastore object types that should be pinned in the cache</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.uris</name>
     <value>thrift://localhost:9083</value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>URI for client to contact metastore server</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.pre.event.listeners</name>
@@ -134,13 +134,13 @@ limitations under the License.
       whenever databases, tables, and partitions are created, altered, or dropped.
       Set to org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener
       if metastore-side authorization is desired.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>datanucleus.autoCreateSchema</name>
     <value>false</value>
     <description>Creates necessary schema on a startup if one doesn't exist</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.pre.event.listeners</name>
@@ -149,19 +149,19 @@ limitations under the License.
       whenever databases, tables, and partitions are created, altered, or dropped.
       Set to org.apache.hadoop.hive.ql.security.authorization.AuthorizationPreEventListener
       if metastore-side authorization is desired.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.client.socket.timeout</name>
     <value>60</value>
     <description>MetaStore Client socket timeout in seconds</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.metastore.execute.setugi</name>
     <value>true</value>
     <description>In unsecure mode, setting this property to true will cause the metastore to execute DFS operations using the client's reported user and group permissions. Note that this property must be set on both the client and     server sides. Further note that its best effort. If client sets its to true and server sets it to false, client setting will be ignored.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.security.authorization.enabled</name>
@@ -170,14 +170,14 @@ limitations under the License.
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.security.authorization.manager</name>
     <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
     <description>the hive client authorization manager class name.
     The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.security.metastore.authorization.manager</name>
@@ -187,13 +187,13 @@ limitations under the License.
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.security.authenticator.manager</name>
     <value>org.apache.hadoop.hive.ql.security.ProxyUserAuthenticator</value>
     <description>Hive client authenticator manager class name. The user-defined authenticator class should implement interface org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider.  </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.enable.doAs</name>
@@ -202,55 +202,55 @@ limitations under the License.
       submitted the query. But if the parameter is set to false, the query will run as the user that the hiveserver2
       process runs as.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.enable.impersonation</name>
     <description>Enable user impersonation for HiveServer2</description>
     <value>true</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.max.start.attempts</name>
     <description>This number of times HiveServer2 will attempt to start before exiting, sleeping 60 seconds between retries.</description>
     <value>5</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
     <value>NONE</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>fs.hdfs.impl.disable.cache</name>
     <value>true</value>
     <description>Disable HDFS filesystem cache.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>fs.file.impl.disable.cache</name>
     <value>true</value>
     <description>Disable local filesystem cache.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.enforce.bucketing</name>
     <value>true</value>
     <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.enforce.sorting</name>
     <value>true</value>
     <description>Whether sorting is enforced. If true, while inserting into the table, sorting is enforced.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.map.aggr</name>
     <value>true</value>
     <description>Whether to use map-side aggregation in Hive Group By queries.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.optimize.bucketmapjoin</name>
@@ -259,7 +259,7 @@ limitations under the License.
       is a multiple of the number of buckets in the other table, the buckets can be joined with each other by setting
       this parameter as true.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.optimize.bucketmapjoin.sortedmerge</name>
@@ -267,20 +267,20 @@ limitations under the License.
     <description> If the tables being joined are sorted and bucketized on the join columns, and they have the same number
     of buckets, a sort-merge join can be performed by setting this parameter as true.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.mapred.reduce.tasks.speculative.execution</name>
     <value>false</value>
     <description>Whether speculative execution for reducers should be turned on.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.auto.convert.join</name>
     <value>true</value>
     <description>Whether Hive enable the optimization about converting common
       join into mapjoin based on the input file size.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.auto.convert.sortmerge.join</name>
@@ -288,13 +288,13 @@ limitations under the License.
     <description>Will the join be automatically converted to a sort-merge join, if the joined tables pass
       the criteria for sort-merge join.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
     <value>true</value>
     <description>Required to Enable the conversion of an SMB (Sort-Merge-Bucket) to a map-join SMB.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.auto.convert.join.noconditionaltask</name>
@@ -303,7 +303,7 @@ limitations under the License.
       size. If this paramater is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than the
       specified size, the join is directly converted to a mapjoin (there is no conditional task).
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.auto.convert.join.noconditionaltask.size</name>
@@ -320,7 +320,7 @@ limitations under the License.
       <unit>B</unit>
       <increment-step>1073741824</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.optimize.reducededuplication.min.reducer</name>
@@ -329,7 +329,7 @@ limitations under the License.
       That means if reducer-num of the child RS is fixed (order by or forced bucketing) and small, it can make very slow, single MR.
       The optimization will be disabled if number of reducers is less than specified value.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.optimize.mapjoin.mapreduce</name>
@@ -339,7 +339,7 @@ limitations under the License.
       job (for e.g a group by), each map-only job is merged with the following
       map-reduce job.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.mapjoin.bucket.cache.size</name>
@@ -348,21 +348,21 @@ limitations under the License.
       Size per reducer.The default is 1G, i.e if the input size is 10G, it
       will use 10 reducers.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.vectorized.execution.enabled</name>
     <value>true</value>
     <description>This flag controls the vectorized mode of query execution as documented in HIVE-4160 (as of Hive 0.13.0)
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.optimize.reducededuplication</name>
     <value>true</value>
     <description>Remove extra map-reduce jobs if the data is already clustered by the same key which needs to be used again.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.optimize.index.filter</name>
@@ -370,7 +370,7 @@ limitations under the License.
     <description>
     Whether to enable automatic use of indexes
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.thrift.port</name>
@@ -383,7 +383,7 @@ limitations under the License.
       <overridable>false</overridable>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.support.dynamic.service.discovery</name>
@@ -397,7 +397,7 @@ limitations under the License.
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.zookeeper.namespace</name>
@@ -405,7 +405,7 @@ limitations under the License.
     <description>The parent node in ZooKeeper used by HiveServer2 when
       supporting dynamic service discovery.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.transport.mode</name>
@@ -414,7 +414,7 @@ limitations under the License.
       Expects one of [binary, http].
       Transport mode of HiveServer2.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.default.fileformat</name>
@@ -434,7 +434,7 @@ limitations under the License.
         </entry>
       </entries>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>atlas.cluster.name</name>
@@ -446,7 +446,7 @@ limitations under the License.
         <name>atlas.enableTLS</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>atlas.rest.address</name>
@@ -466,6 +466,6 @@ limitations under the License.
         <name>atlas.server.https.port</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

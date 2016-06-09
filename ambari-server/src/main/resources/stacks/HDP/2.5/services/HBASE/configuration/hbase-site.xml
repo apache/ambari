@@ -22,6 +22,6 @@
   <property>
     <name>hbase.master.ui.readonly</name>
     <value>false</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

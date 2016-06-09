@@ -29,7 +29,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_log_dir</name>
@@ -39,7 +39,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_user</name>
@@ -51,7 +51,7 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_group</name>
@@ -59,14 +59,14 @@
     <property-type>GROUP</property-type>
     <description>logfeeder group</description>
     <display-name>Logsfeeder Group</display-name>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_max_mem</name>
     <value>512m</value>
     <description>Max Memory for Logfeeder</description>
     <display-name>Logfeeder max memory</display-name>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_service_logs_enable</name>
@@ -76,7 +76,7 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_audit_logs_enable</name>
@@ -86,21 +86,21 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_ssl_client_truststore_location</name>
     <value>/etc/security/serverKeys/logsearch-solr-ssl.trustStore.jks</value>
     <display-name>Logfeeder Solr client trust store location</display-name>
     <description>Location of the trust store file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_ssl_client_truststore_type</name>
     <value>jks</value>
     <display-name>Logfeeder Solr client trust store type</display-name>
     <description>Type of the trust store file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_ssl_client_truststore_password</name>
@@ -111,21 +111,21 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_ssl_client_keystore_location</name>
     <value>/etc/security/serverKeys/logsearch-solr-ssl.keyStore.jks</value>
     <display-name>Logfeeder Solr client key store location</display-name>
     <description>Location of the key store file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_ssl_client_keystore_type</name>
     <value>jks</value>
     <display-name>Logfeeder Solr client key store type</display-name>
     <description>Type of the key store file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder_solr_ssl_client_keystore_password</name>
@@ -136,7 +136,7 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>content</name>
@@ -148,6 +148,6 @@
       <property-file-name>logfeeder-env.sh.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

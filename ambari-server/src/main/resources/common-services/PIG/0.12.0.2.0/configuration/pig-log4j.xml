@@ -60,6 +60,6 @@ log4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

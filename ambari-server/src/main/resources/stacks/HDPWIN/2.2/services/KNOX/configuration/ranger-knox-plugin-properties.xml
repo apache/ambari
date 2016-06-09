@@ -22,6 +22,6 @@
   <property>
     <name>KNOX_HOME</name>
     <value>c:\hadoop\knox</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

@@ -29,6 +29,6 @@
       </property>
     </depends-on>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

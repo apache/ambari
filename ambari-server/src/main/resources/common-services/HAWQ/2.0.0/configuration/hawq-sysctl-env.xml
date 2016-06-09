@@ -27,7 +27,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.shmmni</name>
@@ -40,7 +40,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.shmall</name>
@@ -53,7 +53,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.sem</name>
@@ -65,7 +65,7 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.sysrq</name>
@@ -80,7 +80,7 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.core_uses_pid</name>
@@ -95,7 +95,7 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.msgmnb</name>
@@ -108,7 +108,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.msgmax</name>
@@ -121,7 +121,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.msgmni</name>
@@ -134,7 +134,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.ipv4.tcp_syncookies</name>
@@ -149,7 +149,7 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.ipv4.ip_forward</name>
@@ -164,7 +164,7 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.ipv4.conf.default.accept_source_route</name>
@@ -179,7 +179,7 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.ipv4.tcp_tw_recycle</name>
@@ -194,7 +194,7 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.ipv4.tcp_max_syn_backlog</name>
@@ -207,7 +207,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.ipv4.conf.all.arp_filter</name>
@@ -222,7 +222,7 @@
       <minimum>0</minimum>
       <maximum>1</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.ipv4.ip_local_port_range</name>
@@ -234,7 +234,7 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.core.netdev_max_backlog</name>
@@ -247,7 +247,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>fs.nr_open</name>
@@ -260,7 +260,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.threads-max</name>
@@ -273,7 +273,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>kernel.pid_max</name>
@@ -286,7 +286,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.core.rmem_max</name>
@@ -299,7 +299,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>net.core.wmem_max</name>
@@ -312,7 +312,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>vm.overcommit_memory</name>
@@ -333,7 +333,7 @@
       <maximum>2</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>vm.overcommit_ratio</name>
@@ -346,6 +346,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

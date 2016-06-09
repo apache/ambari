@@ -22,13 +22,13 @@
   <property>
     <name>spark.yarn.services</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
     <description>Name of history provider class</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.history.fs.logDirectory</name>
@@ -36,7 +36,7 @@
     <description>
             Base directory for history spark application log.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.eventLog.enabled</name>
@@ -44,7 +44,7 @@
     <description>
             Whether to log Spark events, useful for reconstructing the Web UI after the application has finished.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>spark.eventLog.dir</name>
@@ -52,6 +52,6 @@
     <description>
             Base directory in which Spark events are logged, if spark.eventLog.enabled is true.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

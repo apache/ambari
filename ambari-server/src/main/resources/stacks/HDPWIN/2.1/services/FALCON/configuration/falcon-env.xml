@@ -23,7 +23,7 @@
   <property>
     <name>falcon_user</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>falcon_log_dir</name>
@@ -34,7 +34,7 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>falcon_pid_dir</name>
@@ -45,21 +45,21 @@
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>falcon_local_dir</name>
     <value>c:\hadoop\falcon</value>
     <display-name>Falcon data directory</display-name>
     <description>Directory where Falcon data, such as activemq data, is stored.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!--embeddedmq properties-->
   <property>
     <name>falcon.embeddedmq.data</name>
     <value>c:\hadoop\falcon\embeddedmq\data</value>
     <description>Directory in which embeddedmq data is stored.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- falcon-env.cmd -->
   <property>
@@ -70,6 +70,6 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

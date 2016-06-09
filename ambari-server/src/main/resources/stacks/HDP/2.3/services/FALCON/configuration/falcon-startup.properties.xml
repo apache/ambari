@@ -24,6 +24,6 @@
     <name>*.shared.libs</name>
     <value>activemq-core,ant,geronimo-j2ee-management,jms,json-simple,oozie-client,spring-jms,commons-lang3,commons-el</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

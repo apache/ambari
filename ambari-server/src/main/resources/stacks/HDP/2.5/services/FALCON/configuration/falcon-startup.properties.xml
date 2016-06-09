@@ -24,7 +24,7 @@
     <name>*.shared.libs</name>
     <value>activemq-all,ant,geronimo-j2ee-management,jms,json-simple,oozie-client,spring-jms,commons-lang3,commons-el</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>*.application.services</name>
@@ -40,36 +40,36 @@
       org.apache.falcon.metadata.MetadataMappingService
     </value>
     <description>Falcon application services</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>*.falcon.feed.lifecycle.policies</name>
     <value>org.apache.falcon.lifecycle.retention.AgeBasedDelete</value>
     <description>Feed lifecycle policy</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>*.lifecycle.engine.impl</name>
     <value>org.apache.falcon.lifecycle.engine.oozie.OoziePolicyBuilderFactory</value>
     <description>Feed lifecycle engine</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>*.extension.store.uri</name>
     <value>/apps/falcon/extensions</value>
     <description>Extension store uri</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>*.falcon.feed.lifecycle.policy.builders</name>
     <value>org.apache.falcon.lifecycle.engine.oozie.retention.AgeBasedDeleteBuilder</value>
     <description>Feed lifecycle policies</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>*.shared.libs</name>
     <value>activemq-all,ant,geronimo-j2ee-management,jms,json-simple,oozie-client,spring-jms,commons-lang3,commons-el</value>
     <description>Falcon shared libraries</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

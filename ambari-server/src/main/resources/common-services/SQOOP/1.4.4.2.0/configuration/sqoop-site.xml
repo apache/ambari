@@ -29,10 +29,10 @@
         <name>atlas.cluster.name</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>sqoop.job.data.publish.class</name>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

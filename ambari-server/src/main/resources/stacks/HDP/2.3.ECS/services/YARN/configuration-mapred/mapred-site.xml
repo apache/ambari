@@ -25,6 +25,6 @@
       CLASSPATH for MR applications. A comma-separated list of CLASSPATH
       entries.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

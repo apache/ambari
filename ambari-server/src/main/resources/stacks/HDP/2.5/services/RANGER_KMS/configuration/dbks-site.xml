@@ -34,7 +34,7 @@
       </entries>
     </value-attributes>
     <description>HSM type</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.hsm.enabled</name>
@@ -57,14 +57,14 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.hsm.partition.name</name>
     <display-name>HSM partition name. In case of HSM HA enter the group name</display-name>
     <value>par19</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.hsm.partition.password</name>
@@ -74,14 +74,14 @@
       <type>password</type>
     </value-attributes>
     <description>HSM partition password</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.hsm.partition.password.alias</name>
     <display-name>HSM partition password alias</display-name>
     <value>ranger.kms.hsm.partition.password</value>
     <description>HSM partition password alias</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.kerberos.principal</name>
@@ -90,7 +90,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ranger.ks.kerberos.keytab</name>
@@ -99,6 +99,6 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

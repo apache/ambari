@@ -22,6 +22,6 @@
     <name>hadoop.http.authentication.simple.anonymous.allowed</name>
     <value>true</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

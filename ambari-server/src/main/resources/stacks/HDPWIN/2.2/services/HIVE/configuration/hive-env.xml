@@ -23,7 +23,7 @@
   <property>
     <name>hive.client.heapsize</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- hive-env.sh -->
   <property>
@@ -33,7 +33,7 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_exec_orc_storage_strategy</name>
@@ -53,7 +53,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_txn_acid</name>
@@ -73,7 +73,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_security_authorization</name>
@@ -96,7 +96,7 @@
         </entry>
       </entries>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive_timeline_logging_enabled</name>
@@ -116,6 +116,6 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

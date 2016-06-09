@@ -21,6 +21,6 @@
   <property>
     <name>hadoop.tmp.dir</name>
     <value>c:\hadoop\temp\hadoop</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

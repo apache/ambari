@@ -24,6 +24,6 @@ limitations under the License.
     <name>templeton.libjars</name>
     <value>file:///c:/hdp/hive/lib/zookeeper.jar,file:///c:/hdp/hive/lib/hive-common.jar</value>
     <description>Jars to add the the classpath.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

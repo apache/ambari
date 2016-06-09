@@ -23,16 +23,16 @@
   <property>
     <name>knox_user</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>knox_group</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>knox_pid_dir</name>
     <deleted>true</deleted>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

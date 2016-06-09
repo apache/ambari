@@ -30,7 +30,7 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>flume_log_dir</name>
@@ -41,13 +41,13 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>flume_run_dir</name>
     <value>/var/run/flume</value>
     <description>Location to save information about running agents</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>flume_user</name>
@@ -59,7 +59,7 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- flume-env.sh -->
   <property>
@@ -101,6 +101,6 @@ fi
 export HIVE_HOME={{flume_hive_home}}
 export HCAT_HOME={{flume_hcat_home}}
     </value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

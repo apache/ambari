@@ -20,18 +20,18 @@
     <name>yarn.scheduler.capacity.resource-calculator</name>
     <value>org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels</name>
     <value>*</value>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default-node-label-expression</name>
     <value/>
     <description/>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

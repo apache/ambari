@@ -120,6 +120,6 @@ log4j.additivity.state.change.logger=false
         <name>ranger-kafka-plugin-enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

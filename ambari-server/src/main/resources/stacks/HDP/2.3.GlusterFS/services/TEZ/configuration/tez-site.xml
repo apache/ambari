@@ -23,7 +23,7 @@
     <description>AM view ACLs. This allows the specified users/groups to view the status of the AM and all DAGs that run within this AM.
       Value format: Comma separated list of users, followed by whitespace, followed by a comma separated list of groups.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.runtime.optimize.local.fetch</name>
@@ -32,7 +32,7 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.task.generate.counters.per.io</name>
@@ -41,7 +41,7 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.runtime.sorter.class</name>
@@ -61,7 +61,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.runtime.pipelined.sorter.sort.threads</name>
@@ -76,7 +76,7 @@
         <name>tez.runtime.sorter.class</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>tez.runtime.io.sort.mb</name>
@@ -92,6 +92,6 @@
         <name>tez.runtime.sorter.class</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

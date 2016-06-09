@@ -26,7 +26,7 @@
     <description>Maximum number of jobs in the system which can be initialized,
      concurrently, by the CapacityScheduler.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.capacity</name>
@@ -34,7 +34,7 @@
     <description>Percentage of the number of slots in the cluster that are
       to be available for jobs in this queue.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.maximum-capacity</name>
@@ -53,7 +53,7 @@
         the max capacity would change. So if large no of nodes or racks get added to the cluster , max Capacity in 
         absolute terms would increase accordingly.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.supports-priority</name>
@@ -61,7 +61,7 @@
     <description>If true, priorities of jobs will be taken into 
       account in scheduling decisions.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.minimum-user-limit-percent</name>
@@ -77,7 +77,7 @@
     or more users, no user can use more than 25% of the queue's resources. A 
     value of 100 implies no user limits are imposed. 
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.user-limit-factor</name>
@@ -85,7 +85,7 @@
     <description>The multiple of the queue capacity which can be configured to 
     allow a single user to acquire more slots. 
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks</name>
@@ -94,7 +94,7 @@
     which can be initialized concurrently. Once the queue's jobs exceed this 
     limit they will be queued on disk.  
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.maximum-initialized-active-tasks-per-user</name>
@@ -103,7 +103,7 @@
     user's jobs in the queue, which can be initialized concurrently. Once the 
     user's jobs exceed this limit they will be queued on disk.  
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.queue.default.init-accept-jobs-factor</name>
@@ -111,7 +111,7 @@
     <description>The multipe of (maximum-system-jobs * queue-capacity) used to 
     determine the number of jobs which are accepted by the scheduler.  
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- The default configuration settings for the capacity task scheduler -->
   <!-- The default values would be applied to all the queues which don't have -->
@@ -122,7 +122,7 @@
     <description>If true, priorities of jobs will be taken into 
       account in scheduling decisions by default in a job queue.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.default-minimum-user-limit-percent</name>
@@ -130,7 +130,7 @@
     <description>The percentage of the resources limited to a particular user
       for the job queue at any given point of time by default.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.default-user-limit-factor</name>
@@ -138,7 +138,7 @@
     <description>The default multiple of queue-capacity which is used to 
     determine the amount of slots a single user can consume concurrently.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.default-maximum-active-tasks-per-queue</name>
@@ -147,7 +147,7 @@
     queue, which can be initialized concurrently. Once the queue's jobs exceed 
     this limit they will be queued on disk.  
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.default-maximum-active-tasks-per-user</name>
@@ -156,7 +156,7 @@
     the user's jobs in the queue, which can be initialized concurrently. Once 
     the user's jobs exceed this limit they will be queued on disk.  
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.default-init-accept-jobs-factor</name>
@@ -164,7 +164,7 @@
     <description>The default multipe of (maximum-system-jobs * queue-capacity) 
     used to determine the number of jobs which are accepted by the scheduler.  
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- Capacity scheduler Job Initialization configuration parameters -->
   <property>
@@ -173,7 +173,7 @@
     <description>The amount of time in miliseconds which is used to poll 
     the job queues for jobs to initialize.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.capacity-scheduler.init-worker-threads</name>
@@ -186,6 +186,6 @@
     is greater then number of threads would be equal to number of 
     job queues.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

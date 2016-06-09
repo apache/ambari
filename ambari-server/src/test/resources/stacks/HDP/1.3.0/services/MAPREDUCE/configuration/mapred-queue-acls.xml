@@ -22,12 +22,12 @@
   <property>
     <name>mapred.queue.default.acl-submit-job</name>
     <value>*</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred.queue.default.acl-administer-jobs</name>
     <value>*</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- END ACLs -->
 </configuration>

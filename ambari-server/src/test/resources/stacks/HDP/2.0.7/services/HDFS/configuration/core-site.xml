@@ -26,19 +26,19 @@
   The size of this buffer should probably be a multiple of hardware
   page size (4096 on Intel x86), and it determines how much data is
   buffered during read and write operations.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>io.serializations</name>
     <value>org.apache.hadoop.io.serializer.WritableSerialization</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>io.compression.codecs</name>
     <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec</value>
     <description>A list of the compression codec classes that can be used
                  for compression/decompression.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- file system properties -->
   <property>
@@ -48,7 +48,7 @@
     <description>The name of the default file system.  Either the
   literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>fs.trash.interval</name>
@@ -56,7 +56,7 @@
     <description>Number of minutes between trash checkpoints.
   If zero, the trash feature is disabled.
   </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- ipc properties: copied from kryptonite configuration -->
   <property>
@@ -65,7 +65,7 @@
     <description>Defines the threshold number of connections after which
                connections will be inspected for idleness.
   </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ipc.client.connection.maxidletime</name>
@@ -73,13 +73,13 @@
     <description>The maximum time after which a client will bring down the
                connection to the server.
   </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>ipc.client.connect.max.retries</name>
     <value>50</value>
     <description>Defines the maximum number of retries for IPC connections.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- Web Interface Configuration -->
   <property>
@@ -90,7 +90,7 @@
                 not be exposed to public. Enable this option if the interfaces
                 are only reachable by those who have the right authorization.
   </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop.security.authentication</name>
@@ -99,7 +99,7 @@
    Set the authentication for the cluster. Valid values are: simple or
    kerberos.
    </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop.security.authorization</name>
@@ -107,7 +107,7 @@
     <description>
      Enable authorization for different protocols.
   </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hadoop.security.auth_to_local</name>
@@ -157,6 +157,6 @@ If you want to treat all principals from APACHE.ORG with /admin as "admin", your
 RULE[2:$1%$2@$0](.%admin@APACHE.ORG)s/./admin/
 DEFAULT
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

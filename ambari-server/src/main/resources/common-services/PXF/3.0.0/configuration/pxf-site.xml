@@ -22,6 +22,6 @@
     <description>
 		  Path to the PXF keytab file, owned by PXF service and with permissions 0400.
 		</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

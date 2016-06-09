@@ -25,7 +25,7 @@
     <name>oozie.base.url</name>
     <value>http://localhost:11000/oozie</value>
     <description>Base Oozie URL.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.system.id</name>
@@ -33,7 +33,7 @@
     <description>
     The Oozie system ID.
     </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.systemmode</name>
@@ -41,7 +41,7 @@
     <description>
      System mode for  Oozie at startup.
      </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.AuthorizationService.security.enabled</name>
@@ -50,7 +50,7 @@
      Specifies whether security (user name/admin role) is enabled or not.
      If disabled any user can manage Oozie system and manage any job.
      </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.PurgeService.older.than</name>
@@ -58,7 +58,7 @@
     <description>
      Jobs older than this value, in days, will be purged by the PurgeService.
      </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.PurgeService.purge.interval</name>
@@ -66,19 +66,19 @@
     <description>
      Interval at which the purge service will run, in seconds.
      </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.CallableQueueService.queue.size</name>
     <value>1000</value>
     <description>Max callable queue size</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.CallableQueueService.threads</name>
     <value>10</value>
     <description>Number of threads used for executing callables</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.CallableQueueService.callable.concurrency</name>
@@ -90,14 +90,14 @@
      All commands that use action executors (action-start, action-end, action-kill and action-check) use
      the action type as the callable type.
      </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.coord.normal.default.timeout</name>
     <value>120</value>
     <description>Default timeout for a coordinator action input check (in minutes) for normal job.
       -1 means infinite timeout</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.db.schema.name</name>
@@ -105,7 +105,7 @@
     <description>
       Oozie DataBase Name
      </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.jobTracker.whitelist</name>
@@ -113,21 +113,21 @@
     <description>
       Whitelisted job tracker for Oozie service.
       </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.authentication.type</name>
     <value>simple</value>
     <description>
       </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.nameNode.whitelist</name>
     <value> </value>
     <description>
       </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.WorkflowAppService.system.libpath</name>
@@ -137,7 +137,7 @@
       This path is added to workflow application if their job properties sets
       the property 'oozie.use.system.libpath' to true.
       </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>use.system.libpath.for.mapreduce.and.pig.jobs</name>
@@ -148,7 +148,7 @@
       specify where the Pig JAR files are. Instead, the ones from the system
       library path are used.
       </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.authentication.kerberos.name.rules</name>
@@ -160,7 +160,7 @@
 
         </value>
     <description>The mapping from kerberos principal names to local OS user names.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
@@ -173,7 +173,7 @@
           the Oozie configuration directory; though the path can be absolute (i.e. to point
           to Hadoop client conf/ directories in the local filesystem.
       </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.ActionService.executor.ext.classes</name>
@@ -184,12 +184,12 @@
             org.apache.oozie.action.hadoop.SqoopActionExecutor,
             org.apache.oozie.action.hadoop.DistcpActionExecutor
         </value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.SchemaService.wf.ext.schemas</name>
     <value>shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd,shell-action-0.2.xsd,oozie-sla-0.1.xsd,oozie-sla-0.2.xsd,hive-action-0.3.xsd</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.create.db.schema</name>
@@ -200,7 +200,7 @@
             If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.
             If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.driver</name>
@@ -208,7 +208,7 @@
     <description>
             JDBC driver class.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.url</name>
@@ -216,7 +216,7 @@
     <description>
             JDBC URL.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.username</name>
@@ -224,7 +224,7 @@
     <description>
             DB user name.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.password</name>
@@ -235,7 +235,7 @@
             IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
                        if empty Configuration assumes it is NULL.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>oozie.service.JPAService.pool.max.active.conn</name>
@@ -243,6 +243,6 @@
     <description>
              Max number of connections.
         </description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

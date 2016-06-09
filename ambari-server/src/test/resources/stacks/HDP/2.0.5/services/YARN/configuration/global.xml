@@ -24,48 +24,48 @@
     <name>rm_host</name>
     <value/>
     <description>ResourceManager.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nm_hosts</name>
     <value/>
     <description>List of NodeManager Hosts.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn_log_dir_prefix</name>
     <value>/var/log/hadoop-yarn</value>
     <description>YARN Log Dir Prefix</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn_pid_dir_prefix</name>
     <value>/var/run/hadoop-yarn</value>
     <description>YARN PID Dir Prefix</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn_user</name>
     <value>yarn</value>
     <description>YARN User</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn_heapsize</name>
     <value>1024</value>
     <description>Max heapsize for all YARN components using a numerical value in the scale of MB</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>resourcemanager_heapsize</name>
     <value>1024</value>
     <description>Max heapsize for ResourceManager using a numerical value in the scale of MB</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nodemanager_heapsize</name>
     <value>1024</value>
     <description>Max heapsize for NodeManager using a numerical value in the scale of MB</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

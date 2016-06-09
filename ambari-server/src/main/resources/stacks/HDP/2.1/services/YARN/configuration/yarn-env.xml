@@ -30,7 +30,7 @@
       <unit>MB</unit>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <!-- yarn-env.sh -->
   <property>
@@ -155,6 +155,6 @@ YARN_OPTS="$YARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

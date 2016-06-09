@@ -23,6 +23,6 @@
   <property>
     <name>slider.zookeeper.quorum</name>
     <value>localhost</value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

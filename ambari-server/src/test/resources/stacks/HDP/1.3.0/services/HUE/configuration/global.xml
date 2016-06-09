@@ -24,12 +24,12 @@
     <name>hue_pid_dir</name>
     <value>/var/run/hue</value>
     <description>Hue Pid Dir.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hue_log_dir</name>
     <value>/var/log/hue</value>
     <description>Hue Log Dir.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

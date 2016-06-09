@@ -22,25 +22,25 @@
     <name>port</name>
     <value>3000</value>
     <description>The http port to use</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>protocol</name>
     <value>http</value>
     <description>Protocol (http or https)</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>cert_file</name>
     <value>/etc/ambari-metrics-grafana/conf/ams-grafana.crt</value>
     <description>Path to grafana certificate (.crt) file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>cert_key</name>
     <value>/etc/ambari-metrics-grafana/conf/ams-grafana.key</value>
     <description>Path to grafana certificate key (.key) file.</description>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>content</name>
@@ -304,6 +304,6 @@ org_name = Main Org.
 ;path = /var/lib/grafana/dashboards
 path = /usr/lib/ambari-metrics-grafana/public/dashboards
     </value>
-    <on-ambari-upgrade add="true" update="false" delete="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
