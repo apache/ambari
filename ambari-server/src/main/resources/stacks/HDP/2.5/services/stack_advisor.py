@@ -816,27 +816,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return yarn_nm_mem_in_mb
 
   """
-  Gets Tez App Master container size (tez.am.resource.memory.mb). Takes into account if it has been calculated
+  Gets Tez App Master container size (tez.am.resource.memory.mb) from tez-site. Takes into account if it has been calculated
   as part of current Stack Advisor invocation.
   """
   def get_tez_am_container_size(self, services, configurations):
     llap_daemon_container_size = None
-
     # Check if 'tez.am.resource.memory.mb' is modified in current ST invocation.
-    if 'tez-interactive-site' in configurations and 'tez.am.resource.memory.mb' in configurations['tez-interactive-site']['properties']:
-      llap_daemon_container_size = float(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'])
+    if 'tez-site' in configurations and 'tez.am.resource.memory.mb' in configurations['tez-site']['properties']:
+      llap_daemon_container_size = float(configurations['tez-site']['properties']['tez.am.resource.memory.mb'])
       Logger.info("'tez.am.resource.memory.mb' read from configurations as : {0}".format(llap_daemon_container_size))
 
     if not llap_daemon_container_size:
       # Check if 'tez.am.resource.memory.mb' is input in services array.
-      if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
-          'tez.am.resource.memory.mb' in services['configurations']['tez-interactive-site']['properties']:
-        llap_daemon_container_size = float(services['configurations']['tez-interactive-site']['properties']['tez.am.resource.memory.mb'])
+      if 'tez-site' in services['configurations'] and \
+          'tez.am.resource.memory.mb' in services['configurations']['tez-site']['properties']:
+        llap_daemon_container_size = float(services['configurations']['tez-site']['properties']['tez.am.resource.memory.mb'])
         Logger.info("'tez.am.resource.memory.mb' read from services as : {0}".format(llap_daemon_container_size))
 
 
     if not llap_daemon_container_size:
-      raise Fail("Couldn't retrieve Hive Server interactive's 'tez.am.resource.memory.mb' config.")
+      raise Fail("Couldn't retrieve Hive Server's 'tez.am.resource.memory.mb' config.")
 
     assert (llap_daemon_container_size > 0), "'tez.am.resource.memory.mb' current value : {0}. " \
                                              "Expected value : > 0".format(llap_daemon_container_size)
@@ -865,9 +864,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     min_required_perc = min_required * 100 / total_cluster_cap
     Logger.info("Calculated min_llap_queue_perc_required_in_cluster : {0} and min_llap_queue_cap_required_in_cluster: {1} "
-                "using following : yarn_min_container_size : {2}, ""slider_am_size : {3}, hive_tez_container_size : {4}, "
-                "hive_am_container_size : {5}".format(min_required_perc, min_required, yarn_min_container_size,
-                slider_am_size, hive_tez_container_size, tez_am_container_size))
+                "using following : yarn_min_container_size : {2}, slider_am_size : {3}, hive_tez_container_size : {4}, "
+                "hive_am_container_size : {5}, total_cluster_cap : {6}, yarn_rm_mem_in_mb : {7}"
+                "".format(min_required_perc, min_required, yarn_min_container_size, slider_am_size, hive_tez_container_size,
+                          tez_am_container_size, total_cluster_cap, yarn_rm_mem_in_mb))
     return int(math.ceil(min_required_perc))
 
   """
@@ -903,9 +903,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if 'llap_queue_capacity' in services['configurations']['hive-interactive-env']['properties']:
         llap_slider_cap_percentage = int(
           services['configurations']['hive-interactive-env']['properties']['llap_queue_capacity'])
-        llap_min_reqd_cap_percentage = self.min_llap_queue_perc_required_in_cluster(services, hosts, configurations)
+        llap_min_reqd_cap_percentage = math.ceil(self.min_llap_queue_perc_required_in_cluster(services, hosts, configurations))
+        # Checks for upper bound for the minimum llap queue calculated capacity
+        if llap_min_reqd_cap_percentage > 100:
+          Logger.error("Minimum calculated 'llap' queue capacity ({0}%) is more than what the cluster has in totality. "
+                       "Not creating/adjusting 'llap' queue. Increase the overall cluster capacity.".format(llap_min_reqd_cap_percentage))
+          return
         if llap_slider_cap_percentage <= 0 or llap_slider_cap_percentage > 100:
-          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% to {1}%".format(llap_slider_cap_percentage, llap_min_reqd_cap_percentage))
+          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% (invalid size) to {1}%".format(llap_slider_cap_percentage, llap_min_reqd_cap_percentage))
           putHiveInteractiveEnvProperty('llap_queue_capacity', llap_min_reqd_cap_percentage)
           llap_slider_cap_percentage = llap_min_reqd_cap_percentage
       else:
@@ -926,7 +931,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Get 'llap' queue capacity
       currLlapQueueCap = -1
       if 'yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity' in cap_sched_config_keys:
-        currLlapQueueCap = int(capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity'))
+        currLlapQueueCap = int(float(capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_queue_name+'.capacity')))
 
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
           'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:

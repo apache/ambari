@@ -131,15 +131,6 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>hive.tez.java.opts</name>
-    <value/>
-    <description>Java command line options for Tez. The -Xmx parameter value is generally 80% of hive.tez.container.size.</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>hive.vectorized.execution.reduce.enabled</name>
     <value>true</value>
     <description>
@@ -389,6 +380,10 @@ limitations under the License.
         <type>hive-interactive-site</type>
         <name>hive.server2.tez.sessions.per.default.queue</name>
       </property>
+      <property>
+        <type>tez-site</type>
+        <name>tez.am.resource.memory.mb</name>
+      </property>
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -420,6 +415,10 @@ limitations under the License.
       <property>
         <type>hive-interactive-site</type>
         <name>hive.server2.tez.sessions.per.default.queue</name>
+      </property>
+      <property>
+        <type>tez-site</type>
+        <name>tez.am.resource.memory.mb</name>
       </property>
     </depends-on>
     <on-ambari-upgrade add="true"/>

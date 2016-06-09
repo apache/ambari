@@ -101,10 +101,21 @@ def hive_interactive(name=None):
   '''
   remove_atlas_hook_if_exists(merged_hive_interactive_site)
 
-  # Merge tez-interactive with tez-site
+  '''
+  As tez_hive2/tez-site.xml only contains the new + the changed props compared to tez/tez-site.xml,
+  we need to merge tez/tez-site.xml and tez_hive2/tez-site.xml and store it in tez_hive2/tez-site.xml.
+  '''
+  merged_tez_interactive_site = {}
+  if 'tez-site' in params.config['configurations']:
+    merged_tez_interactive_site.update(params.config['configurations']['tez-site'])
+    Logger.info("Retrieved 'tez/tez-site' for merging with 'tez_hive2/tez-interactive-site'.")
+  else:
+    Logger.error("Tez's 'tez-site' couldn't be retrieved from passed-in configurations.")
+
+  merged_tez_interactive_site.update(params.config['configurations']['tez-interactive-site'])
   XmlConfig("tez-site.xml",
             conf_dir = params.tez_interactive_config_dir,
-            configurations = params.config['configurations']['tez-interactive-site'],
+            configurations = merged_tez_interactive_site,
             configuration_attributes=params.config['configuration_attributes']['tez-interactive-site'],
             owner = params.tez_interactive_user,
             group = params.user_group,

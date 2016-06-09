@@ -146,7 +146,7 @@ class TestHDP25StackAdvisor(TestCase):
     # Expected capacity-scheduler with 'llap' (size:20) and 'default' queue at root level.
     self.expected_capacity_scheduler_llap_queue_size_20 = {
       "properties": {
-        "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=80\n'
+        "capacity-scheduler": 'yarn.scheduler.capacity.root.default.maximum-capacity=80.0\n'
                               'yarn.scheduler.capacity.root.accessible-node-labels=*\n'
                               'yarn.scheduler.capacity.root.capacity=100\n'
                               'yarn.scheduler.capacity.root.queues=default,llap\n'
@@ -155,7 +155,7 @@ class TestHDP25StackAdvisor(TestCase):
                               'yarn.scheduler.capacity.root.default.state=RUNNING\n'
                               'yarn.scheduler.capacity.maximum-am-resource-percent=1\n'
                               'yarn.scheduler.capacity.root.default.acl_submit_applications=*\n'
-                              'yarn.scheduler.capacity.root.default.capacity=80\n'
+                              'yarn.scheduler.capacity.root.default.capacity=80.0\n'
                               'yarn.scheduler.capacity.root.acl_administer_queue=*\n'
                               'yarn.scheduler.capacity.node-locality-delay=40\n'
                               'yarn.scheduler.capacity.queue-mappings-override.enable=false\n'
@@ -163,8 +163,8 @@ class TestHDP25StackAdvisor(TestCase):
                               'yarn.scheduler.capacity.root.llap.state=RUNNING\n'
                               'yarn.scheduler.capacity.root.llap.ordering-policy=fifo\n'
                               'yarn.scheduler.capacity.root.llap.minimum-user-limit-percent=100\n'
-                              'yarn.scheduler.capacity.root.llap.maximum-capacity=20\n'
-                              'yarn.scheduler.capacity.root.llap.capacity=20\n'
+                              'yarn.scheduler.capacity.root.llap.maximum-capacity=20.0\n'
+                              'yarn.scheduler.capacity.root.llap.capacity=20.0\n'
                               'yarn.scheduler.capacity.root.llap.acl_submit_applications=hive\n'
                               'yarn.scheduler.capacity.root.llap.acl_administer_queue=hive\n'
                               'yarn.scheduler.capacity.root.llap.maximum-am-resource-percent=1'
@@ -351,7 +351,7 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
     # Expected 'hive_interactive_env' with 'llap_queue_capacity' set to 20.
-    self.expected_llap_queue_capacity_20 = '20'
+    self.expected_llap_queue_capacity_20 = '20.0'
 
     # Expected 'hive_interactive_env' with 'llap_queue_capacity' set to 40.
     self.expected_llap_queue_capacity_40 = '40'
@@ -614,7 +614,7 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name':'default'
             }
           },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -768,7 +768,7 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name':'default'
             }
           },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -920,7 +920,7 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name':'default',
             }
           },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -1072,7 +1072,7 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name':'default',
             }
           },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -1235,7 +1235,7 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.server2.tez.sessions.per.default.queue' : '1'
             }
           },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -1392,7 +1392,7 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name':'llap'
             }
           },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -1556,7 +1556,7 @@ class TestHDP25StackAdvisor(TestCase):
               'hive.llap.daemon.queue.name':'llap'
             }
           },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -3236,7 +3236,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '1'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "512"
           }
@@ -3421,7 +3421,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '1'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -3614,7 +3614,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '1'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -3808,7 +3808,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '4'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -3997,7 +3997,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '3'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -4186,7 +4186,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '3'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -4377,7 +4377,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '4'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -4568,7 +4568,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '10'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "341"
           }
@@ -4757,7 +4757,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '3'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -4933,7 +4933,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '3'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -5112,7 +5112,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '3'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
@@ -5465,7 +5465,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '3'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024",
           }
@@ -5635,7 +5635,7 @@ class TestHDP25StackAdvisor(TestCase):
             "yarn.nodemanager.resource.cpu-vcores": '3'
           }
         },
-        "tez-interactive-site": {
+        "tez-site": {
           "properties": {
             "tez.am.resource.memory.mb": "1024"
           }
