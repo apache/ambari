@@ -29,7 +29,7 @@ from resource_management.libraries.functions import format
 from resource_management.core.resources.system import File, Execute
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
 
 

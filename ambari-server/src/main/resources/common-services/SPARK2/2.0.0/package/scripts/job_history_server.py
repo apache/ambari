@@ -22,12 +22,11 @@ import sys
 import os
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_spark import *
