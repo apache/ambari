@@ -19,13 +19,27 @@
 package org.apache.ambari.view.hive.resources.jobs.viewJobs;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive.client.*;
+import org.apache.ambari.view.hive.client.Cursor;
+import org.apache.ambari.view.hive.client.HiveClientException;
+import org.apache.ambari.view.hive.client.HiveClientRuntimeException;
+import org.apache.ambari.view.hive.client.HiveErrorStatusException;
+import org.apache.ambari.view.hive.client.UserLocalConnection;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
-import org.apache.ambari.view.hive.resources.jobs.*;
+import org.apache.ambari.view.hive.resources.jobs.ConnectionController;
+import org.apache.ambari.view.hive.resources.jobs.LogParser;
+import org.apache.ambari.view.hive.resources.jobs.ModifyNotificationDelegate;
+import org.apache.ambari.view.hive.resources.jobs.ModifyNotificationInvocationHandler;
+import org.apache.ambari.view.hive.resources.jobs.NoOperationStatusSetException;
+import org.apache.ambari.view.hive.resources.jobs.OperationHandleController;
+import org.apache.ambari.view.hive.resources.jobs.OperationHandleControllerFactory;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQuery;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQueryResourceManager;
-import org.apache.ambari.view.hive.utils.*;
+import org.apache.ambari.view.hive.utils.BadRequestFormattedException;
+import org.apache.ambari.view.hive.utils.FilePaginator;
+import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
+import org.apache.ambari.view.hive.utils.MisconfigurationFormattedException;
+import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
@@ -36,7 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
 
 public class JobControllerImpl implements JobController, ModifyNotificationDelegate {
   private final static Logger LOG =
@@ -268,14 +282,12 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
   private static final long MillisInSecond = 1000L;
 
   public void updateJobDuration() {
-    job.setDuration(System.currentTimeMillis() / MillisInSecond - job.getDateSubmitted());
+    job.setDuration((System.currentTimeMillis() / MillisInSecond) - (job.getDateSubmitted() / MillisInSecond));
   }
 
   public void setCreationDate() {
-    job.setDateSubmitted(System.currentTimeMillis() / MillisInSecond);
+    job.setDateSubmitted(System.currentTimeMillis());
   }
-
-
 
   private void setupLogFile() {
     LOG.debug("Creating log file for job#" + job.getId());

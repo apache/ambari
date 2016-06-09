@@ -24,9 +24,11 @@ import org.apache.ambari.view.hive.persistence.utils.Indexed;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.SharedCRUDResourceManager;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class OperationHandleResourceManager extends SharedCRUDResourceManager<StoredOperationHandle>
@@ -64,7 +66,7 @@ public class OperationHandleResourceManager extends SharedCRUDResourceManager<St
 
   @Override
   public List<Job> getHandleRelatedJobs(final StoredOperationHandle operationHandle) {
-    return storageFactory.getStorage().loadAll(Job.class, new FilteringStrategy() {
+    List<JobImpl> list = storageFactory.getStorage().loadAll(JobImpl.class, new FilteringStrategy() {
       @Override
       public boolean isConform(Indexed item) {
         Job job = (Job) item;
@@ -76,13 +78,19 @@ public class OperationHandleResourceManager extends SharedCRUDResourceManager<St
         return "id = '" + operationHandle.getJobId() + "'";
       }
     });
+
+    if(null == list)
+      return null;
+
+    List<Job> jobs = new LinkedList<Job>(list);
+    return jobs;
   }
 
   @Override
   public Job getJobByHandle(StoredOperationHandle handle) throws ItemNotFound {
     List<Job> handleRelatedJobs = getHandleRelatedJobs(handle);
     if (handleRelatedJobs.size() == 0)
-      throw new ItemNotFound();
+      throw new ItemNotFound(String.format("Job not found for operationId %s", handle));
     return handleRelatedJobs.get(0);
   }
 

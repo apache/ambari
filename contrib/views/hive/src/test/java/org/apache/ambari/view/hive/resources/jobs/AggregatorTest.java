@@ -31,7 +31,11 @@ import org.apache.hive.service.cli.thrift.TOperationHandle;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class AggregatorTest {
 
@@ -60,7 +64,7 @@ public class AggregatorTest {
   @Test
   public void testReadJobWithHS2OutsideOfView() throws Exception {
     HiveQueryId hiveQueryId = getSampleHiveQueryId("ENTITY-NAME");
-    ensureOperationIdSet(hiveQueryId);
+    ensureOperationIdUnset(hiveQueryId);
 
     MockATSParser atsParser = getMockATSWithQueries(hiveQueryId);
     Aggregator aggregator = new Aggregator(getEmptyJobResourceManager(),
@@ -93,7 +97,7 @@ public class AggregatorTest {
     MockJobResourceManager jobResourceManager = getJobResourceManagerWithJobs(getSampleViewJob("1"));
 
     StoredOperationHandle operationHandle = getSampleOperationHandle("5", "1");
-    MockOperationHandleResourceManager operationHandleResourceManager = getOperationHandleRMWithEntities(operationHandle);
+    MockOperationHandleResourceManager operationHandleResourceManager = getOperationHandleRMWithEntities(Arrays.asList(operationHandle), null);
 
     Aggregator aggregator = new Aggregator(jobResourceManager,
         operationHandleResourceManager,
@@ -106,13 +110,22 @@ public class AggregatorTest {
     Assert.assertEquals("1", job.getId());
   }
 
-  private MockOperationHandleResourceManager getOperationHandleRMWithEntities(StoredOperationHandle... operationHandles) {
+  private MockOperationHandleResourceManager getOperationHandleRMWithEntities(List<StoredOperationHandle> operationHandles, List<Job> jobs) {
     MockOperationHandleResourceManager operationHandleResourceManager = getEmptyOperationHandleResourceManager();
     HashMap<String, StoredOperationHandle> storage = new HashMap<String, StoredOperationHandle>();
     for (StoredOperationHandle handle : operationHandles) {
       storage.put(handle.getJobId(), handle);
     }
+    if (null != jobs) {
+      Iterator<Job> jobIterator = jobs.iterator();
+      HashMap<String, Job> jobStorage = new HashMap<String, Job>();
+      for (StoredOperationHandle handle : operationHandles) {
+        jobStorage.put(handle.getGuid(), jobIterator.next());
+        operationHandleResourceManager.setJobStorage(jobStorage);
+      }
+    }
     operationHandleResourceManager.setStorage(storage);
+
     return operationHandleResourceManager;
   }
 
@@ -122,11 +135,12 @@ public class AggregatorTest {
     hiveQueryId.operationId = Aggregator.hexStringToUrlSafeBase64("1b2b");
     MockATSParser atsParser = getMockATSWithQueries(hiveQueryId);
 
-    MockJobResourceManager jobResourceManager = getJobResourceManagerWithJobs(getSampleViewJob("1"));
+    Job job1 = getSampleViewJob("1");
+    MockJobResourceManager jobResourceManager = getJobResourceManagerWithJobs(job1);
 
     StoredOperationHandle operationHandle = getSampleOperationHandle("5", "1");
     operationHandle.setGuid("1b2b");
-    MockOperationHandleResourceManager operationHandleResourceManager = getOperationHandleRMWithEntities(operationHandle);
+    MockOperationHandleResourceManager operationHandleResourceManager = getOperationHandleRMWithEntities(Arrays.asList(operationHandle), Arrays.asList(job1));
 
     Aggregator aggregator = new Aggregator(jobResourceManager,
         operationHandleResourceManager,
@@ -145,11 +159,12 @@ public class AggregatorTest {
     hiveQueryId.operationId = Aggregator.hexStringToUrlSafeBase64("1b2b");
     MockATSParser atsParser = getMockATSWithQueries(hiveQueryId);
 
-    MockJobResourceManager jobResourceManager = getJobResourceManagerWithJobs(getSampleViewJob("1"));
+    Job job1 = getSampleViewJob("1");
+    MockJobResourceManager jobResourceManager = getJobResourceManagerWithJobs(job1);
 
     StoredOperationHandle operationHandle = getSampleOperationHandle("5", "1");
     operationHandle.setGuid("1b2b");
-    MockOperationHandleResourceManager operationHandleResourceManager = getOperationHandleRMWithEntities(operationHandle);
+    MockOperationHandleResourceManager operationHandleResourceManager = getOperationHandleRMWithEntities(Arrays.asList(operationHandle), Arrays.asList(job1));
 
     Aggregator aggregator = new Aggregator(jobResourceManager,
       operationHandleResourceManager,
@@ -172,12 +187,14 @@ public class AggregatorTest {
     HiveQueryId hiveQueryId1 = getSampleHiveQueryId("ENTITY-NAME");
     hiveQueryId1.operationId = Aggregator.hexStringToUrlSafeBase64("1a1b");
     Job job1 = getSampleViewJob("1");
+    Job job2 = getSampleViewJob("2");
     StoredOperationHandle operationHandle1 = getSampleOperationHandle("5", "1");
     operationHandle1.setGuid("1a1b");
-
+    StoredOperationHandle operationHandle2 = getSampleOperationHandle("5", "2");
+    operationHandle2.setGuid("2a2b");
     //job only on ATS
     HiveQueryId hiveQueryId2 = getSampleHiveQueryId("ENTITY-NAME2");
-    hiveQueryId2.operationId = Aggregator.hexStringToUrlSafeBase64("2a2a");
+    hiveQueryId2.operationId = Aggregator.hexStringToUrlSafeBase64("2a2b");
 
     //job only in View
     Job job3 = getSampleViewJob("3");
@@ -189,8 +206,8 @@ public class AggregatorTest {
         hiveQueryId1, hiveQueryId2);
     MockJobResourceManager jobResourceManager = getJobResourceManagerWithJobs(
         job1, job3);
-    MockOperationHandleResourceManager operationHandleRM = getOperationHandleRMWithEntities(
-        operationHandle1, operationHandle3);
+    MockOperationHandleResourceManager operationHandleRM = getOperationHandleRMWithEntities(Arrays.asList(
+      operationHandle1, operationHandle2, operationHandle3), Arrays.asList(job1, job2, job3));
 
     Aggregator aggregator = new Aggregator(jobResourceManager,
         operationHandleRM,
@@ -327,6 +344,7 @@ public class AggregatorTest {
 
   public static class MockOperationHandleResourceManager implements IOperationHandleResourceManager {
     private HashMap<String, StoredOperationHandle> storage = new HashMap<String, StoredOperationHandle>();
+    private HashMap<String, Job> jobStorage = new HashMap<>();
 
     public MockOperationHandleResourceManager() {
 
@@ -348,7 +366,7 @@ public class AggregatorTest {
 
     @Override
     public Job getJobByHandle(StoredOperationHandle handle) throws ItemNotFound {
-      throw new ItemNotFound();
+      return jobStorage.get(handle.getGuid());
     }
 
     @Override
@@ -406,6 +424,14 @@ public class AggregatorTest {
     public void setStorage(HashMap<String, StoredOperationHandle> storage) {
       this.storage = storage;
     }
+
+    public HashMap<String, Job> getJobStorage() {
+      return jobStorage;
+    }
+
+    public void setJobStorage(HashMap<String, Job> jobStorage) {
+      this.jobStorage = jobStorage;
+    }
   }
 
   public static class MockATSParser implements IATSParser {
@@ -416,7 +442,7 @@ public class AggregatorTest {
     }
 
     @Override
-    public List<HiveQueryId> getHiveQueryIdsList(String username) {
+    public List<HiveQueryId> getHiveQueryIdsForUser(String username) {
       return hiveQueryIds;
     }
 
@@ -452,6 +478,21 @@ public class AggregatorTest {
       dagId.entity = entity;
       dagId.status = "SUCCEEDED";
       return dagId;
+    }
+
+    @Override
+    public List<HiveQueryId> getHiveQueryIdsForUserByTime(String username, long startTime, long endTime) {
+      return null;
+    }
+
+    @Override
+    public HiveQueryId getHiveQueryIdByHiveEntityId(String hiveEntityId) {
+      return null;
+    }
+
+    @Override
+    public List<HiveQueryId> getHiveQueryIdByEntityList(List<String> hiveEntityIds) {
+      return null;
     }
 
     public List<HiveQueryId> getHiveQueryIds() {

@@ -22,20 +22,27 @@ package org.apache.ambari.view.hive.resources.jobs.viewJobs;
 import org.apache.ambari.view.hive.persistence.utils.Indexed;
 import org.apache.ambari.view.hive.persistence.utils.PersonalResource;
 
+import java.beans.Transient;
 import java.io.Serializable;
 
 /**
  * Interface for Job bean to create Proxy for it
  */
 public interface Job extends Serializable,Indexed,PersonalResource {
-  public static final String JOB_STATE_UNKNOWN = "Unknown";
-  public static final String JOB_STATE_INITIALIZED = "Initialized";
-  public static final String JOB_STATE_RUNNING = "Running";
-  public static final String JOB_STATE_FINISHED = "Succeeded";
-  public static final String JOB_STATE_CANCELED = "Canceled";
-  public static final String JOB_STATE_CLOSED = "Closed";
-  public static final String JOB_STATE_ERROR = "Error";
-  public static final String JOB_STATE_PENDING = "Pending";
+  String JOB_STATE_UNKNOWN = "Unknown";
+  String JOB_STATE_INITIALIZED = "Initialized";
+  String JOB_STATE_RUNNING = "Running";
+  String JOB_STATE_FINISHED = "Succeeded";
+  String JOB_STATE_CANCELED = "Canceled";
+  String JOB_STATE_CLOSED = "Closed";
+  String JOB_STATE_ERROR = "Error";
+  String JOB_STATE_PENDING = "Pending";
+
+  @Transient
+  String getHiveQueryId();
+
+  @Transient
+  void setHiveQueryId(String hiveQueryId);
 
   String getId();
 

@@ -31,7 +31,7 @@ public interface ATSRequestsDelegate {
 
   String tezVerticesListForDAGUrl(String dagId);
 
-  JSONObject hiveQueryIdList(String username);
+  JSONObject hiveQueryIdsForUser(String username);
 
   JSONObject hiveQueryIdByOperationId(String operationId);
 
@@ -40,4 +40,8 @@ public interface ATSRequestsDelegate {
   JSONObject tezVerticesListForDAG(String dagId);
 
   JSONObject tezDagByEntity(String entity);
+
+  JSONObject hiveQueryIdsForUserByTime(String username, long startTime, long endTime);
+
+  JSONObject hiveQueryEntityByEntityId(String hiveEntityId);
 }
