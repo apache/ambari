@@ -2653,7 +2653,8 @@ public class BlueprintConfigurationProcessor {
       rangerStormAuditPropsMap
     );
     for (Map<String, PropertyUpdater> rangerAuditPropsMap: configsWithRangerHdfsAuditDirProperty) {
-      rangerAuditPropsMap.put("xasecure.audit.destination.hdfs.dir", new SingleHostTopologyUpdater("NAMENODE")); // the same prop updater must be used as for fs.defaultFS in core-site
+      rangerAuditPropsMap.put("xasecure.audit.destination.hdfs.dir", new OptionalSingleHostTopologyUpdater("NAMENODE"));
+       // the same prop updater must be used as for fs.defaultFS in core-site
     }
 
     // RANGER KMS
