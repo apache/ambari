@@ -141,7 +141,7 @@ class _TestRecoveryManager(TestCase):
 
     mock_uds.reset_mock()
 
-    rm.update_config(12, 5, 1, 15, True, False, "NODEMANAGER", -1)
+    rm.update_config(12, 5, 1, 15, True, False, False, "NODEMANAGER", -1)
     rm.process_execution_commands([self.exec_command1, self.exec_command2, self.exec_command3])
     mock_uds.assert_has_calls([call("NODEMANAGER", "INSTALLED")], [call("NODEMANAGER", "STARTED")])
 
@@ -174,29 +174,29 @@ class _TestRecoveryManager(TestCase):
     rm = RecoveryManager(tempfile.mktemp(), True, False)
     self.assertTrue(rm.enabled())
 
-    config = rm.update_config(0, 60, 5, 12, True, False, "", -1)
+    config = rm.update_config(0, 60, 5, 12, True, False, False, "", -1)
     self.assertFalse(rm.enabled())
 
-    rm.update_config(6, 60, 5, 12, True, False, "", -1)
+    rm.update_config(6, 60, 5, 12, True, False, False, "", -1)
     self.assertTrue(rm.enabled())
 
-    rm.update_config(6, 0, 5, 12, True, False, "", -1)
+    rm.update_config(6, 0, 5, 12, True, False, False, "", -1)
     self.assertFalse(rm.enabled())
 
-    rm.update_config(6, 60, 0, 12, True, False, "", -1)
+    rm.update_config(6, 60, 0, 12, True, False, False, "", -1)
     self.assertFalse(rm.enabled())
 
-    rm.update_config(6, 60, 1, 12, True, False, None, -1)
+    rm.update_config(6, 60, 1, 12, True, False, False, None, -1)
     self.assertTrue(rm.enabled())
 
-    rm.update_config(6, 60, 61, 12, True, False, None, -1)
+    rm.update_config(6, 60, 61, 12, True, False, False, None, -1)
     self.assertFalse(rm.enabled())
 
-    rm.update_config(6, 60, 5, 4, True, False, "", -1)
+    rm.update_config(6, 60, 5, 4, True, False, False, "", -1)
     self.assertFalse(rm.enabled())
 
     # maximum 2 in 2 minutes and at least 1 minute wait
-    rm.update_config(2, 5, 1, 4, True, False, "", -1)
+    rm.update_config(2, 5, 1, 4, True, False, False, "", -1)
     self.assertTrue(rm.enabled())
 
     # T = 1000-2
@@ -222,7 +222,7 @@ class _TestRecoveryManager(TestCase):
     self.assertFalse(rm.may_execute("NODEMANAGER"))  # too soon
 
     # maximum 2 in 2 minutes and no min wait
-    rm.update_config(2, 5, 1, 5, True, True, "", -1)
+    rm.update_config(2, 5, 1, 5, True, True, False, "", -1)
 
     # T = 1500-3
     self.assertTrue(rm.execute("NODEMANAGER2"))
@@ -242,7 +242,7 @@ class _TestRecoveryManager(TestCase):
 
   def test_recovery_required(self):
     rm = RecoveryManager(tempfile.mktemp(), True, False)
-    rm.update_config(12, 5, 1, 15, True, False, "NODEMANAGER", -1)
+    rm.update_config(12, 5, 1, 15, True, False, False, "NODEMANAGER", -1)
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
@@ -290,13 +290,13 @@ class _TestRecoveryManager(TestCase):
   def test_recovery_required2(self):
 
     rm = RecoveryManager(tempfile.mktemp(), True, True)
-    rm.update_config(15, 5, 1, 16, True, False, "NODEMANAGER", -1)
+    rm.update_config(15, 5, 1, 16, True, False, False, "NODEMANAGER", -1)
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
     rm = RecoveryManager(tempfile.mktemp(), True, True)
-    rm.update_config(15, 5, 1, 16, True, False, "NODEMANAGER", -1)
+    rm.update_config(15, 5, 1, 16, True, False, False, "NODEMANAGER", -1)
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
@@ -306,7 +306,7 @@ class _TestRecoveryManager(TestCase):
     self.assertFalse(rm.requires_recovery("DATANODE"))
 
     rm = RecoveryManager(tempfile.mktemp(), True, True)
-    rm.update_config(15, 5, 1, 16, True, False, "", -1)
+    rm.update_config(15, 5, 1, 16, True, False, False, "", -1)
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
@@ -315,7 +315,7 @@ class _TestRecoveryManager(TestCase):
     rm.update_desired_status("DATANODE", "STARTED")
     self.assertFalse(rm.requires_recovery("DATANODE"))
 
-    rm.update_config(15, 5, 1, 16, True, False, "NODEMANAGER", -1)
+    rm.update_config(15, 5, 1, 16, True, False, False, "NODEMANAGER", -1)
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
@@ -372,13 +372,14 @@ class _TestRecoveryManager(TestCase):
   @patch.object(RecoveryManager, "_now_")
   def test_get_recovery_commands(self, time_mock):
     time_mock.side_effect = \
-      [1000, 1001, 1002, 1003, 1004,
+      [1000, 1001, 1002, 1003,
        1100, 1101, 1102,
        1200, 1201, 1203,
        4000, 4001, 4002, 4003,
        4100, 4101, 4102, 4103,
        4200, 4201, 4202,
-       4300, 4301, 4302]
+       4300, 4301, 4302, 4399,
+       4400, 4401, 4402,]
     rm = RecoveryManager(tempfile.mktemp(), True)
     rm.update_config(15, 5, 1, 16, True, False, False, "", -1)
 
@@ -394,14 +395,6 @@ class _TestRecoveryManager(TestCase):
     commands = rm.get_recovery_commands()
     self.assertEqual(1, len(commands))
     self.assertEqual("START", commands[0]["roleCommand"])
-
-    rm.update_config(2, 5, 1, 5, True, False, True, "NODEMANAGER", -1)
-    rm.update_current_status("NODEMANAGER", "INSTALL_FAILED")
-    rm.update_desired_status("NODEMANAGER", "INSTALLED")
-
-    commands = rm.get_recovery_commands()
-    self.assertEqual(1, len(commands))
-    self.assertEqual("INSTALL", commands[0]["roleCommand"])
 
     rm.update_current_status("NODEMANAGER", "INIT")
     rm.update_desired_status("NODEMANAGER", "STARTED")
@@ -461,6 +454,13 @@ class _TestRecoveryManager(TestCase):
     commands = rm.get_recovery_commands()
     self.assertEqual(1, len(commands))
     self.assertEqual("STOP", commands[0]["roleCommand"])
+
+    rm.update_config(12, 5, 1, 15, True, False, True, "NODEMANAGER", -1)
+    rm.update_current_status("NODEMANAGER", "INSTALL_FAILED")
+    rm.update_desired_status("NODEMANAGER", "INSTALLED")
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("INSTALL", commands[0]["roleCommand"])
     pass
 
   @patch.object(RecoveryManager, "update_config")
