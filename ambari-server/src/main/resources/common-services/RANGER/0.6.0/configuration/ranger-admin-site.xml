@@ -211,4 +211,112 @@
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <property>
+    <name>ranger.plugins.hdfs.serviceuser</name>
+    <value>hdfs</value>
+    <depends-on>
+      <property>
+        <type>hadoop-env</type>
+        <name>hdfs_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.hive.serviceuser</name>
+    <value>hive</value>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.hbase.serviceuser</name>
+    <value>hbase</value>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>hbase_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.yarn.serviceuser</name>
+    <value>yarn</value>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.knox.serviceuser</name>
+    <value>knox</value>
+    <depends-on>
+      <property>
+        <type>knox-env</type>
+        <name>knox_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.storm.serviceuser</name>
+    <value>storm</value>
+    <depends-on>
+      <property>
+        <type>storm-env</type>
+        <name>storm_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.kafka.serviceuser</name>
+    <value>kafka</value>
+    <depends-on>
+      <property>
+        <type>kafka-env</type>
+        <name>kafka_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.atlas.serviceuser</name>
+    <value>atlas</value>
+    <depends-on>
+      <property>
+        <type>atlas-env</type>
+        <name>metadata_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>ranger.plugins.kms.serviceuser</name>
+    <value>kms</value>
+    <depends-on>
+      <property>
+        <type>kms-env</type>
+        <name>kms_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

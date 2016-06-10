@@ -318,6 +318,10 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property"/>
       </execute-stage>
 
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Calculating Ranger Properties">
+        <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation"/>
+      </execute-stage>
+
       <!-- HDFS -->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs Namenode">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db"/>
