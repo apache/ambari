@@ -53,6 +53,12 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>atlas.graph.storage.hbase.table</name>
+    <value>atlas_titan</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>atlas.graph.storage.hostname</name>
     <value/>
     <description/>
