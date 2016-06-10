@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
-import org.apache.ambari.view.commons.hdfs.UserService;
 
 /**
  * File access resource
@@ -228,21 +227,6 @@ public class FileService extends BaseService {
     try {
       HdfsApi api = HdfsUtil.connectToHDFSApi(context);
       api.getStatus();
-    } catch (WebApplicationException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ServiceFormattedException(ex.getMessage(), ex);
-    }
-  }
-
-  /**
-   * Checks connection to User HomeDirectory
-   * @param context View Context
-   */
-  public static void userhomeSmokeTest(ViewContext context) {
-    try {
-      UserService  userservice = new UserService(context);
-      userservice.homeDir();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {

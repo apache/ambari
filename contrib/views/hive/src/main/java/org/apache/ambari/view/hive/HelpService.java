@@ -79,18 +79,6 @@ public class HelpService extends BaseService {
   }
 
   /**
-   * HomeDirectory Status
-   * @return status
-   */
-  @GET
-  @Path("/userhomeStatus")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response userhomeStatus (){
-    FileService.userhomeSmokeTest(context);
-    return getOKResponse();
-  }
-
-  /**
    * ATS Status
    * @return status
    */

@@ -25,7 +25,6 @@ import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.ambari.view.pig.utils.*;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
-import org.apache.ambari.view.commons.hdfs.UserService;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileStatus;
@@ -40,7 +39,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * File access resource
@@ -191,22 +189,6 @@ public class FileService extends BaseService {
     try {
       HdfsApi api = HdfsUtil.connectToHDFSApi(context);
       api.getStatus();
-    } catch (WebApplicationException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ServiceFormattedException(ex.getMessage(), ex);
-    }
-  }
-
-
-  /**
-   * Checks connection to User HomeDirectory
-   * @param context View Context
-   */
-  public static void userhomeSmokeTest(ViewContext context) {
-    try {
-      UserService  userservice = new UserService(context);
-      userservice.homeDir();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {

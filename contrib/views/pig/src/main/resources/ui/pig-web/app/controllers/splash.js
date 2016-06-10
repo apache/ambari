@@ -57,9 +57,9 @@ App.SplashController = Ember.ObjectController.extend({
       }
       model.set(name + 'TestDone', true);
       var percent = model.get('percent');
-      model.set('percent', percent + 25);
+      model.set('percent', percent + 33.33);
     };
-    var promises = ['storage', 'webhcat', 'hdfs', 'userhome'].map(function(name) {
+    var promises = ['storage', 'webhcat', 'hdfs'].map(function(name) {
       return Ember.$.getJSON('/' + url + name + 'Status')
                .then(
                  function(data) {
@@ -78,7 +78,7 @@ App.SplashController = Ember.ObjectController.extend({
   }.property("model.percent"),
 
   allTestsCompleted: function(){
-    return this.get("model").get("hdfsTestDone") && this.get("model").get("webhcatTestDone") && this.get("model").get("storageTestDone") && this.get("model").get("userhomeTestDone");
-  }.property('model.hdfsTestDone', 'model.webhcatTestDone', 'model.storageTestDone', 'model.userhomeTestDone')
+    return this.get("model").get("hdfsTestDone") && this.get("model").get("webhcatTestDone") && this.get("model").get("storageTestDone");
+  }.property('model.hdfsTestDone', 'model.webhcatTestDone', 'model.storageTestDone')
 
 });
