@@ -46,6 +46,10 @@ else:
   pid_dir = config['configurations']['hbase-env']['hbase_pid_dir']
   hbase_user = config['configurations']['hbase-env']['hbase_user']
 
+  hbase_master_pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
+  regionserver_pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
+  phoenix_pid_file = format("{pid_dir}/phoenix-{hbase_user}-server.pid")
+
   # Security related/required params
   hostname = config['hostname']
   security_enabled = config['configurations']['cluster-env']['security_enabled']

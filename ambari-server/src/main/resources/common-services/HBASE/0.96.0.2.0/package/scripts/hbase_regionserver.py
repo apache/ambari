@@ -103,8 +103,8 @@ class HbaseRegionServerDefault(HbaseRegionServer):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
-    check_process_status(pid_file)
+
+    check_process_status(status_params.regionserver_pid_file)
 
   def security_status(self, env):
     import status_params
@@ -162,6 +162,10 @@ class HbaseRegionServerDefault(HbaseRegionServer):
   def get_user(self):
     import params
     return params.hbase_user
+
+  def get_pid_files(self):
+    import status_params
+    return [status_params.regionserver_pid_file]
 
 if __name__ == "__main__":
   HbaseRegionServer().execute()

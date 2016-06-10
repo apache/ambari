@@ -63,5 +63,9 @@ class AmsGrafana(Script):
     env.set_params(status_params)
     check_service_status(name='grafana')
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.grafana_pid_file]
+
 if __name__ == "__main__":
   AmsGrafana().execute()

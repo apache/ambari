@@ -206,6 +206,10 @@ class OozieServerDefault(OozieServer):
     import params
     return params.oozie_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.pid_file]
+
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class OozieServerWindows(OozieServer):

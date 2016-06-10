@@ -156,6 +156,10 @@ class FalconServerLinux(FalconServer):
     import params
     return params.falcon_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.server_pid_file]
+
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FalconServerWindows(FalconServer):

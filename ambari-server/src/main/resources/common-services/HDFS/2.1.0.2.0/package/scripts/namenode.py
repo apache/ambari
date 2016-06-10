@@ -356,6 +356,10 @@ class NameNodeDefault(NameNode):
     import params
     return params.hdfs_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.namenode_pid_file]
+
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NameNodeWindows(NameNode):
   def install(self, env):

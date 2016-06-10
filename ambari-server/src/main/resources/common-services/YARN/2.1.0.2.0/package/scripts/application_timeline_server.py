@@ -154,5 +154,11 @@ class ApplicationTimelineServerDefault(ApplicationTimelineServer):
     import params
     return params.yarn_user
 
+  def get_pid_files(self):
+    import status_params
+    Execute(format("mv {status_params.yarn_historyserver_pid_file_old} {status_params.yarn_historyserver_pid_file}"),
+            only_if = format("test -e {status_params.yarn_historyserver_pid_file_old}", user=status_params.yarn_user))
+    return [status_params.yarn_historyserver_pid_file]
+
 if __name__ == "__main__":
   ApplicationTimelineServer().execute()
