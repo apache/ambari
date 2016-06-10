@@ -1310,6 +1310,27 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
         putRangerAdminProperty('ranger.kms.service.user.hive', hive_user)
 
+    ranger_plugins_serviceuser = [
+      {'service_name': 'HDFS', 'file_name': 'hadoop-env', 'config_name': 'hdfs_user', 'target_configname': 'ranger.plugins.hdfs.serviceuser'},
+      {'service_name': 'HIVE', 'file_name': 'hive-env', 'config_name': 'hive_user', 'target_configname': 'ranger.plugins.hive.serviceuser'},
+      {'service_name': 'YARN', 'file_name': 'yarn-env', 'config_name': 'yarn_user', 'target_configname': 'ranger.plugins.yarn.serviceuser'},
+      {'service_name': 'HBASE', 'file_name': 'hbase-env', 'config_name': 'hbase_user', 'target_configname': 'ranger.plugins.hbase.serviceuser'},
+      {'service_name': 'KNOX', 'file_name': 'knox-env', 'config_name': 'knox_user', 'target_configname': 'ranger.plugins.knox.serviceuser'},
+      {'service_name': 'STORM', 'file_name': 'storm-env', 'config_name': 'storm_user', 'target_configname': 'ranger.plugins.storm.serviceuser'},
+      {'service_name': 'KAFKA', 'file_name': 'kafka-env', 'config_name': 'kafka_user', 'target_configname': 'ranger.plugins.kafka.serviceuser'},
+      {'service_name': 'RANGER_KMS', 'file_name': 'kms-env', 'config_name': 'kms_user', 'target_configname': 'ranger.plugins.kms.serviceuser'},
+      {'service_name': 'ATLAS', 'file_name': 'atlas-env', 'config_name': 'metadata_user', 'target_configname': 'ranger.plugins.atlas.serviceuser'}
+    ]
+
+    for item in range(len(ranger_plugins_serviceuser)):
+      if ranger_plugins_serviceuser[item]['service_name'] in servicesList:
+        file_name = ranger_plugins_serviceuser[item]['file_name']
+        config_name = ranger_plugins_serviceuser[item]['config_name']
+        target_configname = ranger_plugins_serviceuser[item]['target_configname']
+        if file_name in services["configurations"] and config_name in services["configurations"][file_name]["properties"]:
+          service_user = services["configurations"][file_name]["properties"][config_name]
+          putRangerAdminProperty(target_configname, service_user)
+
   def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = getSiteProperties(configurations, "ranger-tagsync-site")
     validationItems = []
