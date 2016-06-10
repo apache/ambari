@@ -28,8 +28,6 @@ export default Ember.Route.extend({
       hiveserverTestDone: null,
       atsTest: null,
       atsTestDone: null,
-      userhomeTest: null,
-      userhomeTestDone: null,
       percent: 0
     });
   },
@@ -44,7 +42,7 @@ export default Ember.Route.extend({
     var self = this;
     controller.startTests().then(function() {
 
-    if (model.get("hiveserverTest") && model.get("hdfsTest") && model.get("atsTest") && model.get("userhomeTest")) {
+    if (model.get("hiveserverTest") && model.get("hdfsTest") && model.get("atsTest")) {
       Ember.run.later(this, function() {
         self.send('transition');
       }, 2000);

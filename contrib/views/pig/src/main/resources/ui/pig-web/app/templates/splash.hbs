@@ -17,6 +17,8 @@
 }}
 
 <div class="container-fluid">
+  <h1>{{t 'splash.welcome'}}</h1>
+
   {{#if allTestsCompleted }}
     <h3>Service checks completed.</h3>
   {{else}}
@@ -78,21 +80,6 @@
           {{/if}}
         </td>
         <td>{{t 'splash.webhcat_test'}}</td>
-      </tr>
-
-      <tr>
-        <td>
-          {{#if userhomeTestDone}}
-            {{#if userhomeTest}}
-              <span class="glyphicon glyphicon-ok green"></span>
-            {{else}}
-              <span class="glyphicon glyphicon-remove red"></span>
-            {{/if}}
-          {{else}}
-            <span class="glyphicon glyphicon-arrow-right"></span>
-          {{/if}}
-        </td>
-        <td>{{t 'splash.userhome_test'}}</td>
       </tr>
 
     </tbody>
