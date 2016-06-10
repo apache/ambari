@@ -313,10 +313,13 @@ class Script(object):
       
     # If <stack-selector-tool> has not yet been done (situations like first install),
     # we can use <stack-selector-tool> version itself.
-    if not Script.stack_version_from_distro_select:
+    # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we should try to specify it.
+    if not Script.stack_version_from_distro_select or '*' in Script.stack_version_from_distro_select:
+      # FIXME: this method is not reliable to get stack-selector-version
+      # as if there are multiple versions installed with different <stack-selector-tool>, we won't detect the older one (if needed).
       Script.stack_version_from_distro_select = packages_analyzer.getInstalledPackageVersion(
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
-      
+
     return Script.stack_version_from_distro_select
   
   def format_package_name(self, name):
@@ -338,7 +341,9 @@ class Script(object):
       stack_version_package_formatted = package_version
       if OSCheck.is_ubuntu_family():
         stack_version_package_formatted = package_version.replace('_', package_delimiter)
-    else:
+
+    # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we try to specify it.
+    if not package_version or '*' in package_version:
       stack_version_package_formatted = self.get_stack_version_before_packages_installed().replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
 
     package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
