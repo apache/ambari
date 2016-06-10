@@ -91,6 +91,9 @@ public class AmbariContext {
   @Inject
   private PersistedState persistedState;
 
+  @Inject
+  private org.apache.ambari.server.configuration.Configuration configs;
+
   private static AmbariManagementController controller;
   private static ClusterController clusterController;
   //todo: task id's.  Use existing mechanism for getting next task id sequence
@@ -113,6 +116,11 @@ public class AmbariContext {
     }
     return cluster.getSecurityType() == SecurityType.KERBEROS;
   }
+
+  public boolean areHostsSysPrepped() {
+    return Boolean.parseBoolean(configs.areHostsSysPrepped());
+  }
+
 
   //todo: change return type to a topology abstraction
   public HostRoleCommand createAmbariTask(long requestId, long stageId, String component, String host, TaskType type) {
