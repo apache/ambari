@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
@@ -66,8 +67,14 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private SubsetConfiguration conf;
   // Cache the rpc port used and the suffix to use if the port tag is found
   private Map<String, String> rpcPortSuffixes = new HashMap<>(10);
-  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+    public Thread newThread(Runnable r) {
+      Thread t = Executors.defaultThreadFactory().newThread(r);
+      t.setDaemon(true);
+      return t;
+    }
+  });
 
   @Override
   public void init(SubsetConfiguration conf) {
@@ -413,5 +420,6 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         }
       }
     });
+    executorService.shutdown();
   }
 }
