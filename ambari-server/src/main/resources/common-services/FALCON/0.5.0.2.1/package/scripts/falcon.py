@@ -131,6 +131,7 @@ def falcon(type, action = None, upgrade_type=None):
         owner = params.falcon_user,
         mode = 0777)
 
+      # In HDP 2.4 and earlier, the data-mirroring directory was copied to HDFS.
       if params.supports_data_mirroring:
         params.HdfsResource(params.dfs_data_mirroring_dir,
           type = "directory",
@@ -143,6 +144,14 @@ def falcon(type, action = None, upgrade_type=None):
           source = params.local_data_mirroring_dir)
 
       if params.supports_falcon_extensions:
+        # In HDP 2.5, data-mirroring directory is still needed by Falcon for the data store, but don't copy any content.
+        # Instead, copy the extensions folder to HDFS.
+        params.HdfsResource(params.dfs_data_mirroring_dir,
+                            type = "directory",
+                            action = "create_on_execute",
+                            owner = params.falcon_user,
+                            mode = 0777)
+
         params.HdfsResource(params.falcon_extensions_dest_dir,
                             type = "directory",
                             action = "create_on_execute",
