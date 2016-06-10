@@ -846,6 +846,14 @@ App.HostPopup = Em.Object.create({
       }),
 
       /**
+       * @type {Em.View}
+       */
+      footerClass: Em.View.extend({
+        classNames: ["modal-footer"],
+        templateName: require('templates/common/host_progress_popup_footer')
+      }),
+
+      /**
        * @type {String[]}
        */
       classNames: ['sixty-percent-width-modal', 'host-progress-popup', 'full-height-modal'],

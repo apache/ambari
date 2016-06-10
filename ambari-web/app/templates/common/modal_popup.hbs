@@ -47,10 +47,6 @@
       {{view view.footerClass}}
     {{else}}
       <div class="modal-footer">
-          {{#isAuthorized "AMBARI.MANAGE_SETTINGS"}}
-            <label id="footer-checkbox">{{view Ember.Checkbox classNames="checkbox" checkedBinding="view.isNotShowBgChecked"}}
-              &nbsp;{{t app.settings.notShowBgOperations}}</label>
-          {{/isAuthorized}}
         {{#if view.third}}
           <button {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass"}} {{action onThird target="view"}}>{{view.third}}</button>
         {{/if}}
