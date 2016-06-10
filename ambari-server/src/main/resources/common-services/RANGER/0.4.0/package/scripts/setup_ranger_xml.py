@@ -547,8 +547,7 @@ def setup_ranger_audit_solr():
     config_set_dir = params.ranger_solr_conf,
     tmp_config_set_dir = tmp_config_set_folder,
     java64_home = params.java_home,
-    user = params.unix_user,
-    group = params.unix_group)
+    user = params.unix_user)
 
   solr_cloud_util.create_collection(
     zookeeper_quorum = params.zookeeper_quorum,
@@ -557,6 +556,5 @@ def setup_ranger_audit_solr():
     config_set = params.ranger_solr_config_set,
     java64_home = params.java_home,
     user = params.unix_user,
-    group = params.unix_group,
     shards = params.ranger_solr_shards,
     replication_factor = params.replication_factor)

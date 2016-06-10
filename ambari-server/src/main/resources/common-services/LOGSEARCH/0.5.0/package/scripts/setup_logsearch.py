@@ -98,5 +98,4 @@ def upload_conf_set(config_set, random_num):
     config_set=config_set,
     tmp_config_set_dir=tmp_config_set_folder,
     java64_home=params.java64_home,
-    user=params.logsearch_solr_user,
-    group=params.logsearch_solr_group)
+    user=params.logsearch_solr_user)
