@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, Group, $routeParams, Alert, ConfirmationModal, $location, $translate) {
+.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Cluster', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, Group, $routeParams, Cluster, Alert, ConfirmationModal, $location, $translate) {
   var $t = $translate.instant;
   $scope.constants = {
     group: $t('common.group'),
@@ -88,10 +88,30 @@ angular.module('ambariAdminConsole')
         instanceName: '"' + group.group_name + '"'
       })
     ).then(function() {
-      group.destroy().then(function() {
-        $location.path('/groups');
-      }).catch(function() {
-        
+      Cluster.getPrivilegesForResource({
+        nameFilter : group.group_name,
+        typeFilter : {value: 'GROUP'}
+      }).then(function(data) {
+        var deleteCallback = function () {
+          group.destroy().then(function() {
+            $location.path('/groups');
+          });
+        };
+        var privilegesIds = [];
+        if (data.items && data.items.length) {
+          angular.forEach(data.items[0].privileges, function(privilege) {
+            if (privilege.PrivilegeInfo.principal_type === 'GROUP') {
+              privilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+            }
+          });
+        }
+        if (privilegesIds.length) {
+          Cluster.deleteMultiplePrivileges($routeParams.id, privilegesIds).then(function() {
+            deleteCallback();
+          });
+        } else {
+          deleteCallback();
+        }
       });
     });
   };

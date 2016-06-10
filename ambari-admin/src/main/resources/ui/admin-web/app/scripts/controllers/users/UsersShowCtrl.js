@@ -191,7 +191,9 @@ angular.module('ambariAdminConsole')
         };
         if (data.items && data.items.length) {
           angular.forEach(data.items[0].privileges, function(privilege) {
-            privilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+            if (privilege.PrivilegeInfo.principal_type === 'USER') {
+              privilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+            }
           });
         }
         if (privilegesIds.length) {
