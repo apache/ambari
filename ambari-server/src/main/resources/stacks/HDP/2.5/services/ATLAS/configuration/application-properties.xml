@@ -209,4 +209,16 @@
     <deleted>true</deleted>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>atlas.authorizer.impl</name>
+    <description>
+      Atlas authorizer class
+    </description>
+    <depends-on>
+      <property>
+        <type>ranger-atlas-plugin-properties</type>
+        <name>ranger-atlas-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>

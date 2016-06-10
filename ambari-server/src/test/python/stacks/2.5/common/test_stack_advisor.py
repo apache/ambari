@@ -5686,6 +5686,11 @@ class TestHDP25StackAdvisor(TestCase):
         "properties": {
           "logsearch_solr_znode": "/logsearch"
         }
+      },
+      'ranger-atlas-plugin-properties': {
+        'properties': {
+          'ranger-atlas-plugin-enabled':'No'
+        }
       }
     }
     clusterData = {
@@ -5705,12 +5710,18 @@ class TestHDP25StackAdvisor(TestCase):
           "atlas.kafka.bootstrap.servers": "c6401.ambari.apache.org:6667",
           "atlas.kafka.zookeeper.connect": "c6401.ambari.apache.org",
           'atlas.server.address.id1': "c6401.ambari.apache.org:21000",
-          'atlas.server.ids': "id1"
+          'atlas.server.ids': "id1",
+          'atlas.authorizer.impl':'org.apache.ranger.authorization.atlas.authorizer.RangerAtlasAuthorizer'
         }
       },
       "logsearch-solr-env": {
         "properties": {
           "logsearch_solr_znode": "/logsearch"
+        }
+      },
+      'ranger-atlas-plugin-properties': {
+        'properties': {
+          'ranger-atlas-plugin-enabled':'Yes'
         }
       }
     }
@@ -5864,6 +5875,11 @@ class TestHDP25StackAdvisor(TestCase):
             "zookeeper.connect": "c6401.ambari.apache.org",
             "port": "6667"
           }
+        },
+        'ranger-atlas-plugin-properties': {
+          'properties': {
+            'ranger-atlas-plugin-enabled':'No'
+          }
         }
       },
       "changed-configurations": [ ]
@@ -5888,6 +5904,11 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
+    # test for Ranger Atlas plugin disabled
+    self.assertEquals(configurations['application-properties']['properties']['atlas.authorizer.impl'], 'org.apache.atlas.authorize.SimpleAtlasAuthorizer', 'Test atlas.authorizer.impl with Ranger Atlas plugin is disabled ')
+
+    configurations['ranger-atlas-plugin-properties']['properties']['ranger-atlas-plugin-enabled'] = 'Yes'
+    configurations['application-properties']['properties']['atlas.authorizer.impl'] =  'org.apache.ranger.authorization.atlas.authorizer.RangerAtlasAuthorizer'
     self.assertEquals(configurations, expected)
 
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
