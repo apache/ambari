@@ -41,7 +41,8 @@ class Rangeradmin:
   sInstance = None
 
   def __init__(self, url='http://localhost:6080', skip_if_rangeradmin_down = True):
-
+    if url.endswith('/'):
+      url = url.rstrip('/')
     self.baseUrl = url
     self.urlLogin = self.baseUrl + '/login.jsp'
     self.urlLoginPost = self.baseUrl + '/j_spring_security_check'

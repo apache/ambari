@@ -65,6 +65,8 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
     File(component_driver_curl_target, mode=0644)
 
+  if policymgr_mgr_url.endswith('/'):
+    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
   stack_version = get_stack_version(component_select_name)
   if stack_version_override is not None:
     stack_version = stack_version_override
