@@ -135,6 +135,10 @@ class NimbusDefault(Nimbus):
     import params
     return params.storm_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.pid_nimbus]
+
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NimbusWindows(Nimbus):
   def start(self, env):

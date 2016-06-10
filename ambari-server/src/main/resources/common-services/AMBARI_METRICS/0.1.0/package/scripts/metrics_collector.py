@@ -68,6 +68,10 @@ class AmsCollector(Script):
     import params
     return params.ams_user
 
+  def get_pid_files(self):
+    import status
+    return status.get_collector_pid_files()
+
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class AmsCollectorDefault(AmsCollector):

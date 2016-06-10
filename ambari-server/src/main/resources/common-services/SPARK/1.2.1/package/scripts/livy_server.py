@@ -57,6 +57,10 @@ class LivyServer(Script):
 
     check_process_status(status_params.livy_server_pid_file)
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.livy_server_pid_file]
+
 
   def get_component_name(self):
     return "livy-server"

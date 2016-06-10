@@ -32,6 +32,9 @@ ams_collector_pid_dir = config['configurations']['ams-env']['metrics_collector_p
 ams_monitor_pid_dir = config['configurations']['ams-env']['metrics_monitor_pid_dir']
 ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
 
+monitor_pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
+grafana_pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 ams_hbase_conf_dir = format("{hbase_conf_dir}")
 

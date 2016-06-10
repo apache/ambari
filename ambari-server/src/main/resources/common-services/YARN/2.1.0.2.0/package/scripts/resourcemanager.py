@@ -282,6 +282,10 @@ class ResourcemanagerDefault(Resourcemanager):
   def get_user(self):
     import params
     return params.yarn_user
+
+  def get_pid_files(self):
+    import status_params
+    return [status_params.resourcemanager_pid_file]
   
 if __name__ == "__main__":
   Resourcemanager().execute()

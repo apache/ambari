@@ -186,5 +186,9 @@ class HistoryServerDefault(HistoryServer):
     import params
     return params.mapred_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.mapred_historyserver_pid_file]
+
 if __name__ == "__main__":
   HistoryServer().execute()
