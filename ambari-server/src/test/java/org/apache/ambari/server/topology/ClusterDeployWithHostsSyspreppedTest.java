@@ -17,23 +17,6 @@
  */
 package org.apache.ambari.server.topology;
 
-import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.isNull;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,9 +63,26 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
-public class ClusterInstallWithoutStartTest {
+public class ClusterDeployWithHostsSyspreppedTest {
   private static final String CLUSTER_NAME = "test-cluster";
   private static final long CLUSTER_ID = 1;
   private static final String BLUEPRINT_NAME = "test-bp";
@@ -141,7 +141,9 @@ public class ClusterInstallWithoutStartTest {
   @Mock(type = MockType.NICE)
   private Cluster cluster;
   @Mock(type = MockType.NICE)
-  private HostRoleCommand hostRoleCommand;
+  private HostRoleCommand hostRoleCommandInstallComponent3;
+  @Mock(type = MockType.NICE)
+  private HostRoleCommand hostRoleCommandInstallComponent4;
 
 
   @Mock(type = MockType.NICE)
@@ -327,13 +329,13 @@ public class ClusterInstallWithoutStartTest {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String)isNull());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
-    expect(ambariContext.areHostsSysPrepped()).andReturn(false).anyTimes();
+    expect(ambariContext.areHostsSysPrepped()).andReturn(true).anyTimes();
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
       andReturn(Collections.singletonList(configurationRequest));
@@ -342,12 +344,22 @@ public class ClusterInstallWithoutStartTest {
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture3))).
       andReturn(Collections.singletonList(configurationRequest3)).once();
     // INSTALL task expectation
-    expect(ambariContext.createAmbariTask(anyLong(), anyLong(), anyString(),
-      anyString(), eq(AmbariContext.TaskType.INSTALL))).andReturn(hostRoleCommand).atLeastOnce();
-    expect(hostRoleCommand.getTaskId()).andReturn(1L).atLeastOnce();
-    expect(hostRoleCommand.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
-    expect(hostRoleCommand.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
-    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+
+
+    expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component3"),
+      anyString(), eq(AmbariContext.TaskType.INSTALL))).andReturn(hostRoleCommandInstallComponent3).times(3);
+    expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component4"),
+      anyString(), eq(AmbariContext.TaskType.INSTALL))).andReturn(hostRoleCommandInstallComponent4).times(2);
+
+    expect(hostRoleCommandInstallComponent3.getTaskId()).andReturn(1L).atLeastOnce();
+    expect(hostRoleCommandInstallComponent3.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
+    expect(hostRoleCommandInstallComponent3.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
+    expect(hostRoleCommandInstallComponent3.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+
+    expect(hostRoleCommandInstallComponent4.getTaskId()).andReturn(2L).atLeastOnce();
+    expect(hostRoleCommandInstallComponent4.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
+    expect(hostRoleCommandInstallComponent4.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
+    expect(hostRoleCommandInstallComponent4.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
     expectLastCall().times(3);
@@ -367,7 +379,8 @@ public class ClusterInstallWithoutStartTest {
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, logicalRequest,
       configurationRequest, configurationRequest2, configurationRequest3, requestStatusResponse, executor,
       persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
-      mockFuture, managementController, clusters, cluster, hostRoleCommand, serviceComponentInfo, clientComponentInfo);
+      mockFuture, managementController, clusters, cluster, hostRoleCommandInstallComponent3,
+      hostRoleCommandInstallComponent4, serviceComponentInfo, clientComponentInfo);
 
     Class clazz = TopologyManager.class;
 
@@ -383,16 +396,18 @@ public class ClusterInstallWithoutStartTest {
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
       logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
       requestStatusResponse, executor, persistedState, mockFuture,
-      managementController, clusters, cluster, hostRoleCommand);
+      managementController, clusters, cluster, hostRoleCommandInstallComponent3, hostRoleCommandInstallComponent4);
 
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
       logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
       requestStatusResponse, executor, persistedState, mockFuture,
-      managementController, clusters, cluster, hostRoleCommand);
+      managementController, clusters, cluster, hostRoleCommandInstallComponent3, hostRoleCommandInstallComponent4);
   }
 
   @Test
   public void testProvisionCluster() throws Exception {
     topologyManager.provisionCluster(request);
+    LogicalRequest request = topologyManager.getRequest(1);
+    assertEquals(request.getHostRequests().size(), 3);
   }
 }

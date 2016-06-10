@@ -705,7 +705,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       return;
     }
     Set<String> needRestartServices = ambariMetaInfo.getRestartRequiredServicesNames(
-        stackId.getStackName(), stackId.getStackVersion());
+      stackId.getStackName(), stackId.getStackVersion());
 
     if(needRestartServices.contains(service.getName())) {
       Map<String, ServiceComponent> m = service.getServiceComponents();
@@ -2660,8 +2660,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             Map<String, Map<String, String>> configTags =
                 findConfigurationTagsWithOverrides(cluster, host.getHostName());
 
-            createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                             roleCommand, requestParameters, event);
+            // Skip INSTALL task in case SysPrepped hosts and in case of server components. In case of server component
+            // START task should run configuration script.
+            if (Boolean.parseBoolean(configs.areHostsSysPrepped()) &&
+                  "INITIAL_INSTALL".equals(requestProperties.get("phase")) &&
+                    newState == State.INSTALLED && !isClientComponent(cluster, scHost)) {
+              LOG.info("Skipping create of INSTALL task for {} on {} because host is sysprepped.", scHost
+                .getServiceComponentName(), scHost.getHostName());
+            } else {
+              createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
+                roleCommand, requestParameters, event);
+            }
+
           }
         }
       }
@@ -2740,6 +2750,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             return true;
           }
         }
+      }
+    }
+    return false;
+  }
+
+
+  private boolean isClientComponent(Cluster cluster, ServiceComponentHost sch) throws AmbariException {
+    Service service = cluster.getService(sch.getServiceName());
+    if (service != null) {
+      ServiceComponent serviceComponent = service.getServiceComponent(sch.getServiceComponentName());
+      if (serviceComponent != null) {
+        return serviceComponent.isClientComponent();
       }
     }
     return false;
