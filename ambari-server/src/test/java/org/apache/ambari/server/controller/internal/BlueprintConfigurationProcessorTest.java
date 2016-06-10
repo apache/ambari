@@ -6537,6 +6537,63 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
   }
 
+  @Test
+  public void testRangerEnv_defaults_NO_HDFS() throws Exception {
+    // Given
+    List<String> configTypesWithRangerHdfsAuditDir = ImmutableList.of(
+      "ranger-env",
+      "ranger-yarn-audit",
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-knox-audit",
+      "ranger-kafka-audit",
+      "ranger-storm-audit"
+    );
+    Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
+
+    for (String configType: configTypesWithRangerHdfsAuditDir) {
+      Map<String, String> configProperties = new HashMap<>();
+      configProperties.put("xasecure.audit.destination.hdfs.dir", "hdfs://localhost:100");
+
+      clusterConfigProperties.put(configType, configProperties);
+    }
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Configuration parentClusterConfig = new Configuration(parentProperties, new HashMap<String, Map<String, Map<String, String>>>());
+    Configuration clusterConfig = new Configuration(clusterConfigProperties, new HashMap<String, Map<String, Map<String, String>>>(), parentClusterConfig);
+
+    Collection<String> rangerComponents = new HashSet<>();
+    rangerComponents.add("RANGER_ADMIN");
+    rangerComponents.add("RANGER_USERSYNC");
+
+    TestHostGroup group1 = new TestHostGroup("group1", rangerComponents, Collections.singleton("host1"));
+    group1.components.add("OOZIE_SERVER");
+
+
+    expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1+")).anyTimes();
+
+    Collection<TestHostGroup> hostGroups = Lists.newArrayList(group1);//, group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForClusterCreate();
+
+    // Then
+    String expectedAuditHdfsDir = "hdfs://localhost:100";
+
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-env", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-yarn-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hdfs-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hbase-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-hive-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+  }
+
 
   @Test
   public void testRangerEnv() throws Exception {
