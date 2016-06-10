@@ -471,7 +471,8 @@ public class VersionDefinitionResourceProviderTest {
 
 
     // !!! create one, but a dry run to make sure we get two validation errors
-    Map<String, String> infoProps = Collections.singletonMap(Request.DIRECTIVE_DRY_RUN, "true");
+    Map<String, String> infoProps = new HashMap<>();
+    infoProps.put(Request.DIRECTIVE_DRY_RUN, "true");
 
     createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), infoProps);
     RequestStatus status = versionProvider.createResources(createRequest);
@@ -493,7 +494,42 @@ public class VersionDefinitionResourceProviderTest {
     Set<String> validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
     Assert.assertEquals(3, validation.size());
 
-    // dry-run with a changed name.  should get one validation error about version
+    validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
+    Assert.assertEquals(3, validation.size());
+
+    boolean found = false;
+    for (String reason : validation) {
+      if (reason.contains("http://baseurl1")) {
+        found = true;
+      }
+    }
+
+    Assert.assertTrue("URL validation should be checked", found);
+
+
+    // !!! test url validation
+    infoProps.put(VersionDefinitionResourceProvider.DIRECTIVE_SKIP_URL_CHECK, "true");
+    createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), infoProps);
+    status = versionProvider.createResources(createRequest);
+
+    Assert.assertEquals(1, status.getAssociatedResources().size());
+
+    res = status.getAssociatedResources().iterator().next();
+    Assert.assertTrue(res.getPropertiesMap().containsKey("VersionDefinition"));
+    Assert.assertEquals("2.2.1.0", res.getPropertyValue("VersionDefinition/repository_version"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/show_available"));
+    Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
+
+    validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
+    Assert.assertEquals(3, validation.size());
+    for (String reason : validation) {
+      if (reason.contains("http://baseurl1")) {
+        Assert.fail("URL validation should be skipped for http://baseurl1");
+      }
+    }
+
+    // dry-run with a changed name
+    infoProps.remove(VersionDefinitionResourceProvider.DIRECTIVE_SKIP_URL_CHECK);
     createMap.put(VersionDefinitionResourceProvider.VERSION_DEF_DISPLAY_NAME, "HDP-2.2.0.4-a");
     createRequest = PropertyHelper.getCreateRequest(Collections.singleton(createMap), infoProps);
     status = versionProvider.createResources(createRequest);
@@ -509,6 +545,5 @@ public class VersionDefinitionResourceProviderTest {
 
     validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
     Assert.assertEquals(2, validation.size());
-
   }
 }

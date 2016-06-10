@@ -26,6 +26,8 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
+import com.google.common.collect.Sets;
+
 /**
  * The Resource Definition used for Version Definition files.
  */
@@ -52,7 +54,8 @@ public class VersionDefinitionResourceDefinition extends BaseResourceDefinition 
 
   @Override
   public Collection<String> getCreateDirectives() {
-    return Collections.singleton(Request.DIRECTIVE_DRY_RUN);
+    return Sets.newHashSet(Request.DIRECTIVE_DRY_RUN,
+        VersionDefinitionResourceProvider.DIRECTIVE_SKIP_URL_CHECK);
   }
 
 }
