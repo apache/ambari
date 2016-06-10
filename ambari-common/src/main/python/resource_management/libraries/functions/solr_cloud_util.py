@@ -19,6 +19,7 @@ limitations under the License.
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.shell import as_user
 from resource_management.core.source import StaticFile, InlineTemplate
 
 __all__ = ["upload_configuration_to_zk", "create_collection"]
@@ -29,7 +30,7 @@ def __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home):
   return solr_cli_prefix
 
 def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_set_dir, tmp_config_set_dir,
-                         java64_home, user, group, retry = 5, interval = 10):
+                         java64_home, user, retry = 5, interval = 10):
   """
   Upload configuration set to zookeeper with solrCloudCli.sh
   At first, it tries to download configuration set if exists into a temporary location, then upload that one to
@@ -38,19 +39,17 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home)
   Execute(format('{solr_cli_prefix} --download-config -d {tmp_config_set_dir} -cs {config_set} -rt {retry} -i {interval}'),
-          only_if=format("{solr_cli_prefix} --check-config -cs {config_set} -rt {retry} -i {interval}"),
-          user=user,
-          group=group
+          only_if=as_user(format("{solr_cli_prefix} --check-config -cs {config_set} -rt {retry} -i {interval}"), user),
+          user=user
           )
 
   Execute(format(
     '{solr_cli_prefix} --upload-config -d {config_set_dir} -cs {config_set} -rt {retry} -i {interval}'),
     not_if=format("test -d {tmp_config_set_dir}"),
-    user=user,
-    group=group
+    user=user
   )
 
-def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java64_home, user, group,
+def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java64_home, user,
                       shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10,
                       router_name = None, router_field = None):
   """
@@ -73,8 +72,7 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   if router_name is not None and router_field is not None:
     create_collection_cmd += format(' -rn {router_name} -rf {router_field}')
 
-  Execute(create_collection_cmd, user=user, group=group
-  )
+  Execute(create_collection_cmd, user=user)
 
 def setup_solr_client(config, user = None, group = None):
     solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user'] if user is None else user
