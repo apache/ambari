@@ -2778,7 +2778,20 @@ public class BlueprintConfigurationProcessor {
       for(String configType: excludedConfigTypes) {
         LOG.debug("Handling excluded config type [{}] for blueprint service: [{}]", configType, blueprintService);
 
-        String blueprintServiceForExcludedConfig = stack.getServiceForConfigType(configType);
+        String blueprintServiceForExcludedConfig;
+
+        try {
+          blueprintServiceForExcludedConfig = stack.getServiceForConfigType(configType);
+        } catch (IllegalArgumentException illegalArgumentException) {
+          LOG.warn("Error encountered while trying to obtain the service name for config type [" + configType +
+            "].  Further processing on this excluded config type will be skipped.  " +
+            "This usually means that a service's definitions have been manually removed from the Ambari stack definitions.  " +
+            "If the stack definitions have not been changed manually, this may indicate a stack definition error in Ambari.  ", illegalArgumentException);
+          // skip this type for any further processing
+          continue;
+        }
+
+
         if (!blueprintServices.contains(blueprintServiceForExcludedConfig)) {
           LOG.debug("Service [{}] for excluded config type [{}] is not present in the blueprint. " +
               "Ignoring excluded config entries.", blueprintServiceForExcludedConfig, configType);

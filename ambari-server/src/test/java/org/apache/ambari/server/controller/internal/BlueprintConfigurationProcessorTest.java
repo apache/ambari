@@ -4186,6 +4186,51 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testExcludedPropertiesHandlingWhenExcludedConfigServiceIsNotFoundInStack() throws Exception {
+    reset(stack);
+
+    // defaults from init() method that we need
+    expect(stack.getName()).andReturn("testStack").anyTimes();
+    expect(stack.getVersion()).andReturn("1").anyTimes();
+    expect(stack.isMasterComponent((String) anyObject())).andReturn(false).anyTimes();
+
+    // customized stack calls for this test only
+    Set<String> excludedConfigTypes = new HashSet<String>();
+    excludedConfigTypes.add("oozie-site");
+    excludedConfigTypes.add("storm-site");
+    expect(stack.getExcludedConfigurationTypes("FALCON")).andReturn(excludedConfigTypes);
+    expect(stack.getExcludedConfigurationTypes("OOZIE")).andReturn(Collections.<String>emptySet());
+    expect(stack.getConfigurationProperties("FALCON", "oozie-site")).andReturn(Collections.singletonMap("oozie.service.ELService.ext.functions.coord-job-submit-instances", "testValue")).anyTimes();
+    expect(stack.getServiceForConfigType("oozie-site")).andReturn("OOZIE").anyTimes();
+    // simulate the case where the STORM service has been removed manually from the stack definitions
+    expect(stack.getServiceForConfigType("storm-site")).andThrow(new IllegalArgumentException("TEST: Configuration not found in stack definitions!"));
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("FALCON_SERVER");
+    hgComponents.add("FALCON_CLIENT");
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("OOZIE_CLIENT");
+    List<String> hosts = new ArrayList<String>();
+    hosts.add("c6401.apache.ambari.org");
+    hosts.add("serverTwo");
+    TestHostGroup group1 = new TestHostGroup("host_group_1", hgComponents, hosts);
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals("Falcon Broker URL property not properly exported",
+      "testValue", clusterConfig.getPropertyValue("oozie-site", "oozie.service.ELService.ext.functions.coord-job-submit-instances"));
+  }
+
+  @Test
   public void testFalconConfigClusterUpdate() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedPortNum = "808080";
