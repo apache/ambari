@@ -22,7 +22,7 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>atlas_log_level</name>
-    <value>debug</value>
+    <value>info</value>
     <description>Log level for atlas logging</description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -68,7 +68,7 @@
   <appender name="FILE" class="org.apache.log4j.DailyRollingFileAppender">
     <param name="File" value="{{log_dir}}/application.log"/>
     <param name="Append" value="true"/>
-    <param name="Threshold" value="debug"/>
+    <param name="Threshold" value="info"/>
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%d %-5p - [%t:%x] ~ %m (%c{1}:%L)%n"/>
     </layout>
@@ -77,7 +77,7 @@
   <appender name="AUDIT" class="org.apache.log4j.DailyRollingFileAppender">
     <param name="File" value="{{log_dir}}/audit.log"/>
     <param name="Append" value="true"/>
-    <param name="Threshold" value="debug"/>
+    <param name="Threshold" value="info"/>
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%d %x %m%n"/>
     </layout>
