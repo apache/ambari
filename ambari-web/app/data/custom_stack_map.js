@@ -48,5 +48,11 @@ module.exports = [
     "stackVersionNumber": "3.0",
     "sign": "<",
     "baseStackFolder": "HDP2"
+  },
+  {
+    "stackName": "HDF",
+    "stackVersionNumber": "2.0",
+    "sign": "=",
+    "baseStackFolder": "HDP2.3"
   }
 ];
