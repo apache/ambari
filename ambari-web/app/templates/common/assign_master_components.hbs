@@ -148,17 +148,14 @@
         {{/if}}
       </button>
     {{/if}}
-    <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>
+    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action submit target="controller"}}>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
       {{view.acceptButtonText}}
-    </a>
+    </button>
     {{#if view.isCancelButtonVisible}}
       <button class="btn pull-right mrm" {{action onCancel target="controller"}}>{{t common.cancel}}</button>
-    {{/if}}
-    {{#if App.router.nextBtnClickInProgress}}
-      {{view App.SpinnerView tagName="span" classNames="pull-right"}}
     {{/if}}
   </div>
 </div>
