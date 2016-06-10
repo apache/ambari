@@ -86,3 +86,4 @@ class StackFeature:
   RANGER_USERSYNC_PASSWORD_JCEKS = "ranger_usersync_password_jceks"
   LOGSEARCH_SUPPORT = "logsearch_support"
   HBASE_HOME_DIRECTORY = "hbase_home_directory"
+  ATLAS_RANGER_PLUGIN_SUPPORT = "atlas_ranger_plugin_support"
