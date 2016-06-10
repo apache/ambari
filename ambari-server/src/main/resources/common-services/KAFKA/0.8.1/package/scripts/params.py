@@ -174,6 +174,8 @@ if has_ranger_admin and is_supported_kafka_ranger:
   enable_ranger_kafka = config['configurations']['ranger-kafka-plugin-properties']['ranger-kafka-plugin-enabled']
   enable_ranger_kafka = not is_empty(enable_ranger_kafka) and enable_ranger_kafka.lower() == 'yes'
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+  if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
+    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
   xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
   xa_audit_db_flavor = xa_audit_db_flavor.lower() if xa_audit_db_flavor else None
   xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']

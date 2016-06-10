@@ -123,12 +123,16 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 db_flavor =  (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 usersync_exturl =  config['configurations']['admin-properties']['policymgr_external_url']
+if usersync_exturl.endswith('/'):
+  usersync_exturl = usersync_exturl.rstrip('/')
 ranger_host = config['clusterHostInfo']['ranger_admin_hosts'][0]
 ugsync_host = 'localhost'
 usersync_host_info = config['clusterHostInfo']['ranger_usersync_hosts']
 if not is_empty(usersync_host_info) and len(usersync_host_info) > 0:
   ugsync_host = config['clusterHostInfo']['ranger_usersync_hosts'][0]
 ranger_external_url = config['configurations']['admin-properties']['policymgr_external_url']
+if ranger_external_url.endswith('/'):
+  ranger_external_url = ranger_external_url.rstrip('/')
 ranger_db_name = config['configurations']['admin-properties']['db_name']
 ranger_auditdb_name = config['configurations']['admin-properties']['audit_db_name']
 
