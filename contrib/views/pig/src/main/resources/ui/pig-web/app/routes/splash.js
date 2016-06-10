@@ -27,6 +27,8 @@ App.SplashRoute = Em.Route.extend({
       webhcatTestDone: null,
       hdfsTest: null,
       hdfsTestDone: null,
+      userhomeTest: null,
+      userhomeTestDone: null,
       percent: 0
     });
   },
@@ -37,7 +39,7 @@ App.SplashRoute = Em.Route.extend({
     controller.set('model', model);
     var self = this;
     controller.startTests(model).then(function() {
-      if (model.get("storageTest") && model.get("webhcatTest") && model.get("hdfsTest")) {
+      if (model.get("storageTest") && model.get("webhcatTest") && model.get("hdfsTest") && model.get("userhomeTest")) {
         Ember.run.later(this, function() {
           previousTransition = App.get('previousTransition');
           if (previousTransition) {
