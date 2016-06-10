@@ -23,7 +23,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +61,7 @@ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -103,6 +103,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_VALIDATION               = "VersionDefinition/validation";
   protected static final String SHOW_AVAILABLE                       = "VersionDefinition/show_available";
 
+  public static final String DIRECTIVE_SKIP_URL_CHECK = "skip_url_check";
+
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemResourceDefinition().getPluralName();
 
   @Inject
@@ -127,8 +129,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       VERSION_DEF_ID,
       VERSION_DEF_STACK_NAME,
       VERSION_DEF_STACK_VERSION,
-      VERSION_DEF_FULL_VERSION
-      );
+      VERSION_DEF_FULL_VERSION);
 
   /**
    * The property ids for an version definition resource.
@@ -157,11 +158,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   /**
    * The key property ids for an version definition resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
-
-  static {
-    KEY_PROPERTY_IDS.put(Resource.Type.VersionDefinition, VERSION_DEF_ID);
-  }
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS =
+      Collections.singletonMap(Resource.Type.VersionDefinition, VERSION_DEF_ID);
 
   /**
    * Constructor.
@@ -205,6 +203,13 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     final Set<String> validations = new HashSet<>();
     final boolean dryRun = request.isDryRunRequest();
 
+    final boolean skipUrlCheck;
+    if (null != request.getRequestInfoProperties()) {
+      skipUrlCheck = BooleanUtils.toBoolean(request.getRequestInfoProperties().get(DIRECTIVE_SKIP_URL_CHECK));
+    } else {
+      skipUrlCheck = false;
+    }
+
     XmlHolder xmlHolder = createResources(new Command<XmlHolder>() {
       @Override
       public XmlHolder invoke() throws AmbariException {
@@ -239,7 +244,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
         try {
           RepositoryVersionResourceProvider.validateRepositoryVersion(s_repoVersionDAO,
-              s_metaInfo.get(), holder.entity);
+              s_metaInfo.get(), holder.entity, skipUrlCheck);
         } catch (AmbariException e) {
           if (dryRun) {
             validations.add(e.getMessage());

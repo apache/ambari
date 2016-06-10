@@ -434,11 +434,21 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   /**
    * Validates newly created repository versions to contain actual information.
    *
-   * @param repositoryVersion repository version
    * @throws AmbariException exception with error message
    */
   protected static void validateRepositoryVersion(RepositoryVersionDAO dao,
       AmbariMetaInfo metaInfo, RepositoryVersionEntity repositoryVersion) throws AmbariException {
+    validateRepositoryVersion(dao, metaInfo, repositoryVersion, false);
+  }
+
+  /**
+   * Validates newly created repository versions to contain actual information.  Optionally
+   * skip url duplication.
+   *
+   * @throws AmbariException exception with error message
+   */
+  protected static void validateRepositoryVersion(RepositoryVersionDAO dao,
+      AmbariMetaInfo metaInfo, RepositoryVersionEntity repositoryVersion, boolean skipUrlCheck) throws AmbariException {
     final StackId requiredStack = new StackId(repositoryVersion.getStack());
 
     final String requiredStackName = requiredStack.getStackName();
@@ -466,14 +476,17 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     }
 
     final Set<String> osRepositoryVersion = new HashSet<String>();
-    for (OperatingSystemEntity os: repositoryVersion.getOperatingSystems()) {
-      osRepositoryVersion.add(os.getOsType());
 
-      for (RepositoryEntity repositoryEntity : os.getRepositories()) {
-        String baseUrl = repositoryEntity.getBaseUrl();
-        if (os.isAmbariManagedRepos() && existingRepoUrls.contains(baseUrl)) {
-          throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
-                  "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
+    if (!skipUrlCheck) {
+      for (OperatingSystemEntity os: repositoryVersion.getOperatingSystems()) {
+        osRepositoryVersion.add(os.getOsType());
+
+        for (RepositoryEntity repositoryEntity : os.getRepositories()) {
+          String baseUrl = repositoryEntity.getBaseUrl();
+          if (os.isAmbariManagedRepos() && existingRepoUrls.contains(baseUrl)) {
+            throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
+                    "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
+          }
         }
       }
     }
