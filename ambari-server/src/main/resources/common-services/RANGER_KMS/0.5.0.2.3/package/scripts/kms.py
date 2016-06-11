@@ -467,19 +467,16 @@ def setup_kms_jce():
 def check_ranger_service():
   import params
 
-  policymgr_mgr_url = params.policymgr_mgr_url
-  if policymgr_mgr_url.endswith('/'):
-    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-  ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url)
+  ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
   ambari_username_password_for_ranger = format("{ambari_ranger_admin}:{ambari_ranger_password}")
-  response_code = ranger_adm_obj.check_ranger_login_urllib2(policymgr_mgr_url)
+  response_code = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url)
 
   if response_code is not None and response_code == 200:
     user_resp_code = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
     if user_resp_code is not None and user_resp_code == 200:
-      get_repo_flag = get_repo(policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
+      get_repo_flag = get_repo(params.policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
       if not get_repo_flag:
-        return create_repo(policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
+        return create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
       else:
         return True
     else:
@@ -550,11 +547,8 @@ def get_repo(url, name, usernamepassword):
 def check_ranger_service_support_kerberos():
   import params
 
-  policymgr_mgr_url = params.policymgr_mgr_url
-  if policymgr_mgr_url.endswith('/'):
-    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-  ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url)
-  response_code = ranger_adm_obj.check_ranger_login_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, policymgr_mgr_url, True)
+  ranger_adm_obj = RangeradminV2(url=params.policymgr_mgr_url)
+  response_code = ranger_adm_obj.check_ranger_login_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.policymgr_mgr_url, True)
 
   if response_code is not None and response_code[0] == 200:
     get_repo_name_response = ranger_adm_obj.get_repository_by_name_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, 'kms', 'true')

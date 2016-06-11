@@ -707,8 +707,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                "hive-site": self.validateHiveConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
       "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
-      "YARN": {"yarn-site": self.validateYARNConfigurations},
-      "RANGER": {"admin-properties": self.validateRangerAdminConfigurations}
+      "YARN": {"yarn-site": self.validateYARNConfigurations}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -909,15 +908,3 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
-
-  def validateRangerAdminConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    ranger_site = properties
-    validationItems = []
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'RANGER' in servicesList and 'policymgr_external_url' in ranger_site:
-      policymgr_mgr_url = ranger_site['policymgr_external_url']
-      if policymgr_mgr_url.endswith('/'):
-        validationItems.append({'config-name':'policymgr_external_url',
-                               'item':self.getWarnItem('Ranger External URL should not contain trailing slash "/"')})
-    return self.toConfigurationValidationProblems(validationItems,'admin-properties')
-

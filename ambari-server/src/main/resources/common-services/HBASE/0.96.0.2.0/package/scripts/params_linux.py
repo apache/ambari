@@ -256,8 +256,6 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 # ranger hbase properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
-  policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
 xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
 xa_db_host = config['configurations']['admin-properties']['db_host']
