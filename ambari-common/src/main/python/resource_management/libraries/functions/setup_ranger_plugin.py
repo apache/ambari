@@ -56,8 +56,6 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
     File(driver_curl_target, mode=0644)
 
-  if policymgr_mgr_url.endswith('/'):
-    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
   stack_root = Script.get_stack_root()
   stack_version = get_stack_version(component_select_name)
   file_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install.properties')

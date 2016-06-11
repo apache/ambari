@@ -80,8 +80,6 @@ credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
 
 if has_ranger_admin:
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-  if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
-    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
   xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
   xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']

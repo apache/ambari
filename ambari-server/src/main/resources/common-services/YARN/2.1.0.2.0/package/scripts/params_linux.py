@@ -392,8 +392,6 @@ if has_ranger_admin:
   if is_supported_yarn_ranger:
     enable_ranger_yarn = (config['configurations']['ranger-yarn-plugin-properties']['ranger-yarn-plugin-enabled'].lower() == 'yes')
     policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-    if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
-      policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
     xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
     xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
     xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
@@ -425,7 +423,6 @@ if has_ranger_admin:
 
     if stack_supports_ranger_kerberos:
       ranger_plugin_config['ambari.service.check.user'] = policy_user
-      ranger_plugin_config['hadoop.security.authentication'] = 'kerberos' if security_enabled else 'simple'
 
     if stack_supports_ranger_kerberos and security_enabled:
       ranger_plugin_config['policy.download.auth.users'] = yarn_user

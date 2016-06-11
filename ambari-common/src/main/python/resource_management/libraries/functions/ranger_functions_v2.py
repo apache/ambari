@@ -43,8 +43,6 @@ class RangeradminV2:
   sInstance = None
 
   def __init__(self, url='http://localhost:6080', skip_if_rangeradmin_down = True):
-    if url.endswith('/'):
-      url = url.rstrip('/')
     self.base_url = url
     self.url_login = self.base_url + '/login.jsp'
     self.url_login_post = self.base_url + '/j_spring_security_check'
@@ -137,7 +135,7 @@ class RangeradminV2:
       elif not self.skip_if_rangeradmin_down:
         Logger.error("Connection failed to Ranger Admin !")
     elif is_stack_supports_ranger_kerberos and is_security_enabled:
-      response = self.check_ranger_login_curl(component_user,component_user_keytab,component_user_principal,self.url_login,True)
+      response = self.check_ranger_login_curl(component_user,component_user_keytab,component_user_principal,self.base_url,True)
 
       if response and response[0] == 200:
         retryCount = 0
@@ -322,7 +320,7 @@ class RangeradminV2:
     error_msg = ''
     time_millis = 0
     try:
-      response,error_msg,time_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,base_url,True)
+      response,error_msg,time_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,self.base_url,True)
     except Fail,fail:
       raise Fail(fail.args)
 
