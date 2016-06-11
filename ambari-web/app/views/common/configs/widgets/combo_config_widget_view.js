@@ -143,9 +143,14 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     }
   },
 
-  // setValue: function() {
-  //   this.setConfigValue({ context: this.get('config.value') });
-  // },
+  /**
+   * This method is called when the value of the widget is changed by recommendation received from stack advisor api
+   * @override
+   * @method setValue
+   */
+   setValue: function() {
+     this.setConfigValue({ context: this.get('config.value') });
+   },
 
   isValueCompatibleWithWidget: function() {
     var res = this._super() && this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
