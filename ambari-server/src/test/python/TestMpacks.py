@@ -16,12 +16,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import os
+import platform
 from mock.mock import patch, MagicMock, call
-from ambari_commons.exceptions import FatalException
-from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, purge_stacks_and_mpacks, \
-  STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 from unittest import TestCase
-from ambari_server.serverConfiguration import STACK_LOCATION_KEY, COMMON_SERVICES_PATH_PROPERTY, MPACKS_STAGING_PATH_PROPERTY
+from ambari_commons.exceptions import FatalException
+
+os.environ["ROOT"] = ""
+
+from only_for_platform import get_platform, not_for_platform, only_for_platform, os_distro_value, PLATFORM_LINUX, PLATFORM_WINDOWS
+from ambari_commons import os_utils
+
+import shutil
+project_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/ambari.properties")
+
+# We have to use this import HACK because the filename contains a dash
+_search_file = os_utils.search_file
+os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
+with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
+  with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
+    with patch("os.access", return_value = MagicMock(return_value=True)):
+      with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
+        with patch("platform.linux_distribution", return_value = os_distro_value):
+          with patch("os.symlink"):
+            with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
+              _ambari_server_ = __import__('ambari-server')
+              os_utils.search_file = _search_file
+              with patch("__builtin__.open"):
+                from ambari_commons.exceptions import FatalException, NonFatalException
+                from ambari_server import serverConfiguration
+                serverConfiguration.search_file = _search_file
+
+from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, \
+  purge_stacks_and_mpacks, STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, \
+  MPACKS_RESOURCE_NAME
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
@@ -31,9 +59,9 @@ def get_configs():
   test_directory = os.path.dirname(os.path.abspath(__file__))
   mpacks_directory = os.path.join(test_directory, "mpacks")
   configs = {
-    STACK_LOCATION_KEY : "/var/lib/ambari-server/resources/stacks",
-    COMMON_SERVICES_PATH_PROPERTY : "/var/lib/ambari-server/resources/common-services",
-    MPACKS_STAGING_PATH_PROPERTY : mpacks_directory
+    serverConfiguration.STACK_LOCATION_KEY : "/var/lib/ambari-server/resources/stacks",
+    serverConfiguration.COMMON_SERVICES_PATH_PROPERTY : "/var/lib/ambari-server/resources/common-services",
+    serverConfiguration.MPACKS_STAGING_PATH_PROPERTY : mpacks_directory
   }
   return configs
 
@@ -70,9 +98,9 @@ class TestMpacks(TestCase):
   def test_purge_stacks_and_mpacks(self, get_ambari_version_mock, os_path_exists_mock):
     options = self._create_empty_options_mock()
     get_ambari_version_mock.return_value = configs
-    stacks_directory = configs[STACK_LOCATION_KEY]
-    common_services_directory = configs[COMMON_SERVICES_PATH_PROPERTY]
-    mpacks_directory = configs[MPACKS_STAGING_PATH_PROPERTY]
+    stacks_directory = configs[serverConfiguration.STACK_LOCATION_KEY]
+    common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
+    mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     os_path_exists_mock.return_value = False
 
     purge_stacks_and_mpacks(None)
@@ -190,9 +218,9 @@ class TestMpacks(TestCase):
 
     install_mpack(options)
 
-    stacks_directory = configs[STACK_LOCATION_KEY]
-    common_services_directory = configs[COMMON_SERVICES_PATH_PROPERTY]
-    mpacks_directory = configs[MPACKS_STAGING_PATH_PROPERTY]
+    stacks_directory = configs[serverConfiguration.STACK_LOCATION_KEY]
+    common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
+    mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "mystack-ambari-mpack-1.0.0.0")
 
     os_mkdir_calls = [
@@ -300,9 +328,9 @@ class TestMpacks(TestCase):
 
     install_mpack(options)
 
-    stacks_directory = configs[STACK_LOCATION_KEY]
-    common_services_directory = configs[COMMON_SERVICES_PATH_PROPERTY]
-    mpacks_directory = configs[MPACKS_STAGING_PATH_PROPERTY]
+    stacks_directory = configs[serverConfiguration.STACK_LOCATION_KEY]
+    common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
+    mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "myservice-ambari-mpack-1.0.0.0")
 
     os_mkdir_calls = [
@@ -376,9 +404,9 @@ class TestMpacks(TestCase):
 
     upgrade_mpack(options)
 
-    stacks_directory = configs[STACK_LOCATION_KEY]
-    common_services_directory = configs[COMMON_SERVICES_PATH_PROPERTY]
-    mpacks_directory = configs[MPACKS_STAGING_PATH_PROPERTY]
+    stacks_directory = configs[serverConfiguration.STACK_LOCATION_KEY]
+    common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
+    mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "mystack-ambari-mpack-1.0.0.1")
 
 
