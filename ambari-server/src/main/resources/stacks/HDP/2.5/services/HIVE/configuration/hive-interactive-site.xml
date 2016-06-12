@@ -479,7 +479,13 @@ limitations under the License.
   </property>
   <property>
     <name>hive.llap.io.threadpool.size</name>
-    <value>4</value>
+    <value>2</value>
+    <depends-on>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.num.executors</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

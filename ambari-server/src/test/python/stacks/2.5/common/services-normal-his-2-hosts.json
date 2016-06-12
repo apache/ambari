@@ -1046,7 +1046,57 @@
       "dependencies" : [ ]
     } ]
   } ],
-  "configurations" : { },
+  "configurations" : {
+    "hive-interactive-site" : {
+      "properties": {
+        "hive.llap.daemon.queue.name": "llap"
+      }
+    },
+    "capacity-scheduler" : {
+      "properties" : {
+        "capacity-scheduler" : "null",
+        "yarn.scheduler.capacity.root.accessible-node-labels" : "*",
+        "yarn.scheduler.capacity.maximum-am-resource-percent" : "1",
+        "yarn.scheduler.capacity.root.acl_administer_queue" : "*",
+        "yarn.scheduler.capacity.queue-mappings-override.enable" : "false",
+        "yarn.scheduler.capacity.root.default.capacity" : "51",
+        "yarn.scheduler.capacity.root.default.user-limit-factor" : "1",
+        "yarn.scheduler.capacity.root.queues" : "default, llap",
+        "yarn.scheduler.capacity.root.capacity" : "100",
+        "yarn.scheduler.capacity.root.default.acl_submit_applications" : "*",
+        "yarn.scheduler.capacity.root.default.maximum-capacity" : "51",
+        "yarn.scheduler.capacity.node-locality-delay" : "40",
+        "yarn.scheduler.capacity.maximum-applications" : "10000",
+        "yarn.scheduler.capacity.root.default.state" : "RUNNING",
+        "yarn.scheduler.capacity.root.llap.user-limit-factor":"1",
+        "yarn.scheduler.capacity.root.llap.state":"STOPPED",
+        "yarn.scheduler.capacity.root.llap.ordering-policy":"fifo",
+        "yarn.scheduler.capacity.root.llap.minimum-user-limit-percent":"100",
+        "yarn.scheduler.capacity.root.llap.maximum-capacity":"49",
+        "yarn.scheduler.capacity.root.llap.capacity":"49",
+        "yarn.scheduler.capacity.root.llap.acl_submit_applications":"hive",
+        "yarn.scheduler.capacity.root.llap.acl_administer_queue":"hive",
+        "yarn.scheduler.capacity.root.llap.maximum-am-resource-percent":"1"
+      }
+    },
+    "yarn-site": {
+      "properties": {
+        "yarn.nodemanager.resource.memory-mb":"2048",
+        "yarn.scheduler.minimum-allocation-mb":"341"
+      }
+    },
+    "hive-site": {
+      "properties": {
+        "hive.tez.container.size" : "341",
+        "tez.am.resource.memory.mb" : "341"
+      }
+    },
+    "tez-site": {
+      "properties": {
+        "tez.am.resource.memory.mb" : "341"
+      }
+    }
+  },
   "changed-configurations" : [ ],
   "ambari-server-properties" : {
     "http.x-frame-options" : "DENY",

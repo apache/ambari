@@ -64,26 +64,7 @@
         },
         {
           "config": "hive-interactive-env/llap_queue_capacity",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive",
-                "hive-interactive-site/hive.llap.daemon.queue.name"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive} && ${hive-interactive-site/hive.llap.daemon.queue.name} === llap",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
+          "subsection-name": "interactive-query-row1-col1"
         },
         {
           "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",

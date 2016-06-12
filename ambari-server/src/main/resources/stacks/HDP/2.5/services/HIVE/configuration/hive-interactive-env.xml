@@ -59,7 +59,7 @@
     <display-name>% of Cluster Capacity</display-name>
     <value-attributes>
       <type>int</type>
-      <minimum>0</minimum>
+      <minimum>20</minimum>
       <maximum>100</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
@@ -82,6 +82,7 @@
   <property>
     <name>num_llap_nodes</name>
     <value>1</value>
+    <minimum>1</minimum>
     <description>The number of Hive LLAP daemons to run.</description>
     <display-name>Number of LLAP Daemons</display-name>
     <value-attributes>
