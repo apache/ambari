@@ -59,6 +59,9 @@ logsearch_pid_file = status_params.logsearch_pid_file
 logfeeder_pid_dir = status_params.logfeeder_pid_dir
 logfeeder_pid_file = status_params.logfeeder_pid_file
 
+user_group = config['configurations']['cluster-env']['user_group']
+fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
+
 # shared configs
 java64_home = config['hostLevelParams']['java_home']
 zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
@@ -122,7 +125,6 @@ else:
   zoo_cfg_properties_map = {}
 
 logsearch_solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user']
-logsearch_solr_group = config['configurations']['logsearch-solr-env']['logsearch_solr_group']
 logsearch_solr_log_dir = config['configurations']['logsearch-solr-env']['logsearch_solr_log_dir']
 logsearch_solr_client_log_dir = config['configurations']['logsearch-solr-env']['logsearch_solr_client_log_dir']
 logsearch_solr_client_log = format("{logsearch_solr_client_log_dir}/solr-client.log")
@@ -201,7 +203,6 @@ logsearch_custom_properties.pop("logsearch.external.auth.login_url", None)
 
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
-logsearch_group = config['configurations']['logsearch-env']['logsearch_group']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
 logsearch_log = logsearch_log_dir + '/logsearch.out'
 logsearch_ui_port = config['configurations']['logsearch-env']["logsearch_ui_port"]
@@ -274,7 +275,6 @@ logfeeder_dir = "/usr/lib/ambari-logsearch-logfeeder"
 
 # logfeeder-env configs
 logfeeder_user = config['configurations']['logfeeder-env']['logfeeder_user']
-logfeeder_group = config['configurations']['logfeeder-env']['logfeeder_group']
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']
 logfeeder_log = logfeeder_log_dir + '/logfeeder.out'
 logfeeder_max_mem = config['configurations']['logfeeder-env']['logfeeder_max_mem']

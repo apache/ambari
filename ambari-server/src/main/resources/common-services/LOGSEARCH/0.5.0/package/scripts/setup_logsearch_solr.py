@@ -28,41 +28,54 @@ def setup_logsearch_solr(name = None):
   import params
 
   if name == 'server':
-    Directory([params.solr_dir, params.logsearch_solr_log_dir, params.logsearch_solr_piddir, params.logsearch_solr_conf,
+    Directory([params.logsearch_solr_log_dir, params.logsearch_solr_piddir,
                params.logsearch_solr_datadir, params.logsearch_solr_data_resources_dir],
               mode=0755,
               cd_access='a',
+              create_parents=True,
               owner=params.logsearch_solr_user,
-              group=params.logsearch_solr_group,
-              create_parents=True
+              group=params.user_group
+              )
+
+    Directory([params.solr_dir, params.logsearch_solr_conf],
+              mode=0755,
+              cd_access='a',
+              owner=params.logsearch_solr_user,
+              group=params.user_group,
+              create_parents=True,
+              recursive_ownership=True
               )
 
     File(params.logsearch_solr_log,
          mode=0644,
          owner=params.logsearch_solr_user,
-         group=params.logsearch_solr_group,
+         group=params.user_group,
          content=''
          )
 
     File(format("{logsearch_solr_conf}/logsearch-solr-env.sh"),
          content=InlineTemplate(params.solr_env_content),
          mode=0755,
-         owner=params.logsearch_solr_user
+         owner=params.logsearch_solr_user,
+         group=params.user_group
          )
 
     File(format("{logsearch_solr_datadir}/solr.xml"),
          content=InlineTemplate(params.solr_xml_content),
-         owner=params.logsearch_solr_user
+         owner=params.logsearch_solr_user,
+         group=params.user_group
          )
 
     File(format("{logsearch_solr_conf}/log4j.properties"),
          content=InlineTemplate(params.solr_log4j_content),
-         owner=params.logsearch_solr_user
+         owner=params.logsearch_solr_user,
+         group=params.user_group
          )
 
     File(format("{logsearch_solr_datadir}/zoo.cfg"),
          content=Template("zoo.cfg.j2"),
-         owner=params.logsearch_solr_user
+         owner=params.logsearch_solr_user,
+         group=params.user_group
          )
 
     zk_cli_prefix = format('export JAVA_HOME={java64_home}; {cloud_scripts}/zkcli.sh -zkhost {zookeeper_hosts}')

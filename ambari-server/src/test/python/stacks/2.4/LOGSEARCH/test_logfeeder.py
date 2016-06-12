@@ -18,73 +18,83 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from stacks.utils.RMFTestCase import RMFTestCase, Template, InlineTemplate, StaticFile
-from resource_management.core.exceptions import ComponentIsNotRunning
-
+import grp
+from mock.mock import MagicMock, patch
+from stacks.utils.RMFTestCase import RMFTestCase, Template, InlineTemplate
 
 class TestLogFeeder(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "LOGSEARCH/0.5.0/package"
   STACK_VERSION = "2.4"
 
   def configureResourcesCalled(self):
+    self.assertResourceCalled('User', 'logfeeder',
+                              groups = ['hadoop', 'agent_group'],
+                              fetch_nonlocal_groups = True)
     self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-logfeeder',
-                              owner='logfeeder',
-                              group='logfeeder',
                               create_parents=True,
+                              owner = 'logfeeder',
+                              group = 'hadoop',
                               cd_access='a',
                               mode=0755
                               )
     self.assertResourceCalled('Directory', '/var/run/ambari-logsearch-logfeeder',
-                              owner='logfeeder',
-                              group='logfeeder',
                               create_parents=True,
-                              cd_access='a',
-                              mode=0755
-                              )
-    self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-logfeeder',
-                              owner='logfeeder',
-                              group='logfeeder',
-                              create_parents=True,
-                              cd_access='a',
-                              mode=0755
-                              )
-    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-logfeeder/conf',
-                              owner='logfeeder',
-                              group='logfeeder',
-                              create_parents=True,
+                              owner = 'logfeeder',
+                              group = 'hadoop',
                               cd_access='a',
                               mode=0755
                               )
     self.assertResourceCalled('Directory', '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
-                              owner='logfeeder',
-                              group='logfeeder',
                               create_parents=True,
+                              owner = 'logfeeder',
+                              group = 'hadoop',
+                              cd_access='a',
+                              mode=0755
+                              )
+
+    self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-logfeeder',
+                              create_parents=True,
+                              owner = 'logfeeder',
+                              group = 'hadoop',
+                              recursive_ownership=True,
+                              cd_access='a',
+                              mode=0755
+                              )
+    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-logfeeder/conf',
+                              create_parents=True,
+                              recursive_ownership=True,
+                              owner = 'logfeeder',
+                              group = 'hadoop',
                               cd_access='a',
                               mode=0755
                               )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-logfeeder/logfeeder.out',
-                              owner='logfeeder',
-                              group='logfeeder',
                               mode=0644,
-                              content=''
+                              content='',
+                              owner = 'logfeeder',
+                              group = 'hadoop'
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
-                              owner='logfeeder',
-                              content=Template('logfeeder.properties.j2')
+                              content=Template('logfeeder.properties.j2'),
+                              owner = 'logfeeder',
+                              group = 'hadoop'
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh',
-                              owner='logfeeder',
                               mode=0755,
+                              owner = 'logfeeder',
+                              group = 'hadoop',
                               content=InlineTemplate(self.getConfig()['configurations']['logfeeder-env']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/log4j.xml',
-                              owner='logfeeder',
-                              content=InlineTemplate(self.getConfig()['configurations']['logfeeder-log4j']['content'])
+                              content=InlineTemplate(self.getConfig()['configurations']['logfeeder-log4j']['content']),
+                              owner = 'logfeeder',
+                              group = 'hadoop'
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/grok-patterns',
-                              owner='logfeeder',
                               content=Template('grok-patterns.j2'),
+                              owner = 'logfeeder',
+                              group = 'hadoop',
                               encoding='utf-8'
                               )
 
@@ -96,11 +106,14 @@ class TestLogFeeder(RMFTestCase):
 
     for file_name in logfeeder_config_file_names:
       self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/' + file_name,
-                                owner='logfeeder',
-                                content=Template(file_name + ".j2")
+                                content=Template(file_name + ".j2"),
+                                owner = 'logfeeder',
+                                group = 'hadoop'
                                 )
-
-  def test_configure_default(self):
+  @patch('grp.getgrgid')
+  def test_configure_default(self, grp_mock):
+    grp_mock.return_value = MagicMock()
+    grp_mock.return_value.gr_name = 'agent_group'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logfeeder.py",
                        classname="LogFeeder",
                        command="configure",
@@ -112,7 +125,10 @@ class TestLogFeeder(RMFTestCase):
     self.configureResourcesCalled()
     self.assertNoMoreResources()
 
-  def test_start_default(self):
+  @patch('grp.getgrgid')
+  def test_start_default(self, grp_mock):
+    grp_mock.return_value = MagicMock()
+    grp_mock.return_value.gr_name = 'agent_group'
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logfeeder.py",
                        classname="LogFeeder",
                        command="start",
@@ -125,5 +141,5 @@ class TestLogFeeder(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/lib/ambari-logsearch-logfeeder/run.sh',
                               environment={
                                 'LOGFEEDER_INCLUDE': '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh'},
-                              user='logfeeder'
+                              user = 'logfeeder'
                               )

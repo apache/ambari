@@ -27,70 +27,76 @@ class TestSolr(RMFTestCase):
   STACK_VERSION = "2.4"
 
   def configureResourcesCalled(self):
-      self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr',
-                                owner = 'solr',
-                                group = 'solr',
-                                create_parents = True,
-                                cd_access = 'a',
-                                mode = 0755
-      )
       self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-solr',
                                 owner = 'solr',
-                                group = 'solr',
+                                group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
       self.assertResourceCalled('Directory', '/var/run/ambari-logsearch-solr',
                                 owner = 'solr',
-                                group = 'solr',
-                                create_parents = True,
-                                cd_access = 'a',
-                                mode = 0755
-      )
-      self.assertResourceCalled('Directory', '/etc/ambari-logsearch-solr/conf',
-                                owner = 'solr',
-                                group = 'solr',
+                                group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
       self.assertResourceCalled('Directory', '/opt/logsearch_solr/data',
                                 owner = 'solr',
-                                group = 'solr',
+                                group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
       self.assertResourceCalled('Directory', '/opt/logsearch_solr/data/resources',
                                 owner = 'solr',
-                                group = 'solr',
+                                group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
+      self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr',
+                                owner = 'solr',
+                                group = 'hadoop',
+                                create_parents = True,
+                                recursive_ownership = True,
+                                cd_access = 'a',
+                                mode = 0755
+                                )
+      self.assertResourceCalled('Directory', '/etc/ambari-logsearch-solr/conf',
+                                owner = 'solr',
+                                group = 'hadoop',
+                                create_parents = True,
+                                recursive_ownership = True,
+                                cd_access = 'a',
+                                mode = 0755
+                                )
       
       self.assertResourceCalled('File', '/var/log/ambari-logsearch-solr/solr-install.log',
                                 owner = 'solr',
-                                group = 'solr',
+                                group = 'hadoop',
                                 mode = 0644,
                                 content = ''
       )
       self.assertResourceCalled('File', '/etc/ambari-logsearch-solr/conf/logsearch-solr-env.sh',
                                 owner = 'solr',
+                                group='hadoop',
                                 mode = 0755,
                                 content = InlineTemplate(self.getConfig()['configurations']['logsearch-solr-env']['content'])
       )
       self.assertResourceCalled('File', '/opt/logsearch_solr/data/solr.xml',
                                 owner = 'solr',
+                                group='hadoop',
                                 content = InlineTemplate(self.getConfig()['configurations']['logsearch-solr-xml']['content'])
       )
       self.assertResourceCalled('File', '/etc/ambari-logsearch-solr/conf/log4j.properties',
                                 owner = 'solr',
+                                group='hadoop',
                                 content = InlineTemplate(self.getConfig()['configurations']['logsearch-solr-log4j']['content'])
       )
       self.assertResourceCalled('File', '/opt/logsearch_solr/data/zoo.cfg',
                                 owner = 'solr',
+                                group='hadoop',
                                 content = Template('zoo.cfg.j2')
       )
       self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org -cmd makepath /logsearch',

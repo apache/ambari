@@ -124,6 +124,9 @@
     <value>{metrics_collector_hosts}</value>
     <description>Metrics collector hosts for pushing metrics by Log Search Solr</description>
     <display-name>Metrics collector hosts</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

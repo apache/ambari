@@ -76,18 +76,26 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
 
 def setup_solr_client(config, user = None, group = None):
     solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user'] if user is None else user
-    solr_group = config['configurations']['logsearch-solr-env']['logsearch_solr_group'] if group is None else group
+    solr_group = config['configurations']['cluster-env']['user_group'] if group is None else group
     solr_client_dir = '/usr/lib/ambari-logsearch-solr-client'
     solr_client_log_dir = default('/configurations/logsearch-solr-env/logsearch_solr_client_log_dir', '/var/log/ambari-logsearch-solr-client')
     solr_client_log = format("{solr_client_log_dir}/solr-client.log")
     solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4j']['content']
 
-    Directory([solr_client_dir, solr_client_log_dir],
+    Directory(solr_client_log_dir,
                 mode=0755,
                 cd_access='a',
                 owner=solr_user,
                 group=solr_group,
                 create_parents=True
+                )
+    Directory(solr_client_dir,
+                mode=0755,
+                cd_access='a',
+                owner=solr_user,
+                group=solr_group,
+                create_parents=True,
+                recursive_ownership=True
                 )
     solrCliFilename = format("{solr_client_dir}/solrCloudCli.sh")
     File(solrCliFilename,

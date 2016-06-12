@@ -27,51 +27,64 @@ from resource_management.core.source import InlineTemplate, Template
 def setup_logsearch():
   import params
 
-  Directory([params.logsearch_log_dir, params.logsearch_pid_dir, params.logsearch_dir,
-             params.logsearch_server_conf, params.logsearch_config_set_dir],
+  Directory([params.logsearch_log_dir, params.logsearch_pid_dir],
             mode=0755,
             cd_access='a',
             owner=params.logsearch_user,
-            group=params.logsearch_group,
+            group=params.user_group,
             create_parents=True
             )
 
+  Directory([params.logsearch_dir, params.logsearch_server_conf, params.logsearch_config_set_dir],
+          mode=0755,
+          cd_access='a',
+          owner=params.logsearch_user,
+          group=params.user_group,
+          create_parents=True,
+          recursive_ownership=True
+          )
   File(params.logsearch_log,
        mode=0644,
        owner=params.logsearch_user,
-       group=params.logsearch_group,
+       group=params.user_group,
        content=''
        )
 
   File(format("{logsearch_server_conf}/logsearch.properties"),
        content=Template("logsearch.properties.j2"),
-       owner=params.logsearch_user
+       owner=params.logsearch_user,
+       group=params.user_group
        )
 
   File(format("{logsearch_server_conf}/log4j.xml"),
        content=InlineTemplate(params.logsearch_app_log4j_content),
-       owner=params.logsearch_user
+       owner=params.logsearch_user,
+       group=params.user_group
        )
 
   File(format("{logsearch_server_conf}/logsearch-env.sh"),
        content=InlineTemplate(params.logsearch_env_content),
        mode=0755,
-       owner=params.logsearch_user
+       owner=params.logsearch_user,
+       group=params.user_group
        )
 
   File(format("{logsearch_server_conf}/logsearch-admin.json"),
        content=InlineTemplate(params.logsearch_admin_content),
-       owner=params.logsearch_user
+       owner=params.logsearch_user,
+       group=params.user_group
        )
 
   File(format("{logsearch_config_set_dir}/hadoop_logs/conf/solrconfig.xml"),
        content=InlineTemplate(params.logsearch_service_logs_solrconfig_content),
-       owner=params.logsearch_user
+       owner=params.logsearch_user,
+       group=params.user_group
        )
 
   File(format("{logsearch_config_set_dir}/audit_logs/conf/solrconfig.xml"),
        content=InlineTemplate(params.logsearch_audit_logs_solrconfig_content),
-       owner=params.logsearch_user
+       owner=params.logsearch_user,
+       group=params.user_group
        )
 
   random_num = random.random()

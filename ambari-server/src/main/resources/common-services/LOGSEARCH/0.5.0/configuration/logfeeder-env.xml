@@ -54,14 +54,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logfeeder_group</name>
-    <value>logfeeder</value>
-    <property-type>GROUP</property-type>
-    <description>logfeeder group</description>
-    <display-name>Logsfeeder Group</display-name>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>logfeeder_max_mem</name>
     <value>512m</value>
     <description>Max Memory for Logfeeder</description>

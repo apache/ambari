@@ -16,12 +16,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+import os
+import grp
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.script.script import Script
 from setup_logfeeder import setup_logfeeder
+from resource_management.core.resources.accounts import User
 from logsearch_common import kill_process
 
 
@@ -35,6 +37,9 @@ class LogFeeder(Script):
   def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
+    User(params.logfeeder_user,
+         groups=[params.user_group, grp.getgrgid(os.getegid()).gr_name],
+         fetch_nonlocal_groups = params.fetch_nonlocal_groups)
 
     setup_logfeeder()
 
@@ -45,7 +50,7 @@ class LogFeeder(Script):
 
     Execute(format("{logfeeder_dir}/run.sh"),
             environment={'LOGFEEDER_INCLUDE': format('{logsearch_logfeeder_conf}/logfeeder-env.sh')},
-            user=params.logfeeder_user
+            user = params.logfeeder_user
             )
 
   def stop(self, env, upgrade_type=None):
