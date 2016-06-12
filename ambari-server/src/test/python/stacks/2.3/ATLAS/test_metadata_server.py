@@ -96,36 +96,37 @@ class TestMetadataServer(RMFTestCase):
                                 group='hadoop',
                                 mode=0644,
       )
-      self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr-client',
+      self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-solr-client',
                                 owner='solr',
-                                group='solr',
+                                group='hadoop',
                                 create_parents = True,
                                 cd_access='a',
                                 mode=0755
                                 )
-      self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-solr-client',
+      self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr-client',
                                 owner='solr',
-                                group='solr',
+                                group='hadoop',
                                 create_parents = True,
+                                recursive_ownership = True,
                                 cd_access='a',
                                 mode=0755
                                 )
       self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh',
                                 content=StaticFile('/usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh'),
                                 owner='solr',
-                                group='solr',
+                                group='hadoop',
                                 mode=0755,
                                 )
       self.assertResourceCalled('File', '/usr/lib/ambari-logsearch-solr-client/log4j.properties',
                                 content=InlineTemplate(self.getConfig()['configurations'][
                                     'logsearch-solr-client-log4j']['content']),
                                 owner='solr',
-                                group='solr',
+                                group='hadoop',
                                 mode=0644,
                                 )
       self.assertResourceCalled('File', '/var/log/ambari-logsearch-solr-client/solr-client.log',
                                 owner='solr',
-                                group='solr',
+                                group='hadoop',
                                 mode=0644,
                                 content = ''
                                 )

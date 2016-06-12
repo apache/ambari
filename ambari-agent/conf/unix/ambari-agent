@@ -62,6 +62,7 @@ OK=1
 NOTOK=0
 
 current_user=`id -u -n`
+current_group=`id -g -n`
 
 if [ "$EUID" -ne 0 ] ; then
   echo "" | sudo -S -l > /dev/null 2>&1
@@ -81,7 +82,7 @@ change_files_permissions() {
 	ambari-sudo.sh mkdir -p "$AMBARI_PID_DIR"
 	ambari-sudo.sh chown -R $current_user "$AMBARI_PID_DIR/"
 	ambari-sudo.sh mkdir -p "$AMBARI_AGENT_LOG_DIR"
-	ambari-sudo.sh chown -R $current_user "$AMBARI_AGENT_LOG_DIR/"
+	ambari-sudo.sh chown -R $current_user:$current_group "$AMBARI_AGENT_LOG_DIR/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
@@ -161,16 +162,16 @@ case "$1" in
           fi
         fi
         change_files_permissions
-        
+
         echo "Starting ambari-agent"
-        
+
         if [ "$AMBARI_AGENT_RUN_IN_FOREGROUND" == true ] ; then
-          $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 
+          $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1
           exit $?
         fi
-        
+
         nohup $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 &
-        
+
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
@@ -232,7 +233,7 @@ case "$1" in
             echo "Stopping $AMBARI_AGENT"
             change_files_permissions
             $PYTHON $AGENT_SCRIPT stop
-            
+
             status ambari-agent 2>/dev/null | grep start 1>/dev/null
             if [ "$?" -eq 0 ] ; then
               echo "Stopping $AMBARI_AGENT upstart job"

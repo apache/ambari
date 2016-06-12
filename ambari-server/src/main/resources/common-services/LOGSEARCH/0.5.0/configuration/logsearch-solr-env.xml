@@ -78,14 +78,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_group</name>
-    <value>solr</value>
-    <property-type>GROUP</property-type>
-    <description>Solr group</description>
-    <display-name>Log Search Solr Group</display-name>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>logsearch_solr_datadir</name>
     <value>/opt/logsearch_solr/data</value>
     <display-name>Log Search Solr data dir</display-name>

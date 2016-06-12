@@ -30,69 +30,78 @@ class TestLogSearch(RMFTestCase):
   def configureResourcesCalled(self):
     self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-portal',
                               owner = 'logsearch',
-                              group = 'logsearch',
+                              group = 'hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               mode = 0755
     )
     self.assertResourceCalled('Directory', '/var/run/ambari-logsearch-portal',
                               owner = 'logsearch',
-                              group = 'logsearch',
+                              group = 'hadoop',
                               create_parents = True,
                               cd_access = 'a',
                               mode = 0755
     )
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-portal',
                               owner = 'logsearch',
-                              group = 'logsearch',
+                              group = 'hadoop',
                               create_parents = True,
+                              recursive_ownership = True,
                               cd_access = 'a',
                               mode = 0755
     )
     self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf',
                               owner = 'logsearch',
-                              group = 'logsearch',
+                              group = 'hadoop',
                               create_parents = True,
+                              recursive_ownership = True,
                               cd_access = 'a',
                               mode = 0755
     )
     self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf/solr_configsets',
                               owner = 'logsearch',
-                              group = 'logsearch',
+                              group = 'hadoop',
                               create_parents = True,
+                              recursive_ownership = True,
                               cd_access = 'a',
                               mode = 0755
                               )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-portal/logsearch.out',
                               owner = 'logsearch',
-                              group = 'logsearch',
+                              group = 'hadoop',
                               mode = 0644,
                               content = ''
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
                               owner = 'logsearch',
+                              group='hadoop',
                               content = Template('logsearch.properties.j2')
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/log4j.xml',
                               owner = 'logsearch',
+                              group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-log4j']['content'])
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-env']['content']),
                               mode = 0755,
-                              owner = "logsearch"
+                              owner = "logsearch",
+                              group='hadoop'
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch-admin.json',
                               owner = 'logsearch',
+                              group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-admin-json']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf/solrconfig.xml',
                               owner = 'logsearch',
+                              group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-service_logs-solrconfig']['content'])
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf/solrconfig.xml',
                               owner = 'logsearch',
+                              group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
 

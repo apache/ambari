@@ -61,14 +61,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_group</name>
-    <value>logsearch</value>
-    <property-type>GROUP</property-type>
-    <description>Log Search group</description>
-    <display-name>Log Search Group</display-name>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>logsearch_app_max_memory</name>
     <value>1024</value>
     <description>Max memory for Log Search Portal</description>
