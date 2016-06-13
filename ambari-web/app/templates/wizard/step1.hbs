@@ -39,7 +39,7 @@
                   <div class="btn-group">
                     <button type="button" data-toggle="dropdown" class="btn dropdown-toggle btn-info">{{controller.selectedStack.displayName}} <span class="caret"></span></button>
                     <ul class="dropdown-menu">
-                      {{#each stack in selectedStackType.visibleStacks}}
+                      {{#each stack in selectedStackType.stacks}}
                         <li>
                           {{!view view.stackRadioButton stackBinding="stack"}}
                           <a href="#" {{action "changeVersion" stack target="controller"}}>{{stack.displayName}}

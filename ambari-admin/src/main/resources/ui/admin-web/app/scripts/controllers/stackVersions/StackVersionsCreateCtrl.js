@@ -543,14 +543,7 @@ angular.module('ambariAdminConsole')
       return item.isSelected === true;
     });
     angular.forEach(versions, function (item, index) {
-      var isPublicVersionsExist = false;
-      // If public VDF exists for a stack then default base stack version should be hidden
-      if (item.stackDefault) {
-        isPublicVersionsExist = versions.find(function(_version){
-          return (item.stackNameVersion === _version.stackNameVersion && !_version.stackDefault);
-        });
-      }
-      item.visible = (item.stackNameVersion === activeStackId.stackNameVersion) && !isPublicVersionsExist;
+      item.visible = (item.stackNameVersion === activeStackId.stackNameVersion);
     });
     $scope.activeStackVersion = versions.filter(function(item){
       return item.visible;

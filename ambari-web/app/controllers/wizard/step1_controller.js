@@ -24,7 +24,6 @@ var arrayUtils = require('utils/array_utils');
  * @property {string} stackName
  * @property {App.Stack[]} stacks
  * @property {boolean} isSelected
- * @property {boolean} defaultStackAllowedToSelect
  */
 
 /**
@@ -33,12 +32,7 @@ var arrayUtils = require('utils/array_utils');
 var StackType = Em.Object.extend({
   stackName: '',
   stacks: [],
-  isSelected: Em.computed.someBy('stacks', 'isSelected', true),
-  defaultStackAllowedToSelect: Em.computed.equal('stacks.length', 1),
-  visibleStacks: function () {
-    var stacks = this.get('stacks');
-    return this.get('defaultStackAllowedToSelect') ? stacks : stacks.filterProperty('stackDefault', false);
-  }.property('defaultStackAllowedToSelect', 'stacks.[]')
+  isSelected: Em.computed.someBy('stacks', 'isSelected', true)
 });
 
 App.WizardStep1Controller = Em.Controller.extend({
