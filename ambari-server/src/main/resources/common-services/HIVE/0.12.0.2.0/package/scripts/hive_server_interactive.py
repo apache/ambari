@@ -140,8 +140,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # We are not doing 'llap' status check done here as part of status check for 'HSI', as 'llap' status
       # check is a heavy weight operation.
 
+      pid_file = format("{hive_pid_dir}/{hive_interactive_pid}")
       # Recursively check all existing gmetad pid files
-      check_process_status(status_params.hive_interactive_pid)
+      check_process_status(pid_file)
 
     def security_status(self, env):
       HiveServerDefault.security_status(env)
@@ -389,10 +390,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     def get_user(self):
       import params
       return params.hive_user
-
-    def get_pid_files(self):
-      import status_params
-      return [status_params.hive_interactive_pid]
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HiveServerInteractiveWindows(HiveServerInteractive):

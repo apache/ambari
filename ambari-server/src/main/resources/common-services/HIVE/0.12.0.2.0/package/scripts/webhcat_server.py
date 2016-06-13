@@ -161,9 +161,5 @@ class WebHCatServerDefault(WebHCatServer):
     import params
     return params.webhcat_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.webhcat_pid_file]
-
 if __name__ == "__main__":
   WebHCatServer().execute()

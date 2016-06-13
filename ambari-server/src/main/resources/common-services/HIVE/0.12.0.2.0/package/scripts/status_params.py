@@ -61,9 +61,9 @@ if OSCheck.is_windows_family():
   webhcat_server_win_service_name = "templeton"
 else:
   hive_pid_dir = config['configurations']['hive-env']['hive_pid_dir']
-  hive_pid = format("{hive_pid_dir}/hive-server.pid")
-  hive_interactive_pid = format("{hive_pid_dir}/hive-interactive.pid")
-  hive_metastore_pid = format("{hive_pid_dir}/hive.pid")
+  hive_pid = 'hive-server.pid'
+  hive_interactive_pid = 'hive-interactive.pid'
+  hive_metastore_pid = 'hive.pid'
 
   hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_dir
   webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')

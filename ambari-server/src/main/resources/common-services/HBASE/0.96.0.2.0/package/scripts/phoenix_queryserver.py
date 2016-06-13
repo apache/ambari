@@ -84,9 +84,5 @@ class PhoenixQueryServer(Script):
     import params
     return params.hbase_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.phoenix_pid_file]
-
 if __name__ == "__main__":
   PhoenixQueryServer().execute()

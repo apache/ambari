@@ -170,9 +170,5 @@ class MetadataServer(Script):
     import params
     return params.metadata_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.pid_file]
-
 if __name__ == "__main__":
   MetadataServer().execute()

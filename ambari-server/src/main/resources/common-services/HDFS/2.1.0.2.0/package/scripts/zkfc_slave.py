@@ -158,10 +158,6 @@ class ZkfcSlaveDefault(ZkfcSlave):
     import params
     return params.hdfs_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.zkfc_pid_file]
-
 def initialize_ha_zookeeper(params):
   try:
     iterations = 10

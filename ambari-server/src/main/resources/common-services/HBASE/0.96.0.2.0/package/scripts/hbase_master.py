@@ -95,8 +95,8 @@ class HbaseMasterDefault(HbaseMaster):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-
-    check_process_status(status_params.hbase_master_pid_file)
+    pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
+    check_process_status(pid_file)
 
   def security_status(self, env):
     import status_params
@@ -154,10 +154,6 @@ class HbaseMasterDefault(HbaseMaster):
   def get_user(self):
     import params
     return params.hbase_user
-
-  def get_pid_files(self):
-    import status_params
-    return [status_params.hbase_master_pid_file]
 
 if __name__ == "__main__":
   HbaseMaster().execute()

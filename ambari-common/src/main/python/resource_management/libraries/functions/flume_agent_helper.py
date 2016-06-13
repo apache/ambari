@@ -38,8 +38,11 @@ def get_flume_status(flume_conf_directory, flume_run_directory):
   :param flume_run_directory: the run directory (ie /var/run/flume)
   :return: a list of status information for each expected flume agent
   """
+  meta_files = find_expected_agent_names(flume_conf_directory)
+  pid_files = []
 
-  pid_files = get_flume_pid_files(flume_conf_directory, flume_run_directory)
+  for agent_name in meta_files:
+    pid_files.append(os.path.join(flume_run_directory, agent_name + '.pid'))
 
   processes = []
   for pid_file in pid_files:
@@ -47,21 +50,6 @@ def get_flume_status(flume_conf_directory, flume_run_directory):
 
   return processes
 
-def get_flume_pid_files(flume_conf_directory, flume_run_directory):
-  """
-  Gets the flume agent pid files
-
-  :param flume_conf_directory:  the configuration directory (ie /etc/flume/conf)
-  :param flume_run_directory: the run directory (ie /var/run/flume)
-  :return: a list of pid files for each expected flume agent
-  """
-
-  meta_files = find_expected_agent_names(flume_conf_directory)
-  pid_files = []
-  for agent_name in meta_files:
-    pid_files.append(os.path.join(flume_run_directory, agent_name + '.pid'))
-
-  return pid_files
 
 def find_expected_agent_names(flume_conf_directory):
   """
