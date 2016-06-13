@@ -133,6 +133,12 @@ App.ServiceConfigView = Em.View.extend({
     this.checkCanEdit();
   },
 
+  willDestroyElement: function() {
+    //Force configs remove in order to speed up rendering
+    this.$().detach().remove();
+    this._super();
+  },
+
   /**
    * Check if we should show Custom Property category
    * @method checkCanEdit
