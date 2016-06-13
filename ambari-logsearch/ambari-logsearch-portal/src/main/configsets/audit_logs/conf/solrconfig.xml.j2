@@ -1651,7 +1651,7 @@
 
     <processor class="solr.DefaultValueUpdateProcessorFactory">
         <str name="fieldName">_ttl_</str>
-        <str name="value">+{{logsearch_service_logs_max_retention}}DAYS</str>
+        <str name="value">+{{logsearch_audit_logs_max_retention}}DAYS</str>
     </processor>
     <processor class="solr.processor.DocExpirationUpdateProcessorFactory">
         <int name="autoDeletePeriodSeconds">86400</int>
