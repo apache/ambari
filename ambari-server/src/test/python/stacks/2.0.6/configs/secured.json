@@ -658,7 +658,8 @@
             "hbase_regionserver_xmn_ratio": "0.2",
             "hbase_log_dir": "/var/log/hbase",
             "hbase_user_keytab": "/etc/security/keytabs/hbase.headless.keytab",
-            "hbase_java_io_tmpdir" : "/tmp"
+            "hbase_java_io_tmpdir" : "/tmp",
+            "hbase_regionserver_shutdown_timeout": "30"
         },
         "flume-env": {
             "content": "export JAVA_HOME={{java64_home}}",

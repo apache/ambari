@@ -43,8 +43,6 @@ def phoenix_service(action = 'start'): # 'start', 'stop', 'status'
   
       elif action == 'stop':
         Execute(daemon_cmd,
-                timeout = 30,
-                on_timeout = format("! ( {no_op_test} ) || {sudo} -H -E kill -9 `cat {pid_file}`"),
                 user=format("{hbase_user}"),
                 environment=env
         )

@@ -610,7 +610,8 @@
             "hbase_regionserver_xmn_max": "512",
             "hbase_regionserver_xmn_ratio": "0.2",
             "hbase_log_dir": "/var/log/hbase",
-            "hbase_java_io_tmpdir" : "/tmp"
+            "hbase_java_io_tmpdir" : "/tmp",
+            "hbase_regionserver_shutdown_timeout": "30"
         },
         "ganglia-env": {
             "gmond_user": "nobody",
@@ -812,7 +813,8 @@
             "hbase_regionserver_heapsize": "512m",
             "hbase_log_dir": "/var/log/ambari-metrics-collector",
             "hbase_master_xmn_size": "256m",
-            "content": "\n"
+            "content": "\n",
+            "hbase_regionserver_shutdown_timeout": "30"
         },
         "ams-log4j": {
             "content": "\n"

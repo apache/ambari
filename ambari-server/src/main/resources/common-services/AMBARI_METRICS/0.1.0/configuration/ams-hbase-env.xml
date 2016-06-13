@@ -157,6 +157,21 @@
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>hbase_regionserver_shutdown_timeout</name>
+    <value>30</value>
+    <display-name>HBase RegionServer shutdown timeout</display-name>
+    <description>
+After this number of seconds waiting for graceful stop of HBase Master it will be forced to exit with SIGKILL.
+The timeout is introduced because there is a known bug when from time to time HBase RegionServer hangs forever on stop if NN safemode is on.
+    </description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <!-- hbase-env.sh -->
   <property>
     <name>content</name>
