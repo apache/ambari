@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
+import javax.persistence.EntityManager;
+import junit.framework.Assert;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -42,8 +44,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -103,8 +103,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
-
-import junit.framework.Assert;
 
 public class AmbariMetaInfoTest {
 
@@ -1821,7 +1819,7 @@ public class AmbariMetaInfoTest {
     assertNotNull( metricSource.getUri().getHttpsPropertyValue() );
     assertNotNull( metricSource.getUri().getHttpsUri() );
     assertNotNull( metricSource.getUri().getHttpUri() );
-    assertEquals(12345, metricSource.getUri().getDefaultPort());
+    assertEquals(12345, metricSource.getUri().getDefaultPort().intValue());
 //
     // ignore host
     assertTrue(ignoreHost.isHostIgnored());

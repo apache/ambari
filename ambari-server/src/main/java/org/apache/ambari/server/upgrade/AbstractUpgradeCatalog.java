@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import javax.persistence.EntityManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.io.StringReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,18 +35,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.persistence.EntityManager;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -53,6 +55,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyUpgradeBehavior;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
@@ -66,6 +69,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
 import com.google.common.collect.Maps;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -103,6 +108,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
   public static final String PROPERTY_RANGER_HBASE_PLUGIN_ENABLED = "ranger-hbase-plugin-enabled";
   public static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
+
+  public static final String ALERT_URL_PROPERTY_CONNECTION_TIMEOUT = "connection_timeout";
 
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
@@ -253,6 +260,40 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
     return rows;
   }
+
+  /*
+  * This method will check all Web and Metric alerts one by one.
+  * Parameter connection_timeout will be added to every alert which
+  * doesn't contain it.
+  * */
+  public void addConnectionTimeoutParamForWebAndMetricAlerts() {
+    LOG.info("Updating alert definitions.");
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    JsonParser jsonParser = new JsonParser();
+
+    for (final Cluster cluster : getCheckedClusterMap(clusters).values()) {
+      long clusterID = cluster.getClusterId();
+      List<AlertDefinitionEntity> alertDefinitionList = alertDefinitionDAO.findAll(clusterID);
+
+      for (AlertDefinitionEntity alertDefinitionEntity : alertDefinitionList) {
+        SourceType sourceType = alertDefinitionEntity.getSourceType();
+        if (sourceType == SourceType.METRIC || sourceType == SourceType.WEB) {
+          String source = alertDefinitionEntity.getSource();
+          JsonObject rootJson = jsonParser.parse(source).getAsJsonObject();
+
+          JsonObject uriJson = rootJson.get("uri").getAsJsonObject();
+          if (!uriJson.has(ALERT_URL_PROPERTY_CONNECTION_TIMEOUT)) {
+            uriJson.addProperty(ALERT_URL_PROPERTY_CONNECTION_TIMEOUT, 5.0);
+            alertDefinitionEntity.setSource(rootJson.toString());
+            alertDefinitionDAO.merge(alertDefinitionEntity);
+          }
+        }
+      }
+    }
+  }
+
 
   protected Provider<EntityManager> getEntityManagerProvider() {
     return injector.getProvider(EntityManager.class);
