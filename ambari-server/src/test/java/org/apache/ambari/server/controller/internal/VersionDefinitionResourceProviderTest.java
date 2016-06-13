@@ -521,7 +521,7 @@ public class VersionDefinitionResourceProviderTest {
     Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
 
     validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
-    Assert.assertEquals(3, validation.size());
+    Assert.assertEquals(2, validation.size());
     for (String reason : validation) {
       if (reason.contains("http://baseurl1")) {
         Assert.fail("URL validation should be skipped for http://baseurl1");
