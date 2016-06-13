@@ -55,7 +55,7 @@
 
       <configuration-dependencies>
         <config-type>admin-log4j</config-type>
-        <config-type>usersync-log4j.xml</config-type>
+        <config-type>usersync-log4j</config-type>
       </configuration-dependencies>
 
     </service>

@@ -2730,6 +2730,11 @@ class TestHDP23StackAdvisor(TestCase):
         "properties": {
           "storm.topology.submission.notifier.plugin.class": "foo"
         }
+      },
+      "ranger-storm-plugin-properties": {
+        "properties": {
+          "ranger-storm-plugin-enabled": "No"
+        }
       }
     }
     clusterData = {
@@ -2744,6 +2749,14 @@ class TestHDP23StackAdvisor(TestCase):
       'storm-site': {
         'properties': {
           'storm.topology.submission.notifier.plugin.class': 'foo,org.apache.atlas.storm.hook.StormAtlasHook',
+        },
+        "property_attributes":{
+          'nimbus.authorizer': {'delete':'true'}
+        }
+      },
+      "ranger-storm-plugin-properties": {
+        "properties": {
+          "ranger-storm-plugin-enabled": "No"
         }
       }
     }
@@ -2778,6 +2791,12 @@ class TestHDP23StackAdvisor(TestCase):
         "storm-site": {
           "properties": {
             "storm.topology.submission.notifier.plugin.class": "foo"
+          },
+          "property-attributes":{}
+        },
+        "ranger-storm-plugin-properties": {
+          "properties": {
+            "ranger-storm-plugin-enabled": "No"
           }
         }
       },

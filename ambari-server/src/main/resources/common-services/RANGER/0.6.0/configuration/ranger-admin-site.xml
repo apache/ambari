@@ -126,6 +126,9 @@
     <name>ranger.truststore.password</name>
     <value>changeit</value>
     <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
     <display-name>ranger.truststore.password</display-name>
     <description>Ranger trust-store password</description>
     <on-ambari-upgrade add="true"/>
