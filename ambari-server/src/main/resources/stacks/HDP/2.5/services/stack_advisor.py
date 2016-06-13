@@ -341,9 +341,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       ranger_atlas_plugin_enabled = services['configurations']['ranger-atlas-plugin-properties']['properties']['ranger-atlas-plugin-enabled']
 
     if ranger_atlas_plugin_enabled and (ranger_atlas_plugin_enabled.lower() == 'Yes'.lower()):
-      putAtlasApplicationProperty('atlas.authorizer.impl','org.apache.ranger.authorization.atlas.authorizer.RangerAtlasAuthorizer')
+      putAtlasApplicationProperty('atlas.authorizer.impl','ranger')
     else:
-      putAtlasApplicationProperty('atlas.authorizer.impl','org.apache.atlas.authorize.SimpleAtlasAuthorizer')
+      putAtlasApplicationProperty('atlas.authorizer.impl','simple')
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)

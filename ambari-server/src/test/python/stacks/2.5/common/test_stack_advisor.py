@@ -6428,7 +6428,7 @@ class TestHDP25StackAdvisor(TestCase):
           "atlas.kafka.zookeeper.connect": "c6401.ambari.apache.org",
           'atlas.server.address.id1': "c6401.ambari.apache.org:21000",
           'atlas.server.ids': "id1",
-          'atlas.authorizer.impl':'org.apache.ranger.authorization.atlas.authorizer.RangerAtlasAuthorizer'
+          'atlas.authorizer.impl':'ranger'
         }
       },
       "logsearch-solr-env": {
@@ -6622,10 +6622,11 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
     # test for Ranger Atlas plugin disabled
-    self.assertEquals(configurations['application-properties']['properties']['atlas.authorizer.impl'], 'org.apache.atlas.authorize.SimpleAtlasAuthorizer', 'Test atlas.authorizer.impl with Ranger Atlas plugin is disabled ')
+    self.assertEquals(configurations['application-properties']['properties']['atlas.authorizer.impl'], 'simple', 'Test atlas.authorizer.impl with Ranger Atlas plugin is disabled ')
 
     configurations['ranger-atlas-plugin-properties']['properties']['ranger-atlas-plugin-enabled'] = 'Yes'
-    configurations['application-properties']['properties']['atlas.authorizer.impl'] =  'org.apache.ranger.authorization.atlas.authorizer.RangerAtlasAuthorizer'
+    # configurations['application-properties']['properties']['atlas.authorizer.impl'] =  'ranger'
+    self.stackAdvisor.recommendAtlasConfigurations(configurations,clusterData,services,hosts)
     self.assertEquals(configurations, expected)
 
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
