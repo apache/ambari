@@ -72,7 +72,7 @@ public class AlertUri {
    * found.
    */
   @SerializedName("default_port")
-  private int m_port = 0;
+  private Number m_port = 0;
 
   /**
    * An optional timeout value for connections.
@@ -116,7 +116,7 @@ public class AlertUri {
    *
    * @return the default port if none of the http properties are found.
    */
-  public int getDefaultPort() {
+  public Number getDefaultPort() {
     return m_port;
   }
 
@@ -281,7 +281,7 @@ public class AlertUri {
     result = prime * result
         + ((m_httpsUri == null) ? 0 : m_httpsUri.hashCode());
 
-    result = prime * result + m_port;
+    result = prime * result + m_port.intValue();
     return result;
   }
 

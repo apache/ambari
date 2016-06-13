@@ -115,7 +115,7 @@
             "https": "{{hdfs-site/dfs.datanode.https.address}}",
             "https_property": "{{hdfs-site/dfs.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
-            "default_port": "12345"
+            "default_port": 12345
           },
           "reporting": {
             "ok": {

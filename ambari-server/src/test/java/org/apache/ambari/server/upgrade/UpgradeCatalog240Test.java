@@ -20,14 +20,24 @@ package org.apache.ambari.server.upgrade;
 
 
 import javax.persistence.EntityManager;
-
 import junit.framework.Assert;
-
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -45,9 +55,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -90,6 +97,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
@@ -107,14 +115,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-
-import org.junit.rules.TemporaryFolder;
 
 public class UpgradeCatalog240Test {
   private static Injector injector;
@@ -503,6 +513,7 @@ public class UpgradeCatalog240Test {
     Method updateFalconConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateFalconConfigs");
     Method fixAuthorizationDescriptions = UpgradeCatalog240.class.getDeclaredMethod("fixAuthorizationDescriptions");
     Method removeAuthorizations = UpgradeCatalog240.class.getDeclaredMethod("removeAuthorizations");
+    Method addConnectionTimeoutParamForWebAndMetricAlerts = AbstractUpgradeCatalog.class.getDeclaredMethod("addConnectionTimeoutParamForWebAndMetricAlerts");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -540,6 +551,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateFalconConfigs)
             .addMockedMethod(fixAuthorizationDescriptions)
             .addMockedMethod(removeAuthorizations)
+            .addMockedMethod(addConnectionTimeoutParamForWebAndMetricAlerts)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -572,6 +584,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateFalconConfigs();
     upgradeCatalog240.fixAuthorizationDescriptions();
     upgradeCatalog240.removeAuthorizations();
+    upgradeCatalog240.addConnectionTimeoutParamForWebAndMetricAlerts();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -1785,5 +1798,75 @@ public class UpgradeCatalog240Test {
     assertTrue(upgradeCatalog240.isAtLeastHdp25(new StackId("HDP-2.6")));
     assertFalse(upgradeCatalog240.isAtLeastHdp25(new StackId("SOMETHINGELSE-1.4")));
   }
+
+  @Test
+  public void testAddConnectionTimeoutParamForWebAndMetricAlerts() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    long clusterId = 1;
+
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionEntity webAlert = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+    final AlertDefinitionEntity webAlertWithConnectionTimeout = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+    final AlertDefinitionEntity metricAlert = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+    final AlertDefinitionEntity portAlert = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    List<AlertDefinitionEntity> alertDefinitionList = new ArrayList<>();
+    alertDefinitionList.add(webAlert);
+    alertDefinitionList.add(webAlertWithConnectionTimeout);
+    alertDefinitionList.add(metricAlert);
+    alertDefinitionList.add(portAlert);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+    expect(webAlert.getSourceType()).andReturn(SourceType.WEB).once();
+    expect(webAlert.getSource()).andReturn("{\"uri\": {\n" +
+            "            \"http\": \"{{hostname}}:{{application-properties/atlas.server.http.port}}\",\n" +
+            "            \"https\": \"{{hostname}}:{{application-properties/atlas.server.https.port}}\" } }").once();
+    expect(metricAlert.getSourceType()).andReturn(SourceType.METRIC).once();
+    expect(metricAlert.getSource()).andReturn("{\"uri\": {\n" +
+            "            \"http\": \"{{hostname}}:{{application-properties/atlas.server.http.port}}\",\n" +
+            "            \"https\": \"{{hostname}}:{{application-properties/atlas.server.https.port}}\" } }").once();
+    expect(webAlertWithConnectionTimeout.getSourceType()).andReturn(SourceType.WEB).once();
+    expect(webAlertWithConnectionTimeout.getSource()).andReturn("{\"uri\":{\"" +
+            "http\":\"{{hostname}}:{{application-properties/atlas.server.http.port}}\"," +
+            "\"https\":\"{{hostname}}:{{application-properties/atlas.server.https.port}}\"," +
+            "\"connection_timeout\":5.0}}").once();
+    expect(portAlert.getSourceType()).andReturn(SourceType.PORT).anyTimes();
+    expect(portAlert.getSource()).andReturn("{\"uri\": {\n" +
+            "            \"http\": \"{{hostname}}:{{application-properties/atlas.server.http.port}}\",\n" +
+            "            \"https\": \"{{hostname}}:{{application-properties/atlas.server.https.port}}\" } }").anyTimes();
+    expect(mockAlertDefinitionDAO.findAll(clusterId)).andReturn(alertDefinitionList);
+
+    expect(mockAlertDefinitionDAO.merge(anyObject(AlertDefinitionEntity.class))).andReturn(anyObject(AlertDefinitionEntity.class)).times(2);
+
+    webAlert.setSource("{\"uri\":{\"http\":\"{{hostname}}:{{application-properties/atlas.server.http.port}}\",\"https\":\"{{hostname}}:{{application-properties/atlas.server.https.port}}\",\"connection_timeout\":5.0}}");
+    expectLastCall().once();
+
+    metricAlert.setSource("{\"uri\":{\"http\":\"{{hostname}}:{{application-properties/atlas.server.http.port}}\",\"https\":\"{{hostname}}:{{application-properties/atlas.server.https.port}}\",\"connection_timeout\":5.0}}");
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog240.class).addConnectionTimeoutParamForWebAndMetricAlerts();
+    easyMockSupport.verifyAll();
+  }
+
 }
 

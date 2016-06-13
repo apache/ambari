@@ -375,6 +375,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     upgradeCapSchedulerView();
     fixAuthorizationDescriptions();
     removeAuthorizations();
+    addConnectionTimeoutParamForWebAndMetricAlerts();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
