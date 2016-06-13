@@ -166,7 +166,7 @@ After this number of seconds waiting for graceful stop of HBase Master it will b
 The timeout is introduced because there is a known bug when from time to time HBase RegionServer hangs forever on stop if NN safemode is on.
     </description>
     <value-attributes>
-      <type>directory</type>
+      <type>int</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
