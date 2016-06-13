@@ -93,7 +93,7 @@
   <field name="file" type="key_lower_case" multiValued="false"/>
   <field name="host" type="key_lower_case" multiValued="false"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
-  <field name="ip" type="ip_address" multiValued="false"/>
+  <field name="ip" type="string" multiValued="false"/>
   <field name="level" type="key_lower_case" multiValued="false"/>
   <field name="line_number" type="tint" omitNorms="false"/>
   <field name="log_message" type="text_std_token_lower_case" multiValued="false" omitNorms="false"/>
