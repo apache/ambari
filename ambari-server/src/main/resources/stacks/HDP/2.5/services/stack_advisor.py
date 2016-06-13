@@ -1334,15 +1334,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     if 'ATLAS' in servicesList and has_ranger_tagsync:
       putTagsyncSiteProperty('ranger.tagsync.source.atlas', 'true')
-    else:
-      putTagsyncSiteProperty('ranger.tagsync.source.atlas', 'false')
 
     zookeeper_host_port = self.getZKHostPortString(services)
     if zookeeper_host_port and has_ranger_tagsync:
       zookeeper_host_list = zookeeper_host_port.split(',')
       putTagsyncAppProperty('atlas.kafka.zookeeper.connect', zookeeper_host_list[0])
-    else:
-      putTagsyncAppProperty('atlas.kafka.zookeeper.connect', 'localhost:2181')
 
     if 'KAFKA' in servicesList and has_ranger_tagsync:
       kafka_hosts = self.getHostNamesWithComponent("KAFKA", "KAFKA_BROKER", services)
@@ -1356,8 +1352,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
       final_kafka_host = ",".join(kafka_host_port)
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', final_kafka_host)
-    else:
-      putTagsyncAppProperty('atlas.kafka.bootstrap.servers', 'localhost:6667')
 
     if 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']["ranger-env"]["properties"]:
       isSolrCloudEnabled = services['configurations']["ranger-env"]["properties"]["is_solrCloud_enabled"]  == "true"

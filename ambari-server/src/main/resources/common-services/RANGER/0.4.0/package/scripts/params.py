@@ -123,12 +123,16 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 db_flavor =  (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 usersync_exturl =  config['configurations']['admin-properties']['policymgr_external_url']
+if usersync_exturl.endswith('/'):
+  usersync_exturl = usersync_exturl.rstrip('/')
 ranger_host = config['clusterHostInfo']['ranger_admin_hosts'][0]
 ugsync_host = 'localhost'
 usersync_host_info = config['clusterHostInfo']['ranger_usersync_hosts']
 if not is_empty(usersync_host_info) and len(usersync_host_info) > 0:
   ugsync_host = config['clusterHostInfo']['ranger_usersync_hosts'][0]
 ranger_external_url = config['configurations']['admin-properties']['policymgr_external_url']
+if ranger_external_url.endswith('/'):
+  ranger_external_url = ranger_external_url.rstrip('/')
 ranger_db_name = config['configurations']['admin-properties']['db_name']
 ranger_auditdb_name = config['configurations']['admin-properties']['audit_db_name']
 
@@ -283,11 +287,13 @@ if stack_supports_ranger_kerberos and not has_namenode:
     'hadoop.security.authentication': 'kerberos' if security_enabled else 'simple'
   }
 
+  realm = 'EXAMPLE.COM'
   if security_enabled:
     ranger_admin_principal = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.principal']
     ranger_usersync_principal = config['configurations']['ranger-ugsync-site']['ranger.usersync.kerberos.principal']
     ranger_admin_bare_principal = get_bare_principal(ranger_admin_principal)
     ranger_usersync_bare_principal = get_bare_principal(ranger_usersync_principal)
+    realm = config['configurations']['kerberos-env']['realm']
 
     rule_dict = [
       {'principal': ranger_admin_bare_principal, 'user': unix_user},
@@ -301,7 +307,7 @@ if stack_supports_ranger_kerberos and not has_namenode:
 
     core_site_auth_to_local_property = ''
     for item in range(len(rule_dict)):
-      rule_line = 'RULE:[2:$1@$0]({0}@EXAMPLE.COM)s/.*/{1}/\n'.format(rule_dict[item]['principal'], rule_dict[item]['user'])
+      rule_line = 'RULE:[2:$1@$0]({0}@{1})s/.*/{2}/\n'.format(rule_dict[item]['principal'], realm, rule_dict[item]['user'])
       core_site_auth_to_local_property = rule_line + core_site_auth_to_local_property
 
     core_site_auth_to_local_property = core_site_auth_to_local_property + 'DEFAULT'
