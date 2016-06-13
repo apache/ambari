@@ -658,7 +658,7 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
     warming searcher and use it.  If "false" then all requests
     will block until the first searcher is done warming.
     -->
-    <useColdSearcher>false</useColdSearcher>
+    <useColdSearcher>true</useColdSearcher>
 
     <!-- Max Warming Searchers
 
@@ -1692,20 +1692,20 @@ this file, see http://wiki.apache.org/solr/SolrConfigXml.
       <str name="defaultFieldType">key_lower_case</str>
       <lst name="typeMapping">
         <str name="valueClass">java.lang.Boolean</str>
-        <str name="fieldType">booleans</str>
+        <str name="fieldType">boolean</str>
       </lst>
       <lst name="typeMapping">
         <str name="valueClass">java.util.Date</str>
-        <str name="fieldType">tdates</str>
+        <str name="fieldType">tdate</str>
       </lst>
       <lst name="typeMapping">
         <str name="valueClass">java.lang.Long</str>
         <str name="valueClass">java.lang.Integer</str>
-        <str name="fieldType">tlongs</str>
+        <str name="fieldType">tlong</str>
       </lst>
       <lst name="typeMapping">
         <str name="valueClass">java.lang.Number</str>
-        <str name="fieldType">tdoubles</str>
+        <str name="fieldType">tdouble</str>
       </lst>
     </processor>
 
