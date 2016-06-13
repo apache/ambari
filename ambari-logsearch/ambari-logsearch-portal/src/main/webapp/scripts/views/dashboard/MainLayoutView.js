@@ -497,24 +497,33 @@ define(['require',
 					  	this.$('.compare .panel-body .hostCompList').html('<span class="hasNode" data-id="'+clickedId+'"><i class=" closeComponent fa fa-times-circle"></i>'+host.split(".")[0]+' <i class="fa fa-angle-double-right"></i><br> '+component+'</span>');
 					}
 				}
-				
-			
-					
 			}
 		},
 		onCompareButtonClick:function(){
-			var dateRangeLabel = 'Last 1 Hour';
-			var time = this.dateUtil.getRelativeDateFromString(dateRangeLabel);
 			if(this.componetList.length == 1){
 				Utils.alertPopup({
                         msg: "Minimum two components are required for comparison. Please select one more component and try again."
                 });
 			}else{
+					var dateRangeLabel ='Last 1 Hour';
+					var dateObj = this.dateUtil.getRelativeDateFromString(dateRangeLabel);
+
+					if (this.RHierarchyTab.currentView && this.RHierarchyTab.currentView.defaultParams) {
+					    var dateParams = this.RHierarchyTab.currentView.defaultParams;
+					    if (!_.isUndefined(dateParams) && _.isObject(dateParams)) {
+					        dateObj = {
+					            from: dateParams.from,
+					            to: dateParams.to,
+					            dateRangeLabel: dateParams.dateRangeLabel
+					        };
+					    }
+					}
+
 					this.globalVent.trigger("render:comparison:tab",{
-					params:_.extend({},this.searchParams,{from:time[0].toJSON(),to:time[1].toJSON(),dateRangeLabel : dateRangeLabel}),
-					componetList:this.componetList,
-					globalVent : this.globalVent
- 				});
+						params: dateObj,
+						componetList:this.componetList,
+						globalVent : this.globalVent
+					});
 			}
 			this.togglePanelPosition(false,false)
 		},
