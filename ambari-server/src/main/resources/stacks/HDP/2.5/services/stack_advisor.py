@@ -53,7 +53,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     parentValidators = super(HDP25StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
       "ATLAS": {"application-properties": self.validateAtlasConfigurations},
-      "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations},
+      "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations,
+               "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations},
       "YARN": {"yarn-site": self.validateYarnConfigurations},
       "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations}
     }
@@ -119,6 +120,61 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "yarn-site")
     validationProblems.extend(parentValidationProblems)
+    return validationProblems
+
+  """
+  Does the following validation checks for HIVE_SERVER_INTERACTIVE's hive-interactive-site configs.
+      1. Queue selected in 'hive.llap.daemon.queue.name' config should be sized >= to minimum required to run LLAP
+         and Hive2 app.
+      2. Queue selected in 'hive.llap.daemon.queue.name' config state should not be 'STOPPED'.
+  """
+  def validateHiveInteractiveSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    hsi_hosts = self.__getHostsForComponent(services, "HIVE", "HIVE_SERVER_INTERACTIVE")
+    if len(hsi_hosts) > 0:
+      capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
+      if capacity_scheduler_properties:
+        if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
+            'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+          curr_selected_queue_for_llap = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
+          if curr_selected_queue_for_llap:
+            curr_selected_queue_for_llap_cap = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+curr_selected_queue_for_llap+'.capacity')
+            if curr_selected_queue_for_llap_cap:
+              curr_selected_queue_for_llap_cap = int(float(curr_selected_queue_for_llap_cap))
+              min_reqd_queue_cap_perc = self.min_queue_perc_reqd_for_llap_and_hive_app(services, hosts, configurations)
+
+              # Validate that the selected queue in 'hive.llap.daemon.queue.name' should be sized >= to minimum required
+              # to run LLAP and Hive2 app.
+              if curr_selected_queue_for_llap_cap < min_reqd_queue_cap_perc:
+                errMsg1 =  "Selected queue '{0}' capacity ({1}%) is less than minimum required capacity ({2}%) for LLAP " \
+                          "app to run".format(curr_selected_queue_for_llap, curr_selected_queue_for_llap_cap, min_reqd_queue_cap_perc)
+                validationItems.append({"config-name": "hive.llap.daemon.queue.name","item": self.getErrorItem(errMsg1)})
+            else:
+              Logger.error("Couldn't retrieve '{0}' queue's capacity from 'capacity-scheduler' while doing validation checks for "
+               "Hive Server Interactive.".format(curr_selected_queue_for_llap))
+
+            # Validate that current selected queue in 'hive.llap.daemon.queue.name' state is not STOPPED.
+            llap_selected_queue_state = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+curr_selected_queue_for_llap+".state")
+            if llap_selected_queue_state:
+              if llap_selected_queue_state == "STOPPED":
+                errMsg2 =  "Selected queue '{0}' current state is : '{1}'. It is required to be in 'RUNNING' state for LLAP to run"\
+                  .format(curr_selected_queue_for_llap, llap_selected_queue_state)
+                validationItems.append({"config-name": "hive.llap.daemon.queue.name","item": self.getErrorItem(errMsg2)})
+            else:
+              Logger.error("Couldn't retrieve '{0}' queue's state from 'capacity-scheduler' while doing validation checks for "
+                           "Hive Server Interactive.".format(curr_selected_queue_for_llap))
+          else:
+            Logger.error("Couldn't retrieve current selection for 'hive.llap.daemon.queue.name' while doing validation "
+                         "checks for Hive Server Interactive.")
+        else:
+          Logger.error("Couldn't retrieve 'hive.llap.daemon.queue.name' config from 'hive-interactive-site' while doing "
+                       "validation checks for Hive Server Interactive.")
+          pass
+      else:
+        Logger.error("Couldn't retrieve 'capacity-scheduler' properties while doing validation checks for Hive Server Interactive.")
+        pass
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-interactive-site")
     return validationProblems
 
   def validateHiveInteractiveEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -343,6 +399,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     super(HDP25StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
+    putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
 
     # For 'Hive Server Interactive', if the component exists.
     hsi_hosts = self.__getHostsForComponent(services, "HIVE", "HIVE_SERVER_INTERACTIVE")
@@ -354,7 +411,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # Update 'hive.llap.daemon.queue.name' property attributes if capacity scheduler is changed.
       if self.HIVE_INTERACTIVE_SITE in services['configurations']:
         if 'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
-          self.setLlapDaemonQueueNamePropAttributes(services, configurations)
+          self.setLlapDaemonQueuePropAttributesAndCapSliderVisibility(services, configurations)
 
           # Update 'hive.server2.tez.default.queues' value
           hive_tez_default_queue = None
@@ -370,6 +427,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             Logger.info("Updated 'hive.server2.tez.default.queues' config : '{0}'".format(hive_tez_default_queue))
     else:
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
+      putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "false")
 
     if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
         'hive.llap.zk.sm.connectionString' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
@@ -402,8 +460,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     The trigger point for updating LLAP configs (mentioned above) is change in values of any of the following:
     (1). 'enable_hive_interactive' set to 'true' (2). 'llap_queue_capacity' (3). 'hive.server2.tez.sessions.per.default.queue'
-    (4). 'llap' named queue get selected for config 'hive.llap.daemon.queue.name' and only 2 queues exist ('llap' and 'default')
-    at root level.
+    (4). Change in queue selection for config 'hive.llap.daemon.queue.name'.
 
     If change in value for 'llap_queue_capacity' or 'hive.server2.tez.sessions.per.default.queue' is detected, that config
     value is not calulated, but read and use in calculation for dependent configs.
@@ -419,8 +476,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     llap_queue_selected_in_current_call = None
     LLAP_MAX_CONCURRENCY = 32 # Allow a max of 32 concurrency.
 
+    # Update 'hive.llap.daemon.queue.name' prop combo entries and llap capacity slider visibility.
+    self.setLlapDaemonQueuePropAttributesAndCapSliderVisibility(services, configurations)
+
     # initial memory setting to make sure hive.llap.daemon.yarn.container.mb >= yarn.scheduler.minimum-allocation-mb
-    Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size as initial size (" + str(self.get_yarn_min_container_size(services, configurations)) + " MB).")
+    Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size as initial size "
+                 "(" + str(self.get_yarn_min_container_size(services, configurations)) + " MB).")
     putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', long(self.get_yarn_min_container_size(services, configurations)))
 
     try:
@@ -436,49 +497,61 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if capacity_scheduler_properties:
         # Get all leaf queues.
         leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
-        if (llap_daemon_selected_queue_name != None and llap_daemon_selected_queue_name == llap_queue_name) or \
+        if len(leafQueueNames) == 2 and \
+          (llap_daemon_selected_queue_name != None and llap_daemon_selected_queue_name == llap_queue_name) or \
           (llap_queue_selected_in_current_call != None and llap_queue_selected_in_current_call == llap_queue_name):
             putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "true")
-            Logger.debug("Selected YARN queue is '{0}'. Setting LLAP queue capacity slider visibility to True".format(llap_queue_name))
+            Logger.info("Selected YARN queue is '{0}'. Setting LLAP queue capacity slider visibility to 'True'".format(llap_queue_name))
         else:
           putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "false")
-          Logger.debug("Queue selected for LLAP app is : '{0}'. Current YARN queues : {1}. "
-                    "Setting LLAP queue capacity slider visibility to False. "
-                    "Skipping updating values for LLAP related configs".format(llap_daemon_selected_queue_name, list(leafQueueNames)))
-          return
+          Logger.info("Queue selected for LLAP app is : '{0}'. Current YARN queues : {1}. Setting '{2}' queue capacity slider "
+                      "visibility to 'False'.".format(llap_daemon_selected_queue_name, list(leafQueueNames), llap_queue_name))
+        if llap_daemon_selected_queue_name:
+          llap_selected_queue_state = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_daemon_selected_queue_name+".state")
+          if llap_selected_queue_state == None or llap_selected_queue_state == "STOPPED":
+            raise Fail("Selected LLAP app queue '{0}' current state is : '{1}'. Setting LLAP configs to default values."
+                       .format(llap_daemon_selected_queue_name, llap_selected_queue_state))
+        else:
+          raise Fail("Retrieved LLAP app queue name is : '{0}'. Setting LLAP configs to default values."
+                     .format(llap_daemon_selected_queue_name))
       else:
         Logger.error("Couldn't retrieve 'capacity-scheduler' properties while doing YARN queue adjustment for Hive Server Interactive."
                      " Not calculating LLAP configs.")
         return
-      # Won't be calculating values if queues not equal to 2 and queue in use is not llap
-      if len(leafQueueNames) > 2 or (len(leafQueueNames) == 1 and llap_queue_selected_in_current_call != llap_queue_name):
-        return
-
-      # 'llap' queue exists at this point.
       if 'changed-configurations' in services.keys():
         # Calculations are triggered only if there is change in any one of the following props :
         # 'llap_queue_capacity', 'enable_hive_interactive', 'hive.server2.tez.sessions.per.default.queue'
-        # or 'hive.llap.daemon.queue.name' has change in value and selection is 'llap'
+        # or 'hive.llap.daemon.queue.name' has change in value selection.
         config_names_to_be_checked = set(['llap_queue_capacity', 'enable_hive_interactive'])
         changed_configs_in_hive_int_env = self.are_config_props_in_changed_configs(services, "hive-interactive-env",
                                                                                    config_names_to_be_checked, False)
 
-        # Determine if the Tez AM count has changed
+        # Determine if there is change detected in "hive-interactive-site's" configs based on which we calculate llap configs.
         llap_concurrency_in_changed_configs = self.are_config_props_in_changed_configs(services, "hive-interactive-site",
                                                                                        set(['hive.server2.tez.sessions.per.default.queue']), False)
+        llap_daemon_queue_in_changed_configs = self.are_config_props_in_changed_configs(services, "hive-interactive-site",
+                                                                                       set(['hive.llap.daemon.queue.name']), False)
 
-        if not changed_configs_in_hive_int_env \
-          and llap_daemon_selected_queue_name != llap_queue_name \
-          and llap_queue_selected_in_current_call != llap_queue_name \
-          and not llap_concurrency_in_changed_configs:
+        if not changed_configs_in_hive_int_env and \
+          not llap_concurrency_in_changed_configs and \
+          not llap_daemon_queue_in_changed_configs:
+
           Logger.info("LLAP parameters not modified. Not adjusting LLAP configs.")
-          Logger.debug("Current changed-configuration received is : {0}".format(services["changed-configurations"]))
+          Logger.debug("Current 'changed-configuration' received is : {0}".format(services["changed-configurations"]))
           return
 
         node_manager_host_list = self.get_node_manager_hosts(services, hosts)
-        assert (node_manager_host_list is not None), "Information about NODEMANAGER not found in cluster."
         node_manager_cnt = len(node_manager_host_list)
-        llap_slider_cap_percentage = self.get_llap_cap_percent_slider(services, configurations)
+        # Check which queue is selected in 'hive.llap.daemon.queue.name', to determine current queue capacity
+        current_selected_queue_for_llap_cap = None
+        if llap_queue_selected_in_current_call == llap_queue_name or llap_daemon_selected_queue_name == llap_queue_name:
+          current_selected_queue_for_llap_cap = self.get_llap_cap_percent_slider(services, configurations)
+        else: # any queue other than 'llap'
+          current_selected_queue_for_llap_cap = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_daemon_selected_queue_name+'.capacity')
+
+        assert (current_selected_queue_for_llap_cap >= 1), "Current selected  current value : {0}. Expected value : >= 1" \
+          .format(current_selected_queue_for_llap_cap)
+
         yarn_nm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
         total_cluster_capacity = node_manager_cnt * yarn_nm_mem_in_mb
         Logger.info("\n\nCalculated total_cluster_capacity : {0}, using following : node_manager_cnt : {1}, "
@@ -486,9 +559,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
         yarn_min_container_size = self.get_yarn_min_container_size(services, configurations)
         tez_am_container_size = self._normalizeUp(self.get_tez_am_container_size(services, configurations), yarn_min_container_size)
-        total_llap_queue_size = float(llap_slider_cap_percentage) / 100 * total_cluster_capacity
+        total_llap_queue_size = long(self._normalizeDown((float(current_selected_queue_for_llap_cap) / 100 * total_cluster_capacity), yarn_min_container_size))
         # Get calculated value for Slider AM container Size
-        slider_am_container_size = self.calculate_slider_am_size(yarn_min_container_size)
+        slider_am_container_size = self._normalizeUp(self.calculate_slider_am_size(yarn_min_container_size), yarn_min_container_size)
 
         # Read 'hive.server2.tez.sessions.per.default.queue' prop if it's in changed-configs, else calculate it.
         if not llap_concurrency_in_changed_configs:
@@ -502,8 +575,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             llap_concurrency = LLAP_MAX_CONCURRENCY
         else:
           # Read current value
-          if 'hive.server2.tez.sessions.per.default.queue' in services['configurations'][self.HIVE_INTERACTIVE_SITE][
-            'properties']:
+          if 'hive.server2.tez.sessions.per.default.queue' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
             llap_concurrency = long(services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties'][
                                        'hive.server2.tez.sessions.per.default.queue'])
             assert (llap_concurrency >= 1), "'hive.server2.tez.sessions.per.default.queue' current value : {0}. Expected value : >= 1" \
@@ -518,10 +590,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         if cap_available_for_daemons < yarn_min_container_size :
           raise Fail("'Capacity available for LLAP daemons'({0}) < 'YARN minimum container size'({1}). Invalid configuration detected. "
                      "Increase LLAP queue size.".format(cap_available_for_daemons, yarn_min_container_size))
-        Logger.info("Calculated cap_available_for_daemons : {0}, using following : llap_slider_cap_percentage : {1}, "
+        Logger.info("Calculated cap_available_for_daemons : {0}, using following : current_selected_queue_for_llap_cap : {1}, "
                     "yarn_nm_mem_in_mb : {2}, total_cluster_capacity : {3}, total_llap_queue_size : {4}, tez_am_container_size"
                     " : {5}, yarn_min_container_size : {6}, llap_concurrency : {7}, total_am_capacity_required : {8}"
-                    .format(cap_available_for_daemons, llap_slider_cap_percentage, yarn_nm_mem_in_mb, total_cluster_capacity,
+                    .format(cap_available_for_daemons, current_selected_queue_for_llap_cap, yarn_nm_mem_in_mb, total_cluster_capacity,
                             total_llap_queue_size, tez_am_container_size, yarn_min_container_size, llap_concurrency,
                             total_am_capacity_required))
 
@@ -602,6 +674,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         num_executors_per_node = long(num_executors_per_node)
         putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', num_executors_per_node)
         Logger.info("LLAP config 'hive.llap.daemon.num.executors' updated. Current: {0}".format(num_executors_per_node))
+        # 'hive.llap.io.threadpool.size' config value is to be set same as value calculated for
+        # 'hive.llap.daemon.num.executors' at all times.
+        putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', num_executors_per_node)
+        Logger.info("LLAP config 'hive.llap.io.threadpool.size' updated. Current: {0}".format(num_executors_per_node))
 
         cache_size_per_node = long(cache_size_per_node)
         putHiveInteractiveSiteProperty('hive.llap.io.memory.size', cache_size_per_node)
@@ -631,25 +707,28 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       try:
         yarn_min_container_size = long(self.get_yarn_min_container_size(services, configurations))
         slider_am_container_size = long(self.calculate_slider_am_size(yarn_min_container_size))
-        putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', 0)
-        putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", 0)
-        putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", 0)
+
+        node_manager_host_list = self.get_node_manager_hosts(services, hosts)
+        node_manager_cnt = len(node_manager_host_list)
+
+        putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', 1)
+        putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", 1)
+        putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", 32)
 
         putHiveInteractiveEnvProperty('num_llap_nodes', 0)
-        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 0)
-        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", 0)
+        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
+        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
 
         putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
         putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "minimum", yarn_min_container_size)
-        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "maximum", yarn_min_container_size)
 
         putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', 0)
-        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 0)
-        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "maximum", 0)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 1)
+        putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', 0)
+
+        putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', 0)
 
         putHiveInteractiveSiteProperty('hive.llap.io.memory.size', 0)
-        putHiveInteractiveSitePropertyAttribute('hive.llap.io.memory.size', "minimum", 0)
-        putHiveInteractiveSitePropertyAttribute('hive.llap.io.memory.size', "maximum", 0)
 
         putHiveInteractiveEnvProperty('llap_heap_size', 0)
 
@@ -770,7 +849,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return hive_container_size
 
   """
-  Gets YARN's mimimum container size (yarn.scheduler.minimum-allocation-mb). Takes into account if it has been calculated
+  Gets YARN's minimum container size (yarn.scheduler.minimum-allocation-mb). Takes into account if it has been calculated
   as part of current Stack Advisor invocation.
   """
   def get_yarn_min_container_size(self, services, configurations):
@@ -816,7 +895,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if 'yarn-site' in configurations and 'yarn.nodemanager.resource.memory-mb' in configurations['yarn-site']['properties']:
       yarn_nm_mem_in_mb = float(configurations['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb'])
       Logger.info("'yarn.nodemanager.resource.memory-mb' read from configurations as : {0}".format(yarn_nm_mem_in_mb))
-      print "from services : ",services['configurations']['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb']
 
     if not yarn_nm_mem_in_mb:
       # Check if 'yarn.nodemanager.resource.memory-mb' is input in services array.
@@ -860,14 +938,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return llap_daemon_container_size
 
   """
-  Minimum 'llap' queue capacity required in order to get LLAP app running.
+  Calculate minimum queue capacity required in order to get LLAP and HIVE2 app into running state.
   """
-  def min_llap_queue_perc_required_in_cluster(self, services, hosts, configurations):
-    # Get llap queue size if sized at 20%
+  def min_queue_perc_reqd_for_llap_and_hive_app(self, services, hosts, configurations):
+    # Get queue size if sized at 20%
     node_manager_hosts = self.get_node_manager_hosts(services, hosts)
     yarn_rm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
     total_cluster_cap = len(node_manager_hosts) * yarn_rm_mem_in_mb
-    total_llap_queue_size_at_20_perc = 20.0 / 100 * total_cluster_cap
+    total_queue_size_at_20_perc = 20.0 / 100 * total_cluster_cap
 
     # Calculate based on minimum size required by containers.
     yarn_min_container_size = self.get_yarn_min_container_size(services, configurations)
@@ -877,11 +955,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     normalized_val = self._normalizeUp(slider_am_size, yarn_min_container_size) + self._normalizeUp\
       (hive_tez_container_size, yarn_min_container_size) + self._normalizeUp(tez_am_container_size, yarn_min_container_size)
 
-    min_required = max(total_llap_queue_size_at_20_perc, normalized_val)
+    min_required = max(total_queue_size_at_20_perc, normalized_val)
 
     min_required_perc = min_required * 100 / total_cluster_cap
-    Logger.info("Calculated min_llap_queue_perc_required_in_cluster : {0} and min_llap_queue_cap_required_in_cluster: {1} "
-                "using following : yarn_min_container_size : {2}, slider_am_size : {3}, hive_tez_container_size : {4}, "
+    Logger.info("Calculated 'min_queue_perc_required_in_cluster' : {0}% and 'min_queue_cap_required_in_cluster': {1} "
+                "for LLAP and HIVE2 app using following : yarn_min_container_size : {2}, slider_am_size : {3}, hive_tez_container_size : {4}, "
                 "hive_am_container_size : {5}, total_cluster_cap : {6}, yarn_rm_mem_in_mb : {7}"
                 "".format(min_required_perc, min_required, yarn_min_container_size, slider_am_size, hive_tez_container_size,
                           tez_am_container_size, total_cluster_cap, yarn_rm_mem_in_mb))
@@ -905,7 +983,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
   """
   Checks and (1). Creates 'llap' queue if only 'default' queue exist at leaf level and is consuming 100% capacity OR
-             (2). Updates 'llap' queue capacity and state, if 'llap' queue exists.
+             (2). Updates 'llap' queue capacity and state, if current selected queue is 'llap', and only 2 queues exist
+                  at root level : 'default' and 'llap'.
   """
   def checkAndManageLlapQueue(self, services, configurations, hosts, llap_queue_name):
     Logger.info("Determining creation/adjustment of 'capacity-scheduler' for 'llap' queue.")
@@ -913,27 +992,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
     putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
     putCapSchedProperty = self.putProperty(configurations, "capacity-scheduler", services)
+    leafQueueNames = None
 
     capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
     if capacity_scheduler_properties:
+      leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
       # Get the llap Cluster percentage used for 'llap' Queue creation
       if 'llap_queue_capacity' in services['configurations']['hive-interactive-env']['properties']:
         llap_slider_cap_percentage = int(
           services['configurations']['hive-interactive-env']['properties']['llap_queue_capacity'])
-        llap_min_reqd_cap_percentage = math.ceil(self.min_llap_queue_perc_required_in_cluster(services, hosts, configurations))
-        # Checks for upper bound for the minimum llap queue calculated capacity
-        if llap_min_reqd_cap_percentage > 100:
-          Logger.error("Minimum calculated 'llap' queue capacity ({0}%) is more than what the cluster has in totality. "
-                       "Not creating/adjusting 'llap' queue. Increase the overall cluster capacity.".format(llap_min_reqd_cap_percentage))
-          return
+        min_reqd_queue_cap_perc = self.min_queue_perc_reqd_for_llap_and_hive_app(services, hosts, configurations)
+
+        # Adjust 'llap' queue capacity slider value to be minimum required if out of expected bounds.
         if llap_slider_cap_percentage <= 0 or llap_slider_cap_percentage > 100:
-          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% (invalid size) to {1}%".format(llap_slider_cap_percentage, llap_min_reqd_cap_percentage))
-          putHiveInteractiveEnvProperty('llap_queue_capacity', llap_min_reqd_cap_percentage)
-          llap_slider_cap_percentage = llap_min_reqd_cap_percentage
+          Logger.info("Adjusting HIVE 'llap_queue_capacity' from {0}% (invalid size) to {1}%".format(llap_slider_cap_percentage, min_reqd_queue_cap_perc))
+          putHiveInteractiveEnvProperty('llap_queue_capacity', min_reqd_queue_cap_perc)
+          llap_slider_cap_percentage = min_reqd_queue_cap_perc
       else:
         Logger.error("Problem retrieving LLAP Queue Capacity. Skipping creating {0} queue".format(llap_queue_name))
         return
-      leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+
       cap_sched_config_keys = capacity_scheduler_properties.keys()
 
       yarn_default_queue_capacity = -1
@@ -1057,13 +1135,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           # Update Hive 'hive.llap.daemon.queue.name' prop to use 'llap' queue.
           putHiveInteractiveSiteProperty('hive.llap.daemon.queue.name', llap_queue_name)
           putHiveInteractiveSiteProperty('hive.server2.tez.default.queues', llap_queue_name)
-          putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "minimum", llap_min_reqd_cap_percentage)
+          putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "minimum", min_reqd_queue_cap_perc)
           putHiveInteractiveEnvPropertyAttribute('llap_queue_capacity', "maximum", 100)
 
-          # Update 'hive.llap.daemon.queue.name' prop combo entries.
-          self.setLlapDaemonQueueNamePropAttributes(services, configurations)
+          # Update 'hive.llap.daemon.queue.name' prop combo entries and llap capacity slider visibility.
+          self.setLlapDaemonQueuePropAttributesAndCapSliderVisibility(services, configurations)
       else:
-        Logger.debug("Not creating {0} queue. Current YARN queues : {1}".format(llap_queue_name, list(leafQueueNames)))
+        Logger.debug("Not creating/adjusting {0} queue. Current YARN queues : {1}".format(llap_queue_name, list(leafQueueNames)))
     else:
       Logger.error("Couldn't retrieve 'capacity-scheduler' properties while doing YARN queue adjustment for Hive Server Interactive.")
 
@@ -1140,10 +1218,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   """
   Checks and sets the 'Hive Server Interactive' 'hive.llap.daemon.queue.name' config Property Attributes.  Takes into
   account that 'capacity-scheduler' may have changed (got updated) in current Stack Advisor invocation.
+
+  Also, updates the 'llap_queue_capacity' slider visibility.
   """
-  def setLlapDaemonQueueNamePropAttributes(self, services, configurations):
+  def setLlapDaemonQueuePropAttributesAndCapSliderVisibility(self, services, configurations):
     Logger.info("Determining 'hive.llap.daemon.queue.name' config Property Attributes.")
     putHiveInteractiveSitePropertyAttribute = self.putPropertyAttribute(configurations, self.HIVE_INTERACTIVE_SITE)
+    putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
+
     capacity_scheduler_properties = dict()
 
     # Read 'capacity-scheduler' from configurations if we modified and added recommendation to it, as part of current
@@ -1180,7 +1262,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
 
     # if 'capacity_scheduler_properties' is still empty, implies 'capacity_scheduler' wasn't change in current
-    # ST invocation. Thus, read it from input : 'services'.
+    # SA invocation. Thus, read it from input : 'services'.
     if not capacity_scheduler_properties:
       capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
       Logger.info("'capacity-scheduler' not changed in current Stack Advisor invocation. Retrieved the configs from services.")
@@ -1192,6 +1274,29 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       leafQueues = sorted(leafQueues, key=lambda q: q['value'])
       putHiveInteractiveSitePropertyAttribute("hive.llap.daemon.queue.name", "entries", leafQueues)
       Logger.info("'hive.llap.daemon.queue.name' config Property Attributes set to : {0}".format(leafQueues))
+
+      # Update 'llap_queue_capacity' slider visibility to 'true' if current selected queue in 'hive.llap.daemon.queue.name'
+      # is 'llap', else 'false'.
+      llap_daemon_selected_queue_name = None
+      llap_queue_selected_in_current_call =  None
+      if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
+          'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+        llap_daemon_selected_queue_name =  services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
+
+      if self.HIVE_INTERACTIVE_SITE in configurations and \
+          'hive.llap.daemon.queue.name' in configurations[self.HIVE_INTERACTIVE_SITE]['properties']:
+        llap_queue_selected_in_current_call = configurations[self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
+
+      # Check to see if only 2 queues exist at root level : 'default' and 'llap' and current selected queue in 'hive.llap.daemon.queue.name'
+      # is 'llap'.
+      if len(leafQueueNames) == 2 and \
+        ((llap_daemon_selected_queue_name != None and llap_daemon_selected_queue_name == 'llap') or \
+        (llap_queue_selected_in_current_call != None and llap_queue_selected_in_current_call == 'llap')):
+        putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "true")
+        Logger.info("Setting LLAP queue capacity slider visibility to 'True'.")
+      else:
+        putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "false")
+        Logger.info("Setting LLAP queue capacity slider visibility to 'False'.")
     else:
       Logger.error("Problem retrieving YARN queues. Skipping updating HIVE Server Interactve "
                    "'hive.server2.tez.default.queues' property attributes.")

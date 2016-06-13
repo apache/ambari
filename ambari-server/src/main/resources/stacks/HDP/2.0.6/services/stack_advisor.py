@@ -1563,9 +1563,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           for subQueue in subQueues:
             toProcessQueues.append(queue + "." + subQueue)
         else:
-          # Leaf queue
-          queueName = queue.split(".")[-1]
-          leafQueueNames.add(queueName)
+          # Leaf queue path
+          # eg: if queue depth for leaf queue 'd1' is like : 'yarn.scheduler.capacity.root.a1.b1.c1.d1',
+          # added leaf queue path is : 'a1.b1.c1.d1'
+          leafQueueNames.add(queue)
     return leafQueueNames
 
 def getOldValue(self, services, configType, propertyName):
