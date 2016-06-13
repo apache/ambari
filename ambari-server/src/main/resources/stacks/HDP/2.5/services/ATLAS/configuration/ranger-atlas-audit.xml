@@ -24,6 +24,7 @@
     <name>xasecure.audit.is.enabled</name>
     <value>true</value>
     <description>Is Audit enabled?</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -40,6 +41,7 @@
         <name>xasecure.audit.destination.hdfs</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -52,12 +54,14 @@
         <name>xasecure.audit.destination.hdfs.dir</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
     <value>/var/log/hadoop/hdfs/audit/hdfs/spool</value>
     <description>/var/log/hadoop/hdfs/audit/hdfs/spool</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -74,6 +78,7 @@
         <name>xasecure.audit.destination.solr</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -89,6 +94,7 @@
         <name>ranger.audit.solr.urls</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -101,12 +107,14 @@
         <name>ranger.audit.solr.zookeepers</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>xasecure.audit.destination.solr.batch.filespool.dir</name>
     <value>/var/log/atlas/audit/solr/spool</value>
     <description>/var/log/atlas/audit/solr/spool</description>
+    <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
@@ -117,6 +125,7 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
 
 </configuration>

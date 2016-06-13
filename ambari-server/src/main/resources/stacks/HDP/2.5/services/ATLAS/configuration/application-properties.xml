@@ -220,5 +220,6 @@
         <name>ranger-atlas-plugin-enabled</name>
       </property>
     </depends-on>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
