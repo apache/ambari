@@ -83,9 +83,5 @@ class SparkThriftServer(Script):
     import params
     return params.hive_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.spark_thrift_server_pid_file]
-
 if __name__ == "__main__":
   SparkThriftServer().execute()

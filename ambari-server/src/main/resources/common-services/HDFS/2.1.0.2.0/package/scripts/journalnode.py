@@ -168,10 +168,6 @@ class JournalNodeDefault(JournalNode):
     import params
     return params.hdfs_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.journalnode_pid_file]
-
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class JournalNodeWindows(JournalNode):
   def install(self, env):

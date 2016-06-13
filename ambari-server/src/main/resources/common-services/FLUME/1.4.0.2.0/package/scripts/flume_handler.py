@@ -22,7 +22,7 @@ from flume import get_desired_state
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select, stack_select
-from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names, get_flume_status, get_flume_pid_files
+from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names, get_flume_status
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.service import Service
@@ -99,10 +99,6 @@ class FlumeHandlerLinux(FlumeHandler):
   def get_user(self):
     import params
     return None # means that is run from the same user as ambari is run
-
-  def get_pid_files(self):
-    import params
-    return get_flume_pid_files(params.flume_conf_dir, params.flume_run_dir)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FlumeHandlerWindows(FlumeHandler):

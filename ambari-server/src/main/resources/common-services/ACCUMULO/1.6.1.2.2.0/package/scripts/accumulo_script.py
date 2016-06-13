@@ -48,11 +48,7 @@ class AccumuloScript(Script):
   }
 
   def __init__(self, component):
-    import status_params
-    env.set_params(status_params)
-
     self.component = component
-    self.pid_file = format("{pid_dir}/accumulo-{accumulo_user}-{component}.pid")
 
 
   def get_component_name(self):
@@ -97,8 +93,9 @@ class AccumuloScript(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-
-    check_process_status(self.pid_file)
+    component = self.component
+    pid_file = format("{pid_dir}/accumulo-{accumulo_user}-{component}.pid")
+    check_process_status(pid_file)
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
@@ -176,12 +173,6 @@ class AccumuloScript(Script):
   def get_log_folder(self):
     import params
     return params.log_dir
-
-  def get_pid_files(self):
-    import status_params
-    env.set_params(status_params)
-
-    return [self.pid_file]
 
   def get_user(self):
     import params

@@ -125,9 +125,5 @@ class KafkaBroker(Script):
     import params
     return params.kafka_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.kafka_pid_file]
-
 if __name__ == "__main__":
   KafkaBroker().execute()

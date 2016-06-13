@@ -90,10 +90,11 @@ class HiveMetastoreDefault(HiveMetastore):
   def status(self, env):
     import status_params
     from resource_management.libraries.functions import check_process_status
-    env.set_params(status_params)
 
+    env.set_params(status_params)
+    pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
     # Recursively check all existing gmetad pid files
-    check_process_status(status_params.hive_metastore_pid)
+    check_process_status(pid_file)
 
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
@@ -247,10 +248,6 @@ class HiveMetastoreDefault(HiveMetastore):
   def get_user(self):
     import params
     return params.hive_user
-
-  def get_pid_files(self):
-    import status_params
-    return [status_params.hive_metastore_pid]
 
 
 if __name__ == "__main__":

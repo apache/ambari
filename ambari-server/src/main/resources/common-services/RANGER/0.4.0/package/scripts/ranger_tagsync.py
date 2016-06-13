@@ -92,9 +92,5 @@ class RangerTagsync(Script):
     import params
     return params.unix_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.tagsync_pid_file]
-
 if __name__ == "__main__":
   RangerTagsync().execute()

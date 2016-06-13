@@ -736,11 +736,10 @@ class TestHiveServer(RMFTestCase):
     except:
       self.assert_configure_default()
 
-  @patch("resource_management.libraries.script.Script.post_start")
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch("os.path.exists", new = MagicMock(return_value=True))
   @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
-  def test_stop_during_upgrade(self, copy_to_hdfs_mock, post_start_mock):
+  def test_stop_during_upgrade(self, copy_to_hdfs_mock):
 
     hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
 Hive 1.2.1.2.3.0.0-2434
@@ -763,9 +762,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
       tries=1, user='hive')
 
 
-  @patch("resource_management.libraries.script.Script.post_start")
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  def test_stop_during_upgrade_with_default_conf_server(self, copy_to_hdfs_mock, post_start_mock):
+  def test_stop_during_upgrade_with_default_conf_server(self, copy_to_hdfs_mock):
     hiveServerVersionOutput = """WARNING: Use "yarn jar" to launch YARN applications.
 Hive 1.2.1.2.3.0.0-2434
 Subversion git://ip-10-0-0-90.ec2.internal/grid/0/jenkins/workspace/HDP-dal-centos6/bigtop/build/hive/rpm/BUILD/hive-1.2.1.2.3.0.0 -r a77a00ae765a73b2957337e96ed5a0dbb2e60dfb

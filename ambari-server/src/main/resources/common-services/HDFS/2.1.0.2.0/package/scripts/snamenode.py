@@ -144,10 +144,6 @@ class SNameNodeDefault(SNameNode):
     import params
     return params.hdfs_user
 
-  def get_pid_files(self):
-    import status_params
-    return [status_params.snamenode_pid_file]
-
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class SNameNodeWindows(SNameNode):
   pass
