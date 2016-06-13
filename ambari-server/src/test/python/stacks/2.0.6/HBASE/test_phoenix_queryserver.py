@@ -80,8 +80,6 @@ class TestPhoenixQueryServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
-      on_timeout = '! ( ls /var/run/hbase/phoenix-hbase-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/phoenix-hbase-server.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/phoenix-hbase-server.pid`',
-      timeout = 30,
       environment = {'JAVA_HOME':'/usr/jdk64/jdk1.8.0_40',
       'HBASE_CONF_DIR':'/usr/hdp/current/hbase-regionserver/conf'},
       user = 'hbase'
@@ -140,8 +138,6 @@ class TestPhoenixQueryServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
-      on_timeout = '! ( ls /var/run/hbase/phoenix-hbase-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/phoenix-hbase-server.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/phoenix-hbase-server.pid`',
-      timeout = 30,
       environment = {'JAVA_HOME':'/usr/jdk64/jdk1.8.0_40',
       'HBASE_CONF_DIR':'/usr/hdp/current/hbase-regionserver/conf'},
       user = 'hbase'

@@ -22,6 +22,7 @@ from resource_management import *
 from resource_management.libraries.functions import conf_select
 from ambari_commons import OSCheck
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.libraries.functions.expect import expect
 
 config = Script.get_config()
 
@@ -50,4 +51,6 @@ limits_conf_dir = "/etc/security/limits.d"
 sudo = AMBARI_SUDO_BINARY
 
 dfs_type = default("/commandParams/dfs_type", "")
+
+hbase_regionserver_shutdown_timeout = expect('/configurations/ams-hbase-env/hbase_regionserver_shutdown_timeout', int)
 

@@ -116,6 +116,7 @@ regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver
 regionserver_xmn_percent = expect("/configurations/hbase-env/hbase_regionserver_xmn_ratio", float)
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
+hbase_regionserver_shutdown_timeout = expect('/configurations/hbase-env/hbase_regionserver_shutdown_timeout', int)
 
 phoenix_hosts = default('/clusterHostInfo/phoenix_query_server_hosts', [])
 phoenix_enabled = default('/configurations/hbase-env/phoenix_sql_enabled', False)
