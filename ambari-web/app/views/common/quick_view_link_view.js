@@ -109,7 +109,8 @@ App.QuickViewLinks = Em.View.extend({
     'App.currentStackVersionNumber',
     'App.singleNodeInstall',
     'App.router.clusterController.isServiceMetricsLoaded',
-    'App.router.clusterController.isHostComponentMetricsLoaded'
+    'App.router.clusterController.isHostComponentMetricsLoaded',
+    'App.router.clusterController.quickLinksUpdateCounter'
   ),
 
   /**
@@ -409,6 +410,9 @@ App.QuickViewLinks = Em.View.extend({
           if (link.protocol) {
             protocol = this.setProtocol(configProperties, link.protocol);
           }
+        }
+        if (componentName && !hostNameForComponent) {
+          return;
         }
         var newItem = this.getHostLink(link, publicHostName, protocol, configProperties, response); //quicklink generated for the hbs template
         if (!Em.isNone(newItem)) {

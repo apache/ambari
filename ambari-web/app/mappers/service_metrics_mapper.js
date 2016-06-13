@@ -180,6 +180,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       var hostComponents = [];
       var services = App.cache['services'];
       var previousComponentStatuses = App.cache['previousComponentStatuses'];
+      var lastKnownStatusesLength = Em.keys(previousComponentStatuses).length;
       var previousComponentPassiveStates = App.cache['previousComponentPassiveStates'];
       var result = [];
       var advancedHostComponents = [];
@@ -199,8 +200,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         component.host_components.forEach(function (host_component) {
           var id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
           hostComponentIdsMap[id] = true;
-          previousComponentStatuses[host_component.id] = host_component.HostRoles.state;
-          previousComponentPassiveStates[host_component.id] = host_component.HostRoles.maintenance_state;
+          previousComponentStatuses[id] = host_component.HostRoles.state;
+          previousComponentPassiveStates[id] = host_component.HostRoles.maintenance_state;
           this.config3.ha_status = host_component.HostRoles.component_name == "HBASE_MASTER" ?
             'metrics.hbase.master.IsActiveMaster' : 'HostRoles.ha_state';
           var comp = this.parseIt(host_component, this.config3);
@@ -252,6 +253,13 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
 
       //load services to model
       App.store.loadMany(this.get('model'), result);
+
+      // check for new components
+      if (lastKnownStatusesLength > 0) {
+        if (lastKnownStatusesLength < Em.keys(App.cache.previousComponentStatuses).length) {
+          App.get('router.clusterController').triggerQuickLinksUpdate();
+        }
+      }
     }
     console.timeEnd('App.serviceMetricsMapper execution time');
   },

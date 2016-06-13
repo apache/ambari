@@ -49,6 +49,11 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   isHostComponentMetricsLoaded: false,
 
   /**
+   * This counter used as event trigger to notify that quick links should be changed.
+   */
+  quickLinksUpdateCounter: 0,
+
+  /**
    * Ambari uses custom jdk.
    * @type {Boolean}
    */
@@ -488,5 +493,9 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       name: 'cluster.load_last_upgrade',
       sender: this
     });
+  },
+
+  triggerQuickLinksUpdate: function() {
+    this.incrementProperty('quickLinksUpdateCounter');
   }
 });
