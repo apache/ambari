@@ -1125,6 +1125,7 @@ body {
 }
 .logTime strong {
 	margin-left:5px;
+ 	white-space: normal;
 }
 .hostNodes .col-md-3:nth-child(4n+5) {;
 	clear: both;
