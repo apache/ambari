@@ -164,8 +164,13 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     var clients = [];
     var slaves = [];
     var masters = [];
+    var hasNewComponents = false;
 
     if (json.items) {
+      if (!App.isEmptyObject(Em.getWithDefault(App, 'cache.services', {}))) {
+        hasNewComponents = json.items.mapProperty('ServiceComponentInfo.total_count').reduce(Em.sum, 0) >
+          App.cache.services.mapProperty('host_components.length').reduce(Em.sum, 0);
+      }
       json.items.forEach(function (item) {
         var componentConfig = this.getComponentConfig(item.ServiceComponentInfo.component_name);
         var parsedItem = this.parseIt(item, componentConfig);
@@ -198,11 +203,15 @@ App.componentsStateMapper = App.QuickDataMapper.create({
             }
           }
         }
-      }, this)
+      }, this);
     }
     App.store.loadMany(this.clientModel, clients);
     App.store.loadMany(this.slaveModel, slaves);
     App.store.loadMany(this.masterModel, masters);
+
+    if (hasNewComponents) {
+      App.get('router.clusterController').triggerQuickLinksUpdate();
+    }
 
     console.timeEnd('App.componentsStateMapper execution time');
   }

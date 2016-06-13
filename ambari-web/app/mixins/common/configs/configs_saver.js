@@ -690,9 +690,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       messageClass = 'alert alert-error';
       value = result.value;
     }
-    if(currentService){
-      App.QuickViewLinks.proto().set('content', currentService);
-      App.QuickViewLinks.proto().loadTags();
+    if (currentService){
+      App.get('router.clusterController').triggerQuickLinksUpdate();
     }
 
     //  update configs for service actions
