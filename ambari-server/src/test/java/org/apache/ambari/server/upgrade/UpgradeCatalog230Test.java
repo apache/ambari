@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -29,8 +31,10 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -66,6 +70,7 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
         binder.bind(DaoUtils.class).toInstance(createNiceMock(DaoUtils.class));
         binder.bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
         binder.bind(ResourceTypeDAO.class).toInstance(createMock(ResourceTypeDAO.class));
+        binder.bind(RoleAuthorizationDAO.class).toInstance(createMock(RoleAuthorizationDAO.class));
       }
     };
 
@@ -265,9 +270,28 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
         PermissionEntity.VIEW_USER_PERMISSION_NAME, PermissionEntity.VIEW_USER_PERMISSION)))
         .andReturn(1).once();
 
-    expect(dbAccessor.insertRowIfMissing(anyString(), anyObject(String[].class), anyObject(String[].class), eq(false)))
-        .andReturn(true)
-        .atLeastOnce();
+    RoleAuthorizationEntity roleAuthorization = createMock(RoleAuthorizationEntity.class);
+
+    RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
+    expect(roleAuthorizationDAO.findById(anyString())).andReturn(roleAuthorization).anyTimes();
+
+    Collection<RoleAuthorizationEntity> authorizations = new ArrayList<RoleAuthorizationEntity>();
+
+    expect(ambariAdministratorPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
+    expect(clusterAdministratorPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
+    expect(clusterOperatorPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
+    expect(serviceAdministratorPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
+    expect(serviceOperatorPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
+    expect(clusterUserPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
+    expect(viewUserPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
+
+    expect(permissionDAO.merge(ambariAdministratorPermissionEntity)).andReturn(ambariAdministratorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(clusterAdministratorPermissionEntity)).andReturn(clusterAdministratorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(clusterOperatorPermissionEntity)).andReturn(clusterOperatorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(serviceAdministratorPermissionEntity)).andReturn(serviceAdministratorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(serviceOperatorPermissionEntity)).andReturn(serviceOperatorPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(clusterUserPermissionEntity)).andReturn(clusterUserPermissionEntity).atLeastOnce();
+    expect(permissionDAO.merge(viewUserPermissionEntity)).andReturn(viewUserPermissionEntity).atLeastOnce();
 
     replayAll();
     upgradeCatalog.executeDMLUpdates();

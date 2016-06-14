@@ -55,6 +55,16 @@ public class RoleAuthorizationDAO {
   }
 
   /**
+   * Create or updates a role authorization.
+   *
+   * @param roleAuthorizationEntity  entity to create or update
+   */
+  @Transactional
+  public RoleAuthorizationEntity merge(RoleAuthorizationEntity roleAuthorizationEntity) {
+    return entityManagerProvider.get().merge(roleAuthorizationEntity);
+  }
+
+  /**
    * Find a authorization entity with the given id.
    *
    * @param id type id

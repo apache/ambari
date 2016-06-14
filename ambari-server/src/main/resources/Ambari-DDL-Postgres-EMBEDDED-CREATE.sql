@@ -1296,6 +1296,7 @@ INSERT INTO ambari.roleauthorization(authorization_id, authorization_name)
   SELECT 'SERVICE.ENABLE_HA', 'Enable HA' UNION ALL
   SELECT 'SERVICE.TOGGLE_ALERTS', 'Enable/disable service-level alerts' UNION ALL
   SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add/delete services' UNION ALL
+  SELECT 'SERVICE.VIEW_OPERATIONAL_LOGS', 'View service operational logs' UNION ALL
   SELECT 'HOST.VIEW_METRICS', 'View metrics' UNION ALL
   SELECT 'HOST.VIEW_STATUS_INFO', 'View status information' UNION ALL
   SELECT 'HOST.VIEW_CONFIGS', 'View configuration' UNION ALL
@@ -1385,6 +1386,7 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_OPERATIONAL_LOGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
@@ -1412,6 +1414,7 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_OPERATIONAL_LOGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
@@ -1446,6 +1449,7 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ADD_DELETE_SERVICES' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_OPERATIONAL_LOGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
@@ -1486,6 +1490,7 @@ INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ADD_DELETE_SERVICES' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_OPERATIONAL_LOGS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
