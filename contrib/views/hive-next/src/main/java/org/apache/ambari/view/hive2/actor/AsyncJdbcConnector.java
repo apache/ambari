@@ -161,7 +161,9 @@ public class AsyncJdbcConnector extends JdbcConnector {
               e.getMessage(), e);
       updateJobStatus(jobId,Job.JOB_STATE_ERROR);
       parent.tell(failure, self());
-      // Update the operation controller to write an error on tshe right side
+      // Update the operation controller to write an error on the right side
+      // make sure we can stop the connector
+      executing = false;
       LOG.error("Caught SQL excpetion for job-"+message,e);
 
     }

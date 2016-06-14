@@ -193,7 +193,8 @@ public class ResultsPaginationController {
   private <T> List<T> filter(List<T> list, Set<Integer> selectedColumns) {
     List<T> filtered = Lists.newArrayList();
     for(int i: selectedColumns) {
-      filtered.add(list.get(i));
+      if(list != null && list.get(i) != null)
+        filtered.add(list.get(i));
     }
 
     return filtered;
