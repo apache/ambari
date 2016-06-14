@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 public class RemoteAmbariClusterRegistry {
 
-  private ConcurrentHashMap<String,RemoteAmbariCluster> clusterMap = new ConcurrentHashMap<String,RemoteAmbariCluster>();
+  private ConcurrentHashMap<Long,RemoteAmbariCluster> clusterMap = new ConcurrentHashMap<Long,RemoteAmbariCluster>();
 
   @Inject
   private RemoteAmbariClusterDAO remoteAmbariClusterDAO;
@@ -46,12 +46,12 @@ public class RemoteAmbariClusterRegistry {
   @Inject
   private Configuration configuration;
 
-  public RemoteAmbariCluster get(Long clusterId){
+  public RemoteAmbariCluster get(Long clusterId) {
     RemoteAmbariCluster remoteAmbariCluster = clusterMap.get(clusterId);
-    if(remoteAmbariCluster == null){
+    if (remoteAmbariCluster == null) {
       RemoteAmbariCluster cluster = getCluster(clusterId);
-      RemoteAmbariCluster oldCluster = clusterMap.putIfAbsent(cluster.getName(), cluster);
-      if(oldCluster == null) remoteAmbariCluster = cluster;
+      RemoteAmbariCluster oldCluster = clusterMap.putIfAbsent(clusterId, cluster);
+      if (oldCluster == null) remoteAmbariCluster = cluster;
       else remoteAmbariCluster = oldCluster;
     }
     return remoteAmbariCluster;
@@ -69,7 +69,7 @@ public class RemoteAmbariClusterRegistry {
    *
    * @param entity
    */
-  public void update(RemoteAmbariClusterEntity entity){
+  public void update(RemoteAmbariClusterEntity entity) {
     remoteAmbariClusterDAO.update(entity);
     clusterMap.remove(entity.getName());
   }
@@ -106,9 +106,9 @@ public class RemoteAmbariClusterRegistry {
 
     entity.setServices(serviceEntities);
 
-    if(update){
+    if (update) {
       update(entity);
-    }else{
+    } else {
       remoteAmbariClusterDAO.save(entity);
     }
   }
