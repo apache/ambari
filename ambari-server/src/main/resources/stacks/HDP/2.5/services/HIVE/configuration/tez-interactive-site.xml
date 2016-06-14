@@ -17,6 +17,16 @@
   limitations under the License.
 -->
 <configuration supports_final="true">
+  <!--
+  Note: This file includes only those configs which are supposed to have different value from the parent tez/tez-site.
+        It inherits the other required configs from tez/tez-site.
+        The inheritance logic in order to get tez_hive2/tez-site goes like this :
+
+        1. We read the tez/tez-site which includes the stack defaults and Stack Advisor recommended values.
+        2. We take the read tez/tez-site (step 1), and on top of it apply the tez-interactive-site to get tez_hive2/tez-site.
+
+        Therefore, any config defined here will override the config value read from tez/tez-site (step 1).
+  -->
   <property>
     <name>tez.runtime.shuffle.fetch.buffer.percent</name>
     <value>0.6</value>
@@ -55,6 +65,15 @@
   <property>
     <name>tez.runtime.shuffle.fetch.verify-disk-checksum</name>
     <value>false</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.lib.uris</name>
+    <value>/hdp/apps/${hdp.version}/tez_hive2/tez.tar.gz</value>
+    <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
+      Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).
+      If multiple files are specified - files are localized as regular files, contents of directories are localized as regular files (non-recursive).
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

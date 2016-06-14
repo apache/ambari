@@ -17,6 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <configuration supports_final="true">
+  <!--
+  Note: This file includes only those configs which are supposed to have different value from the parent hive/hive-site.
+       It inherits the other required configs from hive/hive-site.
+       The inheritance logic in order to get hive2/hive-site goes like this :
+
+       1. We read the hive/hive-site which includes the stack defaults and Stack Advisor recommended values.
+       2. We take the read hive/hive-site (step 1), and on top of it apply the hive-interactive-site to get
+          hive2/hive-site.
+
+       Therefore, any config defined here will override the config value read from hive2/hive-site (step 1).
+  -->
   <property>
     <name>hive.server2.thrift.port</name>
     <value>10500</value>
@@ -435,8 +446,8 @@ limitations under the License.
   </property>
   <property>
     <name>hive.llap.daemon.yarn.container.mb</name>
-    <display-name>YARN Memory per Daemon</display-name>
-    <description>The total YARN memory per node to be used by Hive LLAP daemons. This includes memory for cache as well as for memory for query processing.</description>
+    <display-name>Memory per daemon</display-name>
+    <description>Total memory used by individual LLAP daemons. This includes memory for the cache as well as for the query execution.</description>
     <value>{{yarn_scheduler_allocation_minimum_mb}}</value>
     <value-attributes>
       <type>int</type>
