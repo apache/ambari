@@ -96,12 +96,18 @@ angular.module('ambariAdminConsole')
               stackNameVersion:  version.VersionDefinition.stack_name + '-' + version.VersionDefinition.stack_version,
               displayName: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version.split('-')[0], //HDP-2.3.4.0
               displayNameFull: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version, //HDP-2.3.4.0-23
+              editableDisplayName: version.VersionDefinition.repository_version.substring(4),
+              isNonXMLdata: true,
               repositoryVersion: version.VersionDefinition.repository_version,
               stackNameRepositoryVersion: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version,
               showAvailable: version.VersionDefinition.show_available,
               osList: version.operating_systems,
               updateObj: version
             };
+            //hard code to not show stack name box for ECS stack
+            if (isNaN(versionObj.editableDisplayName.charAt(0))) {
+              versionObj.isNonXMLdata = false;
+            }
             var services = [];
             angular.forEach(version.VersionDefinition.stack_services, function (service) {
               // services that should not be shown on UI

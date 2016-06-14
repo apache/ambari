@@ -315,6 +315,10 @@ angular.module('ambariAdminConsole')
           var isXMLdata = $scope.isXMLdata;
         }
 
+        if (!isXMLdata) {
+          data.VersionDefinition.display_name = $scope.activeStackVersion.displayName;
+        }
+
         var repoUpdate = {
           operating_systems: $scope.updateObj.operating_systems
         };
@@ -322,10 +326,9 @@ angular.module('ambariAdminConsole')
           var versionInfo = response.resources[0].VersionDefinition;
           if (versionInfo.id && versionInfo.stack_name && versionInfo.stack_version) {
             Stack.updateRepo(versionInfo.stack_name, versionInfo.stack_version, versionInfo.id, repoUpdate).then(function () {
-              Alert.success($t('versions.alerts.versionEdited', {
+              Alert.success($t('versions.alerts.versionCreated', {
                 stackName: $scope.upgradeStack.stack_name,
-                versionName: $scope.actualVersion,
-                displayName: $scope.displayName
+                versionName: $scope.actualVersion
               }));
               $location.path('/stackVersions');
             }).catch(function (data) {
@@ -568,6 +571,10 @@ angular.module('ambariAdminConsole')
         });
       }
     });
+  };
+
+  $scope.updateCurrentVersionInput = function () {
+    $scope.activeStackVersion.displayName = $scope.activeStackVersion.stackNameVersion + "." + angular.element('[name="version"]')[0].value;
   };
 
   $scope.fetchPublicVersions = function () {
