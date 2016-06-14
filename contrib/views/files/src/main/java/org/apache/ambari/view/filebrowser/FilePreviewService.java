@@ -23,6 +23,7 @@ import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
 import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
 import org.apache.ambari.view.commons.hdfs.HdfsService;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.io.compress.CompressionCodec;
@@ -69,9 +70,9 @@ public class FilePreviewService extends HdfsService {
 
       int length = end - start;
       byte[] bytes = new byte[length];
-     // ((Seekable)stream).seek(start); //seek(start);
-      stream.skip(start);
-      int readBytes = stream.read(bytes, 0, length);
+
+      if (start != 0) IOUtils.skip(stream, start);
+      int readBytes = IOUtils.read(stream, bytes);
       boolean isFileEnd = false;
 
       if (readBytes < length) isFileEnd = true;
