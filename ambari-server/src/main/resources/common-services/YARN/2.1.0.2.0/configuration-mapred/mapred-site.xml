@@ -253,16 +253,14 @@
   <property>
     <name>mapreduce.jobhistory.address</name>
     <value>localhost:10020</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Enter your JobHistoryServer hostname.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.jobhistory.webapp.address</name>
     <value>localhost:19888</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Enter your JobHistoryServer hostname.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.framework.name</name>

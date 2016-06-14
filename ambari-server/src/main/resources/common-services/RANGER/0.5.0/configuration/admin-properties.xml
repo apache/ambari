@@ -80,67 +80,54 @@
   </property>
   <property>
     <name>policymgr_http_enabled</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>authentication_method</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>remoteLoginEnabled</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>authServiceHostName</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>authServicePort</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>xa_ldap_url</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>xa_ldap_userDNpattern</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>xa_ldap_groupSearchBase</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>xa_ldap_groupSearchFilter</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>xa_ldap_groupRoleAttribute</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>xa_ldap_ad_domain</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>xa_ldap_ad_url</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>SQL_COMMAND_INVOKER</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
 </configuration>

@@ -21,48 +21,39 @@
 <configuration supports_final="true">
   <property>
     <name>spark.yarn.executor.memoryOverhead</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.driver.memoryOverhead</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.scheduler.heartbeat.interval-ms</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.max.executor.failures</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.containerLauncherMaxThreads</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.submit.file.replication</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.preserve.staging.files</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.max.executor.failures</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.yarn.services</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.history.provider</name>

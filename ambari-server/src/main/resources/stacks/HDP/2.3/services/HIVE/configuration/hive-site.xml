@@ -40,20 +40,18 @@ limitations under the License.
   </property>
   <property>
     <name>atlas.hook.hive.minThreads</name>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <value>1</value>
     <description>
       Minimum number of threads maintained by Atlas hook.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <name>atlas.hook.hive.maxThreads</name>
     <value>1</value>
     <description>
       Maximum number of threads used by Atlas hook.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

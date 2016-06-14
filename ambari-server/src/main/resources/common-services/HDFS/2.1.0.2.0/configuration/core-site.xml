@@ -53,11 +53,10 @@
     <name>fs.defaultFS</name>
     <!-- cluster variant -->
     <value>hdfs://localhost:8020</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The name of the default file system.  Either the
   literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>fs.trash.interval</name>

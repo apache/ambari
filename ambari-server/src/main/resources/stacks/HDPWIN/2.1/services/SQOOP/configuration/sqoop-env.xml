@@ -22,8 +22,7 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>sqoop_user</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <!-- sqoop-env.cmd -->
   <property>

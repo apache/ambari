@@ -94,7 +94,6 @@
   <property>
     <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
     <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description/>
     <depends-on>
       <property>
@@ -102,7 +101,7 @@
         <name>xasecure.audit.destination.hdfs.dir</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY</name>

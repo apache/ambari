@@ -41,7 +41,6 @@ limitations under the License.
   <property>
     <name>hive.zookeeper.quorum</name>
     <value>localhost:2181</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>List of ZooKeeper servers to talk to. This is needed for: 1.
       Read/write locks - when hive.lock.manager is set to
       org.apache.hadoop.hive.ql.lockmgr.zookeeper.ZooKeeperHiveLockManager,
@@ -50,7 +49,7 @@ limitations under the License.
       <type>multiLine</type>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.metastore.connect.retries</name>
@@ -113,9 +112,8 @@ limitations under the License.
   <property>
     <name>hive.cluster.delegation.token.store.zookeeper.connectString</name>
     <value>localhost:2181</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The ZooKeeper token store connect string.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.support.dynamic.service.discovery</name>
@@ -133,16 +131,14 @@ limitations under the License.
   <property>
     <name>fs.hdfs.impl.disable.cache</name>
     <value>false</value>
-    <deleted>true</deleted>
     <description>Disable HDFS filesystem cache.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>fs.file.impl.disable.cache</name>
     <value>false</value>
-    <deleted>true</deleted>
     <description>Disable local filesystem cache.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>hive.exec.scratchdir</name>
@@ -346,9 +342,8 @@ limitations under the License.
   <property>
     <name>hive.metastore.uris</name>
     <value>thrift://localhost:9083</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>javax.jdo.option.ConnectionPassword</name>
@@ -365,7 +360,6 @@ limitations under the License.
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Database URL</display-name>
     <description>JDBC connect string for a JDBC metastore</description>
     <value-attributes>
@@ -381,7 +375,7 @@ limitations under the License.
         <type>hive-site</type>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.metastore.server.max.threads</name>
@@ -1424,19 +1418,17 @@ limitations under the License.
   <property>
     <name>hive.heapsize</name>
     <value>1024</value>
-    <deleted>true</deleted>
     <description>Hive Java heap size</description>
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>hive.server2.enable.impersonation</name>
     <value>true</value>
-    <deleted>true</deleted>
     <description>Enable user impersonation for HiveServer2</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>ambari.hive.db.schema.name</name>
@@ -1452,20 +1444,18 @@ limitations under the License.
   <property>
     <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
     <value>true</value>
-    <deleted>true</deleted>
     <description>Required to Enable the conversion of an SMB (Sort-Merge-Bucket) to a map-join SMB.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>hive.optimize.mapjoin.mapreduce</name>
     <value>true</value>
-    <deleted>true</deleted>
     <description>If hive.auto.convert.join is off, this parameter does not take
       affect. If it is on, and if there are map-join jobs followed by a map-reduce
       job (for e.g a group by), each map-only job is merged with the following
       map-reduce job.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <!-- performance -->
   <property>
@@ -1767,71 +1757,65 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication.ldap.url</name>
     <value> </value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.ldap.baseDN</name>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.kerberos.keytab</name>
     <value>/etc/security/keytabs/hive.service.keytab</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.kerberos.principal</name>
     <value>hive/_HOST@EXAMPLE.COM</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.authentication.pam.services</name>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.custom.authentication.class</name>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
         <name>hive.server2.authentication</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>datanucleus.autoCreateSchema</name>

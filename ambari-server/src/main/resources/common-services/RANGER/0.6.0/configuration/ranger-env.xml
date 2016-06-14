@@ -22,7 +22,6 @@
 <configuration>
   <property>
     <name>xasecure.audit.destination.db</name>
-    <deleted>true</deleted>
     <on-ambari-upgrade delete="true"/>
   </property>
   <property>

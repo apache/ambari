@@ -34,21 +34,18 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels</name>
     <value>*</value>
     <description/>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default-node-label-expression</name>
     <value> </value>
     <description/>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

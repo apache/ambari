@@ -31,11 +31,10 @@
   <property>
     <name>hbase.hstore.flush.retries.number</name>
     <value>120</value>
-    <deleted>true</deleted>
     <description>
     The number of times the region flush operation will be retried.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>

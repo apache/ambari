@@ -21,8 +21,7 @@
 <configuration supports_final="true">
   <property>
     <name>spark.yarn.services</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>spark.history.provider</name>

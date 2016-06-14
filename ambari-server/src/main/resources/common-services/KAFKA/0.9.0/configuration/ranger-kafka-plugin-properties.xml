@@ -47,9 +47,8 @@
   <property>
     <name>zookeeper.connect</name>
     <value>localhost:2181</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Used for repository creation on ranger admin</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger-kafka-plugin-enabled</name>

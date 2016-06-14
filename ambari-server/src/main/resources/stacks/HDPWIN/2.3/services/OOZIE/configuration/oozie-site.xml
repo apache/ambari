@@ -142,7 +142,6 @@
   </property>
   <property>
     <name>oozie.service.AuthorizationService.security.enabled</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
 </configuration>

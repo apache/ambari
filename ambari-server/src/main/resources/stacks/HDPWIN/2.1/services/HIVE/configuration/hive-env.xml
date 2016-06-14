@@ -78,8 +78,7 @@
   </property>
   <property>
     <name>hive_user</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <!--HCAT-->
   <property>
@@ -106,13 +105,11 @@
   </property>
   <property>
     <name>hcat_user</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>webhcat_user</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <!-- hive-env.cmd -->
   <property>

@@ -49,15 +49,13 @@
   </property>
   <property>
     <name>oracle_home</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>ranger_privelege_user_jdbc_url</name>
     <display-name>JDBC connect string for root user</display-name>
     <description>JDBC connect string - auto populated based on other values. This is to be used by root user</description>
     <value>jdbc:mysql://localhost</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -71,7 +69,7 @@
         <name>db_host</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger-yarn-plugin-enabled</name>
@@ -187,7 +185,6 @@
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://localhost:8020</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Destination HDFS Directory</display-name>
     <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
     <depends-on>
@@ -196,7 +193,7 @@
         <name>fs.defaultFS</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.db</name>

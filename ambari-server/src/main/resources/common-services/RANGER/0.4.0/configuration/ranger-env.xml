@@ -277,7 +277,6 @@
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Destination HDFS Directory</display-name>
     <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
     <depends-on>
@@ -286,7 +285,7 @@
         <name>fs.defaultFS</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.db</name>

@@ -20,10 +20,9 @@
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
   <property>
     <name>mapreduce.admin.user.env</name>
-    <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>mapreduce.application.classpath</name>
@@ -37,31 +36,27 @@
   </property>
   <property>
     <name>mapreduce.application.framework.path</name>
-    <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.admin-command-opts</name>
-    <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
-    <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
-    <deleted>true</deleted>
     <value/>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.enabled</name>

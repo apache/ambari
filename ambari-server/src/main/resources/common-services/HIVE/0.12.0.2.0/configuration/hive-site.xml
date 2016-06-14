@@ -43,7 +43,6 @@ limitations under the License.
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <display-name>Database URL</display-name>
     <description>JDBC connect string for a JDBC metastore</description>
     <value-attributes>
@@ -59,7 +58,7 @@ limitations under the License.
         <type>hive-site</type>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
@@ -123,9 +122,8 @@ limitations under the License.
   <property>
     <name>hive.metastore.uris</name>
     <value>thrift://localhost:9083</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>URI for client to contact metastore server</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.metastore.pre.event.listeners</name>
@@ -438,7 +436,6 @@ limitations under the License.
   </property>
   <property>
     <name>atlas.cluster.name</name>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <value>{{cluster_name}}</value>
     <depends-on>
       <property>
@@ -446,12 +443,11 @@ limitations under the License.
         <name>atlas.enableTLS</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.rest.address</name>
     <value>http://localhost:21000</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>application-properties</type>
@@ -466,6 +462,6 @@ limitations under the License.
         <name>atlas.server.https.port</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

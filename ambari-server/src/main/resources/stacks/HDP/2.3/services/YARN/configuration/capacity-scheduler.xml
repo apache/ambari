@@ -18,7 +18,6 @@
 <configuration supports_final="false">
   <property>
     <name>yarn.scheduler.capacity.root.default-node-label-expression</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
 </configuration>

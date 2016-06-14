@@ -59,30 +59,27 @@
   <property>
     <name>yarn.timeline-service.webapp.address</name>
     <value>localhost:8188</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The http address of the timeline service web application.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.webapp.https.address</name>
     <value>localhost:8190</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The http address of the timeline service web application.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.address</name>
     <value>localhost:10200</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       This is default address for the timeline server to start
       the RPC server.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <description>Enable age off of timeline store data.</description>
