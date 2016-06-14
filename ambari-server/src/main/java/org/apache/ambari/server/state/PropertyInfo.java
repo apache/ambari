@@ -48,7 +48,6 @@ public class PropertyInfo {
   private String displayName;
 
   private String filename;
-  private boolean deleted;
 
   @XmlElement(name="on-ambari-upgrade", required = true)
   private PropertyUpgradeBehavior propertyAmbariUpgradeBehavior;
@@ -86,9 +85,6 @@ public class PropertyInfo {
 
   public PropertyInfo() {
     propertyAmbariUpgradeBehavior = new PropertyUpgradeBehavior();
-    propertyAmbariUpgradeBehavior.setAdd(true);
-    propertyAmbariUpgradeBehavior.setUpdate(false);
-    propertyAmbariUpgradeBehavior.setDelete(false);
   }
 
   public String getName() {
@@ -152,14 +148,6 @@ public class PropertyInfo {
       getDescription(), getDisplayName() , getFilename(), isRequireInput(),
       getPropertyTypes(), getAttributesMap(), getPropertyValueAttributes(),
       getDependsOnProperties());
-  }
-
-  public boolean isDeleted() {
-    return deleted;
-  }
-
-  public void setDeleted(boolean deleted) {
-    this.deleted = deleted;
   }
 
   public Map<String, String> getAttributesMap() {
@@ -241,7 +229,6 @@ public class PropertyInfo {
       ", value='" + value + '\'' +
       ", description='" + description + '\'' +
       ", filename='" + filename + '\'' +
-      ", deleted=" + deleted +
       ", requireInput=" + requireInput +
       ", propertyTypes=" + propertyTypes +
       ", propertyAttributes=" + propertyAttributes +
@@ -257,7 +244,6 @@ public class PropertyInfo {
     GROUP,
     TEXT,
     ADDITIONAL_USER_PROPERTY,
-    DONT_ADD_ON_UPGRADE,
     NOT_MANAGED_HDFS_PATH,
     VALUE_FROM_PROPERTY_FILE
   }

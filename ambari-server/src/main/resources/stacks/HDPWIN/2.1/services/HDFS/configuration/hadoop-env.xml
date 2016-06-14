@@ -47,13 +47,11 @@
   </property>
   <property>
     <name>proxyuser_group</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>hdfs_user</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <!-- hadoop-env.cmd -->
   <property>

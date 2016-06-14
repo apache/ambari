@@ -21,9 +21,8 @@
   <property>
     <name>listeners</name>
     <value>PLAINTEXT://localhost:6667</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>host and port where kafka broker will be accepting connections. localhost will be substituted with hostname.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>controlled.shutdown.enable</name>
@@ -141,8 +140,7 @@
     <name>port</name>
     <value>6667</value>
     <description>Deprecated config in favor of listeners config.</description>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>external.kafka.metrics.exclude.prefix</name>

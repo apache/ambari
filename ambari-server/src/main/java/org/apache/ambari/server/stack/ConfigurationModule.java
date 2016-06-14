@@ -149,7 +149,7 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
     while (iter.hasNext()) {
       PropertyInfo prop = iter.next();
       existingProps.add(prop.getFilename() + "/" + prop.getName());
-      if (prop.isDeleted()) {
+      if (prop.getPropertyAmbariUpgradeBehavior().isDelete()) {
         iter.remove();
       }
     }

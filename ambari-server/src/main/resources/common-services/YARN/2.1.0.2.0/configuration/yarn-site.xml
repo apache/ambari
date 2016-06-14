@@ -22,40 +22,35 @@
   <property>
     <name>yarn.resourcemanager.hostname</name>
     <value>localhost</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The hostname of the RM.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description> The address of ResourceManager. </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.scheduler.address</name>
     <value>localhost:8030</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The address of the scheduler interface.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.address</name>
     <value>localhost:8050</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The address of the applications manager interface in the
       RM.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.admin.address</name>
     <value>localhost:8141</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The address of the RM admin interface.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.scheduler.class</name>
@@ -372,20 +367,18 @@
   <property>
     <name>yarn.resourcemanager.webapp.address</name>
     <value>localhost:8088</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The address of the RM web application.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.webapp.https.address</name>
     <value>localhost:8090</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       The https address of the RM web application.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.nodemanager.vmem-check-enabled</name>
@@ -398,11 +391,10 @@
   <property>
     <name>yarn.log.server.url</name>
     <value>http://localhost:19888/jobhistory/logs</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       URI for the HistoryServer's log resource
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.nodes.exclude-path</name>

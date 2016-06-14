@@ -35,11 +35,10 @@
   <property>
     <name>hadoop.registry.zk.quorum</name>
     <value>localhost:2181</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       List of hostname:port pairs defining the zookeeper quorum binding for the registry
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.nodemanager.recovery.enabled</name>
@@ -103,11 +102,10 @@
   <property>
     <name>yarn.resourcemanager.zk-address</name>
     <value>localhost:2181</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>
       List Host:Port of the ZooKeeper servers to be used by the RM. comma separated host:port pairs, each corresponding to a zk server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002" If the optional chroot suffix is used the example would look like: "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002/app/a" where the client would be rooted at "/app/a" and all paths would be relative to this root - ie getting/setting/etc...  "/foo/bar" would result in operations being run on "/app/a/foo/bar" (from the server perspective).
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.zk-state-store.parent-path</name>
@@ -491,8 +489,7 @@
     <name>yarn.node-labels.manager-class</name>
     <value>org.apache.hadoop.yarn.server.resourcemanager.nodelabels.MemoryRMNodeLabelsManager</value>
     <description>If user want to enable this feature, specify it to "org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager</description>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.container-executor.class</name>

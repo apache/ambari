@@ -22,19 +22,31 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
 /**
- * Represents a behavior used during upgrade for property
+ * Represents a behavior used during ambari upgrade for property
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PropertyUpgradeBehavior {
 
-  @XmlAttribute(name="add", required = true)
-  private boolean add;
+  /**
+   * If true, add property during ambari-upgrade. If config type does
+   * not exist, it will be created only if there are properties that
+   * are going to be added
+   */
+  @XmlAttribute(name="add", required = false)
+  private boolean add = true;
 
-  @XmlAttribute(name="delete", required = true)
-  private boolean delete;
+  /**
+   * If true, then remove this property during ambari-upgrade
+   */
+  @XmlAttribute(name="delete", required = false)
+  private boolean delete = false;
 
-  @XmlAttribute(name="update", required = true)
-  private boolean update;
+  /**
+   * If true, during ambari upgrade property value will be blindly overwritten
+   * with default value
+   */
+  @XmlAttribute(name="update", required = false)
+  private boolean update = false;
 
   public PropertyUpgradeBehavior() {}
 

@@ -137,9 +137,8 @@
   <property>
     <name>*.broker.url</name>
     <value>tcp://localhost:61616</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Default Active MQ url</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>*.broker.ttlInMins</name>

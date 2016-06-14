@@ -119,9 +119,8 @@
   <property>
     <name>atlas.server.bind.address</name>
     <value>localhost</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.http.authentication.enabled</name>

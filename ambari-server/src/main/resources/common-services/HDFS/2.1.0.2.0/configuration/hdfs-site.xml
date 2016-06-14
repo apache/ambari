@@ -248,18 +248,16 @@
   <property>
     <name>dfs.namenode.http-address</name>
     <value>localhost:50070</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The name of the default file system.  Either the
       literal string "local" or a host:port for HDFS.</description>
     <final>true</final>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dfs.namenode.rpc-address</name>
     <value>localhost:8020</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>RPC address that handles all clients requests.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dfs.datanode.du.reserved</name>
@@ -359,16 +357,14 @@
     <!-- cluster variant -->
     <name>dfs.namenode.secondary.http-address</name>
     <value>localhost:50090</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>Address of secondary namenode web server</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dfs.namenode.https-address</name>
     <value>localhost:50470</value>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>The https address where namenode binds</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dfs.datanode.data.dir.perm</name>

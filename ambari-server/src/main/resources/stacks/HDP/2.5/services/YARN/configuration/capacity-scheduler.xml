@@ -28,7 +28,6 @@
         <name>llap_queue_capacity</name>
       </property>
     </depends-on>
-    <property-type>DONT_ADD_ON_UPGRADE</property-type>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

@@ -26,15 +26,13 @@
   <property>
     <name>yarn.scheduler.capacity.maximum-am-resource-percent</name>
     <value>0.2</value>
-    <deleted>true</deleted>
     <description>Maximum percent of resources in the cluster.</description>
     <final>false</final>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <property require-input="true">
     <name>yarn.scheduler.capacity.root.queues</name>
     <value>default</value>
-    <deleted>false</deleted>
     <description>The queues at the this level (root is the root queue).</description>
     <on-ambari-upgrade add="true"/>
   </property>

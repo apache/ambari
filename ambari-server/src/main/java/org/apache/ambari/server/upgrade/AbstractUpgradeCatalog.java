@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.PropertyUpgradeBehavior;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
@@ -309,40 +310,60 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
-        Map<String, Set<String>> newProperties = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toAddProperties = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toUpdateProperties = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toRemoveProperties = new HashMap<String, Set<String>>();
+
 
         Set<PropertyInfo> stackProperties = configHelper.getStackProperties(cluster);
         for(String serviceName: cluster.getServices().keySet()) {
           Set<PropertyInfo> properties = configHelper.getServiceProperties(cluster, serviceName);
 
-          if(properties == null) {
+          if (properties == null) {
             continue;
           }
           properties.addAll(stackProperties);
 
-          for(PropertyInfo property:properties) {
+          for (PropertyInfo property : properties) {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             Config clusterConfigs = cluster.getDesiredConfigByType(configType);
-            if(clusterConfigs == null || !clusterConfigs.getProperties().containsKey(property.getName())) {
-              if (property.getValue() == null || property.getPropertyTypes().contains(PropertyInfo.PropertyType.DONT_ADD_ON_UPGRADE)) {
-                continue;
+              PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
+
+              if (upgradeBehavior.isAdd()) {
+                if(!toAddProperties.containsKey(configType)) {
+                  toAddProperties.put(configType, new HashSet<String>());
+                }
+                toAddProperties.get(configType).add(property.getName());
+              }
+              if (upgradeBehavior.isUpdate()) {
+                if(!toUpdateProperties.containsKey(configType)) {
+                  toUpdateProperties.put(configType, new HashSet<String>());
+                }
+                toUpdateProperties.get(configType).add(property.getName());
+              }
+              if (upgradeBehavior.isDelete()) {
+                if(!toRemoveProperties.containsKey(configType)) {
+                  toRemoveProperties.put(configType, new HashSet<String>());
+                }
+                toRemoveProperties.get(configType).add(property.getName());
               }
 
-              LOG.info("Config " + property.getName() + " from " + configType + " from xml configurations" +
-                  " is not found on the cluster. Adding it...");
-
-              if(!newProperties.containsKey(configType)) {
-                newProperties.put(configType, new HashSet<String>());
-              }
-              newProperties.get(configType).add(property.getName());
-            }
           }
         }
 
+        for (Entry<String, Set<String>> newProperty : toAddProperties.entrySet()) {
+          String newPropertyKey = newProperty.getKey();
+          updateConfigurationPropertiesWithValuesFromXml(newPropertyKey, newProperty.getValue(), false, true);
+        }
 
+        for (Entry<String, Set<String>> newProperty : toUpdateProperties.entrySet()) {
+          String newPropertyKey = newProperty.getKey();
+          updateConfigurationPropertiesWithValuesFromXml(newPropertyKey, newProperty.getValue(), true, false);
+        }
 
-        for (Entry<String, Set<String>> newProperty : newProperties.entrySet()) {
-          updateConfigurationPropertiesWithValuesFromXml(newProperty.getKey(), newProperty.getValue(), false, true);
+        for (Entry<String, Set<String>> toRemove : toRemoveProperties.entrySet()) {
+          String newPropertyKey = toRemove.getKey();
+          updateConfigurationPropertiesWithValuesFromXml(newPropertyKey, Collections.<String>emptySet(), toRemove.getValue(), false, true);
         }
       }
     }
@@ -388,6 +409,15 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    */
   protected void updateConfigurationPropertiesWithValuesFromXml(String configType,
       Set<String> propertyNames, boolean updateIfExists, boolean createNewConfigType) throws AmbariException {
+    updateConfigurationPropertiesWithValuesFromXml(configType, propertyNames, null, updateIfExists, createNewConfigType);
+
+  }
+
+  protected void updateConfigurationPropertiesWithValuesFromXml(String configType,
+                                                                Set<String> propertyNames,
+                                                                Set<String> toRemove,
+                                                                boolean updateIfExists,
+                                                                boolean createNewConfigType) throws AmbariException {
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
     AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
 
@@ -421,7 +451,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
 
         updateConfigurationPropertiesForCluster(cluster, configType,
-            properties, updateIfExists, createNewConfigType);
+            properties, toRemove, updateIfExists, createNewConfigType);
       }
     }
   }

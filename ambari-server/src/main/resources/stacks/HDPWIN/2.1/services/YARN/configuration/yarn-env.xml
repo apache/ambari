@@ -44,8 +44,7 @@
   </property>
   <property>
     <name>yarn_user</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade delete="true"/>
   </property>
   <!-- yarn-env.cmd -->
   <property>
