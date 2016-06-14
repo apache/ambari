@@ -76,6 +76,19 @@
             </configuration>
           </execution>
           <execution>
+            <id>full-version</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariFullVersion</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)\-([0-9]+).*</regex>
+              <replacement>$1.$2.$3.$4-$5</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+          <execution>
             <id>regex-schema-version</id>
             <goals>
               <goal>regex-property</goal>
