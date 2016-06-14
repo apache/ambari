@@ -1613,6 +1613,8 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-namenode', version), sudo=True)
 
+    self.assertNoMoreResources()
+
 
   @patch("resource_management.core.shell.call")
   def test_pre_upgrade_restart_23(self, call_mock):
@@ -1872,6 +1874,41 @@ class TestNamenode(RMFTestCase):
     self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/sbin", sys.modules["params"].hadoop_bin)
 
 
+  @patch("namenode_upgrade.create_upgrade_marker", MagicMock())
+  def test_express_upgrade_skips_safemode_and_directory_creation(self):
+    """
+    Tests that we wait for Safemode to be OFF no matter what except for EU. And, because of that,
+    EUs don't try to create HDFS resources.
+
+    :param self:
+    :param create_upgrade_marker_mock:
+    :return:
+    """
+    config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+      classname = "NameNode",
+      command = "start",
+      command_args = ["nonrolling"],
+      config_dict = json_content,
+      stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, ''), (0, None)],
+      mocks_dict = mocks_dict)
+
+    # jump right to the start of the NN and then verify that we DO NOT call HdfsResource after
+    self.assertResourceCalledIgnoreEarlier('Execute',
+      "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start namenode'",
+      environment = {'HADOOP_LIBEXEC_DIR':'/usr/lib/hadoop/libexec'},
+      not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid")
+
+    self.assertNoMoreResources()
 
 class Popen_Mock:
   return_value = 1
