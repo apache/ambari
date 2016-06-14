@@ -152,21 +152,26 @@ angular.module('ambariAdminConsole')
   }
 
   function passOneRoleCheck(arr) {
-    var hash = {};
+    var hashes = {};
     for(var i = 0; i < arr.length; i++) {
-      var obj = arr[i];
-      if (hash[obj.PrivilegeInfo.principal_name] && obj.PrivilegeInfo.principal_name !== "*") {
+      var obj = arr[i],
+        type = obj.PrivilegeInfo.principal_type,
+        name = obj.PrivilegeInfo.principal_name;
+      if (!hashes[type]) {
+        hashes[type] = {};
+      }
+      if (hashes[type][name] && name !== "*") {
         return false;
       } else {
-        hash[obj.PrivilegeInfo.principal_name] = true;
+        hashes[type][name] = true;
       }
     }
     return true;
   }
 
   return {
-    saveClusterPermissions: function(oldPermissions, newPermissions, params) {
-      return savePermissionsFor(Cluster, oldPermissions, newPermissions, params);
+    saveClusterPermissions: function(permissions, params) {
+      return savePermissionsFor(Cluster, permissions, params);
     },
     saveViewPermissions: function(permissions, params) {
       return savePermissionsFor(View, permissions, params);
