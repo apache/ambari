@@ -21,7 +21,7 @@
 
 # /etc/init.d/ambari-server
 
-VERSION="${ambariVersion}"
+VERSION="${ambariFullVersion}"
 HASH="${buildNumber}"
 
 case "$1" in
