@@ -326,6 +326,11 @@ if has_ranger_admin:
   previous_jdbc_jar = format("{stack_root}/current/{component_directory}/lib/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   sql_connector_jar = ''
 
+  if security_enabled:
+    hbase_master_hosts = default('/clusterHostInfo/hbase_master_hosts', [])
+    hbase_master_host = hbase_master_hosts[0] if len(hbase_master_hosts) > 0 else 'localhost'
+    master_principal = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST', hbase_master_host)
+
   hbase_ranger_plugin_config = {
     'username': repo_config_username,
     'password': repo_config_password,
@@ -335,7 +340,7 @@ if has_ranger_admin:
     'hbase.zookeeper.quorum': hbase_zookeeper_quorum,
     'zookeeper.znode.parent': zookeeper_znode_parent,
     'commonNameForCertificate': common_name_for_certificate,
-    'hbase.master.kerberos.principal': master_jaas_princ if security_enabled else ''
+    'hbase.master.kerberos.principal': master_principal if security_enabled else ''
   }
 
   hbase_ranger_plugin_repo = {
