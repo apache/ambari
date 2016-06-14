@@ -69,6 +69,8 @@ App.ServiceConfig = Ember.Object.extend({
     return App.StackService.find(this.get('serviceName')).get('configTypeList') || [];
   }.property('serviceName'),
 
+  radioConfigs: Em.computed.filterBy('configs', 'displayType', 'radio button'),
+
   observeForeignKeys: function() {
     //TODO refactor or move this logic to other place
     var configs = this.get('configs');
@@ -88,7 +90,7 @@ App.ServiceConfig = Ember.Object.extend({
         }
       }
     });
-  }.observes('configs.@each.isVisible'),
+  }.observes('radioConfigs.@each.value'),
 
   /**
    * Collection of properties that were changed:
@@ -128,6 +130,7 @@ App.ServiceConfig = Ember.Object.extend({
   init: function() {
     this._super();
     this.set('dependentServiceNames', App.StackService.find(this.get('serviceName')).get('dependentServiceNames') || []);
+    this.observeForeignKeys();
   }
 });
 
