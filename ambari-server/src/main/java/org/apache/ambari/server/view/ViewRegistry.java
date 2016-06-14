@@ -113,6 +113,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -936,7 +937,11 @@ public class ViewRegistry {
           LOG.warn("Could not find the cluster identified by " + clusterId + ".");
         }
       } else if(clusterId != null && viewInstance.getClusterType() == ClusterType.REMOTE_AMBARI){
-        return remoteAmbariClusterRegistry.get(clusterId);
+        try {
+          return remoteAmbariClusterRegistry.get(clusterId);
+        } catch (MalformedURLException e) {
+          LOG.warn("Cannot get Remote Cluster ." + e.getMessage() ,e);
+        }
       }
     }
     return null;

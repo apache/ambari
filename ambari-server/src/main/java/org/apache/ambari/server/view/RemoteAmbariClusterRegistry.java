@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
@@ -27,6 +28,7 @@ import org.apache.ambari.view.AmbariHttpException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -46,7 +48,7 @@ public class RemoteAmbariClusterRegistry {
   @Inject
   private Configuration configuration;
 
-  public RemoteAmbariCluster get(Long clusterId) {
+  public RemoteAmbariCluster get(Long clusterId) throws MalformedURLException {
     RemoteAmbariCluster remoteAmbariCluster = clusterMap.get(clusterId);
     if (remoteAmbariCluster == null) {
       RemoteAmbariCluster cluster = getCluster(clusterId);
@@ -58,7 +60,7 @@ public class RemoteAmbariClusterRegistry {
   }
 
 
-  private RemoteAmbariCluster getCluster(Long clusterId) {
+  private RemoteAmbariCluster getCluster(Long clusterId) throws MalformedURLException {
     RemoteAmbariClusterEntity remoteAmbariClusterEntity = remoteAmbariClusterDAO.findById(clusterId);
     RemoteAmbariCluster remoteAmbariCluster = new RemoteAmbariCluster(remoteAmbariClusterEntity, configuration);
     return remoteAmbariCluster;
@@ -93,8 +95,14 @@ public class RemoteAmbariClusterRegistry {
    * @throws AmbariHttpException
    */
   public void saveOrUpdate(RemoteAmbariClusterEntity entity, boolean update) throws IOException, AmbariHttpException {
-    RemoteAmbariCluster cluster = new RemoteAmbariCluster(entity,configuration);
+
+    RemoteAmbariCluster cluster = new RemoteAmbariCluster(entity, configuration);
     Set<String> services = cluster.getServices();
+
+    if (!cluster.isAmbariOrClusterAdmin()) {
+      throw new AmbariException("User must be Ambari or Cluster Adminstrator.");
+    }
+
     Collection<RemoteAmbariClusterServiceEntity> serviceEntities = new ArrayList<RemoteAmbariClusterServiceEntity>();
 
     for (String service : services) {

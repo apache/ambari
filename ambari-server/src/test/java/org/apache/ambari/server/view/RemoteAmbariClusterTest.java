@@ -57,8 +57,9 @@ public class RemoteAmbariClusterTest {
     final String configurationString = "{\"items\": [{\"properties\": {\"test.property.name\": \"test property value\"}}]}";
     final int[] desiredConfigPolls = {0};
     final int[] testConfigPolls = {0};
+    final String clusterPath = "/api/v1/clusters/Test";
 
-    expect(clusterStreamProvider.readFrom(eq(  "?fields=services/ServiceInfo,hosts,Clusters"),
+    expect(clusterStreamProvider.readFrom(eq( clusterPath + "?fields=services/ServiceInfo,hosts,Clusters"),
       eq("GET"), (String) isNull(), (Map<String, String>) anyObject())).andAnswer(new IAnswer<InputStream>() {
       @Override
       public InputStream answer() throws Throwable {
@@ -67,7 +68,7 @@ public class RemoteAmbariClusterTest {
       }
     }).anyTimes();
 
-    expect(clusterStreamProvider.readFrom(eq( "/configurations?(type=test-site&tag=TAG)"),
+    expect(clusterStreamProvider.readFrom(eq(clusterPath + "/configurations?(type=test-site&tag=TAG)"),
       eq("GET"), (String)isNull(), (Map<String, String>) anyObject())).andAnswer(new IAnswer<InputStream>() {
       @Override
       public InputStream answer() throws Throwable {
@@ -80,7 +81,7 @@ public class RemoteAmbariClusterTest {
 
     replay(clusterStreamProvider,entity);
 
-    RemoteAmbariCluster cluster = new RemoteAmbariCluster("Test", clusterStreamProvider);
+    RemoteAmbariCluster cluster = new RemoteAmbariCluster("Test", clusterPath, clusterStreamProvider);
 
     String value = cluster.getConfigurationValue("test-site", "test.property.name");
     assertEquals(value, "test property value");
@@ -108,9 +109,10 @@ public class RemoteAmbariClusterTest {
 
     String service = "SERVICE";
     String component = "COMPONENT";
+    final String clusterPath = "/api/v1/clusters/Test";
 
-    expect(clusterStreamProvider.readFrom(eq(String.format("services/%s/components/%s?" +
-        "fields=host_components/HostRoles/host_name",service,component)),
+    expect(clusterStreamProvider.readFrom(eq(String.format("%s/services/%s/components/%s?" +
+        "fields=host_components/HostRoles/host_name", clusterPath, service, component)),
       eq("GET"), (String) isNull(), (Map<String, String>) anyObject()))
       .andReturn(new ByteArrayInputStream(componentHostsString.getBytes()));
 
@@ -118,7 +120,7 @@ public class RemoteAmbariClusterTest {
 
     replay(clusterStreamProvider,entity);
 
-    RemoteAmbariCluster cluster = new RemoteAmbariCluster("Test", clusterStreamProvider);
+    RemoteAmbariCluster cluster = new RemoteAmbariCluster("Test", clusterPath, clusterStreamProvider);
 
     List<String> hosts = cluster.getHostsForServiceComponent(service,component);
     Assert.assertEquals(2, hosts.size());
