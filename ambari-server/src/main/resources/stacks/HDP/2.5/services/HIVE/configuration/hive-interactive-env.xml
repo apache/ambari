@@ -82,11 +82,11 @@
   <property>
     <name>num_llap_nodes</name>
     <value>1</value>
-    <minimum>1</minimum>
     <description>The number of Hive LLAP daemons to run.</description>
     <display-name>Number of LLAP Daemons</display-name>
     <value-attributes>
       <type>int</type>
+      <minimum>1</minimum>
     </value-attributes>
     <depends-on>
       <property>
