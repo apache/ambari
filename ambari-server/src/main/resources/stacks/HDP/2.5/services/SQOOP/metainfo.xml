@@ -21,6 +21,9 @@
     <service>
       <name>SQOOP</name>
       <version>1.4.6.2.5</version>
+      <configuration-dependencies>
+        <config-type>application-properties</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>

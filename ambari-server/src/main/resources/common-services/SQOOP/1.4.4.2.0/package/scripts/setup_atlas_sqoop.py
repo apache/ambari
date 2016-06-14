@@ -18,8 +18,10 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.packaging import Package
 from resource_management.core.resources.system import Link
+from resource_management.libraries.functions.format import format
 from ambari_commons import OSCheck
 
 import os
@@ -33,11 +35,14 @@ def setup_atlas_sqoop():
       Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package,
               retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability, retry_count=params.agent_stack_retry_count)
 
+    PropertiesFile(format('{sqoop_conf_dir}/{atlas_conf_file}'),
+                     properties = params.atlas_props,
+                     owner = params.sqoop_user,
+                     group = params.user_group,
+                     mode = 0644)
+
     atlas_sqoop_hook_dir = os.path.join(params.atlas_home_dir, "hook", "sqoop")
     if os.path.exists(atlas_sqoop_hook_dir):
-      Link(os.path.join(params.sqoop_conf_dir, params.atlas_conf_file),
-           to = os.path.join(params.atlas_conf_dir, params.atlas_conf_file)
-           )
 
       src_files = os.listdir(atlas_sqoop_hook_dir)
       for file_name in src_files:

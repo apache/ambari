@@ -18,7 +18,9 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.packaging import Package
+from resource_management.libraries.functions.format import format
 from ambari_commons import OSCheck
 
 import os
@@ -31,3 +33,9 @@ def setup_atlas_falcon():
     if not params.host_sys_prepped:
       Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package,
               retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability, retry_count=params.agent_stack_retry_count)
+
+    PropertiesFile(format('{falcon_conf_dir}/{atlas_conf_file}'),
+                   properties = params.atlas_props,
+                   owner = params.falcon_user,
+                   group = params.user_group,
+                   mode = 0644)

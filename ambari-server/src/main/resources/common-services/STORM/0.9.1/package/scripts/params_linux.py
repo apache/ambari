@@ -199,8 +199,10 @@ atlas_plugin_package = "atlas-metadata*-hive-plugin"
 atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if has_atlas:
+  atlas_conf_file = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
   atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else stack_root + '/current/atlas-server'
   atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
+  atlas_props = default('/configurations/application-properties', {})
   jar_jvm_opts = '-Datlas.conf=' + atlas_conf_dir
 
 # ranger host
