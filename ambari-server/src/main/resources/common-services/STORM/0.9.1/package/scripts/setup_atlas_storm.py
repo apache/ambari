@@ -18,8 +18,10 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.resources.packaging import Package
 from resource_management.core.resources.system import Link
+from resource_management.libraries.functions.format import format
 from ambari_commons import OSCheck
 
 import os
@@ -32,6 +34,12 @@ def setup_atlas_storm():
     if not params.host_sys_prepped:
       Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package,
               retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability, retry_count=params.agent_stack_retry_count)
+
+    PropertiesFile(format('{conf_dir}/{atlas_conf_file}'),
+                   properties = params.atlas_props,
+                   owner = params.storm_user,
+                   group = params.user_group,
+                   mode = 0644)
 
     atlas_storm_hook_dir = os.path.join(params.atlas_home_dir, "hook", "storm")
     if os.path.exists(atlas_storm_hook_dir):

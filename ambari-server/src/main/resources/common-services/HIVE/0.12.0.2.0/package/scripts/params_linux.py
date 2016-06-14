@@ -515,15 +515,10 @@ atlas_plugin_package = "atlas-metadata*-hive-plugin"
 atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
 if has_atlas:
+  atlas_conf_file = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
   atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
   atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
-  # client.properties
-  atlas_client_props = {}
-  auth_enabled = config['configurations']['application-properties'].get(
-    'atlas.http.authentication.enabled', False)
-  atlas_client_props['atlas.http.authentication.enabled'] = auth_enabled
-  if auth_enabled:
-    atlas_client_props['atlas.http.authentication.type'] = config['configurations']['application-properties'].get('atlas.http.authentication.type', 'simple')
+  atlas_props = default('/configurations/application-properties', {})
 
 ########################################################
 ########### WebHCat related params #####################

@@ -21,6 +21,9 @@
     <service>
       <name>FALCON</name>
       <version>0.6.1.2.5</version>
+      <configuration-dependencies>
+        <config-type>application-properties</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>

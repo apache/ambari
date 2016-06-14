@@ -81,7 +81,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                               "item": self.getErrorItem(
                                   "If KAFKA is not installed then the Kafka zookeeper quorum configuration must be specified.")})
 
-    if application_properties['atlas.graph.storage.backend'] == 'hbase':
+    if application_properties['atlas.graph.storage.backend'] == 'hbase' and 'hbase-site' in services['configurations']:
       hbase_zookeeper_quorum = services['configurations']['hbase-site']['properties']['hbase.zookeeper.quorum']
 
       if not application_properties['atlas.graph.storage.hostname']:
@@ -272,7 +272,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putAtlasApplicationProperty('atlas.server.ids', server_ids)
     putAtlasApplicationProperty('atlas.server.address.id1', server_hosts)
 
-    if "LOGSEARCH" in servicesList:
+    if "LOGSEARCH" in servicesList and 'logsearch-solr-env' in services['configurations']:
 
       if 'logsearch_solr_znode' in services['configurations']['logsearch-solr-env']['properties']:
         logsearch_solr_znode = services['configurations']['logsearch-solr-env']['properties']['logsearch_solr_znode']
@@ -295,7 +295,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', "")
 
-    if "KAFKA" in servicesList:
+    if "KAFKA" in servicesList and 'kafka-broker' in services['configurations']:
 
       kafka_hosts = self.getHostNamesWithComponent("KAFKA", "KAFKA_BROKER", services)
 
@@ -321,8 +321,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putAtlasApplicationProperty('atlas.kafka.bootstrap.servers', "")
       putAtlasApplicationProperty('atlas.kafka.zookeeper.connect', "")
 
-    if "HBASE" in servicesList:
-      hbase_zookeeper_quorum = services['configurations']['hbase-site']['properties']['hbase.zookeeper.quorum']
+    if "HBASE" in servicesList and 'hbase-site' in services['configurations']:
+      if 'hbase.zookeeper.quorum' in services['configurations']['hbase-site']['properties']:
+        hbase_zookeeper_quorum = services['configurations']['hbase-site']['properties']['hbase.zookeeper.quorum']
+      else:
+        hbase_zookeeper_quorum = ""
+
       putAtlasApplicationProperty('atlas.graph.storage.hostname', hbase_zookeeper_quorum)
       putAtlasApplicationProperty('atlas.audit.hbase.zookeeper.quorum', hbase_zookeeper_quorum)
     else:

@@ -233,6 +233,9 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <configuration-dependencies>
+        <config-type>application-properties</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>

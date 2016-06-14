@@ -23,6 +23,9 @@
       <name>STORM</name>
       <version>1.0.1.2.5</version>
       <extends>common-services/STORM/1.0.1</extends>
+      <configuration-dependencies>
+        <config-type>application-properties</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>
