@@ -218,14 +218,23 @@ angular.module('ambariAdminConsole')
         privilege = privilege.PrivilegeInfo;
         if(privilege.type === 'CLUSTER'){
           // This is cluster
-          privileges.clusters[privilege.cluster_name] = privileges.clusters[privilege.cluster_name] || [];
-          privileges.clusters[privilege.cluster_name].push(privilege.permission_label);
+          if (privileges.clusters[privilege.cluster_name]) {
+            var preIndex = Cluster.orderedRoles.indexOf(privileges.clusters[privilege.cluster_name].permission_name);
+            var curIndex = Cluster.orderedRoles.indexOf(privilege.permission_name);
+            // replace when cur is a more powerful role
+            if (curIndex < preIndex) {
+              privileges.clusters[privilege.cluster_name] = privilege;
+            }
+          } else {
+            privileges.clusters[privilege.cluster_name] = privilege;
+          }
         } else if ( privilege.type === 'VIEW'){
           privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
           privileges.views[privilege.instance_name].version = privilege.version;
           privileges.views[privilege.instance_name].view_name = privilege.view_name;
-          privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
-
+          if (privileges.views[privilege.instance_name].privileges.indexOf(privilege.permission_label) == -1) {
+            privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
+          }
         }
       });
 
