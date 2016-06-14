@@ -51,7 +51,11 @@ def wait_for_safemode_off(hdfs_binary, afterwait_sleep=0, execute_kinit=False):
   """
   import params
 
-  Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
+  retries = 115
+  sleep_seconds = 10
+  sleep_minutes = int(sleep_seconds * retries / 60)
+
+  Logger.info("Waiting up to {0} minutes for the NameNode to leave Safemode...".format(sleep_minutes))
 
   if params.security_enabled and execute_kinit:
     kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
@@ -64,18 +68,14 @@ def wait_for_safemode_off(hdfs_binary, afterwait_sleep=0, execute_kinit=False):
     is_namenode_safe_mode_off = dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
 
     # Wait up to 30 mins
-    Execute(is_namenode_safe_mode_off,
-            tries=115,
-            try_sleep=10,
-            user=params.hdfs_user,
-            logoutput=True
-            )
+    Execute(is_namenode_safe_mode_off, tries=retries, try_sleep=sleep_seconds,
+      user=params.hdfs_user, logoutput=True)
 
     # Wait a bit more since YARN still depends on block reports coming in.
     # Also saw intermittent errors with HBASE service check if it was done too soon.
     time.sleep(afterwait_sleep)
   except Fail:
-    Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
+    Logger.error("The NameNode is still in Safemode. Please be careful with commands that need Safemode OFF.")
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
@@ -159,64 +159,53 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
 
-    if params.dfs_ha_enabled:
-      is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -ns {dfs_ha_nameservices} -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
-    else:
-      is_active_namenode_cmd = True
-    
-    # During NonRolling Upgrade, both NameNodes are initially down,
-    # so no point in checking if this is the active or standby.
-    if upgrade_type == "nonrolling":
-      is_active_namenode_cmd = False
-
     # ___Scenario___________|_Expected safemode state__|_Wait for safemode OFF____|
     # no-HA                 | ON -> OFF                | Yes                      |
     # HA and active         | ON -> OFF                | Yes                      |
     # HA and standby        | no change                | no check                 |
     # RU with HA on active  | ON -> OFF                | Yes                      |
     # RU with HA on standby | ON -> OFF                | Yes                      |
-    # EU with HA on active  | no change                | no check                 |
-    # EU with HA on standby | no change                | no check                 |
-    # EU non-HA             | no change                | no check                 |
+    # EU with HA on active  | ON -> OFF                | Yes                      |
+    # EU with HA on standby | ON -> OFF                | Yes                      |
+    # EU non-HA             | ON -> OFF                | Yes                      |
 
-    check_for_safemode_off = False
-    is_active_namenode = False
-    msg = ""
+    # because we do things like create directories after starting NN,
+    # the vast majority of the time this should be True - it should only
+    # be False if this is HA and we are the Standby NN
+    ensure_safemode_off = True
+
+    # True if this is the only NameNode (non-HA) or if its the Active one in HA
+    is_active_namenode = True
+
     if params.dfs_ha_enabled:
-      if upgrade_type is not None:
-        check_for_safemode_off = True
-        msg = "Must wait to leave safemode since High Availability is enabled during a Stack Upgrade"
+      Logger.info("Waiting for the NameNode to broadcast whether it is Active or Standby...")
+      if check_is_active_namenode(hdfs_binary):
+        Logger.info("Waiting for the NameNode to leave Safemode since High Availability is enabled and it is Active...")
       else:
-        Logger.info("Wait for NameNode to become active.")
-        if check_is_active_namenode(hdfs_binary): # active
-          check_for_safemode_off = True
-          is_active_namenode = True
-          msg = "Must wait to leave safemode since High Availability is enabled and this is the Active NameNode."
-        else:
-          msg = "Will remain in the current safemode state."
+        # we are the STANDBY NN
+        ensure_safemode_off = False
+        is_active_namenode = False
+        Logger.info("This is the Standby NameNode; proceeding without waiting for it to leave Safemode")
     else:
-      msg = "Must wait to leave safemode since High Availability is not enabled."
-      check_for_safemode_off = True
-      is_active_namenode = True
+      Logger.info("Waiting for the NameNode to leave Safemode...")
 
-    Logger.info(msg)
-
-    # During a NonRolling (aka Express Upgrade), stay in safemode since the DataNodes are down.
-    stay_in_safe_mode = False
+    # During an Express Upgrade, NameNode will not leave SafeMode until the DataNodes are started
     if upgrade_type == "nonrolling":
-      stay_in_safe_mode = True
+      Logger.info("An express upgrade has been detected and this NameNode will not leave Safemode until DataNodes are started. Safemode does not need to end before proceeding.")
+      ensure_safemode_off = False
 
-    if check_for_safemode_off:
-      Logger.info("Stay in safe mode: {0}".format(stay_in_safe_mode))
-      if not stay_in_safe_mode:
-        wait_for_safemode_off(hdfs_binary)
+    # wait for Safemode to end
+    if ensure_safemode_off:
+      wait_for_safemode_off(hdfs_binary)
 
-    # Always run this on non-HA, or active NameNode during HA.
-    if is_active_namenode:
+    # Always run this on the "Active" NN unless Safemode has been ignored
+    # in the case where safemode was ignored (like during an express upgrade), then
+    # NN will be in SafeMode and cannot have directories created
+    if is_active_namenode and ensure_safemode_off:
       create_hdfs_directories()
       create_ranger_audit_hdfs_directories()
     else:
-      Logger.info("Skipping creating hdfs directories as is not active NN.")
+      Logger.info("Skipping creation of HDFS directories since this is not the Active NameNode.")
 
   elif action == "stop":
     import params
