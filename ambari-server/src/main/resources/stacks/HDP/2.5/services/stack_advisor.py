@@ -1474,3 +1474,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if serviceName in servicesList:
       hosts_for_component = [component["hostnames"] for component in componentsList if component["component_name"] == componentName][0]
     return hosts_for_component
+
+  def isComponentUsingCardinalityForLayout(self, componentName):
+    return super(HDP25StackAdvisor, self).isComponentUsingCardinalityForLayout (componentName) or  componentName in ['SPARK2_THRIFTSERVER', 'LIVY_SERVER']
