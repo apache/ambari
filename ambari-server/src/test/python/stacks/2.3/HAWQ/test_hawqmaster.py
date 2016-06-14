@@ -32,7 +32,7 @@ class TestHawqMaster(RMFTestCase):
   POSTGRES = 'postgres'
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
   CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../configs/hawq_default.json')
-  HAWQ_CHECK_COMMAND = 'source /usr/local/hawq/greenplum_path.sh && hawq check -f /usr/local/hawq/etc/hawq_hosts --hadoop /usr/phd/current/hadoop-client --config /usr/local/hawq/etc/hawq_check.cnf '
+  HAWQ_CHECK_COMMAND = 'source /usr/local/hawq/greenplum_path.sh && export PGHOST="c6403.ambari.apache.org" && hawq check -f /usr/local/hawq/etc/hawq_hosts --hadoop /usr/phd/current/hadoop-client --config /usr/local/hawq/etc/hawq_check.cnf '
 
   def setUp(self):
     try:
@@ -267,8 +267,11 @@ class TestHawqMaster(RMFTestCase):
         )
 
     self.assertResourceCalled('Execute', expectedCommand,
+        logoutput = True,
+        not_if = None,
+        only_if = None,
         user=self.GPADMIN,
-        timeout=600
+        timeout=900
         )
 
     self.assertNoMoreResources()
@@ -393,7 +396,7 @@ class TestHawqMaster(RMFTestCase):
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init standby -n -a -v -M fast',
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && export PGHOST="c6403.ambari.apache.org" && hawq init standby -n -a -v -M fast',
         user = self.GPADMIN,
         timeout = 900,
         not_if = None,
@@ -415,7 +418,7 @@ class TestHawqMaster(RMFTestCase):
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init standby -a -v -r --ignore-bad-hosts',
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && export PGHOST="c6403.ambari.apache.org" && hawq init standby -a -v -r --ignore-bad-hosts',
         user = self.GPADMIN,
         timeout = 900,
         not_if = None,

@@ -216,7 +216,7 @@ class TestHawqStandby(RMFTestCase):
         mode = 0644
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq activate standby -a -M fast -v --ignore-bad-hosts',
+    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && export PGHOST=\"c6402.ambari.apache.org\" && hawq activate standby -a -M fast -v --ignore-bad-hosts',
         logoutput = True,
         not_if = None,
         only_if = None,
