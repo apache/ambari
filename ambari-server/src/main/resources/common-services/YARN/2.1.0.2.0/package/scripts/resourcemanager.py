@@ -235,9 +235,11 @@ class ResourcemanagerDefault(Resourcemanager):
     ignored_dfs_dirs = HdfsResourceProvider.get_ignored_resources_list(params.hdfs_resource_ignore_file)
 
     if params.security_enabled:
-      Execute(
-        format("{rm_kinit_cmd}")
-        , user=params.yarn_user
+      Execute(params.rm_kinit_cmd,
+              user=params.yarn_user
+      )
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        user=params.hdfs_user
       )
 
     for dir_path in dirs:
