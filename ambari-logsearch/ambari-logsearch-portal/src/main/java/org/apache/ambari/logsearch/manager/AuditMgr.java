@@ -69,7 +69,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuditMgr extends MgrBase {
-  static Logger logger = Logger.getLogger(AuditMgr.class);
+  static Logger logger = Logger.getLogger(AuditMgr.class); 
 
   @Autowired
   AuditSolrDao auditSolrDao;
@@ -93,6 +93,16 @@ public class AuditMgr extends MgrBase {
   GraphDataGenerator graphDataGenerator;
 
   public String getLogs(SearchCriteria searchCriteria) {
+    String lastPage = (String)  searchCriteria.getParamValue("isLastPage");
+    Boolean isLastPage = Boolean.parseBoolean(lastPage);
+     if (isLastPage) {
+       SolrQuery lastPageQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
+      VSolrLogList collection = getLastPage(searchCriteria,LogSearchConstants.AUDIT_EVTTIME,auditSolrDao,lastPageQuery);
+      if(collection == null){
+        collection = new VSolrLogList();
+      }
+      return convertObjToString(collection);
+    }
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
     VSolrLogList collection = getLogAsPaginationProvided(solrQuery,
         auditSolrDao);
@@ -458,7 +468,7 @@ public class AuditMgr extends MgrBase {
   }
 
   public String getAuditLogsSchemaFieldsName() {
-    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.audit.logs");
+    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.audit.logs",LogSearchConstants.DEFAULT_AUDIT_COLUMN_SUFFIX);
     String excludeArray[] = PropertiesUtil
         .getPropertyStringList("logsearch.solr.audit.logs.exclude.columnlist");
     List<String> fieldNames = new ArrayList<String>();
@@ -482,7 +492,7 @@ public class AuditMgr extends MgrBase {
 
   public String getAnyGraphData(SearchCriteria searchCriteria) {
     searchCriteria.addParam("fieldTime", LogSearchConstants.AUDIT_EVTTIME);
-    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.audit.logs");
+    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.audit.logs",LogSearchConstants.DEFAULT_AUDIT_COLUMN_SUFFIX);
     searchCriteria.addParam("suffix", suffix);
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
     VBarDataList result = graphDataGenerator.getAnyGraphData(searchCriteria,

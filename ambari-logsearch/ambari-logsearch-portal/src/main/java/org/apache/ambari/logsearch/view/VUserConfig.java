@@ -32,7 +32,7 @@ public class VUserConfig {
 
   protected String id;
   protected String userName;
-  protected String filterName;
+  protected String filtername;
   protected String values;
   
   List<String> shareNameList;
@@ -61,14 +61,13 @@ public class VUserConfig {
     this.userName = userName;
   }
 
-  public String getFilterName() {
-    return filterName;
+  public String getFiltername() {
+    return filtername;
   }
 
-  public void setFilterName(String filterName) {
-    this.filterName = filterName;
+  public void setFiltername(String filtername) {
+    this.filtername = filtername;
   }
-
 
   public String getValues() {
     return values;

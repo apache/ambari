@@ -22,10 +22,13 @@ package org.apache.ambari.logsearch.manager;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Scanner;
 
+import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.query.QueryGeneration;
 import org.apache.ambari.logsearch.util.DateUtil;
@@ -38,6 +41,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,6 +162,58 @@ public class MgrBase {
         MessageEnums.ERROR_SYSTEM);
 
   }
+  
+  protected VSolrLogList getLastPage(SearchCriteria searchCriteria,String logTimeField,SolrDaoBase solrDoaBase,SolrQuery lastPageQuery){
+    
+    Integer maxRows = searchCriteria.getMaxRows();
+    String givenSortType = searchCriteria.getSortType();
+    searchCriteria = new SearchCriteria();
+    searchCriteria.setSortBy(logTimeField);
+    if(givenSortType == null || givenSortType.equals(LogSearchConstants.DESCENDING_ORDER)){
+      lastPageQuery.removeSort(LogSearchConstants.LOGTIME);
+      searchCriteria.setSortType(LogSearchConstants.ASCENDING_ORDER);
+    } else {
+      searchCriteria.setSortType(LogSearchConstants.DESCENDING_ORDER);
+    }
+    queryGenerator.setSingleSortOrder(lastPageQuery, searchCriteria);
+
+
+    Long totalLogs = 0l;
+    int startIndex = 0;
+    int numberOfLogsOnLastPage = 0;
+    VSolrLogList collection = null;
+    try {
+      queryGenerator.setStart(lastPageQuery, 0);
+      queryGenerator.setRowCount(lastPageQuery, maxRows);
+      collection = getLogAsPaginationProvided(lastPageQuery,
+          solrDoaBase);
+      totalLogs = countQuery(lastPageQuery,solrDoaBase);
+      if(maxRows != null){
+        startIndex = Integer.parseInt("" + ((totalLogs/maxRows) * maxRows));
+        numberOfLogsOnLastPage = Integer.parseInt("" + (totalLogs-startIndex));
+      }
+      collection.setStartIndex(startIndex);
+      collection.setTotalCount(totalLogs);
+      collection.setPageSize(maxRows);
+      SolrDocumentList docList = collection.getList();
+      SolrDocumentList lastPageDocList = new SolrDocumentList();
+      collection.setSolrDocuments(lastPageDocList);
+      int cnt = 0;
+      for(SolrDocument doc:docList){
+        if(cnt<numberOfLogsOnLastPage){
+          lastPageDocList.add(doc);
+        }
+        cnt++;
+      }
+      Collections.reverse(lastPageDocList);
+
+    } catch (SolrException | SolrServerException | IOException | NumberFormatException e) {
+      logger.error("Count Query was not executed successfully",e);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+    }
+    return collection;
+  }
 
   public VSolrLogList getLogAsPaginationProvided(SolrQuery solrQuery,
       SolrDaoBase solrDaoBase) {
@@ -183,6 +239,20 @@ public class MgrBase {
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
+  }
+  
+  public Long countQuery(SolrQuery query,SolrDaoBase solrDaoBase) throws SolrException,
+ SolrServerException, IOException {
+    query.setRows(0);
+    QueryResponse response = solrDaoBase.process(query);
+    if (response == null) {
+      return 0l;
+    }
+    SolrDocumentList docList = response.getResults();
+    if (docList == null) {
+      return 0l;
+    }
+    return docList.getNumFound();
   }
 
   protected String getUnit(String unit) {

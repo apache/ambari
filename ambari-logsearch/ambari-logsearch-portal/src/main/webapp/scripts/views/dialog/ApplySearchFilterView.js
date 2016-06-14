@@ -110,7 +110,7 @@ define(['require',
             getColumns: function() {
                 var that = this,
                     cols = {
-                        filterName: {
+                        filtername: {
                             label: "Name",
                             cell: "String",
                             editable: false,

@@ -58,37 +58,14 @@ public class ConfigUtil {
         if (mapping.length > 1) {
           String solrField = mapping[0];
           String uiField = mapping[1];
-
-          String modifiedUIField = getModifiedUIField(uiField);
+          
           columnMappingMap.put(solrField + LogSearchConstants.SOLR_SUFFIX,
-              modifiedUIField);
-          columnMappingMap.put(modifiedUIField + LogSearchConstants.UI_SUFFIX,
+              uiField);
+          columnMappingMap.put(uiField + LogSearchConstants.UI_SUFFIX,
               solrField);
         }
       }
     }
-  }
-
-  private static String getModifiedUIField(String uiField) {
-    String modifiedUIField = "";
-    String temp = serviceLogsColumnMapping.get(uiField
-      + LogSearchConstants.UI_SUFFIX);
-    if (temp == null){
-      return uiField;
-    }else {
-      String lastChar = uiField.substring(uiField.length() - 1,
-        uiField.length());
-      int k = 1;
-      try {
-        k = Integer.parseInt(lastChar);
-        k = k + 1;
-        modifiedUIField = uiField.substring(0, uiField.length() - 2);
-      } catch (Exception e) {
-
-      }
-      modifiedUIField = uiField + "_" + k;
-    }
-    return getModifiedUIField(modifiedUIField);
   }
 
   private static void intializeLogLevels() {
@@ -132,7 +109,8 @@ public class ConfigUtil {
 
         if (!name.contains("@") && !name.startsWith("_")
           && !name.contains("_md5") && !name.contains("_ms")
-          && !name.contains(LogSearchConstants.NGRAM_SUFFIX)) {
+          && !name.contains(LogSearchConstants.NGRAM_SUFFIX)
+          && !name.contains("tags") && !name.contains("_str")) {
           schemaFieldsName.put(name + suffix, type);
         }
       }
