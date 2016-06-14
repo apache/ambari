@@ -113,6 +113,8 @@ angular.module('ambariAdminConsole')
                 version: repo.VersionDefinition.release ? repo.VersionDefinition.release.version: null, /// 2.3.4.0
                 releaseNotes: repo.VersionDefinition.release ? repo.VersionDefinition.release.release_notes: null,
                 displayName: repo.VersionDefinition.stack_name + '-' + repo.VersionDefinition.repository_version, //HDP-2.3.4.0
+                editableDisplayName: repo.VersionDefinition.repository_version.substring(4),
+                isNonXMLdata: !isXMLdata,
                 repoVersionFullName : repo.VersionDefinition.stack_name + '-' + repo.VersionDefinition.release ? repo.VersionDefinition.release.version: repo.VersionDefinition.repository_version,
                 ambari_managed_repositories: repo.operating_systems[0].OperatingSystems.ambari_managed_repositories !== false,
                 osList: repo.operating_systems,
