@@ -38,11 +38,12 @@ def create_dir_as_hawq_user(directory):
   Directory(directory, create_parents = True, owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group)
 
 
-def exec_hawq_operation(operation, option, not_if=None, only_if=None, logoutput=True):
+def exec_hawq_operation(operation, option, not_if=None, only_if=None, logoutput=True, host_name=None):
   """
   Sets up execution environment and runs a given command as HAWQ user
   """
-  hawq_cmd = "source {0} && hawq {1} {2}".format(hawq_constants.hawq_greenplum_path_file, operation, option)
+  export_host = " && export PGHOST=\"{0}\"".format(host_name) if host_name is not None else ""
+  hawq_cmd = "source {0}{1} && hawq {2} {3}".format(hawq_constants.hawq_greenplum_path_file, export_host, operation, option)
   Execute(
         hawq_cmd,
         user=hawq_constants.hawq_user,

@@ -97,23 +97,29 @@ class HawqMaster(Script):
     if str(params.security_enabled).lower() == "true":
       additional_flags.append("--kerberos")
 
-    Execute("source {0} && hawq check -f {1} --hadoop {2} --config {3} {4}".format(hawq_constants.hawq_greenplum_path_file,
-                                                                                   hawq_constants.hawq_hosts_file,
-                                                                                   stack_select.get_hadoop_dir('home'),
-                                                                                   hawq_constants.hawq_check_file,
-                                                                                   " ".join(additional_flags)),
-            user=hawq_constants.hawq_user,
-            timeout=hawq_constants.default_exec_timeout)
+    utils.exec_hawq_operation(hawq_constants.CHECK,
+                              "-f {1} --hadoop {2} --config {3} {4}".format(hawq_constants.hawq_greenplum_path_file,
+                                                                            hawq_constants.hawq_hosts_file,
+                                                                            stack_select.get_hadoop_dir('home'),
+                                                                            hawq_constants.hawq_check_file,
+                                                                            " ".join(additional_flags)),
+                              host_name=params.hawqmaster_host)
 
 
   def resync_hawq_standby(self,env):
+    import params
     Logger.info("HAWQ Standby Master Re-Sync started in fast mode...")
-    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -n -a -v -M {1}".format(hawq_constants.STANDBY, hawq_constants.FAST))
+    utils.exec_hawq_operation(hawq_constants.INIT,
+                              "{0} -n -a -v -M {1}".format(hawq_constants.STANDBY, hawq_constants.FAST),
+                              host_name=params.hawqmaster_host)
 
 
   def remove_hawq_standby(self, env):
+    import params
     Logger.info("Removing HAWQ Standby Master ...")
-    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v -r --ignore-bad-hosts".format(hawq_constants.STANDBY))
+    utils.exec_hawq_operation(hawq_constants.INIT,
+                              "{0} -a -v -r --ignore-bad-hosts".format(hawq_constants.STANDBY),
+                              host_name=params.hawqmaster_host)
 
 
 if __name__ == "__main__":

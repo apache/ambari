@@ -60,7 +60,9 @@ class HawqStandby(Script):
     params.XmlConfig("hawq-site.xml",
                      configurations=params.hawq_site,
                      configuration_attributes=params.config_attrs['hawq-site'])
-    utils.exec_hawq_operation(hawq_constants.ACTIVATE, "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST))
+    utils.exec_hawq_operation(hawq_constants.ACTIVATE,
+                              "{0} -a -M {1} -v --ignore-bad-hosts".format(hawq_constants.STANDBY, hawq_constants.FAST),
+                              host_name=params.hawqstandby_host)
 
     # Stop the new HAWQMASTER as the process might be running at an old port,
     # which might cause a failure in Start HAWQ Service step in the Activate HAWQ Standby Master Wizard
