@@ -950,22 +950,24 @@ App.Router = Em.Router.extend({
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
-        if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
-          Em.run.next(function () {
-            if (router.get('clusterInstallCompleted')) {
-              router.transitionTo("main.dashboard.widgets");
-            } else {
-              router.route("installer");
-            }
-          });
-        } else if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
-          Em.run.next(function () {
-            router.transitionTo("main.views.index");
-          });
+        if (!App.isAuthorized('AMBARI.MANAGE_SETTINGS')) {
+          if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+            Em.run.next(function () {
+              if (router.get('clusterInstallCompleted')) {
+                router.transitionTo("main.dashboard.widgets");
+              } else {
+                router.transitionTo("main.views.index");
+              }
+            });
+          } else {
+            Em.run.next(function () {
+              router.transitionTo("main.views.index");
+            });
+          }
         }
       },
       connectOutlets: function (router, context) {
-        if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+        if (App.isAuthorized('AMBARI.MANAGE_SETTINGS')) {
           App.router.get('experimentalController').loadSupports().complete(function () {
             $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
             router.get('applicationController').connectOutlet('experimental');
