@@ -2395,13 +2395,14 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           CLUSTER_TABLE);
 
         resultSet = statement.executeQuery(selectSQL);
-        while (null != resultSet && resultSet.next()) {
+
+        //Getting 1st cluster and updating view instance table with cluster_id
+        if (null != resultSet && resultSet.next()) {
           final Long clusterId = resultSet.getLong("cluster_id");
-          final String clusterName = resultSet.getString("cluster_name");
 
           String updateSQL = String.format(
-            "UPDATE %s SET %s = %d WHERE cluster_handle = '%s'",
-            VIEWINSTANCE_TABLE, cluster_handle_dummy, clusterId, clusterName);
+            "UPDATE %s SET %s = %d WHERE cluster_handle IS NOT NULL",
+            VIEWINSTANCE_TABLE, cluster_handle_dummy, clusterId);
 
           dbAccessor.executeQuery(updateSQL);
         }
@@ -2435,10 +2436,20 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         RemoteAmbariClusterEntity clusterEntity = new RemoteAmbariClusterEntity();
         clusterEntity.setName(instance.getName() + "-cluster");
         Map<String, String> propertyMap = instance.getPropertyMap();
-        clusterEntity.setUrl(propertyMap.get("ambari.server.url"));
-        clusterEntity.setUsername(propertyMap.get("ambari.server.username"));
+
+        String url = propertyMap.get("ambari.server.url");
+        String password = propertyMap.get("ambari.server.password");
+        String username = propertyMap.get("ambari.server.username");
+
+        if (StringUtils.isEmpty(url) || StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+          LOG.info("One of url, username, password is empty. Skipping upgrade for View Instance {}.", instance.getName());
+          continue;
+        }
+
+        clusterEntity.setUrl(url);
+        clusterEntity.setUsername(username);
         try {
-          clusterEntity.setPassword(new DefaultMasker().unmask(propertyMap.get("ambari.server.password")));
+          clusterEntity.setPassword(new DefaultMasker().unmask(password));
         } catch (MaskException e) {
           // ignore
         }
