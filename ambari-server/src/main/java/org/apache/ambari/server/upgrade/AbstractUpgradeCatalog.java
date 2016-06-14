@@ -21,6 +21,7 @@ import java.io.StringReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -43,8 +44,13 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -697,6 +703,102 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     } else {
       defaultDescriptor.update(artifactDescriptor);
       return defaultDescriptor;
+    }
+  }
+
+  /**
+   * Add a new role authorization and optionally add it to 1 or more roles.
+   * <p>
+   * The collection of roles to add the new role authorization to may be null or empty, indicating
+   * that no roles are to be altered. If set, though, each role entry in the collection must be a
+   * colon-delimited string like:  <code>ROLE:RESOURCE TYPE</code>. Examples:
+   * <ul>
+   * <li>"AMBARI.ADMINISTRATOR:AMBARI"</li>
+   * <li>"CLUSTER.ADMINISTRATOR:CLUSTER"</li>
+   * <li>"SERVICE.OPERATOR:CLUSTER"</li>
+   * </ul>
+   *
+   * @param roleAuthorizationID   the ID of the new authorization
+   * @param roleAuthorizationName the (descriptive) name of the new authorization
+   * @param applicableRoles       an optional collection of role specification to add the new authorization to
+   * @throws SQLException
+   */
+  protected void addRoleAuthorization(String roleAuthorizationID, String roleAuthorizationName, Collection<String> applicableRoles) throws SQLException {
+    if (!StringUtils.isEmpty(roleAuthorizationID)) {
+      RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
+      RoleAuthorizationEntity roleAuthorization = roleAuthorizationDAO.findById(roleAuthorizationID);
+
+      if (roleAuthorization == null) {
+        roleAuthorization = new RoleAuthorizationEntity();
+        roleAuthorization.setAuthorizationId(roleAuthorizationID);
+        roleAuthorization.setAuthorizationName(roleAuthorizationName);
+        roleAuthorizationDAO.create(roleAuthorization);
+      }
+
+      if ((applicableRoles != null) && (!applicableRoles.isEmpty())) {
+        for (String role : applicableRoles) {
+          String[] parts = role.split("\\:");
+          addAuthorizationToRole(parts[0], parts[1], roleAuthorization);
+        }
+      }
+    }
+  }
+
+  /**
+   * Add a new authorization to the set of authorizations for a role
+   *
+   * @param roleName            the name of the role
+   * @param resourceType        the resource type of the role (AMBARI, CLUSTER, VIEW, etc...)
+   * @param roleAuthorizationID the ID of the authorization
+   * @see #addAuthorizationToRole(String, String, RoleAuthorizationEntity)
+   */
+  protected void addAuthorizationToRole(String roleName, String resourceType, String roleAuthorizationID) {
+    if (!StringUtils.isEmpty(roleAuthorizationID)) {
+      RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
+      RoleAuthorizationEntity roleAuthorization = roleAuthorizationDAO.findById(roleAuthorizationID);
+
+      if (roleAuthorization != null) {
+        addAuthorizationToRole(roleName, resourceType, roleAuthorization);
+      }
+    }
+  }
+
+  /**
+   * Add a new authorization to the set of authorizations for a role
+   *
+   * @param roleName          the name of the role
+   * @param resourceType      the resource type of the role (AMBARI, CLUSTER, VIEW, etc...)
+   * @param roleAuthorization the authorization to add
+   */
+  protected void addAuthorizationToRole(String roleName, String resourceType, RoleAuthorizationEntity roleAuthorization) {
+    if ((roleAuthorization != null) && !StringUtils.isEmpty(roleName) && !StringUtils.isEmpty(resourceType)) {
+      PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
+      ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+
+      PermissionEntity role = permissionDAO.findPermissionByNameAndType(roleName, resourceTypeDAO.findByName(resourceType));
+      if (role != null) {
+        role.getAuthorizations().add(roleAuthorization);
+        permissionDAO.merge(role);
+      }
+    }
+  }
+
+  /**
+   * Add a new authorization to the set of authorizations for a role
+   *
+   * @param role                the role to add the authorization to
+   * @param roleAuthorizationID the authorization to add
+   */
+  protected void addAuthorizationToRole(PermissionEntity role, String roleAuthorizationID) {
+    if ((role != null) && !StringUtils.isEmpty(roleAuthorizationID)) {
+      RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
+      RoleAuthorizationEntity roleAuthorization = roleAuthorizationDAO.findById(roleAuthorizationID);
+
+      if (roleAuthorization != null) {
+        PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
+        role.getAuthorizations().add(roleAuthorization);
+        permissionDAO.merge(role);
+      }
     }
   }
 

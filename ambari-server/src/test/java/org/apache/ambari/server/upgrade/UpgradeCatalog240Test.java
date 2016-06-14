@@ -481,6 +481,7 @@ public class UpgradeCatalog240Test {
     Method addManageUserPersistedDataPermission = UpgradeCatalog240.class.getDeclaredMethod("addManageUserPersistedDataPermission");
     Method allowClusterOperatorToManageCredentials = UpgradeCatalog240.class.getDeclaredMethod("allowClusterOperatorToManageCredentials");
     Method addSettingPermission = UpgradeCatalog240.class.getDeclaredMethod("addSettingPermission");
+    Method addViewOperationalLogsPermission = UpgradeCatalog240.class.getDeclaredMethod("addViewOperationalLogsPermission");
     Method updateHDFSConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateHDFSConfigs");
     Method updateHIVEConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateHIVEConfigs");
     Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
@@ -515,6 +516,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(addNewConfigurationsFromXml)
             .addMockedMethod(updateAlerts)
             .addMockedMethod(addSettingPermission)
+            .addMockedMethod(addViewOperationalLogsPermission)
             .addMockedMethod(addManageUserPersistedDataPermission)
             .addMockedMethod(allowClusterOperatorToManageCredentials)
             .addMockedMethod(updateHDFSConfigs)
@@ -546,6 +548,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.addNewConfigurationsFromXml();
     upgradeCatalog240.updateAlerts();
     upgradeCatalog240.addSettingPermission();
+    upgradeCatalog240.addViewOperationalLogsPermission();
     upgradeCatalog240.addManageUserPersistedDataPermission();
     upgradeCatalog240.allowClusterOperatorToManageCredentials();
     upgradeCatalog240.updateHDFSConfigs();

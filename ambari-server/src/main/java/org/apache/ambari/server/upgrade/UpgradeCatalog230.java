@@ -21,27 +21,24 @@ package org.apache.ambari.server.upgrade;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
-import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-
-import javax.persistence.EntityManager;
 
 
 /**
@@ -63,10 +60,6 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
   private static final String PERMISSION_ROLE_AUTHORIZATION_TABLE = "permission_roleauthorization";
   private static final String ROLE_AUTHORIZATION_ID_COL = "authorization_id";
   private static final String ROLE_AUTHORIZATION_NAME_COL = "authorization_name";
-
-  @Inject
-  DaoUtils daoUtils;
-
 
   /**
    * {@inheritDoc}
@@ -99,8 +92,6 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
   public UpgradeCatalog230(Injector injector) {
     super(injector);
     this.injector = injector;
-
-    daoUtils = injector.getInstance(DaoUtils.class);
   }
 
   // ----- AbstractUpgradeCatalog --------------------------------------------
@@ -242,51 +233,53 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
   private void createPermissionRoleAuthorizationMap() throws SQLException {
     LOG.info("Creating permission to authorizations map");
 
-    String[] columnNames = new String[] {PERMISSION_ID_COL, ROLE_AUTHORIZATION_ID_COL};
-
-    // Determine the role Ids"
+    // Determine the role entities
     PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
     ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
 
-    String viewPermissionId = permissionDAO.findPermissionByNameAndType("VIEW.USER", resourceTypeDAO.findByName("VIEW")).getId().toString();
-    String administratorPermissionId = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR", resourceTypeDAO.findByName("AMBARI")).getId().toString();
-    String clusterUserPermissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.USER", resourceTypeDAO.findByName("CLUSTER")).getId().toString();
-    String clusterOperatorPermissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.OPERATOR", resourceTypeDAO.findByName("CLUSTER")).getId().toString();
-    String clusterAdministratorPermissionId = permissionDAO.findPermissionByNameAndType("CLUSTER.ADMINISTRATOR", resourceTypeDAO.findByName("CLUSTER")).getId().toString();
-    String serviceAdministratorPermissionId = permissionDAO.findPermissionByNameAndType("SERVICE.ADMINISTRATOR", resourceTypeDAO.findByName("CLUSTER")).getId().toString();
-    String serviceOperatorPermissionId = permissionDAO.findPermissionByNameAndType("SERVICE.OPERATOR", resourceTypeDAO.findByName("CLUSTER")).getId().toString();
+    ResourceTypeEntity ambariResource = resourceTypeDAO.findByName("AMBARI");
+    ResourceTypeEntity clusterResource = resourceTypeDAO.findByName("CLUSTER");
+    ResourceTypeEntity viewResource = resourceTypeDAO.findByName("VIEW");
+
+    PermissionEntity viewPermission = permissionDAO.findPermissionByNameAndType("VIEW.USER", viewResource);
+    PermissionEntity administratorPermission = permissionDAO.findPermissionByNameAndType("AMBARI.ADMINISTRATOR", ambariResource);
+    PermissionEntity clusterUserPermission = permissionDAO.findPermissionByNameAndType("CLUSTER.USER", clusterResource);
+    PermissionEntity clusterOperatorPermission = permissionDAO.findPermissionByNameAndType("CLUSTER.OPERATOR", clusterResource);
+    PermissionEntity clusterAdministratorPermission = permissionDAO.findPermissionByNameAndType("CLUSTER.ADMINISTRATOR", clusterResource);
+    PermissionEntity serviceAdministratorPermission = permissionDAO.findPermissionByNameAndType("SERVICE.ADMINISTRATOR", clusterResource);
+    PermissionEntity serviceOperatorPermission = permissionDAO.findPermissionByNameAndType("SERVICE.OPERATOR", clusterResource);
 
     // Create role groups
-    List<String> viewUserAndAdministrator = Arrays.asList(viewPermissionId, administratorPermissionId);
-    List<String> clusterUserAndUp = Arrays.asList(
-        clusterUserPermissionId,
-        serviceOperatorPermissionId,
-        serviceAdministratorPermissionId,
-        clusterOperatorPermissionId,
-        clusterAdministratorPermissionId,
-        administratorPermissionId);
-    List<String> serviceOperatorAndUp = Arrays.asList(
-        serviceOperatorPermissionId,
-        serviceAdministratorPermissionId,
-        clusterOperatorPermissionId,
-        clusterAdministratorPermissionId,
-        administratorPermissionId);
-    List<String> serviceAdministratorAndUp = Arrays.asList(
-        serviceAdministratorPermissionId,
-        clusterOperatorPermissionId,
-        clusterAdministratorPermissionId,
-        administratorPermissionId);
-    List<String> clusterOperatorAndUp = Arrays.asList(
-        clusterOperatorPermissionId,
-        clusterAdministratorPermissionId,
-        administratorPermissionId);
-    List<String> clusterAdministratorAndUp = Arrays.asList(
-        clusterAdministratorPermissionId,
-        administratorPermissionId);
-    List<String> administratorOnly = Arrays.asList(administratorPermissionId);
+    Collection<PermissionEntity> viewUserAndAdministrator = Arrays.asList(viewPermission, administratorPermission);
+    Collection<PermissionEntity> clusterUserAndUp = Arrays.asList(
+        clusterUserPermission,
+        serviceOperatorPermission,
+        serviceAdministratorPermission,
+        clusterOperatorPermission,
+        clusterAdministratorPermission,
+        administratorPermission);
+    Collection<PermissionEntity> serviceOperatorAndUp = Arrays.asList(
+        serviceOperatorPermission,
+        serviceAdministratorPermission,
+        clusterOperatorPermission,
+        clusterAdministratorPermission,
+        administratorPermission);
+    Collection<PermissionEntity> serviceAdministratorAndUp = Arrays.asList(
+        serviceAdministratorPermission,
+        clusterOperatorPermission,
+        clusterAdministratorPermission,
+        administratorPermission);
+    Collection<PermissionEntity> clusterOperatorAndUp = Arrays.asList(
+        clusterOperatorPermission,
+        clusterAdministratorPermission,
+        administratorPermission);
+    Collection<PermissionEntity> clusterAdministratorAndUp = Arrays.asList(
+        clusterAdministratorPermission,
+        administratorPermission);
+    Collection<PermissionEntity> administratorOnly = Collections.singleton(administratorPermission);
 
     // A map of the authorizations to the relevant roles
-    Map<String, List<String>> map = new HashMap<String, List<String>>();
+    Map<String, Collection<PermissionEntity>> map = new HashMap<String, Collection<PermissionEntity>>();
     map.put("VIEW.USE", viewUserAndAdministrator);
     map.put("SERVICE.VIEW_METRICS", clusterUserAndUp);
     map.put("SERVICE.VIEW_STATUS_INFO", clusterUserAndUp);
@@ -306,7 +299,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     map.put("SERVICE.ENABLE_HA", serviceAdministratorAndUp);
     map.put("SERVICE.TOGGLE_ALERTS", serviceAdministratorAndUp);
     map.put("SERVICE.ADD_DELETE_SERVICES", clusterAdministratorAndUp);
-    map.put("HOST.VIEW_METRICS",clusterUserAndUp);
+    map.put("HOST.VIEW_METRICS", clusterUserAndUp);
     map.put("HOST.VIEW_STATUS_INFO", clusterUserAndUp);
     map.put("HOST.VIEW_CONFIGS", clusterUserAndUp);
     map.put("HOST.TOGGLE_MAINTENANCE", clusterOperatorAndUp);
@@ -335,21 +328,13 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
 
     // Iterate over the map of authorizations to role to find the set of roles to map to each
     // authorization and then add the relevant record
-    for(Map.Entry<String,List<String>> entry: map.entrySet()) {
+    for (Map.Entry<String, Collection<PermissionEntity>> entry : map.entrySet()) {
       String authorizationId = entry.getKey();
 
-      for(String permissionId : entry.getValue()) {
-        dbAccessor.insertRowIfMissing(PERMISSION_ROLE_AUTHORIZATION_TABLE, columnNames,
-            new String[]{"'" + permissionId + "'", "'" + authorizationId + "'"}, false);
+      for (PermissionEntity permission : entry.getValue()) {
+        addAuthorizationToRole(permission, authorizationId);
       }
     }
-
-    // hack, lets make changes visible to EclipseLink, to edit this data in 240 upgrade catalog
-    JpaEntityManager jem = (JpaEntityManager)getEntityManagerProvider().get().getDelegate();
-    if (jem != null) {
-      jem.getServerSession().getIdentityMapAccessor().invalidateAll();
-    }
-
   }
 
 
