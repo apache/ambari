@@ -63,6 +63,7 @@ public class DashboardREST {
       request.getParameter("keywordType"));
     searchCriteria.addParam("token",
       request.getParameter("token"));
+    searchCriteria.addParam("isLastPage",request.getParameter("isLastPage"));
     return logMgr.searchLogs(searchCriteria);
   }
 

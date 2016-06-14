@@ -53,6 +53,7 @@ public class AuditREST {
   public String getAuditLogs(@Context HttpServletRequest request) {
     SearchCriteria searchCriteria = new SearchCriteria(request);
     searchCriteria.addRequiredAuditLogsParams(request);
+    searchCriteria.addParam("isLastPage", request.getParameter("isLastPage"));
     return auditMgr.getLogs(searchCriteria);
   }
 

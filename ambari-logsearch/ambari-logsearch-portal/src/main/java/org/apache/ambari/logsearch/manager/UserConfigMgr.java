@@ -77,11 +77,11 @@ public class UserConfigMgr extends MgrBase {
 
     if (isNotUnique(vHistory) && !vHistory.isOverwrite()) {
       throw restErrorUtil.createRESTException(
-          "Name '" + vHistory.getFilterName() + "' already exists",
+          "Name '" + vHistory.getFiltername() + "' already exists",
           MessageEnums.INVALID_INPUT_DATA);
     }
     String loggedInUserName = vHistory.getUserName();
-    String filterName = vHistory.getFilterName();
+    String filterName = vHistory.getFiltername();
 
     solrInputDoc.addField(LogSearchConstants.ID, vHistory.getId());
     solrInputDoc.addField(LogSearchConstants.USER_NAME, loggedInUserName);
@@ -127,7 +127,7 @@ public class UserConfigMgr extends MgrBase {
   }
 
   private boolean isNotUnique(VUserConfig vHistory) {
-    String filterName = vHistory.getFilterName();
+    String filterName = vHistory.getFiltername();
     String rowType = vHistory.getRowType();
 
     if (filterName != null && rowType != null) {
@@ -150,7 +150,7 @@ public class UserConfigMgr extends MgrBase {
   }
 
   private boolean isValid(VUserConfig vHistory) {
-    return !stringUtil.isEmpty(vHistory.getFilterName())
+    return !stringUtil.isEmpty(vHistory.getFiltername())
         && !stringUtil.isEmpty(vHistory.getRowType())
         && !stringUtil.isEmpty(vHistory.getUserName())
         && !stringUtil.isEmpty(vHistory.getValues());
@@ -201,8 +201,7 @@ public class UserConfigMgr extends MgrBase {
       queryGenerator.setSingleIncludeFilter(userConfigQuery,
           LogSearchConstants.FILTER_NAME, filterName);
 
-      if (stringUtil.isEmpty(searchCriteria.getSortBy())
-          || searchCriteria.getSortBy().equals("historyName")) {
+      if (stringUtil.isEmpty(searchCriteria.getSortBy())) {
         searchCriteria.setSortBy(LogSearchConstants.FILTER_NAME);
       }
       if (stringUtil.isEmpty(searchCriteria.getSortType())) {
@@ -216,7 +215,7 @@ public class UserConfigMgr extends MgrBase {
 
       for (SolrDocument solrDoc : solrList) {
         VUserConfig userConfig = new VUserConfig();
-        userConfig.setFilterName(""
+        userConfig.setFiltername(""
             + solrDoc.get(LogSearchConstants.FILTER_NAME));
         userConfig.setId("" + solrDoc.get(LogSearchConstants.ID));
         userConfig.setValues("" + solrDoc.get(LogSearchConstants.VALUES));

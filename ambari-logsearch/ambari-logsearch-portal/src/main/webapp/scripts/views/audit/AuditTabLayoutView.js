@@ -363,7 +363,8 @@ define(['require',
 		onAuditTabRefresh : function(e){
 			ViewUtils.setLatestTimeParams(this.defaultParams);
 			//this.fetchAuditColumns();
-			this.fetchAuditLogs(this.defaultParams);
+			$.extend(this.collection.queryParams,this.defaultParams);
+			this.collection.fetch({reset:true});
 			this.vent.trigger("tab:refresh",this.defaultParams);
 		},
 		onViewTypeChange: function(e){

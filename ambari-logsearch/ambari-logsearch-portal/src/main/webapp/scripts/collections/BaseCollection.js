@@ -126,7 +126,17 @@ define(['require',
 
 	    getLastPage: function (options) {
 			return this.getPage("last", _.extend({reset:true}, options));
-	    }
+	    },
+	    getPage : function(index, options){
+		if(index === "last"){
+			this.queryParams.isLastPage = true;
+		}else{
+			delete this.queryParams.isLastPage;
+		}
+		var fn = Backbone.PageableCollection.prototype.getPage;
+		fn.apply(this,arguments);
+
+	    },
 	    /////////////////////////////
 	    // End overriding methods //
 	    /////////////////////////////

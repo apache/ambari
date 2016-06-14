@@ -31,6 +31,7 @@ import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
+import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.log4j.Logger;
@@ -534,13 +535,15 @@ public abstract class SolrDaoBase {
     SolrRequest<SchemaResponse> request = new SchemaRequest();
     request.setMethod(METHOD.GET);
     request.setPath("/schema/fields");
-    if (solrClient != null) {
+    String historyCollection = PropertiesUtil.getProperty("logsearch.solr.collection.history","history");
+    if (solrClient != null && !collectionName.equals(historyCollection)) {
       NamedList<Object> namedList = null;
       try {
         namedList = solrClient.request(request);
         logger.info("populateSchemaFields() collection="
           + collectionName + ", fields=" + namedList);
       } catch (SolrException | SolrServerException | IOException e) {
+        
         logger.error(
           "Error occured while popuplating field. collection="
             + collectionName, e);

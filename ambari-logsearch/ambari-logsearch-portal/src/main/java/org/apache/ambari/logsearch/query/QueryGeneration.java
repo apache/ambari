@@ -341,11 +341,11 @@ public class QueryGeneration extends QueryGenerationBase {
     switch (logType) {
     case AUDIT:
       String auditSuffix = PropertiesUtil
-          .getProperty("logsearch.solr.collection.audit.logs");
+          .getProperty("logsearch.solr.collection.audit.logs",LogSearchConstants.DEFAULT_AUDIT_COLUMN_SUFFIX);
       type = ConfigUtil.schemaFieldsName.get(key + auditSuffix);
       break;
     case SERVICE:
-      String serviceLogs = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs");
+      String serviceLogs = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",LogSearchConstants.DEFAULT_SERVICE_COLUMN_SUFFIX);
       type = ConfigUtil.schemaFieldsName.get(key + serviceLogs);
       break;
     default:

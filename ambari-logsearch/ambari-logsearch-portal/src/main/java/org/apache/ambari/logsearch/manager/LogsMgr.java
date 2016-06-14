@@ -21,8 +21,10 @@ package org.apache.ambari.logsearch.manager;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -41,6 +44,7 @@ import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.graph.GraphDataGenerator;
+import org.apache.ambari.logsearch.query.QueryGenerationBase;
 import org.apache.ambari.logsearch.util.BizUtil;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.FileUtil;
@@ -72,6 +76,7 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -105,6 +110,9 @@ public class LogsMgr extends MgrBase {
   public String searchLogs(SearchCriteria searchCriteria) {
     String keyword = (String) searchCriteria.getParamValue("keyword");
     String logId = (String) searchCriteria.getParamValue("sourceLogId");
+    String lastPage = (String)  searchCriteria.getParamValue("isLastPage");
+    Boolean isLastPage = Boolean.parseBoolean(lastPage);
+
     if (!stringUtil.isEmpty(keyword)) {
       try {
         return getPageByKeyword(searchCriteria);
@@ -121,8 +129,16 @@ public class LogsMgr extends MgrBase {
         throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
             .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
+    } else if (isLastPage) {
+      SolrQuery lastPageQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
+      VSolrLogList collection = getLastPage(searchCriteria,LogSearchConstants.LOGTIME,serviceLogsSolrDao,lastPageQuery);
+      if(collection == null){
+        collection = new VSolrLogList();
+      }
+      return convertObjToString(collection);
     } else {
-      SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
+      SolrQuery solrQuery = queryGenerator
+          .commonServiceFilterQuery(searchCriteria);
 
       solrQuery.setParam("event", "/solr/logs_search");
 
@@ -820,7 +836,7 @@ public class LogsMgr extends MgrBase {
         }
 
 
-        long countNumberLogs = countQuery(rangeLogQuery) - 1;
+        long countNumberLogs = countQuery(rangeLogQuery,serviceLogsSolrDao) - 1;
       
 
         //Adding numbers on 
@@ -1037,7 +1053,7 @@ public class LogsMgr extends MgrBase {
         }
 
 
-        long countNumberLogs = countQuery(rangeLogQuery) - 1;
+        long countNumberLogs = countQuery(rangeLogQuery,serviceLogsSolrDao) - 1;
         
         //Adding numbers on
         try {
@@ -1136,7 +1152,7 @@ public class LogsMgr extends MgrBase {
       queryGenerator.setSingleRangeFilter(solrQuery,
           LogSearchConstants.LOGTIME, endTimeMinusOneMilli, endLogTime);
       queryGenerator.setRowCount(solrQuery, 0);
-      startIndex = countQuery(solrQuery);
+      startIndex = countQuery(solrQuery,serviceLogsSolrDao);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error(e);
     }
@@ -1645,20 +1661,6 @@ public class LogsMgr extends MgrBase {
     return collection;
   }
 
-  public Long countQuery(SolrQuery query) throws SolrException,
-    SolrServerException, IOException {
-    query.setRows(0);
-    QueryResponse response = serviceLogsSolrDao.process(query);
-    if(response == null){
-      return 0l;
-    }
-    SolrDocumentList docList = response.getResults();
-    if(docList == null){
-      return 0l;
-    }
-    return docList.getNumFound();
-  }
-
   public String getServiceLogsFieldsName() {
     String fieldsNameStrArry[] = PropertiesUtil
       .getPropertyStringList("logsearch.service.logs.fields");
@@ -1687,7 +1689,7 @@ public class LogsMgr extends MgrBase {
   public String getServiceLogsSchemaFieldsName() {
 
     List<String> fieldNames = new ArrayList<String>();
-    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs");
+    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",LogSearchConstants.DEFAULT_SERVICE_COLUMN_SUFFIX);
     String excludeArray[] = PropertiesUtil
         .getPropertyStringList("logsearch.solr.service.logs.exclude.columnlist");
 
@@ -1705,7 +1707,7 @@ public class LogsMgr extends MgrBase {
     }
 
     HashMap<String, String> uiFieldColumnMappingSorted = new LinkedHashMap<String, String>();
-    uiFieldColumnMappingSorted.put(LogSearchConstants.SOLR_LOG_MESSAGE, "");
+    uiFieldColumnMappingSorted.put(LogSearchConstants.SOLR_LOG_MESSAGE, LogSearchConstants.SOLR_LOG_MESSAGE);
 
     Iterator<Entry<String, String>> it = bizUtil
         .sortHashMapByValues(uiFieldColumnMapping).entrySet().iterator();
@@ -1756,7 +1758,7 @@ public class LogsMgr extends MgrBase {
 
   public String getAnyGraphData(SearchCriteria searchCriteria) {
     searchCriteria.addParam("fieldTime", LogSearchConstants.LOGTIME);
-    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs");
+    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",LogSearchConstants.DEFAULT_SERVICE_COLUMN_SUFFIX);
     searchCriteria.addParam("suffix", suffix);
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     VBarDataList result = graphDataGenerator.getAnyGraphData(searchCriteria,
@@ -1930,4 +1932,36 @@ public class LogsMgr extends MgrBase {
 
     return getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
   }
+
+  @Scheduled(cron = "${logsearch.solr.warming.cron}")
+  public void warmingSolrServer(){
+    logger.info("solr warming triggered.");
+    SolrQuery solrQuery = new SolrQuery();
+    TimeZone gmtTimeZone = TimeZone.getTimeZone("GMT");
+    GregorianCalendar utc = new GregorianCalendar(gmtTimeZone);
+    utc.setTimeInMillis(new Date().getTime());
+    utc.set(GregorianCalendar.HOUR, 0);
+    utc.set(GregorianCalendar.MINUTE, 0);
+    utc.set(GregorianCalendar.MILLISECOND, 001);
+    utc.set(GregorianCalendar.SECOND, 0);
+    dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
+    String from = dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
+    utc.set(Calendar.MILLISECOND, 999);
+    utc.set(Calendar.SECOND, 59);
+    utc.set(Calendar.MINUTE, 59);
+    utc.set(Calendar.HOUR, 23);
+    String to = dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
+    queryGenerator.setSingleRangeFilter(solrQuery,
+        LogSearchConstants.LOGTIME, from,to);
+    String level = LogSearchConstants.FATAL+","+LogSearchConstants.ERROR+","+LogSearchConstants.WARN;
+    queryGenerator.setFilterClauseWithFieldName(solrQuery, level,
+        LogSearchConstants.SOLR_LEVEL, "", QueryGenerationBase.CONDITION.OR);
+    try {
+      serviceLogsSolrDao.process(solrQuery);
+    } catch (SolrServerException | IOException e) {
+      logger.error("Error while warming solr server",e);
+    }
+  }
+
+
 }
