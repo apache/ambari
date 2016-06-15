@@ -94,6 +94,11 @@ public class QueryImpl implements Query, ResourceInstance {
   private final Map<Resource.Type, String> keyValueMap = new HashMap<Resource.Type, String>();
 
   /**
+   * Map of properties from the request.
+   */
+  private final Map<String, String> requestInfoProperties = new HashMap<String, String>();
+
+  /**
    * Set of query results.
    */
   Map<Resource, QueryResult> queryResults = new LinkedHashMap<Resource, QueryResult>();
@@ -247,6 +252,18 @@ public class QueryImpl implements Query, ResourceInstance {
   public void setRenderer(Renderer renderer) {
     this.renderer = renderer;
     renderer.init(clusterController);
+  }
+
+  @Override
+  public void setRequestInfoProps(Map<String, String> requestInfoProperties) {
+    if(requestInfoProperties != null) {
+      this.requestInfoProperties.putAll(requestInfoProperties);
+    }
+  }
+
+  @Override
+  public Map<String, String> getRequestInfoProps() {
+    return this.requestInfoProperties;
   }
 
 
@@ -967,7 +984,8 @@ public class QueryImpl implements Query, ResourceInstance {
   }
 
   private Request createRequest() {
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    // Initiate this request's requestInfoProperties with the ones set from the original request
+    Map<String, String> requestInfoProperties = new HashMap<String, String>(this.requestInfoProperties);
 
     if (pageRequest != null) {
       requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY,

@@ -23,6 +23,7 @@ import org.apache.ambari.server.api.query.render.DefaultRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.*;
@@ -83,8 +84,11 @@ public class ReadHandlerTest {
     Query query = createMock(Query.class);
     Predicate predicate = createMock(Predicate.class);
     Result result = createStrictMock(Result.class);
+    RequestBody body = createStrictMock(RequestBody.class);
     Renderer renderer = new DefaultRenderer();
     Capture<ResultStatus> resultStatusCapture = new Capture<ResultStatus>();
+
+    Map<String, String> requestInfoProperties = Collections.singletonMap("directive", "value");
 
     Map<String, TemporalInfo> mapPartialResponseFields = new HashMap<String, TemporalInfo>();
     mapPartialResponseFields.put("foo", null);
@@ -98,8 +102,12 @@ public class ReadHandlerTest {
     expect(request.getPageRequest()).andReturn(null);
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getBody()).andReturn(body);
     expect(request.getFields()).andReturn(mapPartialResponseFields);
 
+    expect(body.getRequestInfoProperties()).andReturn(requestInfoProperties);
+
+    query.setRequestInfoProps(requestInfoProperties);
     query.addProperty("foo", null);
     query.addProperty("bar/c", null);
     query.addProperty("bar/d/e", null);
@@ -113,13 +121,13 @@ public class ReadHandlerTest {
     expect(query.execute()).andReturn(result);
     result.setResultStatus(capture(resultStatusCapture));
 
-    replay(request, resource, query, predicate, result);
+    replay(request, resource, body, query, predicate, result);
 
     //test
     ReadHandler handler = new ReadHandler();
     assertSame(result, handler.handleRequest(request));
     assertEquals(ResultStatus.STATUS.OK, resultStatusCapture.getValue().getStatus());
-    verify(request, resource, query, predicate, result);
+    verify(request, resource, body, query, predicate, result);
   }
 
   @Test
@@ -136,6 +144,7 @@ public class ReadHandlerTest {
     expect(request.getPageRequest()).andReturn(null);
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getBody()).andReturn(null);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
@@ -171,6 +180,7 @@ public class ReadHandlerTest {
     expect(request.getPageRequest()).andReturn(null);
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getBody()).andReturn(null);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
@@ -207,6 +217,7 @@ public class ReadHandlerTest {
     expect(request.getPageRequest()).andReturn(null);
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getBody()).andReturn(null);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);
@@ -242,6 +253,7 @@ public class ReadHandlerTest {
     expect(request.getPageRequest()).andReturn(null);
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getBody()).andReturn(null);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate).anyTimes();
@@ -276,6 +288,7 @@ public class ReadHandlerTest {
     expect(request.getPageRequest()).andReturn(null);
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getBody()).andReturn(null);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(null).anyTimes();
@@ -311,6 +324,7 @@ public class ReadHandlerTest {
     expect(request.getPageRequest()).andReturn(null);
     expect(request.getSortRequest()).andReturn(null);
     expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getBody()).andReturn(null);
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 
     expect(request.getQueryPredicate()).andReturn(predicate);

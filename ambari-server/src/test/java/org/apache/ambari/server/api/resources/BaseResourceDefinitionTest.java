@@ -50,7 +50,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -143,14 +145,23 @@ public class BaseResourceDefinitionTest {
   }
 
   @Test
-  public void testGetCreateDirectives() {
+  public void testReadDirectives() {
     ResourceDefinition resource = getResourceDefinition();
 
-    assertEquals(Collections.EMPTY_SET, resource.getCreateDirectives());
+    assertEquals(Collections.EMPTY_SET, resource.getReadDirectives());
 
-    resource = getResourceDefinition("do_something", "do_something_else");
+    Map<BaseResourceDefinition.DirectiveType, List<String>> directives = new HashMap<BaseResourceDefinition.DirectiveType, List<String>>();
+    directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("do_something_delete", "do_something_else_delete"));
+    directives.put(BaseResourceDefinition.DirectiveType.READ, Arrays.asList("do_something_get", "do_something_else_get"));
+    directives.put(BaseResourceDefinition.DirectiveType.CREATE, Arrays.asList("do_something_post", "do_something_else_post"));
+    directives.put(BaseResourceDefinition.DirectiveType.UPDATE, Arrays.asList("do_something_put", "do_something_else_put"));
 
-    assertEquals(new HashSet<String>() {{add("do_something"); add("do_something_else");}}, resource.getCreateDirectives());
+    resource = getResourceDefinition(directives);
+
+    assertEquals(new HashSet<String>() {{add("do_something_delete"); add("do_something_else_delete");}}, resource.getDeleteDirectives());
+    assertEquals(new HashSet<String>() {{add("do_something_get"); add("do_something_else_get");}}, resource.getReadDirectives());
+    assertEquals(new HashSet<String>() {{add("do_something_post"); add("do_something_else_post");}}, resource.getCreateDirectives());
+    assertEquals(new HashSet<String>() {{add("do_something_put"); add("do_something_else_put");}}, resource.getUpdateDirectives());
   }
 
   private BaseResourceDefinition getResourceDefinition() {
@@ -167,9 +178,9 @@ public class BaseResourceDefinitionTest {
     };
   }
 
-  private BaseResourceDefinition getResourceDefinition(String ... createDirectives) {
+  private BaseResourceDefinition getResourceDefinition(Map<BaseResourceDefinition.DirectiveType, ? extends Collection<String>> directives) {
     return new BaseResourceDefinition(Resource.Type.Service,
-        Collections.<Resource.Type>emptySet(), new HashSet<String>(Arrays.asList(createDirectives))) {
+        Collections.<Resource.Type>emptySet(), directives) {
       @Override
       public String getPluralName() {
         return "pluralName";

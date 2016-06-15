@@ -140,6 +140,11 @@ public class AuditEventCreatorTestHelper {
               }
 
               @Override
+              public Collection<String> getReadDirectives() {
+                return null;
+              }
+
+              @Override
               public boolean isCreatable() {
                 return false;
               }

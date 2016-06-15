@@ -29,6 +29,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 
+import java.util.Map;
 import java.util.Set;
 
 
@@ -115,4 +116,20 @@ public interface Query {
    * @param renderer  renderer for the query
    */
   public void setRenderer(Renderer renderer);
+
+  /**
+   * Set this Query's requestInfoProperties from the original request.  This will contain information
+   * such as directives.
+   *
+   * @param requestInfoProperties a map a request info properties
+   */
+  void setRequestInfoProps(Map<String, String> requestInfoProperties);
+
+  /**
+   * Get this Query's requestInfoProperties from the original request.  This will contain information
+   * such as directives.
+   *
+   * @return a map a request info properties
+   */
+  Map<String, String> getRequestInfoProps();
 }
