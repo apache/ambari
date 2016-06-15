@@ -1322,7 +1322,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Flushed MemStore Bytes on $Tables",
+          "title": "Flushed Output Bytes on $Tables",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -1830,7 +1830,7 @@
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Flush MemStore Size Mean on $Tables",
+          "title": "Flush MemStore Size 95th Percentile on $Tables",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
