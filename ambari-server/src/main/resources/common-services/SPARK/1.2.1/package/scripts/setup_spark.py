@@ -81,7 +81,13 @@ def setup_spark(env, type, upgrade_type = None, action = None):
        group=params.spark_group,
        content=InlineTemplate(params.spark_metrics_properties)
   )
-  
+
+  File(os.path.join(params.spark_conf, 'java-opts'),
+      owner=params.spark_user,
+      group=params.spark_group,
+      content=InlineTemplate(params.spark_javaopts_properties)
+  )
+
   Directory(params.spark_logs_dir,
        owner=params.spark_user,
        group=params.spark_group,

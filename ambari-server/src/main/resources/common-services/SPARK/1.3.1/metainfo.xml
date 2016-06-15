@@ -125,6 +125,7 @@
         <config-type>spark-env</config-type>
         <config-type>spark-log4j-properties</config-type>
         <config-type>spark-metrics-properties</config-type>
+        <config-type>spark-javaopts-properties</config-type>
       </configuration-dependencies>
 
       <commandScript>

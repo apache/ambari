@@ -145,6 +145,11 @@ class TestSparkThriftServer(RMFTestCase):
         owner = 'spark',
         group = 'spark',
     )
+    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
+        content = InlineTemplate(' '),
+        owner = 'spark',
+        group = 'spark',
+    )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
         group = 'spark',

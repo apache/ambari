@@ -121,6 +121,10 @@ spark_metrics_properties = config['configurations']['spark-metrics-properties'][
 hive_server_host = default("/clusterHostInfo/hive_server_host", [])
 is_hive_installed = not len(hive_server_host) == 0
 
+full_stack_version = get_stack_version('spark-client')
+spark_javaopts_properties = default("/configurations/spark-javaopts-properties/content", " ")
+
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 spark_kerberos_keytab =  config['configurations']['spark-defaults']['spark.history.kerberos.keytab']

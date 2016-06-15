@@ -87,6 +87,11 @@ class TestSparkClient(RMFTestCase):
         owner = 'spark',
         group = 'spark',
     )
+    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
+        content = InlineTemplate(' '),
+        owner = 'spark',
+        group = 'spark',
+    )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
         group = 'spark',
@@ -127,6 +132,11 @@ class TestSparkClient(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/metrics.properties',
         content = InlineTemplate(self.getConfig()['configurations']['spark-metrics-properties']['content']),
+        owner = 'spark',
+        group = 'spark',
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
+        content = InlineTemplate(' '),
         owner = 'spark',
         group = 'spark',
     )
