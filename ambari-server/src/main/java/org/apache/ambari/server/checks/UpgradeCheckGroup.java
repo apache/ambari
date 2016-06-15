@@ -75,9 +75,14 @@ public enum UpgradeCheckGroup {
   COMPONENT_VERSION(9.0f),
 
   /**
-   * A general group for related to Kerberos checks
+   * A general group for related to Kerberos checks.
    */
   KERBEROS(10.0f),
+
+  /**
+   * A general group for informational warning checks.
+   */
+  INFORMATIONAL_WARNING(100.0f),
 
   /**
    * All other checks.
