@@ -19,7 +19,7 @@
 <configuration>
   <property>
     <name>zeppelin_pid_dir</name>
-    <value>/var/run/zeppelin-notebook</value>
+    <value>/var/run/zeppelin</value>
     <description>Dir containing process ID file</description>
     <on-ambari-upgrade add="true"/>
   </property>
