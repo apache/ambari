@@ -21,10 +21,12 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * SimpleResourceDefinition tests.
@@ -48,16 +50,43 @@ public class SimpleResourceDefinitionTest {
   }
 
   @Test
-  public void testGetCreateDirectives() {
-    ResourceDefinition resourceDefinition =
-        new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages", Resource.Type.Task);
-
-    assertEquals(Collections.EMPTY_SET, resourceDefinition.getCreateDirectives());
+  public void testDirectives() {
+    ResourceDefinition resourceDefinition;
 
     resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages",
-            Collections.singleton(Resource.Type.Task), Arrays.asList("do_something", "do_something_else"));
+        Resource.Type.Task);
 
-    assertEquals(new HashSet<String>() {{add("do_something"); add("do_something_else");}},
-        resourceDefinition.getCreateDirectives());
+    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getCreateDirectives());
+    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getReadDirectives());
+    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getUpdateDirectives());
+    validateDirectives(Collections.<String>emptySet(), resourceDefinition.getDeleteDirectives());
+
+    HashMap<BaseResourceDefinition.DirectiveType, Collection<String>> directives = new HashMap<BaseResourceDefinition.DirectiveType, Collection<String>>();
+    directives.put(BaseResourceDefinition.DirectiveType.CREATE, Arrays.asList("POST1", "POST2"));
+    directives.put(BaseResourceDefinition.DirectiveType.READ, Arrays.asList("GET1", "GET2"));
+    directives.put(BaseResourceDefinition.DirectiveType.UPDATE, Arrays.asList("PUT1", "PUT2"));
+    directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("DEL1", "DEL2"));
+
+    resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages",
+        Collections.singleton(Resource.Type.Task), directives);
+
+    validateDirectives(directives.get(BaseResourceDefinition.DirectiveType.CREATE), resourceDefinition.getCreateDirectives());
+    validateDirectives(directives.get(BaseResourceDefinition.DirectiveType.READ), resourceDefinition.getReadDirectives());
+    validateDirectives(directives.get(BaseResourceDefinition.DirectiveType.UPDATE), resourceDefinition.getUpdateDirectives());
+    validateDirectives(directives.get(BaseResourceDefinition.DirectiveType.DELETE), resourceDefinition.getDeleteDirectives());
+  }
+
+  private void validateDirectives(Collection<String> expected, Collection<String> actual) {
+    int actualSize = actual.size();
+
+    // Ensure the collection is empty...
+    assertEquals(expected.size(), actual.size());
+    for (String actualItem : actual) {
+      assertTrue(expected.contains(actualItem));
+    }
+
+    // Ensure the collection is modifiable...
+    assertTrue(actual.add("DIRECTIVE"));
+    assertEquals(actualSize + 1, actual.size());
   }
 }

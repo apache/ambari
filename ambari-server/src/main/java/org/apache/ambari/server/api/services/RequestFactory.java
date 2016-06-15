@@ -46,7 +46,7 @@ public class RequestFactory {
                                ResourceInstance resource) {
     switch (requestType) {
       case GET:
-        return new GetRequest(headers, body, uriInfo, resource);
+        return createGetRequest(headers, body, uriInfo, resource);
       case PUT:
         return createPutRequest(headers, body, uriInfo, resource);
       case DELETE:
@@ -56,6 +56,19 @@ public class RequestFactory {
       default:
         throw new IllegalArgumentException("Invalid request type: " + requestType);
     }
+  }
+
+  /**
+   * Create a GET request.  This will apply any eligible directives supplied in the URI.
+   *
+   * @param headers  http headers
+   * @param uriInfo  uri information
+   * @param resource associated resource instance
+   * @return new post request
+   */
+  private Request createGetRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
+    applyDirectives(Request.Type.GET, body, uriInfo, resource);
+    return new GetRequest(headers, body, uriInfo, resource);
   }
 
   /**
@@ -151,6 +164,9 @@ public class RequestFactory {
           break;
         case POST:
           directives = resourceDefinition.getCreateDirectives();
+          break;
+        case GET:
+          directives = resourceDefinition.getReadDirectives();
           break;
         case DELETE:
           directives = resourceDefinition.getDeleteDirectives();

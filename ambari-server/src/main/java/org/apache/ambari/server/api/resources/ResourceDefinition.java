@@ -81,6 +81,15 @@ public interface ResourceDefinition {
   Renderer getRenderer(String name) throws IllegalArgumentException;
 
   /**
+   * Obtain the set of read directives for the resource.  A get directive is
+   * information that can be provided in the query string of a GET operation for
+   * the resource.  These directives are not predicates but are put into the
+   * map of request info properties used by the resource provider when getting
+   * the resource.
+   */
+  Collection<String> getReadDirectives();
+
+  /**
    * Obtain the set of create directives for the resource.  A create directive is
    * information that can be provided in the query string of a POST operation for
    * the resource.  These directives are not predicates but are put into the

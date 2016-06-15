@@ -33,10 +33,12 @@ import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,12 +54,12 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   /**
    * The sub-resource type definitions.
    */
-  private final Set<SubResourceDefinition> subResourceDefinitions;
+  private final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
 
   /**
-   * The set of create directives for the resource which can be modified by sub resources.
+   * A map of directives for the different request types, each entry is expected to be modifiable by sub resources.
    */
-  private final Collection<String> createDirectives = new HashSet<String>();
+  private final Map<DirectiveType, Collection<String>> directives = new HashMap<DirectiveType, Collection<String>>();
 
   /**
    * Constructor.
@@ -65,8 +67,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    * @param resourceType resource type
    */
   public BaseResourceDefinition(Resource.Type resourceType) {
-    m_type = resourceType;
-    subResourceDefinitions = Collections.emptySet();
+    this(resourceType, null, null);
   }
 
   /**
@@ -76,31 +77,31 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    * @param subTypes      the sub-resource types
    */
   public BaseResourceDefinition(Resource.Type resourceType, Resource.Type ... subTypes) {
-    m_type = resourceType;
-    subResourceDefinitions =  new HashSet<SubResourceDefinition>();
-
-    for (Resource.Type subType : subTypes) {
-      subResourceDefinitions.add(new SubResourceDefinition(subType));
-    }
+    this(resourceType, (subTypes == null) ? null : Arrays.asList(subTypes), null);
   }
 
   /**
    * Constructor.
    *
-   * @param resourceType      the resource type
-   * @param subTypes          the sub-resource types
-   * @param createDirectives  the set of create directives for the resource
+   * @param resourceType the resource type
+   * @param subTypes     the sub-resource types
+   * @param directives   a map of directives for request types for this resource
    */
   public BaseResourceDefinition(Resource.Type resourceType,
-                                Set<Resource.Type> subTypes,
-                                Collection<String> createDirectives) {
+                                Collection<Resource.Type> subTypes,
+                                Map<DirectiveType, ? extends Collection<String>> directives) {
     m_type = resourceType;
-    subResourceDefinitions =  new HashSet<SubResourceDefinition>();
 
-    for (Resource.Type subType : subTypes) {
-      subResourceDefinitions.add(new SubResourceDefinition(subType));
+    if (subTypes != null) {
+      for (Resource.Type subType : subTypes) {
+        subResourceDefinitions.add(new SubResourceDefinition(subType));
+      }
     }
-    this.createDirectives.addAll(createDirectives);
+
+    initializeDirectives(DirectiveType.READ, directives);
+    initializeDirectives(DirectiveType.CREATE, directives);
+    initializeDirectives(DirectiveType.UPDATE, directives);
+    initializeDirectives(DirectiveType.DELETE, directives);
   }
 
   @Override
@@ -141,19 +142,27 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   }
 
   @Override
+  public Collection<String> getReadDirectives() {
+    // return a collection which can be modified by sub resources
+    return directives.get(DirectiveType.READ);
+  }
+
+  @Override
   public Collection<String> getCreateDirectives() {
     // return a collection which can be modified by sub resources
-    return createDirectives;
+    return directives.get(DirectiveType.CREATE);
   }
 
   @Override
   public Collection<String> getUpdateDirectives() {
-    return new HashSet<>();
+    // return a collection which can be modified by sub resources
+    return directives.get(DirectiveType.UPDATE);
   }
 
   @Override
   public Collection<String> getDeleteDirectives() {
-    return new HashSet<>();
+    // return a collection which can be modified by sub resources
+    return directives.get(DirectiveType.DELETE);
   }
 
   @Override
@@ -224,5 +233,28 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
         }
       }
     }
+  }
+
+  /**
+   * Initializes the specified collection of directives into a modifiable set of directives for the specified type of directives.
+   *
+   * @param type       a request type
+   * @param directives the map of directives from which to copy
+   */
+  private void initializeDirectives(DirectiveType type, Map<DirectiveType, ? extends Collection<String>> directives) {
+    HashSet<String> requestDirectives = new HashSet<String>();
+
+    if ((directives != null) && directives.get(type) != null) {
+      requestDirectives.addAll(directives.get(type));
+    }
+
+    this.directives.put(type, requestDirectives);
+  }
+
+  public enum DirectiveType {
+    CREATE,
+    READ,
+    UPDATE,
+    DELETE
   }
 }

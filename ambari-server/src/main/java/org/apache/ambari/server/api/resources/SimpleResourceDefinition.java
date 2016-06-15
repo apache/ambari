@@ -20,8 +20,9 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Simple concrete resource definition.
@@ -43,35 +44,34 @@ public class SimpleResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
-   * @param resourceType  the resource type
-   * @param singularName  the resource singular name
-   * @param pluralName    the resource plural name
-   * @param subTypes      the sub-resource types
    *
+   * @param resourceType the resource type
+   * @param singularName the resource singular name
+   * @param pluralName   the resource plural name
+   * @param subTypes     the sub-resource types
+   * @see #SimpleResourceDefinition(Resource.Type, String, String, Collection, Map)
    */
   public SimpleResourceDefinition(Resource.Type resourceType, String singularName, String pluralName,
                                   Resource.Type... subTypes) {
-    super(resourceType, subTypes);
-
-    this.singularName = singularName;
-    this.pluralName   = pluralName;
+    this(resourceType, singularName, pluralName, (subTypes == null) ? null : Arrays.asList(subTypes), null);
   }
 
   /**
    * Constructor.
-   * @param resourceType      the resource type
-   * @param singularName      the resource singular name
-   * @param pluralName        the resource plural name
-   * @param subTypes          the sub-resource types
-   * @param createDirectives  the set of create directives for the resource
+   *
+   * @param resourceType the resource type
+   * @param singularName the resource singular name
+   * @param pluralName   the resource plural name
+   * @param subTypes     the sub-resource types
+   * @param directives   the a map of directives for the different request types
    */
   public SimpleResourceDefinition(Resource.Type resourceType, String singularName, String pluralName,
-                                  Set<Resource.Type> subTypes,
-                                  Collection<String> createDirectives) {
-    super(resourceType, subTypes, createDirectives);
+                                  Collection<Resource.Type> subTypes,
+                                  Map<DirectiveType, ? extends Collection<String>> directives) {
+    super(resourceType, subTypes, directives);
 
     this.singularName = singularName;
-    this.pluralName   = pluralName;
+    this.pluralName = pluralName;
   }
 
   // ----- ResourceDefinition ------------------------------------------------

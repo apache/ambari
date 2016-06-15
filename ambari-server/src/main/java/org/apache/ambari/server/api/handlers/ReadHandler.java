@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.handlers;
 
 import org.apache.ambari.server.api.services.Request;
+import org.apache.ambari.server.api.services.RequestBody;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.Result;
@@ -53,6 +54,13 @@ public class ReadHandler implements RequestHandler {
     query.setPageRequest(request.getPageRequest());
     query.setSortRequest(request.getSortRequest());
     query.setRenderer(request.getRenderer());
+
+    // If the request body exists, copy the requstInfoProperties from it.  This map should contain
+    // the _directives_ specified in the request.
+    RequestBody body = request.getBody();
+    if(body != null) {
+      query.setRequestInfoProps(body.getRequestInfoProperties());
+    }
 
     try {
       addFieldsToQuery(request, query);

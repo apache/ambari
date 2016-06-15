@@ -325,4 +325,42 @@ public class RequestFactoryTest {
 
     verify(headers, uriInfo, body, resource, mapQueryParams, resourceDefinition);
   }
+
+  @Test
+  // get with create directive in URI
+  public void testCreate_Get__WithUriDirective() {
+    HttpHeaders headers = createMock(HttpHeaders.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    RequestBody body = createMock(RequestBody.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
+
+    @SuppressWarnings("unchecked")
+    MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
+    Map<String, List<String>> mapProps = new HashMap<String, List<String>>();
+    mapProps.put("foo", Collections.singletonList("bar"));
+
+    Map<String, String> requestInfoMap = new HashMap<String, String>();
+
+    //expectations
+    expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
+    expect(mapQueryParams.entrySet()).andReturn(mapProps.entrySet()).anyTimes();
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
+    expect(resourceDefinition.getReadDirectives()).andReturn(Collections.singleton("foo"));
+    expect(body.getQueryString()).andReturn(null);
+    expect(body.getRequestInfoProperties()).andReturn(requestInfoMap).anyTimes();
+
+    replay(headers, uriInfo, body, resource, mapQueryParams, resourceDefinition);
+
+    //test
+    RequestFactory factory = new RequestFactory();
+    Request request = factory.createRequest(headers, body, uriInfo, Request.Type.GET, resource);
+
+    assertEquals(resource, request.getResource());
+    assertEquals(body, request.getBody());
+    assertEquals(Request.Type.GET, request.getRequestType());
+    assertEquals("bar", requestInfoMap.get("foo"));
+
+    verify(headers, uriInfo, body, resource, mapQueryParams, resourceDefinition);
+  }
 }
