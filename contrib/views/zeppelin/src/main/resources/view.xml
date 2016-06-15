@@ -32,7 +32,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <name>zeppelin.host.publicname</name>
     <description>Zeppelin host name</description>
     <label>Zeppelin host name</label>
-    <cluster-config>zeppelin-ambari-config/zeppelin.host.publicname</cluster-config>
+    <cluster-config>fake</cluster-config>
     <required>true</required>
   </parameter>
 

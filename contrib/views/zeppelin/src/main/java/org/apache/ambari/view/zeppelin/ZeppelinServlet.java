@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 
 public class ZeppelinServlet extends HttpServlet {
@@ -47,10 +48,22 @@ public class ZeppelinServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
+        String publicName = "";
+        String port = "";
+        try {
+            port = viewContext.getProperties().get("zeppelin.server.port");
+            if (viewContext.getCluster() != null) {
+                List<String> hostsForServiceComponents = viewContext.getCluster().getHostsForServiceComponent("ZEPPELIN", "ZEPPELIN_MASTER");
+                publicName = hostsForServiceComponents.get(0);
+            } else {
+                publicName = viewContext.getProperties().get("zeppelin.host.publicname");
+            }
+        } catch (Exception e) {
+            LOG.error("Zeppelin view servlet failed", e);
+        }
 
-        String port = viewContext.getProperties().get("zeppelin.server.port");
-        String publicName = viewContext.getProperties().get("zeppelin.host.publicname");
-        request.setAttribute("port", port);
+        String serviceCheckResponse = ZeppelinServiceCheck.check(publicName, port);
+        request.setAttribute("serviceCheckResponse", serviceCheckResponse);
 
         request.getRequestDispatcher("WEB-INF/index.jsp").forward(request, response);
     }
