@@ -30,7 +30,7 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
-
+from resource_management.libraries.functions.format import format
 
 def get_port_from_url(address):
   if not (address is None):
