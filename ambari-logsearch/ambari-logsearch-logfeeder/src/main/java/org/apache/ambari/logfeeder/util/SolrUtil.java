@@ -143,7 +143,7 @@ public class SolrUtil {
             + solrDetail + ", response=" + response);
           break;
         } else {
-          logger.warn("Solr is not not reachable yet. getCollections() attempt count=" + pingCount
+          logger.warn("Solr is not reachable yet. getCollections() attempt count=" + pingCount
             + ". Will sleep for " + waitIntervalMS + " ms and try again." + " solr=" + solrDetail
             + ", response=" + response);
 
@@ -194,7 +194,10 @@ public class SolrUtil {
         }
       }
     } catch (Exception e) {
-      logger.error("Error getting config", e);
+      final String logMessageKey = this.getClass().getSimpleName()
+          + "_FETCH_FILTER_CONFIG_ERROR";
+      LogFeederUtil.logErrorMessageByInterval(logMessageKey,
+          "Error getting filter config from solr", e, logger, Level.ERROR);
     }
     return configMap;
   }
