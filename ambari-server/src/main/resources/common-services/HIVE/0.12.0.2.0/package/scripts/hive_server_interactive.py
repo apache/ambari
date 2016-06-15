@@ -290,8 +290,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
     """
     def _get_llap_app_status_info(self, app_name):
       import status_params
+      LLAP_APP_STATUS_CMD_TIMEOUT = 0
 
-      llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name}")
+      llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name} -findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
       code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
                                                logoutput=False)
       llap_app_info = json.loads(output)
@@ -318,7 +319,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         num_retries = 2
       if num_retries > 20:
         num_retries = 20
-      @retry(times=num_retries, sleep_time=15, err_class=Fail)
+      @retry(times=num_retries, sleep_time=2, err_class=Fail)
       def do_retries():
         live_instances = 0
         desired_instances = 0
@@ -366,11 +367,11 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
                                                        time.time() - curr_time))
             raise Fail("App state is RUNNING_PARTIAL. Live Instances : '{0}', Desired Instance : '{1}'".format(llap_app_info['liveInstances'],
                                                                                                            llap_app_info['desiredInstances']))
-        elif llap_app_info['state'].upper() in ['APP_NOT_FOUND', 'LAUNCHING']:
+        elif llap_app_info['state'].upper() in ['APP_NOT_FOUND', 'LAUNCHING', 'COMPLETE']:
           status_str = format("LLAP app '{0}' current state is {1}.".format(llap_app_name, llap_app_info['state']))
           Logger.info(status_str)
           raise Fail(status_str)
-        else:  # Covers state "COMPLETE" and any unknown that we get.
+        else:  # Covers any unknown that we get.
           Logger.info(
             "LLAP app '{0}' current state is '{1}'. Expected : 'RUNNING'.".format(llap_app_name, llap_app_info['state']))
           return False

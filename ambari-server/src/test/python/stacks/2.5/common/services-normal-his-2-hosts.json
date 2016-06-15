@@ -1049,7 +1049,8 @@
   "configurations" : {
     "hive-interactive-site" : {
       "properties": {
-        "hive.llap.daemon.queue.name": "llap"
+        "hive.llap.daemon.queue.name": "llap",
+        "hive.server2.enable.doAs": "true"
       }
     },
     "capacity-scheduler" : {

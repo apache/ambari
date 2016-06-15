@@ -512,7 +512,7 @@ class TestHDP25StackAdvisor(TestCase):
 
 
   """
-  Tests validation errors for Hive Server Interactive site.
+  Tests validations for Hive Server Interactive site.
   """
   def test_validateHiveInteractiveSiteConfigurations(self):
     # Performing setup
@@ -555,12 +555,14 @@ class TestHDP25StackAdvisor(TestCase):
     # and selected queue current state is "STOPPED".
     # Expected : 1. Error telling about the current size compared to minimum required size.
     #            2. Error telling about current state can't be STOPPED. Expected : RUNNING.
+    #            3. Error telling about config 'hive.server2.enable.doAs' to be false at all times.
     services2 = self.load_json("services-normal-his-2-hosts.json")
     res_expected2 = [
       {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49%) is less than minimum required "
                                                           "capacity (50%) for LLAP app to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
       {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' current state is : 'STOPPED'. It is required to be in "
-                                                          "'RUNNING' state for LLAP to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'}
+                                                          "'RUNNING' state for LLAP to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
+      {'config-type': 'hive-interactive-site', 'message': "Value should be set to 'false' for Hive2.", 'type': 'configuration', 'config-name': 'hive.server2.enable.doAs', 'level': 'ERROR'}
     ]
     res2 = self.stackAdvisor.validateHiveInteractiveSiteConfigurations({}, {}, {}, services2, hosts)
     self.assertEquals(res2, res_expected2)

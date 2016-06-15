@@ -127,6 +127,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       1. Queue selected in 'hive.llap.daemon.queue.name' config should be sized >= to minimum required to run LLAP
          and Hive2 app.
       2. Queue selected in 'hive.llap.daemon.queue.name' config state should not be 'STOPPED'.
+      3. 'hive.server2.enable.doAs' config should be set to 'false' for Hive2.
   """
   def validateHiveInteractiveSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
@@ -173,6 +174,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       else:
         Logger.error("Couldn't retrieve 'capacity-scheduler' properties while doing validation checks for Hive Server Interactive.")
         pass
+
+      # Validate that 'hive.server2.enable.doAs' config is not set to 'true' for Hive2.
+      if self.HIVE_INTERACTIVE_SITE in services['configurations']:
+        if 'hive.server2.enable.doAs' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+          hive2_enable_do_as = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.server2.enable.doAs']
+          if hive2_enable_do_as == 'true':
+            validationItems.append({"config-name": "hive.server2.enable.doAs","item": self.getErrorItem("Value should be set to 'false' for Hive2.")})
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-interactive-site")
     return validationProblems
