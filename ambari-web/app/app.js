@@ -120,12 +120,13 @@ module.exports = Em.Application.create({
    * @param {object} options
    * @returns {boolean}
    */
-  isAuthorized: function(authRoles, options) {
+  isAuthorized: function (authRoles, options) {
     options = $.extend({ignoreWizard: false}, options);
     var result = false;
     authRoles = $.map(authRoles.split(","), $.trim);
 
-    if (!this.get('upgradeSuspended') &&
+    // When Upgrade running(not suspended) only operations related to upgrade should be allowed
+    if ((!this.get('upgradeSuspended') && !authRoles.contains('CLUSTER.UPGRADE_DOWNGRADE_STACK')) &&
         !App.get('supports.opsDuringRollingUpgrade') &&
         !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) ||
         !App.auth){
@@ -136,7 +137,7 @@ module.exports = Em.Application.create({
       return false;
     }
 
-    authRoles.forEach(function(auth) {
+    authRoles.forEach(function (auth) {
       result = result || App.auth.contains(auth);
     });
 

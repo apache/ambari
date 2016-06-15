@@ -114,7 +114,11 @@
                     </span>
                   </span>
                 {{/if}}
-                <a class="brand cluster-name" href="#">
+                  {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+                    <a class="brand cluster-name" href="#">
+                  {{else}}
+                    <a class="brand cluster-name">
+                  {{/isAuthorized}}
                   {{#if App.upgradeInProgress}}
                     {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
                       <span
