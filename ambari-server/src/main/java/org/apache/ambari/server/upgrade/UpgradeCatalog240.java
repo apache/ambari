@@ -362,6 +362,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateKerberosConfigs();
     updateYarnEnv();
     updatePhoenixConfigs();
+    updateSparkConfigs();
     updateFalconConfigs();
     updateKerberosDescriptorArtifacts();
     removeHiveOozieDBConnectionConfigs();
@@ -1885,6 +1886,61 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         if (falconEnvEnvProperties.containsKey("falcon_store_uri")) {
           LOG.info("Removing property falcon_store_uri from falcon-env");
           removeConfigurationPropertiesFromCluster(cluster, "falcon-env", Collections.singleton("falcon_store_uri"));
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates the Spark-related configurations for the clusters managed by this Ambari
+   * Removes falcon_store_uri from falcon-env.
+   * Updates {{hdp_full_version}} to {{full_stack_version}}
+   * @throws AmbariException if an error occurs while updating the configurations
+   */
+  protected void updateSparkConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config sparkDefaultsConfig = cluster.getDesiredConfigByType("spark-defaults");
+      if (sparkDefaultsConfig != null) {
+        Map<String, String> updates = new HashMap<>();
+        Map<String, String> sparkDefaultsProperties = sparkDefaultsConfig.getProperties();
+        if (sparkDefaultsProperties.containsKey("spark.driver.extraJavaOptions")) {
+          LOG.info("Updating property spark.driver.extraJavaOptions in spark-defaults");
+          String oldValue = sparkDefaultsProperties.get("spark.driver.extraJavaOptions");
+          if(oldValue.contains("{{hdp_full_version}}")) {
+            String newValue = oldValue.replace("{{hdp_full_version}}", "{{full_stack_version}}");
+            updates.put("spark.driver.extraJavaOptions", newValue);
+          }
+        }
+        if (sparkDefaultsProperties.containsKey("spark.yarn.am.extraJavaOptions")) {
+          LOG.info("Updating property spark.yarn.am.extraJavaOptions in spark-defaults");
+          String oldValue = sparkDefaultsProperties.get("spark.yarn.am.extraJavaOptions");
+          if(oldValue.contains("{{hdp_full_version}}")) {
+            String newValue = oldValue.replace("{{hdp_full_version}}", "{{full_stack_version}}");
+            updates.put("spark.yarn.am.extraJavaOptions", newValue);
+          }
+        }
+        if(updates.size() != 0 ) {
+          updateConfigurationPropertiesForCluster(cluster, "spark-defaults", updates, null, true, false);
+        }
+      }
+
+      Config sparkJavaOptsConfig = cluster.getDesiredConfigByType("spark-javaopts-properties");
+      if(sparkJavaOptsConfig != null) {
+        Map<String, String> updates = new HashMap<>();
+        Map<String, String> sparkJavaOptsProperties = sparkJavaOptsConfig.getProperties();
+        if (sparkJavaOptsProperties.containsKey("content")) {
+          String oldValue = sparkJavaOptsProperties.get("content");
+          if(oldValue.contains("{{hdp_full_version}}")) {
+            LOG.info("Updating property content in spark-javaopts-properties");
+            String newValue = oldValue.replace("{{hdp_full_version}}", "{{full_stack_version}}");
+            updates.put("content", newValue);
+            updateConfigurationPropertiesForCluster(cluster, "spark-javaopts-properties", updates, null, true, false);
+          }
         }
       }
     }

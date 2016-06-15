@@ -75,6 +75,7 @@
         <config-type>spark-env</config-type>
         <config-type>spark-log4j-properties</config-type>
         <config-type>spark-metrics-properties</config-type>
+        <config-type>spark-javaopts-properties</config-type>
         <config-type>spark-thrift-sparkconf</config-type>
         <config-type>spark-hive-site-override</config-type>
       </configuration-dependencies>

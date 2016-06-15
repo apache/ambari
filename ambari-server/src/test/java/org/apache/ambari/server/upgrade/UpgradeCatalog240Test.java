@@ -509,6 +509,7 @@ public class UpgradeCatalog240Test {
     Method updateHDFSWidget = UpgradeCatalog240.class.getDeclaredMethod("updateHDFSWidgetDefinition");
     Method upgradeCapSchedulerView = UpgradeCatalog240.class.getDeclaredMethod("upgradeCapSchedulerView");
     Method updatePhoenixConfigs = UpgradeCatalog240.class.getDeclaredMethod("updatePhoenixConfigs");
+    Method updateSparkConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateSparkConfigs");
     Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateFalconConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateFalconConfigs");
     Method fixAuthorizationDescriptions = UpgradeCatalog240.class.getDeclaredMethod("fixAuthorizationDescriptions");
@@ -547,6 +548,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateHDFSWidget)
             .addMockedMethod(upgradeCapSchedulerView)
             .addMockedMethod(updatePhoenixConfigs)
+            .addMockedMethod(updateSparkConfigs)
             .addMockedMethod(updateKerberosDescriptorArtifacts)
             .addMockedMethod(updateFalconConfigs)
             .addMockedMethod(fixAuthorizationDescriptions)
@@ -580,6 +582,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateHDFSWidgetDefinition();
     upgradeCatalog240.upgradeCapSchedulerView();
     upgradeCatalog240.updatePhoenixConfigs();
+    upgradeCatalog240.updateSparkConfigs();
     upgradeCatalog240.updateKerberosDescriptorArtifacts();
     upgradeCatalog240.updateFalconConfigs();
     upgradeCatalog240.fixAuthorizationDescriptions();
@@ -944,6 +947,83 @@ public class UpgradeCatalog240Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesYarnEnv, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testSparkConfigUpdate() throws Exception{
+
+    Map<String, String> oldPropertiesSparkDefaults = new HashMap<String, String>() {
+      {
+        put("spark.driver.extraJavaOptions", "-Dhdp.version={{hdp_full_version}}");
+        put("spark.yarn.am.extraJavaOptions", "-Dhdp.version={{hdp_full_version}}");
+      }
+    };
+    Map<String, String> newPropertiesSparkDefaults = new HashMap<String, String>() {
+      {
+        put("spark.driver.extraJavaOptions", "-Dhdp.version={{full_stack_version}}");
+        put("spark.yarn.am.extraJavaOptions", "-Dhdp.version={{full_stack_version}}");
+      }
+    };
+
+    Map<String, String> oldPropertiesSparkJavaOpts = new HashMap<String, String>() {
+      {
+        put("content", "-Dhdp.version={{hdp_full_version}}");
+      }
+    };
+    Map<String, String> newPropertiesSparkJavaOpts = new HashMap<String, String>() {
+      {
+        put("content", "-Dhdp.version={{full_stack_version}}");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockSparkDefaults = easyMockSupport.createNiceMock(Config.class);
+    Config mockSparkJavaOpts = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("spark-defaults")).andReturn(mockSparkDefaults).atLeastOnce();
+    expect(mockSparkDefaults.getProperties()).andReturn(oldPropertiesSparkDefaults).anyTimes();
+    expect(cluster.getDesiredConfigByType("spark-javaopts-properties")).andReturn(mockSparkJavaOpts).atLeastOnce();
+    expect(mockSparkJavaOpts.getProperties()).andReturn(oldPropertiesSparkJavaOpts).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockSparkDefaults, mockSparkJavaOpts, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] { })
+        .addMockedMethod("createConfig")
+        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesSparkDefaultsCapture = EasyMock.newCapture();
+    Capture<Map> propertiesSparkJavaOptsCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), eq("spark-defaults"), capture(propertiesSparkDefaultsCapture), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+    expect(controller.createConfig(anyObject(Cluster.class), eq("spark-javaopts-properties"), capture(propertiesSparkJavaOptsCapture), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog240(injector2).updateSparkConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedSparkDefaultsProperties = propertiesSparkDefaultsCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesSparkDefaults, updatedSparkDefaultsProperties).areEqual());
+
+    Map<String, String> updatedSparkJavaOptsProperties = propertiesSparkJavaOptsCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesSparkJavaOpts, updatedSparkJavaOptsProperties).areEqual());
   }
 
   @Test
