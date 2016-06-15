@@ -156,7 +156,7 @@ if 'nm_hosts' in config['clusterHostInfo'] and len(config['clusterHostInfo']['nm
   # use local mode when there's only one nodemanager
   spark_thrift_master = "local[4]"
 
-if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations']:
+if has_spark_thriftserver and 'spark2-thrift-sparkconf' in config['configurations']:
   spark_thrift_sparkconf = config['configurations']['spark2-thrift-sparkconf']
   spark_thrift_cmd_opts_properties = config['configurations']['spark2-env']['spark_thrift_cmd_opts']
   if is_hive_installed:
@@ -167,7 +167,7 @@ if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations
     })
     spark_hive_properties.update(config['configurations']['spark2-hive-site-override'])
 
-  if 'spark-thrift-fairscheduler' in config['configurations'] and 'fairscheduler_content' in config['configurations']['spark2-thrift-fairscheduler']:
+  if 'spark2-thrift-fairscheduler' in config['configurations'] and 'fairscheduler_content' in config['configurations']['spark2-thrift-fairscheduler']:
     spark_thrift_fairscheduler_content = config['configurations']['spark2-thrift-fairscheduler']['fairscheduler_content']
 
 default_fs = config['configurations']['core-site']['fs.defaultFS']
