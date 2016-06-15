@@ -30,10 +30,7 @@ from ambari_commons.os_check import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from urlparse import urlparse
 
-import params
-
-stack_root = params.stack_root
-
+STACK_ROOT_PATTERN = "{{ stack_root }}"
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
@@ -49,7 +46,7 @@ KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}
 OOZIE_URL_KEY = '{{oozie-site/oozie.base.url}}'
 SECURITY_ENABLED = '{{cluster-env/security_enabled}}'
 OOZIE_USER = '{{oozie-env/oozie_user}}'
-OOZIE_CONF_DIR = format("{stack_root}/current/oozie-server/conf")
+OOZIE_CONF_DIR = "{0}/current/oozie-server/conf".format(STACK_ROOT_PATTERN)
 OOZIE_CONF_DIR_LEGACY = '/etc/oozie/conf'
 OOZIE_HTTPS_PORT = '{{oozie-site/oozie.https.port}}'
 OOZIE_ENV_CONTENT = '{{oozie-env/content}}'
@@ -69,6 +66,9 @@ USER_PRINCIPAL_DEFAULT = 'oozie@EXAMPLE.COM'
 # default user
 USER_DEFAULT = 'oozie'
 
+STACK_ROOT_KEY = '{{cluster-env/stack_root}}'
+STACK_ROOT_DEFAULT = '/usr/hdp'
+
 class KerberosPropertiesNotFound(Exception): pass
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -86,7 +86,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (OOZIE_URL_KEY, USER_PRINCIPAL_KEY, SECURITY_ENABLED, USER_KEYTAB_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
-          USER_KEY, OOZIE_HTTPS_PORT, OOZIE_ENV_CONTENT)
+          USER_KEY, OOZIE_HTTPS_PORT, OOZIE_ENV_CONTENT, STACK_ROOT_KEY)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_check_command(oozie_url, host_name, configurations):
@@ -156,10 +156,15 @@ def get_check_command(oozie_url, host_name, configurations, parameters, only_kin
     finally:
       kinit_lock.release()
 
+  # Configure stack root
+  stack_root = STACK_ROOT_DEFAULT
+  if STACK_ROOT_KEY in configurations:
+    stack_root = configurations[STACK_ROOT_KEY].lower()
+
   # oozie configuration directory using a symlink
-  oozie_config_directory = OOZIE_CONF_DIR_LEGACY
-  if os.path.exists(OOZIE_CONF_DIR):
-    oozie_config_directory = OOZIE_CONF_DIR
+  oozie_config_directory = OOZIE_CONF_DIR.replace(STACK_ROOT_PATTERN, stack_root)
+  if not os.path.exists(oozie_config_directory):
+    oozie_config_directory = OOZIE_CONF_DIR_LEGACY
 
   command = "source {0}/oozie-env.sh ; oozie admin -oozie {1} -status".format(
     oozie_config_directory, oozie_url)
