@@ -329,19 +329,38 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     beforeEach(function () {
       sinon.stub(App.router, 'transitionTo', Em.K);
       sinon.spy(mock, 'observer');
+      this.mockAuthorized = sinon.stub(App, 'isAuthorized');
       Em.addObserver(App, 'upgradeSuspended', mock, 'observer');
-      controller.openUpgradeDialog();
     });
     afterEach(function () {
       App.router.transitionTo.restore();
       mock.observer.restore();
+      this.mockAuthorized.restore();
       Em.removeObserver(App, 'upgradeSuspended', mock, 'observer');
     });
+
     it('should open dialog', function () {
+      this.mockAuthorized.returns(true);
+      controller.openUpgradeDialog();
       expect(App.router.transitionTo.calledWith('admin.stackUpgrade')).to.be.true;
     });
+
     it('upgradeSuspended should receive actual value', function () {
+      this.mockAuthorized.returns(true);
+      controller.openUpgradeDialog();
       expect(mock.observer.calledOnce).to.be.true;
+    });
+
+    it('should not open dialog', function () {
+      this.mockAuthorized.returns(false);
+      controller.openUpgradeDialog();
+      expect(App.router.transitionTo.called).to.be.false;
+    });
+
+    it('upgradeSuspended should not receive value', function () {
+      this.mockAuthorized.returns(false);
+      controller.openUpgradeDialog();
+      expect(mock.observer.called).to.be.false;
     });
   });
 
