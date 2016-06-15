@@ -49,19 +49,14 @@ class TestStormDrpcServer(TestStormBase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
-
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm drpc > /var/log/storm/drpc.out 2>&1',
-        wait_for_finish = False,
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm drpc > /var/log/storm/drpc.out 2>&1 &\n echo $! > /var/run/storm/drpc.pid',
         path = ['/usr/bin'],
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/drpc.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/drpc.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ | awk {'print $1'} > /var/run/storm/drpc.pid",
-        logoutput = True,
-        path = ['/usr/bin'],
-        tries = 12,
-        user = 'storm',
-        try_sleep = 10,
+    self.assertResourceCalled('File', '/var/run/storm/drpc.pid',
+        owner = 'storm',
+        group = 'hadoop',
     )
 
     self.assertNoMoreResources()
@@ -110,19 +105,14 @@ class TestStormDrpcServer(TestStormBase):
     )
 
     self.assert_configure_secured()
-
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm drpc > /var/log/storm/drpc.out 2>&1',
-        wait_for_finish = False,
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm drpc > /var/log/storm/drpc.out 2>&1 &\n echo $! > /var/run/storm/drpc.pid',
         path = ['/usr/bin'],
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/drpc.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/drpc.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.drpc$ | awk {'print $1'} > /var/run/storm/drpc.pid",
-        logoutput = True,
-        path = ['/usr/bin'],
-        tries = 12,
-        user = 'storm',
-        try_sleep = 10,
+    self.assertResourceCalled('File', '/var/run/storm/drpc.pid',
+        owner = 'storm',
+        group = 'hadoop',
     )
     self.assertNoMoreResources()
 
