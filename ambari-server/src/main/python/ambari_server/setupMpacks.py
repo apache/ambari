@@ -20,7 +20,6 @@ limitations under the License.
 
 import os
 import shutil
-import tempfile
 import json
 import ast
 
@@ -29,7 +28,7 @@ from ambari_commons.inet_utils import download_file
 from ambari_commons.logging_utils import print_info_msg, print_error_msg
 from ambari_commons.os_utils import copy_file
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
-  get_common_services_location, get_mpacks_staging_location
+  get_common_services_location, get_mpacks_staging_location, get_server_temp_location
 
 from resource_management.core import sudo
 from resource_management.libraries.functions.tar_archive import extract_archive, get_archive_root_dir
@@ -69,6 +68,16 @@ class _named_dict(dict):
     else:
       dict.__getattr__(self, item)
 
+def _get_temp_dir():
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg("Error getting ambari properties")
+    return -1
+  tmpdir = get_server_temp_location(properties)
+  if not os.path.exists(tmpdir):
+    sudo.makedirs(tmpdir, 0755)
+  return tmpdir
+
 def download_mpack(mpack_path):
   """
   Download management pack
@@ -76,7 +85,7 @@ def download_mpack(mpack_path):
   :return: Path where the management pack was downloaded
   """
   # Download management pack to a temp location
-  tmpdir = tempfile.gettempdir()
+  tmpdir = _get_temp_dir()
   archive_filename = os.path.basename(mpack_path)
   tmp_archive_path = os.path.join(tmpdir, archive_filename)
 
@@ -97,7 +106,7 @@ def expand_mpack(archive_path):
   :param archive_path: Local path to management pack
   :return: Path where the management pack was expanded
   """
-  tmpdir = tempfile.gettempdir()
+  tmpdir = _get_temp_dir()
   archive_root_dir = get_archive_root_dir(archive_path)
   if not archive_root_dir:
     print_error_msg("Malformed management pack. Root directory missing!")
@@ -145,6 +154,31 @@ def get_mpack_properties():
   mpacks_staging_location = get_mpacks_staging_location(properties)
   ambari_version = get_ambari_version(properties)
   return stack_location, service_definitions_location, mpacks_staging_location
+
+def _get_mpack_name_version(mpack_path):
+  """
+  Get mpack name and version
+  :param mpack_path: Path to mpack
+  """
+  if not mpack_path:
+    print_error_msg("Management pack not specified!")
+    raise FatalException(-1, 'Management pack not specified!')
+
+  # Download management pack to a temp location
+  tmp_archive_path = download_mpack(mpack_path)
+  if not (tmp_archive_path and os.path.exists(tmp_archive_path)):
+    print_error_msg("Management pack could not be downloaded!")
+    raise FatalException(-1, 'Management pack could not be downloaded!')
+
+  # Expand management pack in temp directory
+  tmp_root_dir = expand_mpack(tmp_archive_path)
+
+  # Read mpack metadata
+  mpack_metadata = read_mpack_metadata(tmp_root_dir)
+  if not mpack_metadata:
+    raise FatalException(-1, 'Malformed management pack {0}. Metadata file missing!'.format(mpack_path))
+
+  return (mpack_metadata.name, mpack_metadata.version)
 
 def create_symlink(src_dir, dest_dir, file_name, force=False):
   """
@@ -420,7 +454,7 @@ def search_mpacks(mpack_name, max_mpack_version=None):
         staged_mpack_name = staged_mpack_metadata.name
         staged_mpack_version = staged_mpack_metadata.version
         if mpack_name == staged_mpack_name and \
-             (not max_mpack_version or compare_versions(staged_mpack_version, max_mpack_version ) < 0):
+             (not max_mpack_version or compare_versions(staged_mpack_version, max_mpack_version, format=True) < 0):
           results.append((staged_mpack_name, staged_mpack_version))
   return results
 
@@ -459,7 +493,7 @@ def uninstall_mpack(mpack_name, mpack_version):
           continue
         staged_mpack_name = staged_mpack_metadata.name
         staged_mpack_version = staged_mpack_metadata.version
-        if mpack_name == staged_mpack_name and compare_versions(staged_mpack_version, mpack_version ) == 0:
+        if mpack_name == staged_mpack_name and compare_versions(staged_mpack_version, mpack_version, format=True) == 0:
           print_info_msg("Removing management pack staging location {0}".format(staged_mpack_dir))
           sudo.rmtree(staged_mpack_dir)
           remove_symlinks(stack_location, service_definitions_location, staged_mpack_dir)
@@ -664,6 +698,12 @@ def upgrade_mpack(options, replay_mode=False):
   if not mpack_path:
     print_error_msg("Management pack not specified!")
     raise FatalException(-1, 'Management pack not specified!')
+
+  (mpack_name, mpack_version) = _get_mpack_name_version(mpack_path)
+  results = search_mpacks(mpack_name, mpack_version)
+  if not results:
+    print_error_msg("No management packs found that can be upgraded!")
+    raise FatalException(-1, 'No management packs found that can be upgraded!')
 
   print_info_msg("Upgrading management pack {0}".format(mpack_path))
 
