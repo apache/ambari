@@ -193,6 +193,7 @@ CUSTOM_ACTION_DEFINITIONS = 'custom.action.definitions'
 BOOTSTRAP_SETUP_AGENT_SCRIPT = 'bootstrap.setup_agent.script'
 STACKADVISOR_SCRIPT = 'stackadvisor.script'
 PID_DIR_PROPERTY = 'pid.dir'
+SERVER_TMP_DIR_PROPERTY = "server.tmp.dir"
 REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PATH_PROPERTY, SERVER_VERSION_FILE_PATH,
                        WEBAPP_DIR_PROPERTY, STACK_LOCATION_KEY, SECURITY_KEYS_DIR, JDBC_DATABASE_NAME_PROPERTY,
                        NR_USER_PROPERTY, JAVA_HOME_PROPERTY, JDBC_PASSWORD_PROPERTY, SHARED_RESOURCES_DIR,
@@ -375,6 +376,7 @@ class ServerConfigDefaults(object):
     self.STACK_LOCATION_DEFAULT = ""
     self.COMMON_SERVICES_LOCATION_DEFAULT = ""
     self.MPACKS_STAGING_LOCATION_DEFAULT = ""
+    self.SERVER_TMP_DIR_DEFAULT = ""
 
     self.DEFAULT_VIEWS_DIR = ""
 
@@ -444,6 +446,7 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
     self.STACK_LOCATION_DEFAULT = "resources\\stacks"
     self.COMMON_SERVICES_LOCATION_DEFAULT = "resources\\common-services"
     self.MPACKS_STAGING_LOCATION_DEFAULT = "resources\\mpacks"
+    self.SERVER_TMP_DIR_DEFAULT = "data\\tmp"
 
     self.DEFAULT_VIEWS_DIR = "resources\\views"
 
@@ -528,6 +531,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.STACK_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/stacks")
     self.COMMON_SERVICES_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/common-services")
     self.MPACKS_STAGING_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/mpacks")
+    self.SERVER_TMP_DIR_DEFAULT = AmbariPath.get("/var/lib/ambari-server/data/tmp")
 
     self.DEFAULT_VIEWS_DIR = AmbariPath.get("/var/lib/ambari-server/resources/views")
 
@@ -1384,6 +1388,15 @@ def get_mpacks_staging_location(properties):
   if not mpacks_staging_location:
     mpacks_staging_location = configDefaults.MPACKS_STAGING_LOCATION_DEFAULT
   return mpacks_staging_location
+
+#
+# Server temp location
+#
+def get_server_temp_location(properties):
+  server_tmp_dir = properties[SERVER_TMP_DIR_PROPERTY]
+  if not server_tmp_dir:
+    server_tmp_dir = configDefaults.SERVER_TMP_DIR_DEFAULT
+  return server_tmp_dir
 
 def get_missing_properties(properties):
   missing_propertiers = []

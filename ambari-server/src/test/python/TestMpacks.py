@@ -61,7 +61,8 @@ def get_configs():
   configs = {
     serverConfiguration.STACK_LOCATION_KEY : "/var/lib/ambari-server/resources/stacks",
     serverConfiguration.COMMON_SERVICES_PATH_PROPERTY : "/var/lib/ambari-server/resources/common-services",
-    serverConfiguration.MPACKS_STAGING_PATH_PROPERTY : mpacks_directory
+    serverConfiguration.MPACKS_STAGING_PATH_PROPERTY : mpacks_directory,
+    serverConfiguration.SERVER_TMP_DIR_PROPERTY : "/tmp"
   }
   return configs
 
@@ -136,10 +137,12 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.extract_archive")
   @patch("ambari_server.setupMpacks.get_archive_root_dir")
   @patch("ambari_server.setupMpacks.download_mpack")
-  def test_install_mpack_with_malformed_mpack(self, download_mpack_mock, get_archive_root_dir_mock, extract_archive_mock, os_path_exists_mock):
+  @patch("ambari_server.setupMpacks.get_ambari_properties")
+  def test_install_mpack_with_malformed_mpack(self, get_ambari_properties_mock, download_mpack_mock, get_archive_root_dir_mock, extract_archive_mock, os_path_exists_mock):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/mpack.tar.gz"
     download_mpack_mock.return_value = "/tmp/mpack.tar.gz"
+    get_ambari_properties_mock.return_value = configs
     os_path_exists_mock.return_value = True
     get_archive_root_dir_mock.return_value = None
 
@@ -152,7 +155,7 @@ class TestMpacks(TestCase):
     self.assertTrue(fail)
 
     get_archive_root_dir_mock.return_value = "mpack"
-    os_path_exists_mock.side_effect = [True, False, False]
+    os_path_exists_mock.side_effect = [True, True, False, False]
     extract_archive_mock.return_value = None
     fail = False
     try:
@@ -163,7 +166,7 @@ class TestMpacks(TestCase):
     self.assertTrue(fail)
 
     get_archive_root_dir_mock.return_value = "mpack"
-    os_path_exists_mock.side_effect = [True, False, True, False]
+    os_path_exists_mock.side_effect = [True, True, False, True, False]
     extract_archive_mock.return_value = None
     fail = False
     try:
@@ -367,11 +370,17 @@ class TestMpacks(TestCase):
                                os_path_exists_mock):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/mystack-1.0.0.1.tar.gz"
-    download_mpack_mock.return_value = "/tmp/mystack-1.0.0.1.tar.gz"
-    expand_mpack_mock.return_value = "mpacks/mystack-ambari-mpack-1.0.0.1"
+    download_mpack_mock.side_effect = ["/tmp/mystack-1.0.0.1.tar.gz", "/tmp/mystack-1.0.0.1.tar.gz"]
+    expand_mpack_mock.side_effect = ["mpacks/mystack-ambari-mpack-1.0.0.1", "mpacks/mystack-ambari-mpack-1.0.0.1"]
     get_ambari_version_mock.return_value = "2.4.0.0"
     """
     os_path_exists_calls = [call('/tmp/mystack-1.0.0.1.tar.gz'),
+                            call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
+                            call(mpacks_directory),
+                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json'),
+                            call('/tmp/mystack-1.0.0.1.tar.gz'),
                             call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
                             call('/var/lib/ambari-server/resources/stacks'),
                             call('/var/lib/ambari-server/resources/common-services'),
@@ -396,6 +405,7 @@ class TestMpacks(TestCase):
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json')]
    """
     os_path_exists_mock.side_effect = [True, True, True, True, True, True,
+                                       True, True, True, True, True, True,
                                        False, True, True, False, True, True, True,
                                        True, True, True, True, False, False,
                                        True, True, True, True]
