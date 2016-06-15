@@ -30,6 +30,8 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 
 CURL_CONNECTION_TIMEOUT = '5'
 
@@ -133,18 +135,23 @@ class ServiceCheckDefault(ServiceCheck):
                                             user=params.smokeuser,
                                             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
                                             )
+      
+      # Handle HDP<2.2.8.1 where RM doesn't do automatic redirection from standby to active
+      if stdout.startswith("This is standby RM. Redirecting to the current active RM:"):
+        Logger.info(format("Skipped checking of {rm_webapp_address} since returned '{stdout}'"))
+        continue
 
       try:
         json_response = json.loads(stdout)
       except Exception as e:
-        raise Exception("Could not get json response from YARN API")
+        raise Fail(format("Response from YARN API was not a valid JSON. Response: {stdout}"))
       
       if json_response is None or 'app' not in json_response or \
               'state' not in json_response['app'] or 'finalStatus' not in json_response['app']:
-        raise Exception("Application " + app_url + " returns invalid data.")
+        raise Fail("Application " + app_url + " returns invalid data.")
 
       if json_response['app']['state'] != "FINISHED" or json_response['app']['finalStatus'] != "SUCCEEDED":
-        raise Exception("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
+        raise Fail("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
 
 
 
