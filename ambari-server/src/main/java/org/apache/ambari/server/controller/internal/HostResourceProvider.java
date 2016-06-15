@@ -924,16 +924,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostName);
 
         if (!list.isEmpty()) {
-
           List<String> componentsToRemove = new ArrayList<>();
           for (ServiceComponentHost sch : list) {
-            Service s = cluster.getService(sch.getServiceName());
-            ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
-
-            // Masters and Slaves must be deleted first. Clients are ok.
-            if (!sc.isClientComponent()) {
-              componentsToRemove.add(sch.getServiceComponentName());
-            }
+            componentsToRemove.add(sch.getServiceComponentName());
           }
 
           if (!componentsToRemove.isEmpty()) {
