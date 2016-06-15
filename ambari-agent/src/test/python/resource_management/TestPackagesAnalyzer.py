@@ -17,7 +17,8 @@ limitations under the License.
 '''
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
-from ambari_commons.os_check import OSCheck
+from ambari_commons.os_check import OSCheck, OSConst
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import packages_analyzer
 
 class TestPackagesAnalyzer(TestCase):
@@ -38,6 +39,61 @@ class TestPackagesAnalyzer(TestCase):
     result = packages_analyzer.getInstalledPackageVersion("package1")
     self.assertEqual(result, '0.0.1-SNAPSHOT')
     self.assertEqual(checked_call_mock.call_args_list, [call("rpm -q --queryformat '%{version}-%{release}' package1 | sed -e 's/\\.el[0-9]//g'", stderr=-1)])
+
+  @patch("resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call")
+  @patch.object(OSCheck, "is_in_family")
+  @patch.object(packages_analyzer, "Logger")
+  def test_vefify_dependency_suse(self, logger_mock, in_family_patch_mock, checked_call_mock):
+    test_cases = [
+      {
+        "name": "SUSE Case",
+        "os": OSConst.SUSE_FAMILY,
+        "cheked_call_result": "5 new packages to install"
+      },
+      {
+        "name": "REDHAT Case",
+        "os": OSConst.REDHAT_FAMILY,
+        "cheked_call_result": "Error:"
+      },
+      {
+        "name": "UBUNTU Case",
+        "os": OSConst.UBUNTU_FAMILY,
+        "cheked_call_result": "E:"
+      }
+    ]
+
+    for test_case in test_cases:
+      in_family_patch_mock.side_effect = lambda current_family, family: family == test_case["os"]
+      checked_call_mock.return_value = (0, "OK.")
+
+      #  happy scenario
+      self.assertTrue(packages_analyzer.verifyDependencies(), "test_verify_dependency failed on '%s'" % test_case["name"])
+
+      #  unhappy scenario
+      checked_call_mock.return_value = (0, test_case["cheked_call_result"])
+      self.assertFalse(packages_analyzer.verifyDependencies(), "test_verify_dependency failed on '%s'" % test_case["name"])
+
+      #
+      try:
+        in_family_patch_mock.side_effect = lambda current_family, family: False
+        packages_analyzer.verifyDependencies()
+        self.assertTrue(False, "Wrong handling of unknown operation system")
+      except Fail:
+        pass
+
+  @patch("resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call")
+  @patch.object(OSCheck, "is_in_family")
+  def test_vefify_dependency_redhat(self, in_family_patch_mock, checked_call_mock):
+    in_family_patch_mock.side_effect = lambda current_family, family: family == OSConst.REDHAT_FAMILY
+    checked_call_mock.return_value = (0, "OK.")
+    pass
+
+  @patch("resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call")
+  @patch.object(OSCheck, "is_in_family")
+  def test_vefify_dependency_ubuntu(self, in_family_patch_mock, checked_call_mock):
+    in_family_patch_mock.side_effect = lambda current_family, family: family == OSConst.UBUNTU_FAMILY
+    checked_call_mock.return_value = (0, "OK.")
+    pass
 
   def test_perform_package_analysis(self):
     installedPackages = [
