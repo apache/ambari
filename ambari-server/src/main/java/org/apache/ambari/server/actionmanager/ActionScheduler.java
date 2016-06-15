@@ -328,19 +328,12 @@ class ActionScheduler implements Runnable {
         //Schedule what we have so far
 
         for (ExecutionCommand cmd : commandsToSchedule) {
-          boolean hidePassword = true;
-          Map<String, Map<String, String>> configurations = cmd.getConfigurations();
-          if(configurations != null && configurations.containsKey(Configuration.HIVE_ENV_CONFIG_TAG)){
-            if(configurations.get(Configuration.HIVE_ENV_CONFIG_TAG).containsKey(Configuration.HIVE_ENV_HIDE_PASSWORD_PROPERTY)) {
-              String hidePasswordStr = configurations.get(Configuration.HIVE_ENV_CONFIG_TAG).get(Configuration.HIVE_ENV_HIDE_PASSWORD_PROPERTY);
-              hidePassword = Boolean.parseBoolean(hidePasswordStr);
-            }
-          }
+
           // Hack - Remove passwords from configs
           if ((cmd.getRole().equals(Role.HIVE_CLIENT.toString()) ||
                   cmd.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
                   cmd.getRole().equals(Role.HCAT.toString())) &&
-                  cmd.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG) && hidePassword) {
+                  cmd.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
             cmd.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
           }
           processHostRole(stage, cmd, commandsToStart, commandsToUpdate);

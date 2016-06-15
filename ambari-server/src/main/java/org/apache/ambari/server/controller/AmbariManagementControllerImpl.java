@@ -2806,18 +2806,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     // Hack - Remove passwords from configs
-    boolean hidePassword = true;
-    Map<String, Map<String, String>> configs = ec.getConfigurations();
-    if(configs.containsKey(Configuration.HIVE_ENV_CONFIG_TAG)){
-      if(configs.get(Configuration.HIVE_ENV_CONFIG_TAG).containsKey(Configuration.HIVE_ENV_HIDE_PASSWORD_PROPERTY)) {
-        String hidePasswordStr = configs.get(Configuration.HIVE_ENV_CONFIG_TAG).get(Configuration.HIVE_ENV_HIDE_PASSWORD_PROPERTY);
-        hidePassword = Boolean.parseBoolean(hidePasswordStr);
-      }
-    }
     if ((ec.getRole().equals(Role.HIVE_CLIENT.toString()) ||
             ec.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
             ec.getRole().equals(Role.HCAT.toString())) &&
-        ec.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG) && hidePassword) {
+        ec.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
       ec.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
     }
 

@@ -365,9 +365,7 @@ public class Configuration {
   public static final String MAPREDUCE2_LOG4J_CONFIG_TAG = "mapreduce2-log4j";
   public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
   public static final String HIVE_CONFIG_TAG = "hive-site";
-  public static final String HIVE_ENV_CONFIG_TAG = "hive-env";
   public static final String HIVE_METASTORE_PASSWORD_PROPERTY = "javax.jdo.option.ConnectionPassword";
-  public static final String HIVE_ENV_HIDE_PASSWORD_PROPERTY = "javax.jdo.option.ConnectionPassword.hide";
   public static final String MASTER_KEY_PERSISTED = "security.master.key.ispersisted";
   public static final String MASTER_KEY_LOCATION = "security.master.key.location";
   public static final String MASTER_KEYSTORE_LOCATION = "security.master.keystore.location";
