@@ -33,20 +33,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 
-public class ZeppelinServiceCheck extends HttpServlet {
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String url = "http:" + request.getParameter("url");
-        PrintWriter printwriter = response.getWriter();
+public class ZeppelinServiceCheck {
+    static String check(String host, String port) {
+        String url = "http://" + host + ":" + port;
         JSONObject json = new JSONObject();
-        response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_OK);
-
+        json.put("url", url);
         try {
             HttpClient httpclient = HttpClientBuilder.create().build();
             HttpGet httpget = new HttpGet(url);
@@ -59,6 +50,6 @@ public class ZeppelinServiceCheck extends HttpServlet {
             json.put("status", "ERROR");
             json.put("message", "Zeppelin is not running");
         }
-        printwriter.print(json.toString());
+        return json.toString();
     }
 }

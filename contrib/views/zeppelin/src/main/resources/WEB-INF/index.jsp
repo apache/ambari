@@ -39,46 +39,26 @@
 
 <iframe id='zeppelinIFrame' width="100%" seamless="seamless" style="border: 0px;"></iframe>
 <script>
-    var $ = jQuery = parent.jQuery;
-    var iframe = document.querySelector('#zeppelinIFrame');
-    var port = "${port}";
+var $ = jQuery = parent.jQuery;
+var iframe = document.querySelector('#zeppelinIFrame');
+var messageContainer = document.querySelector('#messageContainer');
+var port = "${port}";
+var publicName = "${publicName}";
+var serviceCheckResponse = $.parseJSON('${serviceCheckResponse}');
 
-    $.getJSON('/api/v1/clusters', function (data) {
-        $.getJSON('/api/v1/clusters/' +
-                data['items'][0]['Clusters']['cluster_name'] +
-                '/hosts?fields=Hosts%2Fpublic_host_name%2Chost_components%2FHostRoles%2Fcomponent_name',
-                function (data) {
-                    for (var i = 0; i < data['items'].length; i++) {
-                        for (var j = 0; j < data['items'][i]['host_components'].length; j++) {
-                            if (data['items'][i]['host_components'][j]['HostRoles']['component_name'] == 'ZEPPELIN_MASTER') {
-                                var url = '//' + data['items'][i]['host_components'][j]['HostRoles']['host_name'] + ':' + port;
-                                validateAndLoadZeppelinUI(iframe, url);
-                                return;
-                            }
-                        }
-                    }
-                });
-    });
+if (serviceCheckResponse.status === "SUCCESS") {
+    messageContainer.style.display = "none";
+    iframe.style.display = "block";
+    iframe.src = serviceCheckResponse.url;
+    iframe.height = window.innerHeight;
+} else {
+    messageContainer.style.display = "block";
+    iframe.style.display = "none";
+}
 
-    $(window).resize(function () {
-        iframe.height = window.innerHeight;
-    });
-
-    function validateAndLoadZeppelinUI(iframe, url) {
-        $.get(location.href + "zeppelin-service-check?url=" + url, function (response) {
-            if (response.status === "SUCCESS") {
-                messageContainer.style.display = "none";
-                iframe.style.display = "block";
-                iframe.src = url;
-                iframe.height = window.innerHeight;
-            } else {
-                messageContainer.style.display = "block";
-                iframe.style.display = "none";
-            }
-        });
-
-
-    }
+$(window).resize(function () {
+    iframe.height = window.innerHeight;
+});
 </script>
 </body>
 </html>
