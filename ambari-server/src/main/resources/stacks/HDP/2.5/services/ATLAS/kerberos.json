@@ -45,6 +45,15 @@
               }
             },
             {
+              "name": "/ATLAS/ATLAS_SERVER/atlas",
+              "principal": {
+                "configuration": "application-properties/atlas.authentication.principal"
+              },
+              "keytab": {
+                "configuration": "application-properties/atlas.authentication.keytab"
+              }
+            },
+            {
               "name": "/spnego",
               "principal": {
                 "value": "HTTP/_HOST@${realm}",
