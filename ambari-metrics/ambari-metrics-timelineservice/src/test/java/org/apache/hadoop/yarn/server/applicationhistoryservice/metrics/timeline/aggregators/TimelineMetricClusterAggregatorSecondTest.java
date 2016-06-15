@@ -64,16 +64,17 @@ public class TimelineMetricClusterAggregatorSecondTest {
       }
     }
 
-    TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName("TestMetric");
-    metric.setHostName("TestHost");
-    metric.setAppId("TestAppId");
-    metric.setMetricValues(metricValues);
+    TimelineMetric counterMetric = new TimelineMetric();
+    counterMetric.setMetricName("TestMetric");
+    counterMetric.setHostName("TestHost");
+    counterMetric.setAppId("TestAppId");
+    counterMetric.setMetricValues(metricValues);
+    counterMetric.setType("COUNTER");
 
-    Map<TimelineClusterMetric, Double> timelineClusterMetricMap = secondAggregator.sliceFromTimelineMetric(metric, timeSlices);
+    Map<TimelineClusterMetric, Double> timelineClusterMetricMap = secondAggregator.sliceFromTimelineMetric(counterMetric, timeSlices);
 
-    TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric(metric.getMetricName(), metric.getAppId(),
-      metric.getInstanceId(), 0l, null);
+    TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric(counterMetric.getMetricName(), counterMetric.getAppId(),
+      counterMetric.getInstanceId(), 0l, null);
 
     timelineClusterMetric.setTimestamp(roundedStartTime + 2*sliceInterval);
     Assert.assertTrue(timelineClusterMetricMap.containsKey(timelineClusterMetric));
@@ -82,6 +83,25 @@ public class TimelineMetricClusterAggregatorSecondTest {
     timelineClusterMetric.setTimestamp(roundedStartTime + 4*sliceInterval);
     Assert.assertTrue(timelineClusterMetricMap.containsKey(timelineClusterMetric));
     Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 12.0);
+
+    TimelineMetric metric = new TimelineMetric();
+    metric.setMetricName("TestMetric");
+    metric.setHostName("TestHost");
+    metric.setAppId("TestAppId");
+    metric.setMetricValues(metricValues);
+
+    timelineClusterMetricMap = secondAggregator.sliceFromTimelineMetric(metric, timeSlices);
+
+    timelineClusterMetric = new TimelineClusterMetric(metric.getMetricName(), metric.getAppId(),
+      metric.getInstanceId(), 0l, null);
+
+    timelineClusterMetric.setTimestamp(roundedStartTime + 2*sliceInterval);
+    Assert.assertTrue(timelineClusterMetricMap.containsKey(timelineClusterMetric));
+    Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 4.5);
+
+    timelineClusterMetric.setTimestamp(roundedStartTime + 4*sliceInterval);
+    Assert.assertTrue(timelineClusterMetricMap.containsKey(timelineClusterMetric));
+    Assert.assertEquals(timelineClusterMetricMap.get(timelineClusterMetric), 7.5);
 
   }
 
