@@ -18,6 +18,46 @@
 
 package org.apache.ambari.server.topology;
 
+import junit.framework.Assert;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.HostResourceProvider;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.SecurityType;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockRule;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.easymock.TestSubject;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -29,38 +69,6 @@ import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-
-import org.apache.ambari.server.controller.ClusterRequest;
-import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.state.SecurityType;
-import org.easymock.Capture;
-import org.easymock.EasyMockRule;
-import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.easymock.MockType;
-import org.easymock.TestSubject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
 
 /**
  * TopologyManager unit tests
@@ -244,7 +252,7 @@ public class TopologyManagerTest {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getTopologyValidators()).andReturn(topologyValidators).anyTimes();
 
-    expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
+    expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
 
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
 
@@ -276,40 +284,41 @@ public class TopologyManagerTest {
         andReturn(logicalRequest).anyTimes();
     expect(logicalRequest.getRequestId()).andReturn(1L).anyTimes();
     expect(logicalRequest.getReservedHosts()).andReturn(Collections.singleton("host1")).anyTimes();
-    expect(logicalRequest.getRequestStatus()).andReturn(requestStatusResponse).once();
+    expect(logicalRequest.getRequestStatus()).andReturn(requestStatusResponse).anyTimes();
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
     ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull());
-    expectLastCall().once();
-    expect(ambariContext.getNextRequestId()).andReturn(1L).once();
+    expectLastCall().anyTimes();
+    expect(ambariContext.getNextRequestId()).andReturn(1L).anyTimes();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
     // cluster configuration task run() isn't executed by mock executor
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
-        andReturn(Collections.singletonList(configurationRequest));
+        andReturn(Collections.singletonList(configurationRequest)).anyTimes();
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture2))).
-        andReturn(Collections.singletonList(configurationRequest2)).once();
+        andReturn(Collections.singletonList(configurationRequest2)).anyTimes();
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture3))).
-        andReturn(Collections.singletonList(configurationRequest3)).once();
+        andReturn(Collections.singletonList(configurationRequest3)).anyTimes();
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
-    expectLastCall().times(3);
+    expectLastCall().anyTimes();
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
-    expectLastCall().once();
+    expectLastCall().anyTimes();
 
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
 
     expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture);
 
-    expectLastCall().times(1);
+    expectLastCall().anyTimes();
 
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
-        List<LogicalRequest>>emptyMap()).once();
-    expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).once();
+        List<LogicalRequest>>emptyMap()).anyTimes();
+    expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).anyTimes();
     persistedState.persistLogicalRequest(logicalRequest, 1);
+    expectLastCall().anyTimes();
 
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, logicalRequest,
         configurationRequest, configurationRequest2, configurationRequest3, requestStatusResponse, executor,
@@ -343,4 +352,21 @@ public class TopologyManagerTest {
     //todo: assertions
   }
 
+  @Test(expected = InvalidTopologyException.class)
+  public void testScaleHosts__alreadyExistingHost() throws InvalidTopologyTemplateException, InvalidTopologyException, AmbariException, NoSuchStackException {
+    HashSet<Map<String, Object>> propertySet = new HashSet<>();
+    Map<String,Object> properties = new TreeMap<>();
+    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, "host1");
+    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, "group1");
+    properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
+    properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, BLUEPRINT_NAME);
+    propertySet.add(properties);
+    BlueprintFactory bpfMock = EasyMock.createNiceMock(BlueprintFactory.class);
+    EasyMock.expect(bpfMock.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).anyTimes();
+    ScaleClusterRequest.init(bpfMock);
+    EasyMock.replay(bpfMock);
+    topologyManager.provisionCluster(request);
+    topologyManager.scaleHosts(new ScaleClusterRequest(propertySet));
+    Assert.fail("InvalidTopologyException should have been thrown");
+  }
 }

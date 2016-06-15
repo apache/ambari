@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -300,12 +301,27 @@ public class TopologyManager {
           "blueprint can be scaled with this API.  If the cluster was originally created " +
           "via the API as described above, please file a Jira for this matter.");
     }
+
+    hostNameCheck(request, topology);
     request.setClusterId(clusterId);
     PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
     // this registers/updates all request host groups
     topology.update(request);
     return getRequestStatus(processRequest(persistedRequest, topology,
       ambariContext.getNextRequestId()).getRequestId());
+  }
+
+  private void hostNameCheck(ScaleClusterRequest request, ClusterTopology topology) throws InvalidTopologyException {
+    Set<String> hostNames = new HashSet<>();
+    for(Map.Entry<String, HostGroupInfo> entry : request.getHostGroupInfo().entrySet()) {
+      hostNames.addAll(entry.getValue().getHostNames());
+    }
+    for(String hostName : hostNames) {
+      // check if host exists already
+      if(topology.getHostGroupForHost(hostName) != null) {
+        throw new InvalidTopologyException("Host " + hostName + " cannot be added, because it is already in the cluster");
+      }
+    }
   }
 
   public void onHostRegistered(HostImpl host, boolean associatedWithCluster) {
