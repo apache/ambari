@@ -56,11 +56,11 @@ Getting Started with Ambari
 
   Note: Ambari currently supports the 64-bit version of the following Operating Systems:
 
-  * RHEL (Redhat Enterprise Linux) 5 and 6
+  * RHEL (Redhat Enterprise Linux) 6 and 7
 
-  * CentOS 5 and 6
+  * CentOS 6 and 7
 
-  * OEL (Oracle Enterprise Linux) 5 and 6
+  * OEL (Oracle Enterprise Linux) 6 and 7
 
   * SLES (SuSE Linux Enterprise Server) 11
 
