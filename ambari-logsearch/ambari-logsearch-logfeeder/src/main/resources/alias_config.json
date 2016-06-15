@@ -37,6 +37,9 @@
 		},
 		"kafka": {
 			"klass": "org.apache.ambari.logfeeder.output.OutputKafka"
+		},
+		"dev_null": {
+			"klass": "org.apache.ambari.logfeeder.output.OutputDevNull"
 		}
 	}
 }
