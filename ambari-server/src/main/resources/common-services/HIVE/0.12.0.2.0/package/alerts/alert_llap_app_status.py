@@ -101,6 +101,8 @@ def execute(configurations={}, parameters={}, host_name=None):
   host_name (string): the name of this host where the alert is running
   """
 
+  LLAP_APP_STATUS_CMD_TIMEOUT = 0
+
   if configurations is None:
     return ('UNKNOWN', ['There were no configurations supplied to the script.'])
 
@@ -155,7 +157,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     start_time = time.time()
     if STACK_ROOT in configurations:
-      llap_status_cmd = configurations[STACK_ROOT] + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}")
+      llap_status_cmd = configurations[STACK_ROOT] + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}  -findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
     else:
       llap_status_cmd = format("/usr/hdp/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}")
 
