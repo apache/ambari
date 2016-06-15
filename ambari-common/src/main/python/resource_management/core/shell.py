@@ -63,9 +63,10 @@ def log_function_call(function):
     # logoutput=True - log in INFO level
     # logouput=None - log in DEBUG level
     # logouput=not-specified - log in DEBUG level, not counting internal calls
-    kwargs['logoutput'] = ('logoutput' in kwargs and kwargs['logoutput'] and Logger.logger.isEnabledFor(logging.INFO)) or \
-      ('logoutput' in kwargs and kwargs['logoutput']==None and Logger.logger.isEnabledFor(logging.DEBUG)) or \
-      (not 'logoutput' in kwargs and not is_internal_call and Logger.logger.isEnabledFor(logging.DEBUG))
+    if 'logoutput' in function.func_code.co_varnames:
+      kwargs['logoutput'] = ('logoutput' in kwargs and kwargs['logoutput'] and Logger.logger.isEnabledFor(logging.INFO)) or \
+        ('logoutput' in kwargs and kwargs['logoutput']==None and Logger.logger.isEnabledFor(logging.DEBUG)) or \
+        (not 'logoutput' in kwargs and not is_internal_call and Logger.logger.isEnabledFor(logging.DEBUG))
        
     result = function(command, **kwargs)
     

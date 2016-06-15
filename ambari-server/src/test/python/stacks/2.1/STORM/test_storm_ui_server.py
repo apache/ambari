@@ -62,19 +62,14 @@ class TestStormUiServer(TestStormBase):
                               not_if=format("ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar"),
                               only_if=format("ls /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar")
                               )
-
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1',
-        wait_for_finish = False,
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1 &\n echo $! > /var/run/storm/ui.pid',
         path = ['/usr/bin'],
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
-        logoutput = True,
-        path = ['/usr/bin'],
-        tries = 12,
-        user = 'storm',
-        try_sleep = 10,
+    self.assertResourceCalled('File', '/var/run/storm/ui.pid',
+        owner = 'storm',
+        group = 'hadoop',
     )
     self.assertNoMoreResources()
 
@@ -137,19 +132,14 @@ class TestStormUiServer(TestStormBase):
                               not_if=format("ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar"),
                               only_if=format("ls /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar")
                               )
-
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1',
-        wait_for_finish = False,
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1 &\n echo $! > /var/run/storm/ui.pid',
         path = ['/usr/bin'],
         user = 'storm',
         not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
     )
-    self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.ui.core$ | awk {'print $1'} > /var/run/storm/ui.pid",
-        logoutput = True,
-        path = ['/usr/bin'],
-        tries = 12,
-        user = 'storm',
-        try_sleep = 10,
+    self.assertResourceCalled('File', '/var/run/storm/ui.pid',
+        owner = 'storm',
+        group = 'hadoop',
     )
     self.assertNoMoreResources()
 

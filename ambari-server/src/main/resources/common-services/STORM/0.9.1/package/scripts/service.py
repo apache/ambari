@@ -23,6 +23,8 @@ import os
 from resource_management.core.resources import Execute
 from resource_management.core.resources import File
 from resource_management.core.shell import as_user
+from resource_management.core import shell
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.show_logs import show_logs
@@ -36,7 +38,6 @@ def service(name, action = 'start'):
   pid_file = status_params.pid_files[name]
   no_op_test = as_user(format(
     "ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.storm_user)
-  tries_count = 12
 
   if name == 'ui':
     process_grep = "storm.ui.core$"
@@ -58,25 +59,22 @@ def service(name, action = 'start'):
       cmd = format(
         "{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log 2>&1")
     else:
+      # Storm start script gets forked into actual storm java process.
+      # Which means we can use the pid of start script as a pid of start component
       cmd = format("{storm_env} ; storm {name} > {log_dir}/{name}.out 2>&1")
 
+    cmd = format("{cmd} &\n echo $! > {pid_file}")
+    
     Execute(cmd,
       not_if = no_op_test,
       user = params.storm_user,
-      wait_for_finish = False,
-      path = params.storm_bin_dir)
-
-    try:
-      Execute(crt_pid_cmd,
-        user = params.storm_user,
-        logoutput = True,
-        tries = tries_count,
-        try_sleep = 10,
-        path = params.storm_bin_dir)
-    except:
-      show_logs(params.log_dir, params.storm_user)
-      raise
-
+      path = params.storm_bin_dir,
+    )
+    
+    File(pid_file,
+         owner = params.storm_user,
+         group = params.user_group
+    )
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
     if os.path.exists(pid_file):
