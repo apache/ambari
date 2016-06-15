@@ -275,6 +275,15 @@ public enum CheckDescription {
         "After upgrading, Atlas can be reinstalled");
     }}),
 
+  RANGER_SERVICE_AUDIT_DB_CHECK(PrereqCheckType.SERVICE,
+    "Remove the Ranger Audit to Database Capability",
+    new HashMap<String, String>() {{
+      put(AbstractCheckDescriptor.DEFAULT,
+        "After upgrading, Ranger will no longer support the Audit to Database feature. Instead, Ranger will audit to Solr. " +
+        "To migrate the existing audit logs to Solr, follow the steps in this link."
+        );
+    }}),
+
   KAFKA_KERBEROS_CHECK(PrereqCheckType.SERVICE,
     "Kafka upgrade on Kerberized cluster",
     new HashMap<String, String>() {{
