@@ -26,6 +26,9 @@
   <artifactId>ambari-metrics</artifactId>
   <version>2.4.0.0.0</version>
   <packaging>pom</packaging>
+  <organization>
+    <name></name>
+  </organization>
   <modules>
     <module>ambari-metrics-common</module>
     <module>ambari-metrics-hadoop-sink</module>
