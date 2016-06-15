@@ -187,6 +187,7 @@ public class ClusterTest {
     @Override
     protected void configure() {
       bind(ClusterVersionDAO.class).to(ClusterVersionDAOMock.class);
+      EventBusSynchronizer.synchronizeAmbariEventPublisher(binder());
     }
   }
 
