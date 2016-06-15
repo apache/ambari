@@ -46,7 +46,7 @@ stack_root = Script.get_stack_root()
 # e.g. /var/lib/ambari-agent/cache/stacks/HDP/2.2/services/zeppelin-stack/package
 service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
 
-zeppelin_dirname = 'zeppelin-server/lib'
+zeppelin_dirname = 'zeppelin-server'
 
 install_dir = os.path.join(stack_root, "current")
 executor_mem = config['configurations']['zeppelin-env']['zeppelin.executor.mem']
@@ -68,9 +68,10 @@ except:
 # params from zeppelin-config
 zeppelin_port = str(config['configurations']['zeppelin-config']['zeppelin.server.port'])
 
+zeppelin_user = "zeppelin"
+zeppelin_group = "zeppelin"
+
 # params from zeppelin-env
-zeppelin_user = config['configurations']['zeppelin-env']['zeppelin_user']
-zeppelin_group = config['configurations']['zeppelin-env']['zeppelin_group']
 zeppelin_log_dir = config['configurations']['zeppelin-env']['zeppelin_log_dir']
 zeppelin_pid_dir = config['configurations']['zeppelin-env']['zeppelin_pid_dir']
 zeppelin_log_file = os.path.join(zeppelin_log_dir, 'zeppelin-setup.log')

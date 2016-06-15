@@ -21,6 +21,8 @@ import glob
 import sys
 
 from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.script import Script
 
 reload(sys)
 sys.setdefaultencoding('utf8')
