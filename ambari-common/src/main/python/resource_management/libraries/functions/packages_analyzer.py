@@ -26,7 +26,9 @@ from threading import Thread
 import threading
 from ambari_commons import OSCheck, OSConst
 from ambari_commons import shell
+from resource_management.core.logger import Logger
 from resource_management.core import shell as rmf_shell
+from resource_management.core.exceptions import Fail
 
 __all__ = ["installedPkgsByName", "allInstalledPackages", "allAvailablePackages", "nameMatch",
            "getInstalledRepos", "getInstalledPkgsByRepo", "getInstalledPkgsByNames", "getPackageDetails"]
@@ -279,3 +281,38 @@ def getInstalledPackageVersion(package_name):
     code, out, err = rmf_shell.checked_call("rpm -q --queryformat '%{{version}}-%{{release}}' {0} | sed -e 's/\.el[0-9]//g'".format(package_name), stderr=subprocess.PIPE)
     
   return out
+
+
+def verifyDependencies():
+  """
+  Verify that we have no dependency issues in package manager. Dependency issues could appear because of aborted or terminated
+  package installation process or invalid packages state after manual modification of packages list on the host
+   :return True if no dependency issues found, False if dependency issue present
+  :rtype bool
+  """
+  check_str = None
+  cmd = None
+
+  if OSCheck.is_redhat_family():
+    cmd = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'dependencies']
+    check_str = "has missing requires|Error:"
+  elif OSCheck.is_suse_family():
+    cmd = ['/usr/bin/zypper', '--quiet', '--non-interactive' 'verify', '--dry-run']
+    check_str = "\d+ new package(s)? to install"
+  elif OSCheck.is_ubuntu_family():
+    cmd = ['/usr/bin/apt-get', '-qq', 'check']
+    check_str = "has missing dependency|E:"
+
+  if check_str is None or cmd is None:
+    raise Fail("Unsupported OSFamily on the Agent Host")
+
+  code, out = rmf_shell.checked_call(cmd)
+
+  output_regex = re.compile(check_str)
+
+  if code or (out and output_regex.search(out)):
+    err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (cmd, code, out))
+    Logger.error(err_msg)
+    return False
+
+  return True

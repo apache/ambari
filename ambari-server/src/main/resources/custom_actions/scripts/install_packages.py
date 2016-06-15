@@ -32,7 +32,7 @@ import resource_management
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.str_utils import cbool, cint
-from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
+from resource_management.libraries.functions.packages_analyzer import allInstalledPackages, verifyDependencies
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.stack_select import get_stack_versions
@@ -375,7 +375,7 @@ class InstallPackages(Script):
           retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
           retry_count=agent_stack_retry_count
         )
-    except Exception, err:
+    except Exception as err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))
 
@@ -392,16 +392,25 @@ class InstallPackages(Script):
         else:
           package_version_string = self.repository_version.replace('-', '_')
           package_version_string = package_version_string.replace('.', '_')
+
         for package in new_packages_installed:
           if package_version_string and (package_version_string in package):
             Package(package, action="remove")
+
+    if not verifyDependencies():
+      ret_code = 1
+      Logger.logger.error("Failure while verifying dependencies")
+      Logger.logger.error("*******************************************************************************")
+      Logger.logger.error("Manually verify and fix package dependencies and then re-run install_packages")
+      Logger.logger.error("*******************************************************************************")
+
     # Compute the actual version in order to save it in structured out
     try:
       if ret_code == 0:
          self.compute_actual_version()
       else:
         self.check_partial_install()
-    except Fail, err:
+    except Fail as err:
       ret_code = 1
       Logger.logger.exception("Failure while computing actual version. Error: {0}".format(str(err)))
     return ret_code
