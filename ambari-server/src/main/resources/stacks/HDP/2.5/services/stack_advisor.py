@@ -1448,6 +1448,31 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           service_user = services["configurations"][file_name]["properties"][config_name]
           putRangerAdminProperty(target_configname, service_user)
 
+    if "ATLAS" in servicesList:
+      if "ranger-env" in services["configurations"]:
+        putAtlasRangerAuditProperty = self.putProperty(configurations, 'ranger-atlas-audit', services)
+        xasecure_audit_destination_hdfs = ''
+        xasecure_audit_destination_hdfs_dir = ''
+        xasecure_audit_destination_solr = ''
+        if 'xasecure.audit.destination.hdfs' in configurations['ranger-env']['properties']:
+          xasecure_audit_destination_hdfs = configurations['ranger-env']['properties']['xasecure.audit.destination.hdfs']
+        else:
+          xasecure_audit_destination_hdfs = services['configurations']['ranger-env']['properties']['xasecure.audit.destination.hdfs']
+
+        if 'xasecure.audit.destination.hdfs.dir' in configurations['ranger-env']['properties']:
+          xasecure_audit_destination_hdfs_dir = configurations['ranger-env']['properties']['xasecure.audit.destination.hdfs.dir']
+        else:
+          xasecure_audit_destination_hdfs_dir = services['configurations']['ranger-env']['properties']['xasecure.audit.destination.hdfs.dir']
+
+        if 'xasecure.audit.destination.solr' in configurations['ranger-env']['properties']:
+          xasecure_audit_destination_solr = configurations['ranger-env']['properties']['xasecure.audit.destination.solr']
+        else:
+          xasecure_audit_destination_solr = services['configurations']['ranger-env']['properties']['xasecure.audit.destination.solr']
+
+        putAtlasRangerAuditProperty('xasecure.audit.destination.hdfs',xasecure_audit_destination_hdfs)
+        putAtlasRangerAuditProperty('xasecure.audit.destination.hdfs.dir',xasecure_audit_destination_hdfs_dir)
+        putAtlasRangerAuditProperty('xasecure.audit.destination.solr',xasecure_audit_destination_solr)
+
   def validateRangerTagsyncConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = getSiteProperties(configurations, "ranger-tagsync-site")
     validationItems = []
