@@ -178,9 +178,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       new ServiceComponentHostOpStartedTransition())
 
   .addTransition(State.INSTALLING,
-    State.INSTALLED,
-    ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
-    new ServiceComponentHostOpCompletedTransition())
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
+      new ServiceComponentHostOpCompletedTransition())
 
   .addTransition(State.INSTALLING,
       State.INSTALLED,
@@ -219,24 +219,19 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   // Allow transition on abort
   .addTransition(State.INSTALL_FAILED,
-    State.INSTALL_FAILED,
-    ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
-    new ServiceComponentHostOpCompletedTransition())
+      State.INSTALL_FAILED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
 
   .addTransition(State.INSTALLED,
-    State.STARTING,
-    ServiceComponentHostEventType.HOST_SVCCOMP_START,
-    new ServiceComponentHostOpStartedTransition())
-
-    .addTransition(State.INIT,
       State.STARTING,
       ServiceComponentHostEventType.HOST_SVCCOMP_START,
       new ServiceComponentHostOpStartedTransition())
 
   .addTransition(State.INSTALLED,
-    State.UNINSTALLING,
-    ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
-    new ServiceComponentHostOpStartedTransition())
+      State.UNINSTALLING,
+      ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
+      new ServiceComponentHostOpStartedTransition())
 
   .addTransition(State.INSTALLED,
       State.INSTALLING,
