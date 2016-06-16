@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.*;
+import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
@@ -4486,7 +4488,7 @@ public class BlueprintConfigurationProcessorTest {
 
     // customized stack calls for this test only
     // simulate the case of the stack object throwing a RuntimeException, to indicate a config error
-    expect(stack.getServiceForConfigType("hive-site")).andThrow(new RuntimeException("Expected Test Error")).atLeastOnce();
+    expect(stack.getServiceForConfigType("hive-site")).andThrow(new RuntimeException("Expected Test Error")).once();
     expect(stack.getConfigurationPropertiesWithMetadata("HIVE", "hive-site")).andReturn(mapOfMetadata).atLeastOnce();
 
     Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -7891,6 +7893,62 @@ public class BlueprintConfigurationProcessorTest {
     return advMap;
   }
 
+  @Test
+  public void testValuesTrimming() throws Exception {
+    reset(stack);
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSite = new HashMap<String, String>();
+    //default
+    hdfsSite.put("test.spaces", " spaces at    the end should be deleted      ");
+    hdfsSite.put("test.directories", "  /all/spaces , should/be  , deleted  ");
+    hdfsSite.put("test.password", "  stays,   same    ");
+    hdfsSite.put("test.single.space", " ");
+    hdfsSite.put("test.host", " https://just.trims ");
+    properties.put("hdfs-site", hdfsSite);
+    Map<String, Stack.ConfigProperty> propertyConfigs = new HashMap<>();
+
+    ValueAttributesInfo valueAttributesInfoDirs = new ValueAttributesInfo();
+    valueAttributesInfoDirs.setType("directories");
+    ValueAttributesInfo valueAttributesInfoHost = new ValueAttributesInfo();
+    valueAttributesInfoHost.setType("host");
+
+    propertyConfigs.put("test.directories", new Stack.ConfigProperty(
+            new StackConfigurationResponse(null,null,null,null,"hdfs-site",null,null,null,valueAttributesInfoDirs,null)));
+    propertyConfigs.put("test.password", new Stack.ConfigProperty(
+            new StackConfigurationResponse(null,null,null,null,"hdfs-site",null,Collections.singleton(PropertyInfo.PropertyType.PASSWORD),null,null,null)));
+    propertyConfigs.put("test.host", new Stack.ConfigProperty(
+            new StackConfigurationResponse(null,null,null,null,"hdfs-site",null,null,null,valueAttributesInfoHost,null)));
+    expect(stack.getServiceForConfigType("hdfs-site")).andReturn("HDFS").anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata("HDFS", "hdfs-site")).andReturn(propertyConfigs).anyTimes();
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+            Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+            Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals(" spaces at    the end should be deleted",
+            clusterConfig.getPropertyValue("hdfs-site", "test.spaces"));
+    assertEquals("/all/spaces,should/be,deleted",
+            clusterConfig.getPropertyValue("hdfs-site", "test.directories"));
+    assertEquals( "  stays,   same    ",
+            clusterConfig.getPropertyValue("hdfs-site", "test.password"));
+    assertEquals(" https://just.trims ".trim(),
+            clusterConfig.getPropertyValue("hdfs-site", "test.host"));
+    assertEquals(" ",
+            clusterConfig.getPropertyValue("hdfs-site", "test.single.space"));
+  }
 
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
     return createExportedHostName(expectedHostGroupName, expectedPortNum);

@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.Configuration;
 
@@ -740,6 +741,7 @@ public class Stack {
    * Contains a configuration property's value and attributes.
    */
   public static class ConfigProperty {
+    private ValueAttributesInfo propertyValueAttributes = null;
     private String name;
     private String value;
     private Map<String, String> attributes;
@@ -755,6 +757,7 @@ public class Stack {
       this.propertyTypes = config.getPropertyType();
       this.type = normalizeType(config.getType());
       this.dependsOnProperties = config.getDependsOnProperties();
+      this.propertyValueAttributes = config.getPropertyValueAttributes();
     }
 
     public ConfigProperty(String type, String name, String value) {
@@ -805,6 +808,10 @@ public class Stack {
         type = type.substring(0, type.length() - 4);
       }
       return type;
+    }
+
+    public ValueAttributesInfo getPropertyValueAttributes() {
+      return propertyValueAttributes;
     }
   }
 }
