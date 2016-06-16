@@ -32,7 +32,6 @@ import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -63,7 +62,6 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.easymock.Capture;
 import org.easymock.EasyMockRule;
@@ -142,12 +140,6 @@ public class ClusterInstallWithoutStartTest {
   private Cluster cluster;
   @Mock(type = MockType.NICE)
   private HostRoleCommand hostRoleCommand;
-
-
-  @Mock(type = MockType.NICE)
-  private ComponentInfo serviceComponentInfo;
-  @Mock(type = MockType.NICE)
-  private ComponentInfo clientComponentInfo;
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
@@ -251,15 +243,6 @@ public class ClusterInstallWithoutStartTest {
     expect(stack.getAutoDeployInfo("component2")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component3")).andReturn(null).anyTimes();
     expect(stack.getAutoDeployInfo("component4")).andReturn(null).anyTimes();
-
-    expect(serviceComponentInfo.isClient()).andReturn(false).anyTimes();
-    expect(clientComponentInfo.isClient()).andReturn(true).anyTimes();
-
-    expect(stack.getComponentInfo("component1")).andReturn(serviceComponentInfo).anyTimes();
-    expect(stack.getComponentInfo("component2")).andReturn(serviceComponentInfo).anyTimes();
-    expect(stack.getComponentInfo("component3")).andReturn(clientComponentInfo).anyTimes();
-    expect(stack.getComponentInfo("component4")).andReturn(clientComponentInfo).anyTimes();
-
     expect(stack.getCardinality("component1")).andReturn(new Cardinality("1")).anyTimes();
     expect(stack.getCardinality("component2")).andReturn(new Cardinality("1")).anyTimes();
     expect(stack.getCardinality("component3")).andReturn(new Cardinality("1+")).anyTimes();
@@ -333,7 +316,7 @@ public class ClusterInstallWithoutStartTest {
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
-    expect(ambariContext.areHostsSysPrepped()).andReturn(false).anyTimes();
+    // cluster configuration task run() isn't executed by mock executor
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
       andReturn(Collections.singletonList(configurationRequest));
@@ -367,7 +350,7 @@ public class ClusterInstallWithoutStartTest {
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, logicalRequest,
       configurationRequest, configurationRequest2, configurationRequest3, requestStatusResponse, executor,
       persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
-      mockFuture, managementController, clusters, cluster, hostRoleCommand, serviceComponentInfo, clientComponentInfo);
+      mockFuture, managementController, clusters, cluster, hostRoleCommand);
 
     Class clazz = TopologyManager.class;
 

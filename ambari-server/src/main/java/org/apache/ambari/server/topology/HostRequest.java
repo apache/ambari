@@ -19,7 +19,6 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -33,9 +32,6 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
-import org.apache.ambari.server.state.AutoDeployInfo;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,19 +205,12 @@ public class HostRequest implements Comparable<HostRequest> {
           "PENDING HOST ASSIGNMENT : HOSTGROUP=" + getHostgroupName();
 
       AmbariContext context = topology.getAmbariContext();
-      Stack stack = hostGroup.getStack();
-
-      // Skip INSTALL task in case SysPrepped hosts and in case of server components. In case of server component
-      // START task should run configuration script.
-      if (context.areHostsSysPrepped() && stack != null && !stack.getComponentInfo(component).isClient()) {
-        LOG.info("Skipping create of INSTALL task for {} on {} because host is sysprepped.", component, hostName);
-      } else {
-        HostRoleCommand logicalInstallTask = context.createAmbariTask(
+      HostRoleCommand logicalInstallTask = context.createAmbariTask(
           getRequestId(), id, component, hostName, AmbariContext.TaskType.INSTALL);
-        logicalTasks.put(logicalInstallTask.getTaskId(), logicalInstallTask);
-        logicalTaskMap.get(installTask).put(component, logicalInstallTask.getTaskId());
-      }
+      logicalTasks.put(logicalInstallTask.getTaskId(), logicalInstallTask);
+      logicalTaskMap.get(installTask).put(component, logicalInstallTask.getTaskId());
 
+      Stack stack = hostGroup.getStack();
       // if component isn't a client, add a start task
       if (!skipStartTaskCreate && stack != null && !stack.getComponentInfo(component).isClient()) {
         HostRoleCommand logicalStartTask = context.createAmbariTask(
