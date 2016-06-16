@@ -19,25 +19,27 @@
 <!-- HBase Master Server -->
 {{view view.dashboardMasterComponentView}}
 <!-- RegionServers -->
-<tr {{bindAttr class=":component view.regionServerComponent.componentName"}}>
-  <td class="summary-label"><a
-          href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
-  </td>
-  <td class="summary-value">
-    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-      <span>
-        {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.regionServersStarted" totalComponentsBinding="view.service.regionServersTotal"}}
-          {{view.liveComponents}}/{{view.totalComponents}}
-        {{/view}}
-      </span>
-      {{t services.service.summary.RegionServersLIVE}}
-    {{else}}
-      {{t common.loading.eclipses}}
-    {{/if}}
-  </td>
-</tr>
+{{#if view.isRegionServerCreated}}
+  <tr {{bindAttr class=":component view.regionServerComponent.componentName"}}>
+    <td class="summary-label"><a
+            href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
+    </td>
+    <td class="summary-value">
+      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+        <span>
+          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.regionServersStarted" totalComponentsBinding="view.service.regionServersTotal"}}
+            {{view.liveComponents}}/{{view.totalComponents}}
+          {{/view}}
+        </span>
+        {{t services.service.summary.RegionServersLIVE}}
+      {{else}}
+        {{t common.loading.eclipses}}
+      {{/if}}
+    </td>
+  </tr>
+{{/if}}
 <!-- PhoenixServers -->
-{{#if view.showPhoenixInfo}}
+{{#if view.isPhoenixQueryServerCreated}}
   <tr {{bindAttr class=":component view.phoenixServerComponent.componentName"}}>
     <td class="summary-label"><a
             href="#" {{action filterHosts view.phoenixServerComponent}}>{{t dashboard.services.hbase.phoenixServers}}</a>

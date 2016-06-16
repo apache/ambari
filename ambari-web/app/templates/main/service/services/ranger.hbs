@@ -19,7 +19,7 @@
 {{view view.dashboardMasterComponentView}}
 
 <!-- Ranger Tagsyncs -->
-{{#if view.isRangerTagsyncInStack}}
+{{#if view.isRangerTagsyncCreated}}
   <tr {{bindAttr class=":component view.rangerTagsyncComponent.componentName"}}>
     <td class="summary-label">
       <a href="#" {{action filterHosts view.rangerTagsyncComponent}}>{{t dashboard.services.ranger.rangerTagsyncs}}</a>

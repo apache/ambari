@@ -167,7 +167,19 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
       title: this.t(template).format(len),
       component: clients.objectAt(0)
     };
-  }.property('service')
+  }.property('service'),
+
+  /**
+   * Check if service component is created
+   * @param componentName
+   * @returns {Boolean}
+   */
+  isServiceComponentCreated: function (componentName) {
+    return App.MasterComponent.find().mapProperty('componentName').concat(
+        App.ClientComponent.find().mapProperty('componentName'),
+        App.SlaveComponent.find().mapProperty('componentName')
+    ).contains(componentName);
+  }
 
 });
 

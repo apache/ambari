@@ -35,8 +35,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
 
   App.TestAliases.testAsComputedAlias(getView(), 'journalNodesTotal', 'service.journalNodes.length', 'number');
 
-  App.TestAliases.testAsComputedGt(getView(), 'showJournalNodes', 'service.journalNodes.length', 0);
-
   describe("#Chart", function() {
     var chartView;
 
