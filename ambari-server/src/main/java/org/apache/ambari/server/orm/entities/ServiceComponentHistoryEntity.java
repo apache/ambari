@@ -57,7 +57,7 @@ public class ServiceComponentHistoryEntity {
   @Column(name = "id", nullable = false, updatable = false)
   private long m_id;
 
-  @ManyToOne(optional = false, cascade = { CascadeType.MERGE })
+  @ManyToOne(optional = false)
   @JoinColumn(name = "component_id", referencedColumnName = "id", nullable = false)
   private ServiceComponentDesiredStateEntity m_serviceComponentDesiredStateEntity;
 
