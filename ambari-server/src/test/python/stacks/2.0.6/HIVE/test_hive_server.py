@@ -73,19 +73,19 @@ class TestHiveServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
-                              environment={'PATH': '/bin:/usr/lib/hive/bin:/usr/bin'},
+                              environment={'PATH': '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'},
                               user='hive'
     )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
     self.assertResourceCalled('Execute',
-                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries=5,
                               try_sleep=10
@@ -108,15 +108,15 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default(default_fs_default='hcfs://c6401.ambari.apache.org:8020')
 
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
-                              environment = {'HADOOP_HOME': '/usr',
+                              environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
                                              'HIVE_BIN': 'hive',
                                              'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user = 'hive',
-                              path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+                              path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
                               )
     self.assertResourceCalled('Execute',
-                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries=5,
                               try_sleep=10
@@ -135,19 +135,19 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default()
 
     self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
-                              environment = {'PATH': '/bin:/usr/lib/hive/bin:/usr/bin'},
+                              environment = {'PATH': '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'},
                               user = 'hive',
                               )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
     self.assertNoMoreResources()
@@ -166,19 +166,19 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default(no_tmp=True)
 
     self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
-                              environment = {'PATH': '/bin:/usr/lib/hive/bin:/usr/bin'},
+                              environment = {'PATH': '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'},
                               user = 'hive',
                               )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
     self.assertNoMoreResources()
@@ -197,19 +197,19 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default(no_tmp=True)
 
     self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
-                              environment = {'PATH': '/bin:/usr/lib/hive/bin:/usr/bin'},
+                              environment = {'PATH': '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'},
                               user = 'hive',
                               )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
     self.assertNoMoreResources()
@@ -272,15 +272,15 @@ class TestHiveServer(RMFTestCase):
                               user = 'hive',
                               )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.err /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
     self.assertResourceCalled('Execute',
-                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+                              '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries=5,
                               try_sleep=10,
@@ -478,11 +478,11 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
                                           '/usr/share/java/mysql-connector-java.jar',
-                                          '/usr/lib/hive/lib//mysql-connector-java.jar'),
+                                          '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path=['/bin', '/usr/bin/'],
                               sudo=True,
     )
-    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
                               mode=0644,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
@@ -671,11 +671,11 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
                                           '/usr/share/java/mysql-connector-java.jar',
-                                          '/usr/lib/hive/lib//mysql-connector-java.jar'),
+                                          '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path=['/bin', '/usr/bin/'],
                               sudo=True,
     )
-    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
                               mode=0644,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
@@ -757,7 +757,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
-    self.assertResourceCalledByIndex(32, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledIgnoreEarlier('Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 
@@ -780,7 +780,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
-    self.assertResourceCalledByIndex(34, 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
+    self.assertResourceCalledIgnoreEarlier( 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 

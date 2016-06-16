@@ -48,6 +48,8 @@ MAX_SHOWN_DICT_LEN = 10
 
 
 class RMFTestCase(TestCase):
+  # provides more verbose output when comparing assertion failures
+  maxDiff = None
 
   # (default) build all paths to test stack scripts
   TARGET_STACKS = 'TARGET_STACKS'

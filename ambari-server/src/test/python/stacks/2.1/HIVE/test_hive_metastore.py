@@ -29,6 +29,7 @@ from resource_management.libraries.script.script import Script
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0,'123','')))
 class TestHiveMetastore(RMFTestCase):
+
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
@@ -54,15 +55,15 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
 
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive aaa com.mysql.jdbc.Driver',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive aaa com.mysql.jdbc.Driver',
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
         tries = 5,
         try_sleep = 10,
@@ -84,14 +85,14 @@ class TestHiveMetastore(RMFTestCase):
     self.assert_configure_default()
 
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive aaa com.mysql.jdbc.Driver',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive aaa com.mysql.jdbc.Driver',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 5,
                               try_sleep = 10,
@@ -146,15 +147,15 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-        environment = {'HADOOP_HOME': '/usr',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = "ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
-        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
     )
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive asd com.mysql.jdbc.Driver',
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive asd com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
 
@@ -240,11 +241,11 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
                                           '/usr/share/java/mysql-connector-java.jar',
-                                          '/usr/lib/hive/lib//mysql-connector-java.jar'),
+                                          '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
                               )
-    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
         mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
@@ -260,8 +261,8 @@ class TestHiveMetastore(RMFTestCase):
                               content = StaticFile('startMetastore.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord aaa -verbose',
-        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord aaa -verbose'",
+    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord aaa -verbose',
+        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord aaa -verbose'",
         user = 'hive',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
@@ -341,11 +342,11 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
                                           '/usr/share/java/mysql-connector-java.jar',
-                                          '/usr/lib/hive/lib//mysql-connector-java.jar'),
+                                          '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
                               )
-    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
         mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
@@ -363,8 +364,8 @@ class TestHiveMetastore(RMFTestCase):
                               content = StaticFile('startMetastore.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd -verbose',
-        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd -verbose'",
+    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd -verbose',
+        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord asd -verbose'",
         user = 'hive',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
@@ -676,11 +677,11 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/tmp/mysql-connector-java.jar',
-     '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
+     '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True)
 
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
         mode = 0644)
 
     self.assertResourceCalled('Execute', ('cp',
@@ -741,11 +742,11 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/usr/share/java/mysql-connector-java.jar',
-     '/usr/hdp/current/hive-metastore/lib/mysql-connector-java.jar'),
+     '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True,
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-metastore/lib/mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar',
         mode = 0644,
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -845,7 +846,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute',
                               ('ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*'))
 
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/sqla-client-jdbc.tar.gz',
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sqla-client-jdbc.tar.gz',
                               mode = 0644,
                               )
 

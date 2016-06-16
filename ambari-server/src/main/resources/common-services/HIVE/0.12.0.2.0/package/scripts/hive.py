@@ -268,10 +268,10 @@ def hive(name=None):
        )
 
   if name == 'metastore' or name == 'hiveserver2':
-    if params.target_hive is not None and not os.path.exists(params.target_hive):
-      jdbc_connector(params.target_hive, params.hive_previous_jdbc_jar)
-    if params.target_hive2 is not None and not os.path.exists(params.target_hive2):
-      jdbc_connector(params.target_hive2, params.hive2_previous_jdbc_jar)
+    if params.hive_jdbc_target is not None and not os.path.exists(params.hive_jdbc_target):
+      jdbc_connector(params.hive_jdbc_target, params.hive_previous_jdbc_jar)
+    if params.hive2_jdbc_target is not None and not os.path.exists(params.hive2_jdbc_target):
+      jdbc_connector(params.hive2_jdbc_target, params.hive2_previous_jdbc_jar)
 
   File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
        content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),

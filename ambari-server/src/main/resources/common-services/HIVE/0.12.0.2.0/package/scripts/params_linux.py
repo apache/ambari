@@ -80,21 +80,47 @@ downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
 # Upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-stack_supports_ranger_kerberos = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted_major)
+stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted_major)
 
-hadoop_bin_dir = "/usr/bin"
-hadoop_home = '/usr'
-hive_user_home_dir = "/home/hive"
-hive_bin = '/usr/lib/hive/bin'
-hive_schematool_bin = '/usr/lib/hive/bin'
-hive_schematool_ver_bin = hive_schematool_bin
-hive_lib = '/usr/lib/hive/lib/'
-hive_lib2 = None
+# component ROLE directory (like hive-metastore or hive-server2-hive2)
+component_directory = status_params.component_directory
+component_directory_interactive = status_params.component_directory_interactive
+
+hadoop_home = format('{stack_root}/current/hadoop-client')
+hive_bin = format('{stack_root}/current/{component_directory}/bin')
+hive_schematool_ver_bin = format('{stack_root}/{version}/hive/bin')
+hive_schematool_bin = format('{stack_root}/current/{component_directory}/bin')
+hive_lib = format('{stack_root}/current/{component_directory}/lib')
+hive_version_lib = format('{stack_root}/{version}/hive/lib')
 hive_var_lib = '/var/lib/hive'
+hive_user_home_dir = "/home/hive"
+
+# starting on stacks where HSI is supported, we need to begin using the 'hive2' schematool
+hive_server2_hive2_dir = None
+hive_server2_hive2_lib = None
+if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_unformatted):
+  hive_schematool_ver_bin = format('{stack_root}/{version}/hive2/bin')
+  hive_schematool_bin = format('{stack_root}/current/{component_directory}/bin')
+  hive_server2_hive2_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER_INTERACTIVE"]
+
+  # <stack-root>/<version>/hive2 (as opposed to <stack-root>/<version>/hive)
+  hive_server2_hive2_dir = format('{stack_root}/current/{hive_server2_hive2_component}')
+
+  # <stack-root>/<version>/hive2 (as opposed to <stack-root>/<version>/hive)
+  hive_server2_hive2_version_dir = format('{stack_root}/{version}/hive2')
+
+  # <stack-root>/current/hive-server2-hive2/lib -> <stack-root>/<version>/hive2/lib
+  hive_server2_hive2_lib = format('{hive_server2_hive2_dir}/lib')
+
+  # <stack-root>/<version>/hive2/lib
+  hive_server2_hive2_version_lib = format('{hive_server2_hive2_version_dir}/lib')
+
+
+hive_specific_configs_supported = True
+hive_interactive_bin = format('{stack_root}/current/{component_directory_interactive}/bin')
+hive_interactive_lib = format('{stack_root}/current/{component_directory_interactive}/lib')
 
 # Hive Interactive related paths
-hive_interactive_bin = '/usr/lib/hive2/bin'
-hive_interactive_lib = '/usr/lib/hive2/lib/'
 hive_interactive_var_lib = '/var/lib/hive2'
 
 # These tar folders were used in previous stack versions, e.g., HDP 2.1
@@ -127,77 +153,39 @@ config_dir = '/etc/hive-webhcat/conf'
 hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
 webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
+# there are no client versions of these, use server versions directly
+hcat_lib = format('{stack_root}/current/hive-webhcat/share/hcatalog')
+webhcat_bin_dir = format('{stack_root}/current/hive-webhcat/sbin')
+
+# --- Tarballs ---
+# DON'T CHANGE THESE VARIABLE NAMES
+# Values don't change from those in copy_tarball.py
+webhcat_apps_dir = "/apps/webhcat"
+hive_tar_source = "{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+pig_tar_source = "{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+hive_tar_dest_file = "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN,STACK_VERSION_PATTERN)
+pig_tar_dest_file = "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
+
+hadoop_streaming_tar_source = "{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+sqoop_tar_source = "{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
+hadoop_streaming_tar_dest_dir = "/{0}/apps/{1}/mapreduce/".format(STACK_NAME_PATTERN,STACK_VERSION_PATTERN)
+sqoop_tar_dest_dir = "/{0}/apps/{1}/sqoop/".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
+
+tarballs_mode = 0444
+
 purge_tables = "false"
 # Starting from stack version for feature hive_purge_table drop should be executed with purge
-if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_PURGE_TABLE, stack_version_formatted_major):
+if check_stack_feature(StackFeature.HIVE_PURGE_TABLE, stack_version_formatted_major):
   purge_tables = 'true'
 
-if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, stack_version_formatted_major):
+if check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, stack_version_formatted_major):
   # this is NOT a typo.  Configs for hcatalog/webhcat point to a
   # specific directory which is NOT called 'conf'
   hcat_conf_dir = format('{stack_root}/current/hive-webhcat/etc/hcatalog')
   config_dir = format('{stack_root}/current/hive-webhcat/etc/webhcat')
 
-if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_METASTORE_SITE_SUPPORT, stack_version_formatted_major):
+if check_stack_feature(StackFeature.HIVE_METASTORE_SITE_SUPPORT, stack_version_formatted_major):
   hive_metastore_site_supported = True
-
-if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
-  hive_specific_configs_supported = True
-
-  component_directory = status_params.component_directory
-  component_directory_interactive = status_params.component_directory_interactive
-  hadoop_home = format('{stack_root}/current/hadoop-client')
-  hive_bin = format('{stack_root}/current/{component_directory}/bin')
-  hive_interactive_bin = format('{stack_root}/current/{component_directory_interactive}/bin')
-  hive_lib = format('{stack_root}/current/{component_directory}/lib')
-  hive_interactive_lib = format('{stack_root}/current/{component_directory_interactive}/lib')
-
-  if stack_version_unformatted is not None and check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_unformatted):
-    schema_hive_component_ver = "hive2"
-    schema_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER_INTERACTIVE"]
-    hive_lib2 = format('{stack_root}/current/{schema_hive_component}/lib')
-  else:
-    schema_hive_component_ver = "hive"
-    schema_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER"]
-
-  hive_schematool_ver_bin = format('{stack_root}/{version}/{schema_hive_component_ver}/bin')
-  hive_schematool_bin = format('{stack_root}/current/{schema_hive_component}/bin')
-
-  # there are no client versions of these, use server versions directly
-  hcat_lib = format('{stack_root}/current/hive-webhcat/share/hcatalog')
-  webhcat_bin_dir = format('{stack_root}/current/hive-webhcat/sbin')
-
-  # --- Tarballs ---
-  # DON'T CHANGE THESE VARIABLE NAMES
-  # Values don't change from those in copy_tarball.py
-  hive_tar_source = "{0}/{1}/hive/hive.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
-  pig_tar_source = "{0}/{1}/pig/pig.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
-  hive_tar_dest_file = "/{0}/apps/{1}/hive/hive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
-  pig_tar_dest_file = "/{0}/apps/{1}/pig/pig.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
-
-  hadoop_streaming_tar_source = "{0}/{1}/hadoop-mapreduce/hadoop-streaming.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
-  sqoop_tar_source = "{0}/{1}/sqoop/sqoop.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN)
-  hadoop_streaming_tar_dest_dir = "/{0}/apps/{1}/mapreduce/".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
-  sqoop_tar_dest_dir = "/{0}/apps/{1}/sqoop/".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)
-
-  tarballs_mode = 0444
-else:
-  # --- Tarballs ---
-  webhcat_apps_dir = "/apps/webhcat"
-
-  # In previous versions, the tarballs were copied from and to different locations.
-  # DON'T CHANGE THESE VARIABLE NAMES
-  hive_tar_source = hive_tar_file
-  pig_tar_source = pig_tar_file
-  hive_tar_dest_file = webhcat_apps_dir + "/hive.tar.gz"
-  pig_tar_dest_file = webhcat_apps_dir + "/pig.tar.gz"
-
-  hadoop_streaming_tar_source = hadoop_streaming_jars   # this contains *
-  sqoop_tar_source = sqoop_tar_file                     # this contains *
-  hadoop_streaming_tar_dest_dir = webhcat_apps_dir
-  sqoop_tar_dest_dir = webhcat_apps_dir
-
-  tarballs_mode = 0755
 
 execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
 
@@ -207,12 +195,14 @@ hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.opti
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 hive_metastore_user_passwd = unicode(hive_metastore_user_passwd) if not is_empty(hive_metastore_user_passwd) else hive_metastore_user_passwd
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
+
 #HACK Temporarily use dbType=azuredb while invoking schematool
 if hive_metastore_db_type == "mssql":
   hive_metastore_db_type = "azuredb"
 
 #users
 hive_user = config['configurations']['hive-env']['hive_user']
+
 #JDBC driver jar name
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
 jdk_location = config['hostLevelParams']['jdk_location']
@@ -230,7 +220,6 @@ default_connectors_map = { "com.microsoft.sqlserver.jdbc.SQLServerDriver":"sqljd
 # NOT SURE THAT IT'S A GOOD IDEA TO USE PATH TO CLASS IN DRIVER, MAYBE IT WILL BE BETTER TO USE DB TYPE.
 # BECAUSE PATH TO CLASSES COULD BE CHANGED
 sqla_db_used = False
-target_hive = None
 hive_previous_jdbc_jar_name = None
 if hive_jdbc_driver == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
   jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
@@ -257,18 +246,25 @@ if not hive_use_existing_db:
 
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
-target_hive = format("{hive_lib}/{jdbc_jar_name}")
-target_hive2 = format("{hive_lib2}/{jdbc_jar_name}") if hive_lib2 is not None else None
-hive2_previous_jdbc_jar = format("{hive_lib2}/{hive_previous_jdbc_jar_name}") if hive_lib2 is not None else None
+
+hive_jdbc_target = format("{hive_lib}/{jdbc_jar_name}")
+hive2_jdbc_target = None
+if hive_server2_hive2_dir:
+  hive2_jdbc_target = format("{hive_server2_hive2_lib}/{jdbc_jar_name}")
+
+# during upgrade / downgrade, use the specific version to copy the JDBC JAR to
+if upgrade_direction:
+  hive_jdbc_target = format("{hive_version_lib}/{jdbc_jar_name}")
+  hive2_jdbc_target = format("{hive_server2_hive2_version_lib}/{jdbc_jar_name}") if hive2_jdbc_target is not None else None
+
+
+hive2_previous_jdbc_jar = format("{hive_server2_hive2_lib}/{hive_previous_jdbc_jar_name}") if hive_server2_hive2_lib is not None else None
 driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 
-if not (stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)):
-  source_jdbc_file = target_hive
-else:
-  # normally, the JDBC driver would be referenced by <stack-root>/current/.../foo.jar
-  # but in RU if <stack-selector-tool> is called and the restart fails, then this means that current pointer
-  # is now pointing to the upgraded version location; that's bad for the cp command
-  source_jdbc_file = format("{stack_root}/{current_version}/hive/lib/{jdbc_jar_name}")
+# normally, the JDBC driver would be referenced by <stack-root>/current/.../foo.jar
+# but in RU if <stack-selector-tool> is called and the restart fails, then this means that current pointer
+# is now pointing to the upgraded version location; that's bad for the cp command
+source_jdbc_file = format("{stack_root}/{current_version}/hive/lib/{jdbc_jar_name}")
 
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
@@ -372,7 +368,6 @@ artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 
-target_hive = format("{hive_lib}/{jdbc_jar_name}")
 target_hive_interactive = format("{hive_interactive_lib}/{jdbc_jar_name}")
 hive_intaractive_previous_jdbc_jar = format("{hive_interactive_lib}/{hive_previous_jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
@@ -385,7 +380,7 @@ yarn_scheduler_allocation_minimum_mb = config['configurations']['yarn-site']['pr
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
-  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, stack_version_formatted_major):
+  if check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, stack_version_formatted_major):
     hive_heapsize = config['configurations']['hive-env']['hive.heapsize']
   else:
     hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
@@ -608,7 +603,7 @@ if has_hive_interactive:
   pass
 
 # ranger host
-stack_supports_ranger_audit_db = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted_major)
+stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted_major)
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']

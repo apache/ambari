@@ -101,12 +101,12 @@ def hive_service(name, action='start', upgrade_type=None):
 
       validation_called = False
 
-      if params.target_hive is not None:
+      if params.hive_jdbc_target is not None:
         validation_called = True
-        validate_connection(params.target_hive, params.hive_lib)
-      if params.target_hive2 is not None:
+        validate_connection(params.hive_jdbc_target, params.hive_lib)
+      if params.hive2_jdbc_target is not None:
         validation_called = True
-        validate_connection(params.target_hive2, params.hive_lib2)
+        validate_connection(params.hive2_jdbc_target, params.hive_server2_hive2_lib)
 
       if not validation_called:
         emessage = "ERROR! DB connection check should be executed at least one time!"

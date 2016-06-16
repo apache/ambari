@@ -49,8 +49,8 @@ class TestWebHCatServer(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/lib/hive-hcatalog/sbin/webhcat_server.sh start',
-        environment = {'HADOOP_HOME': '/usr'},
+    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/hdp/current/hive-webhcat/sbin/webhcat_server.sh start',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
         not_if = "ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1'",
         user = 'hcat',
     )
@@ -65,9 +65,9 @@ class TestWebHCatServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', '/usr/lib/hive-hcatalog/sbin/webhcat_server.sh stop',
+    self.assertResourceCalled('Execute', '/usr/hdp/current/hive-webhcat/sbin/webhcat_server.sh stop',
                               user = 'hcat',
-                              environment = {'HADOOP_HOME': '/usr' }
+                              environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client' }
                               )
 
     self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
@@ -138,8 +138,8 @@ class TestWebHCatServer(RMFTestCase):
     )
 
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/lib/hive-hcatalog/sbin/webhcat_server.sh start',
-        environment = {'HADOOP_HOME': '/usr'},
+    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/hdp/current/hive-webhcat/sbin/webhcat_server.sh start',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
         not_if = "ambari-sudo.sh su hcat -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1'",
         user = 'hcat',
     )
@@ -154,9 +154,9 @@ class TestWebHCatServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', '/usr/lib/hive-hcatalog/sbin/webhcat_server.sh stop',
+    self.assertResourceCalled('Execute', '/usr/hdp/current/hive-webhcat/sbin/webhcat_server.sh stop',
                               user = 'hcat',
-                              environment = {'HADOOP_HOME': '/usr' }
+                              environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client' }
                               )
 
     self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `ambari-sudo.sh su hcat -l -s /bin/bash -c \'[RMF_EXPORT_PLACEHOLDER]cat /var/run/webhcat/webhcat.pid\'`',
