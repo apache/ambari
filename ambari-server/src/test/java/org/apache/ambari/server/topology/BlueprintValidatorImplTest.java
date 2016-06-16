@@ -18,13 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.state.AutoDeployInfo;
-import org.apache.ambari.server.state.DependencyInfo;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,7 +26,17 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.easymock.EasyMock.createNiceMock;
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.DependencyInfo;
+import org.easymock.EasyMockRule;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -44,23 +47,33 @@ import static org.easymock.EasyMock.verify;
  */
 public class BlueprintValidatorImplTest{
 
-  private final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private final Stack stack = createNiceMock(Stack.class);
-  private final HostGroup group1 = createNiceMock(HostGroup.class);
-  private final HostGroup group2 = createNiceMock(HostGroup.class);
   private final Map<String, HostGroup> hostGroups = new LinkedHashMap<>();
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.NICE)
+  private Blueprint blueprint;
+
+  @Mock(type = MockType.NICE)
+  private Stack stack;
+
+  @Mock(type = MockType.NICE)
+  private HostGroup group1;
+
+  @Mock(type = MockType.NICE)
+  private HostGroup group2;
+
+  @Mock(type = MockType.NICE)
+  private DependencyInfo dependency1;
 
   private final Collection<String> group1Components = new ArrayList<String>();
   private final Collection<String> group2Components = new ArrayList<String>();
   private final Collection<String> services = new ArrayList<String>();
-  private final DependencyInfo dependency1 = createNiceMock(DependencyInfo.class);
+
   private Collection<DependencyInfo> dependencies1 = new ArrayList<DependencyInfo>();
-
   private AutoDeployInfo autoDeploy = new AutoDeployInfo();
-
-  Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
-  private Configuration configuration = new Configuration(configProperties,
-      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+  private Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+  private Configuration configuration = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
 
   @Before
@@ -76,7 +89,9 @@ public class BlueprintValidatorImplTest{
     expect(blueprint.getServices()).andReturn(services).anyTimes();
 
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
+    expect(group1.getName()).andReturn("host-group-1").anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
+    expect(group2.getName()).andReturn("host-group-2").anyTimes();
 
     expect(stack.getDependenciesForComponent("component1")).andReturn(dependencies1).anyTimes();
     expect(stack.getDependenciesForComponent("component2")).andReturn(dependencies1).anyTimes();
@@ -163,17 +178,21 @@ public class BlueprintValidatorImplTest{
     expect(stack.getComponents("service2")).andReturn(Collections.singleton("component3")).anyTimes();
     expect(stack.getAutoDeployInfo("component1")).andReturn(autoDeploy).anyTimes();
 
-    expect(dependency1.getScope()).andReturn("host").anyTimes();
     AutoDeployInfo dependencyAutoDeploy = new AutoDeployInfo();
     dependencyAutoDeploy.setEnabled(true);
     dependencyAutoDeploy.setCoLocate("service1/component1");
+
+    expect(dependency1.getScope()).andReturn("host").anyTimes();
     expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
     expect(dependency1.getComponentName()).andReturn("component3").anyTimes();
+    expect(dependency1.getServiceName()).andReturn("service1").anyTimes();
+    expect(dependency1.getName()).andReturn("dependency1").anyTimes();
 
     expect(group1.addComponent("component1")).andReturn(true).once();
     expect(group1.addComponent("component3")).andReturn(true).once();
 
     replay(blueprint, stack, group1, group2, dependency1);
+
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
     validator.validateTopology();
 
@@ -224,5 +243,48 @@ public class BlueprintValidatorImplTest{
     replay(blueprint, stack, group1, group2, dependency1);
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
     validator.validateRequiredProperties();
+  }
+
+  @Test
+  public void testShouldDependencyBeExcludedWenRelatedServiceIsNotInBlueprint() throws Exception {
+    // GIVEN
+    hostGroups.clear();
+    hostGroups.put("group1", group1);
+
+    group1Components.add("component-1");
+    dependencies1.add(dependency1);
+    services.addAll(Collections.singleton("service-1"));
+
+
+    expect(blueprint.getHostGroupsForComponent("component-1")).andReturn(Arrays.asList(group1)).anyTimes();
+    expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
+
+    Cardinality cardinality = new Cardinality("1");
+
+    expect(stack.getComponents("service-1")).andReturn(Arrays.asList("component-1")).anyTimes();
+    expect(stack.getAutoDeployInfo("component-1")).andReturn(autoDeploy).anyTimes();
+    expect(stack.getDependenciesForComponent("component-1")).andReturn(dependencies1).anyTimes();
+    expect(stack.getCardinality("component-1")).andReturn(cardinality).anyTimes();
+
+
+    AutoDeployInfo dependencyAutoDeploy = new AutoDeployInfo();
+    dependencyAutoDeploy.setEnabled(true);
+    dependencyAutoDeploy.setCoLocate("service1/component1");
+
+    expect(dependency1.getScope()).andReturn("host").anyTimes();
+    expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
+    expect(dependency1.getComponentName()).andReturn("component-d").anyTimes();
+    expect(dependency1.getServiceName()).andReturn("service-d").anyTimes();
+    expect(dependency1.getName()).andReturn("dependency-1").anyTimes();
+
+    replay(blueprint, stack, group1, group2, dependency1);
+
+    // WHEN
+    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
+    validator.validateTopology();
+
+    // THEN
+    verify(group1);
+
   }
 }
