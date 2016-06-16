@@ -130,6 +130,26 @@ else:
 # hbase
 hbase_conf_dir = "/etc/hbase/conf"
 
+# atlas HA
+atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
+
+id = 1
+server_ids = ""
+server_hosts = ""
+first_id = True
+for host in atlas_hosts:
+  server_id = "id" + str(id)
+  server_host = host + ":" + metadata_port
+  if first_id:
+    server_ids = server_id
+    server_hosts = server_host
+  else:
+    server_ids += "," + server_id
+    server_hosts += "\n" + "atlas.server.address." + server_id + "=" + server_host
+
+  id += 1
+  first_id = False
+
 atlas_search_backend = default("/configurations/application-properties/atlas.graph.index.search.backend", "")
 search_backend_solr = atlas_search_backend.startswith('solr')
 
