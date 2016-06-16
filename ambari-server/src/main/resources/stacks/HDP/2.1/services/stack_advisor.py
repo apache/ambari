@@ -96,8 +96,9 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if "PIG" in servicesList:
         ambari_user = self.getAmbariUser(services)
+        ambariHostName = socket.getfqdn()
         webHcatSiteProperty = self.putProperty(configurations, "webhcat-site", services)
-        webHcatSiteProperty("webhcat.proxyuser.{0}.hosts".format(ambari_user), "*")
+        webHcatSiteProperty("webhcat.proxyuser.{0}.hosts".format(ambari_user), ambariHostName)
         webHcatSiteProperty("webhcat.proxyuser.{0}.groups".format(ambari_user), "*")
         old_ambari_user = self.getOldAmbariUser(services)
         if old_ambari_user is not None:

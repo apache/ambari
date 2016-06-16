@@ -1121,13 +1121,14 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = {
       "totalAvailableRam": 2048
     }
+    ambariHostName = socket.getfqdn()
     expected = {'oozie-env':
                   {'properties':
                      {'oozie_user': 'oozie'}},
                 'core-site':
                   {'properties':
                      {'hadoop.proxyuser.ambari_user.groups': '*',
-                      'hadoop.proxyuser.ambari_user.hosts': '*',
+                      'hadoop.proxyuser.ambari_user.hosts': ambariHostName,
                       'hadoop.proxyuser.oozie.groups': '*',
                       'hadoop.proxyuser.hive.groups': '*',
                       'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
@@ -1174,7 +1175,7 @@ class TestHDP206StackAdvisor(TestCase):
                      {'oozie_user': 'oozie'}},
                 'core-site': {'properties':
                                 {'hadoop.proxyuser.ambari_user.groups': '*',
-                                 'hadoop.proxyuser.ambari_user.hosts': '*',
+                                 'hadoop.proxyuser.ambari_user.hosts': ambariHostName,
                                  'hadoop.proxyuser.oozie.groups': '*',
                                  'hadoop.proxyuser.hive.groups': '*',
                                  'hadoop.proxyuser.hdfs1.groups': '*',

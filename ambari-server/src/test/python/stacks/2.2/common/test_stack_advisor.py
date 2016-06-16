@@ -2911,6 +2911,7 @@ class TestHDP22StackAdvisor(TestCase):
       "hbaseRam": 112,
       "reservedRam": 128
     }
+    ambariHostName = socket.getfqdn()
     expected = {
       'hadoop-env': {
         'properties': {
@@ -2946,7 +2947,7 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "hadoop.proxyuser.hdfs.hosts": "*",
           "hadoop.proxyuser.hdfs.groups": "*",
-          "hadoop.proxyuser.ambari_user.hosts": "*",
+          "hadoop.proxyuser.ambari_user.hosts": ambariHostName,
           "hadoop.proxyuser.ambari_user.groups": "*"
         }
       }

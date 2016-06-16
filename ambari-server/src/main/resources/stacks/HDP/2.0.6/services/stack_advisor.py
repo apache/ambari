@@ -20,6 +20,8 @@ limitations under the License.
 import re
 import os
 import sys
+import socket
+
 from math import ceil, floor
 
 from resource_management.core.logger import Logger
@@ -118,14 +120,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if "TEZ" in servicesList:
         ambari_user = self.getAmbariUser(services)
-        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.hosts".format(ambari_user), "*")
+        ambariHostName = socket.getfqdn()
+        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.hosts".format(ambari_user), ambariHostName)
         putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.groups".format(ambari_user), "*")
-        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.users".format(ambari_user), "*")
         old_ambari_user = self.getOldAmbariUser(services)
         if old_ambari_user is not None:
             putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
             putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
-            putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.users".format(old_ambari_user), 'delete', 'true')
+
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site", services)
@@ -161,7 +163,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def recommendAmbariProxyUsersForHDFS(self, services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
       if "HDFS" in servicesList:
           ambari_user = self.getAmbariUser(services)
-          putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), "*")
+          ambariHostName = socket.getfqdn()
+          putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), ambariHostName)
           putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
           old_ambari_user = self.getOldAmbariUser(services)
           if old_ambari_user is not None:
