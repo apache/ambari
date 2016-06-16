@@ -510,6 +510,7 @@ public class UpgradeCatalog240Test {
     Method upgradeCapSchedulerView = UpgradeCatalog240.class.getDeclaredMethod("upgradeCapSchedulerView");
     Method updatePhoenixConfigs = UpgradeCatalog240.class.getDeclaredMethod("updatePhoenixConfigs");
     Method updateSparkConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateSparkConfigs");
+    Method updateHBaseConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateHBaseConfigs");
     Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateFalconConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateFalconConfigs");
     Method fixAuthorizationDescriptions = UpgradeCatalog240.class.getDeclaredMethod("fixAuthorizationDescriptions");
@@ -554,6 +555,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(fixAuthorizationDescriptions)
             .addMockedMethod(removeAuthorizations)
             .addMockedMethod(addConnectionTimeoutParamForWebAndMetricAlerts)
+            .addMockedMethod(updateHBaseConfigs)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -588,6 +590,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.fixAuthorizationDescriptions();
     upgradeCatalog240.removeAuthorizations();
     upgradeCatalog240.addConnectionTimeoutParamForWebAndMetricAlerts();
+    upgradeCatalog240.updateHBaseConfigs();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -1948,5 +1951,69 @@ public class UpgradeCatalog240Test {
     easyMockSupport.verifyAll();
   }
 
+  @Test
+  public void testHBaseSpnegoPropertiesAreAdded() throws Exception{
+    // Tests that we switch from the HBase service principal and keytab to the SPNEGO service principal and keytab.
+    final String spnegoPrincipal = "HTTP/_HOST@EXAMPLE.COM";
+    final String spnegoKeytab = "/etc/security/keytabs/spnego.service.keytab";
+    final Map<String, String> oldProperties = new HashMap<>();
+    final Map<String, String> newProperties = new HashMap<String, String>();
+    newProperties.put(UpgradeCatalog240.HBASE_SPNEGO_PRINCIPAL_KEY, spnegoPrincipal);
+    newProperties.put(UpgradeCatalog240.HBASE_SPNEGO_KEYTAB_KEY, spnegoKeytab);
+
+    final EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    // Set up all of the injected mocks to trigger the upgrade scenario
+    AmbariManagementController controller = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    KerberosDescriptor kerberosDescriptor = easyMockSupport.createNiceMock(KerberosDescriptor.class);
+    KerberosIdentityDescriptor kerberosIdentityDescriptor = easyMockSupport.createNiceMock(KerberosIdentityDescriptor.class);
+    KerberosPrincipalDescriptor principalDescriptor = easyMockSupport.createNiceMock(KerberosPrincipalDescriptor.class);
+    KerberosKeytabDescriptor keytabDescriptor = easyMockSupport.createNiceMock(KerberosKeytabDescriptor.class);
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockHbaseSite = easyMockSupport.createNiceMock(Config.class);
+    // HBase and Kerberos are both "installed"
+    final Map<String, Service> mockServices = new HashMap<>();
+    mockServices.put("HBASE", null);
+    final StackId stackId = new StackId("HDP-2.5");
+
+    expect(controller.getClusters()).andReturn(clusters).once();
+    expect(clusters.getClusters()).andReturn(Collections.singletonMap("normal", cluster)).once();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+    expect(cluster.getServices()).andReturn(mockServices).once();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getDesiredConfigByType(UpgradeCatalog240.HBASE_SITE_CONFIG)).andReturn(mockHbaseSite).atLeastOnce();
+    expect(mockHbaseSite.getProperties()).andReturn(oldProperties).anyTimes();
+
+    // Stub out the KerberosDescriptor down to the Principal and Keytab Descriptors
+    expect(kerberosDescriptor.getIdentity("spnego")).andReturn(kerberosIdentityDescriptor).anyTimes();
+    expect(kerberosIdentityDescriptor.getPrincipalDescriptor()).andReturn(principalDescriptor).anyTimes();
+    expect(kerberosIdentityDescriptor.getKeytabDescriptor()).andReturn(keytabDescriptor).anyTimes();
+    expect(principalDescriptor.getValue()).andReturn(spnegoPrincipal).anyTimes();
+    expect(keytabDescriptor.getFile()).andReturn(spnegoKeytab).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+
+    easyMockSupport.replayAll();
+
+    UpgradeCatalog240 upgradeCatalog240 = createMockBuilder(UpgradeCatalog240.class)
+        .withConstructor(Injector.class)
+        .withArgs(injector)
+        .addMockedMethod("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class)
+        .addMockedMethod("getKerberosDescriptor", Cluster.class)
+        .createMock();
+
+    expect(upgradeCatalog240.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).once();
+
+    upgradeCatalog240.updateConfigurationProperties(UpgradeCatalog240.HBASE_SITE_CONFIG, newProperties, true, false);
+    expectLastCall().once();
+
+    replay(upgradeCatalog240);
+
+    // Expected that we see the configuration updates fire
+    upgradeCatalog240.updatePhoenixConfigs();
+    easyMockSupport.verifyAll();
+  }
 }
 
