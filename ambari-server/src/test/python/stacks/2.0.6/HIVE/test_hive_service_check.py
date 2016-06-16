@@ -57,7 +57,7 @@ class TestServiceCheck(RMFTestCase):
            '/usr/local/bin',
            '/bin',
            '/usr/bin',
-           '/bin:/usr/lib/hive/bin:/usr/bin'],
+           '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
         tries = 3,
         user = 'ambari-qa',
         try_sleep = 5,
@@ -66,7 +66,7 @@ class TestServiceCheck(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         logoutput = True,
         user = 'hdfs',
-        bin_dir = '/bin:/usr/lib/hive/bin:/usr/bin',
+        bin_dir = '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin',
     )
     self.assertResourceCalled('Execute', ' /tmp/hcatSmoke.sh hcatsmoke cleanup false',
         logoutput = True,
@@ -74,7 +74,7 @@ class TestServiceCheck(RMFTestCase):
            '/usr/local/bin',
            '/bin',
            '/usr/bin',
-           '/bin:/usr/lib/hive/bin:/usr/bin'],
+           '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
         tries = 3,
         user = 'ambari-qa',
         try_sleep = 5,
@@ -168,7 +168,7 @@ class TestServiceCheck(RMFTestCase):
     self.maxDiff = None
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false',
         logoutput = True,
-        path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/lib/hive/bin:/usr/bin'],
+        path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
         tries = 3,
         user = 'ambari-qa',
         try_sleep = 5,
@@ -180,7 +180,7 @@ class TestServiceCheck(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         logoutput = True,
         user = 'hdfs',
-        bin_dir = '/bin:/usr/lib/hive/bin:/usr/bin',
+        bin_dir = '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin',
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;  /tmp/hcatSmoke.sh hcatsmoke cleanup false',
         logoutput = True,
@@ -188,7 +188,7 @@ class TestServiceCheck(RMFTestCase):
            '/usr/local/bin',
            '/bin',
            '/usr/bin',
-           '/bin:/usr/lib/hive/bin:/usr/bin'],
+           '/bin:/usr/hdp/current/hive-server2/bin:/usr/bin'],
         tries = 3,
         user = 'ambari-qa',
         try_sleep = 5,
@@ -197,7 +197,7 @@ class TestServiceCheck(RMFTestCase):
                               content = StaticFile('templetonSmoke.sh'),
                               mode = 0755,
                               )
-    
+
     self.assertResourceCalled('File', '/tmp/idtest.ambari-qa.1431110511.43.pig',
         content = Template('templeton_smoke.pig.j2', templeton_test_input='/tmp/idtest.ambari-qa.1431110511.43.in', templeton_test_output='/tmp/idtest.ambari-qa.1431110511.43.out'),
         owner = "hdfs"
@@ -259,7 +259,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  
+
   def test_service_check_during_upgrade(self, socket_mock):
     config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/hive-upgrade.json"
     with open(config_file, 'r') as f:
