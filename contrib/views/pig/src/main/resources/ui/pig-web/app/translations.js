@@ -173,6 +173,7 @@ Ember.I18n.translations = {
     'please_wait':'Testing connection to services...please wait.',
     'storage_test':'Storage test',
     'hdfs_test':'HDFS test',
-    'webhcat_test':'WebHCat test'
+    'webhcat_test':'WebHCat test',
+    'userhome_test':'User Home Directory test'
   }
 };

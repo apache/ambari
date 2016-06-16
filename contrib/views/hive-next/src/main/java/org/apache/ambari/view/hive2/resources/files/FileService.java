@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive2.resources.files;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
+import org.apache.ambari.view.commons.hdfs.UserService;
 import org.apache.ambari.view.hive2.BaseService;
 import org.apache.ambari.view.hive2.utils.*;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
@@ -227,6 +228,21 @@ public class FileService extends BaseService {
     try {
       HdfsApi api = HdfsUtil.connectToHDFSApi(context);
       api.getStatus();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * Checks connection to User HomeDirectory
+   * @param context View Context
+   */
+  public static void userhomeSmokeTest(ViewContext context) {
+    try {
+      UserService userservice = new UserService(context);
+      userservice.homeDir();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (Exception ex) {

@@ -60,12 +60,11 @@ export default Ember.Controller.extend({
       }
 
       model.set(name + 'TestDone', true);
-
       var percent = model.get('percent');
-      model.set('percent', percent + 33.33);
+      model.set('percent', percent + 25);
     };
 
-    var promises = ['hdfs', 'hiveserver', 'ats'].map(function(name) {
+    var promises = ['hdfs', 'hiveserver', 'ats', 'userhome'].map(function(name) {
 
       var finalurl = ((name == 'hiveserver') ? self.get('databaseService.baseUrl') : (url + name + 'Status')) || '' ;
 
@@ -88,12 +87,16 @@ export default Ember.Controller.extend({
   }.property("model.percent"),
 
   allTestsCompleted: function(){
-    return this.get('modelhdfsTestDone') && this.get('modelhiveserverTestDone') && this.get('modelatsTestDone');
-  }.property('modelhdfsTestDone', 'modelhiveserverTestDone', 'modelatsTestDone'),
+    return this.get('modelhdfsTestDone') && this.get('modelhiveserverTestDone') && this.get('modelatsTestDone') && this.get('modeluserhomeTestDone');
+  }.property('modelhdfsTestDone', 'modelhiveserverTestDone', 'modelatsTestDone', 'modeluserhomeTestDone'),
 
   modelhdfsTestDone: function() {
     return this.get('model.hdfsTestDone');
   }.property('model.hdfsTestDone' ),
+
+  modeluserhomeTestDone: function() {
+    return this.get('model.userhomeTestDone');
+  }.property('model.userhomeTestDone' ),
 
   modelhiveserverTestDone: function() {
     return this.get('model.hiveserverTestDone');
@@ -106,6 +109,10 @@ export default Ember.Controller.extend({
   modelhdfsTest: function() {
     return this.get('model.hdfsTest');
   }.property('model.hdfsTest' ),
+
+  modeluserhomeTest: function() {
+    return this.get('model.userhomeTest');
+  }.property('model.userhomeTest' ),
 
   modelhiveserverTest: function() {
     return this.get('model.hiveserverTest');
@@ -122,5 +129,3 @@ export default Ember.Controller.extend({
     }
   }
 });
-
-
