@@ -34,8 +34,8 @@ public class SQLStatementJob extends HiveJob {
   private final String jobId;
   private final String logFile;
 
-  public SQLStatementJob(Type type, String[] statements, String username, String jobId, String logFile, ViewContext viewContext) {
-    super(type, username, viewContext);
+  public SQLStatementJob(Type type, String[] statements, String username, String jobId, String logFile) {
+    super(type, username);
     this.statements = new String[statements.length];
     this.jobId = jobId;
     this.logFile = logFile;
@@ -43,8 +43,8 @@ public class SQLStatementJob extends HiveJob {
       this.statements[i] = clean(statements[i]);
     }
   }
-  public SQLStatementJob(Type type, String[] statements, String username, ViewContext viewContext) {
-    this(type, statements, username, null, null, viewContext);
+  public SQLStatementJob(Type type, String[] statements, String username) {
+    this(type, statements, username, null, null);
   }
 
   private String clean(String statement) {

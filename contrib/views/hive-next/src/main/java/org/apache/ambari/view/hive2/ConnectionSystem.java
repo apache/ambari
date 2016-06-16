@@ -47,13 +47,14 @@ public class ConnectionSystem {
   private static Map<String, ActorRef> operationControllerMap = new HashMap<>();
 
   private ConnectionSystem() {
-    this.actorSystem = ActorSystem.create(ACTOR_SYSTEM_NAME);;
+    this.actorSystem = ActorSystem.create(ACTOR_SYSTEM_NAME);
+    ;
   }
 
   public static ConnectionSystem getInstance() {
-    if(instance == null) {
+    if (instance == null) {
       synchronized (lock) {
-        if(instance == null) {
+        if (instance == null) {
           instance = new ConnectionSystem();
         }
       }
@@ -61,10 +62,10 @@ public class ConnectionSystem {
     return instance;
   }
 
-  private ActorRef createOperationController() {
+  private ActorRef createOperationController(ViewContext context) {
     ActorRef deathWatch = actorSystem.actorOf(Props.create(DeathWatch.class));
     return actorSystem.actorOf(
-      Props.create(OperationController.class, actorSystem,deathWatch,
+      Props.create(OperationController.class, actorSystem, deathWatch, context,
         new ConnectionSupplier(), new DataStorageSupplier(), new HdfsApiSupplier()));
   }
 
@@ -74,17 +75,18 @@ public class ConnectionSystem {
 
   /**
    * Returns one operationController per View Instance
+   *
    * @param context
    * @return operationController Instance
    */
   public ActorRef getOperationController(ViewContext context) {
     String instanceName = context.getInstanceName();
     ActorRef ref = operationControllerMap.get(instanceName);
-    if(ref == null) {
+    if (ref == null) {
       synchronized (lock) {
         ref = operationControllerMap.get(instanceName);
-        if(ref == null) {
-          ref = createOperationController();
+        if (ref == null) {
+          ref = createOperationController(context);
           operationControllerMap.put(instanceName, ref);
         }
       }
@@ -93,7 +95,7 @@ public class ConnectionSystem {
   }
 
   public void shutdown() {
-    if(!actorSystem.isTerminated()) {
+    if (!actorSystem.isTerminated()) {
       actorSystem.shutdown();
     }
   }

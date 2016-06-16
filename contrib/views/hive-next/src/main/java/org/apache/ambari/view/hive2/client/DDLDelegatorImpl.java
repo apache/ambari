@@ -144,7 +144,7 @@ public class DDLDelegatorImpl implements DDLDelegator {
 
   private Optional<Result> getRowsFromDB(ConnectionConfig config, String[] statements) {
     Connect connect = config.createConnectMessage();
-    HiveJob job = new SQLStatementJob(HiveJob.Type.SYNC, statements, config.getUsername(), context);
+    HiveJob job = new SQLStatementJob(HiveJob.Type.SYNC, statements, config.getUsername());
     ExecuteJob execute = new ExecuteJob(connect, job);
 
     LOG.info("Executing query: {}, for user: {}", getJoinedStatements(statements), job.getUsername());
@@ -154,7 +154,7 @@ public class DDLDelegatorImpl implements DDLDelegator {
 
   private Optional<Result> getTableDescription(ConnectionConfig config, String databasePattern, String tablePattern, String columnPattern) {
     Connect connect = config.createConnectMessage();
-    HiveJob job = new GetColumnMetadataJob(config.getUsername(), context, databasePattern, tablePattern, columnPattern);
+    HiveJob job = new GetColumnMetadataJob(config.getUsername(), databasePattern, tablePattern, columnPattern);
     ExecuteJob execute = new ExecuteJob(connect, job);
 
     LOG.info("Executing query to fetch the column description for dbPattern: {}, tablePattern: {}, columnPattern: {}, for user: {}",

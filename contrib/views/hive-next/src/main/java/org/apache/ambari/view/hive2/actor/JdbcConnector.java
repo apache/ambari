@@ -354,7 +354,9 @@ public class JdbcConnector extends HiveActor {
   }
 
   private ActorRef getStatementExecutor() {
-    return getContext().actorOf(Props.create(StatementExecutor.class, hdfsApi, storage, connectable.getConnection().get(), connectionDelegate).withDispatcher("akka.actor.result-dispatcher"), "StatementExecutor");
+    return getContext().actorOf(Props.create(StatementExecutor.class, hdfsApi, storage, connectable.getConnection().get(), connectionDelegate)
+      .withDispatcher("akka.actor.result-dispatcher"),
+      "StatementExecutor:" + UUID.randomUUID().toString());
   }
 
   private boolean isAsync() {
