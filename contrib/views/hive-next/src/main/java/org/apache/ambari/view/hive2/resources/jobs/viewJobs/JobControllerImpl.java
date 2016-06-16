@@ -107,7 +107,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
         String query = getQueryForJob();
         ConnectionSystem system = ConnectionSystem.getInstance();
         AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
-        SQLStatementJob asyncJob = new SQLStatementJob(HiveJob.Type.ASYNC, getStatements(jobDatabase, query), context.getUsername(), job.getId(), job.getLogFile(), context);
+        SQLStatementJob asyncJob = new SQLStatementJob(HiveJob.Type.ASYNC, getStatements(jobDatabase, query), context.getUsername(), job.getId(), job.getLogFile());
         asyncJobRunner.submitJob(getHiveConnectionConfig(), asyncJob, job);
 
     }

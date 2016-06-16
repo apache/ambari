@@ -32,11 +32,9 @@ import org.apache.ambari.view.hive2.actor.message.HiveJob;
 import org.apache.ambari.view.hive2.actor.message.HiveMessage;
 import org.apache.ambari.view.hive2.actor.message.JobRejected;
 import org.apache.ambari.view.hive2.actor.message.RegisterActor;
-import org.apache.ambari.view.hive2.actor.message.ResultNotReady;
-import org.apache.ambari.view.hive2.actor.message.ResultReady;
 import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
-import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
 import org.apache.ambari.view.hive2.actor.message.job.CancelJob;
+import org.apache.ambari.view.hive2.actor.message.job.FetchFailed;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.DestroyConnector;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.FreeConnector;
 import org.apache.ambari.view.hive2.internal.ContextSupplier;
@@ -94,13 +92,18 @@ public class OperationController extends HiveActor {
    */
   private final Map<String, Set<ActorRef>> syncBusyConnections;
 
+
+  private final ViewContext context;
+
   public OperationController(ActorSystem system,
                              ActorRef deathWatch,
+                             ViewContext context,
                              ContextSupplier<ConnectionDelegate> connectionSupplier,
                              ContextSupplier<Storage> storageSupplier,
                              ContextSupplier<Optional<HdfsApi>> hdfsApiSupplier) {
     this.system = system;
     this.deathWatch = deathWatch;
+    this.context = context;
     this.connectionSupplier = connectionSupplier;
     this.storageSupplier = storageSupplier;
     this.hdfsApiSupplier = hdfsApiSupplier;
@@ -151,7 +154,9 @@ public class OperationController extends HiveActor {
     if (actorRef != null) {
       actorRef.tell(message, sender());
     } else {
-      LOG.error("Failed to find a running job. Cannot cancel jobId: {}.", message.getJobId());
+      String msg = String.format("Cannot cancel job. Job with id: %s for instance: %s has either not started or has expired.", message.getJobId(), context.getInstanceName());
+      LOG.error(msg);
+      sender().tell(new FetchFailed(msg), self());
     }
   }
 
@@ -159,8 +164,12 @@ public class OperationController extends HiveActor {
     String jobId = message.getJobId();
     String username = message.getUsername();
     ActorRef actorRef = asyncBusyConnections.get(username).get(jobId);
-    if(actorRef != null) {
+    if (actorRef != null) {
       actorRef.tell(message, sender());
+    } else {
+      String msg = String.format("Cannot fetch error for job. Job with id: %s for instance: %s has either not started or has expired.", message.getJobId(), context.getInstanceName());
+      LOG.error(msg);
+      sender().tell(new FetchFailed(msg), self());
     }
   }
 
@@ -170,6 +179,10 @@ public class OperationController extends HiveActor {
     ActorRef actorRef = asyncBusyConnections.get(username).get(jobId);
     if (actorRef != null) {
       actorRef.tell(message, sender());
+    } else {
+      String msg = String.format("Cannot fetch result for job. Job with id: %s for instance: %s has either not started or has expired.", message.getJobId(), context.getInstanceName());
+      LOG.error(msg);
+      sender().tell(new FetchFailed(msg), self());
     }
   }
 
@@ -179,9 +192,8 @@ public class OperationController extends HiveActor {
     ActorRef subActor = null;
     // Check if there is available actors to process this
     subActor = getActorRefFromAsyncPool(username);
-    ViewContext viewContext = job.getViewContext();
     if (subActor == null) {
-      Optional<HdfsApi> hdfsApiOptional = hdfsApiSupplier.get(viewContext);
+      Optional<HdfsApi> hdfsApiOptional = hdfsApiSupplier.get(context);
       if (!hdfsApiOptional.isPresent()) {
         sender().tell(new JobRejected(username, jobId, "Failed to connect to Hive."), self());
         return;
@@ -189,10 +201,10 @@ public class OperationController extends HiveActor {
       HdfsApi hdfsApi = hdfsApiOptional.get();
 
       subActor = system.actorOf(
-        Props.create(JdbcConnector.class, viewContext, self(),
-          deathWatch, hdfsApi, connectionSupplier.get(viewContext),
-          storageSupplier.get(viewContext)).withDispatcher("akka.actor.jdbc-connector-dispatcher"),
-        "jobId:" + jobId + ":asyncjdbcConnector");
+        Props.create(JdbcConnector.class, context, self(),
+          deathWatch, hdfsApi, connectionSupplier.get(context),
+          storageSupplier.get(context)).withDispatcher("akka.actor.jdbc-connector-dispatcher"),
+        UUID.randomUUID().toString() + ":asyncjdbcConnector");
       deathWatch.tell(new RegisterActor(subActor), self());
     }
 
@@ -242,10 +254,9 @@ public class OperationController extends HiveActor {
     ActorRef subActor = null;
     // Check if there is available actors to process this
     subActor = getActorRefFromSyncPool(username);
-    ViewContext viewContext = job.getViewContext();
 
     if (subActor == null) {
-      Optional<HdfsApi> hdfsApiOptional = hdfsApiSupplier.get(viewContext);
+      Optional<HdfsApi> hdfsApiOptional = hdfsApiSupplier.get(context);
       if (!hdfsApiOptional.isPresent()) {
         sender().tell(new JobRejected(username, ExecuteJob.SYNC_JOB_MARKER, "Failed to connect to HDFS."), ActorRef.noSender());
         return;
@@ -253,10 +264,10 @@ public class OperationController extends HiveActor {
       HdfsApi hdfsApi = hdfsApiOptional.get();
 
       subActor = system.actorOf(
-        Props.create(JdbcConnector.class, viewContext, self(),
-          deathWatch, hdfsApi,  connectionSupplier.get(viewContext),
-          storageSupplier.get(viewContext)).withDispatcher("akka.actor.jdbc-connector-dispatcher"),
-        UUID.randomUUID().toString() + ":SyncjdbcConnector");
+        Props.create(JdbcConnector.class, context, self(),
+          deathWatch, hdfsApi, connectionSupplier.get(context),
+          storageSupplier.get(context)).withDispatcher("akka.actor.jdbc-connector-dispatcher"),
+        UUID.randomUUID().toString() + ":syncjdbcConnector");
       deathWatch.tell(new RegisterActor(subActor), self());
     }
 

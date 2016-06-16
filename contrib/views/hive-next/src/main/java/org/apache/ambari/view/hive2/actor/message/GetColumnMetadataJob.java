@@ -18,33 +18,31 @@
 
 package org.apache.ambari.view.hive2.actor.message;
 
-import org.apache.ambari.view.ViewContext;
-
 public class GetColumnMetadataJob extends HiveJob {
   private final String schemaPattern;
   private final String tablePattern;
   private final String columnPattern;
 
-  public GetColumnMetadataJob(String username, ViewContext viewContext,
+  public GetColumnMetadataJob(String username,
                               String schemaPattern, String tablePattern, String columnPattern) {
-    super(Type.SYNC, username, viewContext);
+    super(Type.SYNC, username);
     this.schemaPattern = schemaPattern;
     this.tablePattern = tablePattern;
     this.columnPattern = columnPattern;
   }
 
-  public GetColumnMetadataJob(String username, ViewContext viewContext,
+  public GetColumnMetadataJob(String username,
                               String tablePattern, String columnPattern) {
-    this(username, viewContext, "*", tablePattern, columnPattern);
+    this(username, "*", tablePattern, columnPattern);
   }
 
-  public GetColumnMetadataJob(String username, ViewContext viewContext,
+  public GetColumnMetadataJob(String username,
                               String columnPattern) {
-    this(username, viewContext, "*", "*", columnPattern);
+    this(username, "*", "*", columnPattern);
   }
 
-  public GetColumnMetadataJob(String username, ViewContext viewContext) {
-    this(username, viewContext, "*", "*", "*");
+  public GetColumnMetadataJob(String username) {
+    this(username, "*", "*", "*");
   }
 
   public String getSchemaPattern() {
