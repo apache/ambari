@@ -1153,6 +1153,8 @@ App.AssignMasterComponents = Em.Mixin.create({
     }
   },
 
+  nextButtonDisabled: Em.computed.or('App.router.btnClickInProgress', 'submitDisabled'),
+
   /**
    * Submit button click handler
    * Disable 'Next' button while it is already under process. (using Router's property 'nextBtnClickInProgress')
