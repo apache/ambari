@@ -46,6 +46,7 @@ public class ConnectionFactory {
   private static final String HTTP_PORT_KEY = "hive.server2.thrift.http.port";
   private static final String HIVE_TRANSPORT_MODE_KEY = "hive.server2.transport.mode";
   private static final String HTTP_PATH_KEY = "hive.server2.thrift.http.path";
+  private static final String HS2_PROXY_USER = "hive.server2.proxy.user";
 
 
   public static ConnectionConfig create(ViewContext context) {
@@ -111,10 +112,15 @@ public class ConnectionFactory {
     String sessionParams = context.getProperties().get(HIVE_SESSION_PARAMS);
 
     String formatted = String.format("jdbc:hive2://%s/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=%s", quorum, namespace);
-    if(!Strings.isNullOrEmpty(sessionParams)){
-      return formatted + ";" + sessionParams;
+    if(Strings.isNullOrEmpty(sessionParams)){
+      sessionParams = "";
     }
-    return formatted;
+
+    if(!sessionParams.contains(HS2_PROXY_USER)) {
+      sessionParams = sessionParams + ";" + HS2_PROXY_USER + "=" + context.getUsername();
+    }
+    
+    return formatted + ";" + sessionParams;
   }
 
   private static boolean zookeeperConfigured(ViewContext context) {
