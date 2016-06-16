@@ -334,7 +334,38 @@ public class BlueprintConfigurationProcessor {
 
     setMissingConfigurations(clusterConfig, configTypesUpdated);
 
+    trimProperties(clusterConfig, clusterTopology);
+
     return configTypesUpdated;
+  }
+
+  private void trimProperties(Configuration clusterConfig, ClusterTopology clusterTopology) {
+    Blueprint blueprint = clusterTopology.getBlueprint();
+    Stack stack = blueprint.getStack();
+
+    Map<String, Map<String, String>> configTypes = clusterConfig.getFullProperties();
+    for (String configType : configTypes.keySet()) {
+      Map<String,String> properties = configTypes.get(configType);
+      for (String propertyName : properties.keySet()) {
+        trimPropertyValue(clusterConfig, stack, configType, properties, propertyName);
+      }
+    }
+  }
+
+  private void trimPropertyValue(Configuration clusterConfig, Stack stack, String configType, Map<String, String> properties, String propertyName) {
+    if (propertyName != null && properties.get(propertyName) != null) {
+
+      TrimmingStrategy trimmingStrategy =
+        PropertyValueTrimmingStrategyDefiner.defineTrimmingStrategy(stack, propertyName, configType);
+      String oldValue = properties.get(propertyName);
+      String newValue = trimmingStrategy.trim(oldValue);
+
+      if (!newValue.equals(oldValue)){
+        LOG.debug(String.format("Changing value for config %s property %s from [%s] to [%s]",
+          configType, propertyName, oldValue, newValue));
+        clusterConfig.setProperty(configType, propertyName, newValue);
+      }
+    }
   }
 
   /**

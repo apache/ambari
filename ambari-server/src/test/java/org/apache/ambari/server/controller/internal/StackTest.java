@@ -147,6 +147,7 @@ public class StackTest {
     expect(mockResponse.getPropertyType()).andReturn(Collections.<PropertyInfo.PropertyType>emptySet());
     expect(mockResponse.getType()).andReturn("test-type-one");
     expect(mockResponse.getDependsOnProperties()).andReturn(setOfDependencyInfo);
+    expect(mockResponse.getPropertyValueAttributes()).andReturn(new ValueAttributesInfo());
 
     mockSupport.replayAll();
 
