@@ -6428,8 +6428,6 @@ class TestHDP25StackAdvisor(TestCase):
           "atlas.graph.storage.hostname": "c6401.ambari.apache.org",
           "atlas.kafka.bootstrap.servers": "c6401.ambari.apache.org:6667",
           "atlas.kafka.zookeeper.connect": "c6401.ambari.apache.org",
-          'atlas.server.address.id1': "c6401.ambari.apache.org:21000",
-          'atlas.server.ids': "id1",
           'atlas.authorizer.impl':'ranger'
         }
       },

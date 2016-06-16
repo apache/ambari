@@ -241,45 +241,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    # HA
-    atlas_hosts = self.getHostNamesWithComponent("ATLAS", "ATLAS_SERVER", services)
-
-    if 'atlas.enableTLS' in services['configurations']['application-properties']['properties']:
-      ssl_enabled = services['configurations']['application-properties']['properties']['atlas.enableTLS']
-    else:
-      ssl_enabled = 'false'
-
-    if ssl_enabled.lower == 'true':
-      if 'atlas.server.https.port' in services['configurations']['application-properties']['properties']:
-        metadata_port = services['configurations']['application-properties']['properties']['atlas.server.https.port']
-      else:
-        metadata_port = '21443'
-    else:
-      if 'atlas.server.http.port' in services['configurations']['application-properties']['properties']:
-        metadata_port = services['configurations']['application-properties']['properties']['atlas.server.http.port']
-      else:
-        metadata_port = '21000'
-
-    id = 1
-    server_ids = ""
-    server_hosts = ""
-
-    for host in atlas_hosts:
-      server_id = "id" + str(id)
-      server_host = host+ ":" + metadata_port
-
-      if id > 1:
-        server_ids += ","
-        server_hosts += "\n" + "atlas.server.address." + server_id + "="
-
-      server_ids += server_id
-      server_hosts += server_host
-
-      id += 1
-
-    putAtlasApplicationProperty('atlas.server.ids', server_ids)
-    putAtlasApplicationProperty('atlas.server.address.id1', server_hosts)
-
     if "LOGSEARCH" in servicesList and 'logsearch-solr-env' in services['configurations']:
 
       if 'logsearch_solr_znode' in services['configurations']['logsearch-solr-env']['properties']:
