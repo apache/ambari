@@ -189,6 +189,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     createRoleAuthorization(roleAuthorizationDAO, "SERVICE.ENABLE_HA", "Enable HA");
     createRoleAuthorization(roleAuthorizationDAO, "SERVICE.TOGGLE_ALERTS", "Enable/disable service-level alerts");
     createRoleAuthorization(roleAuthorizationDAO, "SERVICE.ADD_DELETE_SERVICES", "Add/delete services");
+    createRoleAuthorization(roleAuthorizationDAO, "SERVICE.SET_SERVICE_USERS_GROUPS", "Set service users and groups");
 
     createRoleAuthorization(roleAuthorizationDAO, "HOST.VIEW_METRICS", "View metrics");
     createRoleAuthorization(roleAuthorizationDAO, "HOST.VIEW_STATUS_INFO", "View status information");
@@ -211,7 +212,6 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     createRoleAuthorization(roleAuthorizationDAO, "CLUSTER.UPGRADE_DOWNGRADE_STACK", "Upgrade/downgrade stack");
 
     createRoleAuthorization(roleAuthorizationDAO, "AMBARI.ADD_DELETE_CLUSTERS", "Create new clusters");
-    createRoleAuthorization(roleAuthorizationDAO, "AMBARI.SET_SERVICE_USERS_GROUPS", "Set service users and groups");
     createRoleAuthorization(roleAuthorizationDAO, "AMBARI.RENAME_CLUSTER", "Rename clusters");
     createRoleAuthorization(roleAuthorizationDAO, "AMBARI.MANAGE_USERS", "Manage users");
     createRoleAuthorization(roleAuthorizationDAO, "AMBARI.MANAGE_GROUPS", "Manage groups");
@@ -299,6 +299,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     map.put("SERVICE.ENABLE_HA", serviceAdministratorAndUp);
     map.put("SERVICE.TOGGLE_ALERTS", serviceAdministratorAndUp);
     map.put("SERVICE.ADD_DELETE_SERVICES", clusterAdministratorAndUp);
+    map.put("SERVICE.SET_SERVICE_USERS_GROUPS", clusterAdministratorAndUp);
     map.put("HOST.VIEW_METRICS", clusterUserAndUp);
     map.put("HOST.VIEW_STATUS_INFO", clusterUserAndUp);
     map.put("HOST.VIEW_CONFIGS", clusterUserAndUp);
@@ -317,7 +318,6 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     map.put("CLUSTER.TOGGLE_KERBEROS", clusterAdministratorAndUp);
     map.put("CLUSTER.UPGRADE_DOWNGRADE_STACK", clusterAdministratorAndUp);
     map.put("AMBARI.ADD_DELETE_CLUSTERS", administratorOnly);
-    map.put("AMBARI.SET_SERVICE_USERS_GROUPS", administratorOnly);
     map.put("AMBARI.RENAME_CLUSTER", administratorOnly);
     map.put("AMBARI.MANAGE_USERS", administratorOnly);
     map.put("AMBARI.MANAGE_GROUPS", administratorOnly);

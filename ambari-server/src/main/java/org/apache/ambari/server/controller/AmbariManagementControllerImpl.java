@@ -4783,7 +4783,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // relevant properties are not changed. However, if the user is authorized to set service
     // users and groups, there is nothing to check.
     if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
-        RoleAuthorization.AMBARI_SET_SERVICE_USERS_GROUPS)) {
+        RoleAuthorization.SERVICE_SET_SERVICE_USERS_GROUPS)) {
 
       Map<String, String> requestProperties = request.getProperties();
       if (requestProperties != null) {
