@@ -103,6 +103,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_VALIDATION               = "VersionDefinition/validation";
   protected static final String SHOW_AVAILABLE                       = "VersionDefinition/show_available";
 
+  // !!! for convenience, bring over jdk compatibility information from the stack
+  protected static final String VERSION_DEF_MIN_JDK                  = "VersionDefinition/min_jdk";
+  protected static final String VERSION_DEF_MAX_JDK                  = "VersionDefinition/max_jdk";
+
   public static final String DIRECTIVE_SKIP_URL_CHECK = "skip_url_check";
 
   public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID  = new OperatingSystemResourceDefinition().getPluralName();
@@ -152,6 +156,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       VERSION_DEF_STACK_DEFAULT,
       VERSION_DEF_DISPLAY_NAME,
       VERSION_DEF_VALIDATION,
+      VERSION_DEF_MIN_JDK,
+      VERSION_DEF_MAX_JDK,
       SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
       SHOW_AVAILABLE);
 
@@ -262,6 +268,10 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     if (StringUtils.isNotBlank(ObjectUtils.toString(properties.get(VERSION_DEF_DISPLAY_NAME)))) {
       xmlHolder.xml.release.display = properties.get(VERSION_DEF_DISPLAY_NAME).toString();
       xmlHolder.entity.setDisplayName(properties.get(VERSION_DEF_DISPLAY_NAME).toString());
+      // !!! also set the version string to the name for uniqueness reasons.  this is
+      // getting replaced during install packages anyway.  this is just for the entity, the
+      // VDF should stay the same.
+      xmlHolder.entity.setVersion(properties.get(VERSION_DEF_DISPLAY_NAME).toString());
     }
 
     if (s_repoVersionDAO.findByDisplayName(xmlHolder.entity.getDisplayName()) != null) {
@@ -302,6 +312,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
         VERSION_DEF_DISPLAY_NAME,
         VERSION_DEF_AVAILABLE_SERVICES,
         VERSION_DEF_VALIDATION,
+        VERSION_DEF_MIN_JDK,
+        VERSION_DEF_MAX_JDK,
         VERSION_DEF_STACK_SERVICES);
 
       res = toResource(null, xmlHolder.xml, ids, validations);
@@ -309,6 +321,9 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       if (null != definitionName) {
         res.setProperty(SHOW_AVAILABLE, true);
       }
+
+      // !!! for dry run, make sure the version is the entity display
+      setResourceProperty(res, VERSION_DEF_FULL_VERSION, xmlHolder.entity.getVersion(), ids);
 
       addSubresources(res, xmlHolder.entity);
     } else {
@@ -599,6 +614,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
     setResourceProperty(resource, VERSION_DEF_AVAILABLE_SERVICES, xml.getAvailableServices(stack), requestedIds);
     setResourceProperty(resource, VERSION_DEF_STACK_SERVICES, xml.getStackServices(stack), requestedIds);
+    setResourceProperty(resource, VERSION_DEF_MIN_JDK, stack.getMinJdk(), requestedIds);
+    setResourceProperty(resource, VERSION_DEF_MAX_JDK, stack.getMaxJdk(), requestedIds);
 
     return resource;
   }
@@ -656,6 +673,8 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     if (null != stack) {
       setResourceProperty(resource, VERSION_DEF_AVAILABLE_SERVICES, xml.getAvailableServices(stack), requestedIds);
       setResourceProperty(resource, VERSION_DEF_STACK_SERVICES, xml.getStackServices(stack), requestedIds);
+      setResourceProperty(resource, VERSION_DEF_MIN_JDK, stack.getMinJdk(), requestedIds);
+      setResourceProperty(resource, VERSION_DEF_MAX_JDK, stack.getMaxJdk(), requestedIds);
     }
 
     return resource;
