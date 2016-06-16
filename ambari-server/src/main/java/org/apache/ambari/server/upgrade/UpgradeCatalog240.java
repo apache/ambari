@@ -172,6 +172,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   private static final String PRINCIPAL_TYPE_TABLE = "adminprincipaltype";
   private static final String PRINCIPAL_TABLE = "adminprincipal";
   protected static final String HBASE_SITE_CONFIG = "hbase-site";
+  protected static final String HBASE_SPNEGO_PRINCIPAL_KEY = "hbase.security.authentication.spnego.kerberos.principal";
+  protected static final String HBASE_SPNEGO_KEYTAB_KEY = "hbase.security.authentication.spnego.kerberos.keytab";
 
   private static final Map<String, Integer> ROLE_ORDER;
 
@@ -363,6 +365,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateYarnEnv();
     updatePhoenixConfigs();
     updateSparkConfigs();
+    updateHBaseConfigs();
     updateFalconConfigs();
     updateKerberosDescriptorArtifacts();
     removeHiveOozieDBConnectionConfigs();
@@ -2491,6 +2494,71 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     if (roleAuthorization != null) {
       roleAuthorization.setAuthorizationName("Add/delete services");
       roleAuthorizationDAO.merge(roleAuthorization);
+    }
+  }
+
+  /**
+   * Update HBase Kerberos configurations. Ambari 2.4 will alter the HBase web UIs to
+   * support SPNEGO authentication. HBase needs to have new keytab and principal properties
+   * to enable SPNEGO authentication (if the user so chooses to enable it).
+   */
+  protected void updateHBaseConfigs() throws AmbariException {
+    final AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    final Clusters clusters = controller.getClusters();
+
+    if (null != clusters) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (null != clusterMap && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+          StackId stackId = cluster.getCurrentStackVersion();
+
+          // HBase is installed and Kerberos is enabled
+          if (installedServices.contains("HBASE") && SecurityType.KERBEROS == cluster.getSecurityType() && isAtLeastHdp25(stackId)) {
+            Config hbaseSite = cluster.getDesiredConfigByType(HBASE_SITE_CONFIG);
+            if (null != hbaseSite) {
+              Map<String, String> hbaseSiteProperties = hbaseSite.getProperties();
+              // Get any existing config properties (they probably don't exist)
+              String principal = hbaseSiteProperties.get(HBASE_SPNEGO_PRINCIPAL_KEY);
+              String keytab = hbaseSiteProperties.get(HBASE_SPNEGO_KEYTAB_KEY);
+
+              final Map<String, String> updatedKerberosProperties = new HashMap<>();
+
+              // Set the principal for SPNEGO if it's not already set
+              if (null == principal) {
+                final KerberosDescriptor defaultDescriptor = getKerberosDescriptor(cluster);
+                final KerberosIdentityDescriptor spnegoDescriptor = defaultDescriptor.getIdentity("spnego");
+                if (null != spnegoDescriptor) {
+                  // Add the SPNEGO config for the principal
+                  KerberosPrincipalDescriptor principalDescriptor = spnegoDescriptor.getPrincipalDescriptor();
+                  if (null != principalDescriptor) {
+                    updatedKerberosProperties.put(HBASE_SPNEGO_PRINCIPAL_KEY, principalDescriptor.getValue());
+                  }
+                }
+              }
+
+              // Set the keytab for SPNEGO if it's not already set
+              if (null == keytab) {
+                final KerberosDescriptor defaultDescriptor = getKerberosDescriptor(cluster);
+                final KerberosIdentityDescriptor spnegoDescriptor = defaultDescriptor.getIdentity("spnego");
+                if (null != spnegoDescriptor) {
+                  // Add the SPNEGO config for the keytab
+                  KerberosKeytabDescriptor keytabDescriptor = spnegoDescriptor.getKeytabDescriptor();
+                  if (null != keytabDescriptor) {
+                    updatedKerberosProperties.put(HBASE_SPNEGO_KEYTAB_KEY, keytabDescriptor.getFile());
+                  }
+                }
+              }
+
+              // Update the configuration if we changed anything
+              if (!updatedKerberosProperties.isEmpty()) {
+                updateConfigurationProperties(HBASE_SITE_CONFIG, updatedKerberosProperties, true, false);
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -72,6 +72,15 @@
                 },
                 "configuration": "hbase-site/hbase.master.keytab.file"
               }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.keytab"
+              }
             }
           ]
         },
@@ -97,6 +106,15 @@
                   "access": ""
                 },
                 "configuration": "hbase-site/hbase.regionserver.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.keytab"
               }
             }
           ]
