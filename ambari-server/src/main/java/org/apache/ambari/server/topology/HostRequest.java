@@ -505,6 +505,10 @@ public class HostRequest implements Comparable<HostRequest> {
       List<ShortTaskStatus> underlyingTasks = response.getTasks();
       for (ShortTaskStatus task : underlyingTasks) {
         Long logicalInstallTaskId = logicalTaskMap.get(this).get(task.getRole());
+        if(logicalInstallTaskId == null) {
+          LOG.info("Skipping physical install task registering, because component {} cannot be found", task.getRole());
+          continue;
+        }
         //todo: for now only one physical task per component
         long taskId = task.getTaskId();
         registerPhysicalTaskId(logicalInstallTaskId, taskId);
@@ -547,6 +551,10 @@ public class HostRequest implements Comparable<HostRequest> {
       for (ShortTaskStatus task : underlyingTasks) {
         String component = task.getRole();
         Long logicalStartTaskId = logicalTaskMap.get(this).get(component);
+        if(logicalStartTaskId == null) {
+          LOG.info("Skipping physical start task registering, because component {} cannot be found", task.getRole());
+          continue;
+        }
         // for now just set on outer map
         registerPhysicalTaskId(logicalStartTaskId, task.getTaskId());
 
