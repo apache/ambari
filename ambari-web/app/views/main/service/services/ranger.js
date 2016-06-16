@@ -27,13 +27,9 @@ App.MainDashboardServiceRangerView = App.MainDashboardServiceView.extend({
     componentName: 'RANGER_TAGSYNC'
   }),
 
-  /**
-   * Define if RANGER_TAGSYNC is present in the installed stack
-   * @type {Boolean}
-   */
-  isRangerTagsyncInStack: function () {
-    return App.StackServiceComponent.find().someProperty('componentName', 'RANGER_TAGSYNC');
-  }.property(),
+  isRangerTagsyncCreated: function () {
+    return this.isServiceComponentCreated('RANGER_TAGSYNC');
+  }.property('App.router.clusterController.isComponentsStateLoaded'),
 
   didInsertElement: function () {
     this.set('controller.isRangerUpdateWorking', true);

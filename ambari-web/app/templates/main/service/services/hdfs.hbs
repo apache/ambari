@@ -18,23 +18,25 @@
 
 {{view view.dashboardMasterComponentView}}
 <!-- Data Nodes -->
-<tr {{bindAttr class=":component view.dataNodeComponent.componentName"}}>
-  <td class="summary-label"><a
-          href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a>
-  </td>
-  <td class="summary-value">
-    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-      <span>
-        {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
-          {{view.liveComponents}}/{{view.totalComponents}}
-        {{/view}}
-      </span>
-      {{t common.started}}
-    {{else}}
-      {{t common.loading.eclipses}}
-    {{/if}}
-  </td>
-</tr>
+{{#if view.isDataNodeCreated}}
+  <tr {{bindAttr class=":component view.dataNodeComponent.componentName"}}>
+    <td class="summary-label"><a
+            href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a>
+    </td>
+    <td class="summary-value">
+      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+        <span>
+          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
+            {{view.liveComponents}}/{{view.totalComponents}}
+          {{/view}}
+        </span>
+        {{t common.started}}
+      {{else}}
+        {{t common.loading.eclipses}}
+      {{/if}}
+    </td>
+  </tr>
+{{/if}}
 <!-- Data Node Counts -->
 <tr class="datanode-count">
   <td class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</td>
@@ -52,7 +54,7 @@
   {{/if}}
 </tr>
 <!-- JournalNodes -->
-{{#if view.showJournalNodes}}
+{{#if view.isJournalNodeCreated}}
   <tr {{bindAttr class=":component view.journalNodeComponent.componentName"}}>
     <td class="summary-label">
       <a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>

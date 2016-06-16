@@ -85,8 +85,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   dataNodesDead: Em.computed.alias('service.dataNodesInstalled'),
 
-  showJournalNodes: Em.computed.gt('service.journalNodes.length', 0),
-
   journalNodesLive: function () {
     return this.get('service.journalNodes').filterProperty("workStatus", "STARTED").get("length");
   }.property("service.journalNodes.@each.workStatus"),
@@ -152,7 +150,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   isNfsInStack: function () {
     return App.StackServiceComponent.find().someProperty('componentName', 'NFS_GATEWAY');
   }.property(),
-  
+
   journalNodeComponent: Em.computed.alias('service.journalNodes.firstObject'),
 
   /**
@@ -190,6 +188,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
    */
   isUpgradeStatusWarning: function () {
     return this.get('service.upgradeStatus') == 'false' && this.get('service.healthStatus') == 'green';
-  }.property('service.upgradeStatus', 'service.healthStatus')
+  }.property('service.upgradeStatus', 'service.healthStatus'),
 
+  isDataNodeCreated: function () {
+    return this.isServiceComponentCreated('DATANODE');
+  }.property('App.router.clusterController.isComponentsStateLoaded'),
+
+  isJournalNodeCreated: function () {
+    return this.isServiceComponentCreated('JOURNALNODE');
+  }.property('App.router.clusterController.isComponentsStateLoaded')
 });

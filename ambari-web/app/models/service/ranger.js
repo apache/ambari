@@ -18,9 +18,9 @@
 var App = require('app');
 
 App.RangerService = App.Service.extend({
-  rangerTagsyncsStarted: DS.attr('number'),
-  rangerTagsyncsInstalled: DS.attr('number'),
-  rangerTagsyncsTotal: DS.attr('number')
+  rangerTagsyncsStarted: DS.attr('number', {defaultValue: 0}),
+  rangerTagsyncsInstalled: DS.attr('number', {defaultValue: 0}),
+  rangerTagsyncsTotal: DS.attr('number', {defaultValue: 0})
 });
 
 App.RangerService.FIXTURES = [];

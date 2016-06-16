@@ -18,22 +18,24 @@
 {{view view.dashboardMasterComponentView}}
 
 <!-- NodeManagers -->
-<tr {{bindAttr class=":component view.nodeManagerComponent.componentName"}}>
-  <td class="summary-label">
-    <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a>
-  </td>
-  <td class="summary-value">
-    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-      <span>
-        {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal"}}
-          {{view.liveComponents}}/{{view.totalComponents}}
-        {{/view}}
-      </span>{{t common.started}}
-    {{else}}
-      {{t common.loading.eclipses}}
-    {{/if}}
-  </td>
-</tr>
+{{#if view.isNodeManagerCreated}}
+  <tr {{bindAttr class=":component view.nodeManagerComponent.componentName"}}>
+    <td class="summary-label">
+      <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a>
+    </td>
+    <td class="summary-value">
+      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+        <span>
+          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal"}}
+            {{view.liveComponents}}/{{view.totalComponents}}
+          {{/view}}
+        </span>{{t common.started}}
+      {{else}}
+        {{t common.loading.eclipses}}
+      {{/if}}
+    </td>
+  </tr>
+{{/if}}
 <!-- NodeManagers status -->
 <tr class="nodemanager-status">
   <td class="summary-label">{{t dashboard.services.yarn.nodeManagers.status}}</td>

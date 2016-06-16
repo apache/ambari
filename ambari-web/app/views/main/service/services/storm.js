@@ -36,5 +36,9 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
 
   nimbusUptimeFormatted: function() {
     return this.get('service.nimbusUptime') || Em.I18n.t('services.service.summary.notRunning');
-  }.property('service.nimbusUptime')
+  }.property('service.nimbusUptime'),
+
+  isSupervisorCreated: function () {
+    return this.isServiceComponentCreated('SUPERVISOR');
+  }.property('App.router.clusterController.isComponentsStateLoaded')
 });

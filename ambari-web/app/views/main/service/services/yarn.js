@@ -86,5 +86,9 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
 
   willDestroyElement: function(){
     $("[rel='queue-tooltip']").tooltip('destroy');
-  }
+  },
+
+  isNodeManagerCreated: function () {
+    return this.isServiceComponentCreated('NODEMANAGER');
+  }.property('App.router.clusterController.isComponentsStateLoaded')
 });

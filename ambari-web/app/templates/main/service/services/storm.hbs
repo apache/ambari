@@ -17,25 +17,26 @@
 }}
 
 {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
-<tr class="component SUPERVISOR">
-  <td class="summary-label">
-    <a href="#" {{action filterHosts view.filterComponent}}>
-      {{t dashboard.services.storm.supervisors}}
-    </a>
-  </td>
-  <td class="summary-value">
-    {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-      <span>
-        {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal"}}
-          {{view.liveComponents}}/{{view.totalComponents}}
-        {{/view}}
-      </span> {{t services.service.summary.SupervisorsLIVE}}
-    {{else}}
-      {{t common.loading.eclipses}}
-    {{/if}}
-  </td>
-</tr>
-
+{{#if view.isSupervisorCreated}}
+  <tr class="component SUPERVISOR">
+    <td class="summary-label">
+      <a href="#" {{action filterHosts view.filterComponent}}>
+        {{t dashboard.services.storm.supervisors}}
+      </a>
+    </td>
+    <td class="summary-value">
+      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+        <span>
+          {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal"}}
+            {{view.liveComponents}}/{{view.totalComponents}}
+          {{/view}}
+        </span> {{t services.service.summary.SupervisorsLIVE}}
+      {{else}}
+        {{t common.loading.eclipses}}
+      {{/if}}
+    </td>
+  </tr>
+{{/if}}
 <!-- Divider-- make the remaining summary info on 2nd table-->
 </tbody>
 </table>
