@@ -215,6 +215,37 @@
     <display-name>LLAP app java opts</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
+
+
+  <!--
+  Note: This config is added for displaying 'num_llap_nodes' value as a 'label' on Hive Server Interactive panel and will always
+  have same value as 'num_llap_nodes'. 'num_llap_nodes' will stay editable in Advanced section.
+  -->
+
+  <property>
+    <name>num_llap_nodes_copy</name>
+    <value>1</value>
+    <description>The number of Hive LLAP daemons to run.</description>
+    <display-name>Number of LLAP Daemons</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>num_llap_nodes</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+
+
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
