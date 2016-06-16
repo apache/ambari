@@ -18,6 +18,7 @@ limitations under the License.
 
 import json
 import os
+import socket
 from unittest import TestCase
 
 class TestHDP21StackAdvisor(TestCase):
@@ -374,6 +375,7 @@ class TestHDP21StackAdvisor(TestCase):
     clusterData = {
       "totalAvailableRam": 2048
     }
+    ambariHostName = socket.getfqdn()
     expected = {
       'hadoop-env': {
         'properties': {
@@ -387,7 +389,7 @@ class TestHDP21StackAdvisor(TestCase):
         "properties": {
           "hadoop.proxyuser.hdfs.hosts": "*",
           "hadoop.proxyuser.hdfs.groups": "*",
-          "hadoop.proxyuser.ambari_user.hosts": "*",
+          "hadoop.proxyuser.ambari_user.hosts": ambariHostName,
           "hadoop.proxyuser.ambari_user.groups": "*"
         }
       },
