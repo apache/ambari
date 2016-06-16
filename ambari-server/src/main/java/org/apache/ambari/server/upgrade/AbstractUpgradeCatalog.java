@@ -374,27 +374,24 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           for (PropertyInfo property : properties) {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             Config clusterConfigs = cluster.getDesiredConfigByType(configType);
-              PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
+            PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
 
-              if (upgradeBehavior.isAdd()) {
-                if(!toAddProperties.containsKey(configType)) {
-                  toAddProperties.put(configType, new HashSet<String>());
-                }
-                toAddProperties.get(configType).add(property.getName());
+            if (upgradeBehavior.isDelete()) {
+              if (!toRemoveProperties.containsKey(configType)) {
+                toRemoveProperties.put(configType, new HashSet<String>());
               }
-              if (upgradeBehavior.isUpdate()) {
-                if(!toUpdateProperties.containsKey(configType)) {
-                  toUpdateProperties.put(configType, new HashSet<String>());
-                }
-                toUpdateProperties.get(configType).add(property.getName());
+              toRemoveProperties.get(configType).add(property.getName());
+            } else if (upgradeBehavior.isUpdate()) {
+              if (!toUpdateProperties.containsKey(configType)) {
+                toUpdateProperties.put(configType, new HashSet<String>());
               }
-              if (upgradeBehavior.isDelete()) {
-                if(!toRemoveProperties.containsKey(configType)) {
-                  toRemoveProperties.put(configType, new HashSet<String>());
-                }
-                toRemoveProperties.get(configType).add(property.getName());
+              toUpdateProperties.get(configType).add(property.getName());
+            } else if (upgradeBehavior.isAdd()) {
+              if (!toAddProperties.containsKey(configType)) {
+                toAddProperties.put(configType, new HashSet<String>());
               }
-
+              toAddProperties.get(configType).add(property.getName());
+            }
           }
         }
 
