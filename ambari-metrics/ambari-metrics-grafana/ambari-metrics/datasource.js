@@ -194,14 +194,22 @@ define([
           };
           // To speed up querying on templatized dashboards.
           var getAllHostData = function(target) {
-            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision=' 
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var topN = ""; var isBottomN = "";
+            if (!_.isEmpty(templateSrv.variables.filter(function(o) { return o.name === "instances";}))) {
+              var metricTopN = _.filter(templateSrv.variables, function (o) { return o.name === "instances"; });
+              var metricTopAgg = _.filter(templateSrv.variables, function (o) { return o.name === "topagg"; });
+              isBottomN = templateSrv.variables.filter(function(o) { return o.name === "orientation";})[0].current.value
+              === "bottom" ? true : false;
+              topN = '&topN=' + metricTopN[0].current.value  +'&topNFunction=' + metricTopAgg[0].current.value  + '&isBottomN='+ isBottomN;
+            }
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
-              '&endTime=' + to + precision).then(
+              '&endTime=' + to + precision + topN).then(
               allHostMetricsData(target)
             );
           };
@@ -352,20 +360,13 @@ define([
 
             // To speed up querying on templatized dashboards.
             if (templateSrv.variables[1] && templateSrv.variables[1].name === "hosts") {
-              var splitHosts = [];
-              // Remove curly braces that Grafana adds. {host1,host2}
               var allHosts = templateSrv._values.hosts.lastIndexOf('}') > 0 ? templateSrv._values.hosts.slice(1,-1) :
-                templateSrv._values.hosts;
-              var allHost = allHosts.split(',');
-              while (allHost.length > 0) {
-                splitHosts.push(allHost.splice(0,50));
-              }
-              _.forEach(splitHosts, function(splitHost) {
-                metricsPromises.push(_.map(options.targets, function(target) {
-                  target.templatedHost = _.flatten(splitHost).join(',');
+              templateSrv._values.hosts;
+              allHosts = templateSrv._texts.hosts === "All" ? '%' : allHosts;
+              metricsPromises.push(_.map(options.targets, function(target) {
+                  target.templatedHost = allHosts;
                   return getAllHostData(target);
-                }));
-              });
+              }));
             }
             metricsPromises = _.flatten(metricsPromises);
           } else {
