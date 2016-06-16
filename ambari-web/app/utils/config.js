@@ -854,7 +854,9 @@ App.config = Em.Object.create({
       if (!t.get('isAdvanced') && t.get('serviceName') === serviceName) {
         t.get('sections').forEach(function (s) {
           s.get('subSections').forEach(function (ss) {
-            properties = properties.concat(ss.get('configProperties'));
+            properties = properties.concat(ss.get('configs').filter(function(item) {
+              return item.get('widgetType') != 'test-db-connection';
+            }));
           });
         });
       }
