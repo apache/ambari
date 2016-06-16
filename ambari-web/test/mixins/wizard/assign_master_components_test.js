@@ -209,4 +209,8 @@ describe('App.AssignMasterComponents', function () {
     });
 
   });
+
+  App.TestAliases.testAsComputedOr(baseObject.create(),
+    'nextButtonDisabled', ['App.router.btnClickInProgress', 'submitDisabled']);
+
 });

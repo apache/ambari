@@ -148,7 +148,7 @@
         {{/if}}
       </button>
     {{/if}}
-    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action submit target="controller"}}>
+    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="nextButtonDisabled"}} {{action submit target="controller"}}>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
