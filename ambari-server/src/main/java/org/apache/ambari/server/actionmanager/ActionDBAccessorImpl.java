@@ -46,6 +46,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
+import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -126,6 +127,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Inject
   Configuration configuration;
+
+  @Inject
+  AmbariEventPublisher ambariEventPublisher;
 
   @Inject
   AuditLogger auditLogger;
@@ -434,6 +438,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (requestEntity != null && requestEntity.getEndTime() == -1L) {
       requestEntity.setEndTime(System.currentTimeMillis());
       requestDAO.merge(requestEntity);
+      ambariEventPublisher.publish(new RequestFinishedEvent(requestEntity.getClusterId(), requestId));
     }
   }
 

@@ -19,10 +19,12 @@
 package org.apache.ambari.server.topology;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
@@ -30,6 +32,7 @@ import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
@@ -87,6 +90,9 @@ public class TopologyManagerTest {
   @TestSubject
   private TopologyManager topologyManager = new TopologyManager();
 
+  @TestSubject
+  private TopologyManager topologyManagerReplay = new TopologyManager();
+
   @Mock(type = MockType.NICE)
   private Blueprint blueprint;
 
@@ -112,7 +118,7 @@ public class TopologyManagerTest {
   private RequestStatusResponse requestStatusResponse;
   @Mock(type = MockType.STRICT)
   private ExecutorService executor;
-  @Mock(type = MockType.STRICT)
+  @Mock(type = MockType.NICE)
   private PersistedState persistedState;
   @Mock(type = MockType.NICE)
   private HostGroup group1;
@@ -283,6 +289,7 @@ public class TopologyManagerTest {
     expect(logicalRequestFactory.createRequest(eq(1L), (TopologyRequest) anyObject(), capture(clusterTopologyCapture))).
         andReturn(logicalRequest).anyTimes();
     expect(logicalRequest.getRequestId()).andReturn(1L).anyTimes();
+    expect(logicalRequest.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
     expect(logicalRequest.getReservedHosts()).andReturn(Collections.singleton("host1")).anyTimes();
     expect(logicalRequest.getRequestStatus()).andReturn(requestStatusResponse).anyTimes();
 
@@ -314,16 +321,10 @@ public class TopologyManagerTest {
 
     expectLastCall().anyTimes();
 
-    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
-        List<LogicalRequest>>emptyMap()).anyTimes();
     expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).anyTimes();
     persistedState.persistLogicalRequest(logicalRequest, 1);
     expectLastCall().anyTimes();
 
-    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, logicalRequest,
-        configurationRequest, configurationRequest2, configurationRequest3, requestStatusResponse, executor,
-        persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
-        mockFuture);
 
     Class clazz = TopologyManager.class;
 
@@ -332,6 +333,12 @@ public class TopologyManagerTest {
     f.set(topologyManager, executor);
 
     EasyMockSupport.injectMocks(topologyManager);
+
+    Field f2 = clazz.getDeclaredField("executor");
+    f2.setAccessible(true);
+    f2.set(topologyManagerReplay, executor);
+
+    EasyMockSupport.injectMocks(topologyManagerReplay);
 
   }
 
@@ -348,8 +355,132 @@ public class TopologyManagerTest {
 
   @Test
   public void testProvisionCluster() throws Exception {
+    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
+            List<LogicalRequest>>emptyMap()).anyTimes();
+    replayAll();
+
     topologyManager.provisionCluster(request);
     //todo: assertions
+  }
+
+  @Test
+  public void testBlueprintRequestCompletion() throws Exception {
+    List<ShortTaskStatus> tasks = new ArrayList<>();
+    ShortTaskStatus t1 = new ShortTaskStatus();
+    t1.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t1);
+    ShortTaskStatus t2 = new ShortTaskStatus();
+    t2.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t2);
+    ShortTaskStatus t3 = new ShortTaskStatus();
+    t3.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t3);
+
+    expect(requestStatusResponse.getTasks()).andReturn(tasks).anyTimes();
+    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
+            List<LogicalRequest>>emptyMap()).anyTimes();
+    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    replayAll();
+    topologyManager.provisionCluster(request);
+    requestFinished();
+    Assert.assertTrue(topologyManager.isClusterProvisionWithBlueprintFinished(CLUSTER_ID));
+  }
+
+  @Test
+  public void testBlueprintRequestCompletion__Failure() throws Exception {
+    List<ShortTaskStatus> tasks = new ArrayList<>();
+    ShortTaskStatus t1 = new ShortTaskStatus();
+    t1.setStatus(HostRoleStatus.FAILED.toString());
+    tasks.add(t1);
+    ShortTaskStatus t2 = new ShortTaskStatus();
+    t2.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t2);
+    ShortTaskStatus t3 = new ShortTaskStatus();
+    t3.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t3);
+
+    expect(requestStatusResponse.getTasks()).andReturn(tasks).anyTimes();
+    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
+            List<LogicalRequest>>emptyMap()).anyTimes();
+    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    replayAll();
+    topologyManager.provisionCluster(request);
+    requestFinished();
+    Assert.assertTrue(topologyManager.isClusterProvisionWithBlueprintFinished(CLUSTER_ID));
+  }
+
+  @Test
+  public void testBlueprintRequestCompletion__InProgress() throws Exception {
+    List<ShortTaskStatus> tasks = new ArrayList<>();
+    ShortTaskStatus t1 = new ShortTaskStatus();
+    t1.setStatus(HostRoleStatus.IN_PROGRESS.toString());
+    tasks.add(t1);
+    ShortTaskStatus t2 = new ShortTaskStatus();
+    t2.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t2);
+    ShortTaskStatus t3 = new ShortTaskStatus();
+    t3.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t3);
+
+    expect(requestStatusResponse.getTasks()).andReturn(tasks).anyTimes();
+    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
+            List<LogicalRequest>>emptyMap()).anyTimes();
+    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    replayAll();
+    topologyManager.provisionCluster(request);
+    requestFinished();
+    Assert.assertFalse(topologyManager.isClusterProvisionWithBlueprintFinished(CLUSTER_ID));
+  }
+
+  @Test
+  public void testBlueprintRequestCompletion__NoRequest() throws Exception {
+    TopologyManager tm = new TopologyManager();
+    tm.onRequestFinished(new RequestFinishedEvent(CLUSTER_ID, 1));
+    Assert.assertFalse(tm.isClusterProvisionWithBlueprintTracked(CLUSTER_ID));
+    replayAll();
+  }
+
+  @Test
+  public void testBlueprintRequestCompletion__Replay() throws Exception {
+    List<ShortTaskStatus> tasks = new ArrayList<>();
+    ShortTaskStatus t1 = new ShortTaskStatus();
+    t1.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t1);
+    ShortTaskStatus t2 = new ShortTaskStatus();
+    t2.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t2);
+    ShortTaskStatus t3 = new ShortTaskStatus();
+    t3.setStatus(HostRoleStatus.COMPLETED.toString());
+    tasks.add(t3);
+
+    Map<ClusterTopology,List<LogicalRequest>> allRequests = new HashMap<>();
+    List<LogicalRequest> logicalRequests = new ArrayList<>();
+    logicalRequests.add(logicalRequest);
+    ClusterTopology clusterTopologyMock = EasyMock.createNiceMock(ClusterTopology.class);
+    expect(clusterTopologyMock.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
+
+    expect(ambariContext.isTopologyResolved(EasyMock.anyLong())).andReturn(true).anyTimes();
+
+    allRequests.put(clusterTopologyMock, logicalRequests);
+    expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
+    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
+    expect(logicalRequest.hasCompleted()).andReturn(true).anyTimes();
+    expect(requestStatusResponse.getTasks()).andReturn(tasks).anyTimes();
+    replayAll();
+    EasyMock.replay(clusterTopologyMock);
+    topologyManagerReplay.getRequest(1L); // calling ensureInitialized indirectly
+    Assert.assertTrue(topologyManagerReplay.isClusterProvisionWithBlueprintFinished(CLUSTER_ID));
+  }
+
+  private void requestFinished() {
+    topologyManager.onRequestFinished(new RequestFinishedEvent(CLUSTER_ID, 1));
+  }
+
+  private void replayAll() {
+    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
+            configurationRequest, configurationRequest2, configurationRequest3, executor,
+            persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
+            mockFuture, requestStatusResponse, logicalRequest);
   }
 
   @Test(expected = InvalidTopologyException.class)
@@ -364,7 +495,10 @@ public class TopologyManagerTest {
     BlueprintFactory bpfMock = EasyMock.createNiceMock(BlueprintFactory.class);
     EasyMock.expect(bpfMock.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).anyTimes();
     ScaleClusterRequest.init(bpfMock);
-    EasyMock.replay(bpfMock);
+    replay(bpfMock);
+    expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
+      List<LogicalRequest>>emptyMap()).anyTimes();
+    replayAll();
     topologyManager.provisionCluster(request);
     topologyManager.scaleHosts(new ScaleClusterRequest(propertySet));
     Assert.fail("InvalidTopologyException should have been thrown");
