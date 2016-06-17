@@ -24,7 +24,7 @@ from contextlib import closing
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs, get_tarball_paths
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import File, Execute
 from resource_management.libraries.functions.version import format_stack_version
@@ -42,7 +42,8 @@ def make_tarfile(output_filename, source_dir):
   if not os.path.exists(parent_dir):
     os.makedirs(parent_dir)
   with closing(tarfile.open(output_filename, "w:gz")) as tar:
-    tar.add(source_dir, arcname=os.path.basename(source_dir))
+    for file in os.listdir(source_dir):
+      tar.add(os.path.join(source_dir,file),arcname=file)
 
 
 def spark_service(name, upgrade_type=None, action=None):
@@ -57,7 +58,7 @@ def spark_service(name, upgrade_type=None, action=None):
     if effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
       # create & copy spark2-hdp-yarn-archive.tar.gz to hdfs
       source_dir=params.spark_home+"/jars"
-      tmp_archive_file="/tmp/spark2/spark2-hdp-yarn-archive.tar.gz"
+      tmp_archive_file=get_tarball_paths("spark2")[1]
       make_tarfile(tmp_archive_file, source_dir)
       copy_to_hdfs("spark2", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       # create spark history directory
