@@ -46,6 +46,14 @@ def metadata(type='server'):
               create_parents = True
     )
 
+    Directory(format('{conf_dir}/solr'),
+              mode=0755,
+              cd_access='a',
+              owner=params.metadata_user,
+              group=params.user_group,
+              create_parents = True
+              )
+
     Directory(params.log_dir,
               mode=0755,
               cd_access='a',
@@ -95,6 +103,13 @@ def metadata(type='server'):
          content=InlineTemplate(params.metadata_log4j_content)
     )
 
+    File(format("{conf_dir}/solr/solrconfig.xml"),
+         mode=0644,
+         owner=params.metadata_user,
+         group=params.user_group,
+         content=InlineTemplate(params.metadata_solrconfig_content)
+         )
+
     if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
       solr_cloud_util.setup_solr_client(params.config)
 
@@ -117,7 +132,7 @@ def upload_conf_set(config_set, random_num):
   solr_cloud_util.upload_configuration_to_zk(
       zookeeper_quorum=params.zookeeper_quorum,
       solr_znode=params.logsearch_solr_znode,
-      config_set_dir=format("{logsearch_solr_dir}/server/solr/configsets/{config_set}/conf"),
+      config_set_dir=format("{conf_dir}/solr"),
       config_set=config_set,
       tmp_config_set_dir=tmp_config_set_folder,
       java64_home=params.java64_home,
