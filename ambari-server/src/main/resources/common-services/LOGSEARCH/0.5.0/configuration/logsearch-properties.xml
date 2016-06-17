@@ -115,8 +115,11 @@
   <property>
     <name>logsearch.logfeeder.include.default.level</name>
     <value>FATAL,ERROR,WARN</value>
-    <description>Include default Logfeeder log levels for Log Search</description>
+    <description>Include default Logfeeder log levels for Log Search. Used for bootstrapping the configuration only.</description>
     <display-name>Logfeeder log levels</display-name>
+    <value-attributes>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
