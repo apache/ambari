@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'Cluster', 'User', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', '$translate', function($scope, $routeParams, Cluster, User, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, $translate) {
+.controller('UsersShowCtrl', ['$scope', '$routeParams', 'Cluster', 'User', 'View', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', '$translate', function($scope, $routeParams, Cluster, User, View, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, $translate) {
 
   var $t = $translate.instant;
 
@@ -183,26 +183,36 @@ angular.module('ambariAdminConsole')
         nameFilter : $scope.user.user_name,
         typeFilter : {value: 'USER'}
       }).then(function(data) {
-        var privilegesIds = [];
-        var deleteCallback = function () {
-          User.delete($scope.user.user_name).then(function() {
-            $location.path('/users');
-          });
-        };
+        var clusterPrivilegesIds = [];
+        var viewsPrivileges = [];
         if (data.items && data.items.length) {
           angular.forEach(data.items[0].privileges, function(privilege) {
             if (privilege.PrivilegeInfo.principal_type === 'USER') {
-              privilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+              if (privilege.PrivilegeInfo.type === 'VIEW') {
+                viewsPrivileges.push({
+                  id: privilege.PrivilegeInfo.privilege_id,
+                  view_name: privilege.PrivilegeInfo.view_name,
+                  version: privilege.PrivilegeInfo.version,
+                  instance_name: privilege.PrivilegeInfo.instance_name
+                });
+              } else {
+                clusterPrivilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+              }
             }
           });
         }
-        if (privilegesIds.length) {
-          Cluster.deleteMultiplePrivileges($routeParams.id, privilegesIds).then(function() {
-            deleteCallback();
+        User.delete($scope.user.user_name).then(function() {
+          $location.path('/users');
+          if (clusterPrivilegesIds.length) {
+            Cluster.getAllClusters().then(function (clusters) {
+              var clusterName = clusters[0].Clusters.cluster_name;
+              Cluster.deleteMultiplePrivileges(clusterName, clusterPrivilegesIds);
+            });
+          }
+          angular.forEach(viewsPrivileges, function(privilege) {
+            View.deletePrivilege(privilege);
           });
-        } else {
-          deleteCallback();
-        }
+        });
       });
     });
   };

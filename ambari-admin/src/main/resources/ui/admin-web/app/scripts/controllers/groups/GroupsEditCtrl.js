@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Cluster', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, Group, $routeParams, Cluster, Alert, ConfirmationModal, $location, $translate) {
+.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Cluster', 'View', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $location, $translate) {
   var $t = $translate.instant;
   $scope.constants = {
     group: $t('common.group'),
@@ -92,26 +92,36 @@ angular.module('ambariAdminConsole')
         nameFilter : group.group_name,
         typeFilter : {value: 'GROUP'}
       }).then(function(data) {
-        var deleteCallback = function () {
-          group.destroy().then(function() {
-            $location.path('/groups');
-          });
-        };
-        var privilegesIds = [];
+        var clusterPrivilegesIds = [];
+        var viewsPrivileges = [];
         if (data.items && data.items.length) {
           angular.forEach(data.items[0].privileges, function(privilege) {
             if (privilege.PrivilegeInfo.principal_type === 'GROUP') {
-              privilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+              if (privilege.PrivilegeInfo.type === 'VIEW') {
+                viewsPrivileges.push({
+                  id: privilege.PrivilegeInfo.privilege_id,
+                  view_name: privilege.PrivilegeInfo.view_name,
+                  version: privilege.PrivilegeInfo.version,
+                  instance_name: privilege.PrivilegeInfo.instance_name
+                });
+              } else {
+                clusterPrivilegesIds.push(privilege.PrivilegeInfo.privilege_id);
+              }
             }
           });
         }
-        if (privilegesIds.length) {
-          Cluster.deleteMultiplePrivileges($routeParams.id, privilegesIds).then(function() {
-            deleteCallback();
+        group.destroy().then(function() {
+          $location.path('/groups');
+          if (clusterPrivilegesIds.length) {
+            Cluster.getAllClusters().then(function (clusters) {
+              var clusterName = clusters[0].Clusters.cluster_name;
+              Cluster.deleteMultiplePrivileges(clusterName, clusterPrivilegesIds);
+            });
+          }
+          angular.forEach(viewsPrivileges, function(privilege) {
+            View.deletePrivilege(privilege);
           });
-        } else {
-          deleteCallback();
-        }
+        });
       });
     });
   };
