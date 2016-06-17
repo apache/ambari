@@ -395,22 +395,29 @@ class BaseAlert(object):
     ha_http_pattern = alert_uri_lookup_keys.ha_http_pattern
     ha_https_pattern = alert_uri_lookup_keys.ha_https_pattern
 
-    # at least one of these keys is needed
-    if ha_nameservice is None and ha_alias_key is None:
+    # if HA alias key is not defined then it's not HA environment
+    if ha_alias_key is None:
       return None
 
-    # convert dfs.ha.namenodes.{{ha-nameservice}} into
-    # dfs.ha.namenodes.c1ha
-    if ha_nameservice is not None:
+    if alert_uri_lookup_keys.ha_nameservice is not None:
+      # if there is a HA nameservice defined, but it can not be evaluated then it's not HA environment
+      if ha_nameservice is None:
+        return None
+      
+      # convert dfs.ha.namenodes.{{ha-nameservice}} into dfs.ha.namenodes.c1ha
       ha_alias_key = ha_alias_key.replace(self.HA_NAMESERVICE_PARAM, ha_nameservice)
-
-    # grab the alias value which should be like nn1, nn2
-    ha_nameservice_alias = self._get_configuration_value(ha_alias_key)
-    if ha_nameservice_alias is None:
-      logger.warning("[Alert][{0}] HA nameservice value is present but there are no aliases for {1}".format(
-        self.get_name(), ha_alias_key))
-
-      return None
+      ha_nameservice_alias = self._get_configuration_value(ha_alias_key)
+      
+      if ha_nameservice_alias is None:
+        logger.warning("[Alert][{0}] HA nameservice value is present but there are no aliases for {1}".format(
+          self.get_name(), ha_alias_key))
+        return None
+    else:
+      ha_nameservice_alias = self._get_configuration_value(ha_alias_key)
+      
+      # if HA nameservice is not defined then the fact that the HA alias_key could not be evaluated shows that it's not HA environment
+      if ha_nameservice_alias is None:
+        return None
 
     # determine which pattern to use (http or https)
     ha_pattern = ha_http_pattern
