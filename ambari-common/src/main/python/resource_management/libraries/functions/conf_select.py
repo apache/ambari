@@ -145,6 +145,12 @@ _PACKAGE_DIRS = {
       "current_dir": "{0}/current/spark-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
+  "spark2": [
+    {
+      "conf_dir": "/etc/spark2/conf",
+      "current_dir": "{0}/current/spark2-client/conf".format(STACK_ROOT_PATTERN)
+    }
+  ],
   "sqoop": [
     {
       "conf_dir": "/etc/sqoop/conf",

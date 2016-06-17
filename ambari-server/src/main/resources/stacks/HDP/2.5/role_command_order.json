@@ -15,7 +15,7 @@
   },
   "_comment" : "Dependencies that are used when GLUSTERFS is not present in cluster",
   "optional_no_glusterfs": {
-    "SPARK2_JOBHISTORYSERVER-START" : ["NAMENODE-START"],
-    "SPARK2_THRIFTSERVER-START" : ["HIVE_SERVER-START"]
+    "SPARK2_JOBHISTORYSERVER-START" : ["NAMENODE-START", "DATANODE-START"],
+    "SPARK2_THRIFTSERVER-START" : ["NAMENODE-START", "DATANODE-START", "HIVE_SERVER-START"]
   }
 }

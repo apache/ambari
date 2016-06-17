@@ -59,11 +59,13 @@ TARBALL_MAP = {
   "mapreduce": ("{0}/{1}/hadoop/mapreduce.tar.gz".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN),
                 "/{0}/apps/{1}/mapreduce/mapreduce.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
   "spark": ("{0}/{1}/spark/lib/spark-{2}-assembly.jar".format(STACK_ROOT_PATTERN, STACK_VERSION_PATTERN, STACK_NAME_PATTERN),
-            "/{0}/apps/{1}/spark/spark-{0}-assembly.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN))
+            "/{0}/apps/{1}/spark/spark-{0}-assembly.jar".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN)),
+  "spark2": ("/tmp/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN),
+             "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN))
 }
 
 
-def _get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_source_file=None, custom_dest_file=None):
+def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_source_file=None, custom_dest_file=None):
   """
   For a given tarball name, get the source and destination paths to use.
   :param name: Tarball name
@@ -203,7 +205,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   import params
 
   Logger.info("Called copy_to_hdfs tarball: {0}".format(name))
-  (success, source_file, dest_file) = _get_tarball_paths(name, use_upgrading_version_during_upgrade,
+  (success, source_file, dest_file) = get_tarball_paths(name, use_upgrading_version_during_upgrade,
                                                          custom_source_file, custom_dest_file)
 
   if not success:
