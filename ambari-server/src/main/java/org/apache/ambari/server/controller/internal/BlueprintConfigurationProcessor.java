@@ -2716,15 +2716,18 @@ public class BlueprintConfigurationProcessor {
     amsSiteMap.put("timeline.metrics.service.webapp.address", new SingleHostTopologyUpdater("METRICS_COLLECTOR") {
       @Override
       public String updateForClusterCreate(String propertyName, String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
-        String value = origValue;
-        if (isSpecialNetworkAddress(origValue)) {
-          value = origValue.replace(BIND_ALL_IP_ADDRESS, "localhost");
-        }
         int metricsCollectorsCount = topology.getHostAssignmentsForComponent("METRICS_COLLECTOR").size();
         if (metricsCollectorsCount == 1) {
+          String value = origValue;
+          //localhost will be replaced with real hostname in updateForClusterCreate()
+          if (isSpecialNetworkAddress(origValue)) {
+            value = origValue.replace(BIND_ALL_IP_ADDRESS, "localhost");
+          }
           return super.updateForClusterCreate(propertyName, value, properties, topology);
+        } else {
+          //For multiple collectors
+          return origValue.replace("localhost", BIND_ALL_IP_ADDRESS);
         }
-        return origValue;
       }
     });
   }

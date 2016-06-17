@@ -55,6 +55,8 @@ SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
 METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY = '{{ams-site/timeline.metrics.service.webapp.address}}'
+METRICS_COLLECTOR_VIP_HOST_KEY = '{{cluster-env/metrics_collector_vip_host}}'
+METRICS_COLLECTOR_VIP_PORT_KEY = '{{cluster-env/metrics_collector_vip_port}}'
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
@@ -101,6 +103,7 @@ def get_tokens():
   return (HDFS_SITE_KEY, NAMESERVICE_KEY, NN_HTTP_ADDRESS_KEY, DFS_POLICY_KEY,
           EXECUTABLE_SEARCH_PATHS, NN_HTTPS_ADDRESS_KEY, SMOKEUSER_KEY,
           KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY,
+          METRICS_COLLECTOR_VIP_HOST_KEY, METRICS_COLLECTOR_VIP_PORT_KEY,
           METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY)
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -164,17 +167,21 @@ def execute(configurations={}, parameters={}, host_name=None):
   if not HDFS_SITE_KEY in configurations:
     return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)])
 
-  # ams-site/timeline.metrics.service.webapp.address is required
-  if not METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY in configurations:
-    return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY)])
+  if METRICS_COLLECTOR_VIP_HOST_KEY in configurations and METRICS_COLLECTOR_VIP_PORT_KEY in configurations:
+    collector_host = configurations[METRICS_COLLECTOR_VIP_HOST_KEY]
+    collector_port = int(configurations[METRICS_COLLECTOR_VIP_PORT_KEY])
   else:
-    collector_webapp_address = configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY].split(":")
-    if valid_collector_webapp_address(collector_webapp_address):
-      collector_host = collector_webapp_address[0]
-      collector_port = int(collector_webapp_address[1])
+    # ams-site/timeline.metrics.service.webapp.address is required
+    if not METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY in configurations:
+      return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY)])
     else:
-      return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(
-        METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY])])
+      collector_webapp_address = configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY].split(":")
+      if valid_collector_webapp_address(collector_webapp_address):
+        collector_host = collector_webapp_address[0]
+        collector_port = int(collector_webapp_address[1])
+      else:
+        return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(
+          METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY])])
 
   namenode_service_rpc_address = None
   # hdfs-site is required
