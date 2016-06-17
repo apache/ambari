@@ -51,7 +51,9 @@ module.exports = Em.Route.extend({
       }
 
       router.get('mainViewsController').dataLoading().done(function() {
-        var content = App.router.get('mainViewsController.ambariViews').findProperty('href', href);
+        var content = App.router.get('mainViewsController.ambariViews').filter(function(i) {
+          return Em.get(i, 'href').endsWith(href);
+        })[0];
         if (content) content.set('viewPath', viewPath);
         router.get('mainController').connectOutlet('mainViewsDetails', content);
       });

@@ -18,7 +18,12 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/views">{{'common.views' | translate}}</a></li>
-    <li class="active">{{instance.ViewInstanceInfo.label}} <a class="gotoinstance" ng-show="instance.ViewInstanceInfo.visible" href="/#/main{{instance.ViewInstanceInfo.context_path}}">{{'views.goToInstance' | translate}}</a></li>
+    <li class="active">{{instance.ViewInstanceInfo.label}}
+      <a class="gotoinstance" ng-show="instance.ViewInstanceInfo.visible"
+         href="{{fromSiteRoot('/#/main/views/' + viewUrl)}}">
+        {{'views.goToInstance' | translate}}
+      </a>
+    </li>
   </ol>
   <div class="pull-right top-margin-4" ng-switch="instance.ViewInstanceInfo.static">
     <button ng-switch-when="true" class="btn disabled btn-default btn-delete-instance" tooltip="{{'views.alerts.cannotDeleteStaticInstance' | translate}}">{{'common.delete' | translate: '{term: instanceType}'}}</button>
@@ -83,7 +88,7 @@
 
           <div class="col-sm-9">
             <div ng-if="settings.shortUrl">
-            <p class="form-control-static"><a target="_blank" href="/#/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}" ng-if="settings.shortUrl">/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
+            <p class="form-control-static"><a target="_blank" href="{{fromSiteRoot('/#/main/view/' + instance.ViewInstanceInfo.view_name + '/' + settings.shortUrl)}}" ng-if="settings.shortUrl">/main/view/{{instance.ViewInstanceInfo.view_name}}/{{settings.shortUrl}}&nbsp;<i class="fa fa-external-link" aria-hidden="true"></i></a>
              &nbsp;<a ng-hide="editDetailsSettingsDisabled" href="javascript:void(0)" ng-click="deleteShortURL(settings.shortUrlName)" class="alert-link">{{'common.delete' | translate }}</a>
              </p>
           </div>

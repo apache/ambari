@@ -196,4 +196,17 @@ angular.module('ambariAdminConsole')
       e.preventDefault();
     }
   });
+
+  /**
+   * Method using to generate full URI from site root, this method should be used
+   * along with all 'href' attribute or methods which invoke redirect to Ambari Web.
+   * This method is useful to determine actual site root when ambari run under proxy server.
+   *
+   * @param {string} url
+   * @returns {string}
+   */
+  $rootScope.fromSiteRoot = function(url) {
+    var path = url[0] === '/' ? url.substring(1) : url;
+    return Settings.siteRoot + path;
+  };
 }]);

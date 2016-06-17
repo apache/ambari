@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewUrlEditCtrl',['$scope', 'View', 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate','ConfirmationModal' ,function($scope, View, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate,ConfirmationModal) {
+  .controller('ViewUrlEditCtrl',['$scope', 'View', 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate','ConfirmationModal', 'Settings' ,function($scope, View, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate,ConfirmationModal, Settings) {
   var $t = $translate.instant;
   $scope.form = {};
   $scope.constants = {
@@ -55,6 +55,7 @@ angular.module('ambariAdminConsole')
 
           View.editShortUrl(payload).then(function(urlStatus) {
               Alert.success($t('urls.urlUpdated', {
+                  siteRoot: Settings.siteRoot,
                   viewName:$scope.url.view_instance_common_name ,
                   shortUrl:$scope.url.suffix,
                   urlName:$scope.url.url_name
