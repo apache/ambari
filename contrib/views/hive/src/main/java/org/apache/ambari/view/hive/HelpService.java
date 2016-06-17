@@ -33,6 +33,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 
 /**
  * Help service
@@ -102,7 +103,7 @@ public class HelpService extends BaseService {
       ATSRequestsDelegateImpl atsimpl = new ATSRequestsDelegateImpl(context, new ATSParserFactory(context).getATSUrl());
       atsimpl.checkATSStatus();
       return getOKResponse();
-    }catch (Exception e){
+    }catch (IOException e){
       throw new WebApplicationException(e);
     }
   }

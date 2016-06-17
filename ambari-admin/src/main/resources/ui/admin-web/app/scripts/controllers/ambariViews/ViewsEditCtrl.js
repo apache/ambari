@@ -64,8 +64,10 @@ angular.module('ambariAdminConsole')
     function initCtrlVariables(instance) {
        $scope.data.clusterType = instance.ViewInstanceInfo.cluster_type;
        var clusterId = instance.ViewInstanceInfo.cluster_handle;
+       if (!clusterId) $scope.data.clusterType = 'NONE';
        switch($scope.data.clusterType) {
           case 'LOCAL_AMBARI':
+            $scope.cluster = null;
             $scope.clusters.forEach(function(cluster){
               if(cluster.id == clusterId){
                 $scope.cluster = cluster;
@@ -73,6 +75,7 @@ angular.module('ambariAdminConsole')
             })
             break;
           case 'REMOTE_AMBARI':
+            $scope.data.remoteCluster = null;
             $scope.remoteClusters.forEach(function(cluster){
               if(cluster.id == clusterId){
                 $scope.data.remoteCluster = cluster;
@@ -80,6 +83,7 @@ angular.module('ambariAdminConsole')
             })
             break;
        }
+
       $scope.originalClusterType = $scope.data.clusterType;
       $scope.isConfigurationEmpty = !$scope.numberOfClusterConfigs;
       $scope.isSettingsEmpty = !$scope.numberOfSettingsConfigs;

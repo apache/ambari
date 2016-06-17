@@ -19,6 +19,7 @@
 package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
@@ -48,7 +49,7 @@ public class RemoteAmbariClusterRegistry {
   @Inject
   private Configuration configuration;
 
-  public RemoteAmbariCluster get(Long clusterId) throws MalformedURLException {
+  public RemoteAmbariCluster get(Long clusterId) throws MalformedURLException, ClusterNotFoundException {
     RemoteAmbariCluster remoteAmbariCluster = clusterMap.get(clusterId);
     if (remoteAmbariCluster == null) {
       RemoteAmbariCluster cluster = getCluster(clusterId);
@@ -60,8 +61,11 @@ public class RemoteAmbariClusterRegistry {
   }
 
 
-  private RemoteAmbariCluster getCluster(Long clusterId) throws MalformedURLException {
+  private RemoteAmbariCluster getCluster(Long clusterId) throws MalformedURLException, ClusterNotFoundException {
     RemoteAmbariClusterEntity remoteAmbariClusterEntity = remoteAmbariClusterDAO.findById(clusterId);
+    if (remoteAmbariClusterEntity == null) {
+      throw new ClusterNotFoundException(clusterId);
+    }
     RemoteAmbariCluster remoteAmbariCluster = new RemoteAmbariCluster(remoteAmbariClusterEntity, configuration);
     return remoteAmbariCluster;
   }
@@ -73,7 +77,7 @@ public class RemoteAmbariClusterRegistry {
    */
   public void update(RemoteAmbariClusterEntity entity) {
     remoteAmbariClusterDAO.update(entity);
-    clusterMap.remove(entity.getName());
+    clusterMap.remove(entity.getId());
   }
 
   /**
@@ -83,7 +87,7 @@ public class RemoteAmbariClusterRegistry {
    */
   public void delete(RemoteAmbariClusterEntity entity) {
     remoteAmbariClusterDAO.delete(entity);
-    clusterMap.remove(entity.getName());
+    clusterMap.remove(entity.getId());
   }
 
   /**
