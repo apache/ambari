@@ -19,14 +19,26 @@
 package org.apache.ambari.view.tez.exceptions;
 
 import org.apache.ambari.view.utils.ambari.AmbariApiException;
-
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.lang.Throwable;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ATSUrlFetchException extends WebApplicationException {
+public class ConfigurationFetchException extends WebApplicationException {
 
-  public ATSUrlFetchException(AmbariApiException ex) {
-    super(ex.toEntity());
+  public ConfigurationFetchException(String message, AmbariApiException ex) {
+    super(toEntity(message, ex));
+  }
 
+  private static Response toEntity(String message, AmbariApiException ex) {
+    Map<String, Object> json = new HashMap<>();
+    int status = Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+    json.put("message", String.join(". ", message, ex.getMessage()) );
+    json.put("status", status);
+    json.put("trace", ex.getCause());
+    return Response.status(status).entity(json).type(MediaType.APPLICATION_JSON).build();
   }
 
 }
