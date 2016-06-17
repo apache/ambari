@@ -226,8 +226,8 @@
         "atlas_log_level": "debug",
         "audit_log_level": "OFF"
       },
-      "atlas-hbase-site": {
-        "hbase.master.info.port": "61510"
+      "atlas-solrconfig": {
+        "content": "<property><name>content</name><description>Custom solrconfig properties</description><value></value></property>"
       },
       "ranger-hbase-plugin-properties": {
             "ranger-hbase-plugin-enabled":"yes"

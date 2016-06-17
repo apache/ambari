@@ -59,6 +59,11 @@
             <fileName>atlas-log4j.xml</fileName>
             <dictionaryName>atlas-log4j</dictionaryName>
           </configFile>
+          <configFile>
+            <type>env</type>
+            <fileName>atlas-solrconfig.xml</fileName>
+            <dictionaryName>atlas-solrconfig</dictionaryName>
+          </configFile>
         </component>
 
         <component>
@@ -87,6 +92,11 @@
             <type>env</type>
             <fileName>atlas-log4j.xml</fileName>
             <dictionaryName>atlas-log4j</dictionaryName>
+          </configFile>
+          <configFile>
+            <type>env</type>
+            <fileName>atlas-solrconfig.xml</fileName>
+            <dictionaryName>atlas-solrconfig</dictionaryName>
           </configFile>
         </component>
       </components>
