@@ -247,6 +247,7 @@ App.QueuesController = Ember.ArrayController.extend({
           return +queue.get('capacity') + prev;
         },0);
 
+      total = parseFloat(total.toFixed(3));
       leaf.setEach('overCapacity',total != 100);
     }.bind(this));
   }.observes('content.length','content.@each.capacity'),
