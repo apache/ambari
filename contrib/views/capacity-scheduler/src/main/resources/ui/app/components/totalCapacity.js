@@ -119,7 +119,14 @@ App.TotalCapacityComponent = Ember.Component.extend({
    * Sum of leaf queues capacities.
    * @type {Number}
    */
-  totalCapacity: Ember.computed.sum('leafQueuesCapacity'),
+  totalCapacity: function() {
+    var leafCaps = this.get('leafQueuesCapacity');
+    var total = leafCaps.reduce(function(prev, cap) {
+      return prev + cap;
+    }, 0);
+    total = parseFloat(total.toFixed(3));
+    return total;
+  }.property('leafQueuesCapacity', 'leafQueuesCapacity.length', 'leafQueuesCapacity.@each.capacity'),
 
   /**
    * Node labels stored in store.
@@ -266,9 +273,11 @@ App.TotalCapacityComponent = Ember.Component.extend({
      * @return {Number}
      */
     capacityValue:function () {
-      return this.get('labels').reduce(function (prev, label) {
+      var total = this.get('labels').reduce(function (prev, label) {
         return prev + ((label && label.get('capacity'))?+label.get('capacity'):0);
       }, 0);
+      total = parseFloat(total.toFixed(3));
+      return total;
     }.property('labels.@each.capacity','labels.[]'),
 
     /**
