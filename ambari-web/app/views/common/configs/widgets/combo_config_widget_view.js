@@ -43,6 +43,19 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     this._super();
     this.toggleWidgetState();
     this.initPopover();
+    this.addObserver('config.stackConfigProperty.valueAttributes.entries.[]', this, this.updateValuesList);
+    this.addObserver('controller.forceUpdateBoundaries', this, this.updateValuesList);
+  },
+
+  /**
+   * Update options list by recommendations
+   * @method updateValuesList
+   */
+  updateValuesList: function() {
+    if (!this.get('content')) {
+      this.set('content', Em.Object.create({}));
+    }
+    this.set('content.valuesList', this.convertToWidgetUnits(this.get('config.stackConfigProperty.valueAttributes')));
   },
 
   /**
