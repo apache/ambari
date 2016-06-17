@@ -774,6 +774,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     latest_tez_jar_version = None
 
     server_host = socket.getfqdn()
+    for host in hosts["items"]:
+      if server_host == host["Hosts"]["host_name"]:
+        server_host = host["Hosts"]["public_host_name"]
     server_port = '8080'
     server_protocol = 'http'
     views_dir = '/var/lib/ambari-server/resources/views/'
