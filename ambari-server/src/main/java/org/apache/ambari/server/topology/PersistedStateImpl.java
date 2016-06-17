@@ -143,6 +143,28 @@ public class PersistedStateImpl implements PersistedState {
   }
 
   @Override
+  public LogicalRequest getProvisionRequest(long clusterId) {
+    Collection<TopologyRequestEntity> entities = topologyRequestDAO.findByClusterId(clusterId);
+    for (TopologyRequestEntity entity : entities) {
+      if(TopologyRequest.Type.PROVISION == TopologyRequest.Type.valueOf(entity.getAction())) {
+        TopologyLogicalRequestEntity logicalRequestEntity = entity.getTopologyLogicalRequestEntity();
+        TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
+        try {
+          ClusterTopology clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
+          Long logicalId = logicalRequestEntity.getId();
+          return logicalRequestFactory.createRequest(logicalId, replayedRequest, clusterTopology, logicalRequestEntity);
+        } catch (InvalidTopologyException e) {
+          throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
+        } catch (AmbariException e) {
+          throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Override
   public Map<ClusterTopology, List<LogicalRequest>> getAllRequests() {
     //todo: we only currently support a single request per ambari instance so there should only
     //todo: be a single cluster topology

@@ -103,6 +103,11 @@ public abstract class AmbariEvent {
     ACTION_EXECUTION_FINISHED,
 
     /**
+     * Sent when request finishes
+     */
+    REQUEST_FINISHED,
+
+    /**
      * The cluster was renamed.
      */
     CLUSTER_RENAME,

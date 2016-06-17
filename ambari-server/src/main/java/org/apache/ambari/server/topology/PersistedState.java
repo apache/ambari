@@ -70,4 +70,11 @@ public interface PersistedState {
   Map<ClusterTopology, List<LogicalRequest>> getAllRequests();
 
   void registerInTopologyHostInfo(Host host);
+
+  /**
+   * Returns provision request for a cluster
+   * @param clusterId
+   * @return
+   */
+  LogicalRequest getProvisionRequest(long clusterId);
 }

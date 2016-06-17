@@ -34,11 +34,14 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
+import com.google.common.eventbus.Subscribe;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
@@ -53,6 +56,9 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.RequestFinishedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Host;
@@ -111,7 +117,22 @@ public class TopologyManager {
 
   private final static Logger LOG = LoggerFactory.getLogger(TopologyManager.class);
 
-  public TopologyManager() {
+  /**
+   * Stores request that belongs to blueprint creation
+   */
+  private Map<Long, LogicalRequest> clusterProvisionWithBlueprintCreateRequests = new HashMap<>();
+  /**
+   * Flag to show whether blueprint is already finished or not. It is used for shortcuts.
+   */
+  private Map<Long, Boolean> clusterProvisionWithBlueprintCreationFinished = new HashMap<>();
+
+  public TopologyManager(){
+
+  }
+
+  @Inject
+  public void setEventPublisher(AmbariEventPublisher ambariEventPublisher) {
+    ambariEventPublisher.register(this);
   }
 
   @Inject
@@ -131,6 +152,62 @@ public class TopologyManager {
 
       }
     }
+  }
+
+  /**
+   * Called when heartbeat processing finishes
+   * @param event
+   */
+  @Subscribe
+  public void onRequestFinished(RequestFinishedEvent event) {
+    if(event.getType() != AmbariEvent.AmbariEventType.REQUEST_FINISHED
+            || clusterProvisionWithBlueprintCreateRequests.isEmpty()
+            || Boolean.TRUE.equals(clusterProvisionWithBlueprintCreationFinished.get(event.getClusterId()))) {
+      return;
+    }
+
+    if(isClusterProvisionWithBlueprintFinished(event.getClusterId())) {
+      clusterProvisionWithBlueprintCreationFinished.put(event.getClusterId(), Boolean.TRUE);
+      LogicalRequest provisionRequest = clusterProvisionWithBlueprintCreateRequests.get(event.getClusterId());
+      if(isLogicalRequestSuccessful(provisionRequest)) {
+        LOG.info("Cluster creation request id={} using Blueprint {} successfully completed for cluster id={}",
+                clusterProvisionWithBlueprintCreateRequests.get(event.getClusterId()).getRequestId(),
+                clusterTopologyMap.get(event.getClusterId()).getBlueprint().getName(),
+                event.getClusterId());
+      } else {
+        LOG.info("Cluster creation request id={} using Blueprint {} failed for cluster id={}",
+                clusterProvisionWithBlueprintCreateRequests.get(event.getClusterId()).getRequestId(),
+                clusterTopologyMap.get(event.getClusterId()).getBlueprint().getName(),
+                event.getClusterId());
+      }
+    }
+  }
+
+  /**
+   * Returns if provision request for a cluster is tracked
+   * @param clusterId
+   * @return
+   */
+  public boolean isClusterProvisionWithBlueprintTracked(long clusterId) {
+    return clusterProvisionWithBlueprintCreateRequests.containsKey(clusterId);
+  }
+
+  /**
+   * Returns if the provision request for a cluster is finished.
+   * Note that this method returns false if the request is not tracked.
+   * See {@link TopologyManager#isClusterProvisionWithBlueprintTracked(long)}
+   * @param clusterId
+   * @return
+   */
+  public boolean isClusterProvisionWithBlueprintFinished(long clusterId) {
+    if(!isClusterProvisionWithBlueprintTracked(clusterId)) {
+      return false; // no blueprint request is running
+    }
+    // shortcut
+    if(clusterProvisionWithBlueprintCreationFinished.containsKey(clusterId) && clusterProvisionWithBlueprintCreationFinished.get(clusterId)) {
+      return true;
+    }
+    return isLogicalRequestFinished(clusterProvisionWithBlueprintCreateRequests.get(clusterId));
   }
 
   public RequestStatusResponse provisionCluster(final ProvisionClusterRequest request) throws InvalidTopologyException, AmbariException {
@@ -194,6 +271,7 @@ public class TopologyManager {
     //todo: be tied to cluster state
 
     ambariContext.persistInstallStateForUI(clusterName, stack.getName(), stack.getVersion());
+    clusterProvisionWithBlueprintCreateRequests.put(clusterId, logicalRequest);
     return getRequestStatus(logicalRequest.getRequestId());
   }
 
@@ -680,6 +758,13 @@ public class TopologyManager {
     for (Map.Entry<ClusterTopology, List<LogicalRequest>> requestEntry : persistedRequests.entrySet()) {
       ClusterTopology topology = requestEntry.getKey();
       clusterTopologyMap.put(topology.getClusterId(), topology);
+      // update provision request cache
+      LogicalRequest provisionRequest = persistedState.getProvisionRequest(topology.getClusterId());
+      if(provisionRequest != null) {
+        clusterProvisionWithBlueprintCreateRequests.put(topology.getClusterId(), provisionRequest);
+        clusterProvisionWithBlueprintCreationFinished.put(topology.getClusterId(),
+                isLogicalRequestFinished(clusterProvisionWithBlueprintCreateRequests.get(topology.getClusterId())));
+      }
 
       for (LogicalRequest logicalRequest : requestEntry.getValue()) {
         allRequests.put(logicalRequest.getRequestId(), logicalRequest);
@@ -714,6 +799,39 @@ public class TopologyManager {
         }
       }
     }
+  }
+
+  /**
+   * @param logicalRequest
+   * @return true if all the tasks in the logical request are in completed state, false otherwise
+   */
+  private boolean isLogicalRequestFinished(LogicalRequest logicalRequest) {
+    if(logicalRequest != null) {
+      boolean completed = true;
+      for(ShortTaskStatus ts : logicalRequest.getRequestStatus().getTasks()) {
+        if(!HostRoleStatus.valueOf(ts.getStatus()).isCompletedState()) {
+          completed = false;
+        }
+      }
+      return completed;
+    }
+    return false;
+  }
+
+  /**
+   * Returns if all the tasks in the logical request have completed state.
+   * @param logicalRequest
+   * @return
+   */
+  private boolean isLogicalRequestSuccessful(LogicalRequest logicalRequest) {
+    if(logicalRequest != null) {
+      for(ShortTaskStatus ts : logicalRequest.getRequestStatus().getTasks()) {
+        if(HostRoleStatus.valueOf(ts.getStatus()) != HostRoleStatus.COMPLETED) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   //todo: this should invoke a callback on each 'service' in the topology
