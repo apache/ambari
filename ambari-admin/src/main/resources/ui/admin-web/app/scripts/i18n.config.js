@@ -280,8 +280,8 @@ angular.module('ambariAdminConsole')
       'noViewInstances':'No view instances',
       'none':'None',
       'change':'Change',
-      'urlCreated':'Created short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>',
-      'urlUpdated':'Updated short URL <a href="/#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>'
+      'urlCreated':'Created short URL <a href="{{siteRoot}}#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>',
+      'urlUpdated':'Updated short URL <a href="{{siteRoot}}#/main/view/{{viewName}}/{{shortUrl}}">{{urlName}}</a>'
     },
 
     'clusters': {

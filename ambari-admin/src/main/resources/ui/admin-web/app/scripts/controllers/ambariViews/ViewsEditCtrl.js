@@ -35,6 +35,7 @@ angular.module('ambariAdminConsole')
       View.getInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId)
         .then(function(instance) {
           $scope.instance = instance;
+          $scope.viewUrl = instance.ViewInstanceInfo.view_name + '/' + instance.ViewInstanceInfo.version + '/' + instance.ViewInstanceInfo.instance_name;
           $scope.settings = {
             'visible': $scope.instance.ViewInstanceInfo.visible,
             'label': $scope.instance.ViewInstanceInfo.label,

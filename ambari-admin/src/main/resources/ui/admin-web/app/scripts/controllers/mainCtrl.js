@@ -22,7 +22,7 @@ angular.module('ambariAdminConsole')
   var $t = $translate.instant;
   $scope.signOut = function() {
     Auth.signout().finally(function() {
-      $window.location.pathname = '';
+      $window.location.pathname = Settings.siteRoot;
     });
   };
 
@@ -38,7 +38,7 @@ angular.module('ambariAdminConsole')
     .then(function(data) {
       var auth = !!data.data && !!data.data.items ? data.data.items.map(function (a){return a.AuthorizationInfo.authorization_id}) : [];
       if(auth.indexOf('AMBARI.RENAME_CLUSTER') == -1){
-        $window.location = "/#/main/dashboard";
+        $window.location = $rootScope.fromSiteRoot("/#/main/dashboard");
       }
     });
 
@@ -84,12 +84,15 @@ angular.module('ambariAdminConsole')
 
   $scope.updateInstances = function () {
     View.getAllVisibleInstance().then(function(instances) {
-      $scope.viewInstances = instances;
+      $scope.viewInstances = instances.map(function(i) {
+        i.viewUrl = i.view_name + '/' + i.version + '/' + i.instance_name;
+        return i;
+      });
     });
   };
 
   $scope.gotoViewsDashboard =function() {
-    window.location = '/#/main/views';
+    window.location = Settings.siteRoot + '#/main/views';
   };
 
   $scope.$root.$on('instancesUpdate', function (event, data) {
@@ -137,7 +140,7 @@ angular.module('ambariAdminConsole')
               $rootScope.timeoutModal.close();
               delete $rootScope.timeoutModal;
               Auth.signout().finally(function() {
-                $window.location.pathname = '';
+                $window.location.pathname = Settings.siteRoot;
               });
             };
             $scope.countDown = function() {
@@ -145,7 +148,7 @@ angular.module('ambariAdminConsole')
               $scope.$apply();
               if ($scope.remainTime == 0) {
                 Auth.signout().finally(function() {
-                  $window.location.pathname = '';
+                  $window.location.pathname = Settings.siteRoot;
                 });
               }
             };

@@ -67,9 +67,9 @@
           <li ng-class="{active: isActive('clusters.manageAccess') || isActive('clusters.userAccessList')}">
             <a href="#/clusters/{{cluster.Clusters.cluster_name}}/manageAccess" class="permissions">{{'common.roles' | translate}}</a>
           </li>
-          <li><a href="#/dashboard"  class="gotodashboard">{{'common.goToDashboard' | translate}}</a></li>
+          <li><a href="{{fromSiteRoot('/#/dashboard')}}" class="gotodashboard">{{'common.goToDashboard' | translate}}</a></li>
         </ul>
-        <span class="cluster-installation-progress-label" ng-show="cluster.Clusters.provisioning_state == 'INIT'"><a href="/#/">{{'common.clusterCreationInProgress' | translate}}</a></span>
+        <span class="cluster-installation-progress-label" ng-show="cluster.Clusters.provisioning_state == 'INIT'"><a href="{{fromSiteRoot('/#/')}}">{{'common.clusterCreationInProgress' | translate}}</a></span>
       </div>
 
 

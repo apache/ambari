@@ -73,7 +73,7 @@
         <span>{{repo.repository_version}}</span>
       </td>
       <td class="col-small">
-        <a href="/#/main/admin/stack/versions" ng-show="repo.cluster">
+        <a href="{{fromSiteRoot('/#/main/admin/stack/versions')}}" ng-show="repo.cluster">
           {{repo.cluster}}
         </a>
         <span ng-show="!repo.cluster">

@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', '$translate', function ($scope, Cluster, Stack, $routeParams, $translate) {
+  .controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', '$translate', 'Settings', function ($scope, Cluster, Stack, $routeParams, $translate, Settings) {
     var $t = $translate.instant;
     $scope.getConstant = function (key) {
       return $t('common.' + key).toLowerCase();
@@ -65,7 +65,7 @@ angular.module('ambariAdminConsole')
     };
 
     $scope.goToCluster = function() {
-      window.location.replace('/#/main/admin/stack/versions');
+      window.location.replace(Settings.siteRoot + '#/main/admin/stack/versions');
     };
 
     $scope.clearFilters = function () {

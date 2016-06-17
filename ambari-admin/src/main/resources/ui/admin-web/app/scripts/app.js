@@ -26,16 +26,17 @@ angular.module('ambariAdminConsole', [
   'pascalprecht.translate'
 ])
 .constant('Settings', {
-	baseUrl: '/api/v1',
+  siteRoot: '{proxy_root}/'.replace(/\{.+\}/g, ''),
+	baseUrl: '{proxy_root}/api/v1'.replace(/\{.+\}/g, ''),
   testMode: (window.location.port == 8000),
   mockDataPrefix: 'assets/data/',
   isLDAPConfigurationSupported: false,
   isLoginActivitiesSupported: false,
   isJWTSupported: false
 })
-.config(['RestangularProvider', '$httpProvider', '$provide', function(RestangularProvider, $httpProvider, $provide) {
+.config(['RestangularProvider', '$httpProvider', '$provide', 'Settings', function(RestangularProvider, $httpProvider, $provide, Settings) {
   // Config Ajax-module
-  RestangularProvider.setBaseUrl('/api/v1');
+  RestangularProvider.setBaseUrl(Settings.baseUrl);
   RestangularProvider.setDefaultHeaders({'X-Requested-By':'ambari'});
 
   $httpProvider.defaults.headers.post['Content-Type'] = 'plain/text';
@@ -67,7 +68,7 @@ angular.module('ambariAdminConsole', [
 
     function error(response) {
       if (response.status == 403) {
-        window.location = "/";
+        window.location = Settings.siteRoot;
         return;
       }
       return $q.reject(response);

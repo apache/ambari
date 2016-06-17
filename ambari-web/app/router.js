@@ -631,7 +631,7 @@ App.Router = Em.Router.extend({
         }),
         sortedMappedVersions = mappedVersions.sort(),
         latestVersion = sortedMappedVersions[sortedMappedVersions.length-1];
-      window.location.replace('/views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/');
+      window.location.replace(App.appURLRoot +  'views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/');
     }
   },
 
