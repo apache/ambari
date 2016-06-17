@@ -308,7 +308,7 @@ class PXFServiceCheck(Script):
     """
     import params
     Logger.info(message)
-    hbase_shell_cmd = "{0} hbase shell {1}".format(kinit_cmd, os.path.join(params.exec_tmp_dir, script))
+    hbase_shell_cmd = "{0} cat {1} ; hbase shell {1}".format(kinit_cmd, os.path.join(params.exec_tmp_dir, script))
     Execute(hbase_shell_cmd, user=params.hbase_user, logoutput=True)
 
   def __check_pxf_hbase_read(self):
