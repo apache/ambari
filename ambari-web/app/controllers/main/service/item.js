@@ -19,6 +19,7 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var blueprintUtils = require('utils/blueprint');
+var stringUtils = require('utils/string_utils');
 
 App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.ConfigsSaverMixin, App.EnhancedConfigsMixin, {
   name: 'mainServiceItemController',
@@ -82,6 +83,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {boolean}
    */
   routeToConfigs: false,
+
+  deleteServiceProgressPopup: null,
 
   isClientsOnlyService: function() {
     return App.get('services.clientOnly').contains(this.get('content.serviceName'));
@@ -1341,7 +1344,26 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
        * @function onPrimary
        */
       onPrimary: function() {
-        self.deleteServiceCall([serviceName].concat(dependentServiceNames));
+        var serviceNames = [serviceName].concat(dependentServiceNames),
+          serviceDisplayNames = serviceNames.map(function (serviceName) {
+            return App.Service.find(serviceName).get('displayName');
+          }),
+          progressPopup = App.ModalPopup.show({
+            classNames: ['delete-service-progress'],
+            header: Em.I18n.t('services.service.delete.popup.header'),
+            showFooter: false,
+            message: Em.I18n.t('services.service.delete.progressPopup.message').format(stringUtils.getFormattedStringFromArray(serviceDisplayNames)),
+            bodyClass: Em.View.extend({
+              classNames: ['delete-service-progress-body'],
+              template: Em.Handlebars.compile('{{view App.SpinnerView}}<div class="progress-message">{{message}}</div>')
+            }),
+            onClose: function () {
+              self.set('deleteServiceProgressPopup', null);
+              this._super();
+            }
+          });
+        self.set('deleteServiceProgressPopup', progressPopup);
+        self.deleteServiceCall(serviceNames);
         this._super();
       },
 
@@ -1458,7 +1480,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @override
    */
   saveConfigs: function() {
-    var data = [];
+    var data = [],
+      progressPopup = this.get('deleteServiceProgressPopup');
     this.get('stepConfigs').forEach(function(stepConfig) {
       var serviceConfig = this.getServiceConfigToSave(stepConfig.get('serviceName'), stepConfig.get('configs'));
 
@@ -1468,16 +1491,24 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }, this);
 
     if (Em.isArray(data) && data.length) {
-      this.putChangedConfigurations(data, 'confirmServiceDeletion');
+      this.putChangedConfigurations(data, 'confirmServiceDeletion', function () {
+        if (progressPopup) {
+          progressPopup.onClose();
+        }
+      });
     } else {
       this.confirmServiceDeletion();
     }
   },
 
   confirmServiceDeletion: function() {
-    var msg = this.get('interDependentServices.length')
-      ? Em.I18n.t('services.service.delete.service.success.confirmation.plural').format(this.get('serviceNamesToDelete').join(','))
-      : Em.I18n.t('services.service.delete.service.success.confirmation').format(this.get('content.serviceName'));
+    var progressPopup = this.get('deleteServiceProgressPopup'),
+      msg = this.get('interDependentServices.length')
+        ? Em.I18n.t('services.service.delete.service.success.confirmation.plural').format(this.get('serviceNamesToDelete').join(','))
+        : Em.I18n.t('services.service.delete.service.success.confirmation').format(this.get('content.serviceName'));
+    if (progressPopup) {
+      progressPopup.onClose();
+    }
     return App.showAlertPopup(Em.I18n.t('popup.confirmation.commonHeader'), msg, function() {
       window.location.reload();
     })
@@ -1515,6 +1546,10 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   deleteServiceCallErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    var progressPopup = this.get('deleteServiceProgressPopup');
+    if (progressPopup) {
+      progressPopup.onClose();
+    }
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
   }
 

@@ -1494,18 +1494,99 @@ describe('App.MainServiceItemController', function () {
   describe("#confirmDeleteService()", function() {
     var mainServiceItemController;
 
-    beforeEach(function() {
-      mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(App.ModalPopup, 'show');
+    beforeEach(function () {
+      mainServiceItemController = App.MainServiceItemController.create();
     });
-    afterEach(function() {
+
+    afterEach(function () {
       App.ModalPopup.show.restore();
     });
 
-    it("App.ModalPopup.show should be called", function() {
-      mainServiceItemController.confirmDeleteService('S1', [], '');
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    describe('confirmation popup', function () {
+
+      beforeEach(function () {
+        sinon.stub(App.ModalPopup, 'show', Em.K);
+        mainServiceItemController.confirmDeleteService('S1', [], '');
+      });
+
+      it("App.ModalPopup.show should be called", function() {
+        expect(App.ModalPopup.show.calledOnce).to.be.true;
+      });
+
     });
+
+    describe('progress popup', function () {
+
+      var cases = [
+        {
+          serviceName: 'S0',
+          dependentServiceNames: [],
+          serviceNames: ['S0'],
+          message: 's0',
+          title: 'no dependent services'
+        },
+        {
+          serviceName: 'S1',
+          dependentServiceNames: ['S2', 'S3', 'S4'],
+          serviceNames: ['S1', 'S2', 'S3', 'S4'],
+          message: 's1, s2, s3 and s4',
+          title: 'dependent services present'
+        }
+      ];
+
+      cases.forEach(function (item) {
+
+        describe(item.title, function () {
+
+          beforeEach(function () {
+            sinon.stub(App.ModalPopup, 'show', function (options) {
+              options._super = Em.K;
+              if (options.onPrimary) {
+                options.onPrimary();
+              }
+              return options;
+            });
+            sinon.stub(App.Service, 'find', function (serviceName) {
+              return Em.Object.create({
+                displayName: serviceName.toLowerCase()
+              });
+            });
+            sinon.stub(mainServiceItemController, 'deleteServiceCall', Em.K);
+            mainServiceItemController.confirmDeleteService(item.serviceName, item.dependentServiceNames, '');
+          });
+
+          afterEach(function () {
+            App.Service.find.restore();
+            mainServiceItemController.deleteServiceCall.restore();
+          });
+
+          it('modal popups display', function () {
+            expect(App.ModalPopup.show.calledTwice).to.be.true;
+          });
+
+          it('progress popup message', function () {
+            expect(mainServiceItemController.get('deleteServiceProgressPopup.message')).to.equal(Em.I18n.t('services.service.delete.progressPopup.message').format(item.message));
+          });
+
+          it('delete service call', function () {
+            expect(mainServiceItemController.deleteServiceCall.calledOnce).to.be.true;
+          });
+
+          it('delete service call arguments', function () {
+            expect(mainServiceItemController.deleteServiceCall.calledWith(item.serviceNames)).to.be.true;
+          });
+
+          it('progress popup close', function () {
+            mainServiceItemController.get('deleteServiceProgressPopup').onClose();
+            expect(mainServiceItemController.get('deleteServiceProgressPopup')).to.be.null;
+          });
+
+        });
+
+      });
+
+    });
+
   });
 
   describe('#interDependentServices', function() {

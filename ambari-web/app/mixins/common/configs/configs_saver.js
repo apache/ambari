@@ -603,10 +603,11 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * contains the site name and tag to be used.
    * @param {Object[]} services
    * @param {String} [successCallback]
+   * @param {Function} [alwaysCallback]
    * @return {$.ajax}
    * @method putChangedConfigurations
    */
-  putChangedConfigurations: function (services, successCallback) {
+  putChangedConfigurations: function (services, successCallback, alwaysCallback) {
     var ajaxData = {
       name: 'common.across.services.configurations',
       sender: this,
@@ -617,6 +618,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     };
     if (successCallback) {
       ajaxData.success = successCallback;
+    }
+    if (alwaysCallback) {
+      ajaxData.callback = alwaysCallback;
     }
     return App.ajax.send(ajaxData);
   },
