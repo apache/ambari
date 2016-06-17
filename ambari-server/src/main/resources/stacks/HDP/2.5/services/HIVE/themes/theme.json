@@ -89,7 +89,7 @@
           ]
         },
         {
-          "config": "hive-interactive-env/num_llap_nodes",
+          "config": "hive-interactive-env/num_llap_nodes_copy",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
             {
@@ -111,7 +111,7 @@
           ]
         },
         {
-          "config": "hive-interactive-site/hive.llap.daemon.yarn.container.mb",
+          "config": "hive-interactive-site/hive.llap.daemon.yarn.container.mb_copy",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
             {
@@ -133,7 +133,7 @@
           ]
         },
         {
-          "config": "hive-interactive-site/hive.llap.io.memory.size",
+          "config": "hive-interactive-site/hive.llap.io.memory.size_copy",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
             {
@@ -155,7 +155,7 @@
           ]
         },
         {
-          "config": "hive-interactive-site/hive.llap.daemon.num.executors",
+          "config": "hive-interactive-site/hive.llap.daemon.num.executors_copy",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
             {
@@ -210,9 +210,9 @@
         }
       },
       {
-        "config": "hive-interactive-env/num_llap_nodes",
+        "config": "hive-interactive-env/num_llap_nodes_copy",
         "widget": {
-          "type": "text-field",
+          "type": "label",
           "units": [
             {
               "unit-name": "int"
@@ -232,7 +232,7 @@
         }
       },
       {
-        "config": "hive-interactive-site/hive.llap.daemon.yarn.container.mb",
+        "config": "hive-interactive-site/hive.llap.daemon.yarn.container.mb_copy",
         "widget": {
           "type": "label",
           "units": [
@@ -243,9 +243,9 @@
         }
       },
       {
-        "config": "hive-interactive-site/hive.llap.io.memory.size",
+        "config": "hive-interactive-site/hive.llap.io.memory.size_copy",
         "widget": {
-          "type": "text-field",
+          "type": "label",
           "units": [
             {
               "unit-name": "MB"
@@ -254,9 +254,9 @@
         }
       },
       {
-        "config": "hive-interactive-site/hive.llap.daemon.num.executors",
+        "config": "hive-interactive-site/hive.llap.daemon.num.executors_copy",
         "widget": {
-          "type": "text-field",
+          "type": "label",
           "units": [
             {
               "unit-name": "int"

@@ -570,4 +570,85 @@ limitations under the License.
     <value>none</value>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <!--
+  Note: Properties added here are just for displaying them as 'label' on Hive Server Interactive panel.
+  -->
+  <property>
+    <name>hive.llap.daemon.num.executors_copy</name>
+    <!--
+      Added for displaying 'hive.llap.daemon.num.executors' value as a 'label' on Hive Server Interactive panel and will always
+      have same value as 'hive.llap.daemon.num.executors'. 'hive.llap.daemon.num.executors_copy' will stay editable in Advanced section.
+    -->
+    <display-name>Maximum CPUs per Daemon</display-name>
+    <description>The maximum number of CPUs a single LLAP daemon will use. Usually this should be equal to the number of available CPUs.</description>
+    <value>1</value>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.num.executors</name>
+      </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.llap.daemon.yarn.container.mb_copy</name>
+    <!--
+      Added for displaying 'hive.llap.daemon.yarn.container.mb' value as a 'label' on Hive Server Interactive panel and will always
+      have same value as 'hive.llap.daemon.yarn.container.mb'. 'hive.llap.daemon.yarn.container.mb' will stay editable in Advanced section.
+    -->
+    <display-name>Memory per daemon</display-name>
+    <description>Total memory used by individual LLAP daemons. This includes memory for the cache as well as for the query execution.</description>
+    <value>{{yarn_scheduler_allocation_minimum_mb}}</value>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.daemon.yarn.container.mb</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.llap.io.memory.size_copy</name>
+    <!--
+       Added for displaying 'hive.llap.io.memory.size' value as a 'label' on Hive Server Interactive panel and will always
+      have same value as 'hive.llap.io.memory.size'. 'hive.llap.io.memory.size' will stay editable in Advanced section.
+    -->
+    <display-name>In-Memory Cache per Daemon</display-name>
+    <description>The amount of memory reserved for Hive's optimized in-memory cache.</description>
+    <value>0</value>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
+      <property>
+        <type>hive-interactive-site</type>
+        <name>hive.llap.io.memory.size</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
 </configuration>

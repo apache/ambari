@@ -402,12 +402,32 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
       putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "false")
 
-    if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
-        'hive.llap.zk.sm.connectionString' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
-      # Fill the property 'hive.llap.zk.sm.connectionString' required by Hive Server Interactive (HiveServer2)
-      zookeeper_host_port = self.getZKHostPortString(services)
-      if zookeeper_host_port:
-        putHiveInteractiveSiteProperty("hive.llap.zk.sm.connectionString", zookeeper_host_port)
+    if self.HIVE_INTERACTIVE_SITE in services['configurations']:
+      if 'hive.llap.zk.sm.connectionString' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+        # Fill the property 'hive.llap.zk.sm.connectionString' required by Hive Server Interactive (HiveServer2)
+        zookeeper_host_port = self.getZKHostPortString(services)
+        if zookeeper_host_port:
+          putHiveInteractiveSiteProperty("hive.llap.zk.sm.connectionString", zookeeper_host_port)
+
+      # Copy the value of 'hive.llap.daemon.yarn.container.mb', 'hive.llap.daemon.num.executors', 'hive.llap.io.memory.size' and 'num_llap_nodes'
+      # to their '*_copy' configs as they are used to display the values as 'label' on Hive Server interactive panel.
+      if 'hive.llap.daemon.yarn.container.mb' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+        hive_llap_yarn_cont_mb = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.yarn.container.mb']
+        putHiveInteractiveSiteProperty("hive.llap.daemon.yarn.container.mb_copy", hive_llap_yarn_cont_mb)
+        Logger.info("Adjusted config 'hive.llap.daemon.yarn.container.mb_copy' value same as config 'hive.llap.daemon.yarn.container.mb' value({0})".format(hive_llap_yarn_cont_mb))
+      if 'hive.llap.daemon.num.executors' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+        hive_llap_daemon_num_executors = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.num.executors']
+        putHiveInteractiveSiteProperty("hive.llap.daemon.num.executors_copy", hive_llap_daemon_num_executors)
+        Logger.info("Adjusted config 'hive.llap.daemon.num.executors_copy' value same as config 'hive.llap.daemon.num.executors' value({0})".format(hive_llap_daemon_num_executors))
+      if 'hive.llap.io.memory.size' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
+        hive_llap_io_mem_size = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.io.memory.size']
+        putHiveInteractiveSiteProperty("hive.llap.io.memory.size_copy", hive_llap_io_mem_size)
+        Logger.info("Adjusted config 'hive.llap.io.memory.size_copy' value same as config 'hive.llap.io.memory.size' value({0})".format(hive_llap_io_mem_size))
+    if 'hive-interactive-env' in services['configurations'] and \
+      'num_llap_nodes' in services['configurations']['hive-interactive-env']['properties']:
+      num_llap_node = services['configurations']['hive-interactive-env']['properties']['num_llap_nodes']
+      putHiveInteractiveEnvProperty("num_llap_nodes_copy", num_llap_node)
+      Logger.info("Adjusted config 'num_llap_nodes_copy' value same as config 'num_llap_nodes' value({0})".format(num_llap_node))
     pass
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
@@ -427,9 +447,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
 
   """
-  Entry point for updating Hive's 'LLAP app' configs namely : (1). num_llap_nodes (2). hive.llap.daemon.yarn.container.mb
-    (3). hive.llap.daemon.num.executors (4). hive.llap.io.memory.size (5). llap_heap_size (6). slider_am_container_size,
-    and (7). hive.server2.tez.sessions.per.default.queue
+  Entry point for updating Hive's 'LLAP app' configs namely : (1). num_llap_nodes, num_llap_nodes_copy
+    (2). hive.llap.daemon.yarn.container.mb, hive.llap.daemon.yarn.container.mb_copy (3). hive.llap.daemon.num.executors,
+    hive.llap.daemon.num.executors_copy (4). hive.llap.io.memory.size, hive.llap.io.memory.size_copy (5). llap_heap_size
+    (6). slider_am_container_size, and (7). hive.server2.tez.sessions.per.default.queue
 
     The trigger point for updating LLAP configs (mentioned above) is change in values of any of the following:
     (1). 'enable_hive_interactive' set to 'true' (2). 'llap_queue_capacity' (3). 'hive.server2.tez.sessions.per.default.queue'
@@ -437,6 +458,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     If change in value for 'llap_queue_capacity' or 'hive.server2.tez.sessions.per.default.queue' is detected, that config
     value is not calulated, but read and use in calculation for dependent configs.
+
+    Note : Configs with name as '*_copy' will have same value as their conterpart configs (eg: 'num_llap_nodes'
+    for 'num_llap_nodes_copy'). '*_copy' configs are added so that we can show them as label on UI in Hive Server Interactive
+    Panel and their counterparts shown in 'Advanced' section as editable ones.
   """
   def updateLlapConfigs(self, configurations, services, hosts, llap_queue_name):
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
@@ -452,10 +477,20 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Update 'hive.llap.daemon.queue.name' prop combo entries and llap capacity slider visibility.
     self.setLlapDaemonQueuePropAttributesAndCapSliderVisibility(services, configurations)
 
+    read_llap_daemon_yarn_cont_mb = long(self.get_yarn_min_container_size(services, configurations))
+    putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', read_llap_daemon_yarn_cont_mb)
     # initial memory setting to make sure hive.llap.daemon.yarn.container.mb >= yarn.scheduler.minimum-allocation-mb
-    Logger.debug("Setting hive.llap.daemon.yarn.container.mb to yarn min container size as initial size "
+    Logger.debug("Adjusted 'hive.llap.daemon.yarn.container.mb' to yarn min container size as initial size "
                  "(" + str(self.get_yarn_min_container_size(services, configurations)) + " MB).")
-    putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', long(self.get_yarn_min_container_size(services, configurations)))
+    # This is a stopgap thing, to be sure that on 1st invocation, value for 'hive.llap.daemon.yarn.container.mb_copy'
+    # is same as value set by 'hive.llap.daemon.yarn.container.mb'.
+    if 'hive-interactive-site' not in configurations or \
+      ('hive-interactive-site' in configurations and \
+           'hive.llap.daemon.yarn.container.mb_copy' not in configurations['hive-interactive-site']['properties']):
+      putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb_copy', read_llap_daemon_yarn_cont_mb)
+      Logger.debug("Adjusted 'hive.llap.daemon.yarn.container.mb_copy' to yarn min container size as initial size "
+                   "(" + str(self.get_yarn_min_container_size(services, configurations)) + " MB).")
+
 
     try:
       if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
@@ -560,15 +595,16 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         # Calculate 'total memory available for llap daemons' across cluster
         total_am_capacity_required = tez_am_container_size * llap_concurrency + slider_am_container_size
         cap_available_for_daemons = total_llap_queue_size - total_am_capacity_required
-        if cap_available_for_daemons < yarn_min_container_size :
-          raise Fail("'Capacity available for LLAP daemons'({0}) < 'YARN minimum container size'({1}). Invalid configuration detected. "
-                     "Increase LLAP queue size.".format(cap_available_for_daemons, yarn_min_container_size))
         Logger.info("Calculated cap_available_for_daemons : {0}, using following : current_selected_queue_for_llap_cap : {1}, "
                     "yarn_nm_mem_in_mb : {2}, total_cluster_capacity : {3}, total_llap_queue_size : {4}, tez_am_container_size"
                     " : {5}, yarn_min_container_size : {6}, llap_concurrency : {7}, total_am_capacity_required : {8}"
                     .format(cap_available_for_daemons, current_selected_queue_for_llap_cap, yarn_nm_mem_in_mb, total_cluster_capacity,
                             total_llap_queue_size, tez_am_container_size, yarn_min_container_size, llap_concurrency,
                             total_am_capacity_required))
+        if cap_available_for_daemons < yarn_min_container_size :
+          raise Fail("'Capacity available for LLAP daemons'({0}) < 'YARN minimum container size'({1}). Invalid configuration detected. "
+                     "Increase LLAP queue size.".format(cap_available_for_daemons, yarn_min_container_size))
+
 
 
         # Calculate value for 'num_llap_nodes', an across cluster config.
@@ -639,13 +675,22 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
         putHiveInteractiveEnvProperty('num_llap_nodes', num_llap_nodes)
         Logger.info("LLAP config 'num_llap_nodes' updated. Current: {0}".format(num_llap_nodes))
+        # Copy the value of 'num_llap_nodes' to 'num_llap_nodes_copy' as 'num_llap_nodes_copy' config is used to display
+        #  it as Label on Hive Server interactive panel.
+        putHiveInteractiveEnvProperty('num_llap_nodes_copy', num_llap_nodes)
 
         llap_container_size = long(llap_container_size)
         putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', llap_container_size)
         Logger.info("LLAP config 'hive.llap.daemon.yarn.container.mb' updated. Current: {0}".format(llap_container_size))
+        # Copy the value of 'hive.llap.daemon.yarn.container.mb' to 'hive.llap.daemon.yarn.container.mb_copy' as
+        # 'hive.llap.daemon.yarn.container.mb_copy' config is used to display it as Label on Hive Server interactive panel.
+        putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb_copy', llap_container_size)
 
         num_executors_per_node = long(num_executors_per_node)
         putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', num_executors_per_node)
+        # Copy the value of 'hive.llap.daemon.num.executors' to 'hive.llap.daemon.num.executors_copy' as
+        # 'hive.llap.daemon.num.executors_copy' config is used to display it as Label on Hive Server interactive panel.
+        putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors_copy', num_executors_per_node)
         Logger.info("LLAP config 'hive.llap.daemon.num.executors' updated. Current: {0}".format(num_executors_per_node))
         # 'hive.llap.io.threadpool.size' config value is to be set same as value calculated for
         # 'hive.llap.daemon.num.executors' at all times.
@@ -655,6 +700,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         cache_size_per_node = long(cache_size_per_node)
         putHiveInteractiveSiteProperty('hive.llap.io.memory.size', cache_size_per_node)
         Logger.info("LLAP config 'hive.llap.io.memory.size' updated. Current: {0}".format(cache_size_per_node))
+        # Copy the value of 'hive.llap.io.memory.size' to 'hive.llap.io.memory.size_copy' as
+        # 'hive.llap.io.memory.size_copy' config is used to display it as Label on Hive Server interactive panel.
+        putHiveInteractiveSiteProperty('hive.llap.io.memory.size_copy', cache_size_per_node)
         llap_io_enabled = 'false'
         if cache_size_per_node >= 64:
           llap_io_enabled = 'true'
@@ -691,17 +739,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         putHiveInteractiveEnvProperty('num_llap_nodes', 0)
         putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "minimum", 1)
         putHiveInteractiveEnvPropertyAttribute('num_llap_nodes', "maximum", node_manager_cnt)
+        putHiveInteractiveEnvProperty('num_llap_nodes_copy', 0)
+        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes_copy', "minimum", 1)
+        putHiveInteractiveEnvPropertyAttribute('num_llap_nodes_copy', "maximum", node_manager_cnt)
 
         putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', yarn_min_container_size)
         putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb', "minimum", yarn_min_container_size)
+        putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb_copy', yarn_min_container_size)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.yarn.container.mb_copy', "minimum", yarn_min_container_size)
 
         putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors', 0)
         putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors', "minimum", 1)
+        putHiveInteractiveSiteProperty('hive.llap.daemon.num.executors_copy', 0)
+        putHiveInteractiveSitePropertyAttribute('hive.llap.daemon.num.executors_copy', "minimum", 1)
+
         putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', 0)
 
         putHiveInteractiveSiteProperty('hive.llap.io.threadpool.size', 0)
 
         putHiveInteractiveSiteProperty('hive.llap.io.memory.size', 0)
+        putHiveInteractiveSiteProperty('hive.llap.io.memory.size_copy', 0)
 
         putHiveInteractiveEnvProperty('llap_heap_size', 0)
 
@@ -767,21 +824,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       assert (llap_slider_cap_percentage > 0), "'llap_queue_capacity' is set to 0."
       return llap_slider_cap_percentage
 
-
-  """
-  Returns current value of cache per node for LLAP (hive.llap.io.memory.size). If value can't be retrieved, return 0.
-  """
-  def get_cache_size_per_node_for_llap_nodes(self, services):
-    if 'hive.llap.io.memory.size' in services['configurations']['hive-interactive-site']['properties']:
-      cache_size_per_node = float(
-        services['configurations']['hive-interactive-site']['properties']['hive.llap.io.memory.size'])
-      return cache_size_per_node
-    else:
-      Logger.error("Couldn't retrieve Hive Server interactive's 'hive.llap.io.memory.size' config.")
-      # Not doing raise as the Exception that catches it will set all other LLAP configs related
-      # to LLAP package as 0, a way to tell that calulations couldn't be done. This is not the intention here.
-      # Just keep cache 0, if it couldn't be retrieved.
-      return 0
 
   """
   Returns current value of number of LLAP nodes in cluster (num_llap_nodes)
