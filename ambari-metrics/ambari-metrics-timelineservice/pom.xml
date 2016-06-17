@@ -251,6 +251,12 @@
   <dependencies>
     <dependency>
       <groupId>org.apache.phoenix</groupId>
+      <artifactId>phoenix-server</artifactId>
+      <version>${phoenix.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-core</artifactId>
       <version>${phoenix.version}</version>
       <exclusions>
