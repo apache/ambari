@@ -68,6 +68,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   isOozieServerAddable: true,
 
   /**
+   * List of components to run refresh YARN queue with
+   * @type {Array}
+   */
+  refreshYARNQueueComponents: ['HIVE_SERVER_INTERACTIVE'],
+
+  /**
    * Open dashboard page
    * @method routeHome
    */
@@ -510,18 +516,79 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method restartComponent
    */
   restartComponent: function (event) {
+    var self = this;
     var component = event.context;
-    if (event.context.get('componentName') == 'NAMENODE') {
+    if (component.get('componentName') == 'NAMENODE') {
       this.checkNnLastCheckpointTime(function () {
         return App.showConfirmationPopup(function () {
           batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
         });
+      });
+    } else if (this.get('refreshYARNQueueComponents').contains(component.get('componentName'))) {
+      return App.showConfirmationPopup(function () {
+        self.restartComponentAndRefreshYARNQueue(component);
       });
     } else {
       return App.showConfirmationPopup(function () {
         batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
       });
     }
+  },
+
+  restartComponentAndRefreshYARNQueue: function (component) {
+    var componentToRestartHost = App.HostComponent.find().findProperty('componentName', component.get('componentName')).get('hostName');
+    var resourceManagerHost = App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName');
+    var batches = [
+      {
+        "order_id": 1,
+        "type": "POST",
+        "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": "Restart " + component.get('displayName'),
+            "command": "RESTART",
+            "operation_level": {
+              "level": "HOST_COMPONENT",
+              "cluster_name": App.get('clusterName'),
+              "service_name": component.get('service.serviceName'),
+              "hostcomponent_name": component.get('componentName')
+            }
+          },
+          "Requests/resource_filters": [{
+            "service_name": component.get('service.serviceName'),
+            "component_name": component.get('componentName'),
+            "hosts": componentToRestartHost
+          }]
+        }
+      },
+      {
+        "order_id": 2,
+        "type": "POST",
+        "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": "Refresh YARN Capacity Scheduler",
+            "command": "REFRESHQUEUES",
+            "parameters/forceRefreshConfigTags": "capacity-scheduler"
+          },
+          "Requests/resource_filters": [{
+            "service_name": "YARN",
+            "component_name": "RESOURCEMANAGER",
+            "hosts": resourceManagerHost
+          }]
+        }
+      }
+    ];
+    App.ajax.send({
+      name: 'common.batch.request_schedules',
+      sender: this,
+      data: {
+        intervalTimeSeconds: 1,
+        tolerateSize: 0,
+        batches: batches
+      },
+      success: 'showBackgroundOperationsPopup'
+    });
   },
 
   /**
