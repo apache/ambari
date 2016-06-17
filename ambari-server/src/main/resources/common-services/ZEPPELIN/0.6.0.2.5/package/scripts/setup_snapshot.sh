@@ -73,7 +73,7 @@ SetupZeppelin () {
     echo "Importing notebooks"
     mkdir -p notebook
     cd notebook
-    wget https://github.com/hortonworks-gallery/zeppelin-notebooks/archive/master.zip -O notebooks.zip
+    wget https://codeload.github.com/hortonworks-gallery/zeppelin-notebooks/zip/master -O notebooks.zip
     unzip notebooks.zip
 
     if [ -d "zeppelin-notebooks-master" ]; then
