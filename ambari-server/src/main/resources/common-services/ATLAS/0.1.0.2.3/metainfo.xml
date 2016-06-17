@@ -116,6 +116,7 @@
         <config-type>application-properties</config-type>
         <config-type>atlas-env</config-type>
         <config-type>atlas-log4j</config-type>
+        <config-type>core-site</config-type>
       </configuration-dependencies>
 
     </service>
