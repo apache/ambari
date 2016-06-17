@@ -34,9 +34,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-import javax.ws.rs.WebApplicationException;
 
 /**
  * Base class for the proxy resources
@@ -44,8 +41,6 @@ import javax.ws.rs.WebApplicationException;
 public abstract class BaseProxyResource {
 
   private ProxyHelper proxyHelper;
-
-  private static final Logger LOG = LoggerFactory.getLogger(BaseProxyResource.class);
 
   @Inject
   public BaseProxyResource(ProxyHelper proxyHelper) {
@@ -59,26 +54,13 @@ public abstract class BaseProxyResource {
     String url = getProxyUrl(endpoint, uriInfo.getQueryParameters());
     String response = proxyHelper.getResponse(url, new HashMap<String, String>());
 
-    try {
-      JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
+    JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
 
-      if (jsonObject == null) {
-        LOG.debug("Response received from URL: {} : {}", url, response);
-        LOG.error("Failed to parse JSON from URL: {}", url);
-        throw new ProxyException("Failed to parse JSON from URL : " + url + ".Internal Error.",
-            Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response);
-      }
-
-      LOG.debug("Proxying to URL: {}", url);
-      return Response.ok(jsonObject).type(MediaType.APPLICATION_JSON).build();
+    if (jsonObject == null) {
+      throw new ProxyException("Failed to parse JSON from URL : " + url + ".Internal Error.",
+        Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response);
     }
-    catch(WebApplicationException e) {
-      LOG.debug("Response received from URL: {} : {}", url, response);
-      LOG.error("Proxying to URL {} failed: ", url, e);
-      throw new ProxyException("Failed to proxy to : " + url + ".Internal Error.",
-          Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage());
-    }
-
+    return Response.ok(jsonObject).type(MediaType.APPLICATION_JSON).build();
   }
 
   public abstract String getProxyUrl(String endpoint, MultivaluedMap<String, String> queryParams);
