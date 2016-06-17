@@ -27,6 +27,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
@@ -110,11 +111,9 @@ import javax.inject.Singleton;
 import javax.xml.bind.JAXBException;
 import java.beans.IntrospectionException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -934,13 +933,19 @@ public class ViewRegistry {
         try {
           return new ClusterImpl(clustersProvider.get().getCluster(clusterId));
         } catch (AmbariException e) {
-          LOG.warn("Could not find the cluster identified by " + clusterId + ".");
+          LOG.error("Could not find the cluster identified by {}.", clusterId);
+          throw new IllegalClusterException(e);
         }
-      } else if(clusterId != null && viewInstance.getClusterType() == ClusterType.REMOTE_AMBARI){
+
+      } else if (clusterId != null && viewInstance.getClusterType() == ClusterType.REMOTE_AMBARI) {
         try {
           return remoteAmbariClusterRegistry.get(clusterId);
         } catch (MalformedURLException e) {
-          LOG.warn("Cannot get Remote Cluster ." + e.getMessage() ,e);
+          LOG.error("Remote Cluster with id={} had invalid URL.", clusterId, e);
+          throw new IllegalClusterException(e);
+        } catch (ClusterNotFoundException e) {
+          LOG.error("Cannot get Remote Cluster with id={}.", clusterId, e);
+          throw new IllegalClusterException(e);
         }
       }
     }
