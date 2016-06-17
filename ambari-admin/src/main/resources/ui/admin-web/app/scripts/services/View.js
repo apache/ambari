@@ -378,12 +378,7 @@ angular.module('ambariAdminConsole')
   View.deletePrivilege = function(params) {
     return $http({
       method: 'DELETE',
-      url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges',
-      params: {
-        'PrivilegeInfo/principal_type': params.principalType,
-        'PrivilegeInfo/principal_name': params.principalName,
-        'PrivilegeInfo/permission_name': params.permissionName
-      }
+      url: Settings.baseUrl + '/views/' + params.view_name +'/versions/'+params.version+'/instances/'+params.instance_name+'/privileges/'+params.id
     });
   };
 
