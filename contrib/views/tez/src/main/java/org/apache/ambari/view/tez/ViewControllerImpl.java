@@ -18,18 +18,18 @@
 
 package org.apache.ambari.view.tez;
 
+import java.lang.String;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.cluster.Cluster;
-import org.apache.ambari.view.tez.exceptions.ConfigurationFetchException;
+import org.apache.ambari.view.tez.exceptions.ATSUrlFetchException;
+import org.apache.ambari.view.tez.exceptions.ActiveRMFetchException;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.ambari.view.utils.ambari.AmbariApiException;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-
-import javax.ws.rs.core.Response;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -41,8 +41,6 @@ import com.google.inject.Singleton;
 public class ViewControllerImpl implements ViewController {
 
   private AmbariApi ambariApi;
-
-  private static final Logger LOG = LoggerFactory.getLogger(ViewControllerImpl.class);
 
   @Inject
   public ViewControllerImpl(ViewContext viewContext) {
@@ -73,9 +71,7 @@ public class ViewControllerImpl implements ViewController {
     try {
       return ambariApi.getServices().getTimelineServerUrl();
     } catch (AmbariApiException ex) {
-      String message = "Failed to find YARN Timeline Server location!";
-      LOG.error(message, ex);
-      throw new ConfigurationFetchException(message, ex);
+      throw new ATSUrlFetchException(ex);
     }
   }
 
@@ -84,21 +80,13 @@ public class ViewControllerImpl implements ViewController {
     try {
       return ambariApi.getServices().getRMUrl();
     } catch (AmbariApiException ex) {
-      String message = "Failed to find Active ResourceManager location!";
-      LOG.error(message, ex);
-      throw new ConfigurationFetchException(message, ex);
+      throw new ActiveRMFetchException(ex);
     }
   }
 
   @Override
   public String getYARNProtocol() {
-    try {
-      return ambariApi.getServices().getYARNProtocol();
-    } catch (AmbariApiException ex) {
-      String message = "Failed to find YARN http/https protocol configuration value!";
-      LOG.error(message, ex);
-      throw new ConfigurationFetchException(message, ex);
-    }
+    return ambariApi.getServices().getYARNProtocol();
   }
 }
 
