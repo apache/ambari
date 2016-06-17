@@ -37,7 +37,7 @@ from ambari_server.properties import Properties
 from ambari_server.serverConfiguration import configDefaults, get_resources_location, update_properties, \
   check_database_name_property, get_ambari_properties, get_ambari_version, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
-  update_database_name_property, get_admin_views_dir, get_views_dir, \
+  update_database_name_property, get_admin_views_dir, get_views_dir, get_views_jars, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
   AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY
@@ -403,6 +403,11 @@ def upgrade(args):
   admin_views_dirs = get_admin_views_dir(properties)
   for admin_views_dir in admin_views_dirs:
     shutil.rmtree(admin_views_dir)
+
+  # Modify timestamp of views jars to current time
+  views_jars = get_views_jars(properties)
+  for views_jar in views_jars:
+    os.utime(views_jar, None)
 
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):

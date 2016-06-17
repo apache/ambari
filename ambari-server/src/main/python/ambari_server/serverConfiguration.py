@@ -628,6 +628,14 @@ def get_admin_views_dir(properties):
     views_dirs = glob.glob(views_dir + "/work/ADMIN_VIEW*")
   return views_dirs
 
+def get_views_jars(properties):
+  views_dir = properties.get_property(VIEWS_DIR_PROPERTY)
+  if views_dir is None or views_dir == "":
+    views_jars = glob.glob(AmbariPath.get("/var/lib/ambari-server/resources/views/*.jar"))
+  else:
+    views_jars = glob.glob(views_dir + "/*.jar")
+  return views_jars
+
 def get_is_secure(properties):
   isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
   isSecure = True if isSecure and isSecure.lower() == 'true' else False
