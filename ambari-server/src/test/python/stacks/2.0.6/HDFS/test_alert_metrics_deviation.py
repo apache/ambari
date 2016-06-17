@@ -51,27 +51,6 @@ class TestAlertMetricsDeviation(RMFTestCase):
     sys.path.append(file_path)
     global alert
     import alert_metrics_deviation as alert
-    global configs
-    configs = {
-      '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
-      '{{hdfs-site/dfs.http.policy}}': 'HTTP_ONLY',
-      '{{ams-site/timeline.metrics.service.webapp.address}}': 'c6401.ambari.apache.org:6188',
-      '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50070',
-      '{{cluster-env/security_enabled}}': 'false',
-      '{{cluster-env/smokeuser}}': 'ambari-qa',
-      '{{hdfs-site}}': {
-        'dfs.datanode.address': '0.0.0.0:50010',
-        'dfs.namenode.rpc-address': 'c6401.ambari.apache.org:8020',
-        'dfs.namenode.https-address': 'c6401.ambari.apache.org:50470',
-        'dfs.namenode.http-address': 'c6401.ambari.apache.org:50070',
-        'dfs.datanode.https.address': '0.0.0.0:50475',
-        'dfs.namenode.secondary.http-address': 'c6401.ambari.apache.org:50090',
-        'dfs.datanode.http.address': '0.0.0.0:50075',
-        'dfs.http.policy': 'HTTP_ONLY',
-        'dfs.journalnode.https-address': '0.0.0.0:8481',
-        'dfs.journalnode.http-address': '0.0.0.0:8480'
-      }
-    }
     global parameters
     parameters = {
       'metric.deviation.warning.threshold': 100.0,
@@ -97,6 +76,55 @@ class TestAlertMetricsDeviation(RMFTestCase):
 
   @patch("httplib.HTTPConnection")
   def test_alert(self, conn_mock):
+    configs = {
+      '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
+      '{{hdfs-site/dfs.http.policy}}': 'HTTP_ONLY',
+      '{{ams-site/timeline.metrics.service.webapp.address}}': 'c6401.ambari.apache.org:6188',
+      '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50070',
+      '{{cluster-env/security_enabled}}': 'false',
+      '{{cluster-env/smokeuser}}': 'ambari-qa',
+      '{{hdfs-site}}': {
+        'dfs.datanode.address': '0.0.0.0:50010',
+        'dfs.namenode.rpc-address': 'c6401.ambari.apache.org:8020',
+        'dfs.namenode.https-address': 'c6401.ambari.apache.org:50470',
+        'dfs.namenode.http-address': 'c6401.ambari.apache.org:50070',
+        'dfs.datanode.https.address': '0.0.0.0:50475',
+        'dfs.namenode.secondary.http-address': 'c6401.ambari.apache.org:50090',
+        'dfs.datanode.http.address': '0.0.0.0:50075',
+        'dfs.http.policy': 'HTTP_ONLY',
+        'dfs.journalnode.https-address': '0.0.0.0:8481',
+        'dfs.journalnode.http-address': '0.0.0.0:8480'
+      }
+    }
+    self.make_alert_tests(configs, conn_mock)
+
+  @patch("httplib.HTTPConnection")
+  def test_alert_vip(self, conn_mock):
+    configs = {
+      '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
+      '{{hdfs-site/dfs.http.policy}}': 'HTTP_ONLY',
+      '{{ams-site/timeline.metrics.service.webapp.address}}': '0.0.0.0:6188',
+      '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50070',
+      '{{cluster-env/security_enabled}}': 'false',
+      '{{cluster-env/smokeuser}}': 'ambari-qa',
+      '{{cluster-env/metrics_collector_vip_host}}': 'c6401.ambari.apache.org',
+      '{{cluster-env/metrics_collector_vip_port}}': '6188',
+      '{{hdfs-site}}': {
+        'dfs.datanode.address': '0.0.0.0:50010',
+        'dfs.namenode.rpc-address': 'c6401.ambari.apache.org:8020',
+        'dfs.namenode.https-address': 'c6401.ambari.apache.org:50470',
+        'dfs.namenode.http-address': 'c6401.ambari.apache.org:50070',
+        'dfs.datanode.https.address': '0.0.0.0:50475',
+        'dfs.namenode.secondary.http-address': 'c6401.ambari.apache.org:50090',
+        'dfs.datanode.http.address': '0.0.0.0:50075',
+        'dfs.http.policy': 'HTTP_ONLY',
+        'dfs.journalnode.https-address': '0.0.0.0:8481',
+        'dfs.journalnode.http-address': '0.0.0.0:8480'
+      }
+    }
+    self.make_alert_tests(configs, conn_mock)
+
+  def make_alert_tests(self, configs, conn_mock):
     connection = MagicMock()
     response = MagicMock()
     response.status = 200
