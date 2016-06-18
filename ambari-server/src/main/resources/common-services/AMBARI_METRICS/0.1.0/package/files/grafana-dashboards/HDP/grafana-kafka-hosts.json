@@ -1852,6 +1852,122 @@
         "refresh": true,
         "regex": "",
         "type": "query"
+      },
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "top",
+          "value": "top"
+        },
+        "datasource": null,
+        "hideLabel": false,
+        "includeAll": false,
+        "label": "show",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "orientation",
+        "options": [
+          {
+            "selected": true,
+            "text": "top",
+            "value": "top"
+          },
+          {
+            "selected": false,
+            "text": "bottom",
+            "value": "bottom"
+          }
+        ],
+        "query": "top,bottom",
+        "refresh": false,
+        "type": "custom"
+      },
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "20",
+          "value": "20"
+        },
+        "datasource": null,
+        "hideLabel": true,
+        "includeAll": false,
+        "label": "instances",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "instances",
+        "options": [
+          {
+            "selected": true,
+            "text": "20",
+            "value": "20"
+          },
+          {
+            "selected": false,
+            "text": "1",
+            "value": "1"
+          },
+          {
+            "selected": false,
+            "text": "5",
+            "value": "5"
+          },
+          {
+            "selected": false,
+            "text": "10",
+            "value": "10"
+          },
+          {
+            "selected": false,
+            "text": "15",
+            "value": "15"
+          },
+          {
+            "selected": false,
+            "text": "50",
+            "value": "50"
+          },
+          {
+            "selected": false,
+            "text": "100",
+            "value": "100"
+          }
+        ],
+        "query": "20,1,5,10,15,50,100",
+        "refresh": false,
+        "type": "custom"
+      },
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "avg",
+          "value": "avg"
+        },
+        "datasource": null,
+        "includeAll": false,
+        "label": "aggregator",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "topagg",
+        "options": [
+          {
+            "selected": true,
+            "text": "avg",
+            "value": "avg"
+          },
+          {
+            "selected": false,
+            "text": "max",
+            "value": "max"
+          },
+          {
+            "selected": false,
+            "text": "sum",
+            "value": "sum"
+          }
+        ],
+        "query": "avg,max,sum",
+        "refresh": false,
+        "type": "custom"
       }
     ]
   },
