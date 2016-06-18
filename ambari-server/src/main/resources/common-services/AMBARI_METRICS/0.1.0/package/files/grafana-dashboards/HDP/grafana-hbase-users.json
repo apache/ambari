@@ -17,7 +17,7 @@
       "height": "25px",
       "panels": [
         {
-          "content": "<h4 align=\"center\">Per User Metrics for the HBase cluster. Click on each row title to expand on demand to look at various metrics per user in HBase. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
+          "content": "<h4 align=\"center\">Per User Metrics for the HBase cluster. Click on each row title to expand on demand to look at various metrics per user in HBase. </h4>\n\n<h5 align=\"center\">Per User metrics are disabled by default. You can use this <a style=\"color: green;\" href=\"https://cwiki.apache.org/confluence/display/AMBARI/Enabling+HBase+Region%2C+User+and+Table+Metrics\">document</a> as a reference to enable them.</h5>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
           "editable": true,
           "error": false,
           "id": 10,
