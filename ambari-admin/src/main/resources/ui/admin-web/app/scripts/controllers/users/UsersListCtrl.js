@@ -71,9 +71,6 @@ angular.module('ambariAdminConsole')
   ];
   $scope.currentActiveFilter = $scope.activeFilterOptions[0];
 
-  if (!Settings.isJWTSupported) {
-    delete UserConstants.TYPES.JWT;
-  }
   $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
     .concat(Object.keys(UserConstants.TYPES).map(function(key) {
       return {
