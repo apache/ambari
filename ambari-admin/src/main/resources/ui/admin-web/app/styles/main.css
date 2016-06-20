@@ -1346,13 +1346,16 @@ accordion .panel-group .panel{
   padding-left: 19px;
 }
 
+.repo-version-inline {
+  left: 11%;
+}
+
 .repo-version-inline .repo-version-label {
   text-align: left;
 
 }
 
-.repo-version-inline .bold-dot {
-  font-weight: bold;
+.repo-version-inline .dot {
   padding-right: 15px;
 }
 
@@ -1692,7 +1695,6 @@ thead.view-permission-header > tr > th {
 }
 
 .register-version-form .details-panel .version-info {
-  font-weight: bold;
   padding: 7px 2px;
 }
 
