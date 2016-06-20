@@ -227,11 +227,8 @@ define([
           var getHbaseAppIdData = function(target) {
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
-            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
-            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + metricTransform
-              + metricAggregator + '&appId=hbase&startTime=' + from +
-              '&endTime=' + to + precision).then(
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + '&appId=hbase&startTime=' 
+            + from + '&endTime=' + to + precision).then(
               allHostMetricsData(target)
             );
           };
@@ -302,7 +299,8 @@ define([
               _.forEach(selectedUser, function(processUser) {
                   metricsPromises.push(_.map(options.targets, function(target) {
                     target.hbUser = processUser;
-                    target.hbMetric = target.metric.replace('*', target.hbUser);
+                    var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+                    target.hbMetric = target.metric.replace('*', target.hbUser) + metricTransform +'._' +  target.aggregator;
                     return getHbaseAppIdData(target);
                   }));
                 });
@@ -320,6 +318,8 @@ define([
                 metricsPromises.push(_.map(options.targets, function(target) {
                   var hbMetric = [];
                   _.map(table, function(tableMetric) { hbMetric.push(target.metric.replace('*', tableMetric)); });
+                  var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform; 
+                  hbMetric = _.map(hbMetric, function(tbl) { return tbl + metricTransform +'._' +  target.aggregator; });
                   target.hbMetric = _.flatten(hbMetric).join(',');
                   return getHbaseAppIdData(target);
                 }));
