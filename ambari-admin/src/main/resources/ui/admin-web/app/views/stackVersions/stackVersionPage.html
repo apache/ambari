@@ -83,13 +83,13 @@
                 </li>
               </ul>
             </div>
-            <div class="col-sm-8 pull-right form-inline repo-version-inline" ng-if="activeStackVersion.isNonXMLdata">
-              <label class="control-label col-sm-2 repo-version-label">Name</label>
-              <div class="col-sm-10">
-                <span>
+            <div class="col-sm-7 pull-right form-inline repo-version-inline" ng-if="activeStackVersion.isNonXMLdata">
+              <label class="control-label col-sm-1 repo-version-label">Name:</label>
+              <div class="col-sm-11">
+                <span class="control-label">
                   {{activeStackVersion.stackNameVersion}}
                 </span>
-                <span class="bold-dot">.</span>
+                <span class="dot">.</span>
                 <div class="form-group" ng-class="{'has-error' : versionRegForm.version.$error.pattern}">
                   <input class="form-control" name="version" type="text" ng-model="activeStackVersion.editableDisplayName" ng-pattern="subversionPattern"
                          placeholder="Version Number (0.0)" ng-change="updateCurrentVersionInput()" required/>
