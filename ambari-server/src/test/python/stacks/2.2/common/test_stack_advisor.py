@@ -112,60 +112,14 @@ class TestHDP22StackAdvisor(TestCase):
     services = {
       "ambari-server-properties": {}
     }
-    hosts = {
-      "items" : [
-        {
-          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6401.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6401.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        },
-        {
-          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6402.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6402.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        },
-        {
-          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6403.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6403.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        }
-      ]
-    }
 
     server_host = socket.getfqdn()
-    for host in hosts["items"]:
-      if server_host == host["Hosts"]["host_name"]:
-        server_host = host["Hosts"]["public_host_name"]
     tez_ui_url =  "http://" + server_host + ":8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE"
 
     services['ambari-server-properties'] = {'api.ssl': 'false'}
     expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
 
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_amMemoryMoreThan3072(self):
@@ -205,51 +159,8 @@ class TestHDP22StackAdvisor(TestCase):
     services = {
       "ambari-server-properties": {}
     }
-    hosts = {
-      "items" : [
-        {
-          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6401.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6401.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        },
-        {
-          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6402.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6402.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        },
-        {
-          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6403.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6403.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        }
-      ]
-    }
 
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_mapMemoryLessThan768(self):
@@ -289,51 +200,8 @@ class TestHDP22StackAdvisor(TestCase):
     services = {
       "ambari-server-properties": {}
     }
-    hosts = {
-      "items" : [
-        {
-          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6401.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6401.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        },
-        {
-          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6402.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6402.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        },
-        {
-          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
-          "Hosts" : {
-            "cpu_count" : 1,
-            "host_name" : "c6403.ambari.apache.org",
-            "os_arch" : "x86_64",
-            "os_type" : "centos6",
-            "ph_cpu_count" : 1,
-            "public_host_name" : "c6403.ambari.apache.org",
-            "rack_info" : "/default-rack",
-            "total_mem" : 1922680
-          }
-        }
-      ]
-    }
 
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
 
