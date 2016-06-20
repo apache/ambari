@@ -54,7 +54,6 @@ from hive_service_interactive import hive_service_interactive
 from hive_interactive import hive_interactive
 from hive_server import HiveServerDefault
 
-import traceback
 
 class HiveServerInteractive(Script):
   pass
@@ -196,7 +195,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       import params
       env.set_params(params)
       Logger.info("Starting LLAP")
-      LLAP_PACKAGE_CREATION_PATH = Script.get_tmp_dir()
       LLAP_APP_NAME = 'llap0'
 
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
@@ -204,7 +202,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
                    " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m "
                    " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
-                   " --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
+                   " --output {unique_name}")
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
@@ -297,80 +295,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       llap_status_cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llapstatus --name {app_name} -findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
       code, output, error = shell.checked_call(llap_status_cmd, user=status_params.hive_user, stderr=subprocess.PIPE,
                                                logoutput=False)
-      Logger.info("Received 'llapstatus' command 'output' : {0}".format(output))
-      return self._make_valid_json(output)
-
-
-    """
-    Remove extra lines from 'llapstatus' status output (eg: because of MOTD logging) so as to have a valid JSON data to be passed in
-    to JSON converter.
-    """
-    def _make_valid_json(self, output):
-      '''
-
-      Note: It is assumed right now that extra lines will be only at the start and not at the end.
-
-      Sample expected JSON to be passed for 'loads' is either of the form :
-
-      Case 'A':
-      {
-          "amInfo" : {
-          "appName" : "llap0",
-          "appType" : "org-apache-slider",
-          "appId" : "APP1",
-          "containerId" : "container_1466036628595_0010_01_000001",
-          "hostname" : "hostName",
-          "amWebUrl" : "http://hostName:port/"
-        },
-        "state" : "LAUNCHING",
-        ....
-        "desiredInstances" : 1,
-        "liveInstances" : 0,
-        ....
-        ....
-      }
-
-      or
-
-      Case 'B':
-      {
-        "state" : "APP_NOT_FOUND"
-      }
-
-      '''
-      splits = output.split("\n")
-
-      len_splits = len(splits)
-      if (len_splits < 3):
-        raise Fail ("Malformed JSON data received from 'llapstatus' command. Exiting ....")
-
-      marker_idx = None # To detect where from to start reading for JSON data
-      for idx, split in enumerate(splits):
-        curr_elem = split.strip()
-        if idx+2 > len_splits:
-          raise Fail("Iterated over the received 'llapstatus' comamnd. Couldn't validate the received output for JSON parsing.")
-        next_elem = (splits[(idx + 1)]).strip()
-        if curr_elem == "{":
-          if next_elem == "\"amInfo\" : {" and (splits[len_splits-1]).strip() == '}':
-            # For Case 'A'
-            marker_idx = idx
-            break;
-          elif idx+3 == len_splits and next_elem.startswith('"state" : ') and (splits[idx + 2]).strip() == '}':
-              # For Case 'B'
-              marker_idx = idx
-              break;
-
-      Logger.info("Marker index for start of JSON data for 'llapsrtatus' comamnd : {0}".format(marker_idx))
-
-      # Remove extra logging from possible JSON output
-      if marker_idx is None:
-        raise Fail("Couldn't validate the received output for JSON parsing.")
-      else:
-        del splits[0:marker_idx]
-        Logger.info("Removed lines: '1-{0}' from the received 'llapstatus' output to make it valid for JSON parsing.".format(marker_idx))
-
-      scanned_output = '\n'.join(splits)
-      llap_app_info = json.loads(scanned_output)
+      llap_app_info = json.loads(output)
       return llap_app_info
 
 
@@ -457,7 +382,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       except Exception, e:
         Logger.info("LLAP app '{0}' did not come up after a wait of {1} seconds.".format(llap_app_name,
                                                                                           time.time() - curr_time))
-        traceback.print_exc()
         return False
 
     def get_log_folder(self):
