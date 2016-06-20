@@ -557,6 +557,7 @@ public class UpgradeCatalog240Test {
     Method fixAuthorizationDescriptions = UpgradeCatalog240.class.getDeclaredMethod("fixAuthorizationDescriptions");
     Method removeAuthorizations = UpgradeCatalog240.class.getDeclaredMethod("removeAuthorizations");
     Method addConnectionTimeoutParamForWebAndMetricAlerts = AbstractUpgradeCatalog.class.getDeclaredMethod("addConnectionTimeoutParamForWebAndMetricAlerts");
+    Method addSliderClientConfig = UpgradeCatalog240.class.getDeclaredMethod("addSliderClientConfig");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -597,6 +598,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(removeAuthorizations)
             .addMockedMethod(addConnectionTimeoutParamForWebAndMetricAlerts)
             .addMockedMethod(updateHBaseConfigs)
+            .addMockedMethod(addSliderClientConfig)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -632,6 +634,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.removeAuthorizations();
     upgradeCatalog240.addConnectionTimeoutParamForWebAndMetricAlerts();
     upgradeCatalog240.updateHBaseConfigs();
+    upgradeCatalog240.addSliderClientConfig();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -2056,5 +2059,51 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updatePhoenixConfigs();
     easyMockSupport.verifyAll();
   }
+
+
+  @Test
+  public void testAddSliderClientConfig() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final ConfigHelper configHelper = easyMockSupport.createNiceMock(ConfigHelper.class);
+    final Service serviceSlider = easyMockSupport.createNiceMock(Service.class);
+
+    Map<String, Service> servicesMap = new HashMap<>();
+    servicesMap.put("SLIDER", serviceSlider);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockAmbariManagementController.getConfigHelper()).andReturn(configHelper).once();
+    expect(mockClusterExpected.getServices()).andReturn(servicesMap).once();
+    expect(mockClusterExpected.getDesiredConfigByType("slider-client")).andReturn(null).once();
+
+
+    configHelper.createConfigType(mockClusterExpected, mockAmbariManagementController, "slider-client",
+            new HashMap<String, String>(), "ambari-upgrade", "");
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog240.class).addSliderClientConfig();
+    easyMockSupport.verifyAll();
+
+
+  }
+
+
 }
 
