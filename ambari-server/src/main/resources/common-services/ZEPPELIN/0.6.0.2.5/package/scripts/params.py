@@ -77,7 +77,7 @@ zeppelin_log_file = os.path.join(zeppelin_log_dir, 'zeppelin-setup.log')
 zeppelin_hdfs_user_dir = format("/user/{zeppelin_user}")
 
 zeppelin_dir = os.path.join(*[install_dir, zeppelin_dirname])
-conf_dir = os.path.join(*[install_dir, zeppelin_dirname, 'conf'])
+conf_dir = "/etc/zeppelin/conf"
 notebook_dir = os.path.join(*[install_dir, zeppelin_dirname, 'notebook'])
 
 # zeppelin-env.sh
