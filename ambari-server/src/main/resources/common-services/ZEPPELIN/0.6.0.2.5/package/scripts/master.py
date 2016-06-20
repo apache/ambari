@@ -41,14 +41,15 @@ class Master(Script):
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
               cd_access="a",
+              create_parents=True,
               mode=0755
               )
 
-    Execute('echo spark_version:' + params.spark_version + ' detected for spark_home: '
-            + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
-
     # update the configs specified by user
     self.configure(env)
+
+    Execute('echo spark_version:' + params.spark_version + ' detected for spark_home: '
+            + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
 
     # run setup_snapshot.sh
     Execute(format("{service_packagedir}/scripts/setup_snapshot.sh {zeppelin_dir} "
@@ -102,6 +103,7 @@ class Master(Script):
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
               cd_access="a",
+              create_parents=True,
               mode=0755
               )
 
