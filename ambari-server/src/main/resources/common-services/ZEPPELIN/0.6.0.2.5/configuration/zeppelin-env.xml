@@ -24,6 +24,20 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>zeppelin_user</name>
+    <value>zeppelin</value>
+    <property-type>USER</property-type>
+    <description>User zeppelin daemon runs as</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zeppelin_group</name>
+    <value>zeppelin</value>
+    <property-type>GROUP</property-type>
+    <description>zeppelin group</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>zeppelin_log_dir</name>
     <value>/var/log/zeppelin</value>
     <description>Zeppelin Log dir</description>

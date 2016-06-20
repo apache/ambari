@@ -19,7 +19,10 @@ limitations under the License.
 """
 
 import glob
+import grp
 import os
+import pwd
+import sys
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate
@@ -33,8 +36,14 @@ class Master(Script):
     import params
     env.set_params(params)
 
+    Execute('chmod -R 755 ' + params.service_packagedir)
     Execute('chmod a+x ' + os.path.join(params.service_packagedir, "scripts/setup_snapshot.sh"))
+
+    # Create user and group if they don't exist
+    self.create_linux_user(params.zeppelin_user, params.zeppelin_group)
     self.install_packages(env)
+
+    Execute('chown -R ' + params.zeppelin_user + ':' + params.zeppelin_group + ' ' + params.zeppelin_dir)
 
     # create the pid and zeppelin dirs
     Directory([params.zeppelin_pid_dir, params.zeppelin_dir],
@@ -56,6 +65,16 @@ class Master(Script):
                    "{zeppelin_host} {zeppelin_port} {setup_view} {service_packagedir} "
                    "{java64_home} >> {zeppelin_log_file}"),
             user=params.zeppelin_user)
+
+  def create_linux_user(self, user, group):
+    try:
+      pwd.getpwnam(user)
+    except KeyError:
+      Execute('adduser ' + user)
+    try:
+      grp.getgrnam(group)
+    except KeyError:
+      Execute('groupadd ' + group)
 
   def create_zeppelin_dir(self, params):
     params.HdfsResource(format("/user/{zeppelin_user}"),
