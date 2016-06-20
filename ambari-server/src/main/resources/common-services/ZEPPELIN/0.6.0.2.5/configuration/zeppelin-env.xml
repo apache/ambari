@@ -28,6 +28,10 @@
     <value>zeppelin</value>
     <property-type>USER</property-type>
     <description>User zeppelin daemon runs as</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -35,6 +39,10 @@
     <value>zeppelin</value>
     <property-type>GROUP</property-type>
     <description>zeppelin group</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

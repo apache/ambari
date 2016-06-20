@@ -46,7 +46,7 @@ stack_root = Script.get_stack_root()
 # e.g. /var/lib/ambari-agent/cache/stacks/HDP/2.2/services/zeppelin-stack/package
 service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
 
-zeppelin_dirname = 'zeppelin-server/lib'
+zeppelin_dirname = 'zeppelin-server'
 
 install_dir = os.path.join(stack_root, "current")
 executor_mem = config['configurations']['zeppelin-env']['zeppelin.executor.mem']
