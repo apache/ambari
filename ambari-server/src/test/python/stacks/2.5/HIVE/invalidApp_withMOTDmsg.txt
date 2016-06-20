@@ -1,5 +1,0 @@
-######## Hortonworks #############
-This is MOTD message, added for testing in qe infra
-{
-  "state" : "APP_NOT_FOUND"
-}
