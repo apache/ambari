@@ -547,7 +547,8 @@ def setup_ranger_audit_solr():
     config_set_dir = params.ranger_solr_conf,
     tmp_config_set_dir = tmp_config_set_folder,
     java64_home = params.java_home,
-    user = params.unix_user)
+    user = params.unix_user,
+    retry=30, interval=5)
 
   solr_cloud_util.create_collection(
     zookeeper_quorum = params.zookeeper_quorum,

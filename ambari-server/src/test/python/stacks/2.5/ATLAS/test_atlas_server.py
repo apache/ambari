@@ -144,12 +144,12 @@ class TestAtlasServer(RMFTestCase):
                               content = ''
                               )
 
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --download-config -d /tmp/solr_config_basic_configs_0.[0-9]* -cs basic_configs -rt 5 -i 10')
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --upload-config -d /etc/atlas/conf/solr -cs basic_configs -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --download-config -d /tmp/solr_config_basic_configs_0.[0-9]* -cs basic_configs -rt 30 -i 5')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --upload-config -d /etc/atlas/conf/solr -cs basic_configs -rt 30 -i 5')
 
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --create-collection -c vertex_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --create-collection -c edge_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org/logsearch --create-collection -c fulltext_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --create-collection -c vertex_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --create-collection -c edge_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --create-collection -c fulltext_index -cs basic_configs -s 1 -r 1 -m 1 -rt 5 -i 10')
 
 
   def test_configure_default(self):
