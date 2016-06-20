@@ -326,3 +326,9 @@ logfeeder_custom_properties.pop('logfeeder.checkpoint.folder', None)
 logfeeder_custom_properties.pop('logfeeder.metrics.collector.hosts', None)
 logfeeder_custom_properties.pop('logfeeder.log.filter.enable', None)
 logfeeder_custom_properties.pop('logfeeder.solr.config.interval', None)
+
+logsearch_server_hosts = config['clusterHostInfo']['logsearch_server_hosts']
+logsearch_server_host = ""
+if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
+  logsearch_server_host = logsearch_server_hosts[0]
+smoke_logsearch_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" http://{logsearch_server_host}:{logsearch_ui_port}/login.jsp | grep 200')
