@@ -307,7 +307,10 @@ public class OutputSolr extends Output {
                   + getShortDescription());
               break;
             }
-            lastDispatchTime = currTimeMS;            
+          }
+          if( localBuffer.size() == 0 ) {
+            //If localBuffer is empty, then reset the timer
+            lastDispatchTime = currTimeMS;
           }
         } catch (InterruptedException e) {
           // Handle thread exiting
