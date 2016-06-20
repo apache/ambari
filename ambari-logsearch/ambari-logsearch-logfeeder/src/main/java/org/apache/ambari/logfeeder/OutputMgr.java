@@ -19,8 +19,7 @@
 
 package org.apache.ambari.logfeeder;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -40,34 +39,13 @@ public class OutputMgr {
 
   Collection<Output> outputList = new ArrayList<Output>();
 
-  String hostName = null;
-  String ipAddress = null;
   boolean addMessageMD5 = true;
 
   private int MAX_OUTPUT_SIZE = 32765; // 32766-1
   static long doc_counter = 0;
   public MetricCount messageTruncateMetric = new MetricCount();
 
-  public OutputMgr() {
-    // Set the host for this server
-    try {
-      InetAddress ip = InetAddress.getLocalHost();
-      ipAddress = ip.getHostAddress();
-      String getHostName = ip.getHostName();
-      String getCanonicalHostName = ip.getCanonicalHostName();
-      if (!getCanonicalHostName.equalsIgnoreCase(ipAddress)) {
-        logger.info("Using getCanonicalHostName()=" + getCanonicalHostName);
-        hostName = getCanonicalHostName;
-      } else {
-        logger.info("Using getHostName()=" + getHostName);
-        hostName = getHostName;
-      }
-      logger.info("ipAddress=" + ipAddress + ", getHostName=" + getHostName + ", getCanonicalHostName=" + getCanonicalHostName + ", hostName=" + hostName);
-    } catch (UnknownHostException e) {
-      logger.error("Error getting hostname.", e);
-    }
-  }
-
+  
   public Collection<Output> getOutputList() {
     return outputList;
   }
@@ -106,12 +84,12 @@ public class OutputMgr {
     }
 
     // Add host if required
-    if (jsonObj.get("host") == null && hostName != null) {
-      jsonObj.put("host", hostName);
+    if (jsonObj.get("host") == null && LogFeederUtil.hostName != null) {
+      jsonObj.put("host", LogFeederUtil.hostName);
     }
     // Add IP if required
-    if (jsonObj.get("ip") == null && ipAddress != null) {
-      jsonObj.put("ip", ipAddress);
+    if (jsonObj.get("ip") == null && LogFeederUtil.ipAddress != null) {
+      jsonObj.put("ip", LogFeederUtil.ipAddress);
     }
 
     if (input.isUseEventMD5() || input.isGenEventMD5()) {
@@ -278,4 +256,16 @@ public class OutputMgr {
     }
   }
 
+  
+  public void copyFile(File inputFile, InputMarker inputMarker) {
+    Input input = inputMarker.input;
+    for (Output output : input.getOutputList()) {
+      try {
+        output.copyFile(inputFile, inputMarker);
+      }catch (Exception e) {
+        logger.error("Error coyping file . to " + output.getShortDescription(),
+            e);
+      }
+    }
+  }
 }

@@ -317,5 +317,9 @@ public abstract class Input extends ConfigBlock implements Runnable {
     }
     metricsList.add(readBytesMetric);
   }
+  
+  public Thread getThread(){
+    return thread;
+  }
 
 }

@@ -1,0 +1,79 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.ambari.logfeeder.util;
+
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
+
+public class PlaceholderUtil {
+
+  private static Logger LOG = Logger.getLogger(PlaceholderUtil.class);
+
+  private static Pattern placeHolderPattern;
+  static {
+//    placeHolderPattern = Pattern.compile("\\{(.*?)\\}");
+    placeHolderPattern = Pattern.compile("\\$\\s*(\\w+)");
+  }
+
+  /**
+   * 
+   * @param inputStr
+   * @param contextParam
+   * @return String
+   */
+  public static String replaceVariables(String inputStr,
+      HashMap<String, String> contextParam) {
+    Matcher m = placeHolderPattern.matcher(inputStr);
+    String placeholder;
+    String replacement;
+    String output = new String(inputStr);
+    while (m.find()) {
+      placeholder = m.group();
+      if (placeholder != null && !placeholder.isEmpty()) {
+        String key = placeholder.replace("$","").toLowerCase();// remove
+                                                                   // brace
+        replacement = getFromContext(contextParam, placeholder, key);
+        output = output.replace(placeholder, replacement);
+      }
+    }
+    return output;
+  }
+
+  /**
+   * 
+   * @param contextParam
+   * @param defaultValue
+   * @param key
+   * @return String
+   */
+  private static String getFromContext(HashMap<String, String> contextParam,
+      String defaultValue, String key) {
+    String returnValue = defaultValue;// by default set default value as a
+                                      // return
+    if (contextParam != null) {
+      String value = contextParam.get(key);
+      if (value != null && !value.trim().isEmpty()) {
+        returnValue = value;
+      }
+    }
+    return returnValue;
+  }
+}

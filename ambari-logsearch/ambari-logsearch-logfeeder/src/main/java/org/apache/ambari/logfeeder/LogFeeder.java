@@ -42,6 +42,7 @@ import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.logconfig.LogfeederScheduler;
 import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.util.FileUtil;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -57,16 +58,20 @@ public class LogFeeder {
   InputMgr inputMgr = new InputMgr();
   MetricsMgr metricsMgr = new MetricsMgr();
 
-  Map<String, Object> globalMap = null;
+  public static Map<String, Object> globalMap = null;
   String[] inputParams;
 
   List<Map<String, Object>> globalConfigList = new ArrayList<Map<String, Object>>();
   List<Map<String, Object>> inputConfigList = new ArrayList<Map<String, Object>>();
   List<Map<String, Object>> filterConfigList = new ArrayList<Map<String, Object>>();
   List<Map<String, Object>> outputConfigList = new ArrayList<Map<String, Object>>();
-
+  
   int checkPointCleanIntervalMS = 24 * 60 * 60 * 60 * 1000; // 24 hours
   long lastCheckPointCleanedMS = 0;
+  
+  private static boolean isLogfeederCompleted = false;
+  
+  private Thread statLoggerThread = null;
 
   public LogFeeder(String[] args) {
     inputParams = args;
@@ -80,14 +85,26 @@ public class LogFeeder {
     // loop the properties and load them
     // Load the configs
     String configFiles = LogFeederUtil.getStringProperty("logfeeder.config.files");
-    if (configFiles == null) {
-      configFiles = LogFeederUtil.getStringProperty("config.file",
-        "config.json");
-    }
     logger.info("logfeeder.config.files=" + configFiles);
-    String[] configFileList = configFiles.split(",");
-    for (String configFileName : configFileList) {
+    
+    String[] configFileList = null;
+    if (configFiles != null) {
+      configFileList = configFiles.split(",");
+    }
+    //list of config those are there in cmd line config dir , end with .json
+    String[] cmdLineConfigs = getConfigFromCmdLine();
+    //merge both config
+    String mergedConfigList[] = LogFeederUtil.mergeArray(configFileList,
+        cmdLineConfigs);
+    //mergedConfigList is null then set default conifg 
+    if (mergedConfigList == null || mergedConfigList.length == 0) {
+      mergedConfigList = LogFeederUtil.getStringProperty("config.file",
+          "config.json").split(",");
+    }
+    for (String configFileName : mergedConfigList) {
       logger.info("Going to load config file:" + configFileName);
+      //escape space from config file path
+      configFileName= configFileName.replace("\\ ", "%20");
       File configFile = new File(configFileName);
       if (configFile.exists() && configFile.isFile()) {
         logger.info("Config file exists in path."
@@ -97,7 +114,7 @@ public class LogFeeder {
         // Let's try to load it from class loader
         logger.info("Trying to load config file from classloader: "
           + configFileName);
-        laodConfigsUsingClassLoader(configFileName);
+        loadConfigsUsingClassLoader(configFileName);
         logger.info("Loaded config file from classloader: "
           + configFileName);
       }
@@ -114,7 +131,7 @@ public class LogFeeder {
     logger.debug("==============");
   }
 
-  void laodConfigsUsingClassLoader(String configFileName) throws Exception {
+  void loadConfigsUsingClassLoader(String configFileName) throws Exception {
     BufferedInputStream fileInputStream = (BufferedInputStream) this
       .getClass().getClassLoader()
       .getResourceAsStream(configFileName);
@@ -451,7 +468,7 @@ public class LogFeeder {
     inputMgr.monitor();
     Runtime.getRuntime().addShutdownHook(new JVMShutdownHook());
 
-    Thread statLogger = new Thread("statLogger") {
+    statLoggerThread = new Thread("statLogger") {
 
       @Override
       public void run() {
@@ -473,12 +490,17 @@ public class LogFeeder {
             lastCheckPointCleanedMS = System.currentTimeMillis();
             inputMgr.cleanCheckPointFiles();
           }
+
+          // logfeeder is stopped then break the loop
+          if (isLogfeederCompleted) {
+            break;
+          }
         }
       }
 
     };
-    statLogger.setDaemon(true);
-    statLogger.start();
+    statLoggerThread.setDaemon(true);
+    statLoggerThread.start();
 
   }
 
@@ -524,24 +546,25 @@ public class LogFeeder {
 
   public static void main(String[] args) {
     LogFeeder logFeeder = new LogFeeder(args);
-    logFeeder.run(logFeeder);
+    logFeeder.run();
   }
 
 
   public static void run(String[] args) {
     LogFeeder logFeeder = new LogFeeder(args);
-    logFeeder.run(logFeeder);
+    logFeeder.run();
   }
 
-  public void run(LogFeeder logFeeder) {
+  public void run() {
     try {
       Date startTime = new Date();
-      logFeeder.init();
+      this.init();
       Date endTime = new Date();
       logger.info("Took " + (endTime.getTime() - startTime.getTime())
         + " ms to initialize");
-      logFeeder.monitor();
-
+      this.monitor();
+      //wait for all background thread before stop main thread
+      this.waitOnAllDaemonThreads();
     } catch (Throwable t) {
       logger.fatal("Caught exception in main.", t);
       System.exit(1);
@@ -566,5 +589,42 @@ public class LogFeeder {
       }
     }
   }
-
+  
+  public void waitOnAllDaemonThreads() {
+    String foreground = LogFeederUtil.getStringProperty("foreground");
+    if (foreground != null && foreground.equalsIgnoreCase("true")) {
+      // wait on inputmgr daemon threads
+      inputMgr.waitOnAllInputs();
+      // set isLogfeederCompleted to true to stop statLoggerThread
+      isLogfeederCompleted = true;
+      if (statLoggerThread != null) {
+        try {
+          statLoggerThread.join();
+        } catch (InterruptedException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+  
+  private String[] getConfigFromCmdLine() {
+    String inputConfigDir = LogFeederUtil.getStringProperty("input_config_dir");
+    if (inputConfigDir != null && !inputConfigDir.isEmpty()) {
+      String[] searchFileWithExtensions = new String[] { "json" };
+      File configDirFile = new File(inputConfigDir);
+      List<File> configFiles = FileUtil.getAllFileFromDir(configDirFile,
+          searchFileWithExtensions, false);
+      if (configFiles != null && configFiles.size() > 0) {
+        String configPaths[] = new String[configFiles.size()];
+        for (int index = 0; index < configFiles.size(); index++) {
+          File configFile = configFiles.get(index);
+          String configFilePath = configFile.getAbsolutePath();
+          configPaths[index] = configFilePath;
+        }
+        return configPaths;
+      }
+    }
+    return new String[0];
+  }
 }

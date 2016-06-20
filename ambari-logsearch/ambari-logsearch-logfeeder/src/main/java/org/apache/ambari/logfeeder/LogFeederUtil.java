@@ -24,7 +24,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,6 +42,7 @@ import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
 import org.apache.ambari.logfeeder.mapper.Mapper;
 import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.util.PlaceholderUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -48,6 +51,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
+import com.google.common.collect.ObjectArrays;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -68,6 +72,18 @@ public class LogFeederUtil {
   private static Map<String, LogHistory> logHistoryList = new Hashtable<String, LogHistory>();
   private static int logInterval = 30000; // 30 seconds
 
+  public static String hostName = null;
+  public static String ipAddress = null;
+  
+  public static String logfeederTempDir = null;
+  
+  public static final Object _LOCK = new Object();
+  
+  static{
+    //set hostname and hostIp
+    setHostNameAndIP();
+  }
+  
   public static Gson getGson() {
     return gson;
   }
@@ -483,5 +499,57 @@ public class LogFeederUtil {
     }
     return false;
   }
+  
+  
+  public static synchronized String setHostNameAndIP() {
+    if (hostName == null || ipAddress == null) {
+      try {
+        InetAddress ip = InetAddress.getLocalHost();
+        ipAddress = ip.getHostAddress();
+        String getHostName = ip.getHostName();
+        String getCanonicalHostName = ip.getCanonicalHostName();
+        if (!getCanonicalHostName.equalsIgnoreCase(ipAddress)) {
+          logger.info("Using getCanonicalHostName()=" + getCanonicalHostName);
+          hostName = getCanonicalHostName;
+        } else {
+          logger.info("Using getHostName()=" + getHostName);
+          hostName = getHostName;
+        }
+        logger.info("ipAddress=" + ipAddress + ", getHostName=" + getHostName
+            + ", getCanonicalHostName=" + getCanonicalHostName + ", hostName="
+            + hostName);
+      } catch (UnknownHostException e) {
+        logger.error("Error getting hostname.", e);
+      }
+    }
+    return hostName;
+  }
 
+  public static String[] mergeArray(String[] first, String[] second) {
+    if (first == null) {
+      first = new String[0];
+    }
+    if (second == null) {
+      second = new String[0];
+    }
+    String[] mergedArray = ObjectArrays.concat(first, second, String.class);
+    return mergedArray;
+  }
+  
+  public static String getLogfeederTempDir() {
+    if (logfeederTempDir == null) {
+      synchronized (_LOCK) {
+        if (logfeederTempDir == null) {
+          String tempDirValue = getStringProperty("logfeeder.tmp.dir",
+              "/tmp/$username/logfeeder/");
+          HashMap<String, String> contextParam = new HashMap<String, String>();
+          String username = System.getProperty("user.name");
+          contextParam.put("username", username);
+          logfeederTempDir = PlaceholderUtil.replaceVariables(tempDirValue,
+              contextParam);
+        }
+      }
+    }
+    return logfeederTempDir;
+  }
 }

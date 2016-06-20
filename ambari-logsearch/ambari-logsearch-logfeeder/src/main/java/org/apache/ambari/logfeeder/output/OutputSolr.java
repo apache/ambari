@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -453,5 +454,18 @@ public class OutputSolr extends Output {
     public boolean isDone() {
       return localBuffer.isEmpty();
     }
+  }
+
+  @Override
+  public void write(String block, InputMarker inputMarker) throws Exception {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void copyFile(File inputFile, InputMarker inputMarker)
+      throws UnsupportedOperationException {
+    throw new UnsupportedOperationException(
+        "copyFile method is not yet supported for output=solr");     
   }
 }

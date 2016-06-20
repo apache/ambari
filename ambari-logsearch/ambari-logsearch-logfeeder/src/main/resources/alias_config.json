@@ -2,6 +2,9 @@
 	"input": {
 		"file": {
 			"klass": "org.apache.ambari.logfeeder.input.InputFile"
+		},
+		"s3_file": {
+			"klass": "org.apache.ambari.logfeeder.input.InputS3File"
 		}
 
 	},
@@ -40,6 +43,9 @@
 		},
 		"dev_null": {
 			"klass": "org.apache.ambari.logfeeder.output.OutputDevNull"
-		}
+		},
+		"s3_file": {
+			"klass": "org.apache.ambari.logfeeder.output.OutputS3File"
+ 		}
 	}
 }

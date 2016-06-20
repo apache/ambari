@@ -16,30 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.output;
+package org.apache.ambari.logfeeder.s3;
 
-import java.io.File;
-
-import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.log4j.Logger;
-
-/**
- * Output that just ignore the logs
- *
- */
-public class OutputDevNull extends Output {
-
-  private static Logger logger = Logger.getLogger(OutputDevNull.class);
-
-  @Override
-  public void write(String block, InputMarker inputMarker){
-    // just ignore the logs
-    logger.trace("Ignore log block: " + block);
-  }
-
-  @Override
-  public void copyFile(File inputFile, InputMarker inputMarker) {
-    throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=dev_null");
+public class AWSUtilTest {
+//  @Test
+  public void testAWSUtil_getAwsUserName() throws Exception {
+    String S3_ACCESS_KEY = "S3_ACCESS_KEY";
+    String S3_SECRET_KEY = "S3_SECRET_KEY";
+    String expectedUsername = "";
+    String username = AWSUtil.INSTANCE.getAwsUserName(S3_ACCESS_KEY,
+        S3_SECRET_KEY);
   }
 }
