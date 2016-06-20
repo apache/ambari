@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.upgrade;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Type;
@@ -111,10 +115,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-
 /**
  * Upgrade catalog for version 2.4.0.
  */
@@ -160,8 +160,11 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String HOST_VERSION_TABLE = "host_version";
   protected static final String PHOENIX_QUERY_SERVER_PRINCIPAL_KEY = "phoenix.queryserver.kerberos.principal";
   protected static final String PHOENIX_QUERY_SERVER_KEYTAB_KEY = "phoenix.queryserver.keytab.file";
+  protected static final String DEFAULT_CONFIG_VERSION = "version1";
+  protected static final String SLIDER_SERVICE_NAME = "SLIDER";
 
   private static final String OOZIE_ENV_CONFIG = "oozie-env";
+  private static final String SLIDER_CLIENT_CONFIG = "slider-client";
   private static final String HIVE_ENV_CONFIG = "hive-env";
   private static final String AMS_SITE = "ams-site";
   public static final String TIMELINE_METRICS_SINK_COLLECTION_PERIOD = "timeline.metrics.sink.collection.period";
@@ -385,6 +388,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     fixAuthorizationDescriptions();
     removeAuthorizations();
     addConnectionTimeoutParamForWebAndMetricAlerts();
+    addSliderClientConfig();
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {
@@ -596,6 +600,24 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         if (hiveEnvProperties.containsKey("hive_hostname")) {
           LOG.info("Removing property hive_hostname from " + HIVE_ENV_CONFIG);
           removeConfigurationPropertiesFromCluster(cluster, HIVE_ENV_CONFIG, Collections.singleton("hive_hostname"));
+        }
+      }
+    }
+  }
+
+  protected void addSliderClientConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    ConfigHelper configHelper = ambariManagementController.getConfigHelper();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Set<String> installedServices = cluster.getServices().keySet();
+      if (installedServices.contains(SLIDER_SERVICE_NAME)) {
+        Config sliderClientConfig = cluster.getDesiredConfigByType(SLIDER_CLIENT_CONFIG);
+        if (sliderClientConfig == null) {
+          configHelper.createConfigType(cluster, ambariManagementController, SLIDER_CLIENT_CONFIG,
+                  new HashMap<String, String>(), AUTHENTICATED_USER_NAME, "");
         }
       }
     }
