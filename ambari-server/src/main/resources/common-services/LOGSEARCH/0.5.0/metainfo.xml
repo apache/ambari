@@ -219,6 +219,12 @@
         </osSpecific>
       </osSpecifics>
 
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
       <requiredServices>
         <service>ZOOKEEPER</service>
       </requiredServices>
