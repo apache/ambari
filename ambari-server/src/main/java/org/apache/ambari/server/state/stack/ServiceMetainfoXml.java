@@ -86,6 +86,10 @@ public class ServiceMetainfoXml implements Validable{
   public List<ServiceInfo> getServices() {
     return services;
   }
+
+  public void setServices(List<ServiceInfo> services) {
+    this.services = services;
+  }
   
   public String getSchemaVersion() {
     return schemaVersion;

@@ -495,7 +495,7 @@ public class ComponentModuleTest {
     ComponentModule component = new ComponentModule(info);
     ComponentModule parentComponent = new ComponentModule(parentInfo);
 
-    component.resolve(parentComponent, Collections.<String, StackModule>emptyMap(), Collections.<String, ServiceModule>emptyMap());
+    component.resolve(parentComponent, Collections.<String, StackModule>emptyMap(), Collections.<String, ServiceModule>emptyMap(), Collections.<String, ExtensionModule>emptyMap());
 
     return component;
   }

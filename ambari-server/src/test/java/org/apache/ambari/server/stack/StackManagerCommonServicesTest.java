@@ -29,14 +29,19 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.ExtensionDAO;
+import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ExtensionEntity;
+import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -58,6 +63,8 @@ public class StackManagerCommonServicesTest {
   private static StackManager stackManager;
   private static MetainfoDAO metaInfoDao;
   private static StackDAO stackDao;
+  private static ExtensionDAO extensionDao;
+  private static ExtensionLinkDAO linkDao;
   private static ActionMetadata actionMetadata;
   private static OsFamily osFamily;
 
@@ -72,17 +79,22 @@ public class StackManagerCommonServicesTest {
 
     String commonServices = ClassLoader.getSystemClassLoader().getResource(
         "common-services").getPath();
-    return createTestStackManager(stack, commonServices);
+    String extensions = ClassLoader.getSystemClassLoader().getResource(
+            "extensions").getPath();
+    return createTestStackManager(stack, commonServices, extensions);
   }
 
   public static StackManager createTestStackManager(String stackRoot,
-      String commonServicesRoot) throws Exception {
+      String commonServicesRoot, String extensionRoot) throws Exception {
     // todo: dao , actionMetaData expectations
     metaInfoDao = createNiceMock(MetainfoDAO.class);
     stackDao = createNiceMock(StackDAO.class);
+    extensionDao = createNiceMock(ExtensionDAO.class);
+    linkDao = createNiceMock(ExtensionLinkDAO.class);
     actionMetadata = createNiceMock(ActionMetadata.class);
     Configuration config = createNiceMock(Configuration.class);
     StackEntity stackEntity = createNiceMock(StackEntity.class);
+    ExtensionEntity extensionEntity = createNiceMock(ExtensionEntity.class);
 
     expect(config.getSharedResourcesDirPath()).andReturn(
         ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
@@ -91,13 +103,25 @@ public class StackManagerCommonServicesTest {
         stackDao.find(EasyMock.anyObject(String.class),
             EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
 
-    replay(config, stackDao);
+
+    expect(
+        extensionDao.find(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(extensionEntity).atLeastOnce();
+
+    List<ExtensionLinkEntity> list = Collections.emptyList();
+    expect(
+        linkDao.findByStack(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
+
+    replay(config, stackDao, extensionDao, linkDao);
+
     osFamily = new OsFamily(config);
 
     replay(metaInfoDao, actionMetadata);
 
     StackManager stackManager = new StackManager(new File(stackRoot), new File(
-        commonServicesRoot), osFamily, false, metaInfoDao, actionMetadata, stackDao);
+        commonServicesRoot), new File(extensionRoot), osFamily, true, metaInfoDao,
+        actionMetadata, stackDao, extensionDao, linkDao);
 
     EasyMock.verify( config, stackDao );
 

@@ -62,15 +62,13 @@ public class CommonServiceDirectory extends ServiceDirectory {
 
   @Override
   /**
-   * Parse common service directory
+   * Calculate the common service directories
    * packageDir Format: common-services/<serviceName>/<serviceVersion>/package
    * Example:
    *  directory: "/var/lib/ambari-server/resources/common-services/HDFS/1.0"
    *  packageDir: "common-services/HDFS/1.0/package"
-   *
-   * @throws AmbariException
    */
-  protected void parsePath() throws AmbariException {
+  protected void calculateDirectories() {
     File serviceVersionDir = new File(getAbsolutePath());
     File serviceDir = serviceVersionDir.getParentFile();
 
@@ -95,6 +93,5 @@ public class CommonServiceDirectory extends ServiceDirectory {
       LOG.debug(String.format("Service upgrades folder %s for common service %s does not exist.",
           absUpgradesDir, serviceId ));
     }
-    parseMetaInfoFile();
   }
 }

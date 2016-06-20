@@ -65,6 +65,8 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
+import javax.persistence.RollbackException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -102,14 +104,20 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.ExtensionDAO;
+import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.ExtensionEntity;
+import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -129,6 +137,8 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.stack.ExtensionHelper;
+import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -139,6 +149,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
@@ -166,6 +177,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
@@ -270,6 +282,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private AmbariEventPublisher ambariEventPublisher;
 
   private MaintenanceStateHelper maintenanceStateHelper;
+
+  @Inject
+  private ExtensionLinkDAO linkDAO;
+  @Inject
+  private ExtensionDAO extensionDAO;
+  @Inject
+  private StackDAO stackDAO;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -3783,6 +3802,94 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
+  public Set<ExtensionResponse> getExtensions(Set<ExtensionRequest> requests)
+      throws AmbariException {
+    Set<ExtensionResponse> response = new HashSet<ExtensionResponse>();
+    for (ExtensionRequest request : requests) {
+      try {
+        response.addAll(getExtensions(request));
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+
+  }
+
+
+  private Set<ExtensionResponse> getExtensions(ExtensionRequest request)
+      throws AmbariException {
+    Set<ExtensionResponse> response;
+
+    String extensionName = request.getExtensionName();
+
+    if (extensionName != null) {
+      // this will throw an exception if the extension doesn't exist
+      ambariMetaInfo.getExtensions(extensionName);
+      response = Collections.singleton(new ExtensionResponse(extensionName));
+    } else {
+      Collection<ExtensionInfo> supportedExtensions = ambariMetaInfo.getExtensions();
+      response = new HashSet<ExtensionResponse>();
+      for (ExtensionInfo extension: supportedExtensions) {
+        response.add(new ExtensionResponse(extension.getName()));
+      }
+    }
+    return response;
+  }
+
+  @Override
+  public Set<ExtensionVersionResponse> getExtensionVersions(
+      Set<ExtensionVersionRequest> requests) throws AmbariException {
+    Set<ExtensionVersionResponse> response = new HashSet<ExtensionVersionResponse>();
+    for (ExtensionVersionRequest request : requests) {
+      String extensionName = request.getExtensionName();
+      try {
+        Set<ExtensionVersionResponse> stackVersions = getExtensionVersions(request);
+        for (ExtensionVersionResponse stackVersionResponse : stackVersions) {
+          stackVersionResponse.setExtensionName(extensionName);
+        }
+        response.addAll(stackVersions);
+      } catch (StackAccessException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+
+    return response;
+  }
+
+  private Set<ExtensionVersionResponse> getExtensionVersions(ExtensionVersionRequest request) throws AmbariException {
+    Set<ExtensionVersionResponse> response;
+
+    String extensionName = request.getExtensionName();
+    String extensionVersion = request.getExtensionVersion();
+
+    if (extensionVersion != null) {
+      ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(extensionName, extensionVersion);
+      response = Collections.singleton(extensionInfo.convertToResponse());
+    } else {
+      try {
+        Collection<ExtensionInfo> extensionInfos = ambariMetaInfo.getExtensions(extensionName);
+        response = new HashSet<ExtensionVersionResponse>();
+        for (ExtensionInfo extensionInfo: extensionInfos) {
+          response.add(extensionInfo.convertToResponse());
+        }
+      } catch (StackAccessException e) {
+        response = Collections.emptySet();
+      }
+    }
+
+    return response;
+  }
+
+  @Override
   public Set<RepositoryResponse> getRepositories(Set<RepositoryRequest> requests)
       throws AmbariException {
     Set<RepositoryResponse> response = new HashSet<RepositoryResponse>();
@@ -4847,5 +4954,168 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     }
+  }
+
+  /**
+   * This method will delete a link between an extension version and a stack version (Extension Link).
+   *
+   * An extension version is like a stack version but it contains custom services.  Linking an extension
+   * version to the current stack version allows the cluster to install the custom services contained in
+   * the extension version.
+   */
+  @Override
+  public void deleteExtensionLink(ExtensionLinkRequest request) throws AmbariException {
+    if (request.getLinkId() == null) {
+      throw new IllegalArgumentException("Link ID should be provided");
+    }
+    ExtensionLinkEntity linkEntity = null;
+    try {
+      linkEntity = linkDAO.findById(new Long(request.getLinkId()));
+    } catch (RollbackException e) {
+      throw new AmbariException("Unable to find extension link"
+            + ", linkId=" + request.getLinkId(), e);
+    }
+
+    StackInfo stackInfo = ambariMetaInfo.getStack(linkEntity.getStack().getStackName(), linkEntity.getStack().getStackVersion());
+
+    if (stackInfo == null)
+      throw new StackAccessException("stackName=" + linkEntity.getStack().getStackName() + ", stackVersion=" + linkEntity.getStack().getStackVersion());
+
+    ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(linkEntity.getExtension().getExtensionName(), linkEntity.getExtension().getExtensionVersion());
+
+    if (extensionInfo == null)
+      throw new StackAccessException("extensionName=" + linkEntity.getExtension().getExtensionName() + ", extensionVersion=" + linkEntity.getExtension().getExtensionVersion());
+
+    ExtensionHelper.validateDeleteLink(getClusters(), stackInfo, extensionInfo);
+    ambariMetaInfo.getStackManager().unlinkStackAndExtension(stackInfo, extensionInfo);
+
+    try {
+      linkDAO.remove(linkEntity);
+    } catch (RollbackException e) {
+      throw new AmbariException("Unable to delete extension link"
+              + ", linkId=" + request.getLinkId()
+              + ", stackName=" + request.getStackName()
+              + ", stackVersion=" + request.getStackVersion()
+              + ", extensionName=" + request.getExtensionName()
+              + ", extensionVersion=" + request.getExtensionVersion(), e);
+    }
+  }
+
+  /**
+   * This method will create a link between an extension version and a stack version (Extension Link).
+   *
+   * An extension version is like a stack version but it contains custom services.  Linking an extension
+   * version to the current stack version allows the cluster to install the custom services contained in
+   * the extension version.
+   */
+  @Override
+  public void createExtensionLink(ExtensionLinkRequest request) throws AmbariException {
+    validateCreateExtensionLinkRequest(request);
+
+    StackInfo stackInfo = ambariMetaInfo.getStack(request.getStackName(), request.getStackVersion());
+
+    if (stackInfo == null)
+      throw new StackAccessException("stackName=" + request.getStackName() + ", stackVersion=" + request.getStackVersion());
+
+    ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(request.getExtensionName(), request.getExtensionVersion());
+
+    if (extensionInfo == null)
+      throw new StackAccessException("extensionName=" + request.getExtensionName() + ", extensionVersion=" + request.getExtensionVersion());
+
+    ExtensionHelper.validateCreateLink(stackInfo, extensionInfo);
+    ExtensionLinkEntity linkEntity = createExtensionLinkEntity(request);
+    ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
+
+    try {
+      linkDAO.create(linkEntity);
+      linkEntity = linkDAO.merge(linkEntity);
+    } catch (RollbackException e) {
+      String message = "Unable to create extension link";
+      LOG.debug(message, e);
+      String errorMessage = message
+              + ", stackName=" + request.getStackName()
+              + ", stackVersion=" + request.getStackVersion()
+              + ", extensionName=" + request.getExtensionName()
+              + ", extensionVersion=" + request.getExtensionVersion();
+      LOG.warn(errorMessage);
+      throw new AmbariException(errorMessage, e);
+    }
+  }
+
+  /**
+   * This method will update a link between an extension version and a stack version (Extension Link).
+   * Updating will only force ambari server to reread the stack and extension directories.
+   *
+   * An extension version is like a stack version but it contains custom services.  Linking an extension
+   * version to the current stack version allows the cluster to install the custom services contained in
+   * the extension version.
+   */
+  @Override
+  public void updateExtensionLink(ExtensionLinkRequest request) throws AmbariException {
+    if (request.getLinkId() == null) {
+      throw new AmbariException("Link ID should be provided");
+    }
+    ExtensionLinkEntity linkEntity = null;
+    try {
+      linkEntity = linkDAO.findById(new Long(request.getLinkId()));
+    } catch (RollbackException e) {
+      throw new AmbariException("Unable to find extension link"
+            + ", linkId=" + request.getLinkId(), e);
+    }
+    updateExtensionLink(linkEntity);
+  }
+
+  /**
+   * This method will update a link between an extension version and a stack version (Extension Link).
+   * Updating will only force ambari server to reread the stack and extension directories.
+   *
+   * An extension version is like a stack version but it contains custom services.  Linking an extension
+   * version to the current stack version allows the cluster to install the custom services contained in
+   * the extension version.
+   */
+  @Override
+  public void updateExtensionLink(ExtensionLinkEntity linkEntity) throws AmbariException {
+    StackInfo stackInfo = ambariMetaInfo.getStack(linkEntity.getStack().getStackName(), linkEntity.getStack().getStackVersion());
+
+    if (stackInfo == null)
+      throw new StackAccessException("stackName=" + linkEntity.getStack().getStackName() + ", stackVersion=" + linkEntity.getStack().getStackVersion());
+
+    ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(linkEntity.getExtension().getExtensionName(), linkEntity.getExtension().getExtensionVersion());
+
+    if (extensionInfo == null)
+      throw new StackAccessException("extensionName=" + linkEntity.getExtension().getExtensionName() + ", extensionVersion=" + linkEntity.getExtension().getExtensionVersion());
+
+    ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
+  }
+
+  private void validateCreateExtensionLinkRequest(ExtensionLinkRequest request) throws AmbariException {
+    if (request.getStackName() == null
+            || request.getStackVersion() == null
+            || request.getExtensionName() == null
+            || request.getExtensionVersion() == null) {
+
+      throw new IllegalArgumentException("Stack name, stack version, extension name and extension version should be provided");
+    }
+
+    ExtensionLinkEntity entity = linkDAO.findByStackAndExtension(request.getStackName(), request.getStackVersion(),
+            request.getExtensionName(), request.getExtensionVersion());
+
+    if (entity != null) {
+      throw new AmbariException("The stack and extension are already linked"
+                + ", stackName=" + request.getStackName()
+                + ", stackVersion=" + request.getStackVersion()
+                + ", extensionName=" + request.getExtensionName()
+                + ", extensionVersion=" + request.getExtensionVersion());
+    }
+  }
+
+  private ExtensionLinkEntity createExtensionLinkEntity(ExtensionLinkRequest request) throws AmbariException {
+    StackEntity stack = stackDAO.find(request.getStackName(), request.getStackVersion());
+    ExtensionEntity extension = extensionDAO.find(request.getExtensionName(), request.getExtensionVersion());
+
+    ExtensionLinkEntity linkEntity = new ExtensionLinkEntity();
+    linkEntity.setStack(stack);
+    linkEntity.setExtension(extension);
+    return linkEntity;
   }
 }

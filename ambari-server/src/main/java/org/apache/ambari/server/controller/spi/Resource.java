@@ -92,6 +92,9 @@ public interface Resource {
     Member,
     Stack,
     StackVersion,
+    ExtensionLink,
+    Extension,
+    ExtensionVersion,
     OperatingSystem,
     Repository,
     StackService,
@@ -210,6 +213,9 @@ public interface Resource {
     public static final Type Member = InternalType.Member.getType();
     public static final Type Stack = InternalType.Stack.getType();
     public static final Type StackVersion = InternalType.StackVersion.getType();
+    public static final Type ExtensionLink = InternalType.ExtensionLink.getType();
+    public static final Type Extension = InternalType.Extension.getType();
+    public static final Type ExtensionVersion = InternalType.ExtensionVersion.getType();
     public static final Type OperatingSystem = InternalType.OperatingSystem.getType();
     public static final Type Repository = InternalType.Repository.getType();
     public static final Type StackService = InternalType.StackService.getType();

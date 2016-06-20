@@ -83,7 +83,7 @@ public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigur
   }
 
   @Override
-  public void resolve(QuickLinksConfigurationModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
+  public void resolve(QuickLinksConfigurationModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> allExtensions) throws AmbariException {
     QuickLinksConfigurationInfo parentModuleInfo = parent.getModuleInfo();
 
     if (parent.getModuleInfo() != null && !moduleInfo.isDeleted()) {

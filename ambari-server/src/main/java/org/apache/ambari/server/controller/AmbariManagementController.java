@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -356,6 +357,52 @@ public interface AmbariManagementController {
   RequestStatusResponse updateStacks() throws AmbariException;
 
   /**
+   * Create a link between an extension and a stack
+   *
+   * @throws AmbariException if we fail to link the extension to the stack
+   */
+  public void createExtensionLink(ExtensionLinkRequest request) throws AmbariException;
+
+  /**
+   * Update a link between an extension and a stack
+   *
+   * @throws AmbariException if we fail to link the extension to the stack
+   */
+  public void updateExtensionLink(ExtensionLinkRequest request) throws AmbariException;
+
+  /**
+   * Update a link between an extension and a stack
+   *
+   * @throws AmbariException if we fail to link the extension to the stack
+   */
+  public void updateExtensionLink(ExtensionLinkEntity linkEntity) throws AmbariException;
+
+  /**
+   * Delete a link between an extension and a stack
+   *
+   * @throws AmbariException if we fail to unlink the extension from the stack
+   */
+  public void deleteExtensionLink(ExtensionLinkRequest request) throws AmbariException;
+
+  /**
+   * Get supported extensions.
+   *
+   * @param requests the extensions
+   * @return a set of extensions responses
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<ExtensionResponse> getExtensions(Set<ExtensionRequest> requests) throws AmbariException;
+
+  /**
+   * Get supported extension versions.
+   *
+   * @param requests the extension versions
+   * @return a set of extension versions responses
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<ExtensionVersionResponse> getExtensionVersions(Set<ExtensionVersionRequest> requests) throws AmbariException;
+
+  /**
    * Get supported stacks versions.
    *
    * @param requests the stacks versions
@@ -365,7 +412,6 @@ public interface AmbariManagementController {
    * @throws  AmbariException if the resources cannot be read
    */
   Set<StackVersionResponse> getStackVersions(Set<StackVersionRequest> requests) throws AmbariException;
-
 
   /**
    * Get repositories by stack name, version and operating system.
@@ -430,7 +476,6 @@ public interface AmbariManagementController {
    * @throws  AmbariException if the resources cannot be read
    */
   Set<StackServiceComponentResponse> getStackComponents(Set<StackServiceComponentRequest> requests) throws AmbariException;
-
 
   /**
    * Get operating systems by stack name, version.

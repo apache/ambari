@@ -28,11 +28,16 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.ExtensionDAO;
+import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -48,6 +53,8 @@ public class StackManagerMiscTest  {
   public void testCycleDetection() throws Exception {
     MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
     StackDAO stackDao = createNiceMock(StackDAO.class);
+    ExtensionDAO extensionDao = createNiceMock(ExtensionDAO.class);
+    ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
     ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
     OsFamily osFamily = createNiceMock(OsFamily.class);
     StackEntity stackEntity = createNiceMock(StackEntity.class);
@@ -56,13 +63,18 @@ public class StackManagerMiscTest  {
         stackDao.find(EasyMock.anyObject(String.class),
             EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
 
-    replay(actionMetadata, stackDao, metaInfoDao, osFamily);
+    List<ExtensionLinkEntity> list = Collections.emptyList();
+    expect(
+        linkDao.findByStack(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
+
+    replay(actionMetadata, stackDao, extensionDao, linkDao, metaInfoDao, osFamily);
 
     try {
       String stacksCycle1 = ClassLoader.getSystemClassLoader().getResource("stacks_with_cycle").getPath();
 
-      StackManager stackManager = new StackManager(new File(stacksCycle1),
-          null, osFamily, false, metaInfoDao, actionMetadata, stackDao);
+      StackManager stackManager = new StackManager(new File(stacksCycle1), null, null, osFamily, false,
+          metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
@@ -74,7 +86,7 @@ public class StackManagerMiscTest  {
           "stacks_with_cycle2").getPath();
 
       StackManager stackManager = new StackManager(new File(stacksCycle2),
-          null, osFamily, true, metaInfoDao, actionMetadata, stackDao);
+          null, null, osFamily, true, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
@@ -91,6 +103,8 @@ public class StackManagerMiscTest  {
   public void testGetServiceInfoFromSingleStack() throws Exception {
     MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
     StackDAO stackDao = createNiceMock(StackDAO.class);
+    ExtensionDAO extensionDao = createNiceMock(ExtensionDAO.class);
+    ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
     ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
     OsFamily  osFamily = createNiceMock(OsFamily.class);
     StackEntity stackEntity = createNiceMock(StackEntity.class);
@@ -102,14 +116,18 @@ public class StackManagerMiscTest  {
         stackDao.find(EasyMock.anyObject(String.class),
             EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
 
-    replay(metaInfoDao, stackDao, actionMetadata, osFamily);
+    List<ExtensionLinkEntity> list = Collections.emptyList();
+    expect(
+        linkDao.findByStack(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
+
+    replay(metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata, osFamily);
 
     String singleStack = ClassLoader.getSystemClassLoader().getResource("single_stack").getPath();
 
     StackManager stackManager = new StackManager(new File(singleStack.replace(
-        StackManager.PATH_DELIMITER, File.separator)),
-        null, osFamily, false, metaInfoDao, actionMetadata, stackDao);
-
+        StackManager.PATH_DELIMITER, File.separator)), null, null, osFamily, false, metaInfoDao,
+        actionMetadata, stackDao, extensionDao, linkDao);
 
     Collection<StackInfo> stacks = stackManager.getStacks();
     assertEquals(1, stacks.size());
@@ -126,6 +144,8 @@ public class StackManagerMiscTest  {
   public void testCircularDependencyForServiceUpgrade() throws Exception {
     MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
     StackDAO stackDao = createNiceMock(StackDAO.class);
+    ExtensionDAO extensionDao = createNiceMock(ExtensionDAO.class);
+    ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
     ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
     OsFamily osFamily = createNiceMock(OsFamily.class);
     StackEntity stackEntity = createNiceMock(StackEntity.class);
@@ -134,13 +154,18 @@ public class StackManagerMiscTest  {
         stackDao.find(EasyMock.anyObject(String.class),
             EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
 
-    replay(actionMetadata, stackDao, metaInfoDao, osFamily);
+    List<ExtensionLinkEntity> list = Collections.emptyList();
+    expect(
+        linkDao.findByStack(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
+
+    replay(metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata, osFamily);
 
     try {
       String upgradeCycle = ClassLoader.getSystemClassLoader().getResource("stacks_with_upgrade_cycle").getPath();
 
-      StackManager stackManager = new StackManager(new File(upgradeCycle),
-          null, osFamily, false, metaInfoDao, actionMetadata, stackDao);
+      StackManager stackManager = new StackManager(new File(upgradeCycle), null, null, osFamily, false,
+          metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao);
 
       fail("Expected exception due to cyclic service upgrade xml");
     } catch (AmbariException e) {

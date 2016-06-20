@@ -82,7 +82,8 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
   }
 
   @Override
-  public void resolve(ThemeModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
+  public void resolve(ThemeModule parent, Map<String, StackModule> allStacks,
+		  Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions) throws AmbariException {
     ThemeInfo parentModuleInfo = parent.getModuleInfo();
 
     if (parent.getModuleInfo() != null && !moduleInfo.isDeleted()) {

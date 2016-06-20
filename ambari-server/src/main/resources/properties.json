@@ -265,6 +265,26 @@
         "auto_deploy/enabled",
         "auto_deploy/location"
     ],
+    "ExtensionLink": [
+        "ExtensionLink/link_id",
+        "ExtensionLink/stack_name",
+        "ExtensionLink/stack_version",
+        "ExtensionLink/extension_name",
+        "ExtensionLink/extension_version",
+        "_"
+    ],
+    "Extension":[
+        "Extensions/extension_name",
+        "_"
+    ],
+    "ExtensionVersion":[
+        "Versions/extension_name",
+        "Versions/extension_version",
+        "Versions/valid",
+        "Versions/extension-errors",
+        "Versions/parent_extension_version",
+        "_"
+    ],
     "DRFeed":[
         "Feed/name",
         "Feed/description",
@@ -469,10 +489,10 @@
         "StackConfigurationDependency/dependency_name",
         "_"
     ],
-  "KerberosDescriptor":[
-    "KerberosDescriptors/kerberos_descriptor_name",
-    "KerberosDescriptors/kerberos_descriptor_text",
-    "_"
-  ]
+    "KerberosDescriptor":[
+        "KerberosDescriptors/kerberos_descriptor_name",
+        "KerberosDescriptors/kerberos_descriptor_text",
+        "_"
+    ]
 
 }
