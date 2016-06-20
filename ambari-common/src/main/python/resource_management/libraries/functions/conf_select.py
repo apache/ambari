@@ -97,6 +97,12 @@ _PACKAGE_DIRS = {
       "current_dir": "{0}/current/mahout-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
+  "nifi": [
+    {
+      "conf_dir": "/etc/nifi/conf",
+      "current_dir": "{0}/current/nifi/conf".format(STACK_ROOT_PATTERN)
+    }
+  ],
   "oozie": [
     {
       "conf_dir": "/etc/oozie/conf",
