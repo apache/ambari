@@ -34,6 +34,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.StageWrapper.Type;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +105,10 @@ public class ColocatedGrouping extends Grouping {
         List<Task> tasks = resolveTasks(context, true, pc);
 
         if (null != tasks && tasks.size() > 0) {
+          // Our assumption is that all of the tasks in the StageWrapper are of
+          // the same type.
+          StageWrapper.Type type = tasks.get(0).getStageWrapperType();
+
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
           proxy.message = getStageText("Preparing",
@@ -111,6 +116,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.service = service;
           proxy.component = pc.name;
+          proxy.type = type;
           targetList.add(proxy);
         }
 
@@ -123,6 +129,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.restart = true;
           proxy.service = service;
           proxy.component = pc.name;
+          proxy.type = Type.RESTART;
           proxy.message = getStageText("Restarting",
               context.getComponentDisplay(service, pc.name), Collections.singleton(host));
           targetList.add(proxy);
@@ -131,10 +138,15 @@ public class ColocatedGrouping extends Grouping {
         tasks = resolveTasks(context, false, pc);
 
         if (null != tasks && tasks.size() > 0) {
+          // Our assumption is that all of the tasks in the StageWrapper are of
+          // the same type.
+          StageWrapper.Type type = tasks.get(0).getStageWrapperType();
+
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
           proxy.component = pc.name;
           proxy.service = service;
+          proxy.type = type;
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.message = getStageText("Completing",
               context.getComponentDisplay(service, pc.name), Collections.singleton(host));
@@ -201,7 +213,7 @@ public class ColocatedGrouping extends Grouping {
 
           if (!t.restart) {
             if (null == wrapper) {
-              wrapper = new StageWrapper(StageWrapper.Type.RU_TASKS, t.message, t.getTasksArray());
+              wrapper = new StageWrapper(t.type, t.message, t.getTasksArray());
             }
           } else {
             execwrappers.add(new StageWrapper(StageWrapper.Type.RESTART, t.message, t.getTasksArray()));
@@ -319,6 +331,7 @@ public class ColocatedGrouping extends Grouping {
     private String service;
     private String component;
     private String message;
+    private Type type;
     private boolean clientOnly = false;
     private List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
 

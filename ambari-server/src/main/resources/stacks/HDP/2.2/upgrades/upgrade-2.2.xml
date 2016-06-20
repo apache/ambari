@@ -360,6 +360,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Hive Server Port Change">
+        <task xsi:type="manual">
+          <message>If there are users or applications using URLS that specify the Hive Server port number, they will now fail to connect. You can restore the port back to its original value after the upgrade has been finalized.</message>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
@@ -368,8 +374,7 @@
       </execute-stage>
       
       <execute-stage title="Save Cluster State" service="" component="">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
-        </task>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction"/>
       </execute-stage>
     </group>
   </order>
