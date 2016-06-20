@@ -99,13 +99,11 @@ class TestSolr(RMFTestCase):
                                 group='hadoop',
                                 content = Template('zoo.cfg.j2')
       )
-      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org -cmd makepath /logsearch',
-                                not_if = "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org/logsearch -cmd list",
-                                ignore_failures = True,
+      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:2181 -cmd makepath /logsearch',
+                                not_if = "export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:2181/logsearch -cmd list",
                                 user = "solr"
       )
-      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org/logsearch -cmd clusterprop -name urlScheme -val http',
-                                ignore_failures = True,
+      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:2181/logsearch -cmd clusterprop -name urlScheme -val http',
                                 user = "solr"
       )
 

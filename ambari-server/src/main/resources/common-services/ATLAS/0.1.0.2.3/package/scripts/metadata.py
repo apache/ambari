@@ -134,7 +134,8 @@ def upload_conf_set(config_set, random_num):
       config_set=config_set,
       tmp_config_set_dir=tmp_config_set_folder,
       java64_home=params.java64_home,
-      user=params.metadata_user)
+      user=params.metadata_user,
+      retry=30, interval=5)
 
 def create_collection(collection, config_set):
   import params

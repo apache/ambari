@@ -221,6 +221,9 @@
     "atlas-solrconfig": {
       "content": "<property><name>content</name><description>Custom solrconfig properties</description><value></value></property>"
     },
+    "zoo.cfg": {
+      "clientPort": "2181"
+    },
     "ranger-hbase-plugin-properties": {
       "ranger-hbase-plugin-enabled":"yes"
     },

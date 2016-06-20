@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management.core.exceptions import Fail
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import solr_cloud_util
 
@@ -77,21 +78,14 @@ def setup_logsearch_solr(name = None):
          owner=params.logsearch_solr_user,
          group=params.user_group
          )
-
-    zk_cli_prefix = format('export JAVA_HOME={java64_home}; {cloud_scripts}/zkcli.sh -zkhost {zookeeper_hosts}')
-    Execute(format('{zk_cli_prefix} -cmd makepath {logsearch_solr_znode}'),
-            not_if=format("{zk_cli_prefix}{logsearch_solr_znode} -cmd list"),
-            ignore_failures=True,
-            user=params.logsearch_solr_user
-            )
+    zk_cli_prefix = format('export JAVA_HOME={java64_home}; {cloud_scripts}/zkcli.sh -zkhost {zookeeper_quorum}')
+    create_ambari_solr_znode(zk_cli_prefix)
     if params.logsearch_solr_ssl_enabled:
       Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val https'),
-              ignore_failures=True,
               user=params.logsearch_solr_user
               )
     else:
       Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val http'),
-              ignore_failures=True,
               user=params.logsearch_solr_user
               )
   elif name == 'client':
@@ -99,3 +93,11 @@ def setup_logsearch_solr(name = None):
 
   else :
     raise Fail('Nor client or server were selected to install.')
+
+@retry(times=30, sleep_time=5, err_class=Fail)
+def create_ambari_solr_znode(zk_cli_prefix):
+  import params
+  Execute(format('{zk_cli_prefix} -cmd makepath {logsearch_solr_znode}'),
+          not_if=format("{zk_cli_prefix}{logsearch_solr_znode} -cmd list"),
+          user=params.logsearch_solr_user
+          )
