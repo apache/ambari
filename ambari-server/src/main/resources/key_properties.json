@@ -79,12 +79,26 @@
     "StackService": "StackServiceComponents/service_name",
     "StackServiceComponent": "StackServiceComponents/component_name"
   },
-    "StackServiceComponentDependency": {
+  "StackServiceComponentDependency": {
     "Stack": "Dependencies/stack_name",
     "StackVersion": "Dependencies/stack_version",
     "StackService": "Dependencies/dependent_service_name",
     "StackServiceComponent": "Dependencies/dependent_component_name",
     "StackServiceComponentDependency": "Dependencies/component_name"
+  },
+  "ExtensionLink": {
+    "ExtensionLink": "ExtensionLink/link_id",
+    "Stack": "ExtensionLink/stack_name",
+    "StackVersion": "ExtensionLink/stack_version",
+    "Extension": "ExtensionLink/extension_name",
+    "ExtensionVersion": "ExtensionLink/extension_version"
+  },
+  "Extension": {
+    "Extension": "Extensions/extension_name"
+  },
+  "ExtensionVersion": {
+    "Extension": "Versions/extension_name",
+    "ExtensionVersion": "Versions/extension_version"
   },
   "DRFeed": {
     "DRFeed": "Feed/name"

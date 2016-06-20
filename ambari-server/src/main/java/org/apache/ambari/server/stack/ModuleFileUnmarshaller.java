@@ -20,6 +20,7 @@ package org.apache.ambari.server.stack;
 
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
+import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
@@ -27,7 +28,9 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,6 +75,7 @@ class ModuleFileUnmarshaller {
       jaxbContexts.put(UpgradePack.class, ctx);
       jaxbContexts.put(ConfigUpgradePack.class, ctx);
       jaxbContexts.put(ServiceMetainfoXml.class, JAXBContext.newInstance(ServiceMetainfoXml.class));
+      jaxbContexts.put(ExtensionMetainfoXml.class, JAXBContext.newInstance(ExtensionMetainfoXml.class));
     } catch (JAXBException e) {
       throw new RuntimeException (e);
     }

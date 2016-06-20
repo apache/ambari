@@ -33,6 +33,8 @@
     <class>org.apache.ambari.server.orm.entities.ConfigGroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity</class>
     <class>org.apache.ambari.server.orm.entities.ExecutionCommandEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ExtensionEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ExtensionLinkEntity</class>
     <class>org.apache.ambari.server.orm.entities.GroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.HostComponentStateEntity</class>

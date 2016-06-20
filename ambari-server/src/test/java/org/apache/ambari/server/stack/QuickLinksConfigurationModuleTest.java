@@ -118,7 +118,7 @@ public class QuickLinksConfigurationModuleTest {
     QuickLinksConfigurationModule parentModule = new QuickLinksConfigurationModule(parentQuiclinksFile);
     QuickLinksConfigurationModule childModule = new QuickLinksConfigurationModule(childQuickLinksFile);
 
-    childModule.resolve(parentModule, null, null);
+    childModule.resolve(parentModule, null, null, null);
 
     QuickLinks parentQuickLinks = parentModule.getModuleInfo().getQuickLinksConfigurationMap().get(QuickLinksConfigurationModule.QUICKLINKS_CONFIGURATION_KEY);
     QuickLinks childQuickLinks = childModule.getModuleInfo().getQuickLinksConfigurationMap().get(QuickLinksConfigurationModule.QUICKLINKS_CONFIGURATION_KEY);

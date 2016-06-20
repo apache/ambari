@@ -36,6 +36,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.StackDefinitionDirectory;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -107,6 +108,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private Map<String, ServiceModule> serviceModules = new HashMap<String, ServiceModule>();
 
   /**
+   * Map of linked extension modules keyed by extension name + version
+   */
+  private Map<String, ExtensionModule> extensionModules = new HashMap<String, ExtensionModule>();
+
+  /**
    * Corresponding StackInfo instance
    */
   private StackInfo stackInfo;
@@ -148,6 +154,14 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     populateStackInfo();
   }
 
+  public Map<String, ServiceModule> getServiceModules() {
+	  return serviceModules;
+  }
+
+  public Map<String, ExtensionModule> getExtensionModules() {
+	  return extensionModules;
+  }
+
   /**
    * Fully resolve the stack. See stack resolution description in the class documentation.
    * If the stack has a parent, this stack will be merged against its fully resolved parent
@@ -160,20 +174,34 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    *                       have containing modules
    * @param allStacks      all stacks modules contained in the stack definition
    * @param commonServices all common services specified in the stack definition
+   * @param extensions     all extension modules contained in the stack definition
    *
    * @throws AmbariException if an exception occurs during stack resolution
    */
   @Override
   public void resolve(
-      StackModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      StackModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     moduleState = ModuleState.VISITED;
+    LOG.info("Resolve: " + stackInfo.getName() + ":" + stackInfo.getVersion());
     String parentVersion = stackInfo.getParentStackVersion();
-    mergeServicesWithExplicitParent(allStacks, commonServices);
+    mergeServicesWithExplicitParent(allStacks, commonServices, extensions);
+    addExtensionServices();
+
     // merge with parent version of same stack definition
     if (parentVersion != null) {
-      mergeStackWithParent(parentVersion, allStacks, commonServices);
+      mergeStackWithParent(parentVersion, allStacks, commonServices, extensions);
     }
+    for (ExtensionInfo extension : stackInfo.getExtensions()) {
+      String extensionKey = extension.getName() + StackManager.PATH_DELIMITER + extension.getVersion();
+      ExtensionModule extensionModule = extensions.get(extensionKey);
+      if (extensionModule == null) {
+        throw new AmbariException("Extension '" + stackInfo.getName() + ":" + stackInfo.getVersion() +
+                        "' specifies an extension " + extensionKey + " that doesn't exist");
+      }
+      mergeStackWithExtension(extensionModule, allStacks, commonServices, extensions);
+    }
+
     processUpgradePacks();
     processRepositories();
     processPropertyDependencies();
@@ -199,6 +227,12 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   public void finalizeModule() {
     finalizeChildModules(serviceModules.values());
     finalizeChildModules(configurationModules.values());
+
+    // This needs to be merged during the finalize to avoid the RCO from services being inherited by the children stacks
+    // The RCOs from a service should only be inherited through the service.
+    for (ServiceModule module : serviceModules.values()) {
+      mergeRoleCommandOrder(module);
+    }
   }
 
   /**
@@ -220,7 +254,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @throws AmbariException if an exception occurs merging with the parent
    */
   private void mergeStackWithParent(
-      String parentVersion, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      String parentVersion, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
 
     String parentStackKey = stackInfo.getName() + StackManager.PATH_DELIMITER + parentVersion;
@@ -231,8 +265,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
           "' specifies a parent that doesn't exist");
     }
 
-    resolveStack(parentStack, allStacks, commonServices);
-    mergeConfigurations(parentStack, allStacks, commonServices);
+    resolveStack(parentStack, allStacks, commonServices, extensions);
+    mergeConfigurations(parentStack, allStacks, commonServices, extensions);
     mergeRoleCommandOrder(parentStack);
 
     if (stackInfo.getStackHooksFolder() == null) {
@@ -248,7 +282,22 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setWidgetsDescriptorFileLocation(parentStack.getModuleInfo().getWidgetsDescriptorFileLocation());
     }
 
-    mergeServicesWithParent(parentStack, allStacks, commonServices);
+    mergeServicesWithParent(parentStack, allStacks, commonServices, extensions);
+  }
+
+  /**
+   * Merge the stack with one of its linked extensions.
+   *
+   * @param allStacks      all stacks in stack definition
+   * @param commonServices all common services specified in the stack definition
+   * @param parentVersion  version of the stacks parent
+   *
+   * @throws AmbariException if an exception occurs merging with the parent
+   */
+  private void mergeStackWithExtension(
+		  ExtensionModule extension, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
+      throws AmbariException {
+
   }
 
   /**
@@ -261,11 +310,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @throws AmbariException if an exception occurs merging the child services with the parent stack
    */
   private void mergeServicesWithParent(
-      StackModule parentStack, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      StackModule parentStack, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     stackInfo.getServices().clear();
     Collection<ServiceModule> mergedModules = mergeChildModules(
-        allStacks, commonServices, serviceModules, parentStack.serviceModules);
+        allStacks, commonServices, extensions, serviceModules, parentStack.serviceModules);
     for (ServiceModule module : mergedModules) {
       serviceModules.put(module.getId(), module);
       stackInfo.getServices().add(module.getModuleInfo());
@@ -280,12 +329,12 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @throws AmbariException if an exception occurs while merging child services with their explicit parents
    */
   private void mergeServicesWithExplicitParent(
-      Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
+      Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions) throws AmbariException {
     for (ServiceModule service : serviceModules.values()) {
       ServiceInfo serviceInfo = service.getModuleInfo();
       String parent = serviceInfo.getParent();
       if (parent != null) {
-        mergeServiceWithExplicitParent(service, parent, allStacks, commonServices);
+        mergeServiceWithExplicitParent(service, parent, allStacks, commonServices, extensions);
       }
     }
   }
@@ -301,12 +350,16 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    */
   private void mergeServiceWithExplicitParent(
       ServiceModule service, String parent, Map<String, StackModule> allStacks,
-      Map<String, ServiceModule> commonServices)
+      Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
+
+    LOG.info("mergeServiceWithExplicitParent" + parent);
     if(isCommonServiceParent(parent)) {
-      mergeServiceWithCommonServiceParent(service, parent, allStacks,commonServices);
+      mergeServiceWithCommonServiceParent(service, parent, allStacks, commonServices, extensions);
+    } else if(isExtensionServiceParent(parent)) {
+      mergeServiceWithExtensionServiceParent(service, parent, allStacks, commonServices, extensions);
     } else {
-      mergeServiceWithStackServiceParent(service, parent, allStacks, commonServices);
+      mergeServiceWithStackServiceParent(service, parent, allStacks, commonServices, extensions);
     }
   }
 
@@ -319,6 +372,25 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     return parent != null
         && !parent.isEmpty()
         && parent.split(StackManager.PATH_DELIMITER)[0].equalsIgnoreCase(StackManager.COMMON_SERVICES);
+  }
+
+  /**
+   * Check if parent is extension service
+   * @param parent  Parent string
+   * @return true: if parent is extension service, false otherwise
+   */
+  private boolean isExtensionServiceParent(String parent) {
+    return parent != null
+        && !parent.isEmpty()
+        && parent.split(StackManager.PATH_DELIMITER)[0].equalsIgnoreCase(StackManager.EXTENSIONS);
+  }
+
+  private void addExtensionServices() throws AmbariException {
+    for (ExtensionModule extension : extensionModules.values()) {
+      stackInfo.getExtensions().add(extension.getModuleInfo());
+      Collection<ServiceModule> services = extension.getServiceModules().values();
+      addServices(services);
+    }
   }
 
   /**
@@ -337,7 +409,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    */
   private void mergeServiceWithCommonServiceParent(
       ServiceModule service, String parent, Map<String, StackModule> allStacks,
-      Map<String, ServiceModule> commonServices)
+      Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     ServiceInfo serviceInfo = service.getModuleInfo();
     String[] parentToks = parent.split(StackManager.PATH_DELIMITER);
@@ -357,13 +429,57 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.addError(error);
     } else {
       if (baseService.isValid()) {
-        service.resolveExplicit(baseService, allStacks, commonServices);
+        service.resolveExplicit(baseService, allStacks, commonServices, extensions);
       } else {
         setValid(false);
         stackInfo.setValid(false);
         addErrors(baseService.getErrors());
         stackInfo.addErrors(baseService.getErrors());
       }
+    }
+  }
+
+  /**
+   * Merge a service with its explicitly specified extension service as parent.
+   * Parent: extensions/<extensionName>/<extensionVersion>/<serviceName>
+   * Example:
+   *  Parent: extensions/EXT_TEST/1.0/CUSTOM_SERVICE
+   *
+   * @param service          the service to merge
+   * @param parent           the explicitly specified extension as parent
+   * @param allStacks        all stacks specified in the stack definition
+   * @param commonServices   all common services
+   * @param extensions       all extensions
+   * @throws AmbariException
+   */
+  private void mergeServiceWithExtensionServiceParent(
+      ServiceModule service, String parent, Map<String, StackModule> allStacks,
+      Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
+      throws AmbariException {
+    ServiceInfo serviceInfo = service.getModuleInfo();
+    String[] parentToks = parent.split(StackManager.PATH_DELIMITER);
+    if(parentToks.length != 4 || !parentToks[0].equalsIgnoreCase(StackManager.EXTENSIONS)) {
+      throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
+          + stackInfo.getVersion() + "' extends an invalid parent: '" + parent + "'");
+    }
+
+    String extensionKey = parentToks[1] + StackManager.PATH_DELIMITER + parentToks[2];
+    ExtensionModule extension = extensions.get(extensionKey);
+
+    if (extension == null || !extension.isValid()) {
+      setValid(false);
+      addError("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
+          + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
+    } else {
+      resolveExtension(extension, allStacks, commonServices, extensions);
+      ServiceModule parentService = extension.getServiceModules().get(parentToks[3]);
+      if (parentService == null || !parentService.isValid()) {
+        setValid(false);
+        addError("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
+            + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
+      }
+      else
+        service.resolve(parentService, allStacks, commonServices, extensions);
     }
   }
 
@@ -378,16 +494,17 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param service          the service to merge
    * @param parent           the explicitly specified stack service as parent
    * @param allStacks        all stacks specified in the stack definition
-   * @param commonServices   all common services specified in the stack definition
+   * @param commonServices   all common services
+   * @param extensions       all extensions
    * @throws AmbariException
    */
   private void mergeServiceWithStackServiceParent(
       ServiceModule service, String parent, Map<String, StackModule> allStacks,
-      Map<String, ServiceModule> commonServices)
+      Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     ServiceInfo serviceInfo = service.getModuleInfo();
     String[] parentToks = parent.split(StackManager.PATH_DELIMITER);
-    if(parentToks.length != 3 || parentToks[0].equalsIgnoreCase(StackManager.COMMON_SERVICES)) {
+    if(parentToks.length != 3 || parentToks[0].equalsIgnoreCase(StackManager.EXTENSIONS) || parentToks[0].equalsIgnoreCase(StackManager.COMMON_SERVICES)) {
       throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
           + stackInfo.getVersion() + "' extends an invalid parent: '" + parent + "'");
     }
@@ -399,14 +516,14 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
           + stackInfo.getVersion() + "' extends a service in a non-existent stack: '" + baseStackKey + "'");
     }
 
-    resolveStack(baseStack, allStacks, commonServices);
+    resolveStack(baseStack, allStacks, commonServices, extensions);
 
     ServiceModule baseService = baseStack.serviceModules.get(parentToks[2]);
     if (baseService == null) {
       throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
           + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
       }
-    service.resolveExplicit(baseService, allStacks, commonServices);
+    service.resolveExplicit(baseService, allStacks, commonServices, extensions);
   }
 
   /**
@@ -422,8 +539,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         + ", stackName = " + stackInfo.getName()
         + ", stackVersion = " + stackInfo.getVersion());
 
-
-    //odo: give additional thought on handling missing metainfo.xml
+    //todo: give additional thought on handling missing metainfo.xml
     StackMetainfoXml smx = stackDirectory.getMetaInfoFile();
     if (smx != null) {
       if (!smx.isValid()) {
@@ -542,13 +658,13 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param commonServices all common services specified in the stack definition
    */
   private void mergeConfigurations(
-      StackModule parent, Map<String,StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      StackModule parent, Map<String,StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     stackInfo.getProperties().clear();
     stackInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
-        allStacks, commonServices, configurationModules, parent.configurationModules);
+        allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
     for (ConfigurationModule module : mergedModules) {
       configurationModules.put(module.getId(), module);
       stackInfo.getProperties().addAll(module.getModuleInfo().getProperties());
@@ -565,10 +681,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @throws AmbariException if unable to resolve the stack
    */
   private void resolveStack(
-          StackModule stackToBeResolved, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+          StackModule stackToBeResolved, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
           throws AmbariException {
     if (stackToBeResolved.getModuleState() == ModuleState.INIT) {
-      stackToBeResolved.resolve(null, allStacks, commonServices);
+      stackToBeResolved.resolve(null, allStacks, commonServices, extensions);
     } else if (stackToBeResolved.getModuleState() == ModuleState.VISITED) {
       //todo: provide more information to user about cycle
       throw new AmbariException("Cycle detected while parsing stack definition");
@@ -578,6 +694,30 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setValid(stackToBeResolved.stackInfo.isValid());
       addErrors(stackToBeResolved.getErrors());
       stackInfo.addErrors(stackToBeResolved.getErrors());
+    }
+  }
+
+  /**
+   * Resolve an extension module.
+   *
+   * @param extension              extension module to be resolved
+   * @param allStacks              all stack modules in stack definition
+   * @param commonServices         all common services
+   * @param extensions             all extensions
+   * @throws AmbariException if unable to resolve the stack
+   */
+  private void resolveExtension(
+          ExtensionModule extension, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
+          throws AmbariException {
+    if (extension.getModuleState() == ModuleState.INIT) {
+	  extension.resolve(null, allStacks, commonServices, extensions);
+    } else if (extension.getModuleState() == ModuleState.VISITED) {
+      //todo: provide more information to user about cycle
+      throw new AmbariException("Cycle detected while parsing extension definition");
+    }
+    if (!extension.isValid() || (extension.getModuleInfo() != null && !extension.getModuleInfo().isValid())) {
+      setValid(false);
+      addError("Stack includes an invalid extension: " + extension.getModuleInfo().getName());
     }
   }
 
@@ -941,6 +1081,23 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
   private void mergeRoleCommandOrder(StackModule parentStack) {
     stackInfo.getRoleCommandOrder().merge(parentStack.stackInfo.getRoleCommandOrder());
+  }
+
+  /**
+   * Merge role command order with the service
+   *
+   * @param service    service
+   */
+  private void mergeRoleCommandOrder(ServiceModule service) {
+    if (service.getModuleInfo().getRoleCommandOrder() == null)
+      return;
+
+    stackInfo.getRoleCommandOrder().merge(service.getModuleInfo().getRoleCommandOrder(), true);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Role Command Order for " + stackInfo.getName() + "-" + stackInfo.getVersion() +
+        " service " + service.getModuleInfo().getName());
+      stackInfo.getRoleCommandOrder().printRoleCommandOrder(LOG);
+    }
   }
 
   @Override

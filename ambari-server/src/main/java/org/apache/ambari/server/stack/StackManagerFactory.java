@@ -38,11 +38,14 @@ public interface StackManagerFactory {
    * @param commonServicesRoot
    *          the root of the common services from which other stack services
    *          are extended (not {@code null}).
+   * @param extensionRoot
+   *          the root of the extensions (not {@code null}).
    * @param osFamily
    *          the list of all parsed OS families (not {@code null}).
    * @return a stack manager instance which contains all parsed stacks.
    */
   StackManager create(@Assisted("stackRoot") File stackRoot,
       @Nullable @Assisted("commonServicesRoot") File commonServicesRoot,
+      @Assisted("extensionRoot") @Nullable File extensionRoot,
       OsFamily osFamily, boolean validate);
 }

@@ -168,6 +168,9 @@ public class UpgradeCatalog240Test {
     Connection connection = createNiceMock(Connection.class);
     Statement statement = createNiceMock(Statement.class);
     ResultSet resultSet = createNiceMock(ResultSet.class);
+
+    Capture<List<DBAccessor.DBColumnInfo>> capturedExtensionColumns = EasyMock.newCapture();
+    Capture<List<DBAccessor.DBColumnInfo>> capturedExtensionLinkColumns = EasyMock.newCapture();
     Capture<List<DBAccessor.DBColumnInfo>> capturedSettingColumns = EasyMock.newCapture();
 
     dbAccessor.addColumn(eq("adminpermission"), capture(capturedSortOrderColumnInfo));
@@ -176,7 +179,20 @@ public class UpgradeCatalog240Test {
     dbAccessor.addColumn(eq(UpgradeCatalog240.SERVICE_COMPONENT_DESIRED_STATE_TABLE),
         capture(capturedScDesiredVersionColumnInfo));
 
+    dbAccessor.createTable(eq("extension"), capture(capturedExtensionColumns), eq("extension_id"));
+    dbAccessor.addUniqueConstraint("extension", "UQ_extension", "extension_name", "extension_version");
+
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    dbAccessor.createTable(eq("extensionlink"), capture(capturedExtensionLinkColumns), eq("link_id"));
+    dbAccessor.addUniqueConstraint("extensionlink", "UQ_extension_link", "stack_id", "extension_id");
+    dbAccessor.addFKConstraint("extensionlink", "FK_extensionlink_extension_id", "extension_id", "extension", 
+                               "extension_id", false);
+    dbAccessor.addFKConstraint("extensionlink", "FK_extensionlink_stack_id", "stack_id", "stack",
+                               "stack_id", false);
+
+    expect(dbAccessor.getConnection()).andReturn(connection);
     dbAccessor.createTable(eq("setting"), capture(capturedSettingColumns), eq("id"));
+
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
     expect(dbAccessor.getConnection()).andReturn(connection);
     expect(connection.createStatement()).andReturn(statement);
@@ -272,7 +288,7 @@ public class UpgradeCatalog240Test {
     // Test remote Cluster Tables
     Capture<List<DBAccessor.DBColumnInfo>> capturedRemoteAmbariClusterColumns = EasyMock.newCapture();
     dbAccessor.createTable(eq(UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_TABLE), capture(capturedRemoteAmbariClusterColumns),anyString());
-    dbAccessor.addUniqueConstraint(UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_TABLE , "unq_remote_ambari_cluster" , UpgradeCatalog240.CLUSTER_NAME);
+    dbAccessor.addUniqueConstraint(UpgradeCatalog240.REMOTE_AMBARI_CLUSTER_TABLE , "UQ_remote_ambari_cluster" , UpgradeCatalog240.CLUSTER_NAME);
     expect(dbAccessor.getConnection()).andReturn(connection);
     expect(connection.createStatement()).andReturn(statement);
 
@@ -364,6 +380,31 @@ public class UpgradeCatalog240Test {
 
     Map<String, Class> actualCaptures = new HashMap<>();
     for(DBAccessor.DBColumnInfo settingColumnInfo : capturedSettingColumns.getValue()) {
+      actualCaptures.put(settingColumnInfo.getName(), settingColumnInfo.getType());
+    }
+
+    assertEquals(expectedCaptures, actualCaptures);
+
+    expectedCaptures = new HashMap<>();
+    expectedCaptures.put("extension_id", Long.class);
+    expectedCaptures.put("extension_name", String.class);
+    expectedCaptures.put("extension_version", String.class);
+
+    actualCaptures = new HashMap<>();
+    for(DBAccessor.DBColumnInfo settingColumnInfo : capturedExtensionColumns.getValue()) {
+      actualCaptures.put(settingColumnInfo.getName(), settingColumnInfo.getType());
+    }
+
+    assertEquals(expectedCaptures, actualCaptures);
+
+
+    expectedCaptures = new HashMap<>();
+    expectedCaptures.put("link_id", Long.class);
+    expectedCaptures.put("stack_id", Long.class);
+    expectedCaptures.put("extension_id", Long.class);
+
+    actualCaptures = new HashMap<>();
+    for(DBAccessor.DBColumnInfo settingColumnInfo : capturedExtensionLinkColumns.getValue()) {
       actualCaptures.put(settingColumnInfo.getName(), settingColumnInfo.getType());
     }
 

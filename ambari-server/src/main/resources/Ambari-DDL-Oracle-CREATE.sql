@@ -22,7 +22,23 @@ CREATE TABLE stack(
   stack_name VARCHAR2(255) NOT NULL,
   stack_version VARCHAR2(255) NOT NULL,
   CONSTRAINT PK_stack PRIMARY KEY (stack_id),
-  CONSTRAINT unq_stack UNIQUE (stack_name, stack_version));
+  CONSTRAINT UQ_stack UNIQUE (stack_name, stack_version));
+
+CREATE TABLE extension(
+  extension_id NUMERIC(19) NOT NULL,
+  extension_name VARCHAR2(255) NOT NULL,
+  extension_version VARCHAR2(255) NOT NULL,
+  CONSTRAINT PK_extension PRIMARY KEY (extension_id),
+  CONSTRAINT UQ_extension UNIQUE(extension_name, extension_version));
+
+CREATE TABLE extensionlink(
+  link_id NUMERIC(19) NOT NULL,
+  stack_id NUMERIC(19) NOT NULL,
+  extension_id NUMERIC(19) NOT NULL,
+  CONSTRAINT PK_extensionlink PRIMARY KEY (link_id),
+  CONSTRAINT FK_extensionlink_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_extensionlink_extension_id FOREIGN KEY (extension_id) REFERENCES extension(extension_id),
+  CONSTRAINT UQ_extension_link UNIQUE(stack_id, extension_id));
 
 CREATE TABLE adminresourcetype (
   resource_type_id NUMBER(10) NOT NULL,
@@ -167,7 +183,7 @@ CREATE TABLE servicecomponentdesiredstate (
   service_name VARCHAR2(255) NOT NULL,
   recovery_enabled SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
-  CONSTRAINT unq_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
+  CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
   CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
 
@@ -786,7 +802,7 @@ CREATE TABLE remoteambaricluster(
   url VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
   CONSTRAINT PK_remote_ambari_cluster PRIMARY KEY (cluster_id),
-  CONSTRAINT unq_remote_ambari_cluster UNIQUE (name));
+  CONSTRAINT UQ_remote_ambari_cluster UNIQUE (name));
 
 CREATE TABLE remoteambariclusterservice(
   id NUMBER(19) NOT NULL,
@@ -1051,6 +1067,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('extension_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('link_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_layout_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_info_id_seq', 0);

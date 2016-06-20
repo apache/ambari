@@ -49,6 +49,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private String widgetsDescriptorFileLocation;
   private List<RepositoryInfo> repositories;
   private Collection<ServiceInfo> services;
+  private Collection<ExtensionInfo> extensions;
   private String parentStackVersion;
   // stack-level properties
   private List<PropertyInfo> properties;
@@ -159,6 +160,34 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
   public synchronized void setServices(Collection<ServiceInfo> services) {
     this.services = services;
+  }
+
+  public synchronized Collection<ExtensionInfo> getExtensions() {
+    if (extensions == null) extensions = new ArrayList<ExtensionInfo>();
+    return extensions;
+  }
+
+  public ExtensionInfo getExtension(String name) {
+    Collection<ExtensionInfo> extensions = getExtensions();
+    for (ExtensionInfo extension : extensions) {
+      if (extension.getName().equals(name)) {
+        return extension;
+      }
+    }
+    //todo: exception?
+    return null;
+  }
+
+  public ExtensionInfo getExtensionByService(String serviceName) {
+    Collection<ExtensionInfo> extensions = getExtensions();
+    for (ExtensionInfo extension : extensions) {
+      for (ServiceInfo service : services) {
+        if (service.getName().equals(serviceName))
+          return extension;
+      }
+    }
+    //todo: exception?
+    return null;
   }
 
   public List<PropertyInfo> getProperties() {

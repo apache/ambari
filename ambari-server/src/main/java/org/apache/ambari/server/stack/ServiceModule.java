@@ -36,6 +36,8 @@ import org.apache.ambari.server.state.ThemeInfo;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
@@ -102,6 +104,11 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   protected boolean valid = true;
 
   /**
+   * Logger
+   */
+  private final static Logger LOG = LoggerFactory.getLogger(ServiceModule.class);
+
+  /**
    * Constructor.
    *
    * @param stackContext      stack context which provides module access to external functionality
@@ -131,6 +138,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setAlertsFile(serviceDirectory.getAlertsFile());
     serviceInfo.setKerberosDescriptorFile(serviceDirectory.getKerberosDescriptorFile());
     serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile(serviceInfo.getName()));
+    serviceInfo.setRoleCommandOrder(serviceDirectory.getRoleCommandOrder());
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
     serviceInfo.setServiceUpgradesFolder(serviceDirectory.getUpgradesDir());
@@ -152,24 +160,26 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
   @Override
   public void resolve(
-      ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
-    resolveInternal(parentModule, allStacks, commonServices, false);
+    resolveInternal(parentModule, allStacks, commonServices, extensions, false);
   }
 
   public void resolveExplicit(
-      ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
-    resolveInternal(parentModule, allStacks, commonServices, true);
+    resolveInternal(parentModule, allStacks, commonServices, extensions, true);
   }
 
   public void resolveInternal(
       ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices,
-      boolean resolveExplicit)
+      Map<String, ExtensionModule> extensions, boolean resolveExplicit)
       throws AmbariException {
     if (!serviceInfo.isValid() || !parentModule.isValid()) {
       return;
     }
+
+    LOG.info("Resolve service");
 
     // If resolving against parent stack service module (stack inheritance), do not merge if an
     // explicit parent is specified
@@ -182,6 +192,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getComment() == null) {
       serviceInfo.setComment(parent.getComment());
     }
+    LOG.info("Display name service/parent: " + serviceInfo.getDisplayName() + "/" + parent.getDisplayName());
     if (serviceInfo.getDisplayName() == null) {
       serviceInfo.setDisplayName(parent.getDisplayName());
     }
@@ -239,17 +250,19 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setAdvisorName(parent.getAdvisorName());
     }
 
+    if (serviceInfo.getRoleCommandOrder() == null) {
+      serviceInfo.setRoleCommandOrder(parent.getRoleCommandOrder());
+    }
+
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
     mergeConfigDependencies(parent);
-    mergeComponents(parentModule, allStacks, commonServices);
-    mergeConfigurations(parentModule, allStacks, commonServices);
-    mergeThemes(parentModule, allStacks, commonServices);
-    mergeQuickLinksConfigurations(parentModule, allStacks, commonServices);
+    mergeComponents(parentModule, allStacks, commonServices, extensions);
+    mergeConfigurations(parentModule, allStacks, commonServices, extensions);
+    mergeThemes(parentModule, allStacks, commonServices, extensions);
+    mergeQuickLinksConfigurations(parentModule, allStacks, commonServices, extensions);
     mergeExcludedConfigTypes(parent);
 
-
     mergeServiceProperties(parent.getServicePropertyList());
-
   }
 
   /**
@@ -296,7 +309,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    *
    * @throws AmbariException
    */
-  public void resolveCommonService(Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+  public void resolveCommonService(Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     if(!isCommonService) {
       throw new AmbariException("Not a common service");
@@ -314,12 +327,12 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
         ServiceModule baseService = commonServices.get(baseServiceKey);
         ModuleState baseModuleState = baseService.getModuleState();
         if (baseModuleState == ModuleState.INIT) {
-          baseService.resolveCommonService(allStacks, commonServices);
+          baseService.resolveCommonService(allStacks, commonServices, extensions);
         } else if (baseModuleState == ModuleState.VISITED) {
           //todo: provide more information to user about cycle
           throw new AmbariException("Cycle detected while parsing common service");
         }
-        resolveExplicit(baseService, allStacks, commonServices);
+        resolveExplicit(baseService, allStacks, commonServices, extensions);
       } else {
         throw new AmbariException("Common service cannot inherit from a non common service");
       }
@@ -414,8 +427,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Merge theme modules.
    */
   private void mergeThemes(ServiceModule parent, Map<String, StackModule> allStacks,
-                           Map<String, ServiceModule> commonServices) throws AmbariException {
-    Collection<ThemeModule> mergedModules = mergeChildModules(allStacks, commonServices, themeModules, parent.themeModules);
+                           Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions) throws AmbariException {
+    Collection<ThemeModule> mergedModules = mergeChildModules(allStacks, commonServices, extensions, themeModules, parent.themeModules);
 
     for (ThemeModule mergedModule : mergedModules) {
       themeModules.put(mergedModule.getId(), mergedModule);
@@ -448,8 +461,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Merge theme modules.
    */
   private void mergeQuickLinksConfigurations(ServiceModule parent, Map<String, StackModule> allStacks,
-                           Map<String, ServiceModule> commonServices) throws AmbariException {
-    Collection<QuickLinksConfigurationModule> mergedModules = mergeChildModules(allStacks, commonServices, quickLinksConfigurationModules, parent.quickLinksConfigurationModules);
+                           Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions) throws AmbariException {
+    Collection<QuickLinksConfigurationModule> mergedModules = mergeChildModules(allStacks, commonServices, extensions, quickLinksConfigurationModules, parent.quickLinksConfigurationModules);
 
     for (QuickLinksConfigurationModule mergedModule : mergedModules) {
       quickLinksConfigurationModules.put(mergedModule.getId(), mergedModule);
@@ -514,13 +527,13 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * @param commonServices  common service modules
    */
   private void mergeConfigurations(
-      ServiceModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      ServiceModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     serviceInfo.getProperties().clear();
     serviceInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
-        allStacks, commonServices, configurationModules, parent.configurationModules);
+        allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
 
     for (ConfigurationModule module : mergedModules) {
       configurationModules.put(module.getId(), module);
@@ -540,11 +553,11 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * @param commonServices  common service modules
    */
   private void mergeComponents(
-      ServiceModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      ServiceModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     serviceInfo.getComponents().clear();
     Collection<ComponentModule> mergedModules = mergeChildModules(
-        allStacks, commonServices, componentModules, parent.componentModules);
+        allStacks, commonServices, extensions, componentModules, parent.componentModules);
     componentModules.clear();
     for (ComponentModule module : mergedModules) {
       componentModules.put(module.getId(), module);

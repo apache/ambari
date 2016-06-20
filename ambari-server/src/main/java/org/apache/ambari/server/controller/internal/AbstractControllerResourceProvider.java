@@ -173,6 +173,12 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new StackConfigurationDependencyResourceProvider(propertyIds, keyPropertyIds, managementController);
       case StackLevelConfiguration:
         return new StackLevelConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case ExtensionLink:
+          return new ExtensionLinkResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case Extension:
+        return new ExtensionResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case ExtensionVersion:
+        return new ExtensionVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
       case RootService:
         return new RootServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
       case RootServiceComponent:

@@ -272,7 +272,6 @@ public class StackDirectory extends StackDefinitionDirectory {
    *
    * @return object representation of the stack role_command_order.json file
    */
-
   public StackRoleCommandOrder getRoleCommandOrder() {
     return roleCommandOrder;
   }
@@ -509,7 +508,6 @@ public class StackDirectory extends StackDefinitionDirectory {
         result = new HashMap<String, Object>();
       }
       roleCommandOrder = new StackRoleCommandOrder(result);
-      parseRoleCommandOrdersForServices();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Role Command Order for " + rcoFilePath);
         roleCommandOrder.printRoleCommandOrder(LOG);
@@ -518,34 +516,4 @@ public class StackDirectory extends StackDefinitionDirectory {
       LOG.error(String.format("Can not read role command order info %s", rcoFilePath), e);
     }
   }
-
-  private void parseRoleCommandOrdersForServices() {
-    if (rcoFilePath != null) {
-      File stack = new File(rcoFilePath).getParentFile();
-      File servicesDir = new File(stack, "services");
-      File[] services = servicesDir.listFiles();
-      for (File service : services) {
-        if (service.isDirectory()) {
-          File rcoFile = new File(service, ROLE_COMMAND_ORDER_FILE);
-          if (rcoFile.exists())
-            parseRoleCommandOrdersForService(rcoFile);
-        }
-      }
-    }
-  }
-
-  private void parseRoleCommandOrdersForService(File rcoFile) {
-    HashMap<String, Object> result = null;
-    ObjectMapper mapper = new ObjectMapper();
-    TypeReference<Map<String, Object>> rcoElementTypeReference = new TypeReference<Map<String, Object>>() {};
-    try {
-      result = mapper.readValue(rcoFile, rcoElementTypeReference);
-      LOG.info("Role command order info was loaded from file: {}", rcoFile.getAbsolutePath());
-      StackRoleCommandOrder serviceRoleCommandOrder = new StackRoleCommandOrder(result);
-      roleCommandOrder.merge(serviceRoleCommandOrder, true);
-    } catch (IOException e) {
-      LOG.error(String.format("Can not read role command order info %s", rcoFile), e);
-    }
-  }
-
 }

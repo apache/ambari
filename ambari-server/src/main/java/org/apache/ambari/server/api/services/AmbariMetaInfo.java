@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -108,12 +109,12 @@ public class AmbariMetaInfo {
   public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
 
   /**
-   * The filename name for a Kerberos descriptor file at either the stack or service level
+   * The filename for a Kerberos descriptor file at either the stack or service level
    */
   public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
 
   /**
-   * The filename name for a Widgets descriptor file at either the stack or service level
+   * The filename for a Widgets descriptor file at either the stack or service level
    */
   public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
 
@@ -156,6 +157,7 @@ public class AmbariMetaInfo {
 
   private File stackRoot;
   private File commonServicesRoot;
+  private File extensionsRoot;
   private File serverVersionFile;
   private File customActionRoot;
   private Map<String, VersionDefinitionXml> versionDefinitions = null;
@@ -237,6 +239,11 @@ public class AmbariMetaInfo {
       commonServicesRoot = new File(commonServicesPath);
     }
 
+    String extensionsPath = conf.getExtensionsPath();
+    if (extensionsPath != null && !extensionsPath.isEmpty()) {
+      extensionsRoot = new File(extensionsPath);
+    }
+
     String serverVersionFilePath = conf.getServerVersionFilePath();
     serverVersionFile = new File(serverVersionFilePath);
 
@@ -255,7 +262,7 @@ public class AmbariMetaInfo {
 
     readServerVersion();
 
-    stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot,
+    stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
         osFamily, false);
 
     getCustomActionDefinitions(customActionRoot);
@@ -629,6 +636,30 @@ public class AmbariMetaInfo {
     return parents;
   }
 
+  public Collection<ExtensionInfo> getExtensions() {
+    return stackManager.getExtensions();
+  }
+
+  public Collection<ExtensionInfo> getExtensions(String extensionName) throws AmbariException {
+    Collection<ExtensionInfo> extensions = stackManager.getExtensions(extensionName);
+
+    if (extensions.isEmpty()) {
+      throw new StackAccessException("extensionName=" + extensionName);
+    }
+
+    return extensions;
+  }
+
+  public ExtensionInfo getExtension(String extensionName, String version) throws AmbariException {
+    ExtensionInfo result = stackManager.getExtension(extensionName, version);
+
+    if (result == null) {
+      throw new StackAccessException("Extension " + extensionName + " " + version + " is not found in Ambari metainfo");
+    }
+
+    return result;
+  }
+
   public Set<PropertyInfo> getServiceProperties(String stackName, String version, String serviceName)
       throws AmbariException {
 
@@ -699,7 +730,6 @@ public class AmbariMetaInfo {
 
     return propertyResult;
   }
-
 
   /**
    * Lists operatingsystems supported by stack
@@ -860,6 +890,10 @@ public class AmbariMetaInfo {
 
   public File getStackRoot() {
     return stackRoot;
+  }
+
+  public File getExtensionsRoot() {
+    return extensionsRoot;
   }
 
   /**

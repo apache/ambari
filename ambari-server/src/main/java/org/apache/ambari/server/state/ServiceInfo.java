@@ -27,6 +27,7 @@ import com.google.common.collect.Multimaps;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
+import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 
@@ -144,6 +145,8 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private File widgetsDescriptorFile = null;
+
+  private StackRoleCommandOrder roleCommandOrder;
 
   @XmlTransient
   private boolean valid = true;
@@ -728,6 +731,14 @@ public String getVersion() {
 
   public void setWidgetsDescriptorFile(File widgetsDescriptorFile) {
     this.widgetsDescriptorFile = widgetsDescriptorFile;
+  }
+
+  public StackRoleCommandOrder getRoleCommandOrder() {
+    return roleCommandOrder;
+  }
+
+  public void setRoleCommandOrder(StackRoleCommandOrder roleCommandOrder) {
+    this.roleCommandOrder = roleCommandOrder;
   }
 
   /**

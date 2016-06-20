@@ -58,7 +58,8 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
   }
 
   @Override
-  public void resolve(ComponentModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) {
+  public void resolve(ComponentModule parent, Map<String, StackModule> allStacks,
+	    Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions) {
     if (parent != null) {
       ComponentInfo parentInfo = parent.getModuleInfo();
       if (!parent.isValid()) {
