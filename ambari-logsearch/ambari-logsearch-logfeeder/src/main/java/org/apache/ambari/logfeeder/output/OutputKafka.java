@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -282,5 +283,12 @@ public class OutputKafka extends Output {
         output.failedMessages.add(this);
       }
     }
+  }
+
+  @Override
+  public void copyFile(File inputFile, InputMarker inputMarker)
+      throws UnsupportedOperationException {
+    throw new UnsupportedOperationException(
+        "copyFile method is not yet supported for output=kafka");     
   }
 }

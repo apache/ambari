@@ -135,4 +135,11 @@ public class OutputFile extends Output {
     return "output:destination=file,path=" + filePath;
   }
 
+  @Override
+  public void copyFile(File inputFile, InputMarker inputMarker)
+      throws UnsupportedOperationException {
+    throw new UnsupportedOperationException(
+        "copyFile method is not yet supported for output=file");
+  }
+
 }

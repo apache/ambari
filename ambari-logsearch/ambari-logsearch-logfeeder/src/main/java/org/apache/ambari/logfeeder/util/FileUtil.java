@@ -16,30 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.output;
+
+package org.apache.ambari.logfeeder.util;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
-/**
- * Output that just ignore the logs
- *
- */
-public class OutputDevNull extends Output {
+public class FileUtil {
+  private static final Logger logger = Logger.getLogger(FileUtil.class);
 
-  private static Logger logger = Logger.getLogger(OutputDevNull.class);
-
-  @Override
-  public void write(String block, InputMarker inputMarker){
-    // just ignore the logs
-    logger.trace("Ignore log block: " + block);
-  }
-
-  @Override
-  public void copyFile(File inputFile, InputMarker inputMarker) {
-    throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=dev_null");
+  public static List<File> getAllFileFromDir(File directory,
+      String[] searchFileWithExtensions, boolean checkInSubDir) {
+    if (!directory.exists()) {
+      logger.error(directory.getAbsolutePath() + " is not exists ");
+    } else if (directory.isDirectory()) {
+      return (List<File>) FileUtils.listFiles(directory,
+          searchFileWithExtensions, checkInSubDir);
+    } else {
+      logger.error(directory.getAbsolutePath() + " is not Directory ");
+    }
+    return new ArrayList<File>();
   }
 }

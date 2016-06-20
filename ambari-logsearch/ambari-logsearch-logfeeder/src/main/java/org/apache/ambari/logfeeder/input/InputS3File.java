@@ -21,35 +21,28 @@ package org.apache.ambari.logfeeder.input;
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
-import org.apache.ambari.logfeeder.input.reader.LogsearchReaderFactory;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.ambari.logfeeder.s3.S3Util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Base64;
 
-public class InputFile extends Input {
-  static private Logger logger = Logger.getLogger(InputFile.class);
+public class InputS3File extends Input {
+  static private Logger logger = Logger.getLogger(InputS3File.class);
 
-  // String startPosition = "beginning";
   String logPath = null;
   boolean isStartFromBegining = true;
 
   boolean isReady = false;
-  File[] logPathFiles = null;
+  String[] s3LogPathFiles = null;
   Object fileKey = null;
   String base64FileKey = null;
 
@@ -67,13 +60,14 @@ public class InputFile extends Input {
 
   private String checkPointExtension = ".cp";
 
+
   @Override
   public void init() throws Exception {
     logger.info("init() called");
     statMetric.metricsName = "input.files.read_lines";
     readBytesMetric.metricsName = "input.files.read_bytes";
     checkPointExtension = LogFeederUtil.getStringProperty(
-      "logfeeder.checkpoint.extension", checkPointExtension);
+        "logfeeder.checkpoint.extension", checkPointExtension);
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);
@@ -81,18 +75,16 @@ public class InputFile extends Input {
     tail = getBooleanValue("tail", tail);
     addWildCard = getBooleanValue("add_wild_card", addWildCard);
     checkPointIntervalMS = getIntValue("checkpoint.interval.ms",
-      checkPointIntervalMS);
-
+        checkPointIntervalMS);
     if (logPath == null || logPath.isEmpty()) {
-      logger.error("path is empty for file input. "
-        + getShortDescription());
+      logger.error("path is empty for file input. " + getShortDescription());
       return;
     }
 
     String startPosition = getStringValue("start_position");
     if (StringUtils.isEmpty(startPosition)
-      || startPosition.equalsIgnoreCase("beginning")
-      || startPosition.equalsIgnoreCase("begining")) {
+        || startPosition.equalsIgnoreCase("beginning")
+        || startPosition.equalsIgnoreCase("begining")) {
       isStartFromBegining = true;
     }
 
@@ -105,7 +97,7 @@ public class InputFile extends Input {
     boolean isFileReady = isReady();
 
     logger.info("File to monitor " + logPath + ", tail=" + tail
-      + ", addWildCard=" + addWildCard + ", isReady=" + isFileReady);
+        + ", addWildCard=" + addWildCard + ", isReady=" + isFileReady);
 
     super.init();
   }
@@ -119,18 +111,15 @@ public class InputFile extends Input {
   public boolean isReady() {
     if (!isReady) {
       // Let's try to check whether the file is available
-      logPathFiles = getActualFiles(logPath);
-      if (logPathFiles != null && logPathFiles.length > 0
-        && logPathFiles[0].isFile()) {
-
-        if (isTail() && logPathFiles.length > 1) {
-          logger.warn("Found multiple files (" + logPathFiles.length
-            + ") for the file filter " + filePath
-            + ". Will use only the first one. Using "
-            + logPathFiles[0].getAbsolutePath());
+      s3LogPathFiles = getActualFiles(logPath);
+      if (s3LogPathFiles != null && s3LogPathFiles.length > 0) {
+        if (isTail() && s3LogPathFiles.length > 1) {
+          logger.warn("Found multiple files (" + s3LogPathFiles.length
+              + ") for the file filter " + filePath
+              + ". Will use only the first one. Using " + s3LogPathFiles[0]);
         }
         logger.info("File filter " + filePath + " expanded to "
-          + logPathFiles[0].getAbsolutePath());
+            + s3LogPathFiles[0]);
         isReady = true;
       } else {
         logger.debug(logPath + " file doesn't exist. Ignoring for now");
@@ -139,35 +128,9 @@ public class InputFile extends Input {
     return isReady;
   }
 
-  private File[] getActualFiles(String searchPath) {
-    if (addWildCard) {
-      if (!searchPath.endsWith("*")) {
-        searchPath = searchPath + "*";
-      }
-    }
-    File checkFile = new File(searchPath);
-    if (checkFile.isFile()) {
-      return new File[]{checkFile};
-    }
-    // Let's do wild card search
-    // First check current folder
-    File checkFiles[] = findFileForWildCard(searchPath, new File("."));
-    if (checkFiles == null || checkFiles.length == 0) {
-      // Let's check from the parent folder
-      File parentDir = (new File(searchPath)).getParentFile();
-      if (parentDir != null) {
-        String wildCard = (new File(searchPath)).getName();
-        checkFiles = findFileForWildCard(wildCard, parentDir);
-      }
-    }
-    return checkFiles;
-  }
-
-  private File[] findFileForWildCard(String searchPath, File dir) {
-    logger.debug("findFileForWildCard(). filePath=" + searchPath + ", dir="
-      + dir + ", dir.fullpath=" + dir.getAbsolutePath());
-    FileFilter fileFilter = new WildcardFileFilter(searchPath);
-    return dir.listFiles(fileFilter);
+  private String[] getActualFiles(String searchPath) {
+    // TODO search file on s3
+    return new String[] { searchPath };
   }
 
   @Override
@@ -176,7 +139,7 @@ public class InputFile extends Input {
     if (checkPointWriter != null) {
       try {
         int lineNumber = LogFeederUtil.objectToInt(
-          jsonCheckPoint.get("line_number"), 0, "line_number");
+            jsonCheckPoint.get("line_number"), 0, "line_number");
         if (lineNumber > inputMarker.lineNumber) {
           // Already wrote higher line number for this input
           return;
@@ -184,7 +147,7 @@ public class InputFile extends Input {
         // If interval is greater than last checkPoint time, then write
         long currMS = System.currentTimeMillis();
         if (!isClosed()
-          && (currMS - lastCheckPointTimeMS) < checkPointIntervalMS) {
+            && (currMS - lastCheckPointTimeMS) < checkPointIntervalMS) {
           // Let's save this one so we can update the check point file
           // on flush
           lastCheckPointInputMarker = inputMarker;
@@ -193,7 +156,7 @@ public class InputFile extends Input {
         lastCheckPointTimeMS = currMS;
 
         jsonCheckPoint.put("line_number", ""
-          + new Integer(inputMarker.lineNumber));
+            + new Integer(inputMarker.lineNumber));
         jsonCheckPoint.put("last_write_time_ms", "" + new Long(currMS));
         jsonCheckPoint.put("last_write_time_date", new Date());
 
@@ -205,25 +168,19 @@ public class InputFile extends Input {
         checkPointWriter.write(jsonStr.getBytes());
 
         if (isClosed()) {
-          final String LOG_MESSAGE_KEY = this.getClass()
-            .getSimpleName() + "_FINAL_CHECKIN";
-          LogFeederUtil.logErrorMessageByInterval(
-            LOG_MESSAGE_KEY,
-            "Wrote final checkPoint, input="
-              + getShortDescription()
-              + ", checkPointFile="
-              + checkPointFile.getAbsolutePath()
-              + ", checkPoint=" + jsonStr, null, logger,
-            Level.INFO);
+          final String LOG_MESSAGE_KEY = this.getClass().getSimpleName()
+              + "_FINAL_CHECKIN";
+          LogFeederUtil.logErrorMessageByInterval(LOG_MESSAGE_KEY,
+              "Wrote final checkPoint, input=" + getShortDescription()
+                  + ", checkPointFile=" + checkPointFile.getAbsolutePath()
+                  + ", checkPoint=" + jsonStr, null, logger, Level.INFO);
         }
       } catch (Throwable t) {
         final String LOG_MESSAGE_KEY = this.getClass().getSimpleName()
-          + "_CHECKIN_EXCEPTION";
-        LogFeederUtil
-          .logErrorMessageByInterval(LOG_MESSAGE_KEY,
-            "Caught exception checkIn. , input="
-              + getShortDescription(), t, logger,
-            Level.ERROR);
+            + "_CHECKIN_EXCEPTION";
+        LogFeederUtil.logErrorMessageByInterval(LOG_MESSAGE_KEY,
+            "Caught exception checkIn. , input=" + getShortDescription(), t,
+            logger, Level.ERROR);
       }
     }
 
@@ -240,7 +197,7 @@ public class InputFile extends Input {
   @Override
   public void rollOver() {
     logger.info("Marking this input file for rollover. "
-      + getShortDescription());
+        + getShortDescription());
     isRolledOver = true;
   }
 
@@ -251,50 +208,43 @@ public class InputFile extends Input {
    */
   @Override
   void start() throws Exception {
-
-    if (logPathFiles == null || logPathFiles.length == 0) {
+    if (s3LogPathFiles == null || s3LogPathFiles.length == 0) {
       return;
     }
-    boolean isProcessFile = getBooleanValue("process_file", true);
-    if (isProcessFile) {
-      if (isTail()) {
-        // Just process the first file
-        processFile(logPathFiles[0]);
-      } else {
-        for (File file : logPathFiles) {
-          try {
-            processFile(file);
-            if (isClosed() || isDrain()) {
-              logger.info("isClosed or isDrain. Now breaking loop.");
-              break;
-            }
-          } catch (Throwable t) {
-            logger.error("Error processing file=" + file.getAbsolutePath(), t);
+
+    if (isTail()) {
+      // Just process the first file
+      processFile(s3LogPathFiles[0]);
+    } else {
+      for (String s3FilePath : s3LogPathFiles) {
+        try {
+          processFile(s3FilePath);
+          if (isClosed() || isDrain()) {
+            logger.info("isClosed or isDrain. Now breaking loop.");
+            break;
           }
+        } catch (Throwable t) {
+          logger.error("Error processing file=" + s3FilePath, t);
         }
       }
-      // Call the close for the input. Which should flush to the filters and
-      // output
-      close();
-    }else{
-      //copy files
-      copyFiles(logPathFiles);
     }
-    
+    // Call the close for the input. Which should flush to the filters and
+    // output
+    close();
   }
 
   @Override
   public void close() {
     super.close();
     logger.info("close() calling checkPoint checkIn(). "
-      + getShortDescription());
+        + getShortDescription());
     checkIn();
   }
 
-  private void processFile(File logPathFile) throws FileNotFoundException,
-    IOException {
+  private void processFile(String logPathFile) throws FileNotFoundException,
+      IOException {
     logger.info("Monitoring logPath=" + logPath + ", logPathFile="
-      + logPathFile);
+        + logPathFile);
     BufferedReader br = null;
     checkPointFile = null;
     checkPointWriter = null;
@@ -303,10 +253,15 @@ public class InputFile extends Input {
 
     int lineCount = 0;
     try {
-      setFilePath(logPathFile.getAbsolutePath());
-//      br = new BufferedReader(new FileReader(logPathFile));
-      br = new BufferedReader(LogsearchReaderFactory.INSTANCE.getReader(logPathFile));
-
+      setFilePath(logPathFile);
+      String s3AccessKey = getStringValue("s3_access_key");
+      String s3SecretKey = getStringValue("s3_secret_key");
+      br = S3Util.INSTANCE.getReader(logPathFile,s3AccessKey,s3SecretKey);
+      if(br==null){
+        //log err
+        return;
+      }
+      
       // Whether to send to output from the beginning.
       boolean resume = isStartFromBegining;
 
@@ -314,65 +269,57 @@ public class InputFile extends Input {
       // comparison
       // inputMgr.monitorSystemFileChanges(this);
       fileKey = getFileKey(logPathFile);
-      base64FileKey = Base64.byteArrayToBase64(fileKey.toString()
-        .getBytes());
-      logger.info("fileKey=" + fileKey + ", base64=" + base64FileKey
-        + ". " + getShortDescription());
+      base64FileKey = Base64.byteArrayToBase64(fileKey.toString().getBytes());
+      logger.info("fileKey=" + fileKey + ", base64=" + base64FileKey + ". "
+          + getShortDescription());
 
       if (isTail()) {
         try {
           // Let's see if there is a checkpoint for this file
           logger.info("Checking existing checkpoint file. "
-            + getShortDescription());
+              + getShortDescription());
 
-          String fileBase64 = Base64.byteArrayToBase64(fileKey
-            .toString().getBytes());
-          String checkPointFileName = fileBase64
-            + checkPointExtension;
+          String fileBase64 = Base64.byteArrayToBase64(fileKey.toString()
+              .getBytes());
+          String checkPointFileName = fileBase64 + checkPointExtension;
           File checkPointFolder = inputMgr.getCheckPointFolderFile();
-          checkPointFile = new File(checkPointFolder,
-            checkPointFileName);
-          checkPointWriter = new RandomAccessFile(checkPointFile,
-            "rw");
+          checkPointFile = new File(checkPointFolder, checkPointFileName);
+          checkPointWriter = new RandomAccessFile(checkPointFile, "rw");
 
           try {
             int contentSize = checkPointWriter.readInt();
             byte b[] = new byte[contentSize];
             int readSize = checkPointWriter.read(b, 0, contentSize);
             if (readSize != contentSize) {
-              logger.error("Couldn't read expected number of bytes from checkpoint file. expected="
-                + contentSize
-                + ", read="
-                + readSize
-                + ", checkPointFile="
-                + checkPointFile
-                + ", input=" + getShortDescription());
+              logger
+                  .error("Couldn't read expected number of bytes from checkpoint file. expected="
+                      + contentSize
+                      + ", read="
+                      + readSize
+                      + ", checkPointFile="
+                      + checkPointFile
+                      + ", input="
+                      + getShortDescription());
             } else {
               // Create JSON string
-              String jsonCheckPointStr = new String(b, 0,
-                readSize);
-              jsonCheckPoint = LogFeederUtil
-                .toJSONObject(jsonCheckPointStr);
+              String jsonCheckPointStr = new String(b, 0, readSize);
+              jsonCheckPoint = LogFeederUtil.toJSONObject(jsonCheckPointStr);
 
               resumeFromLineNumber = LogFeederUtil.objectToInt(
-                jsonCheckPoint.get("line_number"), 0,
-                "line_number");
+                  jsonCheckPoint.get("line_number"), 0, "line_number");
 
               if (resumeFromLineNumber > 0) {
                 // Let's read from last line read
                 resume = false;
               }
-              logger.info("CheckPoint. checkPointFile="
-                + checkPointFile + ", json="
-                + jsonCheckPointStr
-                + ", resumeFromLineNumber="
-                + resumeFromLineNumber + ", resume="
-                + resume);
+              logger.info("CheckPoint. checkPointFile=" + checkPointFile
+                  + ", json=" + jsonCheckPointStr + ", resumeFromLineNumber="
+                  + resumeFromLineNumber + ", resume=" + resume);
             }
           } catch (EOFException eofEx) {
             logger.info("EOFException. Will reset checkpoint file "
-              + checkPointFile.getAbsolutePath() + " for "
-              + getShortDescription());
+                + checkPointFile.getAbsolutePath() + " for "
+                + getShortDescription());
           }
           if (jsonCheckPoint == null) {
             // This seems to be first time, so creating the initial
@@ -384,8 +331,8 @@ public class InputFile extends Input {
 
         } catch (Throwable t) {
           logger.error(
-            "Error while configuring checkpoint file. Will reset file. checkPointFile="
-              + checkPointFile, t);
+              "Error while configuring checkpoint file. Will reset file. checkPointFile="
+                  + checkPointFile, t);
         }
       }
 
@@ -411,14 +358,14 @@ public class InputFile extends Input {
               if (sleepIteration > 4) {
                 Object newFileKey = getFileKey(logPathFile);
                 if (newFileKey != null) {
-                  if (fileKey == null
-                    || !newFileKey.equals(fileKey)) {
-                    logger.info("File key is different. Calling rollover. oldKey="
-                      + fileKey
-                      + ", newKey="
-                      + newFileKey
-                      + ". "
-                      + getShortDescription());
+                  if (fileKey == null || !newFileKey.equals(fileKey)) {
+                    logger
+                        .info("File key is different. Calling rollover. oldKey="
+                            + fileKey
+                            + ", newKey="
+                            + newFileKey
+                            + ". "
+                            + getShortDescription());
                     // File has rotated.
                     rollOver();
                   }
@@ -426,9 +373,8 @@ public class InputFile extends Input {
               }
               // Flush on the second iteration
               if (!tail && sleepIteration >= 2) {
-                logger.info("End of file. Done with filePath="
-                  + logPathFile.getAbsolutePath()
-                  + ", lineCount=" + lineCount);
+                logger.info("End of file. Done with filePath=" + logPathFile
+                    + ", lineCount=" + lineCount);
                 flush();
                 break;
               } else if (sleepIteration == 2) {
@@ -438,45 +384,40 @@ public class InputFile extends Input {
                   isRolledOver = false;
                   // Close existing file
                   try {
-                    logger.info("File is rolled over. Closing current open file."
-                      + getShortDescription()
-                      + ", lineCount=" + lineCount);
+                    logger
+                        .info("File is rolled over. Closing current open file."
+                            + getShortDescription() + ", lineCount="
+                            + lineCount);
                     br.close();
                   } catch (Exception ex) {
-                    logger.error("Error closing file"
-                      + getShortDescription());
+                    logger.error("Error closing file" + getShortDescription());
                     break;
                   }
                   try {
                     // Open new file
                     logger.info("Opening new rolled over file."
-                      + getShortDescription());
-//                    br = new BufferedReader(new FileReader(
-//                            logPathFile));
-                    br = new BufferedReader(LogsearchReaderFactory.
-                      INSTANCE.getReader(logPathFile));
+                        + getShortDescription());
+                    br = S3Util.INSTANCE.getReader(logPathFile,s3AccessKey,s3SecretKey);
                     lineCount = 0;
                     fileKey = getFileKey(logPathFile);
-                    base64FileKey = Base64
-                      .byteArrayToBase64(fileKey
-                        .toString().getBytes());
-                    logger.info("fileKey=" + fileKey
-                      + ", base64=" + base64FileKey
-                      + ", " + getShortDescription());
+                    base64FileKey = Base64.byteArrayToBase64(fileKey.toString()
+                        .getBytes());
+                    logger.info("fileKey=" + fileKey + ", base64="
+                        + base64FileKey + ", " + getShortDescription());
                   } catch (Exception ex) {
                     logger.error("Error opening rolled over file. "
-                      + getShortDescription());
+                        + getShortDescription());
                     // Let's add this to monitoring and exit
                     // this
                     // thread
                     logger.info("Added input to not ready list."
-                      + getShortDescription());
+                        + getShortDescription());
                     isReady = false;
                     inputMgr.addToNotReady(this);
                     break;
                   }
                   logger.info("File is successfully rolled over. "
-                    + getShortDescription());
+                      + getShortDescription());
                   continue;
                 }
               }
@@ -484,8 +425,7 @@ public class InputFile extends Input {
               sleepStep = (sleepStep * 2);
               sleepStep = sleepStep > 10 ? 10 : sleepStep;
             } catch (InterruptedException e) {
-              logger.info("Thread interrupted."
-                + getShortDescription());
+              logger.info("Thread interrupted." + getShortDescription());
             }
           } else {
             lineCount++;
@@ -494,9 +434,7 @@ public class InputFile extends Input {
 
             if (!resume && lineCount > resumeFromLineNumber) {
               logger.info("Resuming to read from last line. lineCount="
-                + lineCount
-                + ", input="
-                + getShortDescription());
+                  + lineCount + ", input=" + getShortDescription());
               resume = true;
             }
             if (resume) {
@@ -510,20 +448,18 @@ public class InputFile extends Input {
             }
           }
         } catch (Throwable t) {
-          final String LOG_MESSAGE_KEY = this.getClass()
-            .getSimpleName() + "_READ_LOOP_EXCEPTION";
+          final String LOG_MESSAGE_KEY = this.getClass().getSimpleName()
+              + "_READ_LOOP_EXCEPTION";
           LogFeederUtil.logErrorMessageByInterval(LOG_MESSAGE_KEY,
-            "Caught exception in read loop. lineNumber="
-              + lineCount + ", input="
-              + getShortDescription(), t, logger,
-            Level.ERROR);
+              "Caught exception in read loop. lineNumber=" + lineCount
+                  + ", input=" + getShortDescription(), t, logger, Level.ERROR);
 
         }
       }
     } finally {
       if (br != null) {
-        logger.info("Closing reader." + getShortDescription()
-          + ", lineCount=" + lineCount);
+        logger.info("Closing reader." + getShortDescription() + ", lineCount="
+            + lineCount);
         try {
           br.close();
         } catch (Throwable t) {
@@ -534,21 +470,11 @@ public class InputFile extends Input {
   }
 
   /**
-   * @param logPathFile2
+   * @param s3FilePath
    * @return
    */
-  static public Object getFileKey(File file) {
-    try {
-      Path fileFullPath = Paths.get(file.getAbsolutePath());
-      if (fileFullPath != null) {
-        BasicFileAttributes basicAttr = Files.readAttributes(
-          fileFullPath, BasicFileAttributes.class);
-        return basicAttr.fileKey();
-      }
-    } catch (Throwable ex) {
-      logger.error("Error getting file attributes for file=" + file, ex);
-    }
-    return file.toString();
+  static public Object getFileKey(String s3FilePath) {
+    return s3FilePath.toString();
   }
 
   /*
@@ -559,29 +485,10 @@ public class InputFile extends Input {
   @Override
   public String getShortDescription() {
     return "input:source="
-      + getStringValue("source")
-      + ", path="
-      + (logPathFiles != null && logPathFiles.length > 0 ? logPathFiles[0]
-      .getAbsolutePath() : getStringValue("path"));
+        + getStringValue("source")
+        + ", path="
+        + (s3LogPathFiles != null && s3LogPathFiles.length > 0 ? s3LogPathFiles[0]
+            : getStringValue("path"));
   }
-  
-  
-  public void copyFiles(File[] files) {
-    boolean isCopyFile = getBooleanValue("copy_file", false);
-    if (isCopyFile && files != null) {
-      for (File file : files) {
-        try {
-          InputMarker marker = new InputMarker();
-          marker.input = this;
-          outputMgr.copyFile(file, marker);
-          if (isClosed() || isDrain()) {
-            logger.info("isClosed or isDrain. Now breaking loop.");
-            break;
-          }
-        } catch (Throwable t) {
-          logger.error("Error processing file=" + file.getAbsolutePath(), t);
-        }
-      }
-    }
-  }
+
 }

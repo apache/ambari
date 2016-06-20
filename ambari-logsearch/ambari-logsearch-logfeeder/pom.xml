@@ -120,7 +120,22 @@
       <artifactId>ambari-metrics-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-  </dependencies>
+    <dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>aws-java-sdk-s3</artifactId>
+    <version>1.11.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.11</version>
+    </dependency>
+    <dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>aws-java-sdk-iam</artifactId>
+    <version>1.11.5</version>
+  </dependency>
+ </dependencies>
   <build>
     <finalName>LogFeeder</finalName>
     <pluginManagement>

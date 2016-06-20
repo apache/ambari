@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,6 @@ import java.util.Map.Entry;
 import org.apache.ambari.logfeeder.ConfigBlock;
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.MetricCount;
-import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.log4j.Logger;
 
@@ -57,9 +57,11 @@ public abstract class Output extends ConfigBlock {
     return super.getNameForThread();
   }
 
-  public void write(String block, InputMarker inputMarker) throws Exception {
-    // No-op. Please implement in sub classes
-  }
+  public abstract void write(String block, InputMarker inputMarker)
+      throws Exception;
+  
+  public abstract void copyFile(File inputFile, InputMarker inputMarker)
+      throws UnsupportedOperationException;
 
   /**
    * @param jsonObj

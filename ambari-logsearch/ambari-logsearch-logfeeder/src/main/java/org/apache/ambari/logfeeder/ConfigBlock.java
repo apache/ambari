@@ -22,10 +22,10 @@ package org.apache.ambari.logfeeder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
+
 
 public abstract class ConfigBlock {
   static private Logger logger = Logger.getLogger(ConfigBlock.class);
@@ -258,5 +258,4 @@ public abstract class ConfigBlock {
   public void setDrain(boolean drain) {
     this.drain = drain;
   }
-
 }

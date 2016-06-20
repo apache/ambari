@@ -65,6 +65,8 @@ public class InputMgr {
   MetricCount filesCountMetric = new MetricCount();
 
   private String checkPointExtension = ".cp";
+  
+  private Thread inputIsReadyMonitor = null;
 
   public List<Input> getInputList() {
     return inputList;
@@ -224,7 +226,7 @@ public class InputMgr {
     }
     // Start the monitoring thread if any file is in tail mode
     if (isAnyInputTail) {
-      Thread monitorThread = new Thread("InputIsReadyMonitor") {
+       inputIsReadyMonitor = new Thread("InputIsReadyMonitor") {
         @Override
         public void run() {
           logger.info("Going to monitor for these missing files: "
@@ -255,7 +257,7 @@ public class InputMgr {
           }
         }
       };
-      monitorThread.start();
+      inputIsReadyMonitor.start();
     }
   }
 
@@ -542,4 +544,33 @@ public class InputMgr {
 
   }
 
+  /**
+   * 
+   */
+  public void waitOnAllInputs() {
+    //wait on inputs
+    if (inputList != null) {
+      for (Input input : inputList) {
+        if (input != null) {
+          Thread inputThread = input.getThread();
+          if (inputThread != null) {
+            try {
+              inputThread.join();
+            } catch (InterruptedException e) {
+              // ignore
+            }
+          }
+        }
+      }
+    }
+    // wait on monitor
+    if (inputIsReadyMonitor != null) {
+      try {
+        this.close();
+        inputIsReadyMonitor.join();
+      } catch (InterruptedException e) {
+        // ignore
+      }
+    }
+  }
 }

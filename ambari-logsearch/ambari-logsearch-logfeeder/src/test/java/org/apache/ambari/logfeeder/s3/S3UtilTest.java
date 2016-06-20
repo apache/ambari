@@ -16,30 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.output;
+package org.apache.ambari.logfeeder.s3;
 
-import java.io.File;
-
-import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.log4j.Logger;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Output that just ignore the logs
- *
- */
-public class OutputDevNull extends Output {
+public class S3UtilTest {
+  private static final Logger LOG = Logger.getLogger(S3UtilTest.class);
 
-  private static Logger logger = Logger.getLogger(OutputDevNull.class);
-
-  @Override
-  public void write(String block, InputMarker inputMarker){
-    // just ignore the logs
-    logger.trace("Ignore log block: " + block);
+  // @Test
+  public void testS3Util_pathToBucketName() throws Exception {
+    String s3Path = "s3://bucket_name/path/file.txt";
+    String expectedBucketName = "bucket_name";
+    String actualBucketName = S3Util.INSTANCE.getBucketName(s3Path);
+    assertEquals(expectedBucketName, actualBucketName);
   }
 
-  @Override
-  public void copyFile(File inputFile, InputMarker inputMarker) {
-    throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=dev_null");
+  // @Test
+  public void testS3Util_pathToS3Key() throws Exception {
+    String s3Path = "s3://bucket_name/path/file.txt";
+    String expectedS3key = "path/file.txt";
+    String actualS3key = S3Util.INSTANCE.getS3Key(s3Path);
+    assertEquals(expectedS3key, actualS3key);
   }
+
 }
