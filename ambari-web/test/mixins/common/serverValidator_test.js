@@ -39,8 +39,8 @@ describe('App.ServerValidatorMixin', function() {
     var genConfigs = function(configs) {
       return Em.Object.create({
         configs: configs.map(function(item) {
-            return Em.Object.create({ name: item[0], filename: item[1] });
-          })
+          return Em.Object.create({ name: item[0], filename: item[1], validationErrors: [], validationWarnings: []});
+        })
       });
     };
     var tests = [

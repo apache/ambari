@@ -129,6 +129,8 @@ App.ServiceConfigProperty = Em.Object.extend({
   isSecureConfig: false,
   errorMessage: '',
   warnMessage: '',
+  validationErrors: [], // stores messages from validation response marked as ERRROR
+  validationWarnings: [], // stores message from validation response marked as WARN
   serviceConfig: null, // points to the parent App.ServiceConfig object
   filename: '',
   isOriginalSCP : true, // if true, then this is original SCP instance and its value is not overridden value.
@@ -144,9 +146,10 @@ App.ServiceConfigProperty = Em.Object.extend({
   showLabel: true,
   isConfigIdentity: false,
 
-
   error: Em.computed.bool('errorMessage.length'),
   warn: Em.computed.bool('warnMessage.length'),
+  hasValidationErrors: Em.computed.bool('validationErrors.length'),
+  hasValidationWarnings: Em.computed.bool('validationWarnings.length'),
   isValid: Em.computed.equal('errorMessage', ''),
 
   previousValue: null, // cached value before changing config <code>value</code>

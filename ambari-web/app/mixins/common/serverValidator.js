@@ -225,12 +225,10 @@ App.ServerValidatorMixin = Em.Mixin.create({
               if ((property.get('filename') == item['config-type'] + '.xml') && (property.get('name') == item['config-name'])) {
                 if (item.level == "ERROR") {
                   self.set('configValidationError', true);
-                  property.set('errorMessage', item.message);
-                  property.set('error', true);
+                  property.set('validationErrors', property.get('validationErrors').concat(item.message).slice());
                 } else if (item.level == "WARN") {
                   self.set('configValidationWarning', true);
-                  property.set('warnMessage', item.message);
-                  property.set('warn', true);
+                  property.set('validationWarnings', property.get('validationWarnings').concat(item.message).slice());
                 }
                 // store property data to detect WARN or ERROR messages for missed property
                 if (["ERROR", "WARN"].contains(item.level)) checkedProperties.push(item['config-type'] + '/' + item['config-name']);
@@ -242,7 +240,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
             var message = {
               propertyName: item['config-name'],
               filename: item['config-type'],
-              warnMessage: item.message
+              validationWarnings: [item.message]
             };
             if (item['config-type'] === "" && item['config-name'] === "") {
               //service-independent validation
@@ -250,7 +248,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
             } else {
               message.serviceName = App.StackService.find().filter(function(service) {
                 return !!service.get('configTypes')[item['config-type']];
-              })[0].get('displayName')
+              })[0].get('displayName');
             }
             self.set(item.level == 'WARN' ? 'configValidationWarning' : 'configValidationError', true);
             globalWarning.push(message);
@@ -301,8 +299,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
         : self.get('stepConfigs');
       var configsWithErrors = stepConfigs.some(function (step) {
         return step.get('configs').some(function(c) {
-          return c.get('isVisible') && !c.get('hiddenBySection') && (c.get('warn') || c.get('error'));
-        })
+          return c.get('isVisible') && !c.get('hiddenBySection') && (c.get('hasValidationWarnings') || c.get('hasValidationErrors'));
+        });
       });
       if (configsWithErrors) {
         return App.ModalPopup.show({
@@ -322,6 +320,15 @@ App.ServerValidatorMixin = Em.Mixin.create({
           onClose: function () {
             this.hide();
             deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
+          },
+          hide: function() {
+            stepConfigs.forEach(function(serviceConfig) {
+              serviceConfig.get('configs').invoke('setProperties', {
+                validationErrors: [].slice(),
+                validationWarnings: [].slice()
+              });
+            });
+            this._super();
           },
           bodyClass: Em.View.extend({
             controller: self,
