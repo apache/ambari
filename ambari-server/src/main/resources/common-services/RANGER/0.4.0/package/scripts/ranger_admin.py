@@ -18,6 +18,8 @@ limitations under the License.
 
 """
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import ComponentIsNotRunning
@@ -133,7 +135,7 @@ class RangerAdmin(Script):
 
     stack_version = upgrade_stack[1]
 
-    if params.xml_configurations_supported:
+    if params.xml_configurations_supported and params.upgrade_direction == Direction.UPGRADE:
       Logger.info(format('Setting Ranger database schema, using version {stack_version}'))
 
       from setup_ranger_xml import setup_ranger_db
@@ -149,11 +151,25 @@ class RangerAdmin(Script):
 
     stack_version = upgrade_stack[1]
 
-    if params.xml_configurations_supported:
+    if params.xml_configurations_supported and params.upgrade_direction == Direction.UPGRADE:
       Logger.info(format('Applying Ranger java patches, using version {stack_version}'))
 
       from setup_ranger_xml import setup_java_patch
       setup_java_patch(stack_version=stack_version)
+
+  def set_pre_start(self, env):
+    import params
+    env.set_params(params)
+
+    upgrade_stack = stack_select._get_upgrade_stack()
+    if upgrade_stack is None:
+      raise Fail('Unable to determine the stack and stack version')
+
+    stack_name = upgrade_stack[0]
+    stack_version = upgrade_stack[1]
+
+    stack_select.select("ranger-admin", stack_version)
+    conf_select.select(stack_name, "ranger-admin", stack_version)
 
   def get_log_folder(self):
     import params
