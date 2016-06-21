@@ -30,13 +30,13 @@
         {
           "name": "livyuser",
           "principal": {
-            "value": "livy@${realm}",
-            "type" : "user",
+            "value": "${livy-env/livy_user}/_HOST@${realm}",
+            "type" : "service",
             "configuration": "livy-conf/livy.server.kerberos.principal",
             "local_username": "${livy-env/livy_user}"
           },
           "keytab": {
-            "file": "${keytab_dir}/livy.keytab",
+            "file": "${keytab_dir}/livy.service.keytab",
             "owner": {
               "name": "${livy-env/livy_user}",
               "access": "r"
