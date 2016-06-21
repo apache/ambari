@@ -247,6 +247,15 @@ public class CompatibleRepositoryVersionResourceProviderTest {
   }
 
   @Test
+  public void testVersionInStack() {
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDP", "2.3"), "2.3.0.0"));
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDPWIN", "2.3"), "2.3.0.0"));
+
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDP", "2.3"), "HDP-2.3.0.0"));
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDPWIN", "2.3"), "HDPWIN-2.3.0.0"));
+  }
+
+  @Test
   public void testGetResources() throws Exception {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("admin", 2L));
 
