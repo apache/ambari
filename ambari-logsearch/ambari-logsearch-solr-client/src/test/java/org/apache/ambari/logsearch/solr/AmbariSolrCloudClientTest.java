@@ -60,7 +60,7 @@ public class AmbariSolrCloudClientTest {
     builder.solrZkClient = mockedSolrZkClient;
 
     underTest = builder
-      .withZookeeperHosts("localhost1:2181,localhost2:2182")
+      .withZkConnectString("localhost1:2181,localhost2:2182")
       .withCollection("collection1")
       .withConfigSet("configSet")
       .withShards(1)

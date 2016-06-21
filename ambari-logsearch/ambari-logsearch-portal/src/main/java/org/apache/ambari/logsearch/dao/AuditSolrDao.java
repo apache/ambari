@@ -38,7 +38,7 @@ public class AuditSolrDao extends SolrDaoBase {
   @PostConstruct
   public void postConstructor() {
     String solrUrl = PropertiesUtil.getProperty("logsearch.solr.audit.logs.url");
-    String zkHosts = PropertiesUtil.getProperty("logsearch.solr.audit.logs.zkhosts");
+    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.audit.logs.zk_connect_string");
     String collection = PropertiesUtil.getProperty(
       "logsearch.solr.collection.audit.logs", "audit_logs");
     String splitInterval = PropertiesUtil.getProperty(
@@ -51,13 +51,13 @@ public class AuditSolrDao extends SolrDaoBase {
       "logsearch.collection.audit.logs.replication.factor", 1);
 
     try {
-      connectToSolr(solrUrl, zkHosts, collection);
+      connectToSolr(solrUrl, zkConnectString, collection);
       setupCollections(splitInterval, configName, numberOfShards,
         replicationFactor);
     } catch (Exception e) {
       logger.error(
         "Error while connecting to Solr for audit logs : solrUrl="
-          + solrUrl + ", zkHosts=" + zkHosts
+          + solrUrl + ", zkConnectString=" + zkConnectString
           + ", collection=" + collection, e);
     }
   }

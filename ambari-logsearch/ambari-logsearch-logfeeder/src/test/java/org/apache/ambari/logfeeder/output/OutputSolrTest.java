@@ -57,7 +57,7 @@ public class OutputSolrTest {
   public void init() throws Exception {
     outputSolr = new OutputSolr() {
       @Override
-      SolrClient getSolrClient(String solrUrl, String zkHosts, int count) throws Exception, MalformedURLException {
+      SolrClient getSolrClient(String solrUrl, String zkConnectString, int count) throws Exception, MalformedURLException {
         return new CloudSolrClient(null) {
           private static final long serialVersionUID = 1L;
 
@@ -146,11 +146,11 @@ public class OutputSolrTest {
   }
 
   @Test
-  public void testOutputToSolr_noUrlOrZKHost() throws Exception {
-    LOG.info("testOutputToSolr_noUrlOrZKHost()");
+  public void testOutputToSolr_noUrlOrZkConnectString() throws Exception {
+    LOG.info("testOutputToSolr_noUrlOrZkConnectString()");
 
     expectedException.expect(Exception.class);
-    expectedException.expectMessage("For solr output, either url or zk_hosts property need to be set");
+    expectedException.expectMessage("For solr output, either url or zk_connect_string property need to be set");
 
     Map<String, Object> config = new HashMap<String, Object>();
     config.put("workers", "3");

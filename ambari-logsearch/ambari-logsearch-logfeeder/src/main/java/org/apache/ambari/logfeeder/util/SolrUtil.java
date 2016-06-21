@@ -53,9 +53,9 @@ public class SolrUtil {
 
   private SolrUtil() throws Exception {
     String url = LogFeederUtil.getStringProperty("logfeeder.solr.url");
-    String zkHosts = LogFeederUtil.getStringProperty("logfeeder.solr.zkhosts");
+    String zkConnectString = LogFeederUtil.getStringProperty("logfeeder.solr.zk_connect_string");
     String collection = LogFeederUtil.getStringProperty("logfeeder.solr.core.config.name", "history");
-    connectToSolr(url, zkHosts, collection);
+    connectToSolr(url, zkConnectString, collection);
   }
 
   public static SolrUtil getInstance() {
@@ -78,10 +78,10 @@ public class SolrUtil {
     return instance;
   }
 
-  public SolrClient connectToSolr(String url, String zkHosts,
+  public SolrClient connectToSolr(String url, String zkConnectString,
                                   String collection) throws Exception {
     this.collectionName = collection;
-    solrDetail = "zkHosts=" + zkHosts + ", collection=" + collection
+    solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection
       + ", url=" + url;
 
     logger.info("connectToSolr() " + solrDetail);
@@ -89,18 +89,18 @@ public class SolrUtil {
       throw new Exception("For solr, collection name is mandatory. "
         + solrDetail);
     }
-    if (zkHosts != null && !zkHosts.isEmpty()) {
-      solrDetail = "zkHosts=" + zkHosts + ", collection=" + collection;
+    if (zkConnectString != null && !zkConnectString.isEmpty()) {
+      solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection;
       logger.info("Using zookeepr. " + solrDetail);
-      solrClouldClient = new CloudSolrClient(zkHosts);
+      solrClouldClient = new CloudSolrClient(zkConnectString);
       solrClouldClient.setDefaultCollection(collection);
       solrClient = solrClouldClient;
       int waitDurationMS = 3 * 60 * 1000;
       checkSolrStatus(waitDurationMS);
     } else {
       if (url == null || url.trim().isEmpty()) {
-        throw new Exception("Both zkHosts and URL are empty. zkHosts="
-          + zkHosts + ", collection=" + collection + ", url="
+        throw new Exception("Both zkConnectString and URL are empty. zkConnectString="
+          + zkConnectString + ", collection=" + collection + ", url="
           + url);
       }
       solrDetail = "collection=" + collection + ", url=" + url;

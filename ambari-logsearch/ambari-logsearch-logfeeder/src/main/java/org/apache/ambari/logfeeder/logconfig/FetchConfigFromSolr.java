@@ -47,12 +47,12 @@ public class FetchConfigFromSolr extends Thread {
 
   @Override
   public void run() {
-    String zkHosts = LogFeederUtil.getStringProperty("logfeeder.solr.zkhosts");
+    String zkConnectString = LogFeederUtil.getStringProperty("logfeeder.solr.zk_connect_string");
     String solrUrl = LogFeederUtil.getStringProperty("logfeeder.solr.url");
-    if ((zkHosts == null || zkHosts.trim().length() == 0)
+    if ((zkConnectString == null || zkConnectString.trim().length() == 0 )
         && (solrUrl == null || solrUrl.trim().length() == 0)) {
-      logger
-          .warn("Solr ZKHosts or solrUrl for UserConfig/History is not set. Won't look for level configuration from Solr.");
+      logger.warn("Neither Solr ZK Connect String nor solr Uril for UserConfig/History is set." +
+          "Won't look for level configuration from Solr.");
       return;
     }
     solrConfigInterval = LogFeederUtil.getIntProperty("logfeeder.solr.config.interval", solrConfigInterval);

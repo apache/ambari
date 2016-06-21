@@ -39,7 +39,7 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   public void postConstructor() {
     logger.info("postConstructor() called.");
     String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
-    String zkHosts = PropertiesUtil.getProperty("logsearch.solr.zkhosts");
+    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
     String collection = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",
       "hadoop_logs");
     String splitInterval = PropertiesUtil.getProperty(
@@ -52,13 +52,13 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
       "logsearch.collection.service.logs.replication.factor", 1);
 
     try {
-      connectToSolr(solrUrl, zkHosts, collection);
+      connectToSolr(solrUrl, zkConnectString, collection);
       setupCollections(splitInterval, configName, numberOfShards,
         replicationFactor);
     } catch (Exception e) {
       logger.error(
         "error while connecting to Solr for service logs : solrUrl="
-          + solrUrl + ", zkHosts=" + zkHosts
+          + solrUrl + ", zkConnectString=" + zkConnectString
           + ", collection=" + collection, e);
     }
   }

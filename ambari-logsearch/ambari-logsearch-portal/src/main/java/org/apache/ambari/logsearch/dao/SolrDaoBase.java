@@ -93,17 +93,17 @@ public abstract class SolrDaoBase {
 
   int SETUP_RETRY_SECOND = 30;
   
-  private boolean isZkhost=false;//by default its false
+  private boolean isZkConnectString=false;//by default its false
   
   //set logtype
   public SolrDaoBase(LOG_TYPE logType) {
     this.logType = logType;
   }
 
-  public SolrClient connectToSolr(String url, String zkHosts,
+  public SolrClient connectToSolr(String url, String zkConnectString,
                                   String collection) throws Exception {
     this.collectionName = collection;
-    solrDetail = "zkHosts=" + zkHosts + ", collection=" + collection
+    solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection
       + ", url=" + url;
 
     logger.info("connectToSolr() " + solrDetail);
@@ -112,19 +112,19 @@ public abstract class SolrDaoBase {
         + solrDetail);
     }
     setupSecurity();
-    if (!stringUtil.isEmpty(zkHosts)) {
-      isZkhost=true;
-      solrDetail = "zkHosts=" + zkHosts + ", collection=" + collection;
+    if (!stringUtil.isEmpty(zkConnectString)) {
+      isZkConnectString=true;
+      solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection;
       logger.info("Using zookeepr. " + solrDetail);
-      solrClouldClient = new CloudSolrClient(zkHosts);
+      solrClouldClient = new CloudSolrClient(zkConnectString);
       solrClouldClient.setDefaultCollection(collection);
       solrClient = solrClouldClient;
       int waitDurationMS = 3 * 60 * 1000;
       checkSolrStatus(waitDurationMS);
     } else {
       if (stringUtil.isEmpty(url)) {
-        throw new Exception("Both zkHosts and URL are empty. zkHosts="
-          + zkHosts + ", collection=" + collection + ", url="
+        throw new Exception("Both zkConnectString and URL are empty. zkConnectString="
+          + zkConnectString + ", collection=" + collection + ", url="
           + url);
       }
       solrDetail = "collection=" + collection + ", url=" + url;
@@ -192,7 +192,7 @@ public abstract class SolrDaoBase {
 
   public void setupCollections(final String splitMode, final String configName,
       final int numberOfShards, final int replicationFactor) throws Exception {
-    if (isZkhost) {
+    if (isZkConnectString) {
       setup_status = createCollectionsIfNeeded(splitMode, configName,
           numberOfShards, replicationFactor);
       logger.info("Setup status for " + collectionName + " is " + setup_status);

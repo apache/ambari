@@ -99,11 +99,11 @@ public class AmbariSolrCloudCLI {
       .desc("Sharding not used when creating collection")
       .build();
 
-    final Option zookeeperHostOption = Option.builder("z")
-      .longOpt("zookeeper-host")
-      .desc("Zookeeper quorum and Znode")
+    final Option zkConnectStringOption = Option.builder("z")
+      .longOpt("zookeeper-connect-string")
+      .desc("Zookeeper quorum [and a Znode]")
       .numberOfArgs(1)
-      .argName("host:port,host:port../ambari-solr")
+      .argName("host:port,host:port[/ambari-solr]")
       .build();
 
     final Option collectionOption = Option.builder("c")
@@ -190,7 +190,7 @@ public class AmbariSolrCloudCLI {
     options.addOption(helpOption);
     options.addOption(retryOption);
     options.addOption(intervalOption);
-    options.addOption(zookeeperHostOption);
+    options.addOption(zkConnectStringOption);
     options.addOption(configSetOption);
     options.addOption(configDirOption);
     options.addOption(collectionOption);
@@ -220,19 +220,19 @@ public class AmbariSolrCloudCLI {
       String command = "";
       if (cli.hasOption("cc")) {
         command = CREATE_COLLECTION_COMMAND;
-        validateRequiredOptions(cli, command, zookeeperHostOption, collectionOption, configSetOption);
+        validateRequiredOptions(cli, command, zkConnectStringOption, collectionOption, configSetOption);
       } else if (cli.hasOption("uc")) {
         command = UPLOAD_CONFIG_COMMAND;
-        validateRequiredOptions(cli, command, zookeeperHostOption, configSetOption, configDirOption);
+        validateRequiredOptions(cli, command, zkConnectStringOption, configSetOption, configDirOption);
       } else if (cli.hasOption("dc")) {
         command = DOWNLOAD_CONFIG_COMMAND;
-        validateRequiredOptions(cli, command, zookeeperHostOption, configSetOption, configDirOption);
+        validateRequiredOptions(cli, command, zkConnectStringOption, configSetOption, configDirOption);
       } else if (cli.hasOption("csh")) {
         command = CREATE_SHARD_COMMAND;
-        validateRequiredOptions(cli, command, zookeeperHostOption, collectionOption, shardNameOption);
+        validateRequiredOptions(cli, command, zkConnectStringOption, collectionOption, shardNameOption);
       } else if (cli.hasOption("chc")) {
         command = CONFIG_CHECK_COMMAND;
-        validateRequiredOptions(cli, command, zookeeperHostOption, configSetOption);
+        validateRequiredOptions(cli, command, zkConnectStringOption, configSetOption);
       } else {
         List<String> commands = Arrays.asList(CREATE_COLLECTION_COMMAND, CREATE_SHARD_COMMAND, UPLOAD_CONFIG_COMMAND,
           DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND);
@@ -240,7 +240,7 @@ public class AmbariSolrCloudCLI {
         exit(1, String.format("One of the supported commands is required (%s)", StringUtils.join(commands, "|")));
       }
 
-      String zookeeperHosts = cli.getOptionValue('z');
+      String zkConnectString = cli.getOptionValue('z');
       String collection = cli.getOptionValue('c');
       String configSet = cli.getOptionValue("cs");
       String configDir = cli.getOptionValue("d");
@@ -257,7 +257,7 @@ public class AmbariSolrCloudCLI {
 
 
       AmbariSolrCloudClientBuilder clientBuilder = new AmbariSolrCloudClientBuilder()
-        .withZookeeperHosts(zookeeperHosts)
+        .withZkConnectString(zkConnectString)
         .withCollection(collection)
         .withConfigSet(configSet)
         .withShards(shards)

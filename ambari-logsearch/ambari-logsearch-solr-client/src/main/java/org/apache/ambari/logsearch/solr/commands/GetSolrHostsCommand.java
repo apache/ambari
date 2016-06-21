@@ -36,7 +36,7 @@ public class GetSolrHostsCommand extends AbstractRetryCommand<Collection<String>
   public Collection<String> createAndProcessRequest(AmbariSolrCloudClient solrCloudClient) throws Exception {
     List<String> solrHosts = new ArrayList<>();
 
-    ZooKeeper zk = new ZooKeeper(solrCloudClient.getZookeeperHosts(), 10000, null);
+    ZooKeeper zk = new ZooKeeper(solrCloudClient.getZkConnectString(), 10000, null);
     List<String> ids = zk.getChildren("/live_nodes", false);
     for (String id : ids) {
       if (id.endsWith("_solr")) {
