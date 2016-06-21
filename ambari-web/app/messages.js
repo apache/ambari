@@ -3156,5 +3156,9 @@ Em.I18n.translations = {
   'admin.serviceAutoStart.save.popup.transition.body': 'You have unsaved changes',
 
   'reset.ui.states': 'Reset UI State',
-  'reset.ui.states.body': 'You should proceed only if the UI is misbehaving (such as incorrect navigation upon login, UI is stuck and won&apos;t load, etc.).  Are you sure you want to reset the UI state?'
+  'reset.ui.states.body': 'You should proceed only if the UI is misbehaving (such as incorrect navigation upon login, UI is stuck and won&apos;t load, etc.).  Are you sure you want to reset the UI state?',
+
+  'app.logger.ajax': 'Ajax loading time: {0} [{1}]',
+  'app.logger.wizard': 'wizard step {0} loading time'
+
 };
