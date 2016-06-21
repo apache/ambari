@@ -470,6 +470,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hive-interactive-env")
 
+    putTezInteractiveSiteProperty = self.putProperty(configurations, "tez-interactive-site", services)
+
     llap_daemon_selected_queue_name = None
     llap_queue_selected_in_current_call = None
     LLAP_MAX_CONCURRENCY = 32 # Allow a max of 32 concurrency.
@@ -566,7 +568,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                     "yarn_nm_mem_in_mb : {2}".format(total_cluster_capacity, node_manager_cnt, yarn_nm_mem_in_mb))
 
         yarn_min_container_size = self.get_yarn_min_container_size(services, configurations)
-        tez_am_container_size = self._normalizeUp(self.get_tez_am_container_size(services, configurations), yarn_min_container_size)
+        tez_am_container_size = self.calculate_tez_am_container_size(long(total_cluster_capacity))
+        normalized_tez_am_container_size =  self._normalizeUp(tez_am_container_size, yarn_min_container_size)
+        Logger.info("Calculated normalized_tez_am_container_size : {0}, using following : tez_am_container_size : {1}, "
+                    "total_cluster_capacity : {2}".format(normalized_tez_am_container_size, tez_am_container_size, total_cluster_capacity))
         total_llap_queue_size = long(self._normalizeDown((float(current_selected_queue_for_llap_cap) / 100 * total_cluster_capacity), yarn_min_container_size))
         # Get calculated value for Slider AM container Size
         slider_am_container_size = self._normalizeUp(self.calculate_slider_am_size(yarn_min_container_size), yarn_min_container_size)
@@ -574,10 +579,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         # Read 'hive.server2.tez.sessions.per.default.queue' prop if it's in changed-configs, else calculate it.
         if not llap_concurrency_in_changed_configs:
           # Calculate llap concurrency (i.e. Number of Tez AM's)
-          llap_concurrency = float(total_llap_queue_size * 0.25 / tez_am_container_size)
+          llap_concurrency = float(total_llap_queue_size * 0.25 / normalized_tez_am_container_size)
           llap_concurrency = max(long(llap_concurrency), 1)
           Logger.info("Calculated llap_concurrency : {0}, using following : total_llap_queue_size : {1}, "
-                      "tez_am_container_size : {2}".format(llap_concurrency, total_llap_queue_size, tez_am_container_size))
+                      "normalized_tez_am_container_size : {2}".format(llap_concurrency, total_llap_queue_size, normalized_tez_am_container_size))
           # Limit 'llap_concurrency' to reach a max. of 32.
           if llap_concurrency > LLAP_MAX_CONCURRENCY:
             llap_concurrency = LLAP_MAX_CONCURRENCY
@@ -593,13 +598,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
 
         # Calculate 'total memory available for llap daemons' across cluster
-        total_am_capacity_required = tez_am_container_size * llap_concurrency + slider_am_container_size
+        total_am_capacity_required = normalized_tez_am_container_size * llap_concurrency + slider_am_container_size
         cap_available_for_daemons = total_llap_queue_size - total_am_capacity_required
         Logger.info("Calculated cap_available_for_daemons : {0}, using following : current_selected_queue_for_llap_cap : {1}, "
-                    "yarn_nm_mem_in_mb : {2}, total_cluster_capacity : {3}, total_llap_queue_size : {4}, tez_am_container_size"
+                    "yarn_nm_mem_in_mb : {2}, total_cluster_capacity : {3}, total_llap_queue_size : {4}, normalized_tez_am_container_size"
                     " : {5}, yarn_min_container_size : {6}, llap_concurrency : {7}, total_am_capacity_required : {8}"
                     .format(cap_available_for_daemons, current_selected_queue_for_llap_cap, yarn_nm_mem_in_mb, total_cluster_capacity,
-                            total_llap_queue_size, tez_am_container_size, yarn_min_container_size, llap_concurrency,
+                            total_llap_queue_size, normalized_tez_am_container_size, yarn_min_container_size, llap_concurrency,
                             total_am_capacity_required))
         if cap_available_for_daemons < yarn_min_container_size :
           raise Fail("'Capacity available for LLAP daemons'({0}) < 'YARN minimum container size'({1}). Invalid configuration detected. "
@@ -663,12 +668,16 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
 
         # Updating calculated configs.
+        normalized_tez_am_container_size = long(normalized_tez_am_container_size)
+        putTezInteractiveSiteProperty('tez.am.resource.memory.mb', normalized_tez_am_container_size)
+        Logger.info("'Tez for Hive2' config 'tez.am.resource.memory.mb' updated. Current: {0}".format(normalized_tez_am_container_size))
+
         if not llap_concurrency_in_changed_configs:
           min_llap_concurrency = 1
           putHiveInteractiveSiteProperty('hive.server2.tez.sessions.per.default.queue', llap_concurrency)
           putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "minimum", min_llap_concurrency)
           putHiveInteractiveSitePropertyAttribute('hive.server2.tez.sessions.per.default.queue', "maximum", LLAP_MAX_CONCURRENCY)
-          Logger.info("LLAP config 'hive.server2.tez.sessions.per.default.queue' updated. Min : {0}, Current: {1}, Max: {2}" \
+          Logger.info("Hive2 config 'hive.server2.tez.sessions.per.default.queue' updated. Min : {0}, Current: {1}, Max: {2}" \
                       .format(min_llap_concurrency, llap_concurrency, LLAP_MAX_CONCURRENCY))
 
         num_llap_nodes = long(num_llap_nodes)
@@ -708,7 +717,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           llap_io_enabled = 'true'
 
         putHiveInteractiveSiteProperty('hive.llap.io.enabled', llap_io_enabled)
-        Logger.info("HiveServer2 config 'hive.llap.io.enabled' updated to '{0}' as part of "
+        Logger.info("Hive2 config 'hive.llap.io.enabled' updated to '{0}' as part of "
                     "'hive.llap.io.memory.size' calculation.".format(llap_io_enabled))
 
         llap_xmx = long(llap_xmx)
@@ -926,31 +935,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return yarn_nm_mem_in_mb
 
   """
-  Gets Tez App Master container size (tez.am.resource.memory.mb) from tez-site. Takes into account if it has been calculated
-  as part of current Stack Advisor invocation.
+  Determines Tez App Master container size (tez.am.resource.memory.mb) for tez_hive2/tez-site based on total cluster capacity.
   """
-  def get_tez_am_container_size(self, services, configurations):
-    llap_daemon_container_size = None
-    # Check if 'tez.am.resource.memory.mb' is modified in current ST invocation.
-    if 'tez-site' in configurations and 'tez.am.resource.memory.mb' in configurations['tez-site']['properties']:
-      llap_daemon_container_size = float(configurations['tez-site']['properties']['tez.am.resource.memory.mb'])
-      Logger.info("'tez.am.resource.memory.mb' read from configurations as : {0}".format(llap_daemon_container_size))
+  def calculate_tez_am_container_size(self, total_cluster_capacity):
+    if total_cluster_capacity is None or not isinstance(total_cluster_capacity, long):
+      raise Fail ("Passed-in 'Total Cluster Capacity' is : '{0}'".format(total_cluster_capacity))
 
-    if not llap_daemon_container_size:
-      # Check if 'tez.am.resource.memory.mb' is input in services array.
-      if 'tez-site' in services['configurations'] and \
-          'tez.am.resource.memory.mb' in services['configurations']['tez-site']['properties']:
-        llap_daemon_container_size = float(services['configurations']['tez-site']['properties']['tez.am.resource.memory.mb'])
-        Logger.info("'tez.am.resource.memory.mb' read from services as : {0}".format(llap_daemon_container_size))
+    if total_cluster_capacity <= 0:
+      raise Fail ("Passed-in 'Total Cluster Capacity' ({0}) is Invalid.".format(total_cluster_capacity))
+    if total_cluster_capacity <= 4096:
+      return 256
+    elif total_cluster_capacity > 4096 and total_cluster_capacity <= 73728:
+      return 512
+    elif total_cluster_capacity > 73728:
+      return 1536
 
-
-    if not llap_daemon_container_size:
-      raise Fail("Couldn't retrieve Hive Server's 'tez.am.resource.memory.mb' config.")
-
-    assert (llap_daemon_container_size > 0), "'tez.am.resource.memory.mb' current value : {0}. " \
-                                             "Expected value : > 0".format(llap_daemon_container_size)
-
-    return llap_daemon_container_size
 
   """
   Calculate minimum queue capacity required in order to get LLAP and HIVE2 app into running state.
@@ -966,7 +965,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     yarn_min_container_size = self.get_yarn_min_container_size(services, configurations)
     slider_am_size = self.calculate_slider_am_size(yarn_min_container_size)
     hive_tez_container_size = self.get_hive_tez_container_size(services, configurations)
-    tez_am_container_size = self.get_tez_am_container_size(services, configurations)
+    tez_am_container_size = self.calculate_tez_am_container_size(long(total_cluster_cap))
     normalized_val = self._normalizeUp(slider_am_size, yarn_min_container_size) + self._normalizeUp\
       (hive_tez_container_size, yarn_min_container_size) + self._normalizeUp(tez_am_container_size, yarn_min_container_size)
 
@@ -1017,6 +1016,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         llap_slider_cap_percentage = int(
           services['configurations']['hive-interactive-env']['properties']['llap_queue_capacity'])
         min_reqd_queue_cap_perc = self.min_queue_perc_reqd_for_llap_and_hive_app(services, hosts, configurations)
+        if min_reqd_queue_cap_perc > 100:
+          min_reqd_queue_cap_perc = 100
+          Logger.info("Received 'Minimum Required LLAP queue capacity' : {0}% (out of bounds), adjusted it to : 100%".format(min_reqd_queue_cap_perc))
 
         # Adjust 'llap' queue capacity slider value to be minimum required if out of expected bounds.
         if llap_slider_cap_percentage <= 0 or llap_slider_cap_percentage > 100:
