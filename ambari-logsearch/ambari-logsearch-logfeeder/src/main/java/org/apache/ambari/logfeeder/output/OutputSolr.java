@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.logconfig.FetchConfigFromSolr;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -59,6 +60,8 @@ public class OutputSolr extends Output {
   private static final int DEFAULT_SPLIT_INTERVAL = 30;
   private static final int DEFAULT_NUMBER_OF_WORKERS = 1;
 
+  private static final int RETRY_INTERVAL = 30;
+
   private String collection;
   private String splitMode;
   private int splitInterval;
@@ -81,7 +84,7 @@ public class OutputSolr extends Output {
     createSolrWorkers();
   }
 
-  private void initParams() {
+  private void initParams() throws Exception {
     statMetric.metricsName = "output.solr.write_logs";
     writeBytesMetric.metricsName = "output.solr.write_bytes";
 
@@ -89,6 +92,8 @@ public class OutputSolr extends Output {
     if (!splitMode.equalsIgnoreCase("none")) {
       splitInterval = getIntValue("split_interval_mins", DEFAULT_SPLIT_INTERVAL);
     }
+    isComputeCurrentCollection = !splitMode.equalsIgnoreCase("none");
+    
     numberOfShards = getIntValue("number_of_shards", DEFAULT_NUMBER_OF_SHARDS);
 
     maxIntervalMS = getIntValue("idle_flush_time_ms", DEFAULT_MAX_INTERVAL_MS);
@@ -100,7 +105,12 @@ public class OutputSolr extends Output {
       maxBufferSize = 1;
     }
 
-    LOG.info(String.format("Config: Number of workers=%d, splitMode=%s, splitInterval=%d, " + "numberOfShards=%d. "
+    collection = getStringValue("collection");
+    if (StringUtils.isEmpty(collection)) {
+      throw new Exception("Collection property is mandatory");
+    }
+
+    LOG.info(String.format("Config: Number of workers=%d, splitMode=%s, splitInterval=%d, numberOfShards=%d. "
         + getShortDescription(), workers, splitMode, splitInterval, numberOfShards));
   }
 
@@ -135,45 +145,44 @@ public class OutputSolr extends Output {
   }
 
   SolrClient getSolrClient(String solrUrl, String zkHosts, int count) throws Exception, MalformedURLException {
-    SolrClient solrClient = null;
-
-    if (zkHosts != null) {
-      solrClient = createCloudSolrClient(zkHosts);
-    } else {
-      solrClient = createHttpSolarClient(solrUrl);
-    }
-
+    SolrClient solrClient = createSolrClient(solrUrl, zkHosts, collection);
     pingSolr(solrUrl, zkHosts, count, solrClient);
+    waitForConfig();
 
     return solrClient;
   }
 
-  private SolrClient createCloudSolrClient(String zkHosts) throws Exception {
-    LOG.info("Using zookeepr. zkHosts=" + zkHosts);
-    collection = getStringValue("collection");
-    if (StringUtils.isEmpty(collection)) {
-      throw new Exception("For solr cloud property collection is mandatory");
+  private SolrClient createSolrClient(String solrUrl, String zkHosts, String collection) throws Exception, MalformedURLException {
+    SolrClient solrClient;
+    if (zkHosts != null) {
+      solrClient = createCloudSolrClient(zkHosts, collection);
+    } else {
+      solrClient = createHttpSolarClient(solrUrl, collection);
     }
+    return solrClient;
+  }
+
+  private SolrClient createCloudSolrClient(String zkHosts, String collection) throws Exception {
+    LOG.info("Using zookeepr. zkHosts=" + zkHosts);
     LOG.info("Using collection=" + collection);
 
     CloudSolrClient solrClient = new CloudSolrClient(zkHosts);
     solrClient.setDefaultCollection(collection);
-    isComputeCurrentCollection = !splitMode.equalsIgnoreCase("none");
     return solrClient;
   }
 
-  private SolrClient createHttpSolarClient(String solrUrl) throws MalformedURLException {
+  private SolrClient createHttpSolarClient(String solrUrl, String collection) throws MalformedURLException {
     String[] solrUrls = StringUtils.split(solrUrl, ",");
     if (solrUrls.length == 1) {
       LOG.info("Using SolrURL=" + solrUrl);
-      return new HttpSolrClient(solrUrl);
+      return new HttpSolrClient(solrUrl + "/" + collection);
     } else {
       LOG.info("Using load balance solr client. solrUrls=" + solrUrl);
-      LOG.info("Initial URL for LB solr=" + solrUrls[0]);
-      LBHttpSolrClient lbSolrClient = new LBHttpSolrClient(solrUrls[0]);
+      LOG.info("Initial URL for LB solr=" + solrUrls[0] + "/" + collection);
+      LBHttpSolrClient lbSolrClient = new LBHttpSolrClient(solrUrls[0] + "/" + collection);
       for (int i = 1; i < solrUrls.length; i++) {
-        LOG.info("Adding URL for LB solr=" + solrUrls[i]);
-        lbSolrClient.addSolrServer(solrUrls[i]);
+        LOG.info("Adding URL for LB solr=" + solrUrls[i] + "/" + collection);
+        lbSolrClient.addSolrServer(solrUrls[i] + "/" + collection);
       }
       return lbSolrClient;
     }
@@ -194,8 +203,27 @@ public class OutputSolr extends Output {
       }
     } catch (Throwable t) {
       LOG.warn(String.format(
-          "Ping to Solr server failed. It would check again. worker=%d, " + "solrUrl=%s, zkHosts=%s, collection=%s",
+          "Ping to Solr server failed. It would check again. worker=%d, solrUrl=%s, zkHosts=%s, collection=%s",
           count, solrUrl, zkHosts, collection), t);
+    }
+  }
+
+  private void waitForConfig() throws SolrServerException, IOException {
+    if (!LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false)) {
+      return;
+    }
+    
+    while (true) {
+      LOG.info("Checking if config is available");
+      if (FetchConfigFromSolr.isFilterAvailable()) {
+        LOG.info("Config is available");
+        return;
+      }
+      try {
+        Thread.sleep(RETRY_INTERVAL * 1000);
+      } catch (InterruptedException e) {
+        LOG.error(e);
+      }
     }
   }
 
@@ -281,7 +309,6 @@ public class OutputSolr extends Output {
 
   class SolrWorkerThread extends Thread {
     private static final String ROUTER_FIELD = "_router_field_";
-    private static final int RETRY_INTERVAL = 30;
 
     private final SolrClient solrClient;
     private final Collection<SolrInputDocument> localBuffer = new ArrayList<>();

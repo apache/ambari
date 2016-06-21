@@ -153,6 +153,10 @@ public class FetchConfigFromSolr extends Thread {
     return defaultLevels;
   }
 
+  public static boolean isFilterAvailable() {
+    return logfeederFilterWrapper != null;
+  }
+  
   public static VLogfeederFilter findComponentFilter(String componentName) {
     if (logfeederFilterWrapper != null) {
       HashMap<String, VLogfeederFilter> filter = logfeederFilterWrapper.getFilter();
