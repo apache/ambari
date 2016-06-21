@@ -25,6 +25,10 @@ class ZeppelinServiceCheck(Script):
         import params
         env.set_params(params)
 
+        if params.security_enabled:
+          spark_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
+          Execute(spark_kinit_cmd, user=params.zeppelin_user)
+
         Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {zeppelin_host}:{zeppelin_port} | grep 200"),
                 tries = 10,
                 try_sleep=3,

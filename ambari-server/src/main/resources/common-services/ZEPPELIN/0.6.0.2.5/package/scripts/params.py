@@ -21,16 +21,17 @@ limitations under the License.
 import functools
 import os
 import re
-
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_stack_version import get_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
 
 def get_port_from_url(address):
   if not (address is None):
@@ -123,6 +124,9 @@ if 'spark.yarn.queue' in config['configurations']['spark-defaults']:
 else:
   spark_queue = 'default'
 
+zeppelin_kerberos_keytab = config['configurations']['zeppelin-env']['zeppelin.server.kerberos.keytab']
+zeppelin_kerberos_principal = config['configurations']['zeppelin-env']['zeppelin.server.kerberos.principal']
+
 # e.g. 2.3
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 
@@ -133,6 +137,10 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 full_stack_version = default("/commandParams/version", None)
 
 spark_client_version = get_stack_version('spark-client')
+
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted):
+  livy_livyserver_host = str(default("/clusterHostInfo/livy_server_hosts", [])[0])
+  livy_livyserver_port = config['configurations']['livy-conf']['livy.server.port']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 security_enabled = config['configurations']['cluster-env']['security_enabled']

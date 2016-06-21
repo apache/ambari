@@ -37,6 +37,22 @@ limitations under the License.
             <scriptType>PYTHON</scriptType>
             <timeout>10000</timeout>
           </commandScript>
+          <dependencies>
+            <dependency>
+              <name>SPARK/LIVY_SERVER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>SPARK/SPARK_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
         </component>
       </components>
 
