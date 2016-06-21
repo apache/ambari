@@ -54,7 +54,7 @@ public class SolrUtil {
   private SolrUtil() throws Exception {
     String url = LogFeederUtil.getStringProperty("logfeeder.solr.url");
     String zkHosts = LogFeederUtil.getStringProperty("logfeeder.solr.zkhosts");
-    String collection = LogFeederUtil.getStringProperty("logfeeder.solr.core.history", "history");
+    String collection = LogFeederUtil.getStringProperty("logfeeder.solr.core.config.name", "history");
     connectToSolr(url, zkHosts, collection);
   }
 
@@ -180,7 +180,7 @@ public class SolrUtil {
     HashMap<String, Object> configMap = new HashMap<String, Object>();
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
-    String fq = LogFeederConstants.ROW_TYPE + ":" + LogFeederConstants.NAME;
+    String fq = LogFeederConstants.ROW_TYPE + ":" + LogFeederConstants.LOGFEEDER_FILTER_NAME;
     solrQuery.setFilterQueries(fq);
     try {
       QueryResponse response = process(solrQuery);

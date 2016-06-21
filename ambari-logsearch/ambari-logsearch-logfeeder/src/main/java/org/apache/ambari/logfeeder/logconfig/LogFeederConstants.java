@@ -21,7 +21,7 @@ package org.apache.ambari.logfeeder.logconfig;
 public class LogFeederConstants {
 
   public static final String ALL = "all";
-  public static final String NAME = "log_feeder_config";
+  public static final String LOGFEEDER_FILTER_NAME = "log_feeder_config";
   // solr fields
   public static final String SOLR_LEVEL = "level";
   public static final String SOLR_COMPONENT = "type";

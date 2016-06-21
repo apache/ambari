@@ -83,6 +83,7 @@ public class OutputSolrTest {
     Map<String, Object> config = new HashMap<String, Object>();
     config.put("url", "some url");
     config.put("workers", "3");
+    config.put("collection", "some collection");
 
     outputSolr.loadConfig(config);
     outputSolr.init();
@@ -153,6 +154,7 @@ public class OutputSolrTest {
 
     Map<String, Object> config = new HashMap<String, Object>();
     config.put("workers", "3");
+    config.put("collection", "some collection");
 
     outputSolr.loadConfig(config);
     outputSolr.init();

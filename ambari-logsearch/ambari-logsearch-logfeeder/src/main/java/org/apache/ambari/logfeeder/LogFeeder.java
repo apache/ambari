@@ -120,6 +120,9 @@ public class LogFeeder {
       }
     }
     mergeAllConfigs();
+    
+    LogfeederScheduler.INSTANCE.start();
+    
     outMgr.setOutputList(outputList);
     for (Output output : outputList) {
       output.init();
@@ -127,7 +130,6 @@ public class LogFeeder {
     inputMgr.init();
     metricsMgr.init();
     //starting timer to fetch config from solr 
-    LogfeederScheduler.INSTANCE.start();
     logger.debug("==============");
   }
 
