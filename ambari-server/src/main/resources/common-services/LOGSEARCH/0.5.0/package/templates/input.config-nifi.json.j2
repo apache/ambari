@@ -18,44 +18,24 @@
 {
   "input":[
     {
-      "type":"nifi_app_master",
+      "type":"nifi_app",
       "rowtype":"service",
-      "path":"{{nifi_master_log_dir}}/nifi-app.log"
+      "path":"{{nifi_log_dir}}/nifi-app.log"
     },
     {
-      "type":"nifi_bootstrap_master",
+      "type":"nifi_bootstrap",
       "rowtype":"service",
-      "path":"{{nifi_master_log_dir}}/nifi-bootstrap.log"
+      "path":"{{nifi_log_dir}}/nifi-bootstrap.log"
     },
     {
-      "type":"nifi_setup_master",
+      "type":"nifi_setup",
       "rowtype":"service",
-      "path":"{{nifi_master_log_dir}}/nifi-setup.log"
+      "path":"{{nifi_log_dir}}/nifi-setup.log"
     },
     {
-      "type":"nifi_user_master",
+      "type":"nifi_user",
       "rowtype":"service",
-      "path":"{{nifi_master_log_dir}}/nifi-user.log"
-    },
-    {
-      "type":"nifi_app_node",
-      "rowtype":"service",
-      "path":"{{nifi_node_log_dir}}/nifi-app.log"
-    },
-    {
-      "type":"nifi_bootstrap_node",
-      "rowtype":"service",
-      "path":"{{nifi_node_log_dir}}/nifi-bootstrap.log"
-    },
-    {
-      "type":"nifi_setup_node",
-      "rowtype":"service",
-      "path":"{{nifi_node_log_dir}}/nifi-setup.log"
-    },
-    {
-      "type":"nifi_user_node",
-      "rowtype":"service",
-      "path":"{{nifi_node_log_dir}}/nifi-user.log"
+      "path":"{{nifi_log_dir}}/nifi-user.log"
     }
 
   ],
@@ -65,14 +45,10 @@
       "conditions":{
         "fields":{
           "type":[
-            "nifi_app_master",
-            "nifi_bootstrap_master",
-            "nifi_setup_master",
-            "nifi_user_master",
-            "nifi_app_node",
-            "nifi_bootstrap_node",
-            "nifi_setup_node",
-            "nifi_user_node"
+            "nifi_app",
+            "nifi_bootstrap",
+            "nifi_setup",
+            "nifi_user",
           ]
 
         }

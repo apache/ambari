@@ -230,28 +230,16 @@
       "label":"NiFi",
       "components":[
         {
-          "name":"nifi_app_master"
+          "name":"nifi_app"
         },
         {
-          "name":"nifi_bootstrap_master"
+          "name":"nifi_bootstrap"
         },
         {
-          "name":"nifi_setup_master"
+          "name":"nifi_setup"
         },
         {
-          "name":"nifi_user_master"
-        },
-        {
-          "name":"nifi_app_node"
-        },
-        {
-          "name":"nifi_bootstrap_node"
-        },
-        {
-          "name":"nifi_setup_node"
-        },
-        {
-          "name":"nifi_user_node"
+          "name":"nifi_user"
         }
         
       ],
