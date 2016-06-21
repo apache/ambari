@@ -18,6 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
+import os
 
 from resource_management import *
 from ambari_commons import OSConst
