@@ -59,6 +59,5 @@ class LogSearch(Script):
 
     check_process_status(status_params.logsearch_pid_file)
 
-
 if __name__ == "__main__":
   LogSearch().execute()

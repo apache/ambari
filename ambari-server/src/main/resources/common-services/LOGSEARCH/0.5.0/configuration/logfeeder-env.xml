@@ -131,6 +131,20 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>logfeeder_kerberos_keytab</name>
+    <value>/etc/security/keytabs/logfeeder.service.keytab</value>
+    <display-name>Logfeeder Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of the Logfeeder.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logfeeder_kerberos_principal</name>
+    <value>logfeeder</value>
+    <display-name>Logfeeder Solr principal</display-name>
+    <description>The service principal for Logfeeder which will be used to access Log Search Solr.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>logfeeder-env template</display-name>
     <description>This is the jinja template for logsearch-env.sh file</description>

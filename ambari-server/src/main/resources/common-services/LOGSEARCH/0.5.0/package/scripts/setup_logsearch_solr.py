@@ -88,8 +88,18 @@ def setup_logsearch_solr(name = None):
       Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val http'),
               user=params.logsearch_solr_user
               )
+      if params.security_enabled:
+        File(format("{logsearch_solr_jaas_file}"),
+             content=Template("logsearch_solr_jaas.conf.j2"),
+             owner=params.logsearch_solr_user)
+        security_content = '\'{"authentication":{"class": "org.apache.solr.security.KerberosPlugin"}}\''
+        Execute(format('{zk_cli_prefix} -cmd put {logsearch_solr_znode}/security.json ') + security_content)
   elif name == 'client':
     solr_cloud_util.setup_solr_client(params.config)
+    if params.security_enabled:
+      File(format("{solr_client_dir}/logsearch_solr_client_jaas.conf"),
+           content=Template("logsearch_solr_jaas.conf.j2"),
+           owner=params.logsearch_solr_user)
 
   else :
     raise Fail('Nor client or server were selected to install.')

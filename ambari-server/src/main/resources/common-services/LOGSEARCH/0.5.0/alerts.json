@@ -12,8 +12,8 @@
           "uri": {
             "http": "{{logsearch-env/logsearch_ui_port}}",
             "https": "{{logsearch-env/logsearch_ui_port}}",
-            "connection_timeout": 5.0,
-            "default_port": 61888
+            "default_port": 61888,
+            "connection_timeout": 5.0
           },
           "reporting": {
             "ok": {
@@ -44,6 +44,8 @@
             "https_property": "{{logsearch-solr-env/logsearch_solr_ssl_enabled}}",
             "https_property_value": "true",
             "connection_timeout": 5.0,
+            "kerberos_keytab": "{{logsearch-solr-env/logsearch_solr_web_kerberos_keytab}}",
+            "kerberos_principal": "{{logsearch-solr-env/logsearch_solr_web_kerberos_principal}}",
             "default_port": 8886
           },
           "reporting": {

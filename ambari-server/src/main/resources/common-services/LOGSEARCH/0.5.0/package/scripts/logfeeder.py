@@ -47,7 +47,6 @@ class LogFeeder(Script):
     import params
     env.set_params(params)
     self.configure(env)
-
     Execute(format("{logfeeder_dir}/run.sh"),
             environment={'LOGFEEDER_INCLUDE': format('{logsearch_logfeeder_conf}/logfeeder-env.sh')},
             user = params.logfeeder_user

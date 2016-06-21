@@ -63,3 +63,8 @@ logsearch.roles.allowed=AMBARI.ADMINISTRATOR
 {{key}}={{value}}
 {% endfor %}
 
+{% if security_enabled -%}
+logsearch.solr.kerberos.enable=true
+logsearch.solr.jaas.file={{logsearch_jaas_file}}
+{% endif %}
+

@@ -25,3 +25,8 @@ logfeeder.solr.zkhosts={{zookeeper_quorum}}{{logsearch_solr_znode}}
 {% for key, value in logfeeder_custom_properties.items() %}
 {{key}}={{value}}
 {% endfor %}
+
+{% if security_enabled -%}
+logfeeder.solr.kerberos.enable=true
+logfeeder.solr.jaas.file={{logfeeder_jaas_file}}
+{% endif %}

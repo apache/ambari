@@ -180,6 +180,13 @@ public class AmbariSolrCloudCLI {
       .argName("router_field")
       .build();
 
+    final Option jaasFileOption = Option.builder("jf")
+      .longOpt("jaas-file")
+      .desc("Location of the jaas-file to communicate with kerberized Solr")
+      .numberOfArgs(1)
+      .argName("jaas_file")
+      .build();
+
     options.addOption(helpOption);
     options.addOption(retryOption);
     options.addOption(intervalOption);
@@ -199,6 +206,7 @@ public class AmbariSolrCloudCLI {
     options.addOption(uploadConfigurationOption);
     options.addOption(checkConfigOption);
     options.addOption(createShardOption);
+    options.addOption(jaasFileOption);
 
 
     try {
@@ -245,6 +253,7 @@ public class AmbariSolrCloudCLI {
       String routerField = cli.hasOption("rf") ? cli.getOptionValue("rf") : null;
       String shardName = cli.hasOption("sn") ? cli.getOptionValue("sn") : null;
       boolean isSplitting = !cli.hasOption("ns");
+      String jaasFile = cli.hasOption("jf") ? cli.getOptionValue("jf") : null;
 
 
       AmbariSolrCloudClientBuilder clientBuilder = new AmbariSolrCloudClientBuilder()
@@ -258,6 +267,7 @@ public class AmbariSolrCloudCLI {
         .withInterval(interval)
         .withRouterName(routerName)
         .withRouterField(routerField)
+        .withJaasFile(jaasFile) // call before creating SolrClient
         .withSplitting(isSplitting)
         .withSolrZkClient(ZK_CLIENT_TIMEOUT, ZK_CLIENT_CONNECT_TIMEOUT);
 

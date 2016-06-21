@@ -67,7 +67,7 @@
   </property>
   <property>
     <name>logsearch_solr_user</name>
-    <value>solr</value>
+    <value>logsearch-solr</value>
     <property-type>USER</property-type>
     <description>Solr user</description>
     <display-name>Log Search Solr User</display-name>
@@ -186,6 +186,49 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <property>
+    <name>logsearch_solr_kerberos_keytab</name>
+    <value>/etc/security/keytabs/logsearch_solr.service.keytab</value>
+    <display-name>Log Search Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of the Log Search Solr.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>logsearch_solr_kerberos_principal</name>
+    <value>logsearch-solr</value>
+    <display-name>Log Search Solr principal</display-name>
+    <description>The service principal for Log Search Solr.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>logsearch_solr_web_kerberos_keytab</name>
+    <value>/etc/security/keytabs/spnego.service.keytab</value>
+    <display-name>Log Search Solr Http keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of the Log Search Solr.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>logsearch_solr_web_kerberos_principal</name>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
+    <display-name>Log Search Solr Http principal</display-name>
+    <description>The service principal for the Log Search Solr.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>logsearch_solr_kerberos_name_rules</name>
+    <value>DEFAULT</value>
+    <description>Kerberos name rules for Spnego</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
   <!-- logsearch-solr-env.sh -->
   <property>
     <name>content</name>

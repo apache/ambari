@@ -29,6 +29,13 @@ def __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home):
                            '-z {zookeeper_quorum}{solr_znode}')
   return solr_cli_prefix
 
+def __append_flags_if_exists(command, flagsDict):
+  for key, value in flagsDict.iteritems():
+    if value is not None:
+        command+= " %s %s" % (key, value)
+  return command
+
+
 def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_set_dir, tmp_config_set_dir,
                          java64_home, user, retry = 5, interval = 10):
   """
@@ -51,7 +58,7 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
 
 def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java64_home, user,
                       shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10,
-                      router_name = None, router_field = None):
+                      router_name = None, router_field = None, jaas_file = None):
   """
   Create Solr collection based on a configuration set in zookeeper.
   If this method called again the with higher shard number (or max_shard number), then it will indicate
@@ -69,18 +76,20 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   create_collection_cmd = format('{solr_cli_prefix} --create-collection -c {collection} -cs {config_set} -s {shards} -r {replication_factor} '\
     '-m {max_shards} -rt {retry} -i {interval} -ns')
 
-  if router_name is not None and router_field is not None:
-    create_collection_cmd += format(' -rn {router_name} -rf {router_field}')
+  appendableDict = {}
+  appendableDict["-rn"] = router_name
+  appendableDict["-rf"] = router_field
+  appendableDict["-jf"] = jaas_file
+  create_collection_cmd = __append_flags_if_exists(create_collection_cmd, appendableDict)
 
   Execute(create_collection_cmd, user=user)
 
-def setup_solr_client(config, user = None, group = None):
+def setup_solr_client(config, user = None, group = None, custom_log4j = True, custom_log_location = None, log4jcontent = None):
     solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user'] if user is None else user
     solr_group = config['configurations']['cluster-env']['user_group'] if group is None else group
     solr_client_dir = '/usr/lib/ambari-logsearch-solr-client'
-    solr_client_log_dir = default('/configurations/logsearch-solr-env/logsearch_solr_client_log_dir', '/var/log/ambari-logsearch-solr-client')
+    solr_client_log_dir = default('/configurations/logsearch-solr-env/logsearch_solr_client_log_dir', '/var/log/ambari-logsearch-solr-client') if custom_log_location is None else custom_log_location
     solr_client_log = format("{solr_client_log_dir}/solr-client.log")
-    solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4j']['content']
 
     Directory(solr_client_log_dir,
                 mode=0755,
@@ -104,12 +113,21 @@ def setup_solr_client(config, user = None, group = None):
          group=solr_group,
          content=StaticFile(solrCliFilename)
          )
-    File(format("{solr_client_dir}/log4j.properties"),
-         content=InlineTemplate(solr_client_log4j_content),
-         owner=solr_user,
-         group=solr_group,
-         mode=0644
-         )
+    if custom_log4j:
+      # use custom log4j content only, when logsearch is not installed on the cluster
+      solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4j']['content'] if log4jcontent is None else log4jcontent
+      File(format("{solr_client_dir}/log4j.properties"),
+             content=InlineTemplate(solr_client_log4j_content),
+             owner=solr_user,
+             group=solr_group,
+             mode=0644
+             )
+    else:
+        File(format("{solr_client_dir}/log4j.properties"),
+             owner=solr_user,
+             group=solr_group,
+             mode=0644
+             )
 
     File(solr_client_log,
          mode=0644,

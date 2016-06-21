@@ -20,6 +20,8 @@
 package org.apache.ambari.logsearch.solr;
 
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.apache.solr.common.cloud.SolrZkClient;
 
 public class AmbariSolrCloudClientBuilder {
@@ -37,6 +39,7 @@ public class AmbariSolrCloudClientBuilder {
   CloudSolrClient solrCloudClient;
   SolrZkClient solrZkClient;
   boolean splitting;
+  String jaasFile;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -102,6 +105,12 @@ public class AmbariSolrCloudClientBuilder {
     return this;
   }
 
+  public AmbariSolrCloudClientBuilder withJaasFile(String jaasFile) {
+    this.jaasFile = jaasFile;
+    setupSecurity(jaasFile);
+    return this;
+  }
+
   public AmbariSolrCloudClientBuilder withSolrCloudClient() {
     this.solrCloudClient = new CloudSolrClient(this.zookeeperHosts);
     return this;
@@ -110,5 +119,12 @@ public class AmbariSolrCloudClientBuilder {
   public AmbariSolrCloudClientBuilder withSolrZkClient(int zkClientTimeout, int zkClientConnectTimeout) {
     this.solrZkClient = new SolrZkClient(this.zookeeperHosts, zkClientTimeout, zkClientConnectTimeout);
     return this;
+  }
+
+  private void setupSecurity(String jaasFile) {
+    if (jaasFile != null) {
+      System.setProperty("java.security.auth.login.config", jaasFile);
+      HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+    }
   }
 }

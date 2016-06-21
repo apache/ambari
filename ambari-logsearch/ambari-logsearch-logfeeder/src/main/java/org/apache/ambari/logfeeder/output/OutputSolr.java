@@ -41,7 +41,9 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -74,6 +76,7 @@ public class OutputSolr extends Output {
   public void init() throws Exception {
     super.init();
     initParams();
+    setupSecurity();
     createOutgoingBuffer();
     createSolrWorkers();
   }
@@ -99,6 +102,17 @@ public class OutputSolr extends Output {
 
     LOG.info(String.format("Config: Number of workers=%d, splitMode=%s, splitInterval=%d, " + "numberOfShards=%d. "
         + getShortDescription(), workers, splitMode, splitInterval, numberOfShards));
+  }
+
+
+  private void setupSecurity() {
+    String jaasFile = LogFeederUtil.getStringProperty("logfeeder.solr.jaas.file", "/etc/security/keytabs/logsearch_solr.service.keytab");
+    boolean securityEnabled = LogFeederUtil.getBooleanProperty("logfeeder.solr.kerberos.enable", false);
+    if (securityEnabled) {
+      System.setProperty("java.security.auth.login.config", jaasFile);
+      HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+      LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
+    }
   }
 
   private void createOutgoingBuffer() {
