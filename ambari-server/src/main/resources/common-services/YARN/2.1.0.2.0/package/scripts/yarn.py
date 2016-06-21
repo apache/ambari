@@ -95,8 +95,16 @@ def create_local_dir(dir_name):
   )
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def yarn(name = None):
+def yarn(name=None, config_dir=None):
+  """
+  :param name: Component name, apptimelineserver, nodemanager, resourcemanager, or None (defaults for client)
+  :param config_dir: Which config directory to write configs to, which could be different during rolling upgrade.
+  """
   import params
+
+  if config_dir is None:
+    config_dir = params.hadoop_conf_dir
+
   if name == "historyserver":
     if params.yarn_log_aggregation_enabled:
       params.HdfsResource(params.yarn_nm_app_log_dir,
@@ -228,7 +236,7 @@ def yarn(name = None):
   )
 
   XmlConfig("core-site.xml",
-            conf_dir=params.hadoop_conf_dir,
+            conf_dir=config_dir,
             configurations=params.config['configurations']['core-site'],
             configuration_attributes=params.config['configuration_attributes']['core-site'],
             owner=params.hdfs_user,
@@ -241,7 +249,7 @@ def yarn(name = None):
   # RU should rely on all available in <stack-root>/<version>/hadoop/conf
   if 'hdfs-site' in params.config['configurations']:
     XmlConfig("hdfs-site.xml",
-              conf_dir=params.hadoop_conf_dir,
+              conf_dir=config_dir,
               configurations=params.config['configurations']['hdfs-site'],
               configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
               owner=params.hdfs_user,
@@ -250,7 +258,7 @@ def yarn(name = None):
     )
 
   XmlConfig("mapred-site.xml",
-            conf_dir=params.hadoop_conf_dir,
+            conf_dir=config_dir,
             configurations=params.config['configurations']['mapred-site'],
             configuration_attributes=params.config['configuration_attributes']['mapred-site'],
             owner=params.yarn_user,
@@ -259,7 +267,7 @@ def yarn(name = None):
   )
 
   XmlConfig("yarn-site.xml",
-            conf_dir=params.hadoop_conf_dir,
+            conf_dir=config_dir,
             configurations=params.config['configurations']['yarn-site'],
             configuration_attributes=params.config['configuration_attributes']['yarn-site'],
             owner=params.yarn_user,
@@ -268,7 +276,7 @@ def yarn(name = None):
   )
 
   XmlConfig("capacity-scheduler.xml",
-            conf_dir=params.hadoop_conf_dir,
+            conf_dir=config_dir,
             configurations=params.config['configurations']['capacity-scheduler'],
             configuration_attributes=params.config['configuration_attributes']['capacity-scheduler'],
             owner=params.yarn_user,
@@ -361,7 +369,7 @@ def yarn(name = None):
        content=Template('mapreduce.conf.j2')
   )
 
-  File(format("{hadoop_conf_dir}/yarn-env.sh"),
+  File(os.path.join(config_dir, "yarn-env.sh"),
        owner=params.yarn_user,
        group=params.user_group,
        mode=0755,
@@ -374,7 +382,7 @@ def yarn(name = None):
       mode=params.container_executor_mode
   )
 
-  File(format("{hadoop_conf_dir}/container-executor.cfg"),
+  File(os.path.join(config_dir, "container-executor.cfg"),
       group=params.user_group,
       mode=0644,
       content=Template('container-executor.cfg.j2')
@@ -393,7 +401,7 @@ def yarn(name = None):
     tc_mode = None
     tc_owner = params.hdfs_user
 
-  File(format("{hadoop_conf_dir}/mapred-env.sh"),
+  File(os.path.join(config_dir, "mapred-env.sh"),
        owner=tc_owner,
        mode=0755,
        content=InlineTemplate(params.mapred_env_sh_template)
@@ -405,21 +413,21 @@ def yarn(name = None):
          group=params.mapred_tt_group,
          mode=06050
     )
-    File(os.path.join(params.hadoop_conf_dir, 'taskcontroller.cfg'),
+    File(os.path.join(config_dir, 'taskcontroller.cfg'),
          owner = tc_owner,
          mode = tc_mode,
          group = params.mapred_tt_group,
          content=Template("taskcontroller.cfg.j2")
     )
   else:
-    File(os.path.join(params.hadoop_conf_dir, 'taskcontroller.cfg'),
+    File(os.path.join(config_dir, 'taskcontroller.cfg'),
          owner=tc_owner,
          content=Template("taskcontroller.cfg.j2")
     )
 
   if "mapred-site" in params.config['configurations']:
     XmlConfig("mapred-site.xml",
-              conf_dir=params.hadoop_conf_dir,
+              conf_dir=config_dir,
               configurations=params.config['configurations']['mapred-site'],
               configuration_attributes=params.config['configuration_attributes']['mapred-site'],
               owner=params.mapred_user,
@@ -428,7 +436,7 @@ def yarn(name = None):
 
   if "capacity-scheduler" in params.config['configurations']:
     XmlConfig("capacity-scheduler.xml",
-              conf_dir=params.hadoop_conf_dir,
+              conf_dir=config_dir,
               configurations=params.config['configurations'][
                 'capacity-scheduler'],
               configuration_attributes=params.config['configuration_attributes']['capacity-scheduler'],
@@ -437,7 +445,7 @@ def yarn(name = None):
     )
   if "ssl-client" in params.config['configurations']:
     XmlConfig("ssl-client.xml",
-              conf_dir=params.hadoop_conf_dir,
+              conf_dir=config_dir,
               configurations=params.config['configurations']['ssl-client'],
               configuration_attributes=params.config['configuration_attributes']['ssl-client'],
               owner=params.hdfs_user,
@@ -461,28 +469,28 @@ def yarn(name = None):
 
   if "ssl-server" in params.config['configurations']:
     XmlConfig("ssl-server.xml",
-              conf_dir=params.hadoop_conf_dir,
+              conf_dir=config_dir,
               configurations=params.config['configurations']['ssl-server'],
               configuration_attributes=params.config['configuration_attributes']['ssl-server'],
               owner=params.hdfs_user,
               group=params.user_group
     )
-  if os.path.exists(os.path.join(params.hadoop_conf_dir, 'fair-scheduler.xml')):
-    File(os.path.join(params.hadoop_conf_dir, 'fair-scheduler.xml'),
+  if os.path.exists(os.path.join(config_dir, 'fair-scheduler.xml')):
+    File(os.path.join(config_dir, 'fair-scheduler.xml'),
          owner=params.mapred_user,
          group=params.user_group
     )
 
   if os.path.exists(
-    os.path.join(params.hadoop_conf_dir, 'ssl-client.xml.example')):
-    File(os.path.join(params.hadoop_conf_dir, 'ssl-client.xml.example'),
+    os.path.join(config_dir, 'ssl-client.xml.example')):
+    File(os.path.join(config_dir, 'ssl-client.xml.example'),
          owner=params.mapred_user,
          group=params.user_group
     )
 
   if os.path.exists(
-    os.path.join(params.hadoop_conf_dir, 'ssl-server.xml.example')):
-    File(os.path.join(params.hadoop_conf_dir, 'ssl-server.xml.example'),
+    os.path.join(config_dir, 'ssl-server.xml.example')):
+    File(os.path.join(config_dir, 'ssl-server.xml.example'),
          owner=params.mapred_user,
          group=params.user_group
     )

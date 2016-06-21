@@ -18,8 +18,11 @@ limitations under the License.
 Ambari Agent
 
 """
-
+# Python imports
+import os
 import sys
+
+# Local imports
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.libraries.functions.constants import StackFeature
@@ -28,20 +31,48 @@ from resource_management.core.exceptions import ClientComponentHasNoStatus
 from yarn import yarn
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.logger import Logger
 
 
 class MapReduce2Client(Script):
   def install(self, env):
+    import params
     self.install_packages(env)
     self.configure(env)
 
-  def configure(self, env):
+  def configure(self, env, config_dir=None, upgrade_type=None):
+    """
+    :param env: Python environment
+    :param config_dir: During rolling upgrade, which config directory to save configs to.
+    """
     import params
     env.set_params(params)
-    yarn()
+    yarn(config_dir=config_dir)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
+
+  def stack_upgrade_save_new_config(self, env):
+    """
+    Because this gets called during a Rolling Upgrade, the new mapreduce configs have already been saved, so we must be
+    careful to only call configure() on the directory of the new version.
+    :param env:
+    """
+    import params
+    env.set_params(params)
+
+    conf_select_name = "hadoop"
+    base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    config_dir = self.get_config_dir_during_stack_upgrade(env, base_dir, conf_select_name)
+
+    if config_dir:
+      Logger.info("stack_upgrade_save_new_config(): Calling conf-select on %s using version %s" % (conf_select_name, str(params.version)))
+
+      # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
+      # must change it now so this function can find the Jinja Templates for the service.
+      env.config.basedir = base_dir
+      conf_select.select(params.stack_name, conf_select_name, params.version)
+      self.configure(env, config_dir=config_dir)
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
