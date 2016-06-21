@@ -19,13 +19,12 @@
 define(['backbone',
     'utils/Utils',
     'utils/ViewUtils',
-    'dashboard',
     'utils/Globals',
     'hbs!tmpl/troubleshoot/TroubleShootLayoutView_tmpl',
     'collections/VLogList',
     'collections/VNameValueList',
     'nv'
-], function(Backbone, Utils, ViewUtils, dashboard, Globals, TroubleShootLayoutView_Tmpl, VLogList, VNameValueList, nv) {
+], function(Backbone, Utils, ViewUtils, Globals, TroubleShootLayoutView_Tmpl, VLogList, VNameValueList, nv) {
     'use strict';
 
     return Backbone.Marionette.Layout.extend(

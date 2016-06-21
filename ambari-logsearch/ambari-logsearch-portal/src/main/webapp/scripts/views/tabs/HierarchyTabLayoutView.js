@@ -159,7 +159,6 @@ define(['require',
 			this.renderDatePicker();
 			//this.renderVSSearch();
 			this.renderLogSnapShot();
-			this.renderEventHistory();
 //			this.fetchLogLevelCounts({q:"*:*"});
 			this.componentsList.fetch({reset:true});
 		},

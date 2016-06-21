@@ -219,7 +219,6 @@
          'd3.tip': "../libs/other/d3/d3.tip",
          'nv': "../libs/other/nvd3/js/nv.d3",
          'noty': '../libs/other/noty/jquery.noty.packaged',
-         'timeline': '../libs/other/timeline/js/storyjs-embed',
          'intro': '../libs/other/intro/js/intro.min',
          'tmpl': '../templates',
          'WorldMapGenerator': '../libs/other/timezone/WorldMapGenerator',

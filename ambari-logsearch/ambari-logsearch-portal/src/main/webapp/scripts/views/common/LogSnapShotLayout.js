@@ -19,8 +19,9 @@
 define(['require',
     'backbone',
     'utils/Utils',
-    'hbs!tmpl/common/LogSnapShotLayout_tmpl'
-], function(require, backbone, Utils, LogSnapShotLayoutTmpl) {
+    'hbs!tmpl/common/LogSnapShotLayout_tmpl',
+    'moment'
+], function(require, backbone, Utils, LogSnapShotLayoutTmpl, moment) {
     'use strict';
 
     return Backbone.Marionette.Layout.extend(
@@ -81,7 +82,7 @@ define(['require',
                 this.ui.stop.show();
                 this.ui.counter.show();
                 this.$('.snapShotTitle').hide();
-                this.counterValue = new Date(new Date().format("mm/dd/yy"));
+                this.counterValue = new Date(moment().format("MM/DD/YY"));
                 this.counter = 1;
                 that.ui.counter.text('00:01');
                      this.interval = setInterval(function() {
@@ -122,13 +123,13 @@ define(['require',
                 this.ui.counter.hide();
                 this.$('.snapShotTitle').show();
                 this.ui.counter.text("00:00");
-                this.counterValue = new Date(new Date().format("mm/dd/yy"));
+                this.counterValue = new Date(moment().format("MM/DD/YY"));
                 this.counter = 1;
                 clearInterval(this.interval);
             },
             timerStartRefresh: function(){
                 var that= this;
-                var refreshCounter = new Date(new Date().format("mm/dd/yy"));
+                var refreshCounter = new Date(moment().format("MM/DD/YY"));
                 refreshCounter.setSeconds(30);
                 this.refreshInterval = setInterval(function() {
                     var getCounterValue = refreshCounter.getSeconds();
