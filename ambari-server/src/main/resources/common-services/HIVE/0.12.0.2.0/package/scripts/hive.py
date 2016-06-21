@@ -434,9 +434,10 @@ def jdbc_connector(target, hive_previous_jdbc_jar):
       File(hive_previous_jdbc_jar, action='delete')
 
     # TODO: should be removed after ranger_hive_plugin will not provide jdbc
-    Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
-            path=["/bin", "/usr/bin/"],
-            sudo = True)
+    if params.prepackaged_jdbc_name != params.jdbc_jar_name:
+      Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
+              path=["/bin", "/usr/bin/"],
+              sudo = True)
     
     File(params.downloaded_custom_connector,
          content = DownloadSource(params.driver_curl_source))

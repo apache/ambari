@@ -271,7 +271,8 @@ check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar
 hive_jdbc_drivers_list = ["com.microsoft.sqlserver.jdbc.SQLServerDriver","com.mysql.jdbc.Driver",
                           "org.postgresql.Driver","oracle.jdbc.driver.OracleDriver","sap.jdbc4.sqlanywhere.IDriver"]
 
-prepackaged_ojdbc_symlink = format("{hive_lib}/ojdbc6.jar")
+prepackaged_jdbc_name = "ojdbc6.jar"
+prepackaged_ojdbc_symlink = format("{hive_lib}/{prepackaged_jdbc_name}")
 templeton_port = config['configurations']['webhcat-site']['templeton.port']
 
 #constants for type2 jdbc
