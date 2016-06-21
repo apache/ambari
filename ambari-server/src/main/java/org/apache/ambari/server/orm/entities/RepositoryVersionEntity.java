@@ -56,6 +56,8 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import static java.util.Arrays.asList;
+
 @Entity
 @Table(name = "repo_version", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"display_name"}),
@@ -77,6 +79,7 @@ import com.google.inject.Provider;
 @StaticallyInject
 public class RepositoryVersionEntity {
 
+  private static final List<String> STACK_PREFIXES = asList(StackId.HDP_STACK, StackId.HDPWIN_STACK);
   private static Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
 
   @Inject
@@ -387,6 +390,11 @@ public class RepositoryVersionEntity {
    */
   public static boolean isVersionInStack(StackId stackId, String version) {
     if (null != version && !StringUtils.isBlank(version)) {
+      for (String stackPrefix : STACK_PREFIXES) {
+        if (version.startsWith(stackPrefix + "-")) {
+          version = version.substring(stackPrefix.length() + 1);
+        }
+      }
       // HDP Stack
       if (stackId.getStackName().equalsIgnoreCase(StackId.HDP_STACK) ||
           stackId.getStackName().equalsIgnoreCase(StackId.HDPWIN_STACK)) {
