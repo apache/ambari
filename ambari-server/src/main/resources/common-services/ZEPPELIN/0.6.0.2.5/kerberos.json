@@ -5,11 +5,34 @@
       "identities": [
         {
           "name": "/smokeuser"
+        },
+        {
+          "name": "zeppelin_user",
+          "principal": {
+            "value": "zeppelin/${cluster_name}@${realm}",
+            "type" : "user",
+            "configuration": "zeppelin-env/zeppelin.server.kerberos.principal",
+            "local_username" : "zeppelin"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/zeppelin.server.kerberos.keytab",
+            "owner": {
+              "name": "zeppelin",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "zeppelin-env/zeppelin.server.kerberos.keytab"
+          }
         }
       ],
-      "components": [
+      "configurations": [
         {
-          "name": "ZEPPELIN_MASTER"
+          "zeppelin-env": {
+            "zeppelin.kerberos.enabled": "true"
+          }
         }
       ]
     }

@@ -221,4 +221,21 @@ log4j.appender.dailyfile.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <property>
+    <name>zeppelin.server.kerberos.principal</name>
+    <value>none</value>
+    <description>
+      Kerberos principal name for the Zeppelin.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>zeppelin.server.kerberos.keytab</name>
+    <value>none</value>
+    <description>
+      Location of the kerberos keytab file for the Zeppelin.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

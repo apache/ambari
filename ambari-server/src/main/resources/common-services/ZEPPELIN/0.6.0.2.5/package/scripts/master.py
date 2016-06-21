@@ -144,25 +144,33 @@ class Master(Script):
   def start(self, env):
     import params
     import status_params
+    import time
     self.configure(env)
+
+    if params.security_enabled:
+        spark_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
+        Execute(spark_kinit_cmd, user=params.zeppelin_user)
 
     if glob.glob(
             params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies-*.jar') and os.path.exists(
       glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies-*.jar')[0]):
       self.create_zeppelin_dir(params)
 
-    Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh start >> '
+    # if first_setup:
+    if not glob.glob(params.conf_dir + "/interpreter.json") and \
+      not os.path.exists(params.conf_dir + "/interpreter.json"):
+      Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh start >> '
+              + params.zeppelin_log_file, user=params.zeppelin_user)
+    time.sleep(20)
+    self.update_zeppelin_interpreter()
+
+    Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
     pidfile = glob.glob(status_params.zeppelin_pid_dir
                         + '/zeppelin-' + params.zeppelin_user + '*.pid')[0]
     Execute('echo pid file is: ' + pidfile, user=params.zeppelin_user)
     contents = open(pidfile).read()
     Execute('echo pid is ' + contents, user=params.zeppelin_user)
-
-    # if first_setup:
-    import time
-    time.sleep(20)
-    self.update_zeppelin_interpreter()
 
   def status(self, env):
     import status_params
@@ -187,15 +195,31 @@ class Master(Script):
 
     for notebooks in interpreter_settings:
         notebook = interpreter_settings[notebooks]
-        if notebook['group'] == 'hive' and params.hive_server_host:
-            notebook['properties']['hive.hiveserver2.url'] = 'jdbc:hive2://' +\
+        if notebook['group'] == 'jdbc' and params.hive_server_host:
+            notebook['properties']['default.url'] = 'jdbc:hive2://' +\
                                                              params.hive_server_host +\
                                                              ':' + params.hive_server_port
+            notebook['properties']['default.driver'] = "org.apache.hive.jdbc.HiveDriver"
+            notebook['dependencies'] = []
+            notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
+            notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
         elif notebook['group'] == 'phoenix' and params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
             notebook['properties']['phoenix.jdbc.url'] = "jdbc:phoenix:" +\
                                                          params.hbase_zookeeper_quorum + ':' +\
                                                          params.zookeeper_znode_parent
+        elif notebook['group'] == 'livy' and params.livy_livyserver_host:
+            notebook['properties']['livy.spark.master'] = "yarn-cluster"
+            notebook['properties']['zeppelin.livy.principal'] = params.zeppelin_kerberos_principal
+            notebook['properties']['zeppelin.livy.keytab'] = params.zeppelin_kerberos_keytab
+            notebook['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
+                                                          ":" + params.livy_livyserver_port
+        elif notebook['group'] == 'spark':
+            notebook['properties']['master'] = "yarn-cluster"
+            notebook['properties']['spark.yarn.principal'] = params.zeppelin_kerberos_principal
+            notebook['properties']['spark.yarn.keytab'] = params.zeppelin_kerberos_keytab
 
     interpreter_config_file = open(interpreter_config, "w+")
     interpreter_config_file.write(json.dumps(config_data, indent=2))
