@@ -28,7 +28,10 @@ from resource_management.libraries import functions
 from resource_management.core.logger import Logger
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 from hive_server_interactive import HiveServerInteractiveDefault
+from resource_management.libraries.script.script import Script
+from resource_management.core import shell
 
+@patch("resource_management.libraries.Script.get_tmp_dir", new=MagicMock(return_value=('/var/lib/ambari-agent/tmp')))
 @patch.object(functions, "get_stack_version", new=MagicMock(return_value="2.0.0.0-1234"))
 @patch("resource_management.libraries.functions.check_thrift_port_sasl", new=MagicMock())
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output",
@@ -72,15 +75,17 @@ class TestHiveServerInteractive(RMFTestCase):
   Tests HSI start with llap package creation output having single line.
   Sample output : "Prepared llap-slider-05Apr2016/run.sh for running LLAP"
   """
+  #@patch("Script.get_tmp_dir()")
   @patch("os.path.isfile")
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   @patch("socket.socket")
   @patch("time.sleep")
-  def test_start_default_with_llap_single_line_output(self, sleep_mock, socket_mock, copy_to_hfds_mock, is_file_mock):
+  def test_start_default_with_llap_single_line_output(self, sleep_mock, socket_mock, copy_to_hfds_mock, is_file_mock): #, get_tmp_dir_mock):
     self.maxDiff = None
     copy_to_hfds_mock.return_value = False
     s = socket_mock.return_value
     is_file_mock.return_value = True
+    #get_tmp_dir_mock.return_value = "/var/lib/ambari-agent/tmp"
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server_interactive.py",
                        classname="HiveServerInteractive",
                        command="start",
@@ -88,7 +93,13 @@ class TestHiveServerInteractive(RMFTestCase):
                        stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        checked_call_mocks=[(0, "Prepared llap-slider-05Apr2016/run.sh for running LLAP", ""),
-                                           (0, "{\"state\":\"RUNNING_ALL\"}", ""), (0, "OK.", "")],
+                                           (0, """{
+                                                      \"state\" : \"RUNNING_ALL\"
+                                                   }""", ""),
+                                           (0, """{
+                                                      \"state\" : \"RUNNING_ALL\"
+                                                   }""", ""),
+                                           (0, "OK.", "")],
     )
 
     self.assert_configure_default()
@@ -141,7 +152,12 @@ class TestHiveServerInteractive(RMFTestCase):
                        checked_call_mocks=[(0, "UNWANTED_STRING \n "
                                                "       Prepared llap-slider-05Apr2016/run.sh for running LLAP \n     "
                                                "UNWANTED_STRING \n ", ""),
-                                           (0, "{\"state\":\"RUNNING_ALL\"}", ""), (0, "OK.", "")],
+                                           (0, """{
+                                                      \"state\" : \"RUNNING_ALL\"
+                                                   }""", ""),
+                                           (0, """{
+                                                      \"state\" : \"RUNNING_ALL\"
+                                                   }""", ""), (0, "OK.", "")],
                        )
 
     self.assert_configure_default()
@@ -384,7 +400,172 @@ class TestHiveServerInteractive(RMFTestCase):
 
 
 
-  # llap app 'status check' related tests
+
+
+
+
+  # Tests for function '_make_valid_json()' with will be passed in with 'llapstatus' output which may be :
+  #     (1). A string parseable as JSON, or
+  #     (2). May have extra lines in beginning (eg: from MOTD logging embedded), which needs to be removed before parsed as JSON
+
+  # Status : RUNNING having MOTD lines in beginning
+  def test_make_valid_json_1(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/running_withMOTDmsg.txt","r")
+    llap_app_info = input_file_handle.read()
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Set up expected output
+    expected_ouput_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/running.json","r")
+    expected_ouput_data = expected_ouput_file_handle.read()
+    expected_ouput_data_as_json = json.loads(expected_ouput_data)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_ouput_data_as_json)
+
+  # Status : RUNNING w/o MOTD lines in beginning
+  # Expected : No change
+  def test_make_valid_json_2(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/running.json","r")
+    llap_app_info = input_file_handle.read()
+    expected_llap_app_info_as_json = json.loads(llap_app_info)
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_llap_app_info_as_json)
+
+
+
+  # Status : RUNNING_PARTIAL (2 out of 3 running -> < 80% instances ON) having MOTD lines in beginning
+  def test_make_valid_json_3(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/oneContainerDown_withMOTDmsg.txt","r")
+    llap_app_info = input_file_handle.read()
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Set up expected output
+    expected_ouput_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/oneContainerDown.json","r")
+    expected_ouput_data = expected_ouput_file_handle.read()
+    expected_ouput_data_as_json = json.loads(expected_ouput_data)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_ouput_data_as_json)
+
+  # Status : RUNNING_PARTIAL (2 out of 3 running -> < 80% instances ON) w/o MOTD lines in beginning
+  # Expected : No change
+  def test_make_valid_json_4(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/oneContainerDown.json","r")
+    llap_app_info = input_file_handle.read()
+    expected_llap_app_info_as_json = json.loads(llap_app_info)
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_llap_app_info_as_json)
+
+
+
+  # Status : LAUNCHING having MOTD lines in beginning
+  def test_make_valid_json_5(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/starting_withMOTDmsg.txt","r")
+    llap_app_info = input_file_handle.read()
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Set up expected output
+    expected_ouput_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/starting.json","r")
+    expected_ouput_data = expected_ouput_file_handle.read()
+    expected_ouput_data_as_json = json.loads(expected_ouput_data)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_ouput_data_as_json)
+
+  # Status : LAUNCHING w/o MOTD lines in beginning
+  # Expected : No change
+  def test_make_valid_json_6(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/starting.json","r")
+    llap_app_info = input_file_handle.read()
+    expected_llap_app_info_as_json = json.loads(llap_app_info)
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_llap_app_info_as_json)
+
+
+
+  # Status : COMPLETE having MOTD lines in beginning
+  def test_make_valid_json_7(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/appComplete_withMOTDmsg.txt","r")
+    llap_app_info = input_file_handle.read()
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Set up expected output
+    expected_ouput_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/appComplete.json","r")
+    expected_ouput_data = expected_ouput_file_handle.read()
+    expected_ouput_data_as_json = json.loads(expected_ouput_data)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_ouput_data_as_json)
+
+  # Status : COMPLETE w/o MOTD lines in beginning
+  # Expected : No change
+  def test_make_valid_json_8(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/appComplete.json","r")
+    llap_app_info = input_file_handle.read()
+    expected_llap_app_info_as_json = json.loads(llap_app_info)
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_llap_app_info_as_json)
+
+
+
+  # Status : INVALID APP having MOTD lines in beginning
+  def test_make_valid_json_9(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/invalidApp_withMOTDmsg.txt","r")
+    llap_app_info = input_file_handle.read()
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Set up expected output
+    expected_ouput_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/invalidApp.json","r")
+    expected_ouput_data = expected_ouput_file_handle.read()
+    expected_ouput_data_as_json = json.loads(expected_ouput_data)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_ouput_data_as_json)
+
+  # Status : INVALID APP w/o MOTD lines in beginning
+  # Expected : No change
+  def test_make_valid_json_10(self):
+    # Setting up input for fn. '_make_valid_json()'
+    input_file_handle = open(self.get_src_folder() + "/test/python/stacks/2.5/HIVE/invalidApp.json","r")
+    llap_app_info = input_file_handle.read()
+    expected_llap_app_info_as_json = json.loads(llap_app_info)
+
+    llap_app_info_as_json = self.hsi._make_valid_json(llap_app_info)
+
+    # Verification
+    self.assertEqual(llap_app_info_as_json, expected_llap_app_info_as_json)
+
+
+
+
+  # Tests for fn : 'check_llap_app_status()'
+
 
   # Status : RUNNING
   @patch("time.sleep")

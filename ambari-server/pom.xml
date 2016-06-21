@@ -269,6 +269,7 @@
             <exclude>src/test/resources/temporal_ganglia_data.txt</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/test/resources/mpacks_replay.log</exclude>
+            <exclude>src/test/python/stacks/2.5/HIVE/*.txt</exclude>
             <exclude>src/main/resources/hive-schema-0.10.0.oracle.sql</exclude>
             <exclude>src/main/resources/hive-schema-0.12.0.oracle.sql</exclude>
             <exclude>src/main/resources/db/serial</exclude>
