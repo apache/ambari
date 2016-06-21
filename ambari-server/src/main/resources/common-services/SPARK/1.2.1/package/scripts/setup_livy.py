@@ -65,7 +65,7 @@ def setup_livy(env, type, upgrade_type = None, action = None):
   )
 
   # create spark-blacklist.properties in etc/conf dir
-  File(os.path.join(params.livy_conf, 'spark-blacklist.properties'),
+  File(os.path.join(params.livy_conf, 'spark-blacklist.conf'),
        owner=params.livy_user,
        group=params.livy_group,
        content=params.livy_spark_blacklist_properties,
