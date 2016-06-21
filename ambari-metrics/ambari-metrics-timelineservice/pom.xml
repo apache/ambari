@@ -632,6 +632,32 @@
                   </target>
                 </configuration>
               </execution>
+              <execution>
+                <id>phoenix_download</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target name="Download Phoenix">
+                    <mkdir dir="${project.build.directory}/embedded"/>
+                    <get
+                      src="${phoenix.tar}"
+                      dest="${project.build.directory}/embedded/phoenix.tar.gz"
+                      usetimestamp="true"
+                      />
+                    <untar
+                      src="${project.build.directory}/embedded/phoenix.tar.gz"
+                      dest="${project.build.directory}/embedded"
+                      compression="gzip"
+                      />
+                    <move
+                      file="${project.build.directory}/embedded/${phoenix.folder}/phoenix-${phoenix.version}-server.jar"
+                      tofile="${project.build.directory}/embedded/${hbase.folder}/lib/phoenix-${phoenix.version}-server.jar"
+                      />
+                  </target>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
         </plugins>
@@ -652,6 +678,7 @@
             <version>1.7</version>
             <executions>
               <execution>
+                <id>hbase_download</id>
                 <phase>generate-resources</phase>
                 <goals>
                   <goal>run</goal>
