@@ -50,10 +50,16 @@ angular.module('ambariAdminConsole')
     return data;
   }
 
+
+  function  _parseId(id) {
+    return id.replace(/[^\d|\.]/g, '').split('.').map(function (i) {return parseInt(i, 10);});
+  }
+
   return {
     allStackVersions: function () {
       var url = Settings.baseUrl + '/stacks?fields=versions/*';
       var deferred = $q.defer();
+      var sortFunction = this.sortByIdAsVersion;
       $http.get(url, {mock: 'stack/allStackVersions.json'})
       .success(function (data) {
         var allStackVersions = [];
@@ -64,6 +70,7 @@ angular.module('ambariAdminConsole')
             var upgrade_packs = version.Versions.upgrade_packs;
             var active = version.Versions.active;
             allStackVersions.push({
+              id: stack_name + '-' + stack_version,
               stack_name: stack_name,
               stack_version: stack_version,
               displayName: stack_name + '-' + stack_version,
@@ -72,7 +79,7 @@ angular.module('ambariAdminConsole')
             });
           });
         });
-        deferred.resolve(allStackVersions)
+        deferred.resolve(allStackVersions.sort(sortFunction));
       })
       .error(function (data) {
         deferred.reject(data);
@@ -368,6 +375,33 @@ angular.module('ambariAdminConsole')
       invalidrepos.forEach(function(repo) {
         repo.hasError = true;
       });
+    },
+
+    /**
+     * Callback for sorting models with `id`-property equal to something like version number: 'HDP-1.2.3', '4.2.52' etc
+     *
+     * @param {{id: string}} obj1
+     * @param {{id: string}} obj2
+     * @returns {number}
+     */
+    sortByIdAsVersion: function (obj1, obj2) {
+      var id1 = _parseId(obj1.id);
+      var id2 = _parseId(obj2.id);
+      var lId1 = id1.length;
+      var lId2 = id2.length;
+      var limit = lId1 > lId2 ? lId2 : lId1;
+      for (var i = 0; i < limit; i++) {
+        if (id1[i] > id2[i]) {
+          return 1;
+        }
+        if (id1[i] < id2[i]) {
+          return -1;
+        }
+      }
+      if (lId1 === lId2) {
+        return 0
+      }
+      return lId1 > lId2 ? 1 : -1;
     }
 
   };
