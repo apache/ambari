@@ -31,6 +31,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core import shell
 from resource_management.core.resources import Execute
 from resource_management.core import global_lock
+from resource_management.core.exceptions import Fail
 
 
 OK_MESSAGE = "The application reported a '{0}' state in {1:.3f}s"
@@ -164,7 +165,8 @@ def execute(configurations={}, parameters={}, host_name=None):
     code, output, error = shell.checked_call(llap_status_cmd, user=hive_user, stderr=subprocess.PIPE,
                                              timeout=check_command_timeout,
                                              logoutput=False)
-    llap_app_info = json.loads(output)
+    # Call for getting JSON
+    llap_app_info = make_valid_json(output)
 
     if llap_app_info is None or 'state' not in llap_app_info:
       alert_label = traceback.format_exc()
@@ -220,3 +222,75 @@ def execute(configurations={}, parameters={}, host_name=None):
     traceback.format_exc()
     result_code = UKNOWN_STATUS_CODE
   return (result_code, [alert_label])
+
+
+"""
+Remove extra lines from 'llapstatus' status output (eg: because of MOTD logging) so as to have a valid JSON data to be passed in
+to JSON converter.
+"""
+def make_valid_json(output):
+  '''
+
+  Note: It is assumed right now that extra lines will be only at the start and not at the end.
+
+  Sample expected JSON to be passed for 'loads' is either of the form :
+
+  Case 'A':
+  {
+      "amInfo" : {
+      "appName" : "llap0",
+      "appType" : "org-apache-slider",
+      "appId" : "APP1",
+      "containerId" : "container_1466036628595_0010_01_000001",
+      "hostname" : "hostName",
+      "amWebUrl" : "http://hostName:port/"
+    },
+    "state" : "LAUNCHING",
+    ....
+    "desiredInstances" : 1,
+    "liveInstances" : 0,
+    ....
+    ....
+  }
+
+  or
+
+  Case 'B':
+  {
+    "state" : "APP_NOT_FOUND"
+  }
+
+  '''
+  splits = output.split("\n")
+
+  len_splits = len(splits)
+  if (len_splits < 3):
+    raise Fail("Malformed JSON data received from 'llapstatus' command. Exiting ....")
+
+  marker_idx = None  # To detect where from to start reading for JSON data
+  for idx, split in enumerate(splits):
+    curr_elem = split.strip()
+    if idx + 2 > len_splits:
+      raise Fail(
+        "Iterated over the received 'llapstatus' comamnd. Couldn't validate the received output for JSON parsing.")
+    next_elem = (splits[(idx + 1)]).strip()
+    if curr_elem == "{":
+      if next_elem == "\"amInfo\" : {" and (splits[len_splits - 1]).strip() == '}':
+        # For Case 'A'
+        marker_idx = idx
+        break;
+      elif idx + 3 == len_splits and next_elem.startswith('"state" : ') and (splits[idx + 2]).strip() == '}':
+        # For Case 'B'
+        marker_idx = idx
+        break;
+
+
+  # Remove extra logging from possible JSON output
+  if marker_idx is None:
+    raise Fail("Couldn't validate the received output for JSON parsing.")
+  else:
+    del splits[0:marker_idx]
+
+  scanned_output = '\n'.join(splits)
+  llap_app_info = json.loads(scanned_output)
+  return llap_app_info
