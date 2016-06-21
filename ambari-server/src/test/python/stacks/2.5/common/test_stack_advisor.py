@@ -7130,26 +7130,16 @@ class TestHDP25StackAdvisor(TestCase):
     ]
     services = self.prepareServices(servicesInfo)
     services["configurations"] = {"yarn-env":{"properties":{"service_check.queue.name": "default"}},
-                                  "capacity-scheduler":{"properties":{"capacity-scheduler":
-                                                                        "yarn.scheduler.capacity.ndfqueue.minimum-user-limit-percent=100\n" +
-                                                                        "yarn.scheduler.capacity.maximum-am-resource-percent=0.2\n" +
-                                                                        "yarn.scheduler.capacity.maximum-applications=10000\n" +
-                                                                        "yarn.scheduler.capacity.node-locality-delay=40\n" +
-                                                                        "yarn.scheduler.capacity.root.accessible-node-labels=*\n" +
-                                                                        "yarn.scheduler.capacity.root.acl_administer_queue=*\n" +
-                                                                        "yarn.scheduler.capacity.root.capacity=100\n" +
-                                                                        "yarn.scheduler.capacity.root.ndfqueue.acl_administer_jobs=*\n" +
-                                                                        "yarn.scheduler.capacity.root.ndfqueue.acl_submit_applications=*\n" +
-                                                                        "yarn.scheduler.capacity.root.ndfqueue.capacity=100\n" +
-                                                                        "yarn.scheduler.capacity.root.ndfqueue.maximum-capacity=100\n" +
-                                                                        "yarn.scheduler.capacity.root.ndfqueue.state=RUNNING\n" +
-                                                                        "yarn.scheduler.capacity.root.ndfqueue.user-limit-factor=1\n" +
-                                                                        "yarn.scheduler.capacity.root.queues=ndfqueue\n"}}}
+                                  "capacity-scheduler":{"properties":{"capacity-scheduler": "yarn.scheduler.capacity.root.queues=ndfqueue\n"}}}
     hosts = self.prepareHosts([])
     result = self.stackAdvisor.validateConfigurations(services, hosts)
     expectedItems = [
-      {'message': 'service_check.queue.name is not exist, or not corresponds to existing leaf queue', 'level': 'ERROR'}
+      {'message': 'Queue is not exist, or not corresponds to existing YARN leaf queue', 'level': 'ERROR'}
     ]
+    self.assertValidationResult(expectedItems, result)
+    services["configurations"]["yarn-env"]["properties"]["service_check.queue.name"] = "ndfqueue"
+    expectedItems = []
+    result = self.stackAdvisor.validateConfigurations(services, hosts)
     self.assertValidationResult(expectedItems, result)
 
   def assertValidationResult(self, expectedItems, result):

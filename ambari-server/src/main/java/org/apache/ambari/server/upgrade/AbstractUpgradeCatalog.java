@@ -17,10 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import javax.persistence.EntityManager;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import java.io.StringReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,7 +30,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Stack;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
+
+import javax.persistence.EntityManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -114,6 +116,10 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
   public static final String PROPERTY_RANGER_HBASE_PLUGIN_ENABLED = "ranger-hbase-plugin-enabled";
   public static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
+
+  public static final String YARN_SCHEDULER_CAPACITY_ROOT_QUEUE = "yarn.scheduler.capacity.root";
+  public static final String YARN_SCHEDULER_CAPACITY_ROOT_QUEUES = "yarn.scheduler.capacity.root.queues";
+  public static final String QUEUES = "queues";
 
   public static final String ALERT_URL_PROPERTY_CONNECTION_TIMEOUT = "connection_timeout";
 
@@ -913,4 +919,74 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   public void onPostUpgrade() throws AmbariException, SQLException {
     // NOOP
   }
+
+  /**
+   * Validate queueNameProperty exists for configType in cluster and corresponds to one of validLeafQueues
+   * @param cluster cluster to operate with
+   * @param validLeafQueues Set of YARN capacity-scheduler leaf queues
+   * @param queueNameProperty queue name property to check and update
+   * @param configType config type name
+   * @return
+   */
+  protected boolean isQueueNameValid(Cluster cluster, Set<String> validLeafQueues, String queueNameProperty, String configType) {
+    Config site = cluster.getDesiredConfigByType(configType);
+    Map<String, String> properties = site.getProperties();
+    boolean result = properties.containsKey(queueNameProperty) && validLeafQueues.contains(properties.get(queueNameProperty));
+    if (!result){
+      LOG.info("Queue name " + queueNameProperty + " in " + configType + " not defined or not corresponds to valid capacity-scheduler queue");
+    }
+    return result;
+  }
+
+
+  /**
+   * Update property queueNameProperty from configType of cluster to first of validLeafQueues
+   * @param cluster cluster to operate with
+   * @param validLeafQueues Set of YARN capacity-scheduler leaf queues
+   * @param queueNameProperty queue name property to check and update
+   * @param configType config type name
+   * @throws AmbariException if an error occurs while updating the configurations
+   */
+  protected void updateQueueName(Cluster cluster, Set<String> validLeafQueues, String queueNameProperty, String configType) throws AmbariException {
+    String recommendQueue = validLeafQueues.iterator().next();
+    LOG.info("Update " + queueNameProperty + " in " + configType + " set to " + recommendQueue);
+    Map<String, String> updates = Collections.singletonMap(queueNameProperty, recommendQueue);
+    updateConfigurationPropertiesForCluster(cluster, configType, updates, true, true);
+  }
+
+  /**
+   * Pars Capacity Scheduler Properties and get all YARN Capacity Scheduler leaf queue names
+   * @param capacitySchedulerMap capacity-scheduler properties map
+   * @return all YARN Capacity Scheduler leaf queue names
+   */
+  protected Set<String> getCapacitySchedulerLeafQueues(Map<String, String> capacitySchedulerMap) {
+    Set<String> leafQueues= new HashSet<>();
+    Stack<String> toProcessQueues = new Stack<>();
+    if (capacitySchedulerMap.containsKey(YARN_SCHEDULER_CAPACITY_ROOT_QUEUES)){
+      StringTokenizer queueTokenizer = new StringTokenizer(capacitySchedulerMap.get(
+          YARN_SCHEDULER_CAPACITY_ROOT_QUEUES), ",");
+      while (queueTokenizer.hasMoreTokens()){
+        toProcessQueues.push(queueTokenizer.nextToken());
+      }
+    }
+    while (!toProcessQueues.empty()){
+      String queue = toProcessQueues.pop();
+      String queueKey = YARN_SCHEDULER_CAPACITY_ROOT_QUEUE + "." + queue + "." + QUEUES;
+      if (capacitySchedulerMap.containsKey(queueKey)){
+        StringTokenizer queueTokenizer = new StringTokenizer(capacitySchedulerMap.get(queueKey), ",");
+        while (queueTokenizer.hasMoreTokens()){
+          toProcessQueues.push(queue + "." + queueTokenizer.nextToken());
+        }
+      } else {
+        if (!queue.endsWith(".")){
+          String queueName = queue.substring(queue.lastIndexOf('.')+1);
+          leafQueues.add(queueName);
+        } else {
+          LOG.warn("Queue " + queue + " is not valid");
+        }
+      }
+    }
+    return leafQueues;
+  }
+
 }

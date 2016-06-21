@@ -95,6 +95,7 @@ class TestHDP22StackAdvisor(TestCase):
       "tez-site": {
         "properties": {
           # tez.am.resource.memory.mb must be <= yarn.scheduler.maximum-allocation-mb
+          'tez.queue.name': 'default',
           "tez.am.resource.memory.mb": "2048",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
@@ -188,6 +189,7 @@ class TestHDP22StackAdvisor(TestCase):
       "tez-site": {
         "properties": {
           # tez.am.resource.memory.mb must be <= yarn.scheduler.maximum-allocation-mb
+          'tez.queue.name': 'default',
           "tez.am.resource.memory.mb": "2048",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
@@ -272,6 +274,7 @@ class TestHDP22StackAdvisor(TestCase):
       "tez-site": {
         "properties": {
           # tez.am.resource.memory.mb must be <= yarn.scheduler.maximum-allocation-mb
+          'tez.queue.name': 'default',
           "tez.am.resource.memory.mb": "2048",
           "tez.task.resource.memory.mb": "760",
           "tez.runtime.io.sort.mb": "304",
@@ -865,7 +868,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "yarn-env": {
         "properties": {
-          "min_user_id": "500"
+          "min_user_id": "500",
+          'service_check.queue.name': 'default'
         }
       },
       "yarn-site": {
@@ -909,7 +913,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "yarn-env": {
         "properties": {
-          "min_user_id": "500"
+          "min_user_id": "500",
+          'service_check.queue.name': 'default'
         }
       },
       "yarn-site": {
@@ -1225,6 +1230,11 @@ class TestHDP22StackAdvisor(TestCase):
          'hive.security.authorization.manager': {'delete': 'true'},
          'hive.security.authenticator.manager': {'delete': 'true'},
          'hive.conf.restricted.list': {'delete': 'true'}
+        }
+      },
+      'webhcat-site': {
+        'properties': {
+          'templeton.hadoop.queue.name': 'queue1'
         }
       }
     }
@@ -1606,11 +1616,13 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-env": {
         "properties": {
-          "min_user_id": "500"
+          "min_user_id": "500",
+          'service_check.queue.name': 'default'
         }
       },
       "mapred-site": {
         "properties": {
+          'mapreduce.job.queuename': 'default',
           "mapreduce.map.memory.mb": "1536",
           "mapreduce.reduce.memory.mb": "1536",
           "yarn.app.mapreduce.am.command-opts": "-Xmx80m -Dhdp.version=${hdp.version}",
@@ -1867,11 +1879,13 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "yarn-env": {
         "properties": {
-          "min_user_id": "500"
+          "min_user_id": "500",
+          'service_check.queue.name': 'default'
         }
       },
       "mapred-site": {
         "properties": {
+          'mapreduce.job.queuename': 'default',
           "mapreduce.map.memory.mb": "100",
           "mapreduce.reduce.memory.mb": "200",
           "yarn.app.mapreduce.am.command-opts": "-Xmx80m -Dhdp.version=${hdp.version}",
@@ -2080,11 +2094,13 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
         "yarn-env": {
             "properties": {
-                "min_user_id": "500"
+                "min_user_id": "500",
+                'service_check.queue.name': 'default'
             }
         },
         "mapred-site": {
             "properties": {
+                'mapreduce.job.queuename': 'default',
                 "mapreduce.map.memory.mb": "700",
                 "mapreduce.reduce.memory.mb": "1280",
                 "yarn.app.mapreduce.am.command-opts": "-Xmx560m -Dhdp.version=${hdp.version}",
@@ -3264,7 +3280,12 @@ class TestHDP22StackAdvisor(TestCase):
                   'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
 
 
-    res_expected = [{'config-name': 'tez.tez-ui.history-url.base',
+    res_expected = [{'config-name': 'tez.queue.name',
+                     'config-type': 'tez-site',
+                     'level': 'ERROR',
+                     'message': 'Value should be set',
+                     'type': 'configuration'},
+                    {'config-name': 'tez.tez-ui.history-url.base',
                      'config-type': 'tez-site',
                      'level': 'WARN',
                      'message': "It is recommended to set value https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE for property tez.tez-ui.history-url.base",
@@ -3318,15 +3339,18 @@ class TestHDP22StackAdvisor(TestCase):
 
   def test_validateYARNConfigurationsEnv(self):
     configurations = {}
+    services = {}
+    services['configurations'] = configurations
 
     # 1) ok: No yarn_cgroups_enabled
     recommendedDefaults = {'namenode_heapsize': '1024',
                            'namenode_opt_newsize' : '256',
                            'namenode_opt_maxnewsize' : '256'}
     properties = {}
+    properties['service_check.queue.name'] = 'default'
     res_expected = []
 
-    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
     self.assertEquals(res, res_expected)
 
     # 2) ok: yarn_cgroups_enabled=false, but security enabled
@@ -3340,13 +3364,13 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     res_expected = []
-    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
     self.assertEquals(res, res_expected)
 
     # 3) ok: yarn_cgroups_enabled=true, but security enabled
     properties['yarn_cgroups_enabled'] = 'true'
     res_expected = []
-    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
     self.assertEquals(res, res_expected)
 
     # 4) fail: yarn_cgroups_enabled=true, but security disabled
@@ -3356,7 +3380,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration',
                      'config-name': 'yarn_cgroups_enabled',
                      'level': 'WARN'}]
-    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, services, '')
     self.assertEquals(res, res_expected)
 
   def test_validateMR2XmxOptsEnv(self):
@@ -3390,6 +3414,11 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration',
                      'config-name': 'yarn.app.mapreduce.am.command-opts',
                      'level': 'WARN'},
+                    {'config-name': 'mapreduce.job.queuename',
+                     'config-type': 'mapred-site',
+                     'level': 'ERROR',
+                     'message': 'Value should be set',
+                     'type': 'configuration'},
                     {'config-type': 'mapred-site',
                      'message': 'yarn.app.mapreduce.am.command-opts Xmx should be less than yarn.app.mapreduce.am.resource.mb (410)',
                      'type': 'configuration',
@@ -3571,7 +3600,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "yarn-env": {
         "properties": {
-          "min_user_id": "500"
+          "min_user_id": "500",
+          "service_check.queue.name": "default"
         }
       },
       "yarn-site": {
@@ -3626,7 +3656,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "yarn-env": {
         "properties": {
-          "min_user_id": "500"
+          "min_user_id": "500",
+          'service_check.queue.name': 'default'
         }
       },
       "yarn-site": {

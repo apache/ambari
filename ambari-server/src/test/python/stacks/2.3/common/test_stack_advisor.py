@@ -1342,6 +1342,11 @@ class TestHDP23StackAdvisor(TestCase):
          'hive.security.authorization.manager': {'delete': 'true'},
          'hive.security.authenticator.manager': {'delete': 'true'}
         }
+      },
+      'webhcat-site': {
+        'properties': {
+          'templeton.hadoop.queue.name': 'queue1'
+        }
       }
     }
     services = {
@@ -1603,6 +1608,11 @@ class TestHDP23StackAdvisor(TestCase):
           'hive.security.authorization.manager': {'delete': 'true'},
           'hive.security.authenticator.manager': {'delete': 'true'}
         }
+      },
+      'webhcat-site': {
+        'properties': {
+          'templeton.hadoop.queue.name': 'queue1'
+        }
       }
     }
     services = {
@@ -1821,7 +1831,8 @@ class TestHDP23StackAdvisor(TestCase):
           "tez.runtime.io.sort.mb": "307",
           "tez.session.am.dag.submit.timeout.secs": "600",
           "tez.runtime.unordered.output.buffer.size-mb": "57",
-          "tez.am.resource.memory.mb": "4000"
+          "tez.am.resource.memory.mb": "4000",
+          "tez.queue.name": "queue1",
         }
       },
       "yarn-site": {

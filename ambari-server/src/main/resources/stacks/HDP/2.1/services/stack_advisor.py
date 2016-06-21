@@ -113,6 +113,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     putTezProperty("tez.am.java.opts",
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
+    putTezProperty("tez.queue.name", self.recommendYarnQueue(services))
 
 
   def getNotPreferableOnServerComponents(self):
@@ -153,7 +154,8 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
 
   def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
-                        {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')} ]
+                        {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')},
+                        {"config-name": 'tez.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'tez.queue.name', services)} ]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
 
   def getDBDriver(self, databaseType):

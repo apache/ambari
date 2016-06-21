@@ -19,26 +19,6 @@
 package org.apache.ambari.server.upgrade;
 
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -54,6 +34,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -126,7 +108,32 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 
+import junit.framework.Assert;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 public class UpgradeCatalog240Test {
+  private static final String CAPACITY_SCHEDULER_CONFIG_TYPE = "capacity-scheduler";
+  private static final String WEBHCAT_SITE_CONFIG_TYPE = "webhcat-site";
+  private static final String TEZ_SITE_CONFIG_TYPE = "tez-site";
+  private static final String MAPRED_SITE_CONFIG_TYPE = "mapred-site";
+  private static final String YARN_ENV_CONFIG_TYPE = "yarn-env";
   private static Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   private EntityManager entityManager = createNiceMock(EntityManager.class);
@@ -541,6 +548,7 @@ public class UpgradeCatalog240Test {
     Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
     Method updateKerberosEnv = UpgradeCatalog240.class.getDeclaredMethod("updateKerberosConfigs");
     Method updateYarnEnv = UpgradeCatalog240.class.getDeclaredMethod("updateYarnEnv");
+    Method updateQueueNameConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateQueueNameConfigs");
     Method removeHiveOozieDBConnectionConfigs = UpgradeCatalog240.class.getDeclaredMethod("removeHiveOozieDBConnectionConfigs");
     Method updateClustersAndHostsVersionStateTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateClustersAndHostsVersionStateTableDML");
     Method removeStandardDeviationAlerts = UpgradeCatalog240.class.getDeclaredMethod("removeStandardDeviationAlerts");
@@ -582,6 +590,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateHostRoleCommandTableDML)
             .addMockedMethod(updateKerberosEnv)
             .addMockedMethod(updateYarnEnv)
+            .addMockedMethod(updateQueueNameConfigs)
             .addMockedMethod(removeHiveOozieDBConnectionConfigs)
             .addMockedMethod(updateClustersAndHostsVersionStateTableDML)
             .addMockedMethod(removeStandardDeviationAlerts)
@@ -618,6 +627,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateHostRoleCommandTableDML();
     upgradeCatalog240.updateKerberosConfigs();
     upgradeCatalog240.updateYarnEnv();
+    upgradeCatalog240.updateQueueNameConfigs();
     upgradeCatalog240.removeHiveOozieDBConnectionConfigs();
     upgradeCatalog240.updateClustersAndHostsVersionStateTableDML();
     upgradeCatalog240.removeStandardDeviationAlerts();
@@ -994,6 +1004,156 @@ public class UpgradeCatalog240Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesYarnEnv, updatedProperties).areEqual());
+  }
+
+  /**
+   * Test that queue names updated in mapred-site, webhcat-site, tez-site, yarn-env
+   * @throws Exception
+   */
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testQueueNameUpdateConfigs() throws Exception{
+    Map<String, String> oldPropertiesCapacityScheduler = new HashMap<String, String>() {
+      {
+        put("yarn.scheduler.capacity.root.queues", "default3,d3");
+        put("yarn.scheduler.capacity.root.d3.queues", "default4");
+        put("yarn.scheduler.capacity.root.default3.queues", "default5");
+      }
+    };
+    Map<String, String> oldPropertiesTezSite = new HashMap<String, String>() {
+      {
+        put("tez.queue.name", "default3");
+      }
+    };
+    Map<String, String> oldPropertiesWebhcatSite = new HashMap<String, String>() {
+      {
+        put("templeton.hadoop.queue.name", "default3");
+      }
+    };
+    Map<String, String> oldPropertiesMapredSite = new HashMap<String, String>() {
+      {
+        put("mapreduce.job.queuename", "default3");
+      }
+    };
+    Map<String, String> oldPropertiesYarnEnv = new HashMap<String, String>() {
+      {
+        put("service_check.queue.name", "default3");
+      }
+    };
+
+    Map<String, String> newPropertiesTezSite = new HashMap<String, String>() {
+      {
+        put("tez.queue.name", "default5");
+      }
+    };
+    Map<String, String> newPropertiesWebhcatSite = new HashMap<String, String>() {
+      {
+        put("templeton.hadoop.queue.name", "default5");
+      }
+    };
+    Map<String, String> newPropertiesMapredSite = new HashMap<String, String>() {
+      {
+        put("mapreduce.job.queuename", "default5");
+      }
+    };
+    Map<String, String> newPropertiesYarnEnv = new HashMap<String, String>() {
+      {
+        put("service_check.queue.name", "default5");
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockCapacityScheduler = easyMockSupport.createNiceMock(Config.class);
+    Config mockWebhcatSite = easyMockSupport.createNiceMock(Config.class);
+    Config mockTezSite = easyMockSupport.createNiceMock(Config.class);
+    Config mockMapredSite = easyMockSupport.createNiceMock(Config.class);
+    Config mockYarnEnv = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+
+    expect(cluster.getServices()).andReturn(new HashMap<String, Service>() {
+      {
+        put("YARN", null);
+        put("HIVE", null);
+        put("MAPREDUCE", null);
+        put("TEZ", null);
+      }
+    }).atLeastOnce();
+
+    expect(cluster.getServiceByConfigType(WEBHCAT_SITE_CONFIG_TYPE)).andReturn("HIVE").atLeastOnce();
+    expect(cluster.getServiceByConfigType(TEZ_SITE_CONFIG_TYPE)).andReturn("TEZ").atLeastOnce();
+    expect(cluster.getServiceByConfigType(MAPRED_SITE_CONFIG_TYPE)).andReturn("MAPREDUCE").atLeastOnce();
+    expect(cluster.getServiceByConfigType(YARN_ENV_CONFIG_TYPE)).andReturn("YARN").atLeastOnce();
+
+    expect(cluster.getDesiredConfigByType(CAPACITY_SCHEDULER_CONFIG_TYPE)).andReturn(mockCapacityScheduler).atLeastOnce();
+    expect(cluster.getDesiredConfigByType(WEBHCAT_SITE_CONFIG_TYPE)).andReturn(mockWebhcatSite).atLeastOnce();
+    expect(cluster.getDesiredConfigByType(TEZ_SITE_CONFIG_TYPE)).andReturn(mockTezSite).atLeastOnce();
+    expect(cluster.getDesiredConfigByType(MAPRED_SITE_CONFIG_TYPE)).andReturn(mockMapredSite).atLeastOnce();
+    expect(cluster.getDesiredConfigByType(YARN_ENV_CONFIG_TYPE)).andReturn(mockYarnEnv).atLeastOnce();
+
+
+
+    expect(mockCapacityScheduler.getProperties()).andReturn(oldPropertiesCapacityScheduler).anyTimes();
+    expect(mockWebhcatSite.getProperties()).andReturn(oldPropertiesWebhcatSite).anyTimes();
+    expect(mockTezSite.getProperties()).andReturn(oldPropertiesTezSite).anyTimes();
+    expect(mockMapredSite.getProperties()).andReturn(oldPropertiesMapredSite).anyTimes();
+    expect(mockYarnEnv.getProperties()).andReturn(oldPropertiesYarnEnv).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockCapacityScheduler, mockWebhcatSite, mockTezSite, mockMapredSite,
+        mockYarnEnv, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+        .addMockedMethod("createConfiguration")
+        .addMockedMethod("getClusters", new Class[] { })
+        .addMockedMethod("createConfig")
+        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+        .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapacityScheduler = EasyMock.newCapture();
+    Capture<Map> propertiesCaptureYarnEnv = EasyMock.newCapture();
+    Capture<Map> propertiesCaptureWebhcatSite = EasyMock.newCapture();
+    Capture<Map> propertiesCaptureTezSite= EasyMock.newCapture();
+    Capture<Map> propertiesCaptureMapredSite = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), eq(CAPACITY_SCHEDULER_CONFIG_TYPE), capture(propertiesCapacityScheduler), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+    expect(controller.createConfig(anyObject(Cluster.class), eq(YARN_ENV_CONFIG_TYPE), capture(propertiesCaptureYarnEnv), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+    expect(controller.createConfig(anyObject(Cluster.class), eq(WEBHCAT_SITE_CONFIG_TYPE), capture(propertiesCaptureWebhcatSite), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+    expect(controller.createConfig(anyObject(Cluster.class), eq(TEZ_SITE_CONFIG_TYPE), capture(propertiesCaptureTezSite), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+    expect(controller.createConfig(anyObject(Cluster.class), eq(MAPRED_SITE_CONFIG_TYPE), capture(propertiesCaptureMapredSite), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog240(injector2).updateQueueNameConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedPropertiesYarnEnv = propertiesCaptureYarnEnv.getValue();
+    assertTrue(Maps.difference(newPropertiesYarnEnv, updatedPropertiesYarnEnv).areEqual());
+
+    Map<String, String> updatedPropertiesWebhcatSite = propertiesCaptureWebhcatSite.getValue();
+    assertTrue(Maps.difference(newPropertiesWebhcatSite, updatedPropertiesWebhcatSite).areEqual());
+
+    Map<String, String> updatedPropertiesTezSite = propertiesCaptureTezSite.getValue();
+    assertTrue(Maps.difference(newPropertiesTezSite, updatedPropertiesTezSite).areEqual());
+
+    Map<String, String> updatedPropertiesMapredSite = propertiesCaptureMapredSite.getValue();
+    assertTrue(Maps.difference(newPropertiesMapredSite, updatedPropertiesMapredSite).areEqual());
   }
 
   @Test
