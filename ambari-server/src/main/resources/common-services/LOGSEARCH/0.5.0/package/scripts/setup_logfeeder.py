@@ -81,4 +81,9 @@ def setup_logfeeder():
          owner=params.logfeeder_user,
          group=params.user_group,
          )
+  if params.security_enabled:
+    File(format("{logfeeder_jaas_file}"),
+         content=Template("logfeeder_jaas.conf.j2"),
+         owner=params.logfeeder_user
+         )
 

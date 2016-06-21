@@ -23,7 +23,6 @@ from resource_management.libraries.functions.check_process_status import check_p
 from resource_management.libraries.script.script import Script
 from setup_logsearch_solr import setup_logsearch_solr
 
-
 class LogsearchSolr(Script):
   def install(self, env):
     import params

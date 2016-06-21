@@ -40,6 +40,7 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
+security_enabled = status_params.security_enabled
 
 logsearch_solr_conf = "/etc/ambari-logsearch-solr/conf"
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
@@ -123,6 +124,25 @@ if 'zoo.cfg' in config['configurations']:
   zoo_cfg_properties_map = config['configurations']['zoo.cfg']
 else:
   zoo_cfg_properties_map = {}
+
+
+
+if security_enabled:
+  kinit_path_local = status_params.kinit_path_local
+  _hostname_lowercase = config['hostname'].lower()
+  logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
+  logsearch_solr_jaas_file = logsearch_solr_conf + '/logsearch_solr_jaas.conf'
+  logfeeder_jaas_file = logsearch_logfeeder_conf + '/logfeeder_jaas.conf'
+  logsearch_solr_kerberos_keytab = config['configurations']['logsearch-solr-env']['logsearch_solr_kerberos_keytab']
+  logsearch_solr_kerberos_principal = config['configurations']['logsearch-solr-env']['logsearch_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  logsearch_solr_web_kerberos_keytab = config['configurations']['logsearch-solr-env']['logsearch_solr_web_kerberos_keytab']
+  logsearch_solr_web_kerberos_principal = config['configurations']['logsearch-solr-env']['logsearch_solr_web_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_kerberos_keytab']
+  logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
+  logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  logsearch_solr_kerberos_name_rules = config['configurations']['logsearch-solr-env']['logsearch_solr_kerberos_name_rules']
+
 
 logsearch_solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user']
 logsearch_solr_log_dir = config['configurations']['logsearch-solr-env']['logsearch_solr_log_dir']

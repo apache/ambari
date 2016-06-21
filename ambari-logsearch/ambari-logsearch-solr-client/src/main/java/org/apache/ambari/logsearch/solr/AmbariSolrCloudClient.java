@@ -57,6 +57,7 @@ public class AmbariSolrCloudClient {
   private final String routerName;
   private final String routerField;
   private final boolean splitting;
+  private String jaasFile;
 
   public AmbariSolrCloudClient(AmbariSolrCloudClientBuilder builder) {
     this.zookeeperHosts = builder.zookeeperHosts;
@@ -67,6 +68,7 @@ public class AmbariSolrCloudClient {
     this.replication = builder.replication;
     this.retryTimes = builder.retryTimes;
     this.interval = builder.interval;
+    this.jaasFile = builder.jaasFile;
     this.solrCloudClient = builder.solrCloudClient;
     this.solrZkClient = builder.solrZkClient;
     this.maxShardsPerNode = builder.maxShardsPerNode;
@@ -224,5 +226,9 @@ public class AmbariSolrCloudClient {
 
   public boolean isSplitting() {
     return splitting;
+  }
+
+  public String getJaasFile() {
+    return jaasFile;
   }
 }

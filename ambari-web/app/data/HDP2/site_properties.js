@@ -1906,11 +1906,25 @@ var hdp2properties = [
     "index": 12
   },
   {
-    "name": "content",
+    "name": "logfeeder_kerberos_keytab",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 13
+  },
+  {
+    "name": "logfeeder_kerberos_principal",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 14
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-env.xml",
+    "category": "Advanced logfeeder-env",
+    "index": 15
   },
   /*logfeeder-log4j*/
   {
@@ -2071,11 +2085,25 @@ var hdp2properties = [
     "index": 15
   },
   {
-    "name": "content",
+    "name": "logsearch_kerberos_keytab",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 16
+  },
+  {
+    "name": "logsearch_kerberos_principal",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 17
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-env.xml",
+    "category": "Advanced logsearch-env",
+    "index": 18
   },
   /*logsearch-log4j*/
   {
@@ -2264,11 +2292,46 @@ var hdp2properties = [
     "index": 12
   },
   {
-    "name": "content",
+    "name": "logsearch_solr_kerberos_keytab",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 12
+  },
+  {
+    "name": "logsearch_solr_kerberos_principal",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-solr-env.xml",
     "category": "Advanced logsearch-solr-env",
     "index": 13
+  },
+  {
+    "name": "logsearch_solr_web_kerberos_keytab",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 14
+  },
+  {
+    "name": "logsearch_solr_web_kerberos_principal",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 15
+  },
+  {
+    "name": "logsearch_solr_kerberos_name_rules",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 16
+  },
+  {
+    "name": "content",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-solr-env.xml",
+    "category": "Advanced logsearch-solr-env",
+    "index": 17
   },
   /*logsearch-solr-log4j*/
   {

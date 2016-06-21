@@ -19,6 +19,8 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 
@@ -35,3 +37,6 @@ logsearch_pid_file = format("{logsearch_pid_dir}/logsearch.pid")
 # logfeeder pid file
 logfeeder_pid_dir = config['configurations']['logfeeder-env']['logfeeder_pid_dir']
 logfeeder_pid_file = format("{logfeeder_pid_dir}/logfeeder.pid")
+
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
