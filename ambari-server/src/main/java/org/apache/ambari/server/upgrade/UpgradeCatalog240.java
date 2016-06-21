@@ -144,6 +144,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String CLUSTER_TABLE = "clusters";
   protected static final String CLUSTER_UPGRADE_ID_COLUMN = "upgrade_id";
   protected static final String YARN_ENV_CONFIG = "yarn-env";
+  protected static final String CAPACITY_SCHEDULER_CONFIG = "capacity-scheduler";
+  protected static final String WEBHCAT_SITE_CONFIG = "webhcat-site";
+  protected static final String TEZ_SITE_CONFIG = "tez-site";
+  protected static final String MAPRED_SITE_CONFIG = "mapred-site";
   public static final String DESIRED_VERSION_COLUMN_NAME = "desired_version";
   public static final String BLUEPRINT_SETTING_TABLE = "blueprint_setting";
   public static final String BLUEPRINT_NAME_COL = "blueprint_name";
@@ -182,6 +186,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String EXTENSION_LINK_ID_COLUMN = "link_id";
 
   private static final Map<String, Integer> ROLE_ORDER;
+  public static final String WEBHCAT_SITE_QUEUE_NAME = "templeton.hadoop.queue.name";
+  public static final String TEZ_SITE_QUEUE_NAME = "tez.queue.name";
+  public static final String YARN_ENV_QUEUE_NAME = "service_check.queue.name";
+  public static final String MAPRED_SITE_QUEUE_NAME = "mapreduce.job.queuename";
 
   static {
     // Manually create role order since there really isn't any mechanism for this
@@ -375,6 +383,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateSparkConfigs();
     updateHBaseConfigs();
     updateFalconConfigs();
+    updateQueueNameConfigs();
     updateKerberosDescriptorArtifacts();
     removeHiveOozieDBConnectionConfigs();
     updateClustersAndHostsVersionStateTableDML();
@@ -1965,6 +1974,49 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         if (falconEnvEnvProperties.containsKey("falcon_store_uri")) {
           LOG.info("Removing property falcon_store_uri from falcon-env");
           removeConfigurationPropertiesFromCluster(cluster, "falcon-env", Collections.singleton("falcon_store_uri"));
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates the YARN Capacity Scheduler related configurations for the clusters managed by this Ambari
+   * Update services configuration to set proper leaf queue name for services
+   * update mapred-site, webhcat-site, tez-site, yarn-env
+   *
+   * @throws AmbariException if an error occurs while updating the configurations
+   */
+  protected void updateQueueNameConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Config capacityScheduler = cluster.getDesiredConfigByType(CAPACITY_SCHEDULER_CONFIG);
+      if (capacityScheduler != null) {
+        Map<String, String> capacitySchedulerProperties = capacityScheduler.getProperties();
+        Set<String> leafQueues;
+        leafQueues = getCapacitySchedulerLeafQueues(capacitySchedulerProperties);
+        Set<String> installedServices = cluster.getServices().keySet();
+        if (leafQueues ==null || leafQueues.isEmpty()) {
+          LOG.warn("There is no leafQueues in capacity-scheduler");
+          return;
+        }
+        if (installedServices.contains(cluster.getServiceByConfigType(WEBHCAT_SITE_CONFIG)) &&
+            !isQueueNameValid(cluster, leafQueues, WEBHCAT_SITE_QUEUE_NAME, WEBHCAT_SITE_CONFIG)){
+          updateQueueName(cluster, leafQueues, WEBHCAT_SITE_QUEUE_NAME, WEBHCAT_SITE_CONFIG);
+        }
+        if (installedServices.contains(cluster.getServiceByConfigType(TEZ_SITE_CONFIG)) &&
+            !isQueueNameValid(cluster, leafQueues, TEZ_SITE_QUEUE_NAME, TEZ_SITE_CONFIG)){
+          updateQueueName(cluster, leafQueues, TEZ_SITE_QUEUE_NAME, TEZ_SITE_CONFIG);
+        }
+        if (installedServices.contains(cluster.getServiceByConfigType(YARN_ENV_CONFIG)) &&
+            !isQueueNameValid(cluster, leafQueues, YARN_ENV_QUEUE_NAME, YARN_ENV_CONFIG)){
+          updateQueueName(cluster, leafQueues, YARN_ENV_QUEUE_NAME, YARN_ENV_CONFIG);
+        }
+        if (installedServices.contains(cluster.getServiceByConfigType(MAPRED_SITE_CONFIG)) &&
+            !isQueueNameValid(cluster, leafQueues, MAPRED_SITE_QUEUE_NAME, MAPRED_SITE_CONFIG)){
+          updateQueueName(cluster, leafQueues, MAPRED_SITE_QUEUE_NAME, MAPRED_SITE_CONFIG);
         }
       }
     }

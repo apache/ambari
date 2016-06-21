@@ -267,6 +267,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
+    putWebhcatSiteProperty = self.putProperty(configurations, "webhcat-site", services)
     putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
     putHiveEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hive-env")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -405,6 +406,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     leafQueues = sorted(leafQueues, key=lambda q:q['value'])
     putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", leafQueues)
     putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))
+    putWebhcatSiteProperty("templeton.hadoop.queue.name", self.recommendYarnQueue(services))
 
 
     # Recommend Ranger Hive authorization as per Ranger Hive plugin property
@@ -769,6 +771,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
     putTezProperty("tez.session.am.dag.submit.timeout.secs", "600")
+    putTezProperty("tez.queue.name", self.recommendYarnQueue(services))
 
     serverProperties = services["ambari-server-properties"]
     latest_tez_jar_version = None
@@ -934,7 +937,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                "ranger-yarn-plugin-properties": self.validateYARNRangerPluginConfigurations},
       "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
                "hive-site": self.validateHiveConfigurations,
-               "hive-env": self.validateHiveConfigurationsEnv},
+               "hive-env": self.validateHiveConfigurationsEnv,
+               "webhcat-site": self.validateWebhcatConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations,
                 "hbase-env": self.validateHBASEEnvConfigurations,
                 "ranger-hbase-plugin-properties": self.validateHBASERangerPluginConfigurations},
@@ -976,7 +980,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
                         {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
-                        {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
+                        {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},
+                        {"config-name": 'tez.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'tez.queue.name', services)} ]
     if "tez.tez-ui.history-url.base" in recommendedDefaults:
       validationItems.append({"config-name": 'tez.tez-ui.history-url.base', "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults, 'tez.tez-ui.history-url.base')})
 
@@ -1031,6 +1036,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "minimum", yarnMinAllocationSize)
     # Hadoop MR limitation
     putMapredPropertyAttribute("mapreduce.task.io.sort.mb", "maximum", "2047")
+    putMapredProperty("mapreduce.job.queuename", self.recommendYarnQueue(services))
 
   def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
@@ -1039,7 +1045,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'mapreduce.map.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
                         {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
                         {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
-                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')}]
+                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')},
+                        {"config-name": 'mapreduce.job.queuename', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'mapreduce.job.queuename', services)} ]
 
     if 'mapreduce.map.java.opts' in properties and \
       checkXmxValueFormat(properties['mapreduce.map.java.opts']):
@@ -1294,6 +1301,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "If Ranger Hive Plugin is disabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
     return self.toConfigurationValidationProblems(validationItems, "hiveserver2-site")
+
+  def validateWebhcatConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [{"config-name": 'templeton.hadoop.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'templeton.hadoop.queue.name', services)}]
+    return self.toConfigurationValidationProblems(validationItems, "webhcat-site")
+
 
   def validateHiveConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []

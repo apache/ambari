@@ -112,6 +112,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
+    putYarnEnvProperty("service_check.queue.name", self.recommendYarnQueue(services))
     containerExecutorGroup = 'hadoop'
     if 'cluster-env' in services['configurations'] and 'user_group' in services['configurations']['cluster-env']['properties']:
       containerExecutorGroup = services['configurations']['cluster-env']['properties']['user_group']
@@ -138,6 +139,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
+    putMapredProperty("mapreduce.job.queuename", self.recommendYarnQueue(services))
 
   def getAmbariUser(self, services):
     ambari_user = services['ambari-server-properties']['ambari-server.user']
@@ -1354,6 +1356,26 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return None
 
+  def validatorYarnQueue(self, properties, recommendedDefaults, propertyName, services):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
+    leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+    value = properties[propertyName]
+    if len(leafQueueNames) == 0:
+      return None
+    if value not in leafQueueNames:
+      return self.getErrorItem("Queue is not exist, or not corresponds to existing YARN leaf queue")
+    return None
+
+  def recommendYarnQueue(self, services):
+    if services:
+      if 'configurations' in services:
+        capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
+        leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+        if leafQueueNames:
+          return leafQueueNames.pop()
+    return "default"
 
   def validateXmxValue(self, properties, recommendedDefaults, propertyName):
     if not propertyName in properties:
@@ -1382,7 +1404,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'mapreduce.map.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
                         {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
                         {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
-                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
+                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')},
+                        {"config-name": 'mapreduce.job.queuename', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'mapreduce.job.queuename', services)} ]
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
   def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1394,15 +1417,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = [ ]
-    if not services:
-      return self.toConfigurationValidationProblems(validationItems, "yarn-env")
-    yarnEnvProperties = getSiteProperties(configurations, "yarn-env")
-    capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
-    leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
-    service_checkQueueName=yarnEnvProperties.get("service_check.queue.name")
-    if service_checkQueueName not in leafQueueNames:
-      validationItems.append({"config-name": 'service_check.queue.name', "item": self.getErrorItem("service_check.queue.name is not exist, or not corresponds to existing leaf queue")})
+    validationItems = [{"config-name": 'service_check.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'service_check.queue.name', services)} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-env")
 
   def validateHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
