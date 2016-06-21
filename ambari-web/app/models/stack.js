@@ -23,6 +23,8 @@ App.Stack = DS.Model.extend({
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
   stackDefault: DS.attr('boolean'),
+  minJdkVersion: DS.attr('string'),
+  maxJdkVersion: DS.attr('string'),
   repositoryVersion: DS.attr('string'),
   showAvailable: DS.attr('boolean'),  // All of the instances should have this value to true. We should map only those stacks that has this flag set to true
   type: DS.attr('string'), // ["PATCH", "STANDARD"]
