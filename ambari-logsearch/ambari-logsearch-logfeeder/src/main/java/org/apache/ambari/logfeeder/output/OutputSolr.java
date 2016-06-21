@@ -133,45 +133,49 @@ public class OutputSolr extends Output {
 
   private void createSolrWorkers() throws Exception, MalformedURLException {
     String solrUrl = getStringValue("url");
-    String zkHosts = getStringValue("zk_hosts");
-    if (StringUtils.isEmpty(solrUrl) && StringUtils.isEmpty(zkHosts)) {
-      throw new Exception("For solr output, either url or zk_hosts property need to be set");
+    String zkConnectString = getStringValue("zk_connect_string");
+    if (StringUtils.isEmpty(solrUrl) && StringUtils.isEmpty(zkConnectString)) {
+      throw new Exception("For solr output, either url or zk_connect_string property need to be set");
     }
 
     for (int count = 0; count < workers; count++) {
-      SolrClient solrClient = getSolrClient(solrUrl, zkHosts, count);
+      SolrClient solrClient = getSolrClient(solrUrl, zkConnectString, count);
       createSolrWorkerThread(count, solrClient);
     }
   }
 
-  SolrClient getSolrClient(String solrUrl, String zkHosts, int count) throws Exception, MalformedURLException {
-    SolrClient solrClient = createSolrClient(solrUrl, zkHosts, collection);
-    pingSolr(solrUrl, zkHosts, count, solrClient);
+  SolrClient getSolrClient(String solrUrl, String zkConnectString, int count) throws Exception, MalformedURLException {
+    SolrClient solrClient = createSolrClient(solrUrl, zkConnectString);
+    pingSolr(solrUrl, zkConnectString, count, solrClient);
     waitForConfig();
 
     return solrClient;
   }
 
-  private SolrClient createSolrClient(String solrUrl, String zkHosts, String collection) throws Exception, MalformedURLException {
+  private SolrClient createSolrClient(String solrUrl, String zkConnectString) throws Exception, MalformedURLException {
     SolrClient solrClient;
-    if (zkHosts != null) {
-      solrClient = createCloudSolrClient(zkHosts, collection);
+    if (zkConnectString != null) {
+      solrClient = createCloudSolrClient(zkConnectString);
     } else {
-      solrClient = createHttpSolarClient(solrUrl, collection);
+      solrClient = createHttpSolarClient(solrUrl);
     }
     return solrClient;
   }
 
-  private SolrClient createCloudSolrClient(String zkHosts, String collection) throws Exception {
-    LOG.info("Using zookeepr. zkHosts=" + zkHosts);
+  private SolrClient createCloudSolrClient(String zkConnectString) throws Exception {
+    LOG.info("Using zookeepr. zkConnectString=" + zkConnectString);
+    collection = getStringValue("collection");
+    if (StringUtils.isEmpty(collection)) {
+      throw new Exception("For solr cloud property collection is mandatory");
+    }
     LOG.info("Using collection=" + collection);
 
-    CloudSolrClient solrClient = new CloudSolrClient(zkHosts);
+    CloudSolrClient solrClient = new CloudSolrClient(zkConnectString);
     solrClient.setDefaultCollection(collection);
     return solrClient;
   }
 
-  private SolrClient createHttpSolarClient(String solrUrl, String collection) throws MalformedURLException {
+  private SolrClient createHttpSolarClient(String solrUrl) throws MalformedURLException {
     String[] solrUrls = StringUtils.split(solrUrl, ",");
     if (solrUrls.length == 1) {
       LOG.info("Using SolrURL=" + solrUrl);
@@ -188,9 +192,9 @@ public class OutputSolr extends Output {
     }
   }
 
-  private void pingSolr(String solrUrl, String zkHosts, int count, SolrClient solrClient) {
+  private void pingSolr(String solrUrl, String zkConnectString, int count, SolrClient solrClient) {
     try {
-      LOG.info("Pinging Solr server. zkHosts=" + zkHosts + ", urls=" + solrUrl);
+      LOG.info("Pinging Solr server. zkConnectString=" + zkConnectString + ", urls=" + solrUrl);
       SolrPingResponse response = solrClient.ping();
       if (response.getStatus() == 0) {
         LOG.info("Ping to Solr server is successful for worker=" + count);
@@ -198,13 +202,13 @@ public class OutputSolr extends Output {
         LOG.warn(
             String.format(
                 "Ping to Solr server failed. It would check again. worker=%d, "
-                    + "solrUrl=%s, zkHosts=%s, collection=%s, response=%s",
-                count, solrUrl, zkHosts, collection, response));
+                    + "solrUrl=%s, zkConnectString=%s, collection=%s, response=%s",
+                count, solrUrl, zkConnectString, collection, response));
       }
     } catch (Throwable t) {
       LOG.warn(String.format(
-          "Ping to Solr server failed. It would check again. worker=%d, solrUrl=%s, zkHosts=%s, collection=%s",
-          count, solrUrl, zkHosts, collection), t);
+          "Ping to Solr server failed. It would check again. worker=%d, " + "solrUrl=%s, zkConnectString=%s, collection=%s",
+          count, solrUrl, zkConnectString, collection), t);
     }
   }
 

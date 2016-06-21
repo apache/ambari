@@ -25,7 +25,7 @@ import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.apache.solr.common.cloud.SolrZkClient;
 
 public class AmbariSolrCloudClientBuilder {
-  String zookeeperHosts;
+  String zkConnectString;
   String collection;
   String configSet;
   String configDir;
@@ -45,8 +45,8 @@ public class AmbariSolrCloudClientBuilder {
     return new AmbariSolrCloudClient(this);
   }
 
-  public AmbariSolrCloudClientBuilder withZookeeperHosts(String zookeeperHosts) {
-    this.zookeeperHosts = zookeeperHosts;
+  public AmbariSolrCloudClientBuilder withZkConnectString(String zkConnectString) {
+    this.zkConnectString = zkConnectString;
     return this;
   }
 
@@ -112,12 +112,12 @@ public class AmbariSolrCloudClientBuilder {
   }
 
   public AmbariSolrCloudClientBuilder withSolrCloudClient() {
-    this.solrCloudClient = new CloudSolrClient(this.zookeeperHosts);
+    this.solrCloudClient = new CloudSolrClient(this.zkConnectString);
     return this;
   }
 
   public AmbariSolrCloudClientBuilder withSolrZkClient(int zkClientTimeout, int zkClientConnectTimeout) {
-    this.solrZkClient = new SolrZkClient(this.zookeeperHosts, zkClientTimeout, zkClientConnectTimeout);
+    this.solrZkClient = new SolrZkClient(this.zkConnectString, zkClientTimeout, zkClientConnectTimeout);
     return this;
   }
 

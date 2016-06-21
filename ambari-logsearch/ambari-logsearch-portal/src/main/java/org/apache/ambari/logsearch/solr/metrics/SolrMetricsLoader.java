@@ -180,9 +180,9 @@ public class SolrMetricsLoader extends TimerTask {
 
       int solrJmxPort = PropertiesUtil.getIntProperty("logsearch.solr.jmx.port");
 
-      String zkHosts = PropertiesUtil.getProperty("logsearch.solr.zkhosts");
+      String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
       AmbariSolrCloudClient ambariSolrCloudClient = new AmbariSolrCloudClientBuilder()
-          .withZookeeperHosts(zkHosts)
+          .withZkConnectString(zkConnectString)
           .build();
 
       Collection<String> solrHosts = ambariSolrCloudClient.getSolrHosts();

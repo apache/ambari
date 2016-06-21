@@ -59,7 +59,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
   public void postConstructor() {
 
     String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
-    String zkHosts = PropertiesUtil.getProperty("logsearch.solr.zkhosts");
+    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
     String collection = PropertiesUtil.getProperty("logsearch.solr.collection.history",
       "history");
     String configName = PropertiesUtil.getProperty(
@@ -70,7 +70,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     int numberOfShards = 1;
 
     try {
-      connectToSolr(solrUrl, zkHosts, collection);
+      connectToSolr(solrUrl, zkConnectString, collection);
       setupCollections(splitInterval, configName, numberOfShards,
         replicationFactor);
       intializeLogFeederFilter();
@@ -78,7 +78,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     } catch (Exception e) {
       logger.error(
         "error while connecting to Solr for history logs : solrUrl="
-          + solrUrl + ", zkHosts=" + zkHosts
+          + solrUrl + ", zkConnectString=" + zkConnectString
           + ", collection=" + collection, e);
     }
   }

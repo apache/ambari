@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-logsearch.solr.zkhosts={{zookeeper_quorum}}{{logsearch_solr_znode}}
+logsearch.solr.zk_connect_string={{zookeeper_quorum}}{{logsearch_solr_znode}}
 
 # Service Logs
 logsearch.solr.collection.service.logs={{logsearch_solr_collection_service_logs}}
@@ -25,7 +25,7 @@ logsearch.collection.service.logs.replication.factor={{logsearch_collection_serv
 logsearch.service.logs.fields={{logsearch_service_logs_fields}}
 
 # Audit logs
-logsearch.solr.audit.logs.zkhosts={{logsearch_solr_audit_logs_zk_quorum}}{{logsearch_solr_audit_logs_zk_node}}
+logsearch.solr.audit.logs.zk_connect_string={{logsearch_solr_audit_logs_zk_quorum}}{{logsearch_solr_audit_logs_zk_node}}
 logsearch.solr.collection.audit.logs={{logsearch_solr_collection_audit_logs}}
 logsearch.solr.audit.logs.url={{logsearch_solr_audit_logs_url}}
 
