@@ -1939,21 +1939,21 @@ var hdp2properties = [
     "name": "logsearch_admin_username",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-admin-json.xml",
-    "category": "Advanced logsearch-admin-json",
+    "category": "LogsearchAdminJson",
     "index": 1
   },
   {
     "name": "logsearch_admin_password",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-admin-json.xml",
-    "category": "Advanced logsearch-admin-json",
+    "category": "LogsearchAdminJson",
     "index": 2
   },
   {
     "name": "content",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-admin-json.xml",
-    "category": "Advanced logsearch-admin-json",
+    "category": "LogsearchAdminJson",
     "index": 3
   },
   /*logsearch-audit_logs-solrconfig*/
