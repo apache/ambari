@@ -45,6 +45,8 @@ public interface ServiceComponentHost {
    */
   String getServiceName();
 
+  boolean isClientComponent();
+
   /**
    * Get the ServiceComponent this object maps to
    * @return Name of the ServiceComponent

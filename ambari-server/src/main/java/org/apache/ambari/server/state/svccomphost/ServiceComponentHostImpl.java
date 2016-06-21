@@ -192,6 +192,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
       new ServiceComponentHostOpCompletedTransition())
 
+  // Allow transition on abort
+  .addTransition(State.INSTALLED,
+      State.INSTALLED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
+
   .addTransition(State.INSTALLING,
       State.INSTALLING,
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
@@ -302,6 +308,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       State.STARTED,
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
       new ServiceComponentHostOpInProgressTransition())
+
+  // Allow transition on abort
+  .addTransition(State.STARTED,
+      State.STARTED,
+      ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+      new ServiceComponentHostOpCompletedTransition())
 
   .addTransition(State.STARTED,
       State.INSTALLED,
@@ -476,10 +488,18 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
+
      .addTransition(State.INSTALLED,
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
          new ServiceComponentHostOpInProgressTransition())
+
+     // Allow transition on abort
+     .addTransition(State.INSTALLED,
+         State.INSTALLED,
+         ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
+         new ServiceComponentHostOpCompletedTransition())
+
      .addTransition(State.INSTALLING,
          State.INSTALL_FAILED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
@@ -1156,6 +1176,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public String getServiceName() {
     return serviceComponent.getServiceName();
+  }
+
+  @Override
+  public boolean isClientComponent() {
+    return serviceComponent.isClientComponent();
   }
 
   @Override
