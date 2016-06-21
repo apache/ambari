@@ -59,6 +59,17 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>spark_daemon_memory</name>
+    <value>1024</value>
+    <description>Memory for Master, Worker and history server (default: 1G)</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false" change="true" delete="true"/>
+    <on-stack-upgrade add="true" change="true" delete="false"/>
+  </property>
   <!-- spark-env.sh -->
   <property>
     <name>content</name>
@@ -93,6 +104,9 @@ export SPARK_PID_DIR={{spark_pid_dir}}
 
 # A string representing this instance of spark.(Default: $USER)
 SPARK_IDENT_STRING=$USER
+
+#Memory for Master, Worker and history server (default: 1024MB)
+export SPARK_DAEMON_MEMORY={{spark_daemon_memory}}m
 
 # The scheduling priority for daemons. (Default: 0)
 SPARK_NICENESS=0
