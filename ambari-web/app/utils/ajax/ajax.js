@@ -3042,6 +3042,10 @@ var ajax = Em.Object.extend({
    */
   MAX_GET_URL_LENGTH: 2048,
 
+  consoleMsg: function(name, url) {
+    return Em.I18n.t('app.logger.ajax').format(name, url.substr(7, 100));
+  },
+
   /**
    * Send ajax request
    *
@@ -3081,6 +3085,10 @@ var ajax = Em.Object.extend({
     }
     opt = formatRequest.call(urls[config.name], params);
 
+    var consoleMsg = this.consoleMsg(config.name, opt.url);
+
+    App.logger.setTimer(consoleMsg);
+
     if (opt.url && opt.url.length > this.get('MAX_GET_URL_LENGTH')) {
       opt = doGetAsPost(opt);
     }
@@ -3109,6 +3117,7 @@ var ajax = Em.Object.extend({
       }
     };
     opt.complete = function () {
+      App.logger.logTimerIfMoreThan(consoleMsg, 1000);
       if (config.callback) {
         config.callback();
       }

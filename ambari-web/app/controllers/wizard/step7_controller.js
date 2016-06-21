@@ -406,6 +406,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       // override if a property isRequired or not
       this.overrideConfigIsRequired(stepConfig);
     }, this);
+    console.timeEnd('loadConfigGroups execution time: ');
   },
 
   /**
@@ -507,6 +508,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   applyServicesConfigs: function (configs) {
+    console.time('applyServicesConfigs execution time: ');
     if (!this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
       this.updateHawqConfigs(configs);
     }
@@ -530,6 +532,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
+    console.timeEnd('applyServicesConfigs execution time: ');
+    console.time('loadConfigRecommendations execution time: ');
     this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
   },
 
@@ -560,6 +564,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   completeConfigLoading: function() {
     this.clearRecommendationsByServiceName(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
+    console.timeEnd('loadConfigRecommendations execution time: ');
     console.timeEnd('wizard loadStep: ');
     this.set('isRecommendedLoaded', true);
     if (this.get('content.skipConfigStep')) {
@@ -615,6 +620,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       this.restoreConfigGroups(this.get('content.configGroups'));
     } else {
       if (this.get('installedServiceNames').length > 0 && !this.get('wizardController.areInstalledConfigGroupsLoaded')) {
+        console.time('loadConfigGroups execution time: ');
         this.loadConfigGroups(this.get('allSelectedServiceNames')).done(this.loadOverrides.bind(this));
       } else {
         App.store.commit();

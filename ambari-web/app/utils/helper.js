@@ -930,3 +930,31 @@ App.resetDsStoreTypeMap = function(type) {
     };
   }
 };
+
+App.logger = function() {
+
+  var timers = {};
+
+  return {
+
+    maxAllowedLoadingTime: 1000,
+
+    setTimer: function(name) {
+      if (!App.get('enableLogger')) return;
+      timers[name] = window.performance.now();
+    },
+
+    logTimerIfMoreThan: function(name, loadingTime) {
+      if (!App.get('enableLogger')) return;
+      this.maxAllowedLoadingTime = loadingTime || this.maxAllowedLoadingTime;
+      if (timers[name]) {
+        var diff = window.performance.now() - timers[name];
+        if (diff > this.maxAllowedLoadingTime) {
+          console.debug(name + ': ' + diff.toFixed(3) + 'ms');
+        }
+        delete timers[name];
+      }
+    }
+  };
+
+}();
