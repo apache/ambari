@@ -181,6 +181,7 @@ import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
@@ -2491,10 +2492,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     || oldSchState == State.UNKNOWN
                     || oldSchState == State.INSTALL_FAILED) {
                   roleCommand = RoleCommand.INSTALL;
-                  event = new ServiceComponentHostInstallEvent(
-                      scHost.getServiceComponentName(), scHost.getHostName(),
-                      nowTimestamp,
-                      scHost.getDesiredStackVersion().getStackId());
+
+                  if (scHost.isClientComponent() && oldSchState == State.INSTALLED) {
+                    // Client reinstalls are executed to reattach changed configs on service.
+                    // Do not transition a client component to INSTALLING state if it was installed.
+                    // Prevents INSTALL_FAILED state if a command gets aborted.
+                    event = new ServiceComponentHostOpInProgressEvent(
+                        scHost.getServiceComponentName(), scHost.getHostName(),
+                        nowTimestamp);
+                  } else {
+                    event = new ServiceComponentHostInstallEvent(
+                        scHost.getServiceComponentName(), scHost.getHostName(),
+                        nowTimestamp,
+                        scHost.getDesiredStackVersion().getStackId());
+                  }
 
                   // If the state is transitioning from INIT TO INSTALLED and the cluster has Kerberos
                   // enabled, mark this ServiceComponentHost to see if anything needs to be done to
