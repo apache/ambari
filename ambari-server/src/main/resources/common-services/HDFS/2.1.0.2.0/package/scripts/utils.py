@@ -268,13 +268,13 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     try:
       Execute(daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports)
     except:
-      show_logs(params.hdfs_log_dir, user)
+      show_logs(log_dir, user)
       raise
   elif action == "stop":
     try:
       Execute(daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports)
     except:
-      show_logs(params.hdfs_log_dir, user)
+      show_logs(log_dir, user)
       raise
     File(pid_file, action="delete")
 
