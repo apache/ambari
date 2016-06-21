@@ -30,8 +30,19 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 
-def setup_spark(env, type, upgrade_type = None, action = None):
+def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
+  """
+  :param env: Python environment
+  :param type: Spark component type
+  :param upgrade_type: If in a stack upgrade, either UPGRADE_TYPE_ROLLING or UPGRADE_TYPE_NON_ROLLING
+  :param action: Action to perform, such as generate configs
+  :param config_dir: Optional config directory to write configs to.
+  """
+
   import params
+
+  if config_dir is None:
+    config_dir = params.spark_conf
 
   Directory([params.spark_pid_dir, params.spark_log_dir],
             owner=params.spark_user,
@@ -48,7 +59,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
     )
     params.HdfsResource(None, action="execute")
 
-  PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
+  PropertiesFile(os.path.join(config_dir, "spark-defaults.conf"),
     properties = params.config['configurations']['spark-defaults'],
     key_value_delimiter = " ",
     owner=params.spark_user,
@@ -56,7 +67,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   )
 
   # create spark-env.sh in etc/conf dir
-  File(os.path.join(params.spark_conf, 'spark-env.sh'),
+  File(os.path.join(config_dir, 'spark-env.sh'),
        owner=params.spark_user,
        group=params.spark_group,
        content=InlineTemplate(params.spark_env_sh),
@@ -64,7 +75,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   )
 
   #create log4j.properties in etc/conf dir
-  File(os.path.join(params.spark_conf, 'log4j.properties'),
+  File(os.path.join(config_dir, 'log4j.properties'),
        owner=params.spark_user,
        group=params.spark_group,
        content=params.spark_log4j_properties,
@@ -72,7 +83,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   )
 
   #create metrics.properties in etc/conf dir
-  File(os.path.join(params.spark_conf, 'metrics.properties'),
+  File(os.path.join(config_dir, 'metrics.properties'),
        owner=params.spark_user,
        group=params.spark_group,
        content=InlineTemplate(params.spark_metrics_properties)
@@ -92,7 +103,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
 
   if params.is_hive_installed:
     XmlConfig("hive-site.xml",
-          conf_dir=params.spark_conf,
+          conf_dir=config_dir,
           configurations=params.spark_hive_properties,
           owner=params.spark_user,
           group=params.spark_group,
@@ -112,7 +123,7 @@ def setup_spark(env, type, upgrade_type = None, action = None):
 
   if params.spark_thrift_fairscheduler_content and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
     # create spark-thrift-fairscheduler.xml
-    File(os.path.join(params.spark_conf,"spark-thrift-fairscheduler.xml"),
+    File(os.path.join(config_dir,"spark-thrift-fairscheduler.xml"),
       owner=params.spark_user,
       group=params.spark_group,
       mode=0755,

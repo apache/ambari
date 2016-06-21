@@ -58,6 +58,9 @@ stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 tarball_map = default("/configurations/cluster-env/tarball_map", None)
 
+config_path = os.path.join(stack_root, "current/hadoop-client/conf")
+config_dir = os.path.realpath(config_path)
+
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)

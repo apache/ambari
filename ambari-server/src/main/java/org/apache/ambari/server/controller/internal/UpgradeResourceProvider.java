@@ -1009,6 +1009,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     StackId currentStackId = cluster.getCurrentStackVersion();
     StackId desiredStackId = cluster.getDesiredStackVersion();
     StackId targetStackId = new StackId(targetStack);
+    // Only change configs if moving to a different stack.
     switch (direction) {
       case UPGRADE:
         if (currentStackId.equals(targetStackId)) {
@@ -1078,7 +1079,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       while (iterator.hasNext()) {
         String configType = iterator.next();
         if (skipConfigTypes.contains(configType)) {
-          LOG.info("RU: Removing configs for config-type {}", configType);
+          LOG.info("Stack Upgrade: Removing configs for config-type {}", configType);
           iterator.remove();
         }
       }
@@ -1089,7 +1090,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       for (Map.Entry<String, DesiredConfig> existingEntry : existingDesiredConfigurationsByType.entrySet()) {
         String configurationType = existingEntry.getKey();
         if(skipConfigTypes.contains(configurationType)) {
-          LOG.info("RU: Skipping config-type {} as upgrade-pack contains no updates to its service", configurationType);
+          LOG.info("Stack Upgrade: Skipping config-type {} as upgrade-pack contains no updates to its service", configurationType);
           continue;
         }
 

@@ -32,6 +32,7 @@ class TestTezClient(RMFTestCase):
                        classname = "TezClient",
                        command = "configure",
                        config_file="default.json",
+                       command_args=["/etc/tez/conf", ],
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )

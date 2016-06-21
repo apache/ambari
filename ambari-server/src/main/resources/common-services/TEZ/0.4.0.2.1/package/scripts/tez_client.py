@@ -35,14 +35,22 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.default import default
+from resource_management.core.logger import Logger
 
 from tez import tez
 
 class TezClient(Script):
-  def configure(self, env):
+
+  def configure(self, env, config_dir=None, upgrade_type=None):
+    """
+    Write tez-site.xml and tez-env.sh to the config directory
+    :param env: Python Environment
+    :param config_dir: During rolling upgrade, which config directory to save configs to.
+    E.g., /usr/$STACK/current/tez-client/conf
+    """
     import params
     env.set_params(params)
-    tez()
+    tez(config_dir)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
@@ -52,6 +60,28 @@ class TezClientLinux(TezClient):
 
   def get_component_name(self):
     return "hadoop-client"
+
+  def stack_upgrade_save_new_config(self, env):
+    """
+    Because this gets called during a Rolling Upgrade, the new tez configs have already been saved, so we must be
+    careful to only call configure() on the directory of the new version.
+    :param env:
+    """
+    import params
+    env.set_params(params)
+
+    conf_select_name = "tez"
+    base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    config_dir = self.get_config_dir_during_stack_upgrade(env, base_dir, conf_select_name)
+
+    if config_dir:
+      Logger.info("stack_upgrade_save_new_config(): Calling conf-select on %s using version %s" % (conf_select_name, str(params.version)))
+
+      # Because this script was called from ru_execute_tasks.py which already enters an Environment with its own basedir,
+      # must change it now so this function can find the Jinja Templates for the service.
+      env.config.basedir = base_dir
+      conf_select.select(params.stack_name, conf_select_name, params.version)
+      self.configure(env, config_dir=config_dir)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -63,8 +93,9 @@ class TezClientLinux(TezClient):
       stack_select.select("hadoop-client", params.version)
 
   def install(self, env):
+    import params
     self.install_packages(env)
-    self.configure(env)
+    self.configure(env, config_dir=params.config_dir)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class TezClientWindows(TezClient):
@@ -75,7 +106,7 @@ class TezClientWindows(TezClient):
       params.refresh_tez_state_dependent_params()
     env.set_params(params)
     self._install_lzo_support_if_needed(params)
-    self.configure(env)
+    self.configure(env, config_dir=params.tez_conf_dir)
 
   def _install_lzo_support_if_needed(self, params):
     hadoop_classpath_prefix = self._expand_hadoop_classpath_prefix(params.hadoop_classpath_prefix_template, params.config['configurations']['tez-site'])

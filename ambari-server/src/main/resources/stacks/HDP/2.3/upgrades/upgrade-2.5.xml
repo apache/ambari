@@ -139,6 +139,44 @@
       </service>
     </group>
 
+    <!-- This group should exist for all RUs that cross a major stack version. -->
+    <group xsi:type="cluster" name="UPDATE_CLIENT_CONFIGS" title="Update Client Configs">
+      <direction>UPGRADE</direction>
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Update tez.lib.uris">
+        <task xsi:type="configure" id="hdp_2_5_0_0_tez_client_adjust_tez_lib_uris_property"/>
+      </execute-stage>
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
+        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+      </execute-stage>
+    </group>
+
+    <!-- This needs to be done for every Rolling Upgrade pack that changes configurations. -->
+    <group xsi:type="cluster" name="CONFIGURE_CLIENT_DEPENDENCIES" title="Write client configs">
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <direction>UPGRADE</direction>
+
+      <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Write Mapreduce2 Client configs">
+        <task xsi:type="execute">
+          <script>scripts/mapreduce2_client.py</script>
+          <function>stack_upgrade_save_new_config</function>
+        </task>
+      </execute-stage>
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Write Tez Client configs">
+        <task xsi:type="execute">
+          <script>scripts/tez_client.py</script>
+          <function>stack_upgrade_save_new_config</function>
+        </task>
+      </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_CLIENT" title="Write Spark Client configs">
+        <task xsi:type="execute">
+          <script>scripts/spark_client.py</script>
+          <function>stack_upgrade_save_new_config</function>
+        </task>
+      </execute-stage>
+    </group>
+
     <group name="CORE_MASTER" title="Core Masters">
       <service-check>false</service-check>
       <service name="HDFS">
@@ -651,11 +689,6 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
-        <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_5_0_0_tez_client_adjust_tez_lib_uris_property"/>
-
-          <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

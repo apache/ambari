@@ -18,9 +18,12 @@ limitations under the License.
 
 """
 
+# Python Imports
 import os
 import sys
 import re
+
+# Local Imports
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute

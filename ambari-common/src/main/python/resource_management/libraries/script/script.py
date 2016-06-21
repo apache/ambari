@@ -155,6 +155,29 @@ class Script(object):
     """
     pass
 
+  def get_config_dir_during_stack_upgrade(self, env, base_dir, conf_select_name):
+    """
+    Because this gets called during a Rolling Upgrade, the new configs have already been saved, so we must be
+    careful to only call configure() on the directory with the new version.
+
+    If valid, returns the config directory to save configs to, otherwise, return None
+    """
+    import params
+    env.set_params(params)
+
+    required_attributes = ["stack_name", "stack_root", "version"]
+    for attribute in required_attributes:
+      if not has_attr(params, attribute):
+        raise Fail("Failed in function 'stack_upgrade_save_new_config' because params was missing variable %s." % attribute)
+
+    Logger.info("stack_upgrade_save_new_config(): Checking if can write new client configs to new config version folder.")
+
+    if check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
+      # Even though hdp-select has not yet been called, write new configs to the new config directory.
+      config_path = os.path.join(params.stack_root, params.version, conf_select_name, "conf")
+      return os.path.realpath(config_path)
+    return None
+
   def save_component_version_to_structured_out(self):
     """
     :param stack_name: One of HDP, HDPWIN, PHD, BIGTOP.
@@ -709,9 +732,11 @@ class Script(object):
     """
     pass
 
-  def configure(self, env, upgrade_type=None):
+  def configure(self, env, upgrade_type=None, config_dir=None):
     """
     To be overridden by subclasses
+    :param upgrade_type: only valid during RU/EU, otherwise will be None
+    :param config_dir: for some clients during RU, the location to save configs to, otherwise None
     """
     self.fail_with_error('configure method isn\'t implemented')
 
