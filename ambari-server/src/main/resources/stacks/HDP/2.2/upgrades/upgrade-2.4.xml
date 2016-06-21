@@ -450,6 +450,11 @@
       <component name="RANGER_ADMIN">
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
+          <task xsi:type="execute" hosts="all" summary="Stop Ranger Admin">
+            <script>scripts/ranger_admin.py</script>
+            <function>stop</function>
+          </task>
+
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin"/>
 
@@ -469,22 +474,28 @@
 
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit"/>
 
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
+          <task xsi:type="execute" hosts="all">
+            <script>scripts/ranger_admin.py</script>
+            <function>set_pre_start</function>
+          </task>
+
+          <task xsi:type="execute" hosts="any" summary="Upgrading Ranger database schema">
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_database</function>
           </task>
+
+          <task xsi:type="configure_function" hosts="all" />
+
+          <task xsi:type="execute" hosts="any" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
+          </task>
         </pre-upgrade>
-      
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
 
-        <post-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
-            <script>scripts/ranger_admin.py</script>
-            <function>setup_ranger_java_patches</function>
-          </task>
-        </post-upgrade>
       </component>
 
       <component name="RANGER_USERSYNC">

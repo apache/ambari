@@ -32,6 +32,7 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import solr_cloud_util
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
@@ -51,6 +52,12 @@ def ranger(name=None, upgrade_type=None):
 
 def setup_ranger_admin(upgrade_type=None):
   import params
+
+  if upgrade_type is None:
+    if params.restart_type.lower() == "rolling_upgrade":
+      upgrade_type = UPGRADE_TYPE_ROLLING
+    elif params.restart_type.lower() == "nonrolling_upgrade":
+      upgrade_type = UPGRADE_TYPE_NON_ROLLING
 
   ranger_home = params.ranger_home
   ranger_conf = params.ranger_conf

@@ -487,6 +487,11 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-upgrade>
+          <task xsi:type="execute" hosts="all" summary="Stop Ranger Admin">
+            <script>scripts/ranger_admin.py</script>
+            <function>stop</function>
+          </task>
+
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_flag" />
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_admin_properties" />
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_audit_db_ranger_admin_site" />
@@ -494,36 +499,28 @@
 
           <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation"/>
 
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger database schema">
+          <task xsi:type="execute" hosts="all">
+            <script>scripts/ranger_admin.py</script>
+            <function>set_pre_start</function>
+          </task>
+
+          <task xsi:type="execute" hosts="any" summary="Upgrading Ranger database schema">
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_database</function>
+          </task>
+
+          <task xsi:type="configure_function" hosts="all" />
+
+          <task xsi:type="execute" hosts="any" summary="Applying Ranger java patches">
+            <script>scripts/ranger_admin.py</script>
+            <function>setup_ranger_java_patches</function>
           </task>
         </pre-upgrade>
-
-        <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger database schema">
-            <script>scripts/ranger_admin.py</script>
-            <function>setup_ranger_database</function>
-          </task>
-        </pre-downgrade>
 
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
 
-        <post-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
-            <script>scripts/ranger_admin.py</script>
-            <function>setup_ranger_java_patches</function>
-          </task>
-        </post-upgrade>
-
-        <post-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Applying Ranger java patches">
-            <script>scripts/ranger_admin.py</script>
-            <function>setup_ranger_java_patches</function>
-          </task>
-        </post-downgrade>
       </component>
 
       <component name="RANGER_USERSYNC">
