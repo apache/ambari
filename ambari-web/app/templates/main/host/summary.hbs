@@ -71,7 +71,7 @@
                   <div class="span3 align-right">{{t common.clients}}&nbsp;/</div>
                 <div class="span7">
                   {{#each component in view.clients}}
-                    {{component.displayName}}{{#if component.isInstallFailed}}&nbsp;<span class="health-status-installed icon-warning-sign"></span>{{/if}}{{#if component.staleConfigs}}&nbsp;<span class="text-warning icon-refresh"></span>{{/if}}{{#if component.service.isInPassive}}&nbsp;<span class="icon-medkit"></span>{{/if}}{{#unless component.isLast}},{{/unless}}
+                    <span {{bindAttr class="component.staleConfigs:component-restart-required-name"}}> {{component.displayName}} </span> {{#if component.isInstallFailed}}&nbsp;<span class="health-status-installed icon-warning-sign"></span>{{/if}}{{#if component.staleConfigs}}&nbsp;<span class="text-warning icon-refresh"></span>{{/if}}{{#if component.service.isInPassive}}&nbsp;<span class="icon-medkit"></span>{{/if}}{{#unless component.isLast}},{{/unless}}
                   {{/each}}
                 </div>
               {{/if}}
