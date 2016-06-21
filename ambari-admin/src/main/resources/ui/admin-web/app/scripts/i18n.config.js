@@ -91,6 +91,7 @@ angular.module('ambariAdminConsole')
       'rbac': 'Role Based Access Control',
       'important': 'Important',
       'undo': 'Undo',
+      'fromGroupMark': '(from group)',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
