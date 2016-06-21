@@ -56,8 +56,8 @@
           <configFiles>
             <configFile>
               <type>xml</type>
-              <fileName>squoop-site.xml</fileName>
-              <dictionaryName>squoop-site</dictionaryName>
+              <fileName>sqoop-site.xml</fileName>
+              <dictionaryName>sqoop-site</dictionaryName>
             </configFile>
             <configFile>
               <type>env</type>
