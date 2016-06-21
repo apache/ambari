@@ -232,7 +232,9 @@ App.UpdateController = Em.Controller.extend({
         mainHostController = App.router.get('mainHostController'),
         sortProperties = mainHostController.getSortProps(),
         loggingResource = ',host_components/logging',
-        isHostsLoaded = false;
+        isHostsLoaded = false,
+        // load hosts metrics separately of lazyLoadMetrics=true, but metrics in current request if we are sorting
+        loadMetricsSeparately = lazyLoadMetrics && !(sortProperties.length && ['loadAvg', 'diskUsage'].contains(sortProperties[0].name));
     this.get('queryParams').set('Hosts', mainHostController.getQueryParameters(true));
     if (App.router.get('currentState.parentState.name') === 'hosts') {
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
@@ -263,7 +265,7 @@ App.UpdateController = Em.Controller.extend({
     }
 
     realUrl = realUrl.replace("<stackVersions>", stackVersionInfo);
-    realUrl = realUrl.replace("<metrics>", lazyLoadMetrics ? "" : "metrics/disk,metrics/load/load_one,");
+    realUrl = realUrl.replace("<metrics>", loadMetricsSeparately ? "" : "metrics/disk,metrics/load/load_one,");
     realUrl = realUrl.replace('<hostDetailsParams>', hostDetailsParams);
     if (App.get('supports.logSearch')) {
       realUrl += loggingResource;
@@ -272,7 +274,7 @@ App.UpdateController = Em.Controller.extend({
     var clientCallback = function (skipCall, queryParams) {
       var completeCallback = function () {
         callback();
-        if (lazyLoadMetrics) {
+        if (loadMetricsSeparately) {
           self.loadHostsMetric(queryParams);
         }
       };
