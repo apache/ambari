@@ -72,7 +72,7 @@ class TestOozieServiceCheck(RMFTestCase):
       mode = 0755)
 
     self.assertResourceCalled('Execute',
-      "/tmp/prepareOozieHdfsDirectories.sh /usr/hdp/current/oozie-client/conf examples-dir /usr/hdp/current/hadoop-client/conf ",
+      "/tmp/prepareOozieHdfsDirectories.sh /usr/hdp/current/oozie-client/conf examples-dir /usr/hdp/current/hadoop-client/conf default",
       tries = 3,
       try_sleep = 5,
       logoutput = True)

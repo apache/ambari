@@ -23,6 +23,7 @@
 export oozie_conf_dir=$1
 export oozie_examples_dir=$2
 export hadoop_conf_dir=$3
+export QUEUE=$4
 
 function getValueFromField {
   xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
@@ -42,4 +43,5 @@ cd $oozie_examples_dir
 /var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
 /var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
 /var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|queueName=default|queueName=$QUEUE|g" examples/apps/map-reduce/job.properties
 /var/lib/ambari-agent/ambari-sudo.sh sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties

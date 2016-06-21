@@ -76,7 +76,7 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     os_family = System.get_instance().os_family
     oozie_examples_dir = glob.glob(params.oozie_examples_regex)[0]
 
-    Execute(format("{tmp_dir}/{prepare_hdfs_file_name} {conf_dir} {oozie_examples_dir} {hadoop_conf_dir} "),
+    Execute(format("{tmp_dir}/{prepare_hdfs_file_name} {conf_dir} {oozie_examples_dir} {hadoop_conf_dir} {service_check_queue_name}"),
             tries=3,
             try_sleep=5,
             logoutput=True
