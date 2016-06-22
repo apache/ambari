@@ -114,32 +114,6 @@
             "value": "{0}"
           }
         }
-      },
-      {
-        "name": "mapreduce_history_server_process",
-        "label": "History Server Process",
-        "description": "This host-level alert is triggered if the History Server process cannot be established to be up and listening on the network.",
-        "interval": 1,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "PORT",
-          "uri": "{{mapred-site/mapreduce.jobhistory.webapp.address}}",
-          "default_port": 19888,
-          "reporting": {
-            "ok": {
-              "text": "TCP OK - {0:.3f}s response on port {1}"
-            },
-            "warning": {
-              "text": "TCP OK - {0:.3f}s response on port {1}",
-              "value": 1.5
-            },
-            "critical": {
-              "text": "Connection failed: {0} to {1}:{2}",
-              "value": 5.0
-            }
-          }
-        }
       }
     ]
   },

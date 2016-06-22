@@ -1660,6 +1660,8 @@ public class UpgradeCatalog240Test {
     expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("namenode_webui")))
         .andReturn(namenodeWebUiAlertDefinitionEntity).atLeastOnce();
 
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("mapreduce_history_server_process")))
+            .andReturn(mockStormRestApiAlertDefinitionEntity).atLeastOnce();
     expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("storm_rest_api")))
             .andReturn(mockStormRestApiAlertDefinitionEntity).atLeastOnce();
 

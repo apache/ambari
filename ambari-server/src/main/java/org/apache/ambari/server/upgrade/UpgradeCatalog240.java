@@ -763,6 +763,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       addAll(alertNamesForNameserviceUpdate);
     }};
 
+    // list of alerts to be removed
+    Set<String> alertForRemoval = new HashSet<String>() {{
+      add("storm_rest_api");
+      add("mapreduce_history_server_process");
+    }};
+
     LOG.info("Updating alert definitions.");
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
@@ -901,10 +907,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         alertDefinitionDAO.merge(atlasMetadataServerWebUI);
       }
 
-      AlertDefinitionEntity stormRestApiAlertDefinition = alertDefinitionDAO.findByName(clusterID, "storm_rest_api");
-      if (stormRestApiAlertDefinition != null) {
-        LOG.info("Removing alert : storm_rest_api");
-        alertDefinitionDAO.remove(stormRestApiAlertDefinition);
+      for (String alertName: alertForRemoval) {
+        AlertDefinitionEntity alertDefinition = alertDefinitionDAO.findByName(clusterID, alertName);
+        if (alertDefinition != null) {
+          LOG.info("Removing alert : " + alertName);
+          alertDefinitionDAO.remove(alertDefinition);
+        }
       }
     }
   }
