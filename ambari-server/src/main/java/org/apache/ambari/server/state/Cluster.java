@@ -735,4 +735,10 @@ public interface Cluster {
    * @return
    */
   String getClusterProperty(String propertyName, String defaultValue);
+
+  /**
+   * Returns the number of hosts that form the cluster.
+   * @return number of hosts that form the cluster
+   */
+  int  getClusterSize();
 }

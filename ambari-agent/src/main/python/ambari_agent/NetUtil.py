@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 class NetUtil:
 
   CONNECT_SERVER_RETRY_INTERVAL_SEC = 10
-  HEARTBEAT_IDDLE_INTERVAL_SEC = 10
+  HEARTBEAT_IDLE_INTERVAL_DEFAULT_MIN_SEC = 1
+  HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC = 10
   MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1
 
   # Url within server to request during status check. This url
@@ -120,4 +121,32 @@ class NetUtil:
         if logger is not None:
           logger.info("Stop event received")
         self.DEBUG_STOP_RETRIES_FLAG = True
+
     return retries, connected, self.DEBUG_STOP_RETRIES_FLAG
+
+  def get_agent_heartbeat_idle_interval_sec(self, heartbeat_idle_interval_min, heartbeat_idle_interval_max, cluster_size):
+    """
+    Returns the interval in seconds to be used between agent heartbeats when
+    there are pending stages which requires higher heartbeat rate to reduce the latency
+    between the completion of the last command of the current stage and the starting of first
+    command of next stage.
+
+    The heartbeat intervals for elevated heartbeats is calculated as a function of the size of the cluster.
+
+    Using a higher hearbeat rate in case of large clusters will cause agents to flood
+    the server with heartbeat messages thus the calculated heartbeat interval is restricted to
+    [heartbeat_idle_interval_min, heartbeat_idle_interval_max] range.
+
+    :param cluster_size: the number of nodes the cluster consists of
+    :return: the heartbeat interval in seconds
+    """
+
+    heartbeat_idle_interval = cluster_size // heartbeat_idle_interval_max
+
+    if heartbeat_idle_interval < heartbeat_idle_interval_min:
+      return heartbeat_idle_interval_min
+
+    if heartbeat_idle_interval > heartbeat_idle_interval_max:
+      return heartbeat_idle_interval_max
+
+    return heartbeat_idle_interval

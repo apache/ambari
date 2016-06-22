@@ -62,6 +62,9 @@ passphrase_env_var_name=AMBARI_PASSPHRASE
 state_interval = 6
 dirs={ps}etc{ps}hadoop,{ps}etc{ps}hadoop{ps}conf,{ps}var{ps}run{ps}hadoop,{ps}var{ps}log{ps}hadoop
 log_lines_count=300
+iddle_interval_min=1
+iddle_interval_max=10
+
 
 [logging]
 log_command_executes = 0

@@ -3604,6 +3604,17 @@ public class ClusterImpl implements Cluster {
   }
 
   /**
+  * Returns the number of hosts that form the cluster.
+  *
+  *  @return number of hosts that form the cluster
+  */
+  @Override
+  public int getClusterSize() {
+    return clusters.getClusterSize(clusterName);
+  }
+
+
+  /**
    * {@inheritDoc}
    */
   @Override

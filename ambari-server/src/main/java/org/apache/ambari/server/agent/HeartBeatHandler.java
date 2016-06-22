@@ -517,12 +517,15 @@ public class HeartBeatHandler {
    * Annotate the response with some housekeeping details.
    * hasMappedComponents - indicates if any components are mapped to the host
    * hasPendingTasks - indicates if any tasks are pending for the host (they may not be sent yet)
+   * clusterSize - indicates the number of hosts that form the cluster
    * @param hostname
    * @param response
    * @throws org.apache.ambari.server.AmbariException
    */
   private void annotateResponse(String hostname, HeartBeatResponse response) throws AmbariException {
     for (Cluster cl : clusterFsm.getClustersForHost(hostname)) {
+      response.setClusterSize(cl.getClusterSize());
+
       List<ServiceComponentHost> scHosts = cl.getServiceComponentHosts(hostname);
       if (scHosts != null && scHosts.size() > 0) {
         response.setHasMappedComponents(true);

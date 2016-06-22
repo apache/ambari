@@ -306,4 +306,33 @@ public class ClusterImplTest {
 
 
   }
+
+  @Test
+  public void testGetClusterSize() throws Exception {
+    // Given
+    String clusterName = "TEST_CLUSTER_SIZE";
+    String hostName1 = "host1", hostName2 = "host2";
+    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    clusters.addHost(hostName1);
+    clusters.addHost(hostName2);
+
+    Host host1 = clusters.getHost(hostName1);
+    host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
+    host1.persist();
+
+    Host host2 = clusters.getHost(hostName2);
+    host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
+    host2.persist();
+
+    clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
+
+    // When
+    int clusterSize = cluster.getClusterSize();
+
+    // Then
+    assertEquals(2, clusterSize);
+
+  }
 }
