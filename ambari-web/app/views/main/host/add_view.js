@@ -38,7 +38,7 @@ App.AddHostView = Em.View.extend(App.WizardMenuMixin, {
 
   loadHosts: function () {
     App.ajax.send({
-      name: 'hosts.confirmed',
+      name: 'hosts.confirmed.minimal',
       sender: this,
       data: {},
       success: 'loadHostsSuccessCallback',
@@ -52,9 +52,6 @@ App.AddHostView = Em.View.extend(App.WizardMenuMixin, {
     response.items.forEach(function (item) {
       installedHosts[item.Hosts.host_name] = {
         name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
         bootStatus: "REGISTERED",
         isInstalled: true,
         hostComponents: item.host_components

@@ -2532,6 +2532,10 @@ var urls = {
       };
     }
   },
+  'hosts.confirmed.minimal': {
+    'real': '/clusters/{clusterName}/hosts?fields=host_components/HostRoles/state&minimal_response=true',
+    'mock': '/data/hosts/HDP2/hosts.json'
+  },
   'host_components.all': {
     'real': '/clusters/{clusterName}/host_components?fields=HostRoles/host_name&minimal_response=true',
     'mock': ''
