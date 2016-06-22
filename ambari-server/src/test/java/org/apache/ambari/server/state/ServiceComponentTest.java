@@ -397,13 +397,22 @@ public class ServiceComponentTest {
     history.setFromStack(serviceComponentDesiredStateEntity.getDesiredStack());
     history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
     history.setUpgrade(upgradeEntity);
-    history.setServiceComponentDesiredState(serviceComponentDesiredStateEntity);
-    history = serviceComponentDesiredStateDAO.merge(history);
+
+    serviceComponentDesiredStateEntity.addHistory(history);
+
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.merge(
+        serviceComponentDesiredStateEntity);
 
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         cluster.getClusterId(), serviceName, componentName);
 
-    Assert.assertEquals(history, serviceComponentDesiredStateEntity.getHistory().iterator().next());
+    assertEquals(1, serviceComponentDesiredStateEntity.getHistory().size());
+    ServiceComponentHistoryEntity persistedHistory = serviceComponentDesiredStateEntity.getHistory().iterator().next();
+
+    assertEquals(history.getFromStack(), persistedHistory.getFromStack());
+    assertEquals(history.getToStack(), persistedHistory.getFromStack());
+    assertEquals(history.getUpgrade(), persistedHistory.getUpgrade());
+    assertEquals(history.getServiceComponentDesiredState(), persistedHistory.getServiceComponentDesiredState());
   }
 
 
@@ -508,12 +517,16 @@ public class ServiceComponentTest {
     history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
     history.setUpgrade(upgradeEntity);
     history.setServiceComponentDesiredState(serviceComponentDesiredStateEntity);
-    history = serviceComponentDesiredStateDAO.merge(history);
+
+    serviceComponentDesiredStateEntity.addHistory(history);
+
+    serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.merge(
+        serviceComponentDesiredStateEntity);
 
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         cluster.getClusterId(), serviceName, componentName);
 
-    Assert.assertEquals(history, serviceComponentDesiredStateEntity.getHistory().iterator().next());
+    assertEquals(1, serviceComponentDesiredStateEntity.getHistory().size());
 
     // verify that we can retrieve the history directly
     List<ServiceComponentHistoryEntity> componentHistoryList = serviceComponentDesiredStateDAO.findHistory(

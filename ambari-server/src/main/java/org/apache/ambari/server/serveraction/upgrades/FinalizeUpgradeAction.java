@@ -513,17 +513,20 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
     for (Service service : cluster.getServices().values()) {
       for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
         if (serviceComponent.isVersionAdvertised()) {
+          // create the historical entry
           ServiceComponentHistoryEntity historyEntity = new ServiceComponentHistoryEntity();
           historyEntity.setUpgrade(upgradeEntity);
           historyEntity.setFromStack(fromStack);
           historyEntity.setToStack(toStack);
 
+          // get the service component
           ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findByName(
               cluster.getClusterId(), serviceComponent.getServiceName(),
               serviceComponent.getName());
 
-          historyEntity.setServiceComponentDesiredState(desiredStateEntity);
-          serviceComponentDesiredStateDAO.create(historyEntity);
+          // add the history to the component and save
+          desiredStateEntity.addHistory(historyEntity);
+          serviceComponentDesiredStateDAO.merge(desiredStateEntity);
         }
       }
     }

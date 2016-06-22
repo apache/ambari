@@ -30,7 +30,9 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+import com.google.common.base.Objects;
 
 /**
  * The {@link ServiceComponentHistoryEntity} class is used to represent an
@@ -86,10 +88,6 @@ public class ServiceComponentHistoryEntity {
    */
   public void setServiceComponentDesiredState(ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
     m_serviceComponentDesiredStateEntity = serviceComponentDesiredStateEntity;
-
-    if (!m_serviceComponentDesiredStateEntity.getHistory().contains(this)) {
-      m_serviceComponentDesiredStateEntity.addHistory(this);
-    }
   }
 
   /**
@@ -149,14 +147,12 @@ public class ServiceComponentHistoryEntity {
    */
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ObjectUtils.hashCode(m_fromStack);
-    result = prime * result + (int) (m_id ^ (m_id >>> 32));
-    result = prime * result + ObjectUtils.hashCode(m_serviceComponentDesiredStateEntity);
-    result = prime * result + ObjectUtils.hashCode(m_toStack);
-    result = prime * result + ObjectUtils.hashCode(m_upgradeEntity);
-    return result;
+    HashCodeBuilder hashCodeBuilder = new HashCodeBuilder();
+    hashCodeBuilder.append(m_fromStack);
+    hashCodeBuilder.append(m_toStack);
+    hashCodeBuilder.append(m_upgradeEntity);
+    hashCodeBuilder.append(m_serviceComponentDesiredStateEntity);
+    return hashCodeBuilder.toHashCode();
   }
 
   /**
@@ -176,44 +172,10 @@ public class ServiceComponentHistoryEntity {
       return false;
     }
 
-    ServiceComponentHistoryEntity other = (ServiceComponentHistoryEntity) obj;
-    if (m_fromStack == null) {
-      if (other.m_fromStack != null) {
-        return false;
-      }
-    } else if (!m_fromStack.equals(other.m_fromStack)) {
-      return false;
-    }
-
-    if (m_id != other.m_id) {
-      return false;
-    }
-
-    if (m_serviceComponentDesiredStateEntity == null) {
-      if (other.m_serviceComponentDesiredStateEntity != null) {
-        return false;
-      }
-    } else if (!m_serviceComponentDesiredStateEntity.equals(
-        other.m_serviceComponentDesiredStateEntity)) {
-      return false;
-    }
-
-    if (m_toStack == null) {
-      if (other.m_toStack != null) {
-        return false;
-      }
-    } else if (!m_toStack.equals(other.m_toStack)) {
-      return false;
-    }
-
-    if (m_upgradeEntity == null) {
-      if (other.m_upgradeEntity != null) {
-        return false;
-      }
-    } else if (!m_upgradeEntity.equals(other.m_upgradeEntity)) {
-      return false;
-    }
-
-    return true;
+    final ServiceComponentHistoryEntity other = (ServiceComponentHistoryEntity) obj;
+    return Objects.equal(m_fromStack, other.m_fromStack)
+        && Objects.equal(m_toStack, other.m_toStack)
+        && Objects.equal(m_upgradeEntity, other.m_upgradeEntity) 
+        && Objects.equal(m_serviceComponentDesiredStateEntity, other.m_serviceComponentDesiredStateEntity);
   }
 }
