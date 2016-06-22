@@ -553,7 +553,6 @@ def check_ranger_service_support_kerberos():
   policymgr_mgr_url = params.policymgr_mgr_url
   if policymgr_mgr_url.endswith('/'):
     policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-  policymgr_mgr_url = format('{policymgr_mgr_url}/login.jsp')
   ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url)
   response_code = ranger_adm_obj.check_ranger_login_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, policymgr_mgr_url, True)
 

@@ -107,6 +107,21 @@
                 "configuration": "ranger-tagsync-site/ranger.tagsync.kerberos.keytab"
               }
             }
+          ],
+          "configurations": [
+            {
+              "tagsync-application-properties": {
+                "atlas.jaas.KafkaClient.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+                "atlas.jaas.KafkaClient.loginModuleControlFlag": "required",
+                "atlas.jaas.KafkaClient.option.useKeyTab": "true",
+                "atlas.jaas.KafkaClient.option.storeKey": "true",
+                "atlas.jaas.KafkaClient.option.serviceName": "kafka",
+                "atlas.jaas.KafkaClient.option.keyTab": "{{tagsync_keytab_path}}",
+                "atlas.jaas.KafkaClient.option.principal": "{{tagsync_jaas_principal}}",
+                "atlas.kafka.sasl.kerberos.service.name": "kafka",
+                "atlas.kafka.security.protocol": "SASL_PLAINTEXT"
+              }
+            }
           ]
         }
       ]

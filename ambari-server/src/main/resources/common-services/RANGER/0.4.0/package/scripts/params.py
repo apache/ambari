@@ -281,6 +281,12 @@ for host in config['clusterHostInfo']['zookeeper_hosts']:
   if index < len(config['clusterHostInfo']['zookeeper_hosts']):
     zookeeper_quorum += ","
 
+if security_enabled:
+  if has_ranger_tagsync:
+    ranger_tagsync_principal = config['configurations']['ranger-tagsync-site']['ranger.tagsync.kerberos.principal']
+    tagsync_jaas_principal = ranger_tagsync_principal.replace('_HOST', current_host.lower())
+    tagsync_keytab_path = config['configurations']['ranger-tagsync-site']['ranger.tagsync.kerberos.keytab']
+
 # logic to create core-site.xml if hdfs not installed
 if stack_supports_ranger_kerberos and not has_namenode:
   core_site_property = {
@@ -301,7 +307,6 @@ if stack_supports_ranger_kerberos and not has_namenode:
     ]
 
     if has_ranger_tagsync:
-      ranger_tagsync_principal = config['configurations']['ranger-tagsync-site']['ranger.tagsync.kerberos.principal']
       ranger_tagsync_bare_principal = get_bare_principal(ranger_tagsync_principal)
       rule_dict.append({'principal': ranger_tagsync_bare_principal, 'user': 'rangertagsync'})
 

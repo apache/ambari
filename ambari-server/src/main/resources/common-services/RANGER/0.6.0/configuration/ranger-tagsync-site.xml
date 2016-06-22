@@ -120,9 +120,9 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>ranger.tagsync.atlas.to.ranger.service.mapping</name>
+    <name>ranger.tagsync.source.atlasrest.username</name>
     <value/>
-    <description>Service Mapping</description>
+    <description></description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -131,15 +131,6 @@
   <property>
     <name>ranger.tagsync.source.atlasrest.endpoint</name>
     <display-name>AtlasREST Source: Atlas endpoint</display-name>
-    <value/>
-    <description/>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>ranger.tagsync.atlas.custom.resource.mappers</name>
     <value/>
     <description/>
     <value-attributes>
