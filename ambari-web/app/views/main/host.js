@@ -52,7 +52,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
 
   onRequestErrorHandler: function() {
     this.set('requestError', null);
-    this.get('controller').get('dataSource').setEach('isRequested', false);
     this.set('filteringComplete', true);
     this.propertyDidChange('pageContent');
   }.observes('requestError'),
