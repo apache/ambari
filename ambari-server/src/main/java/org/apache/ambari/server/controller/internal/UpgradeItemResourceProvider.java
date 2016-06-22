@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -46,6 +48,11 @@ import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
@@ -135,6 +142,24 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
       Set<Resource> resources = getResources(PropertyHelper.getReadRequest(), predicate);
 
       for (Resource resource : resources) {
+        final String clusterName = (String)resource.getPropertyValue(UPGRADE_CLUSTER_NAME);
+        final Cluster cluster;
+
+        try {
+          cluster = getManagementController().getClusters().getCluster(clusterName);
+        } catch (AmbariException e) {
+          throw new NoSuchParentResourceException(
+              String.format("Cluster %s could not be loaded", clusterName));
+        }
+
+
+        if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+            EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK))) {
+          throw new AuthorizationException("The authenticated user does not have authorization to " +
+              "manage upgrade and downgrade");
+        }
+
+
         // Set the desired status on the underlying stage.
         Long requestId = (Long) resource.getPropertyValue(UPGRADE_REQUEST_ID);
         Long stageId = (Long) resource.getPropertyValue(UPGRADE_ITEM_STAGE_ID);
