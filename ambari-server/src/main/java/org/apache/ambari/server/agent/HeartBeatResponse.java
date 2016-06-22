@@ -72,6 +72,9 @@ public class HeartBeatResponse {
   @SerializedName("recoveryConfig")
   private RecoveryConfig recoveryConfig;
 
+  @SerializedName("clusterSize")
+  private int clusterSize = -1;
+
   public long getResponseId() {
     return responseId;
   }
@@ -208,6 +211,10 @@ public class HeartBeatResponse {
     }
 
     alertExecutionCommands.add(command);
+  }
+
+  public void setClusterSize(int clusterSize) {
+    this.clusterSize = clusterSize;
   }
 
   @Override

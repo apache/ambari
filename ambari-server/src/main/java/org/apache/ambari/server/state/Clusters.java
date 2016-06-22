@@ -270,4 +270,12 @@ public interface Clusters {
    * @return the map of session attributes for the cluster; never null
    */
   Map<String, Object> getSessionAttributes(String name);
+
+  /**
+   * Returns the number of hosts that form the cluster identified by the given name.
+   * @param clusterName the name that identifies the cluster
+   * @return  number of hosts that form the cluster
+   */
+  int getClusterSize(String clusterName);
+
 }

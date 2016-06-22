@@ -991,6 +991,28 @@ public class ClustersImpl implements Clusters {
     return cluster == null ? Collections.<String, Object>emptyMap() : cluster.getSessionAttributes();
   }
 
+  /**
+   * Returns the number of hosts that form the cluster identified by the given name.
+   *
+   * @param clusterName the name that identifies the cluster
+   * @return number of hosts that form the cluster
+   */
+  @Override
+  public int getClusterSize(String clusterName) {
+    checkLoaded();
+    r.lock();
+
+    int hostCount = 0;
+
+    if (clusterHostMap.containsKey(clusterName) && clusterHostMap.get(clusterName) != null) {
+      hostCount = clusterHostMap.get(clusterName).size();
+    }
+
+    r.unlock();
+
+    return hostCount;
+
+  }
 
   // ----- helper methods ---------------------------------------------------
 

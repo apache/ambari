@@ -100,11 +100,11 @@ class TestHeartbeat(TestCase):
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(config, dummy_controller)
     heartbeat = Heartbeat(actionQueue)
-    hb = heartbeat.build(id = 10, state_interval=1, componentsMapped=True)
+    hb = heartbeat.build(id = 10, add_state=True, componentsMapped=True)
     self.assertEqual(register_mock.call_args_list[0][0][1], True)
     register_mock.reset_mock()
 
-    hb = heartbeat.build(id = 0, state_interval=1, componentsMapped=True)
+    hb = heartbeat.build(id = 0, add_state=True, componentsMapped=True)
     self.assertEqual(register_mock.call_args_list[0][0][1], False)
 
   @patch.object(ActionQueue, "result")

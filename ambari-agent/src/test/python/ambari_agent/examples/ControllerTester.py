@@ -141,7 +141,7 @@ def run_simulation():
 
   controller = Controller.Controller(config)
   controller.sendRequest = sendRequest_method
-  controller.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC = 0.1
+  controller.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC = 0.1
   controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
   controller.range = 1
 

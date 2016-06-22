@@ -21,7 +21,8 @@ import os
 import ConfigParser
 
 PROPERTIES_TO_REWRITE = [
-  ('heartbeat', 'dirs')
+  ('heartbeat', 'dirs'),
+  ('heartbeat', 'state_interval')
 ]
 SECTIONS_TO_REMOVE = [
   'stack', 'puppet', 'command', 'python'
