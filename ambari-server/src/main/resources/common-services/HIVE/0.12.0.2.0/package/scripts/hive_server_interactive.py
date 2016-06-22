@@ -54,6 +54,7 @@ from setup_ranger_hive import setup_ranger_hive
 from hive_service_interactive import hive_service_interactive
 from hive_interactive import hive_interactive
 from hive_server import HiveServerDefault
+from setup_ranger_hive_interactive import setup_ranger_hive_interactive
 
 import traceback
 
@@ -119,7 +120,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         raise Fail("Skipping START of Hive Server Interactive since LLAP app couldn't be STARTED.")
 
       # TODO : test the workability of Ranger and Hive2 during upgrade
-      # setup_ranger_hive(upgrade_type=upgrade_type)
+      setup_ranger_hive_interactive(upgrade_type=upgrade_type)
       hive_service_interactive('hiveserver2', action='start', upgrade_type=upgrade_type)
 
 
