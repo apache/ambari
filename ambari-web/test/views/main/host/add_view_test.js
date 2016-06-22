@@ -61,9 +61,9 @@ describe('App.AddHostView', function () {
 
     it("App.ajax.send should be called", function() {
       view.loadHosts();
-      var args = testHelpers.filterAjaxRequests('name', 'hosts.confirmed');
+      var args = testHelpers.filterAjaxRequests('name', 'hosts.confirmed.minimal');
       expect(args[0][0]).to.eql({
-        name: 'hosts.confirmed',
+        name: 'hosts.confirmed.minimal',
         sender: view,
         data: {},
         success: 'loadHostsSuccessCallback',
@@ -85,10 +85,7 @@ describe('App.AddHostView', function () {
       var response = {items: [
         {
           Hosts: {
-            host_name: 'host1',
-            cpu_count: 1,
-            total_mem: 1024,
-            disk_info: {}
+            host_name: 'host1'
           },
           host_components: [
             {
@@ -102,9 +99,6 @@ describe('App.AddHostView', function () {
       expect(view.get('controller').setDBProperty.calledWith('hosts', {
         host1: {
           name: 'host1',
-          cpu: 1,
-          memory: 1024,
-          disk_info: {},
           bootStatus: "REGISTERED",
           isInstalled: true,
           hostComponents: [
@@ -117,9 +111,6 @@ describe('App.AddHostView', function () {
       expect(view.get('controller.content.hosts')).to.eql({
         host1: {
           name: 'host1',
-          cpu: 1,
-          memory: 1024,
-          disk_info: {},
           bootStatus: "REGISTERED",
           isInstalled: true,
           hostComponents: [
