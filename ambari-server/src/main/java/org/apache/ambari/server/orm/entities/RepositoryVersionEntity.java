@@ -42,6 +42,8 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
+import javax.persistence.PreUpdate;
+import javax.persistence.PrePersist;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.RepositoryType;
@@ -153,6 +155,15 @@ public class RepositoryVersionEntity {
     this.operatingSystems = operatingSystems;
   }
 
+  @PreUpdate
+  @PrePersist
+  public void removePrefixFromVersion() {
+    for (String stackPrefix : STACK_PREFIXES) {
+      if (version.startsWith(stackPrefix + "-")) {
+        version = version.substring(stackPrefix.length() + 1);
+      }
+    }
+  }
   /**
    * Update one-to-many relation without rebuilding the whole entity
    * @param entity many-to-one entity
