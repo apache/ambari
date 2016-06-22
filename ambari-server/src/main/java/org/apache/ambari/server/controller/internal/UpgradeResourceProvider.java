@@ -78,6 +78,9 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
@@ -314,19 +317,33 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // !!! above check ensures only one
     final Map<String, Object> requestMap = requestMaps.iterator().next();
+    final String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
+    final Cluster cluster;
+
+    try {
+      cluster = getManagementController().getClusters().getCluster(clusterName);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException(
+          String.format("Cluster %s could not be loaded", clusterName));
+    }
+
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+        EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK))) {
+      throw new AuthorizationException("The authenticated user does not have authorization to " +
+          "manage upgrade and downgrade");
+    }
+
     final Map<String, String> requestInfoProps = request.getRequestInfoProperties();
 
     UpgradeEntity entity = createResources(new Command<UpgradeEntity>() {
       @Override
       public UpgradeEntity invoke() throws AmbariException, AuthorizationException {
         String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
-        String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
 
         if (null == clusterName) {
           throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
         }
 
-        Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
         Direction direction = Boolean.parseBoolean(forceDowngrade) ? Direction.DOWNGRADE
             : Direction.UPGRADE;
 
@@ -433,6 +450,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // !!! above check ensures only one
     final Map<String, Object> propertyMap = requestMaps.iterator().next();
+
+    final String clusterName = (String) propertyMap.get(UPGRADE_CLUSTER_NAME);
+    final Cluster cluster;
+
+    try {
+      cluster = getManagementController().getClusters().getCluster(clusterName);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException(
+          String.format("Cluster %s could not be loaded", clusterName));
+    }
+
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+        EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK))) {
+      throw new AuthorizationException("The authenticated user does not have authorization to " +
+          "manage upgrade and downgrade");
+    }
+
+
 
     String requestIdProperty = (String) propertyMap.get(UPGRADE_REQUEST_ID);
     if (null == requestIdProperty) {
