@@ -31,13 +31,15 @@ import org.springframework.security.core.userdetails.User;
  * provide functionality for resolving login aliases to
  * ambari user names.
  */
-public final class AmbariAuthentication implements Authentication {
+public final class AmbariAuthentication implements Authentication, UserIdAuthentication {
   private final Authentication authentication;
   private final Object principalOverride;
+  private final Integer userId;
 
-  public AmbariAuthentication(Authentication authentication) {
+  public AmbariAuthentication(Authentication authentication, Integer userId) {
     this.authentication = authentication;
     this.principalOverride = getPrincipalOverride();
+    this.userId = userId;
   }
 
 
@@ -218,5 +220,10 @@ public final class AmbariAuthentication implements Authentication {
     }
 
     return principal;
+  }
+
+  @Override
+  public Integer getUserId() {
+    return userId;
   }
 }

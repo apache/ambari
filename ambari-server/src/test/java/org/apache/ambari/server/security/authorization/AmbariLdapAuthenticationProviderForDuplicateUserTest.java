@@ -20,6 +20,7 @@ package org.apache.ambari.server.security.authorization;
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
 import org.apache.directory.server.core.annotations.ApplyLdifFiles;
@@ -71,6 +72,9 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
   @Mock(type = MockType.NICE)
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
 
+  @Mock(type = MockType.NICE)
+  private UserDAO userDAO;
+
   private AmbariLdapAuthenticationProvider authenticationProvider;
 
   @Before
@@ -86,7 +90,7 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
 
     Configuration configuration = new Configuration(properties);
 
-    authenticationProvider = new AmbariLdapAuthenticationProvider(configuration, authoritiesPopulator);
+    authenticationProvider = new AmbariLdapAuthenticationProvider(configuration, authoritiesPopulator, userDAO);
   }
 
   @Test

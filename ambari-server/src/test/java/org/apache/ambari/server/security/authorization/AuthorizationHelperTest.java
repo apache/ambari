@@ -185,7 +185,7 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
     replay(servletRequestAttributes);
 
     Authentication auth = new UsernamePasswordAuthenticationToken("user1@domain.com", null);
-    SecurityContextHolder.getContext().setAuthentication(new AmbariAuthentication(auth));
+    SecurityContextHolder.getContext().setAuthentication(new AmbariAuthentication(auth, 0));
 
     String user = AuthorizationHelper.getAuthenticatedName();
     Assert.assertEquals("user1", user);

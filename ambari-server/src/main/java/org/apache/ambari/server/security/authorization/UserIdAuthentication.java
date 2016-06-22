@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,20 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.security.authorization.jwt;
 
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
-import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
-import org.apache.ambari.server.security.authorization.User;
+package org.apache.ambari.server.security.authorization;
 
-import java.util.Collection;
+public interface UserIdAuthentication {
 
-/**
- * Internal token which describes JWT authentication
- */
-public class JwtAuthentication extends AmbariUserAuthentication {
-
-  public JwtAuthentication(String token, User user, Collection<AmbariGrantedAuthority> userAuthorities) {
-    super(token, user, userAuthorities);
-  }
+  Integer getUserId();
 }

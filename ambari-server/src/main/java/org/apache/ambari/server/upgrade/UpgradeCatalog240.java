@@ -54,6 +54,7 @@ import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
+import org.apache.ambari.server.orm.dao.RequestScheduleDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -67,6 +68,7 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
+import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
@@ -75,6 +77,8 @@ import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -222,6 +226,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   @Inject
   PrincipalDAO principalDAO;
+
+  @Inject
+  RequestScheduleDAO requestScheduleDAO;
+
+  @Inject
+  Users users;
 
   /**
    * Logger.
@@ -398,6 +408,27 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     removeAuthorizations();
     addConnectionTimeoutParamForWebAndMetricAlerts();
     addSliderClientConfig();
+    updateRequestScheduleEntityUserIds();
+  }
+
+  /**
+   * Populates authenticated_user_id field by correct user id calculated from user name
+   * @throws SQLException
+   */
+  protected void updateRequestScheduleEntityUserIds() throws SQLException {
+    List<RequestScheduleEntity> requestScheduleEntities = requestScheduleDAO.findAll();
+    for (RequestScheduleEntity requestScheduleEntity : requestScheduleEntities) {
+      String createdUserName = requestScheduleEntity.getCreateUser();
+
+      if (createdUserName != null) {
+        User user = users.getUserIfUnique(createdUserName);
+
+        if (user != null && StringUtils.equals(user.getUserName(), createdUserName)) {
+          requestScheduleEntity.setAuthenticatedUserId(user.getUserId());
+          requestScheduleDAO.merge(requestScheduleEntity);
+        }
+      }
+    }
   }
 
   protected void updateClusterInheritedPermissionsConfig() throws SQLException {

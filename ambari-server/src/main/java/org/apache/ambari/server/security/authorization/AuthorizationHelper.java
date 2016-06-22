@@ -107,14 +107,14 @@ public class AuthorizationHelper {
     SecurityContext securityContext = SecurityContextHolder.getContext();
 
     Authentication authentication = securityContext.getAuthentication();
-    AmbariUserAuthentication auth;
-    if (authentication instanceof AmbariUserAuthentication) {
-      auth = (AmbariUserAuthentication) authentication;
+    UserIdAuthentication auth;
+    if (authentication instanceof UserIdAuthentication) {
+      auth = (UserIdAuthentication) authentication;
     } else {
       return -1;
     }
 
-    return auth.getPrincipal().getUserId();
+    return auth.getUserId();
   }
 
   /**

@@ -495,4 +495,15 @@ public class TestUsers {
     Assert.assertTrue(users.isUserCanBeRemoved(userDAO.findUserByName("admin3")));
   }
 
+  @Test
+  public void testGetUserIfUnique() throws Exception {
+    users.createUser("admin", "admin", UserType.LOCAL, true, false);
+
+    Assert.assertNotNull(users.getUserIfUnique("admin"));
+
+    users.createUser("admin", "admin", UserType.LDAP, true, false);
+
+    Assert.assertNull(users.getUserIfUnique("admin"));
+  }
+
 }

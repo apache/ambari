@@ -28,6 +28,7 @@ import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
@@ -86,6 +87,8 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   @Inject
   private UserDAO userDAO;
   @Inject
+  private Users users;
+  @Inject
   Configuration configuration;
 
   @Before
@@ -115,7 +118,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
             .addMockedMethod("loadLdapAuthenticationProvider")
             .addMockedMethod("isLdapEnabled")
-            .withConstructor(configuration, authoritiesPopulator).createMock();
+            .withConstructor(configuration, authoritiesPopulator, userDAO).createMock();
     // Create the last thrown exception
     org.springframework.security.core.AuthenticationException exception =
             createNiceMock(org.springframework.security.core.AuthenticationException.class);
@@ -151,7 +154,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
             .addMockedMethod("loadLdapAuthenticationProvider")
             .addMockedMethod("isLdapEnabled")
-            .withConstructor(configuration, authoritiesPopulator).createMock();
+            .withConstructor(configuration, authoritiesPopulator, userDAO).createMock();
     // Create the cause
     org.springframework.ldap.AuthenticationException cause =
             createNiceMock(org.springframework.ldap.AuthenticationException.class);
@@ -181,11 +184,17 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   @Test
   public void testAuthenticate() throws Exception {
     assertNull("User alread exists in DB", userDAO.findLdapUserByName("allowedUser"));
+    users.createUser("allowedUser", "password", UserType.LDAP, true, false);
+    UserEntity ldapUser = userDAO.findLdapUserByName("allowedUser");
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
-    Authentication result = authenticationProvider.authenticate(authentication);
+    
+    AmbariAuthentication result = (AmbariAuthentication) authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());
-    result = authenticationProvider.authenticate(authentication);
+    assertEquals(ldapUser.getUserId(), result.getUserId());
+
+    result = (AmbariAuthentication) authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());
+    assertEquals(ldapUser.getUserId(), result.getUserId());
   }
 
   @Test
@@ -199,7 +208,8 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   @Test
   public void testAuthenticateLoginAlias() throws Exception {
     // Given
-    assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
+    assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser@ambari.apache.org"));
+    users.createUser("allowedUser@ambari.apache.org", "password", UserType.LDAP, true, false);
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "password");
     configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
 
