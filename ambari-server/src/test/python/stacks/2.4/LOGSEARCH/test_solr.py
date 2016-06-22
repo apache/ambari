@@ -106,6 +106,9 @@ class TestSolr(RMFTestCase):
       self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:2181/logsearch -cmd clusterprop -name urlScheme -val http',
                                 user = "solr"
       )
+      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45; /usr/lib/ambari-logsearch-solr/server/scripts/cloud-scripts/zkcli.sh -zkhost c6401.ambari.apache.org:2181 -cmd put /logsearch/security.json \'{}\'',
+                                user = "solr"
+                                )
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
