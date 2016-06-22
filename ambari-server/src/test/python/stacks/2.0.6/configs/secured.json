@@ -536,6 +536,10 @@
             "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab",
             "hive.exec.scratchdir" : "/custompath/tmp/hive"
         },
+        "hiveserver2-site": {
+            "hive.metastore.metrics.enabled": "true",
+            "hive.service.metrics.reporter": "JSON_FILE, JMX, HADOOP2"
+        },
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 
             "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor", 
@@ -891,6 +895,13 @@
           "hive.optimize.bucketmapjoin.sortedmerge": "true"
         }
       },
+      "hiveserver2-site": {
+        "final": {
+          "javax.jdo.option.ConnectionPassword": "true",
+          "javax.jdo.option.ConnectionDriverName": "true",
+          "hive.optimize.bucketmapjoin.sortedmerge": "true"
+        }
+      },
       "hive-interactive-site": {
         "final": {
           "javax.jdo.option.ConnectionPassword": "true",
@@ -931,6 +942,9 @@
             "tag": "version1389972945449"
         }, 
         "hive-site": {
+            "tag": "version1389972945450"
+        },
+        "hiveserver2-site": {
             "tag": "version1389972945450"
         },
         "hive-interactive-site": {

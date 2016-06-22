@@ -459,6 +459,14 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               configurations=self.getConfig()['configurations']['hive-site'],
     )
+    self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
+      group = 'hadoop',
+      conf_dir = '/etc/hive/conf.server',
+      mode = 0644,
+      owner = 'hive',
+      configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
+      configurations = self.getConfig()['configurations']['hiveserver2-site'],
+    )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
                               content=InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner='hive',
@@ -651,6 +659,14 @@ class TestHiveServer(RMFTestCase):
                                                                    u'javax.jdo.option.ConnectionPassword': u'true'}},
                               owner='hive',
                               configurations=self.getConfig()['configurations']['hive-site'],
+    )
+    self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
+      group = 'hadoop',
+      conf_dir = '/etc/hive/conf.server',
+      mode = 0644,
+      owner = 'hive',
+      configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
+      configurations = self.getConfig()['configurations']['hiveserver2-site'],
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
                               content=InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
