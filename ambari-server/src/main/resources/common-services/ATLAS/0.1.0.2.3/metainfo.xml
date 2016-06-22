@@ -44,26 +44,6 @@
               <primary>true</primary>
             </log>
           </logs>
-          <configFile>
-            <type>properties</type>
-            <fileName>application.properties</fileName>
-            <dictionaryName>application-properties</dictionaryName>
-          </configFile>
-          <configFile>
-            <type>env</type>
-            <fileName>atlas-env.sh</fileName>
-            <dictionaryName>atlas-env</dictionaryName>
-          </configFile>
-          <configFile>
-            <type>env</type>
-            <fileName>atlas-log4j.xml</fileName>
-            <dictionaryName>atlas-log4j</dictionaryName>
-          </configFile>
-          <configFile>
-            <type>env</type>
-            <fileName>atlas-solrconfig.xml</fileName>
-            <dictionaryName>atlas-solrconfig</dictionaryName>
-          </configFile>
         </component>
 
         <component>
@@ -78,26 +58,28 @@
             <script>scripts/atlas_client.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
-          <configFile>
-            <type>properties</type>
-            <fileName>application.properties</fileName>
-            <dictionaryName>application-properties</dictionaryName>
-          </configFile>
-          <configFile>
-            <type>env</type>
-            <fileName>atlas-env.sh</fileName>
-            <dictionaryName>atlas-env</dictionaryName>
-          </configFile>
-          <configFile>
-            <type>env</type>
-            <fileName>atlas-log4j.xml</fileName>
-            <dictionaryName>atlas-log4j</dictionaryName>
-          </configFile>
-          <configFile>
-            <type>env</type>
-            <fileName>atlas-solrconfig.xml</fileName>
-            <dictionaryName>atlas-solrconfig</dictionaryName>
-          </configFile>
+          <configFiles>
+            <configFile>
+              <type>properties</type>
+              <fileName>application.properties</fileName>
+              <dictionaryName>application-properties</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>atlas-env.sh</fileName>
+              <dictionaryName>atlas-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>atlas-log4j.xml</fileName>
+              <dictionaryName>atlas-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>atlas-solrconfig.xml</fileName>
+              <dictionaryName>atlas-solrconfig</dictionaryName>
+            </configFile>
+          </configFiles>
         </component>
       </components>
 
