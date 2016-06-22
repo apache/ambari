@@ -542,7 +542,7 @@ class ActionScheduler implements Runnable {
 
     long prevStageId = stage.getStageId() - 1;
 
-    if (prevStageId > 0) {
+    if (prevStageId >= 0) {
       // Find previous stage instance
       String actionId = StageUtils.getActionId(stage.getRequestId(), prevStageId);
       Stage prevStage = db.getStage(actionId);
@@ -565,7 +565,7 @@ class ActionScheduler implements Runnable {
           }
           int hostCount = hostCountsForRoles.get(c.getRole());
           hostCountsForRoles.put(c.getRole(), hostCount + 1);
-          if (c.getStatus().isFailedState()) {
+          if (c.getStatus().isFailedAndNotSkippableState()) {
             int failedHostCount = failedHostCountsForRoles.get(c.getRole());
             failedHostCountsForRoles.put(c.getRole(), failedHostCount + 1);
           }

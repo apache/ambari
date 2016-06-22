@@ -94,6 +94,12 @@ public enum HostRoleStatus {
       SKIPPED_FAILED);
 
   /**
+   * The {@link HostRoleStatus}s that represent any commands which are
+   * considered to be "Failed" and next commands can not be executed.
+   */
+  public static EnumSet<HostRoleStatus> NOT_SKIPPABLE_FAILED_STATUSES = EnumSet.of(FAILED, TIMEDOUT, ABORTED);
+
+  /**
    * The {@link HostRoleStatus}s that represent the current commands that failed during stack upgrade.
    * This is not used to indicate commands that failed and then skipped.
    */
@@ -121,6 +127,15 @@ public enum HostRoleStatus {
    */
   public boolean isFailedState() {
     return FAILED_STATUSES.contains(this);
+  }
+
+  /**
+   * Indicates whether or not it is a valid failure state without ability to be skipped.
+   *
+   * @return true if this is a valid failure state.
+   */
+  public boolean isFailedAndNotSkippableState() {
+    return NOT_SKIPPABLE_FAILED_STATUSES.contains(this);
   }
 
   /**

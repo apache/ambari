@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -30,6 +34,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2602,6 +2607,101 @@ public class TestActionScheduler {
     Assert.assertEquals(HostRoleStatus.PENDING,
         stages.get(1).getHostRoleStatus(hostname1, "DATANODE"));
 
+  }
+
+  @Test
+  public void testSkippableCommandFailureDoesNotAbortNextStage() throws Exception {
+    Stage previousStage = createMock(Stage.class);
+    Stage nextStage = createMock(Stage.class);
+    ActionDBAccessor actionDBAccessor = createMock(ActionDBAccessor.class);
+
+    expect(previousStage.isSkippable()).andReturn(false);
+
+    expect(nextStage.getStageId()).andReturn(5L);
+    expect(nextStage.getRequestId()).andReturn(1L);
+    expect(actionDBAccessor.getStage("1-4")).andReturn(previousStage);
+
+    Map<String, HostRoleCommand> roleCommandMap = new HashMap<>();
+    HostRoleCommand hostRoleCommand = createMock(HostRoleCommand.class);
+    expect(hostRoleCommand.getRole()).andReturn(Role.DATANODE).anyTimes();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.SKIPPED_FAILED);
+
+    roleCommandMap.put(Role.DATANODE.toString(), hostRoleCommand);
+
+    Map<String, Map<String, HostRoleCommand>> hostRoleCommands = new HashMap<>();
+    hostRoleCommands.put("host", roleCommandMap);
+
+    expect(previousStage.getHostRoleCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(previousStage.getSuccessFactor(Role.DATANODE)).andReturn(0.5F);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, actionDBAccessor, null, null, 3,
+      new HostsMap((String) null), null, null, null);
+
+    replay(previousStage, nextStage, actionDBAccessor, hostRoleCommand);
+
+    Method method = scheduler.getClass().getDeclaredMethod("hasPreviousStageFailed", Stage.class);
+    method.setAccessible(true);
+    Object result = method.invoke(scheduler, nextStage);
+
+    assertFalse((Boolean) result);
+    EasyMock.verify(previousStage, nextStage, actionDBAccessor, hostRoleCommand);
+  }
+
+  @Test
+  public void testPreviousStageToFailForFirstStage() throws Exception {
+    Stage nextStage = createNiceMock(Stage.class);
+
+    expect(nextStage.getStageId()).andReturn(0L);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, null, null, null, 3,
+      new HostsMap((String) null), null, null, null);
+
+    replay(nextStage);
+
+    Method method = scheduler.getClass().getDeclaredMethod("hasPreviousStageFailed", Stage.class);
+    method.setAccessible(true);
+    Object result = method.invoke(scheduler, nextStage);
+
+    assertFalse((Boolean) result);
+    EasyMock.verify(nextStage);
+  }
+
+  @Test
+  public void testPreviousStageToFailForSecondStage() throws Exception {
+    Stage previousStage = createMock(Stage.class);
+    Stage nextStage = createMock(Stage.class);
+    ActionDBAccessor actionDBAccessor = createMock(ActionDBAccessor.class);
+
+    expect(previousStage.isSkippable()).andReturn(false);
+
+    expect(nextStage.getStageId()).andReturn(1L);
+    expect(nextStage.getRequestId()).andReturn(1L);
+    expect(actionDBAccessor.getStage("1-0")).andReturn(previousStage);
+
+    Map<String, HostRoleCommand> roleCommandMap = new HashMap<>();
+    HostRoleCommand hostRoleCommand = createMock(HostRoleCommand.class);
+    expect(hostRoleCommand.getRole()).andReturn(Role.DATANODE).anyTimes();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.FAILED);
+
+    roleCommandMap.put(Role.DATANODE.toString(), hostRoleCommand);
+
+    Map<String, Map<String, HostRoleCommand>> hostRoleCommands = new HashMap<>();
+    hostRoleCommands.put("host", roleCommandMap);
+
+    expect(previousStage.getHostRoleCommands()).andReturn(hostRoleCommands).anyTimes();
+    expect(previousStage.getSuccessFactor(Role.DATANODE)).andReturn(0.5F);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, actionDBAccessor, null, null, 3,
+      new HostsMap((String) null), null, null, null);
+
+    replay(previousStage, nextStage, actionDBAccessor, hostRoleCommand);
+
+    Method method = scheduler.getClass().getDeclaredMethod("hasPreviousStageFailed", Stage.class);
+    method.setAccessible(true);
+    Object result = method.invoke(scheduler, nextStage);
+
+    assertTrue((Boolean) result);
+    EasyMock.verify(previousStage, nextStage, actionDBAccessor, hostRoleCommand);
   }
 
   public static class MockModule extends AbstractModule {
