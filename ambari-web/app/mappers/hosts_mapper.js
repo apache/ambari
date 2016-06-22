@@ -189,7 +189,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           }
         });
         var parsedItem = this.parseIt(item, this.config);
-        parsedItem.is_requested = true;
+
         parsedItem.last_heart_beat_time = App.dateTimeWithTimeZone(parsedItem.last_heart_beat_time);
         parsedItem.selected = selectedHosts.contains(parsedItem.host_name);
         parsedItem.not_started_components = notStartedComponents;
@@ -237,16 +237,14 @@ App.hostsMapper = App.QuickDataMapper.create({
    */
   setMetrics: function (data) {
     var hosts = this.get('model').find();
-    for (var i = 0; i < hosts.length; i++) {
-      var host = hosts[i];
-      if (host.get('isRequested')) {
-        var hostMetrics = data.items.findProperty('Hosts.host_name', host.get('hostName'));
-        host.setProperties({
-          diskTotal: Em.get(hostMetrics, 'metrics.disk.disk_total'),
-          diskFree: Em.get(hostMetrics, 'metrics.disk.disk_free'),
-          loadOne: Em.get(hostMetrics, 'metrics.load.load_one')
-        });
-      }
+    for (var i = 0; i < hosts.content.length; i++) {
+      var host = hosts.objectAt(i);
+      var hostMetrics = data.items.findProperty('Hosts.host_name', host.get('hostName'));
+      host.setProperties({
+        diskTotal: Em.get(hostMetrics, 'metrics.disk.disk_total'),
+        diskFree: Em.get(hostMetrics, 'metrics.disk.disk_free'),
+        loadOne: Em.get(hostMetrics, 'metrics.load.load_one')
+      });
     }
   }
 });
