@@ -63,7 +63,7 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
 
     UserEntity userEntity = userDAO.findLocalUserByName(userName);
 
-    if (userEntity == null || !StringUtils.equals(userEntity.getUserName(), userName)) {
+    if (userEntity == null) {
       //TODO case insensitive name comparison is a temporary solution, until users API will change to use id as PK
       LOG.info("user not found ");
       throw new UsernameNotFoundException("Username " + userName + " not found");

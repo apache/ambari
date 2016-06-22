@@ -22,6 +22,7 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.User;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,13 +44,13 @@ public class SecurityHelperImplTest {
     SecurityContext ctx = SecurityContextHolder.getContext();
     UserEntity userEntity = new UserEntity();
     userEntity.setPrincipal(new PrincipalEntity());
-    userEntity.setUserName("userName");
+    userEntity.setUserName("username"); // with user entity, always use lower case
     userEntity.setUserId(1);
     User user = new User(userEntity);
     Authentication auth = new AmbariUserAuthentication(null, user, null);
     ctx.setAuthentication(auth);
 
-    Assert.assertEquals("userName", SecurityHelperImpl.getInstance().getCurrentUserName());
+    Assert.assertEquals("username", SecurityHelperImpl.getInstance().getCurrentUserName());
   }
 
   @Test

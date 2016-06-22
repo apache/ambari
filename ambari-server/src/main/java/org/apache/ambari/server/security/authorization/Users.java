@@ -263,57 +263,30 @@ public class Users {
    * @throws AmbariException if user already exists
    */
   public void createUser(String userName, String password) throws AmbariException {
-    createUser(userName, password, true, false, false);
+    createUser(userName, password, UserType.LOCAL, true, false);
   }
 
   /**
-   * Creates new local user with provided userName and password.
+   * Creates new user with provided userName and password.
    *
    * @param userName user name
    * @param password password
+   * @param userType user type
    * @param active is user active
    * @param admin is user admin
-   * @param ldapUser is user LDAP
    * @throws AmbariException if user already exists
    */
-  public synchronized void createUser(String userName, String password, Boolean active, Boolean admin, Boolean ldapUser) throws AmbariException {
-
-    if (getAnyUser(userName) != null) {
-      throw new AmbariException("User " + userName + " already exists");
-    }
-
-    // create an admin principal to represent this user
-    PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
-    if (principalTypeEntity == null) {
-      principalTypeEntity = new PrincipalTypeEntity();
-      principalTypeEntity.setId(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
-      principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
-      principalTypeDAO.create(principalTypeEntity);
-    }
-    PrincipalEntity principalEntity = new PrincipalEntity();
-    principalEntity.setPrincipalType(principalTypeEntity);
-    principalDAO.create(principalEntity);
-
-    UserEntity userEntity = new UserEntity();
-    userEntity.setUserName(userName);
-    userEntity.setUserPassword(passwordEncoder.encode(password));
-    userEntity.setPrincipal(principalEntity);
-    if (active != null) {
-      userEntity.setActive(active);
-    }
-    if (ldapUser != null) {
-      userEntity.setLdapUser(ldapUser);
-    }
-
-    userDAO.create(userEntity);
-
-    if (admin != null && admin) {
-      grantAdminPrivilege(userEntity.getUserId());
-    }
-  }
-
   public synchronized void createUser(String userName, String password, UserType userType, Boolean active, Boolean
       admin) throws AmbariException {
+    // if user type is not provided, assume LOCAL since the default
+    // value of user_type in the users table is LOCAL
+    if (userType == null) {
+      throw new AmbariException("UserType not specified.");
+    }
+
+    // store user name in lower case
+    userName = StringUtils.lowerCase(userName);
+
     if (getUser(userName, userType) != null) {
       throw new AmbariException("User " + userName + " already exists");
     }
@@ -331,7 +304,7 @@ public class Users {
 
     UserEntity userEntity = new UserEntity();
     userEntity.setUserName(userName);
-    if (userType == null || userType == UserType.LOCAL) {
+    if (userType == UserType.LOCAL) {
       //passwords should be stored for local users only
       userEntity.setUserPassword(passwordEncoder.encode(password));
     }
@@ -339,8 +312,10 @@ public class Users {
     if (active != null) {
       userEntity.setActive(active);
     }
-    if (userType != null) {
-      userEntity.setUserType(userType);
+
+    userEntity.setUserType(userType);
+    if (userType == UserType.LDAP) {
+      userEntity.setLdapUser(true);
     }
 
     userDAO.create(userEntity);

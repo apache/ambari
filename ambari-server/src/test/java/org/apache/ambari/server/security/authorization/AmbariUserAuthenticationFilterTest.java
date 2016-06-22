@@ -23,6 +23,7 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenClientFilter;
 import org.apache.ambari.server.security.authorization.internal.InternalTokenStorage;
+import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +52,7 @@ import static org.junit.Assert.assertNull;
 public class AmbariUserAuthenticationFilterTest {
   private static final String TEST_INTERNAL_TOKEN = "test token";
   private static final String TEST_USER_ID_HEADER = "1";
-  private static final String TEST_USER_NAME = "userName";
+  private static final String TEST_USER_NAME = "username"; // use lower case with user entity
   private static final int TEST_USER_ID = 1;
 
   @Before

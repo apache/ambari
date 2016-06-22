@@ -26,7 +26,9 @@ import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.security.core.GrantedAuthority;
+
 
 /**
  * Describes user of web-services
@@ -44,7 +46,7 @@ public class User {
 
   public User(UserEntity userEntity) {
     userId = userEntity.getUserId();
-    userName = userEntity.getUserName();
+    userName = StringUtils.lowerCase(userEntity.getUserName()); // normalize to lower case
     createTime = userEntity.getCreateTime();
     userType = userEntity.getUserType();
     ldapUser = userEntity.getLdapUser();
