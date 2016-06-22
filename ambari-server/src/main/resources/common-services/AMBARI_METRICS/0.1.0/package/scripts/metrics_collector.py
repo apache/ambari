@@ -95,6 +95,11 @@ class AmsCollectorDefault(AmsCollector):
     security_params = get_params_from_filesystem(status_params.ams_hbase_conf_dir,
                                                  {'hbase-site.xml': FILE_TYPE_XML})
 
+    # In case of blueprint deployment security_status might be called before AMS collector is installed.
+    if ('hbase-site' not in security_params or 'hbase.cluster.distributed' not in security_params['hbase-site']) :
+      self.put_structured_out({"securityState": "UNKNOWN"})
+      return
+
     is_hbase_distributed = security_params['hbase-site']['hbase.cluster.distributed']
     # for embedded mode, when HBase is backed by file, security state is SECURED_KERBEROS by definition when cluster is secured
     if status_params.security_enabled and not is_hbase_distributed:

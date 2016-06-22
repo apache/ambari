@@ -374,6 +374,7 @@ class TestMetricsCollector(RMFTestCase):
                                   owner = 'ams',
                                   action = ['delete']
         )
+        
     self.assertResourceCalled('File', '/etc/ams-hbase/conf/log4j.properties',
                               owner = 'ams',
                               group = 'hadoop',
