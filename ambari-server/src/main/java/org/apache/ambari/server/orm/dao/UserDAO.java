@@ -37,6 +37,8 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.security.authorization.UserType;
 
+import org.apache.commons.lang.StringUtils;
+
 @Singleton
 public class UserDAO {
 
@@ -75,7 +77,7 @@ public class UserDAO {
   @RequiresSession
   public UserEntity findUserByNameAndType(String userName, UserType userType) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user WHERE " +
-        "user.userType=:type AND user.userName=:name", UserEntity.class);
+        "user.userType=:type AND lower(user.userName)=lower(:name)", UserEntity.class); // do case insensitive compare
     query.setParameter("type", userType);
     query.setParameter("name", userName);
     try {

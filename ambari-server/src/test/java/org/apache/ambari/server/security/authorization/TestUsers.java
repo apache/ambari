@@ -160,8 +160,8 @@ public class TestUsers {
 
   @Test
   public void testGetAnyUser() throws Exception {
-    users.createUser("user", "user", true, false, false);
-    users.createUser("user_ldap", "user_ldap", true, false, true);
+    users.createUser("user", "user", UserType.LOCAL, true, false);
+    users.createUser("user_ldap", "user_ldap", UserType.LDAP, true, false);
 
     assertEquals("user", users.getAnyUser("user").getUserName());
     assertEquals("user_ldap", users.getAnyUser("user_ldap").getUserName());
@@ -169,8 +169,18 @@ public class TestUsers {
   }
 
   @Test
+  public void testGetAnyUserCaseInsensitive() throws Exception {
+    users.createUser("user", "user", UserType.LOCAL, true, false);
+    users.createUser("user_ldap", "user_ldap", UserType.LDAP, true, false);
+
+    assertEquals("user", users.getAnyUser("USER").getUserName());
+    assertEquals("user_ldap", users.getAnyUser("USER_LDAP").getUserName());
+    Assert.assertNull(users.getAnyUser("non_existing"));
+  }
+
+  @Test
   public void testGetUserById() throws Exception {
-    users.createUser("user", "user", true, false, false);
+    users.createUser("user", "user", UserType.LOCAL, true, false);
     User createdUser = users.getUser("user", UserType.LOCAL);
     User userById = users.getUser(createdUser.getUserId());
 
@@ -204,7 +214,7 @@ public class TestUsers {
   @Test
   public void testSetUserLdap() throws Exception {
     users.createUser("user", "user");
-    users.createUser("user_ldap", "user_ldap", true, false, true);
+    users.createUser("user_ldap", "user_ldap", UserType.LDAP, true, false);
 
     users.setUserLdap("user");
     Assert.assertEquals(true, users.getAnyUser("user").isLdapUser());
@@ -388,7 +398,7 @@ public class TestUsers {
 
   @Test
   public void testModifyPassword_UserByAdmin() throws Exception {
-    users.createUser("admin", "admin", true, true, false);
+    users.createUser("admin", "admin", UserType.LOCAL, true, true);
     users.createUser("user", "user");
 
     UserEntity userEntity = userDAO.findUserByName("user");
@@ -416,12 +426,12 @@ public class TestUsers {
   public void testCreateUserDefaultParams() throws Exception {
     final Users spy = Mockito.spy(users);
     spy.createUser("user", "user");
-    Mockito.verify(spy).createUser("user", "user", true, false, false);
+    Mockito.verify(spy).createUser("user", "user", UserType.LOCAL, true, false);
   }
 
   @Test
   public void testCreateUserFiveParams() throws Exception {
-    users.createUser("user", "user", false, false, false);
+    users.createUser("user", "user", UserType.LOCAL, false, false);
 
     final User createdUser = users.getAnyUser("user");
     Assert.assertEquals("user", createdUser.getUserName());
@@ -429,7 +439,7 @@ public class TestUsers {
     Assert.assertEquals(false, createdUser.isLdapUser());
     Assert.assertEquals(false, createdUser.isAdmin());
 
-    users.createUser("user2", "user2", true, true, true);
+    users.createUser("user2", "user2", UserType.LDAP, true, true);
     final User createdUser2 = users.getAnyUser("user2");
     Assert.assertEquals("user2", createdUser2.getUserName());
     Assert.assertEquals(true, createdUser2.isActive());
@@ -441,6 +451,12 @@ public class TestUsers {
   public void testCreateUserDuplicate() throws Exception {
     users.createUser("user", "user");
     users.createUser("user", "user");
+  }
+
+  @Test(expected = AmbariException.class)
+  public void testCreateUserDuplicateCaseInsensitive() throws Exception {
+    users.createUser("user", "user");
+    users.createUser("USER", "user");
   }
 
   @Test
@@ -468,7 +484,7 @@ public class TestUsers {
 
   @Test
   public void testRevokeAdminPrivilege() throws Exception {
-    users.createUser("admin", "admin", true, true, false);
+    users.createUser("admin", "admin", UserType.LOCAL, true, true);
 
     final User admin = users.getAnyUser("admin");
     users.revokeAdminPrivilege(admin.getUserId());
@@ -478,8 +494,8 @@ public class TestUsers {
 
   @Test
   public void testIsUserCanBeRemoved() throws Exception {
-    users.createUser("admin", "admin", true, true, false);
-    users.createUser("admin2", "admin2", true, true, false);
+    users.createUser("admin", "admin", UserType.LOCAL, true, true);
+    users.createUser("admin2", "admin2", UserType.LOCAL, true, true);
 
     Assert.assertTrue(users.isUserCanBeRemoved(userDAO.findUserByName("admin")));
     Assert.assertTrue(users.isUserCanBeRemoved(userDAO.findUserByName("admin2")));
@@ -490,7 +506,7 @@ public class TestUsers {
     users.createUser("user", "user");
     Assert.assertFalse(users.isUserCanBeRemoved(userDAO.findUserByName("admin2")));
 
-    users.createUser("admin3", "admin3", true, true, false);
+    users.createUser("admin3", "admin3", UserType.LOCAL, true, true);
     Assert.assertTrue(users.isUserCanBeRemoved(userDAO.findUserByName("admin2")));
     Assert.assertTrue(users.isUserCanBeRemoved(userDAO.findUserByName("admin3")));
   }

@@ -2357,17 +2357,17 @@ public class UpgradeCatalog240Test {
     final Users users = createMock(Users.class);
 
     RequestScheduleEntity requestScheduleEntity = new RequestScheduleEntity();
-    requestScheduleEntity.setCreateUser("createdUser");
+    requestScheduleEntity.setCreateUser("createduser"); // use lower case user name with request schedule entity
     requestScheduleEntity.setClusterId(1L);
 
     expect(requestScheduleDAO.findAll()).andReturn(Collections.singletonList(requestScheduleEntity)).once();
 
     UserEntity userEntity = new UserEntity();
-    userEntity.setUserName("createdUser");
+    userEntity.setUserName("createduser"); // use lower case user name with user entity
     userEntity.setUserId(1);
     userEntity.setPrincipal(new PrincipalEntity());
     User user = new User(userEntity);
-    expect(users.getUserIfUnique("createdUser")).andReturn(user).once();
+    expect(users.getUserIfUnique("createduser")).andReturn(user).once();
 
     expect(requestScheduleDAO.merge(requestScheduleEntity)).andReturn(requestScheduleEntity).once();
 

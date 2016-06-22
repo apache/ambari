@@ -128,6 +128,7 @@ import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -917,7 +918,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException("Username and password must be supplied.");
       }
 
-      users.createUser(request.getUsername(), request.getPassword(), request.isActive(), request.isAdmin(), false);
+      users.createUser(request.getUsername(), request.getPassword(), UserType.LOCAL, request.isActive(), request.isAdmin());
     }
   }
 
