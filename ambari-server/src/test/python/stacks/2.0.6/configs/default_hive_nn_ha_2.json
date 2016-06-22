@@ -254,6 +254,10 @@
           "hive.optimize.mapjoin.mapreduce": "true",
           "hive.exec.scratchdir" : "hdfs://mycluster/tmp/hive2"
         },
+        "hiveserver2-site": {
+            "hive.metastore.metrics.enabled": "true",
+            "hive.service.metrics.reporter": "JSON_FILE, JMX, HADOOP2"
+        },
         "ranger-hive-plugin-properties": {
             "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900", 
             "XAAUDIT.HDFS.DESTINATION_DIRECTORY": "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/%app-type%/%time:yyyyMMdd%", 
@@ -552,6 +556,13 @@
           "hive.optimize.bucketmapjoin.sortedmerge": "true"
         }
       },
+      "hiveserver2-site": {
+        "final": {
+          "javax.jdo.option.ConnectionPassword": "true",
+          "javax.jdo.option.ConnectionDriverName": "true",
+          "hive.optimize.bucketmapjoin.sortedmerge": "true"
+        }
+      },
       "hive-interactive-site": {
         "final": {
           "javax.jdo.option.ConnectionPassword": "true",
@@ -592,6 +603,9 @@
             "tag": "version1"
         }, 
         "hive-site": {
+            "tag": "version1"
+        },
+        "hiveserver2-site": {
             "tag": "version1"
         },
         "hive-interactive-site": {

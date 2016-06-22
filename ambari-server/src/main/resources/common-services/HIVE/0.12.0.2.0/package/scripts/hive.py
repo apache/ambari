@@ -229,7 +229,7 @@ def hive(name=None):
 
   setup_atlas_hive()
   
-  if params.hive_specific_configs_supported and name == 'hiveserver2':
+  if name == 'hiveserver2':
     XmlConfig("hiveserver2-site.xml",
               conf_dir=params.hive_server_conf_dir,
               configurations=params.config['configurations']['hiveserver2-site'],

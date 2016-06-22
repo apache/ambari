@@ -116,7 +116,6 @@ if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_unfor
   hive_server2_hive2_version_lib = format('{hive_server2_hive2_version_dir}/lib')
 
 
-hive_specific_configs_supported = True
 hive_interactive_bin = format('{stack_root}/current/{component_directory_interactive}/bin')
 hive_interactive_lib = format('{stack_root}/current/{component_directory_interactive}/lib')
 
@@ -129,7 +128,6 @@ pig_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/pig.tar.gz')
 hive_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/hive.tar.gz')
 sqoop_tar_file = format('/usr/share/{stack_name_uppercase}-webhcat/sqoop*.tar.gz')
 
-hive_specific_configs_supported = False
 hive_metastore_site_supported = False
 hive_etc_dir_prefix = "/etc/hive"
 hive_interactive_etc_dir_prefix = "/etc/hive2"
