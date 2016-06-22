@@ -117,6 +117,7 @@
     </group>
 
     <group name="ZOOKEEPER" title="ZooKeeper">
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
       </service>

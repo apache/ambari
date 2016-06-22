@@ -168,7 +168,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public Stage getStage(String actionId) {
     StageEntity stageEntity = stageDAO.findByActionId(actionId);
-    return stageFactory.createExisting(stageEntity);
+    return stageEntity == null ? null : stageFactory.createExisting(stageEntity);
   }
 
   /* (non-Javadoc)
