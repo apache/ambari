@@ -440,7 +440,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
     time.sleep(.1)
 
-    orchestrator.cancel_command(19,'')
+    orchestrator.cancel_command(19,'reason')
     self.assertTrue(kill_process_with_children_mock.called)
     kill_process_with_children_mock.assert_called_with(33)
 
