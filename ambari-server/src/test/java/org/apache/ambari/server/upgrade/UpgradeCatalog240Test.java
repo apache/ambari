@@ -19,6 +19,27 @@
 package org.apache.ambari.server.upgrade;
 
 
+import javax.persistence.EntityManager;
+import junit.framework.Assert;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -52,6 +73,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.RemoteAmbariClusterDAO;
+import org.apache.ambari.server.orm.dao.RequestScheduleDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
@@ -62,12 +84,15 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
+import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.Cluster;
@@ -108,25 +133,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 
-import junit.framework.Assert;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class UpgradeCatalog240Test {
   private static final String CAPACITY_SCHEDULER_CONFIG_TYPE = "capacity-scheduler";
@@ -192,7 +199,7 @@ public class UpgradeCatalog240Test {
     expect(dbAccessor.getConnection()).andReturn(connection);
     dbAccessor.createTable(eq("extensionlink"), capture(capturedExtensionLinkColumns), eq("link_id"));
     dbAccessor.addUniqueConstraint("extensionlink", "UQ_extension_link", "stack_id", "extension_id");
-    dbAccessor.addFKConstraint("extensionlink", "FK_extensionlink_extension_id", "extension_id", "extension", 
+    dbAccessor.addFKConstraint("extensionlink", "FK_extensionlink_extension_id", "extension_id", "extension",
                                "extension_id", false);
     dbAccessor.addFKConstraint("extensionlink", "FK_extensionlink_stack_id", "stack_id", "stack",
                                "stack_id", false);
@@ -328,6 +335,7 @@ public class UpgradeCatalog240Test {
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
       };
 
@@ -566,6 +574,7 @@ public class UpgradeCatalog240Test {
     Method removeAuthorizations = UpgradeCatalog240.class.getDeclaredMethod("removeAuthorizations");
     Method addConnectionTimeoutParamForWebAndMetricAlerts = AbstractUpgradeCatalog.class.getDeclaredMethod("addConnectionTimeoutParamForWebAndMetricAlerts");
     Method addSliderClientConfig = UpgradeCatalog240.class.getDeclaredMethod("addSliderClientConfig");
+    Method updateRequestScheduleEntityUserIds = UpgradeCatalog240.class.getDeclaredMethod("updateRequestScheduleEntityUserIds");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -608,6 +617,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(addConnectionTimeoutParamForWebAndMetricAlerts)
             .addMockedMethod(updateHBaseConfigs)
             .addMockedMethod(addSliderClientConfig)
+            .addMockedMethod(updateRequestScheduleEntityUserIds)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -645,6 +655,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.addConnectionTimeoutParamForWebAndMetricAlerts();
     upgradeCatalog240.updateHBaseConfigs();
     upgradeCatalog240.addSliderClientConfig();
+    upgradeCatalog240.updateRequestScheduleEntityUserIds();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -698,6 +709,7 @@ public class UpgradeCatalog240Test {
         binder.bind(EntityManager.class).toInstance(entityManager);
         binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -753,6 +765,7 @@ public class UpgradeCatalog240Test {
         binder.bind(EntityManager.class).toInstance(entityManager);
         binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -1447,6 +1460,7 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(OsFamily.class).toInstance(osFamily);
         bind(EntityManager.class).toInstance(entityManager);
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -1593,6 +1607,7 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(dbAccessor);
         bind(OsFamily.class).toInstance(osFamily);
         bind(EntityManager.class).toInstance(entityManager);
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -1647,6 +1662,7 @@ public class UpgradeCatalog240Test {
         bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -1854,6 +1870,7 @@ public class UpgradeCatalog240Test {
         bind(ClusterDAO.class).toInstance(clusterDAO);
         bind(DBAccessor.class).toInstance(ems.createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(ems.createNiceMock(OsFamily.class));
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -1911,6 +1928,7 @@ public class UpgradeCatalog240Test {
         bind(WidgetDAO.class).toInstance(widgetDAO);
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -1967,6 +1985,7 @@ public class UpgradeCatalog240Test {
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(RemoteAmbariClusterDAO.class).toInstance(clusterDAO);
         bind(ViewInstanceDAO.class).toInstance(instanceDAO);
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -2117,6 +2136,7 @@ public class UpgradeCatalog240Test {
         bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
       }
     });
 
@@ -2239,6 +2259,7 @@ public class UpgradeCatalog240Test {
       @Override
       protected void configure() {
         bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(PasswordEncoder.class).toInstance(createMock(PasswordEncoder.class));
         bind(Clusters.class).toInstance(mockClusters);
         bind(EntityManager.class).toInstance(entityManager);
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
@@ -2267,5 +2288,84 @@ public class UpgradeCatalog240Test {
   }
 
 
+
+  @Test
+  public void testUpdateRequestScheduleEntityUserIds() throws Exception{
+    final RequestScheduleDAO requestScheduleDAO = createMock(RequestScheduleDAO.class);
+    final Users users = createMock(Users.class);
+
+    RequestScheduleEntity requestScheduleEntity = new RequestScheduleEntity();
+    requestScheduleEntity.setCreateUser("createdUser");
+    requestScheduleEntity.setClusterId(1L);
+
+    expect(requestScheduleDAO.findAll()).andReturn(Collections.singletonList(requestScheduleEntity)).once();
+
+    UserEntity userEntity = new UserEntity();
+    userEntity.setUserName("createdUser");
+    userEntity.setUserId(1);
+    userEntity.setPrincipal(new PrincipalEntity());
+    User user = new User(userEntity);
+    expect(users.getUserIfUnique("createdUser")).andReturn(user).once();
+
+    expect(requestScheduleDAO.merge(requestScheduleEntity)).andReturn(requestScheduleEntity).once();
+
+    final Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(RequestScheduleDAO.class).toInstance(requestScheduleDAO);
+        bind(Users.class).toInstance(users);
+        bind(PasswordEncoder.class).toInstance(createMock(PasswordEncoder.class));
+        bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(EntityManager.class).toInstance(entityManager);
+      }
+    });
+
+    UpgradeCatalog240 upgradeCatalog240 = new UpgradeCatalog240(injector);
+
+    replay(requestScheduleDAO, users);
+
+    upgradeCatalog240.updateRequestScheduleEntityUserIds();
+
+    verify(requestScheduleDAO, users);
+
+    assertEquals(Integer.valueOf(1), requestScheduleEntity.getAuthenticatedUserId());
+  }
+
+  @Test
+  public void testUpdateRequestScheduleEntityWithUnuniqueUser() throws Exception{
+    final RequestScheduleDAO requestScheduleDAO = createMock(RequestScheduleDAO.class);
+    final Users users = createMock(Users.class);
+
+    RequestScheduleEntity requestScheduleEntity = new RequestScheduleEntity();
+    requestScheduleEntity.setCreateUser("createdUser");
+    requestScheduleEntity.setClusterId(1L);
+
+    expect(requestScheduleDAO.findAll()).andReturn(Collections.singletonList(requestScheduleEntity)).once();
+
+    expect(users.getUserIfUnique("createdUser")).andReturn(null).once();
+
+    final Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(RequestScheduleDAO.class).toInstance(requestScheduleDAO);
+        bind(Users.class).toInstance(users);
+        bind(PasswordEncoder.class).toInstance(createMock(PasswordEncoder.class));
+        bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(EntityManager.class).toInstance(entityManager);
+      }
+    });
+
+    UpgradeCatalog240 upgradeCatalog240 = new UpgradeCatalog240(injector);
+
+    replay(requestScheduleDAO, users);
+
+    upgradeCatalog240.updateRequestScheduleEntityUserIds();
+
+    verify(requestScheduleDAO, users);
+
+    assertEquals(null, requestScheduleEntity.getAuthenticatedUserId());
+  }
 }
 

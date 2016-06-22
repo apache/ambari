@@ -124,6 +124,29 @@ public class Users {
   }
 
   /**
+   * Retrieves User then userName is unique in users DB. Will return null if there no user with provided userName or
+   * there are some users with provided userName but with different types.
+   * @param userName
+   * @return User if userName is unique in DB, null otherwise
+   */
+  public User getUserIfUnique(String userName) {
+    List<UserEntity> userEntities = new ArrayList<>();
+    UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.LOCAL);
+    if (userEntity != null) {
+      userEntities.add(userEntity);
+    }
+    userEntity = userDAO.findUserByNameAndType(userName, UserType.LDAP);
+    if (userEntity != null) {
+      userEntities.add(userEntity);
+    }
+    userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
+    if (userEntity != null) {
+      userEntities.add(userEntity);
+    }
+    return (userEntities.isEmpty() || userEntities.size() > 1) ? null : new User(userEntities.get(0));
+  }
+
+  /**
    * Modifies password of local user
    * @throws AmbariException
    */

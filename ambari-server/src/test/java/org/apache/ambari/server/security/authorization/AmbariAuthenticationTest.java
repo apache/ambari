@@ -48,6 +48,8 @@ import static org.easymock.EasyMock.verify;
 
 public class AmbariAuthenticationTest extends EasyMockSupport {
 
+  private final Integer DEFAULT_USER_ID = 0;
+
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
 
@@ -76,7 +78,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
     };
 
     Authentication authentication = new TestingAuthenticationToken(origPrincipal, "password");
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     Object principal = ambariAuthentication.getPrincipal();
@@ -90,7 +92,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
   public void testGetPrincipal() throws Exception {
     // Given
     Authentication authentication = new TestingAuthenticationToken("user", "password");
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     Object principal = ambariAuthentication.getPrincipal();
@@ -108,7 +110,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
 
     replayAll();
 
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     verifyAll();
@@ -124,7 +126,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
     UserDetails userDetails = new User("user", "password", Collections.<GrantedAuthority>emptyList());
     Authentication authentication = new TestingAuthenticationToken(userDetails, userDetails.getPassword());
 
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     Object principal = ambariAuthentication.getPrincipal();
@@ -144,7 +146,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
 
     replayAll();
 
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     Object principal = ambariAuthentication.getPrincipal();
@@ -168,7 +170,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
       }
     };
     Authentication authentication = new TestingAuthenticationToken(origPrincipal, "password");
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     String name = ambariAuthentication.getName();
@@ -181,7 +183,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
   public void testGetName() throws Exception {
     // Given
     Authentication authentication = new TestingAuthenticationToken("user", "password");
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     String name = ambariAuthentication.getName();
@@ -199,7 +201,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
 
     replayAll();
 
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     String name = ambariAuthentication.getName();
@@ -215,7 +217,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
     UserDetails userDetails = new User("user", "password", Collections.<GrantedAuthority>emptyList());
     Authentication authentication = new TestingAuthenticationToken(userDetails, userDetails.getPassword());
 
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     String name = ambariAuthentication.getName();
@@ -235,7 +237,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
 
     replayAll();
 
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     String name = ambariAuthentication.getName();
@@ -249,7 +251,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
   public void testGetAuthorities() throws Exception {
     // Given
     Authentication authentication = new TestingAuthenticationToken("user", "password", "test_role");
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     Collection<?>  grantedAuthorities =  ambariAuthentication.getAuthorities();
@@ -265,7 +267,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
     // Given
     String passord = "password";
     Authentication authentication = new TestingAuthenticationToken("user", passord);
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     Object credentials = ambariAuthentication.getCredentials();
@@ -279,7 +281,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
     // Given
     TestingAuthenticationToken authentication = new TestingAuthenticationToken("user", "password");
     authentication.setDetails("test auth details");
-    Authentication ambariAuthentication = new AmbariAuthentication(authentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(authentication, DEFAULT_USER_ID);
 
     // When
     Object authDetails = ambariAuthentication.getDetails();
@@ -297,7 +299,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
 
     replayAll();
 
-    Authentication ambariAuthentication = new AmbariAuthentication(testAuthentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(testAuthentication, DEFAULT_USER_ID);
 
     // When
     ambariAuthentication.isAuthenticated();
@@ -314,7 +316,7 @@ public class AmbariAuthenticationTest extends EasyMockSupport {
 
     replayAll();
 
-    Authentication ambariAuthentication = new AmbariAuthentication(testAuthentication);
+    Authentication ambariAuthentication = new AmbariAuthentication(testAuthentication, DEFAULT_USER_ID);
 
     // When
     ambariAuthentication.setAuthenticated(true);

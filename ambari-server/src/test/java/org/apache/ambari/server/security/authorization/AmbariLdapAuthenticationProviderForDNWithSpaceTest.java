@@ -72,6 +72,8 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
   @Inject
   private UserDAO userDAO;
   @Inject
+  private Users users;
+  @Inject
   Configuration configuration;
 
   @Before
@@ -96,6 +98,7 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
   @Test
   public void testAuthenticate() throws Exception {
     assertNull("User alread exists in DB", userDAO.findLdapUserByName("the allowedUser"));
+    users.createUser("the allowedUser", "password", UserType.LDAP, true, false);
     Authentication authentication = new UsernamePasswordAuthenticationToken("the allowedUser", "password");
     Authentication result = authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());

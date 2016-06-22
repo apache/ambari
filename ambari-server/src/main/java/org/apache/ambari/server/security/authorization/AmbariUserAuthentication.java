@@ -21,7 +21,7 @@ import org.springframework.security.core.Authentication;
 
 import java.util.Collection;
 
-public class AmbariUserAuthentication implements Authentication {
+public class AmbariUserAuthentication implements Authentication, UserIdAuthentication {
 
   private String serializedToken;
   private User user;
@@ -67,5 +67,10 @@ public class AmbariUserAuthentication implements Authentication {
   @Override
   public String getName() {
     return user.getUserName();
+  }
+
+  @Override
+  public Integer getUserId() {
+    return user.getUserId();
   }
 }

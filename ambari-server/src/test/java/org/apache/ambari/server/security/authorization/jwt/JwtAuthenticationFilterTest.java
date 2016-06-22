@@ -25,6 +25,7 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
@@ -178,16 +179,18 @@ public class JwtAuthenticationFilterTest {
     expect(user.getUserName()).andReturn("test-user");
     expect(user.getUserType()).andReturn(UserType.JWT);
 
+    expect(user.getUserId()).andReturn(1);
+
     replay(users, request, response, chain, filter, entryPoint, user, authority);
 
     filter.doFilter(request, response, chain);
 
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    assertEquals(1L, AuthorizationHelper.getAuthenticatedId());
+
     verify(users, request, response, chain, filter, entryPoint, user, authority);
 
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
     assertEquals(true, authentication.isAuthenticated());
-
   }
 
   @Test

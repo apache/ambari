@@ -21,12 +21,16 @@ import com.google.inject.Inject;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -44,15 +48,18 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   Configuration configuration;
 
   private AmbariLdapAuthoritiesPopulator authoritiesPopulator;
+  private UserDAO userDAO;
 
   private ThreadLocal<LdapServerProperties> ldapServerProperties = new ThreadLocal<LdapServerProperties>();
   private ThreadLocal<LdapAuthenticationProvider> providerThreadLocal = new ThreadLocal<LdapAuthenticationProvider>();
   private ThreadLocal<String> ldapUserSearchFilterThreadLocal = new ThreadLocal<>();
 
   @Inject
-  public AmbariLdapAuthenticationProvider(Configuration configuration, AmbariLdapAuthoritiesPopulator authoritiesPopulator) {
+  public AmbariLdapAuthenticationProvider(Configuration configuration,
+                                          AmbariLdapAuthoritiesPopulator authoritiesPopulator, UserDAO userDAO) {
     this.configuration = configuration;
     this.authoritiesPopulator = authoritiesPopulator;
+    this.userDAO = userDAO;
   }
 
   @Override
@@ -62,8 +69,9 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
       try {
         Authentication auth = loadLdapAuthenticationProvider(username).authenticate(authentication);
+        Integer userId = getUserId(auth);
 
-        return new AmbariAuthentication(auth);
+        return new AmbariAuthentication(auth, userId);
       } catch (AuthenticationException e) {
         LOG.debug("Got exception during LDAP authentification attempt", e);
         // Try to help in troubleshooting
@@ -180,6 +188,25 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   private String getLdapUserSearchFilter(String userName) {
     return ldapServerProperties.get()
       .getUserSearchFilter(configuration.isLdapAlternateUserSearchEnabled() && AmbariLdapUtils.isUserPrincipalNameFormat(userName));
+  }
+
+  private Integer getUserId(Authentication authentication) {
+    String userName = authentication.getName();
+
+    UserEntity userEntity = userDAO.findLdapUserByName(userName);
+
+    if (userEntity == null || !StringUtils.equals(userEntity.getUserName(), userName)) {
+      LOG.info("user not found ");
+      throw new UsernameNotFoundException("Username " + userName + " not found");
+    }
+
+    if (!userEntity.getActive()) {
+      LOG.debug("User account is disabled");
+
+      throw new DisabledException("Username " + userName + " is disabled");
+    }
+
+    return userEntity.getUserId();
   }
 
 }
