@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -141,6 +142,12 @@ public class ActionManager {
       return;
     }
 
+    Collections.sort(reports, new Comparator<CommandReport>() {
+      @Override
+      public int compare(CommandReport o1, CommandReport o2) {
+        return (int) (o1.getTaskId()-o2.getTaskId());
+      }
+    });
     List<CommandReport> reportsToProcess = new ArrayList<CommandReport>();
     Iterator<HostRoleCommand> commandIterator = commands.iterator();
     //persist the action response into the db.
