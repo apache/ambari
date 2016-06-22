@@ -80,20 +80,21 @@ def setup_logsearch_solr(name = None):
          )
     zk_cli_prefix = format('export JAVA_HOME={java64_home}; {cloud_scripts}/zkcli.sh -zkhost {zookeeper_quorum}')
     create_ambari_solr_znode(zk_cli_prefix)
-    if params.logsearch_solr_ssl_enabled:
-      Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val https'),
-              user=params.logsearch_solr_user
-              )
+
+    url_scheme = 'https' if params.logsearch_solr_ssl_enabled else 'http'
+    Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val {url_scheme}'),
+            user=params.logsearch_solr_user)
+
+    if params.security_enabled:
+      File(format("{logsearch_solr_jaas_file}"),
+           content=Template("logsearch_solr_jaas.conf.j2"),
+           owner=params.logsearch_solr_user)
+      security_content = '\'{"authentication":{"class": "org.apache.solr.security.KerberosPlugin"}}\''
     else:
-      Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val http'),
-              user=params.logsearch_solr_user
-              )
-      if params.security_enabled:
-        File(format("{logsearch_solr_jaas_file}"),
-             content=Template("logsearch_solr_jaas.conf.j2"),
-             owner=params.logsearch_solr_user)
-        security_content = '\'{"authentication":{"class": "org.apache.solr.security.KerberosPlugin"}}\''
-        Execute(format('{zk_cli_prefix} -cmd put {logsearch_solr_znode}/security.json ') + security_content)
+      security_content = '\'{}\''
+    Execute(format('{zk_cli_prefix} -cmd put {logsearch_solr_znode}/security.json ') + security_content,
+            user=params.logsearch_solr_user)
+
   elif name == 'client':
     solr_cloud_util.setup_solr_client(params.config)
     if params.security_enabled:
