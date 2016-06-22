@@ -114,7 +114,7 @@ public class ServiceComponentDesiredStateEntity {
    */
   @OneToMany(
       mappedBy = "m_serviceComponentDesiredStateEntity",
-      cascade = { CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE })
+      cascade = { CascadeType.ALL })
   private Collection<ServiceComponentHistoryEntity> serviceComponentHistory;
 
   public Long getId() {
@@ -171,7 +171,7 @@ public class ServiceComponentDesiredStateEntity {
 
   /**
    * Adds a historical entry for the version of this service component. New
-   * entries are automatically created when this entities is merged via a
+   * entries are automatically created when this entity is merged via a
    * {@link CascadeType#MERGE}.
    *
    * @param historicalEntry
@@ -183,10 +183,7 @@ public class ServiceComponentDesiredStateEntity {
     }
 
     serviceComponentHistory.add(historicalEntry);
-
-    if (!equals(historicalEntry.getServiceComponentDesiredState())) {
-      historicalEntry.setServiceComponentDesiredState(this);
-    }
+    historicalEntry.setServiceComponentDesiredState(this);
   }
 
   /**
