@@ -25,20 +25,6 @@
         <component>
           <name>ATLAS_SERVER</name>
           <cardinality>1+</cardinality>
-          <configFile>
-            <type>properties</type>
-            <fileName>atlas-application.properties</fileName>
-            <dictionaryName>application-properties</dictionaryName>
-          </configFile>
-        </component>
-
-        <component>
-          <name>ATLAS_CLIENT</name>
-          <configFile>
-            <type>properties</type>
-            <fileName>atlas-application.properties</fileName>
-            <dictionaryName>application-properties</dictionaryName>
-          </configFile>
         </component>
       </components>
 
