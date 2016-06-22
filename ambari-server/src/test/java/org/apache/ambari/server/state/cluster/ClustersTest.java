@@ -42,6 +42,7 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -499,7 +500,7 @@ public class ClustersTest {
 
     Map<String, HostGroupInfo> hostGroups = Maps.newHashMap();
 
-    TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
+    ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
     expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
@@ -653,7 +654,7 @@ public class ClustersTest {
     hostGroupInfo.addHost(hostName + "3");
     hostGroups.put(groupName, hostGroupInfo);
 
-    TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
+    ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
     expect(topologyRequest.getType()).andReturn(TopologyRequest.Type.PROVISION).anyTimes();
     expect(topologyRequest.getBlueprint()).andReturn(bp).anyTimes();
     expect(topologyRequest.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
