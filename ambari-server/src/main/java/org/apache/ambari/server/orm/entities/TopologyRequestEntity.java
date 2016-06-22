@@ -21,6 +21,8 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -33,6 +35,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import java.util.Collection;
+
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 @Entity
 @Table(name = "topology_request")
@@ -75,6 +79,10 @@ public class TopologyRequestEntity {
 
   @OneToOne(mappedBy = "topologyRequestEntity", cascade = CascadeType.ALL)
   private TopologyLogicalRequestEntity topologyLogicalRequestEntity;
+
+  @Column(name = "provision_action", nullable = true)
+  @Enumerated(EnumType.STRING)
+  private ProvisionAction provisionAction;
 
   public Long getId() {
     return id;
@@ -146,6 +154,14 @@ public class TopologyRequestEntity {
 
   public void setTopologyLogicalRequestEntity(TopologyLogicalRequestEntity topologyLogicalRequestEntity) {
     this.topologyLogicalRequestEntity = topologyLogicalRequestEntity;
+  }
+
+  public ProvisionAction getProvisionAction() {
+    return provisionAction;
+  }
+
+  public void setProvisionAction(ProvisionAction provisionAction) {
+    this.provisionAction = provisionAction;
   }
 
   @Override
