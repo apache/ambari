@@ -28,6 +28,11 @@
           }
         }
       ],
+      "components": [
+        {
+          "name": "ZEPPELIN_MASTER"
+        }
+      ],
       "configurations": [
         {
           "zeppelin-env": {
