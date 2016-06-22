@@ -91,7 +91,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_WARNING)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue("File not found, {0}".format(DATA_DIR_MOUNT_HIST_FILE_PATH) in messages[0])
+    self.assertTrue("{0} was not found".format(DATA_DIR_MOUNT_HIST_FILE_PATH) in messages[0])
 
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
@@ -117,7 +117,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue("Data dir(s) are fine" in messages[0])
+    self.assertTrue("The following data dir(s) are valid" in messages[0])
 
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
@@ -142,7 +142,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_OK)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue("Data dir(s) are fine" in messages[0])
+    self.assertTrue("The following data dir(s) are valid" in messages[0])
 
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
@@ -166,7 +166,7 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_CRITICAL)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue("Detected at least one data dir on a mount point, but these are writing to the root partition: /grid/0/data, /grid/1/data" in messages[0])
+    self.assertTrue("Detected at least one data dir on a mount point, but these are writing to the root partition:\n/grid/0/data\n/grid/1/data" in messages[0])
 
   @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
   @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
@@ -193,4 +193,28 @@ class TestAlertDataNodeUnmountedDataDir(RMFTestCase):
     [status, messages] = alert.execute(configurations=configs)
     self.assertEqual(status, RESULT_STATE_CRITICAL)
     self.assertTrue(messages is not None and len(messages) == 1)
-    self.assertTrue("Detected data dir(s) that became unmounted and are now writing to the root partition: /grid/1/data ." in messages[0])
+    self.assertTrue("Detected data dir(s) that became unmounted and are now writing to the root partition:\n/grid/1/data" in messages[0])
+
+
+  @patch("resource_management.libraries.functions.mounted_dirs_helper.get_dir_to_mount_from_file")
+  @patch("resource_management.libraries.functions.file_system.get_mount_point_for_dir")
+  @patch("os.path.exists")
+  @patch("os.path.isdir")
+  def test_file_uri_and_meta_tags(self, is_dir_mock, exists_mock, get_mount_mock, get_data_dir_to_mount_from_file_mock):
+    """
+    Test that the status is OK when the locations include file:// schemes and meta tags.
+    """
+    configs = {
+      "{{hdfs-site/dfs.datanode.data.dir}}":"[SSD]file:///grid/0/data"
+    }
+
+    # Mock calls
+    exists_mock.return_value = True
+    is_dir_mock.return_value = True
+    get_mount_mock.return_value = "/"
+    get_data_dir_to_mount_from_file_mock.return_value = {"/grid/0/data":"/"}
+
+    [status, messages] = alert.execute(configurations = configs)
+    self.assertEqual(status, RESULT_STATE_OK)
+    self.assertTrue(messages is not None and len(messages) == 1)
+    self.assertEqual("The following data dir(s) are valid:\n/grid/0/data", messages[0])
