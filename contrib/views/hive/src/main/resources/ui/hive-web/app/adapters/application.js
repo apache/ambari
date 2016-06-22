@@ -17,9 +17,17 @@
  */
 
 import DS from 'ember-data';
+import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default DS.RESTAdapter.extend({
+
+  init: function() {
+    Ember.$.ajaxSetup({
+      cache: false
+    })
+  },
+
   headers: {
     'X-Requested-By': 'ambari',
     'Content-Type': 'application/json'
