@@ -30,6 +30,7 @@ import json
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.core.source import InlineTemplate
 from resource_management.core.resources.system import Execute
 
 # Imports needed for Rolling/Express Upgrade
@@ -212,7 +213,8 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
                       "{llap_keytab_splits[4]} --slider-principal {hive_headless_keytab}")
 
       # Append args.
-      cmd+= format(" --args \" {llap_app_java_opts}\"")
+      llap_java_args = InlineTemplate(params.llap_app_java_opts).get_content()
+      cmd += format(" --args \" {llap_java_args}\"")
 
       run_file_path = None
       try:

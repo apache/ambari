@@ -389,6 +389,7 @@ else:
 hive_metastore_heapsize = config['configurations']['hive-env']['hive.metastore.heapsize']
 
 java64_home = config['hostLevelParams']['java_home']
+java_version = expect("/hostLevelParams/java_version", int)
 
 ##### MYSQL
 db_name = config['configurations']['hive-env']['hive_database_name']
@@ -578,7 +579,7 @@ if has_hive_interactive:
   start_hiveserver2_interactive_path = format("{tmp_dir}/start_hiveserver2_interactive_script")
   hive_interactive_env_sh_template = config['configurations']['hive-interactive-env']['content']
   hive_interactive_enabled = default('/configurations/hive-interactive-env/enable_hive_interactive', False)
-  llap_app_java_opts = default('/configurations/hive-interactive-env/llap_java_opts', '-XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:+AlwaysPreTouch -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200')
+  llap_app_java_opts = default('/configurations/hive-interactive-env/llap_java_opts', '-XX:+AlwaysPreTouch {% if java_version > 7 %}-XX:+UseG1GC -XX:TLABSize=8m -XX:+ResizeTLAB -XX:+UseNUMA -XX:+AggressiveOpts -XX:MetaspaceSize=1024m -XX:InitiatingHeapOccupancyPercent=80 -XX:MaxGCPauseMillis=200{% else %}-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC{% endif %}')
 
   # Service check related
   if hive_transport_mode.lower() == "http":
