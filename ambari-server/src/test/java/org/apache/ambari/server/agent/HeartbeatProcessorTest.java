@@ -1269,7 +1269,9 @@ public class HeartbeatProcessorTest {
     cmdReport.setRole("install_packages");
     cmdReport.setClusterName(DummyCluster);
 
-    hb.setReports(Collections.singletonList(cmdReport));
+    List<CommandReport> reports = new ArrayList<>();
+    reports.add(cmdReport);
+    hb.setReports(reports);
     hb.setTimestamp(0L);
     hb.setResponseId(0);
     hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, DummyHostStatus));

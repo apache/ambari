@@ -244,7 +244,10 @@ class CustomServiceOrchestrator():
         logger.debug('Pop with taskId %s' % task_id)
         pid = self.commands_in_progress.pop(task_id)
         if not isinstance(pid, int):
-          return '\nCommand aborted. ' + pid
+          if pid:
+            return '\nCommand aborted. ' + pid
+          else:
+            return ''
     return None
 
   def requestComponentStatus(self, command):

@@ -26,6 +26,7 @@ import pprint
 import os
 import ambari_simplejson as json
 import time
+import signal
 
 from AgentException import AgentException
 from LiveStatus import LiveStatus
@@ -141,7 +142,7 @@ class ActionQueue(threading.Thread):
           logger.info("Canceling " + queued_command['commandType'] + \
                       " for service " + queued_command['serviceName'] + \
                       " and role " +  queued_command['role'] + \
-                      " with taskId " + queued_command['taskId'])
+                      " with taskId " + str(queued_command['taskId']))
 
       # Kill if in progress
       self.customServiceOrchestrator.cancel_command(task_id, reason)
@@ -313,7 +314,11 @@ class ActionQueue(threading.Thread):
         if commandresult['exitcode'] == 0:
           status = self.COMPLETED_STATUS
         else:
-          status = self.FAILED_STATUS
+          if (commandresult['exitcode'] == -signal.SIGTERM) or (commandresult['exitcode'] == -signal.SIGKILL):
+            logger.info('Command {cid} was canceled!'.format(cid=taskId))
+            return
+          else:
+            status = self.FAILED_STATUS
 
       if status != self.COMPLETED_STATUS and retryAble and retryDuration > 0:
         delay = self.get_retry_delay(delay)

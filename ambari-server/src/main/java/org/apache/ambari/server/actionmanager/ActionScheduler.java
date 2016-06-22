@@ -722,6 +722,8 @@ class ActionScheduler implements Runnable {
             LOG.info("Removing command from queue, host={}, commandId={} ", host, c.getCommandId());
             actionQueue.dequeue(host, c.getCommandId());
           } else {
+            cancelCommandOnTimeout(Collections.singletonList(s.getHostRoleCommand(host, roleStr)));
+
             LOG.info("Host: {}, role: {}, actionId: {} timed out and will be rescheduled", host,
                 roleStr, s.getActionId());
 
@@ -1069,6 +1071,17 @@ class ActionScheduler implements Runnable {
         processActionDeath(clusterName,
                 hostRoleCommand.getHostName(),
                 hostRoleCommand.getRole().name());
+      }
+    }
+  }
+  void cancelCommandOnTimeout(Collection<HostRoleCommand> hostRoleCommands) {
+    for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
+      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED ||
+            hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
+        CancelCommand cancelCommand = new CancelCommand();
+        cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
+        cancelCommand.setReason("");
+        actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
       }
     }
   }
