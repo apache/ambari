@@ -33,6 +33,10 @@ __all__ = ["get_namenode_states", "get_active_namenode",
 HDFS_NN_STATE_ACTIVE = 'active'
 HDFS_NN_STATE_STANDBY = 'standby'
 
+NAMENODE_HTTP_NON_HA = 'dfs.namenode.http-address'
+NAMENODE_HTTPS_NON_HA = 'dfs.namenode.https-address'
+DFS_HTTP_POLICY = "dfs.http.policy"
+
 NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
 NAMENODE_RPC_FRAGMENT = 'dfs.namenode.rpc-address.{0}.{1}'
@@ -121,7 +125,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
 def is_ha_enabled(hdfs_site):
   dfs_ha_nameservices = get_nameservice(hdfs_site)
   
-  if is_empty(dfs_ha_nameservices):
+  if not dfs_ha_nameservices or is_empty(dfs_ha_nameservices):
     return False
   
   dfs_ha_namenode_ids = hdfs_site[format("dfs.ha.namenodes.{dfs_ha_nameservices}")]
@@ -173,6 +177,48 @@ def get_property_for_active_namenode(hdfs_site, property_name, security_enabled,
       value = value.replace(INADDR_ANY, rpc_host)
 
   return value
+
+def get_all_namenode_addresses(hdfs_site):
+  """
+  - In non-ha mode it will return list of hdfs_site[dfs.namenode.http[s]-address]
+  - In ha-mode it will return list of hdfs_site[dfs.namenode.http-address.NS.Uid], where NS is the name of HA, and Uid is id of NameNode
+  """
+  nn_addresses = []
+  http_policy = 'HTTP_ONLY'
+
+  if DFS_HTTP_POLICY in hdfs_site:
+    http_policy = hdfs_site[DFS_HTTP_POLICY]
+
+  if is_ha_enabled(hdfs_site):
+    name_service = get_nameservice(hdfs_site)
+    nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
+    nn_unique_ids = hdfs_site[nn_unique_ids_key].split(',')
+    for nn_unique_id in nn_unique_ids:
+      rpc_key = NAMENODE_RPC_FRAGMENT.format(name_service,nn_unique_id)
+      if http_policy == 'HTTPS_ONLY':
+        key = NAMENODE_HTTPS_FRAGMENT.format(name_service,nn_unique_id)
+      else:
+        key = NAMENODE_HTTP_FRAGMENT.format(name_service,nn_unique_id)
+      if key in hdfs_site:
+        # use str() to ensure that unicode strings do not have the u' in them
+        value = str(hdfs_site[key])
+        if INADDR_ANY in value and rpc_key in hdfs_site:
+          rpc_value = str(hdfs_site[rpc_key])
+          if INADDR_ANY not in rpc_value:
+            rpc_host = rpc_value.split(":")[0]
+            value = value.replace(INADDR_ANY, rpc_host)
+
+        if not value in nn_addresses:
+          nn_addresses.append(value)
+  else:
+    if http_policy == 'HTTPS_ONLY':
+      if NAMENODE_HTTPS_NON_HA in hdfs_site:
+        nn_addresses.append(hdfs_site[NAMENODE_HTTPS_NON_HA])
+    else:
+      if NAMENODE_HTTP_NON_HA in hdfs_site:
+        nn_addresses.append(hdfs_site[NAMENODE_HTTP_NON_HA])
+
+  return nn_addresses
 
 def get_nameservice(hdfs_site):
   """
