@@ -53,7 +53,11 @@ class TestAlertCheckpointTime(RMFTestCase):
 
     import alert_checkpoint_time as alert
     global configs
-    configs = {
+    configs = { "{{hdfs-site}}" : {'dfs.namenode.http-address' : 'c6401.ambari.apache.org:50470',
+                                   'dfs.http.policy': 'HTTP_ONLY',
+                                   'dfs.namenode.checkpoint.period': 100,
+                                   'security_enabled': 'false',
+                                   'dfs.namenode.checkpoint.txns': 100},
       '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50470',
       '{{hdfs-site/dfs.http.policy}}': 'HTTP_ONLY',
       '{{hdfs-site/dfs.namenode.checkpoint.period}}': 100,
@@ -83,7 +87,7 @@ class TestAlertCheckpointTime(RMFTestCase):
     response.read.return_value = json.dumps(jmx_output)
     urlopen_mock.return_value = response
 
-    [status, messages] = alert.execute(configurations=configs, parameters=parameters)
+    [status, messages] = alert.execute(configurations=configs, parameters=parameters, host_name="c6401.ambari.apache.org")
 
     self.assertEqual(status, RESULT_STATE_CRITICAL)
     self.assertEqual(messages[0], 'Last Checkpoint: [1 hours, 0 minutes, 1000 transactions]')

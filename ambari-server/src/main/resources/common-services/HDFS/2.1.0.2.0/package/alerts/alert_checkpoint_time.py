@@ -24,12 +24,17 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 import logging
 import traceback
 
+from resource_management.libraries.functions.namenode_ha_utils import get_all_namenode_addresses
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.core.environment import Environment
 
 LABEL = 'Last Checkpoint: [{h} hours, {m} minutes, {tx} transactions]'
+HDFS_SITE_KEY = '{{hdfs-site}}'
+
+RESULT_STATE_UNKNOWN = 'UNKNOWN'
+RESULT_STATE_SKIPPED = 'SKIPPED'
 
 NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
 NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
@@ -68,7 +73,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (NN_HTTP_ADDRESS_KEY, NN_HTTPS_ADDRESS_KEY, NN_HTTP_POLICY_KEY, EXECUTABLE_SEARCH_PATHS,
+  return (HDFS_SITE_KEY, NN_HTTP_ADDRESS_KEY, NN_HTTPS_ADDRESS_KEY, NN_HTTP_POLICY_KEY, EXECUTABLE_SEARCH_PATHS,
       NN_CHECKPOINT_TX_KEY, NN_CHECKPOINT_PERIOD_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY, SMOKEUSER_KEY)
   
 
@@ -92,12 +97,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   http_policy = 'HTTP_ONLY'
   checkpoint_tx = CHECKPOINT_TX_DEFAULT
   checkpoint_period = CHECKPOINT_PERIOD_DEFAULT
-  
-  if NN_HTTP_ADDRESS_KEY in configurations:
-    http_uri = configurations[NN_HTTP_ADDRESS_KEY]
 
-  if NN_HTTPS_ADDRESS_KEY in configurations:
-    https_uri = configurations[NN_HTTPS_ADDRESS_KEY]
+  # hdfs-site is required
+  if not HDFS_SITE_KEY in configurations:
+    return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)])
 
   if NN_HTTP_POLICY_KEY in configurations:
     http_policy = configurations[NN_HTTP_POLICY_KEY]
@@ -152,13 +155,18 @@ def execute(configurations={}, parameters={}, host_name=None):
   kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
   # determine the right URI and whether to use SSL
-  uri = http_uri
-  if http_policy == 'HTTPS_ONLY':
-    scheme = 'https'
-    
-    if https_uri is not None:
-      uri = https_uri 
-  
+  hdfs_site = configurations[HDFS_SITE_KEY]
+
+  scheme = "https" if http_policy == "HTTPS_ONLY" else "http"
+
+  nn_addresses = get_all_namenode_addresses(hdfs_site)
+  for nn_address in nn_addresses:
+    if nn_address.startswith(host_name + ":"):
+      uri = nn_address
+      break
+  if not uri:
+    return (RESULT_STATE_SKIPPED, ['NameNode on host {0} not found (namenode adresses = {1})'.format(host_name, ', '.join(nn_addresses))])
+
   current_time = int(round(time.time() * 1000))
 
   last_checkpoint_time_qry = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem".format(scheme,uri)
