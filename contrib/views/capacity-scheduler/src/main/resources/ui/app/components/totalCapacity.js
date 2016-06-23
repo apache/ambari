@@ -126,7 +126,7 @@ App.TotalCapacityComponent = Ember.Component.extend({
     }, 0);
     total = parseFloat(total.toFixed(3));
     return total;
-  }.property('leafQueuesCapacity', 'leafQueuesCapacity.length', 'leafQueuesCapacity.@each.capacity'),
+  }.property('leafQueues', 'leafQueues.length', 'leafQueues.@each.capacity'),
 
   /**
    * Node labels stored in store.
