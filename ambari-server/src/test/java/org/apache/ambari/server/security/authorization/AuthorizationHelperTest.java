@@ -35,7 +35,9 @@ import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.MockType;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -73,6 +75,17 @@ public class AuthorizationHelperTest  extends EasyMockSupport {
   @Mock(type = MockType.NICE)
   private ServletRequestAttributes servletRequestAttributes;
 
+  @Before
+  public void setup() {
+    // Ensure the security context has been clean up
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
+  @After
+  public void cleanup() {
+    // Clean up the security context for the next test
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
 
   @Test
   public void testConvertPrivilegesToAuthorities() throws Exception {
