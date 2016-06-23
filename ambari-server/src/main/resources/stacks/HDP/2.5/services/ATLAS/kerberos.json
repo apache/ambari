@@ -7,7 +7,7 @@
           "application-properties": {
             "atlas.authentication.method.kerberos": "true",
             "atlas.kafka.sasl.kerberos.service.name": "${kafka-env/kafka_user}",
-            "atlas.kafka.security.protocol": "SASL_PLAINTEXT",
+            "atlas.kafka.security.protocol": "PLAINTEXTSASL",
             "atlas.jaas.KafkaClient.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
             "atlas.jaas.KafkaClient.loginModuleControlFlag": "required",
             "atlas.jaas.KafkaClient.option.useKeyTab": "true",

@@ -27,15 +27,8 @@ from resource_management.libraries.functions import solr_cloud_util
 
 def metadata(type='server'):
     import params
-
-    Directory([params.pid_dir],
-              mode=0755,
-              cd_access='a',
-              owner=params.metadata_user,
-              group=params.user_group,
-              create_parents = True
-    )
-
+    
+    # Needed by both Server and Client
     Directory(params.conf_dir,
               mode=0755,
               cd_access='a',
@@ -44,69 +37,71 @@ def metadata(type='server'):
               create_parents = True
     )
 
-    Directory(format('{conf_dir}/solr'),
-              mode=0755,
-              cd_access='a',
-              owner=params.metadata_user,
-              group=params.user_group,
-              create_parents = True
-              )
+    if type == "server":
+      Directory([params.pid_dir],
+                mode=0755,
+                cd_access='a',
+                owner=params.metadata_user,
+                group=params.user_group,
+                create_parents = True
+      )
+      Directory(format('{conf_dir}/solr'),
+                mode=0755,
+                cd_access='a',
+                owner=params.metadata_user,
+                group=params.user_group,
+                create_parents = True
+      )
+      Directory(params.log_dir,
+                mode=0755,
+                cd_access='a',
+                owner=params.metadata_user,
+                group=params.user_group,
+                create_parents = True
+      )
+      Directory(params.data_dir,
+                mode=0644,
+                cd_access='a',
+                owner=params.metadata_user,
+                group=params.user_group,
+                create_parents = True
+      )
+      Directory(params.expanded_war_dir,
+                mode=0644,
+                cd_access='a',
+                owner=params.metadata_user,
+                group=params.user_group,
+                create_parents = True
+      )
+      File(format("{expanded_war_dir}/atlas.war"),
+           content = StaticFile(format('{metadata_home}/server/webapp/atlas.war'))
+      )
+      File(format("{conf_dir}/atlas-log4j.xml"),
+           mode=0644,
+           owner=params.metadata_user,
+           group=params.user_group,
+           content=InlineTemplate(params.metadata_log4j_content)
+      )
+      File(format("{conf_dir}/atlas-env.sh"),
+           owner=params.metadata_user,
+           group=params.user_group,
+           mode=0755,
+           content=InlineTemplate(params.metadata_env_content)
+      )
+      File(format("{conf_dir}/solr/solrconfig.xml"),
+           mode=0644,
+           owner=params.metadata_user,
+           group=params.user_group,
+           content=InlineTemplate(params.metadata_solrconfig_content)
+      )
 
-    Directory(params.log_dir,
-              mode=0755,
-              cd_access='a',
-              owner=params.metadata_user,
-              group=params.user_group,
-              create_parents = True
-    )
-
-    Directory(params.data_dir,
-              mode=0644,
-              cd_access='a',
-              owner=params.metadata_user,
-              group=params.user_group,
-              create_parents = True
-    )
-
-    Directory(params.expanded_war_dir,
-              mode=0644,
-              cd_access='a',
-              owner=params.metadata_user,
-              group=params.user_group,
-              create_parents = True
-    )
-
-    File(format("{expanded_war_dir}/atlas.war"),
-         content = StaticFile(format('{metadata_home}/server/webapp/atlas.war'))
-    )
-
+    # Needed by both Server and Client
     PropertiesFile(format('{conf_dir}/{conf_file}'),
          properties = params.application_properties,
          mode=0644,
          owner=params.metadata_user,
          group=params.user_group
     )
-
-    File(format("{conf_dir}/atlas-env.sh"),
-         owner=params.metadata_user,
-         group=params.user_group,
-         mode=0755,
-         content=InlineTemplate(params.metadata_env_content)
-    )
-
-    File(format("{conf_dir}/atlas-log4j.xml"),
-         mode=0644,
-         owner=params.metadata_user,
-         group=params.user_group,
-         content=InlineTemplate(params.metadata_log4j_content)
-    )
-
-    File(format("{conf_dir}/solr/solrconfig.xml"),
-         mode=0644,
-         owner=params.metadata_user,
-         group=params.user_group,
-         content=InlineTemplate(params.metadata_solrconfig_content)
-         )
 
     if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
       solr_cloud_util.setup_solr_client(params.config)
