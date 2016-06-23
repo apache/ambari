@@ -3537,7 +3537,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '409')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '512')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '512')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '512')
@@ -3736,7 +3736,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '272')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '341')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
                       {'visible': 'false'})
 
@@ -3938,7 +3938,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '819')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '1024')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '1024')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -4143,7 +4143,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '3276')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '2048')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -4343,7 +4343,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '341')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -4540,7 +4540,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '2048')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -4745,7 +4745,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '3276')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '3072')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '3072')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -4945,7 +4945,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2728')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '341')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '341')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -5140,7 +5140,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '2048')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -5327,7 +5327,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '2048')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -5516,7 +5516,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '2048')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'llap')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
@@ -5736,7 +5736,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '2048')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
                       {'visible': 'false'})
 
@@ -5955,7 +5955,7 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '0')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_size'], '1024')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '1024')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
                       {'visible': 'false'})
 

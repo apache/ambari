@@ -450,7 +450,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   Entry point for updating Hive's 'LLAP app' configs namely : (1). num_llap_nodes, num_llap_nodes_copy
     (2). hive.llap.daemon.yarn.container.mb, hive.llap.daemon.yarn.container.mb_copy (3). hive.llap.daemon.num.executors,
     hive.llap.daemon.num.executors_copy (4). hive.llap.io.memory.size, hive.llap.io.memory.size_copy (5). llap_heap_size
-    (6). slider_am_container_size, and (7). hive.server2.tez.sessions.per.default.queue
+    (6). slider_am_container_mb, and (7). hive.server2.tez.sessions.per.default.queue
 
     The trigger point for updating LLAP configs (mentioned above) is change in values of any of the following:
     (1). 'enable_hive_interactive' set to 'true' (2). 'llap_queue_capacity' (3). 'hive.server2.tez.sessions.per.default.queue'
@@ -725,8 +725,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         Logger.info("LLAP config 'llap_heap_size' updated. Current: {0}".format(llap_xmx))
 
         slider_am_container_size = long(slider_am_container_size)
-        putHiveInteractiveEnvProperty('slider_am_container_size', slider_am_container_size)
-        Logger.info("LLAP config 'slider_am_container_size' updated. Current: {0}".format(slider_am_container_size))
+        putHiveInteractiveEnvProperty('slider_am_container_mb', slider_am_container_size)
+        Logger.info("LLAP config 'slider_am_container_mb' updated. Current: {0}".format(slider_am_container_size))
 
     except Exception as e:
       # Set default values, if caught an Exception. The 'llap queue capacity' is left untouched, as it can be increased,
@@ -771,7 +771,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
         putHiveInteractiveEnvProperty('llap_heap_size', 0)
 
-        putHiveInteractiveEnvProperty('slider_am_container_size', slider_am_container_size)
+        putHiveInteractiveEnvProperty('slider_am_container_mb', slider_am_container_size)
 
       except Exception as e:
         Logger.info("Problem setting minimum values for LLAP configs in Exception code.")
