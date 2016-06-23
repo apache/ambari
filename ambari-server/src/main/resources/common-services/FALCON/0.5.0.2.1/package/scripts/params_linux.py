@@ -108,6 +108,7 @@ falcon_host = config['clusterHostInfo']['falcon_server_hosts'][0]
 falcon_port = config['configurations']['falcon-env']['falcon_port']
 falcon_runtime_properties = config['configurations']['falcon-runtime.properties']
 falcon_startup_properties = config['configurations']['falcon-startup.properties']
+falcon_client_properties = config['configurations']['falcon-client.properties']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 falcon_env_sh_template = config['configurations']['falcon-env']['content']
 

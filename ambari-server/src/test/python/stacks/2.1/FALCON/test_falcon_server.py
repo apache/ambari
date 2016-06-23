@@ -113,10 +113,10 @@ class TestFalconServer(RMFTestCase):
                               owner = 'falcon',
                               group = 'hadoop'
                               )
-    self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
-                              content = Template('client.properties.j2'),
+    self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/client.properties',
                               mode = 0644,
-                              owner = 'falcon'
+                              owner = 'falcon',
+                              properties = {u'falcon.url': u'http://{{falcon_host}}:{{falcon_port}}'}
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
                               mode = 0644,
@@ -264,9 +264,9 @@ class TestFalconServer(RMFTestCase):
         content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),
         group = 'hadoop'
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/falcon-server/conf/client.properties',
-        owner = 'falcon',
-        content = Template('client.properties.j2'),
+    self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/falcon-server/conf/client.properties',
+        owner = u'falcon',
+        properties = {u'falcon.url': u'http://{{falcon_host}}:{{falcon_port}}'},
         mode = 0644,
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/falcon-server/conf/runtime.properties',

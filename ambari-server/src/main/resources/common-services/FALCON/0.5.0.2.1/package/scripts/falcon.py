@@ -77,12 +77,12 @@ def falcon(type, action = None, upgrade_type=None):
       owner = params.falcon_user,
       group=params.user_group,
     )
-
-    File(params.falcon_conf_dir + '/client.properties',
-      content = Template('client.properties.j2'),
+    
+    PropertiesFile(params.falcon_conf_dir + '/client.properties',
+      properties = params.falcon_client_properties,
       mode = 0644,
       owner = params.falcon_user)
-
+      
     PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
       properties = params.falcon_runtime_properties,
       mode = 0644,
@@ -228,6 +228,9 @@ def falcon(type, action = None, upgrade_type=None):
 
     PropertiesFile(os.path.join(params.falcon_conf_dir, 'startup.properties'),
       properties = params.falcon_startup_properties)
+
+    PropertiesFile(os.path.join(params.falcon_conf_dir, 'client.properties'),
+      properties = params.falcon_client_properties)
 
   if type == 'server':
     ServiceConfig(params.falcon_win_service_name,
