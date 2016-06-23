@@ -25,6 +25,8 @@ import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.view.AmbariHttpException;
 import org.apache.ambari.view.AmbariStreamProvider;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,6 +54,8 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
    * The Ambari management controller.
    */
   private final AmbariManagementController controller;
+
+  private static Logger LOG = LoggerFactory.getLogger(ViewAmbariStreamProvider.class);
 
 
   // ----- Constructor -----------------------------------------------------
@@ -122,8 +126,13 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
 
   private InputStream getInputStream(HttpURLConnection connection) throws IOException, AmbariHttpException {
     int responseCode = connection.getResponseCode();
-    if(responseCode >= ProxyService.HTTP_ERROR_RANGE_START){
-      throw new AmbariHttpException(IOUtils.toString(connection.getErrorStream()),responseCode);
+    if (responseCode >= ProxyService.HTTP_ERROR_RANGE_START) {
+      String message = connection.getResponseMessage();
+      if (connection.getErrorStream() != null) {
+        message = IOUtils.toString(connection.getErrorStream());
+      }
+      LOG.error("Got error response for url {}. Response code:{}. {}", connection.getURL(), responseCode, message);
+      throw new AmbariHttpException(message, responseCode);
     }
     return connection.getInputStream();
   }

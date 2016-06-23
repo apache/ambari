@@ -21,14 +21,18 @@ package org.apache.ambari.view.pig.templeton.client;
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.apache.ambari.view.AmbariHttpException;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.utils.ambari.AmbariApiException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -262,17 +266,32 @@ public class JSONRequest<RESPONSE> {
   }
 
   public InputStream readFrom(WebResource resource, String method, String body, Map<String, String> headers) throws IOException {
-    InputStream inputStream;
+    HttpURLConnection connection;
     resource = resource.queryParam("user.name", username)
         .queryParam("doAs", doAs);
 
+    String path = resource.toString();
     if (doAs == null) {
-      inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
+      connection = context.getURLConnectionProvider().getConnection(path,
           method, body, headers);
     } else {
-      inputStream = context.getURLStreamProvider().readAs(resource.toString(),
+      connection = context.getURLConnectionProvider().getConnectionAs(path,
           method, body, headers, doAs);
     }
-    return inputStream;
+    return getInputStream(connection);
   }
+
+  private InputStream getInputStream(HttpURLConnection connection) throws IOException {
+    int responseCode = connection.getResponseCode();
+    if (responseCode >= Response.Status.BAD_REQUEST.getStatusCode()) {
+      String message = connection.getResponseMessage();
+      if (connection.getErrorStream() != null) {
+        message = IOUtils.toString(connection.getErrorStream());
+      }
+      LOG.error("Got error response for url {}. Response code:{}. {}", connection.getURL(), responseCode, message);
+      throw new AmbariApiException(message);
+    }
+    return connection.getInputStream();
+  }
+
 }
