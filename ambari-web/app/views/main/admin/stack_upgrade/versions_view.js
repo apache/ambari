@@ -149,9 +149,13 @@ App.MainAdminStackVersionsView = Em.View.extend({
     if (filter && filter.get('value')) {
       versions = versions.filter(function (version) {
         var status = version.get('status');
-        if (status === 'INSTALLED' && ['UPGRADE_READY', 'INSTALLED'].contains(filter.get('value'))) {
-          if (filter.get('value') === 'UPGRADE_READY') {
-            return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1;
+        var isUpgrading = App.router.get('mainAdminStackAndUpgradeController.upgradeVersion') === version.get('displayName');
+        if (status === 'INSTALLED' && ['UPGRADE_READY', 'INSTALLED', 'UPGRADING'].contains(filter.get('value'))) {
+          if (filter.get('value') === 'UPGRADING') {
+            return isUpgrading;
+          } else if (filter.get('value') === 'UPGRADE_READY') {
+            return !isUpgrading &&
+              stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1;
           } else if (filter.get('value') === 'INSTALLED') {
             return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) < 1;
           }

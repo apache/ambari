@@ -30,7 +30,8 @@ describe('App.UpgradeVersionBoxView', function () {
     view = App.UpgradeVersionBoxView.create({
       initFilters: Em.K,
       controller: Em.Object.create({
-        upgrade: Em.K
+        upgrade: Em.K,
+        currentVersion: Em.Object.create()
       }),
       content: Em.Object.create(),
       parentView: Em.Object.create({
@@ -428,6 +429,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         setup: function () {
           this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.initMock.returns(true);
         },
         expected: {
           status: 'INSTALL_FAILED',
@@ -464,6 +466,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         setup: function () {
           this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.initMock.returns(true);
         },
         expected: {
           status: 'INSTALL_FAILED',
@@ -497,6 +500,8 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         setup: function () {
           this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(true);
+          this.initMock.returns(true);
+          this.isDisabledMock.returns(false);
         },
         expected: {
           status: 'OUT_OF_SYNC',
@@ -585,6 +590,7 @@ describe('App.UpgradeVersionBoxView', function () {
         },
         setup: function () {
           this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(true);
+          this.initMock.returns(true);
         },
         expected: {
           status: 'INSTALLED',
@@ -881,11 +887,13 @@ describe('App.UpgradeVersionBoxView', function () {
       this.getMock = sinon.stub(App, 'get');
       this.isAccessibleMock = sinon.stub(App, 'isAuthorized');
       this.initMock = sinon.stub(view, 'isDisabledOnInit');
+      this.isDisabledMock = sinon.stub(view, 'isDisabledOnInstalled').returns(true);
     });
     afterEach(function () {
       this.getMock.restore();
       this.isAccessibleMock.restore();
       this.initMock.restore();
+      this.isDisabledMock.restore();
     });
 
     cases.forEach(function (item) {
@@ -950,24 +958,35 @@ describe('App.UpgradeVersionBoxView', function () {
         requestInProgress: true,
         upgradeIsRunning: true,
         upgradeSuspended: true,
+        status: 'INSTALLED',
         expected: true
       },
       {
         requestInProgress: false,
         upgradeIsRunning: true,
         upgradeSuspended: false,
+        status: 'INSTALLED',
+        expected: true
+      },
+      {
+        requestInProgress: false,
+        upgradeIsRunning: false,
+        upgradeSuspended: false,
+        status: 'INSTALLING',
         expected: true
       },
       {
         requestInProgress: false,
         upgradeIsRunning: true,
         upgradeSuspended: true,
+        status: 'INSTALLED',
         expected: false
       },
       {
         requestInProgress: false,
         upgradeIsRunning: false,
         upgradeSuspended: false,
+        status: 'INSTALLED',
         expected: false
       }
     ];
@@ -983,11 +1002,100 @@ describe('App.UpgradeVersionBoxView', function () {
     testCases.forEach(function(test) {
       it("requestInProgress: " + test.requestInProgress +
          "upgradeIsRunning: " + test.upgradeIsRunning +
-         "upgradeSuspended: " + test.upgradeSuspended , function() {
+         "upgradeSuspended: " + test.upgradeSuspended +
+         "status" + test.status, function() {
         this.mock.withArgs('upgradeSuspended').returns(test.upgradeSuspended);
         this.mock.withArgs('upgradeIsRunning').returns(test.upgradeIsRunning);
+        view.set('parentView.repoVersions', [Em.Object.create({
+          status: test.status
+        })]);
         view.set('controller.requestInProgress', test.requestInProgress);
         expect(view.isDisabledOnInit()).to.be.equal(test.expected);
+      });
+    });
+  });
+
+  describe("#isDisabledOnInstalled()", function () {
+
+    beforeEach(function() {
+      this.authorizedMock = sinon.stub(App, 'isAuthorized');
+    });
+
+    afterEach(function() {
+      this.authorizedMock.restore();
+    });
+
+    var testCases = [
+      {
+        isAuthorized: false,
+        requestInProgress: false,
+        status: 'INSTALLED',
+        isDowngrade: false,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.3',
+        expected: true
+      },
+      {
+        isAuthorized: true,
+        requestInProgress: true,
+        status: 'INSTALLED',
+        isDowngrade: false,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.3',
+        expected: true
+      },
+      {
+        isAuthorized: true,
+        requestInProgress: false,
+        status: 'INSTALLING',
+        isDowngrade: false,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.3',
+        expected: true
+      },
+      {
+        isAuthorized: true,
+        requestInProgress: false,
+        status: 'INSTALLED',
+        isDowngrade: true,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.2',
+        expected: true
+      },
+      {
+        isAuthorized: true,
+        requestInProgress: false,
+        status: 'INSTALLED',
+        isDowngrade: true,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.3',
+        expected: false
+      },
+      {
+        isAuthorized: true,
+        requestInProgress: false,
+        status: 'INSTALLED',
+        isDowngrade: false,
+        repositoryName: 'HDP-2.2',
+        upgradeVersion: 'HDP-2.2',
+        expected: false
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it( "isAuthorized: " + test.isAuthorized +
+          "requestInProgress: " + test.requestInProgress +
+          "status: " + test.status +
+          "isDowngrade: " + test.isDowngrade +
+          "repositoryName: " + test.repositoryName +
+          "upgradeVersion: " + test.upgradeVersion, function() {
+        this.authorizedMock.returns(test.isAuthorized);
+        view.set('controller.requestInProgress', test.requestInProgress);
+        view.set('parentView.repoVersions', [Em.Object.create({status: test.status})]);
+        view.set('controller.isDowngrade', test.isDowngrade);
+        view.set('controller.currentVersion.repository_name', test.repositoryName);
+        view.set('controller.upgradeVersion', test.upgradeVersion);
+        expect(view.isDisabledOnInstalled()).to.be.equal(test.expected);
       });
     });
   });
