@@ -70,6 +70,9 @@
             "*.log.cleanup.frequency.minutes.retention": "hours(6)",
             "*.domain": "${falcon.app.type}"
       },
+      "falcon-client.properties": {
+            "falcon.url": "http://{{falcon_host}}:{{falcon_port}}"
+      },
       "mapred-site": {
             "mapreduce.jobhistory.address": "c6402.ambari.apache.org:10020", 
             "mapreduce.cluster.administrators": " hadoop", 

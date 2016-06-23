@@ -117,7 +117,10 @@
             "*.log.cleanup.frequency.months.retention": "months(3)", 
             "*.log.cleanup.frequency.minutes.retention": "hours(6)", 
             "*.domain": "${falcon.app.type}"
-        }, 
+        },
+        "falcon-client.properties": {
+            "falcon.url": "http://{{falcon_host}}:{{falcon_port}}"
+        },
         "hdfs-site": {
             "dfs.namenode.checkpoint.period": "21600", 
             "dfs.namenode.avoid.write.stale.datanode": "true", 
