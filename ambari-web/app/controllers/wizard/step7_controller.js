@@ -873,37 +873,39 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   _reconfigureServicesOnNnHa: function (serviceConfigs) {
     var selectedServiceNames = this.get('selectedServiceNames');
     var nameServiceId = serviceConfigs.findProperty('serviceName', 'HDFS').configs.findProperty('name', 'dfs.nameservices');
-    Em.A([
-      {
-        serviceName: 'HBASE',
-        configToUpdate: 'hbase.rootdir'
-      },
-      {
-        serviceName: 'ACCUMULO',
-        configToUpdate: 'instance.volumes'
-      },
-      {
-        serviceName: 'HAWQ',
-        configToUpdate: 'hawq_dfs_url',
-        regexPattern: /(^.*:[0-9]+)(?=\/)/,
-        replacementValue: nameServiceId.get('value')
-      }
-    ]).forEach(function (c) {
-      if (selectedServiceNames.contains(c.serviceName) && nameServiceId) {
-        var cfg = serviceConfigs.findProperty('serviceName', c.serviceName).configs.findProperty('name', c.configToUpdate);
-        var regexPattern = /\/\/.*:[0-9]+/i;
-        var replacementValue = '//' + nameServiceId.get('value');
-        if (!Em.isNone(c.regexPattern) && !Em.isNone(c.replacementValue)) {
-          regexPattern = c.regexPattern;
-          replacementValue = c.replacementValue;
+    if (nameServiceId) {
+      Em.A([
+        {
+          serviceName: 'HBASE',
+          configToUpdate: 'hbase.rootdir'
+        },
+        {
+          serviceName: 'ACCUMULO',
+          configToUpdate: 'instance.volumes'
+        },
+        {
+          serviceName: 'HAWQ',
+          configToUpdate: 'hawq_dfs_url',
+          regexPattern: /(^.*:[0-9]+)(?=\/)/,
+          replacementValue: nameServiceId.get('value')
         }
-        var newValue = cfg.get('value').replace(regexPattern, replacementValue);
-        cfg.setProperties({
-          value: newValue,
-          recommendedValue: newValue
-        });
-      }
-    });
+      ]).forEach(function (c) {
+        if (selectedServiceNames.contains(c.serviceName) && nameServiceId) {
+          var cfg = serviceConfigs.findProperty('serviceName', c.serviceName).configs.findProperty('name', c.configToUpdate);
+          var regexPattern = /\/\/.*:[0-9]+/i;
+          var replacementValue = '//' + nameServiceId.get('value');
+          if (!Em.isNone(c.regexPattern) && !Em.isNone(c.replacementValue)) {
+            regexPattern = c.regexPattern;
+            replacementValue = c.replacementValue;
+          }
+          var newValue = cfg.get('value').replace(regexPattern, replacementValue);
+          cfg.setProperties({
+            value: newValue,
+            recommendedValue: newValue
+          });
+        }
+      });
+    }
     return serviceConfigs;
   },
 
