@@ -59,6 +59,16 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>spark_daemon_memory</name>
+    <value>1024</value>
+    <description>Memory for Master, Worker and history server (default: 1G)</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <!-- spark-env.sh -->
   <property>
     <name>content</name>
@@ -90,6 +100,9 @@ export SPARK_LOG_DIR={{spark_log_dir}}
 
 # Where the pid file is stored. (Default: /tmp)
 export SPARK_PID_DIR={{spark_pid_dir}}
+
+#Memory for Master, Worker and history server (default: 1024MB)
+export SPARK_DAEMON_MEMORY={{spark_daemon_memory}}m
 
 # A string representing this instance of spark.(Default: $USER)
 SPARK_IDENT_STRING=$USER
