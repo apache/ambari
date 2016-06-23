@@ -54,7 +54,7 @@ App.ServiceConfig = Ember.Object.extend({
     return this.get('activeProperties').filter(function(c) {
       return !c.get('isValid') || !c.get('isValidOverride');
     });
-  }.property('activeProperties.@each.isValid', 'activeProperties.@each.isValidOverride'),
+  }.property('activeProperties.@each.isValid', 'activeProperties.@each.isValidOverride', 'activeProperties.length'),
 
   observeErrors: function() {
     this.get('configCategories').setEach('errorCount', 0);
@@ -73,6 +73,10 @@ App.ServiceConfig = Ember.Object.extend({
 
   observeForeignKeys: function() {
     //TODO refactor or move this logic to other place
+    Em.run.once(this, 'updateVisibilityByForeignKeys');
+  }.observes('radioConfigs.@each.value'),
+
+  updateVisibilityByForeignKeys: function() {
     var configs = this.get('configs');
     configs.forEach(function (item) {
       if (item.get('isVisible')) {
@@ -90,7 +94,7 @@ App.ServiceConfig = Ember.Object.extend({
         }
       }
     });
-  }.observes('radioConfigs.@each.value'),
+  },
 
   /**
    * Collection of properties that were changed:
