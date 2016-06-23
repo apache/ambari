@@ -20,12 +20,14 @@ limitations under the License.
 
 __all__ = ["Direction", "SafeMode", "StackFeature"]
 
+
 class Direction:
   """
   Stack Upgrade direction
   """
   UPGRADE = "upgrade"
   DOWNGRADE = "downgrade"
+
 
 class SafeMode:
   """
@@ -34,7 +36,8 @@ class SafeMode:
   ON = "ON"
   OFF = "OFF"
   UNKNOWN = "UNKNOWN"
-  
+
+
 class StackFeature:
   """
   Stack Feature supported
@@ -68,7 +71,6 @@ class StackFeature:
   ACCUMULO_KERBEROS_USER_AUTH = "accumulo_kerberos_user_auth"
   KNOX_VERSIONED_DATA_DIR = "knox_versioned_data_dir"
   KNOX_SSO_TOPOLOGY = "knox_sso_topology"
-  ATLAS_ROLLING_UPGRADE = "atlas_rolling_upgrade"
   OOZIE_ADMIN_USER = "oozie_admin_user"
   OOZIE_CREATE_HIVE_TEZ_CONFIGS = "oozie_create_hive_tez_configs"
   OOZIE_SETUP_SHARED_LIB = "oozie_setup_shared_lib"
@@ -87,3 +89,4 @@ class StackFeature:
   LOGSEARCH_SUPPORT = "logsearch_support"
   HBASE_HOME_DIRECTORY = "hbase_home_directory"
   ATLAS_RANGER_PLUGIN_SUPPORT = "atlas_ranger_plugin_support"
+  ATLAS_UPGRADE_SUPPORT = "atlas_upgrade_support"

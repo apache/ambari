@@ -237,16 +237,6 @@
       </service>
     </group>
 
-    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
-    <group name="ATLAS" title="Atlas">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service name="ATLAS">
-        <component>ATLAS_SERVER</component>
-      </service>
-    </group>
-
     <group name="OOZIE" title="Oozie">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
