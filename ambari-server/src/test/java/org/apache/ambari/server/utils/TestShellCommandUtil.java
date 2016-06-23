@@ -112,7 +112,39 @@ public class TestShellCommandUtil {
       // Skipping this test under Windows/Mac
     }
   }
-  
+
+  @Test
+  public void testRunInteractiveCommand() throws Exception {
+
+    ShellCommandUtil.InteractiveHandler interactiveHandler = new ShellCommandUtil.InteractiveHandler() {
+      boolean done = false;
+
+      @Override
+      public boolean done() {
+        return done;
+      }
+
+      @Override
+      public String getResponse(String query) {
+        if(query.contains("Arg1")) {
+          return "a1";
+        }
+        else if(query.contains("Arg2")) {
+          done = true; // this is the last expected prompt
+          return "a2";
+        }
+        else {
+          return null;
+        }
+      }
+    };
+
+    ShellCommandUtil.Result result = ShellCommandUtil.runCommand(new String[]{"./src/test/resources/interactive_shell_test.sh"}, null, interactiveHandler, false);
+    Assert.assertEquals(0, result.getExitCode());
+    Assert.assertTrue(result.isSuccessful());
+    Assert.assertEquals("a1\na2\n", result.getStdout());
+  }
+
   @Test
   public void testHideOpenSslPassword(){
     String command_pass = "openssl ca -config ca.config -in agent_hostname1.csr -out "+

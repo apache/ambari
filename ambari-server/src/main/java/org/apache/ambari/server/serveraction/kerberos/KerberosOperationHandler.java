@@ -721,17 +721,19 @@ public abstract class KerberosOperationHandler {
    *
    * @param command an array of String value representing the command and its arguments
    * @param envp a map of string, string of environment variables
+   * @param interactiveHandler a handler to provide responses to queries from the command,
+   *                           or null if no queries are expected
    * @return a ShellCommandUtil.Result declaring the result of the operation
    * @throws KerberosOperationException
    */
-  protected ShellCommandUtil.Result executeCommand(String[] command, Map<String, String> envp)
+  protected ShellCommandUtil.Result executeCommand(String[] command, Map<String, String> envp, ShellCommandUtil.InteractiveHandler interactiveHandler)
       throws KerberosOperationException {
 
     if ((command == null) || (command.length == 0)) {
       return null;
     } else {
       try {
-        return ShellCommandUtil.runCommand(command, envp);
+        return ShellCommandUtil.runCommand(command, envp, interactiveHandler, false);
       } catch (IOException e) {
         String message = String.format("Failed to execute the command: %s", e.getLocalizedMessage());
         LOG.error(message, e);
@@ -752,10 +754,27 @@ public abstract class KerberosOperationHandler {
    * @param command an array of String value representing the command and its arguments
    * @return a ShellCommandUtil.Result declaring the result of the operation
    * @throws KerberosOperationException
+   * @see #executeCommand(String[], Map, ShellCommandUtil.InteractiveHandler)
    */
   protected ShellCommandUtil.Result executeCommand(String[] command)
           throws KerberosOperationException {
     return executeCommand(command, null);
+  }
+
+  /**
+   * Executes a shell command.
+   * <p/>
+   * See {@link org.apache.ambari.server.utils.ShellCommandUtil#runCommand(String[])}
+   *
+   * @param command an array of String value representing the command and its arguments
+   * @param interactiveHandler a handler to provide responses to queries from the command,
+   *                           or null if no queries are expected
+   * @return a ShellCommandUtil.Result declaring the result of the operation
+   * @throws KerberosOperationException
+   * @see #executeCommand(String[], Map, ShellCommandUtil.InteractiveHandler)
+   */
+  protected ShellCommandUtil.Result executeCommand(String[] command, ShellCommandUtil.InteractiveHandler interactiveHandler) throws KerberosOperationException {
+    return executeCommand(command, null, interactiveHandler);
   }
 
   /**
