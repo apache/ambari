@@ -18,35 +18,28 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -64,8 +57,21 @@ import java.util.Set;
  * <li>COMPOSITE - the default descriptor for the relevant stack with the the user-supplied updates applied</li>
  * </ul>
  */
-@StaticallyInject
 public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceProvider {
+
+  /**
+   * A directive to indicate whether or not the <code>when</code> clauses for Kerberos Identity
+   * definitions are to be evaluated or not.  By default, they are not evaluated since historically
+   * this provider returned unprocessed Kerberos descriptors.
+   */
+  public static final String DIRECTIVE_EVALUATE_WHEN_CLAUSE = "evaluate_when";
+
+  /**
+   * A directive to indicate additional services to consider when evaluating <code>when</code>
+   * clauses.  This value is expcected to be a comma-delimited string that is only used when
+   * <code>evaluate_when</code> is <code>true</code>.
+   */
+  public static final String DIRECTIVE_ADDITIONAL_SERVICES = "additional_services";
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -100,16 +106,6 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
     map.put(Type.ClusterKerberosDescriptor, CLUSTER_KERBEROS_DESCRIPTOR_TYPE_PROPERTY_ID);
     KEY_PROPERTY_IDS = Collections.unmodifiableMap(map);
   }
-
-  @Inject
-  private static KerberosDescriptorFactory kerberosDescriptorFactory;
-
-  /**
-   * Used to get kerberos descriptors associated with the cluster or stack.
-   * Currently not available via injection.
-   */
-  private static ClusterController clusterController = null;
-
 
   /**
    * Create a new resource provider.
@@ -148,15 +144,21 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
       // Ensure the authenticated use has access to this data for the requested cluster...
       AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, cluster.getResourceId(), REQUIRED_GET_AUTHORIZATIONS);
 
-      KerberosDescriptorType kerberosDescriptorType = getKerberosDescriptorType(propertyMap);
+      KerberosHelper.KerberosDescriptorType kerberosDescriptorType = getKerberosDescriptorType(propertyMap);
       if (kerberosDescriptorType == null) {
-        for (KerberosDescriptorType type : KerberosDescriptorType.values()) {
+        for (KerberosHelper.KerberosDescriptorType type : KerberosHelper.KerberosDescriptorType.values()) {
           resources.add(toResource(clusterName, type, null, requestedIds));
         }
       } else {
         KerberosDescriptor kerberosDescriptor;
         try {
-          kerberosDescriptor = getKerberosDescriptor(cluster, kerberosDescriptorType);
+          KerberosHelper kerberosHelper = getManagementController().getKerberosHelper();
+          Map<String, String> requestInfoProperties= request.getRequestInfoProperties();
+
+          kerberosDescriptor = kerberosHelper.getKerberosDescriptor(kerberosDescriptorType,
+              cluster,
+              getEvaluateWhen(requestInfoProperties),
+              getAdditionalServices(requestInfoProperties));
         } catch (AmbariException e) {
           throw new SystemException("An unexpected error occurred building the cluster's composite Kerberos Descriptor", e);
         }
@@ -168,6 +170,11 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
     }
 
     return resources;
+  }
+
+  @Override
+  protected Set<String> getPKPropertyIds() {
+    return PK_PROPERTY_IDS;
   }
 
   /**
@@ -190,20 +197,20 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
   /**
    * Retrieves the Kerberos descriptor type from the request property map, if one was specified.
    * <p/>
-   * See {@link org.apache.ambari.server.controller.internal.ClusterKerberosDescriptorResourceProvider.KerberosDescriptorType}
+   * See {@link KerberosHelper.KerberosDescriptorType}
    * for expected values.
    *
    * @param propertyMap the request property map
    * @return a KerberosDescriptorType; or null is not specified in the request propery map
    * @throws IllegalArgumentException if the Kerberos descriptor type value is specified but not an expected value.
    */
-  private KerberosDescriptorType getKerberosDescriptorType(Map<String, Object> propertyMap) {
+  private KerberosHelper.KerberosDescriptorType getKerberosDescriptorType(Map<String, Object> propertyMap) {
     String type = (String) propertyMap.get(CLUSTER_KERBEROS_DESCRIPTOR_TYPE_PROPERTY_ID);
-    KerberosDescriptorType kerberosDescriptorType = null;
+    KerberosHelper.KerberosDescriptorType kerberosDescriptorType = null;
 
     if (!StringUtils.isEmpty(type)) {
       try {
-        kerberosDescriptorType = KerberosDescriptorType.valueOf(type.trim().toUpperCase());
+        kerberosDescriptorType = KerberosHelper.KerberosDescriptorType.valueOf(type.trim().toUpperCase());
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException("Invalid argument, kerberos descriptor type of 'STACK', 'USER', or 'COMPOSITE' is required");
       }
@@ -212,107 +219,37 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
     return kerberosDescriptorType;
   }
 
-  @Override
-  protected Set<String> getPKPropertyIds() {
-    return PK_PROPERTY_IDS;
-  }
-
-  protected KerberosDescriptor getKerberosDescriptor(Cluster cluster, KerberosDescriptorType type) throws AmbariException {
-
-    KerberosDescriptor stackDescriptor = (type == KerberosDescriptorType.STACK || type == KerberosDescriptorType.COMPOSITE)
-        ? getKerberosDescriptorFromStack(cluster.getCurrentStackVersion())
-        : null;
-
-    KerberosDescriptor userDescriptor = (type == KerberosDescriptorType.USER || type == KerberosDescriptorType.COMPOSITE)
-        ? getKerberosDescriptorUpdates(cluster.getClusterName())
-        : null;
-
-    if (stackDescriptor == null) {
-      if (userDescriptor == null) {
-        return new KerberosDescriptor();
-      } else {
-        return userDescriptor;
-      }
-    } else {
-      if (userDescriptor != null) {
-        stackDescriptor.update(userDescriptor);
-      }
-      return stackDescriptor;
-    }
+  /**
+   * Determine if <code>when</code> chauses should be evaluated or not.
+   * <p>
+   * This is determined by the existance and value of the <code>evaluate_when</code> directive.
+   * If it exists and is set to "true", then <code>when</code> clauses should be evaluated, else
+   * they should not.
+   *
+   * @param requestInfoProperties a map a request info properties
+   * @return true if <code>when</code> clauses are to be evaluted; false otherwise
+   */
+  private boolean getEvaluateWhen(Map<String, String> requestInfoProperties) {
+    return (requestInfoProperties != null) && "true".equalsIgnoreCase(requestInfoProperties.get(DIRECTIVE_EVALUATE_WHEN_CLAUSE));
   }
 
   /**
-   * Get the user-supplied Kerberos descriptor from <code>cluster/:clusterName/artifacts/kerberos_descriptor</code>
+   * Get the optional list of services indicated as <code>additional_servides</code> which are to be
+   * used in addtion to currently installed services when evaluating <code>when</code> clauses.
    *
-   * @param clusterName the cluster name
-   * @return a Kerberos descriptor
+   * @param requestInfoProperties a map a request info properties
+   * @return a collection of service names, or <code>null</code> if not specified
    */
-  private KerberosDescriptor getKerberosDescriptorUpdates(String clusterName) throws AmbariException {
-    //
-    KerberosDescriptor descriptor = null;
+  private Collection<String> getAdditionalServices(Map<String, String> requestInfoProperties) {
+    if (requestInfoProperties != null) {
+      String value = requestInfoProperties.get(DIRECTIVE_ADDITIONAL_SERVICES);
 
-    PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals(clusterName).and().
-        property(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY).equals("kerberos_descriptor").
-        end().toPredicate();
-
-    synchronized (ClusterKerberosDescriptorResourceProvider.class) {
-      if (clusterController == null) {
-        clusterController = ClusterControllerHelper.getClusterController();
+      if(value != null) {
+        return Arrays.asList(value.split("\\s*,\\s*"));
       }
     }
 
-    ResourceProvider artifactProvider = clusterController.ensureResourceProvider(Resource.Type.Artifact);
-
-    Request request = new RequestImpl(Collections.<String>emptySet(),
-        Collections.<Map<String, Object>>emptySet(), Collections.<String, String>emptyMap(), null);
-
-    Set<Resource> response = null;
-    try {
-      response = artifactProvider.getResources(request, predicate);
-    } catch (AuthorizationException e) {
-      throw new AmbariException(e.getMessage(), e);
-    } catch (SystemException | UnsupportedPropertyException | NoSuchParentResourceException e) {
-      throw new AmbariException("An unknown error occurred while trying to obtain the cluster's kerberos descriptor artifact", e);
-    } catch (NoSuchResourceException e) {
-      // no descriptor registered, use the default from the stack
-    }
-
-    if (response != null && !response.isEmpty()) {
-      Resource descriptorResource = response.iterator().next();
-      Map<String, Map<String, Object>> propertyMap = descriptorResource.getPropertiesMap();
-      if (propertyMap != null) {
-        Map<String, Object> artifactData = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
-        Map<String, Object> artifactDataProperties = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties");
-        HashMap<String, Object> data = new HashMap<String, Object>();
-
-        if (artifactData != null) {
-          data.putAll(artifactData);
-        }
-
-        if (artifactDataProperties != null) {
-          data.put("properties", artifactDataProperties);
-        }
-
-        descriptor = kerberosDescriptorFactory.createInstance(data);
-      }
-    }
-
-    return descriptor;
-  }
-
-  /**
-   * Get the default Kerberos descriptor from the stack, which is the same as the value from
-   * <code>stacks/:stackName/versions/:version/artifacts/kerberos_descriptor</code>
-   *
-   * @param stackId the stack id
-   * @return a Kerberos Descriptor
-   * @throws AmbariException if an error occurs while retrieving the Kerberos descriptor
-   */
-  private KerberosDescriptor getKerberosDescriptorFromStack(StackId stackId) throws AmbariException {
-    AmbariManagementController managementController = getManagementController();
-    AmbariMetaInfo metaInfo = managementController.getAmbariMetaInfo();
-    return metaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
+    return null;
   }
 
   /**
@@ -324,7 +261,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
    * @param requestedIds           the properties to include in the resulting resource instance
    * @return a resource
    */
-  private Resource toResource(String clusterName, KerberosDescriptorType kerberosDescriptorType,
+  private Resource toResource(String clusterName, KerberosHelper.KerberosDescriptorType kerberosDescriptorType,
                               KerberosDescriptor kerberosDescriptor, Set<String> requestedIds) {
     Resource resource = new ResourceImpl(Type.ClusterKerberosDescriptor);
 
@@ -341,9 +278,4 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
     return resource;
   }
 
-  public enum KerberosDescriptorType {
-    STACK,
-    USER,
-    COMPOSITE
-  }
 }

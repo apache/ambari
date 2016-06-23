@@ -59,14 +59,14 @@ public class KerberosDescriptorTest {
             put("some.property", "Hello World");
           }});
 
-          put(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
+          put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
             add("global.name.rules");
           }});
 
-          put(KerberosDescriptorType.SERVICE.getDescriptorPluralName(), new ArrayList<Object>() {{
+          put(AbstractKerberosDescriptor.Type.SERVICE.getDescriptorPluralName(), new ArrayList<Object>() {{
             add(KerberosServiceDescriptorTest.MAP_VALUE);
           }});
-          put(KerberosDescriptorType.CONFIGURATION.getDescriptorPluralName(), new ArrayList<Map<String, Object>>() {{
+          put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), new ArrayList<Map<String, Object>>() {{
             add(new HashMap<String, Object>() {
               {
                 put("cluster-conf", new HashMap<String, String>() {
@@ -77,7 +77,7 @@ public class KerberosDescriptorTest {
               }
             });
           }});
-          put(KerberosDescriptorType.IDENTITY.getDescriptorPluralName(), new ArrayList<Object>() {{
+          put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), new ArrayList<Object>() {{
             add(new HashMap<String, Object>() {
               {
                 put("name", "shared");

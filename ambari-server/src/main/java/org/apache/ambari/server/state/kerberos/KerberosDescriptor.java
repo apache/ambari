@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.kerberos;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -116,7 +117,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     super(data);
 
     if (data != null) {
-      Object list = data.get(KerberosDescriptorType.SERVICE.getDescriptorPluralName());
+      Object list = data.get(Type.SERVICE.getDescriptorPluralName());
       if (list instanceof Collection) {
         for (Object item : (Collection) list) {
           if (item instanceof Map) {
@@ -133,6 +134,16 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
         }
       }
     }
+  }
+
+  @Override
+  public Collection<? extends AbstractKerberosDescriptorContainer> getChildContainers() {
+    return (services == null) ? null : Collections.unmodifiableCollection(services.values());
+  }
+
+  @Override
+  public AbstractKerberosDescriptorContainer getChildContainer(String name) {
+    return getService(name);
   }
 
   /**
@@ -264,8 +275,8 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
    * @return a AbstractKerberosDescriptor representing the requested descriptor or null if not found
    */
   @Override
-  protected AbstractKerberosDescriptor getDescriptor(KerberosDescriptorType type, String name) {
-    if (KerberosDescriptorType.SERVICE == type) {
+  protected AbstractKerberosDescriptor getDescriptor(Type type, String name) {
+    if (Type.SERVICE == type) {
       return getService(name);
     } else {
       return super.getDescriptor(type, name);
@@ -289,7 +300,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
       for (KerberosServiceDescriptor service : services.values()) {
         list.add(service.toMap());
       }
-      map.put(KerberosDescriptorType.SERVICE.getDescriptorPluralName(), list);
+      map.put(Type.SERVICE.getDescriptorPluralName(), list);
     }
 
     if (properties != null) {

@@ -238,10 +238,10 @@ public interface KerberosHelper {
    * Returns the updates configurations that are expected when the given set of services are configured
    * for Kerberos.
    *
-   * @param cluster                the cluster
-   * @param existingConfigurations the cluster's existing configurations
-   * @param services               the set of services to process
-   * @param kerberosEnabled        true if kerberos is (to be) enabled; otherwise false
+   * @param cluster                  the cluster
+   * @param existingConfigurations   the cluster's existing configurations
+   * @param services                 the set of services to process
+   * @param kerberosEnabled          true if kerberos is (to be) enabled; otherwise false
    * @param applyStackAdvisorUpdates true to invoke the stack advisor to validate property updates; false to skip
    * @return a map of configuration updates
    * @throws AmbariException
@@ -407,8 +407,38 @@ public interface KerberosHelper {
    * @param cluster cluster instance
    * @return the kerberos descriptor associated with the specified cluster
    * @throws AmbariException if unable to obtain the descriptor
+   * @see #getKerberosDescriptor(KerberosDescriptorType, Cluster, boolean, Collection)
    */
   KerberosDescriptor getKerberosDescriptor(Cluster cluster) throws AmbariException;
+
+  /**
+   * Gets the requested Kerberos descriptor.
+   * <p>
+   * One of the following Kerberos descriptors will be returned - with or without pruning identity
+   * definitions based on the evaluation of their <code>when</code> clauses:
+   * <dl>
+   * <dt>{@link KerberosDescriptorType#STACK}</dt>
+   * <dd>A Kerberos descriptor built using data from the current stack definition, only</dd>
+   * <dt>{@link KerberosDescriptorType#USER}</dt>
+   * <dd>A Kerberos descriptor built using user-specified data stored as an artifact of the cluster, only</dd>
+   * <dt>{@link KerberosDescriptorType#COMPOSITE}</dt>
+   * <dd>A Kerberos descriptor built using data from the current stack definition with user-specified data stored as an artifact of the cluster applied
+   * - see {@link #getKerberosDescriptor(Cluster)}</dd>
+   * </dl>
+   *
+   * @param kerberosDescriptorType the type of Kerberos descriptor to retrieve - see {@link KerberosDescriptorType}
+   * @param cluster                the relevant Cluster
+   * @param evaluateWhenClauses    true to evaluate Kerberos identity <code>when</code> clauses and
+   *                               prune if necessary; false otherwise.
+   * @param additionalServices     an optional collection of service names declaring additional
+   *                               services to add to the set of currently installed services to use
+   *                               while evaluating <code>when</code> clauses
+   * @return a Kerberos descriptor
+   * @throws AmbariException
+   */
+  KerberosDescriptor getKerberosDescriptor(KerberosDescriptorType kerberosDescriptorType, Cluster cluster,
+                                           boolean evaluateWhenClauses, Collection<String> additionalServices)
+      throws AmbariException;
 
   /**
    * Merges configuration from a Map of configuration updates into a main configurations Map.  Each
@@ -569,6 +599,34 @@ public interface KerberosHelper {
    * @throws AmbariException if an error occurs while retrieving the credentials
    */
   PrincipalKeyCredential getKDCAdministratorCredentials(String clusterName) throws AmbariException;
+
+  /**
+   * Types of Kerberos descriptors related to where the data is stored.
+   * <dl>
+   * <dt>STACK</dt>
+   * <dd>A Kerberos descriptor built using data from a stack definition, only</dd>
+   * <dt>USER</dt>
+   * <dd>A Kerberos descriptor built using user-specified data stored as an artifact of a cluster, only</dd>
+   * <dt>COMPOSITE</dt>
+   * <dd>A Kerberos descriptor built using data from a stack definition with user-specified data stored as an artifact of a cluster applied</dd>
+   * </dl>
+   */
+  enum KerberosDescriptorType {
+    /**
+     * A Kerberos descriptor built using data from a stack definition, only
+     */
+    STACK,
+
+    /**
+     * A Kerberos descriptor built using user-specified data stored as an artifact of a cluster, only
+     */
+    USER,
+
+    /**
+     * A Kerberos descriptor built using data from a stack definition with user-specified data stored as an artifact of a cluster applied
+     */
+    COMPOSITE
+  }
 
   /**
    * Command to invoke against the Ambari backend.

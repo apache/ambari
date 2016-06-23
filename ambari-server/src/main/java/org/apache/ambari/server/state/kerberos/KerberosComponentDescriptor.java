@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -96,6 +97,18 @@ public class KerberosComponentDescriptor extends AbstractKerberosDescriptorConta
     // The name for this KerberosComponentDescriptor is stored in the "name" entry in the map
     // This is not automatically set by the super classes.
     setName(getStringValue(data, "name"));
+  }
+
+  @Override
+  public Collection<? extends AbstractKerberosDescriptorContainer> getChildContainers() {
+    // KerberosComponentDescriptors do not have child components
+    return null;
+  }
+
+  @Override
+  public AbstractKerberosDescriptorContainer getChildContainer(String name) {
+    // KerberosComponentDescriptors do not have child components
+    return null;
   }
 
   @Override

@@ -17,13 +17,9 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import org.apache.ambari.server.AmbariException;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +121,16 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
     this(getStringValue(data, "name"), data);
   }
 
+  @Override
+  public Collection<? extends AbstractKerberosDescriptorContainer> getChildContainers() {
+    return (components == null) ? null : Collections.unmodifiableCollection(components.values());
+  }
+
+  @Override
+  public AbstractKerberosDescriptorContainer getChildContainer(String name) {
+    return getComponent(name);
+  }
+
   /**
    * Creates a new KerberosServiceDescriptor
    * <p/>
@@ -142,7 +148,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
     setName(name);
 
     if (data != null) {
-      Object list = data.get(KerberosDescriptorType.COMPONENT.getDescriptorPluralName());
+      Object list = data.get(Type.COMPONENT.getDescriptorPluralName());
       if (list instanceof Collection) {
         // Assume list is Collection<Map<String, Object>>
         for (Object item : (Collection) list) {
@@ -235,8 +241,8 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
    * @return a AbstractKerberosDescriptor representing the requested descriptor or null if not found
    */
   @Override
-  protected AbstractKerberosDescriptor getDescriptor(KerberosDescriptorType type, String name) {
-    if (KerberosDescriptorType.COMPONENT == type) {
+  protected AbstractKerberosDescriptor getDescriptor(Type type, String name) {
+    if (Type.COMPONENT == type) {
       return getComponent(name);
     } else {
       return super.getDescriptor(type, name);
@@ -260,7 +266,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
       for (KerberosComponentDescriptor component : components.values()) {
         list.add(component.toMap());
       }
-      map.put(KerberosDescriptorType.COMPONENT.getDescriptorPluralName(), list);
+      map.put(Type.COMPONENT.getDescriptorPluralName(), list);
     }
 
     return map;

@@ -19,12 +19,14 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.query.QueryImpl;
+import org.apache.ambari.server.controller.internal.ClusterKerberosDescriptorResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -397,17 +399,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case StackArtifact:
-        resourceDefinition = new BaseResourceDefinition(Resource.Type.StackArtifact) {
-          @Override
-          public String getPluralName() {
-            return "artifacts";
-          }
-
-          @Override
-          public String getSingularName() {
-            return "artifact";
-          }
-        };
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.StackArtifact, "artifact", "artifacts");
         break;
 
       case Artifact:
@@ -463,7 +455,17 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case ClusterKerberosDescriptor:
-        resourceDefinition = new SimpleResourceDefinition(Resource.Type.ClusterKerberosDescriptor, "kerberos_descriptor", "kerberos_descriptors");
+        resourceDefinition = new SimpleResourceDefinition(
+            Resource.Type.ClusterKerberosDescriptor,
+            "kerberos_descriptor",
+            "kerberos_descriptors",
+            null,
+            Collections.singletonMap(SimpleResourceDefinition.DirectiveType.READ,
+                Arrays.asList(
+                    ClusterKerberosDescriptorResourceProvider.DIRECTIVE_EVALUATE_WHEN_CLAUSE,
+                    ClusterKerberosDescriptorResourceProvider.DIRECTIVE_ADDITIONAL_SERVICES
+                ))
+        );
         break;
 
       case LoggingQuery:
