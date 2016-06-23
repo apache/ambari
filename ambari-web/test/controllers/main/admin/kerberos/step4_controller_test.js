@@ -574,18 +574,17 @@ describe('App.KerberosWizardStep4Controller', function() {
 
     beforeEach(function() {
       c.reopen({
-        isWithinAddService: true
+        isWithinAddService: true,
+        selectedServiceNames: []
       });
       sinon.stub(c, 'storeClusterDescriptorStatus');
       sinon.stub(c, 'loadClusterDescriptorConfigs').returns(mock);
-      sinon.stub(c, 'loadStackDescriptorConfigs').returns(mock);
       sinon.stub(mock, 'then');
     });
 
     afterEach(function() {
       c.loadClusterDescriptorConfigs.restore();
       c.storeClusterDescriptorStatus.restore();
-      c.loadStackDescriptorConfigs.restore();
       mock.then.restore();
     });
 
@@ -611,12 +610,6 @@ describe('App.KerberosWizardStep4Controller', function() {
     it("then should be called", function() {
       c.getDescriptor();
       expect(mock.then.calledOnce).to.be.true;
-    });
-
-    it("loadStackDescriptorConfigs should be called", function() {
-      c.set('isWithinAddService', false);
-      c.getDescriptor();
-      expect(c.loadStackDescriptorConfigs.calledOnce).to.be.true;
     });
 
     it("then should be called, isWithinAddService is false", function() {
