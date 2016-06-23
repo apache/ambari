@@ -306,7 +306,7 @@ def verifyDependencies():
   if check_str is None or cmd is None:
     raise Fail("Unsupported OSFamily on the Agent Host")
 
-  code, out = rmf_shell.checked_call(cmd)
+  code, out = rmf_shell.checked_call(cmd, sudo=True)
 
   output_regex = re.compile(check_str)
 
