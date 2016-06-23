@@ -28,10 +28,12 @@ from resource_management.libraries.functions import tar_archive
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.script.script import Script
 
 
 BACKUP_TEMP_DIR = "knox-upgrade-backup"
 BACKUP_DATA_ARCHIVE = "knox-data-backup.tar"
+STACK_ROOT_DEFAULT = Script.get_stack_root()
 
 def backup_data():
   """
@@ -65,6 +67,8 @@ def backup_data():
 
 def seed_current_data_directory():
   """
+  HDP stack example:
+
   Knox uses "versioned" data directories in some stacks:
   /usr/hdp/2.2.0.0-1234/knox/data -> /var/lib/knox/data
   /usr/hdp/2.3.0.0-4567/knox/data -> /var/lib/knox/data-2.3.0.0-4567
@@ -106,7 +110,7 @@ def _get_directory_mappings_during_upgrade():
 
   # the data directory is always a symlink to the "correct" data directory in /var/lib/knox
   # such as /var/lib/knox/data or /var/lib/knox/data-2.4.0.0-1234
-  knox_data_dir = '/usr/hdp/current/knox-server/data'
+  knox_data_dir = STACK_ROOT_DEFAULT + '/current/knox-server/data'
 
   directories = { knox_data_dir: BACKUP_DATA_ARCHIVE }
 

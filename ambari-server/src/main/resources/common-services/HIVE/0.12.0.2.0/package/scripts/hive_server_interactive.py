@@ -368,8 +368,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       if marker_idx is None:
         raise Fail("Couldn't validate the received output for JSON parsing.")
       else:
-        del splits[0:marker_idx]
-        Logger.info("Removed lines: '1-{0}' from the received 'llapstatus' output to make it valid for JSON parsing.".format(marker_idx))
+        if marker_idx != 0:
+          del splits[0:marker_idx]
+          Logger.info("Removed lines: '1-{0}' from the received 'llapstatus' output to make it valid for JSON parsing.".format(marker_idx))
 
       scanned_output = '\n'.join(splits)
       llap_app_info = json.loads(scanned_output)

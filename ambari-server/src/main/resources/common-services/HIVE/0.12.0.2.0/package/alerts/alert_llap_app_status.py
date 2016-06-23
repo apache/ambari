@@ -32,7 +32,7 @@ from resource_management.core import shell
 from resource_management.core.resources import Execute
 from resource_management.core import global_lock
 from resource_management.core.exceptions import Fail
-
+from resource_management.libraries.script.script import Script
 
 OK_MESSAGE = "The application reported a '{0}' state in {1:.3f}s"
 MESSAGE_WITH_STATE_AND_INSTANCES = "The application reported a '{0}' state in {1:.3f}s. [Live: {2}, Desired: {3}]"
@@ -59,7 +59,7 @@ HIVE_USER_KEY = '{{hive-env/hive_user}}'
 HIVE_USER_DEFAULT = 'default.smoke.user'
 
 STACK_ROOT = '{{cluster-env/stack_root}}'
-STACK_ROOT_DEFAULT = "/usr/hdp"
+STACK_ROOT_DEFAULT = Script.get_stack_root()
 
 LLAP_APP_NAME_KEY = '{{hive-interactive-env/llap_app_name}}'
 LLAP_APP_NAME_DEFAULT = 'llap0'
@@ -160,7 +160,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     if STACK_ROOT in configurations:
       llap_status_cmd = configurations[STACK_ROOT] + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}  -findAppTimeout {LLAP_APP_STATUS_CMD_TIMEOUT}")
     else:
-      llap_status_cmd = format("/usr/hdp/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}")
+      llap_status_cmd = STACK_ROOT_DEFAULT + format("/current/hive-server2-hive2/bin/hive --service llapstatus --name {llap_app_name}")
 
     code, output, error = shell.checked_call(llap_status_cmd, user=hive_user, stderr=subprocess.PIPE,
                                              timeout=check_command_timeout,
@@ -289,7 +289,8 @@ def make_valid_json(output):
   if marker_idx is None:
     raise Fail("Couldn't validate the received output for JSON parsing.")
   else:
-    del splits[0:marker_idx]
+    if marker_idx != 0:
+      del splits[0:marker_idx]
 
   scanned_output = '\n'.join(splits)
   llap_app_info = json.loads(scanned_output)
