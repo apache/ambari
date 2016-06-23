@@ -75,17 +75,20 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var successCallback = function(data) {
       dfd.resolve(data);
     };
-    if (this.get('isWithinAddService')) {
-      App.ajax.send({
-        sender: this,
-        name: 'admin.kerberize.cluster_descriptor_artifact'
-      }).always(function(data, status) {
-        self.storeClusterDescriptorStatus(status === 'success');
-        self.loadClusterDescriptorConfigs().then(successCallback);
-      });
-    } else {
-      this.loadStackDescriptorConfigs().then(successCallback);
-    }
+    var checkDescriptor = function() {
+      if (self.get('isWithinAddService')) {
+        return App.ajax.send({
+          sender: self,
+          name: 'admin.kerberize.cluster_descriptor_artifact'
+        });
+      }
+      return $.Deferred().resolve().promise();
+    };
+
+    checkDescriptor().always(function(data, status) {
+      self.storeClusterDescriptorStatus(status === 'success');
+      self.loadClusterDescriptorConfigs(self.get('isWithinAddService') ? self.get('selectedServiceNames') : false).then(successCallback);
+    });
     return dfd.promise();
   },
 

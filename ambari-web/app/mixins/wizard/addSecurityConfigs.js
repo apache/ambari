@@ -84,7 +84,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
       // generate configs for service level identity objects
       configs = configs.concat(self.createResourceConfigs(service, serviceName));
       // generate configs for service component level identity  object
-      service.components.forEach(function (component) {
+      Em.getWithDefault(service, 'components', []).forEach(function (component) {
         configs = configs.concat(self.createResourceConfigs(component, serviceName));
       });
     });
@@ -327,7 +327,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         kerberosDescriptor.services.forEach(function (_service) {
           isConfigUpdated = this.updateResourceIdentityConfigs(_service, _config);
           if (!isConfigUpdated) {
-            _service.components.forEach(function (_component) {
+            Em.getWithDefault(_service, 'components', []).forEach(function (_component) {
               isConfigUpdated = this.updateResourceIdentityConfigs(_component, _config);
             }, this);
           }
@@ -417,38 +417,22 @@ App.AddSecurityConfigs = Em.Mixin.create({
   },
 
   /**
-   * Check if cluster descriptor should be loaded
-   * @returns {Boolean}
-   */
-  shouldLoadClusterDescriptor: function() {
-    return App.get('isKerberosEnabled') && !App.router.get('mainAdminKerberosController.defaultKerberosLoaded');
-  }.property('App.isKerberosEnabled', 'App.router.mainAdminKerberosController.defaultKerberosLoaded'),
-
-  /**
-   * Make request for stack descriptor configs.
-   * @returns {$.ajax}
-   * @method loadStackDescriptorConfigs
-   */
-  loadStackDescriptorConfigs: function () {
-    return App.ajax.send({
-      sender: this,
-      name: 'admin.kerberize.stack_descriptor',
-      data: {
-        stackName: App.get('currentStackName'),
-        stackVersionNumber: App.get('currentStackVersionNumber')
-      }
-    });
-  },
-
-  /**
    * Make request for cluster descriptor configs.
+   *
+   * @param {string[]|null} [services=null] services to be added
    * @returns {$.ajax}
    * @method loadClusterDescriptorConfigs
    */
-  loadClusterDescriptorConfigs: function () {
+  loadClusterDescriptorConfigs: function (services) {
+    var servicesParam = services ? 'additional_services=' + services.join(',') : null,
+        queryParams = ['evaluate_when=true'].concat(servicesParam).compact().join('&');
+
     return App.ajax.send({
       sender: this,
-      name: 'admin.kerberize.cluster_descriptor'
+      name: 'admin.kerberize.cluster_descriptor',
+      data: {
+        queryParams: '?' + queryParams
+      }
     });
   }
 });

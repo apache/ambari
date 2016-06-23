@@ -1563,7 +1563,7 @@ var urls = {
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
   'admin.kerberize.cluster_descriptor': {
-    'real': '/clusters/{clusterName}/kerberos_descriptors/COMPOSITE',
+    'real': '/clusters/{clusterName}/kerberos_descriptors/COMPOSITE{queryParams}',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
   'admin.kerberos.cluster.artifact.create': {
