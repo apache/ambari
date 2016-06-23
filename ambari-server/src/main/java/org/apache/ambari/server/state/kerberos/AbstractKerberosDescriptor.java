@@ -160,7 +160,7 @@ public abstract class AbstractKerberosDescriptor {
    * @param name a String indicating the name of the requested descriptor
    * @return a AbstractKerberosDescriptor representing the requested descriptor or null if not found
    */
-  protected AbstractKerberosDescriptor getDescriptor(KerberosDescriptorType type, String name) {
+  protected AbstractKerberosDescriptor getDescriptor(Type type, String name) {
     return null;
   }
 
@@ -204,6 +204,45 @@ public abstract class AbstractKerberosDescriptor {
       );
     } else {
       return false;
+    }
+  }
+
+  /**
+   * An enumeration of the different Kerberos (sub)descriptors for internal use.
+   */
+  public enum Type {
+    SERVICE("service", "services"),
+    COMPONENT("component", "components"),
+    IDENTITY("identity", "identities"),
+    PRINCIPAL("principal", "principals"),
+    KEYTAB("keytab", "keytabs"),
+    CONFIGURATION("configuration", "configurations"),
+    AUTH_TO_LOCAL_PROPERTY("auth_to_local_property", "auth_to_local_properties");
+
+    private final String descriptorName;
+    private final String descriptorPluralName;
+
+    private Type(String descriptorName, String descriptorPluralName) {
+      this.descriptorName = descriptorName;
+      this.descriptorPluralName = descriptorPluralName;
+    }
+
+    /**
+     * Gets the identifying name for this Type
+     *
+     * @return a String declaring the identifying name for this Type
+     */
+    public String getDescriptorName() {
+      return descriptorName;
+    }
+
+    /**
+     * Gets the identifying name for a group of this Type
+     *
+     * @return a String declaring the identifying name for a group of this Type
+     */
+    public String getDescriptorPluralName() {
+      return descriptorPluralName;
     }
   }
 }

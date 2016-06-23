@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 
 import org.apache.ambari.server.AmbariException;
@@ -45,27 +46,14 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
-import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
-import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
-import org.apache.ambari.server.controller.spi.NoSuchResourceException;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
-import org.apache.ambari.server.security.SecurePasswordHelper;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -110,6 +98,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -183,10 +172,10 @@ public class KerberosHelperImpl implements KerberosHelper {
   private KerberosIdentityDataFileWriterFactory kerberosIdentityDataFileWriterFactory;
 
   @Inject
-  private SecurePasswordHelper securePasswordHelper;
+  private KerberosPrincipalDAO kerberosPrincipalDAO;
 
   @Inject
-  private KerberosPrincipalDAO kerberosPrincipalDAO;
+  private ArtifactDAO artifactDAO;
 
   /**
    * The injector used to create new instances of helper classes like CreatePrincipalsServerAction
@@ -203,13 +192,6 @@ public class KerberosHelperImpl implements KerberosHelper {
 
   @Inject
   private StackAdvisorHelper stackAdvisorHelper;
-
-  /**
-   * Used to get kerberos descriptors associated with the cluster or stack.
-   * Currently not available via injection.
-   */
-  private static ClusterController clusterController = null;
-
 
   @Override
   public RequestStageContainer toggleKerberos(Cluster cluster, SecurityType securityType,
@@ -1047,89 +1029,80 @@ public class KerberosHelperImpl implements KerberosHelper {
 
   @Override
   public KerberosDescriptor getKerberosDescriptor(Cluster cluster) throws AmbariException {
-    StackId stackId = cluster.getCurrentStackVersion();
+    return getKerberosDescriptor(KerberosDescriptorType.COMPOSITE, cluster, false, null);
+  }
 
-    // -------------------------------
-    // Get the default Kerberos descriptor from the stack, which is the same as the value from
-    // stacks/:stackName/versions/:version/artifacts/kerberos_descriptor
-    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
-    // -------------------------------
+  @Override
+  public KerberosDescriptor getKerberosDescriptor(KerberosDescriptorType kerberosDescriptorType, Cluster cluster,
+                                                  boolean evaluateWhenClauses, Collection<String> additionalServices)
+      throws AmbariException {
+    KerberosDescriptor kerberosDescriptor;
 
-    // Get the user-supplied Kerberos descriptor from cluster/:clusterName/artifacts/kerberos_descriptor
-    KerberosDescriptor descriptor = null;
+    KerberosDescriptor stackDescriptor = (kerberosDescriptorType == KerberosDescriptorType.STACK || kerberosDescriptorType == KerberosDescriptorType.COMPOSITE)
+        ? getKerberosDescriptorFromStack(cluster)
+        : null;
 
-    PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals(cluster.getClusterName()).and().
-        property(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY).equals("kerberos_descriptor").
-        end().toPredicate();
+    KerberosDescriptor userDescriptor = (kerberosDescriptorType == KerberosDescriptorType.USER || kerberosDescriptorType == KerberosDescriptorType.COMPOSITE)
+        ? getKerberosDescriptorUpdates(cluster)
+        : null;
 
-    synchronized (KerberosHelperImpl.class) {
-      if (clusterController == null) {
-        clusterController = ClusterControllerHelper.getClusterController();
+    if (stackDescriptor == null) {
+      if (userDescriptor == null) {
+        return new KerberosDescriptor();  // return an empty Kerberos descriptor since we have no data
+      } else {
+        kerberosDescriptor = userDescriptor;
       }
-    }
-
-    ResourceProvider artifactProvider =
-        clusterController.ensureResourceProvider(Resource.Type.Artifact);
-
-    Request request = new RequestImpl(Collections.<String>emptySet(),
-        Collections.<Map<String, Object>>emptySet(), Collections.<String, String>emptyMap(), null);
-
-    Set<Resource> response = null;
-    try {
-      response = artifactProvider.getResources(request, predicate);
-    } catch (AuthorizationException e) {
-      e.printStackTrace();
-      throw new AmbariException(e.getMessage(), e);
-    } catch (SystemException e) {
-      e.printStackTrace();
-      throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
-    } catch (UnsupportedPropertyException e) {
-      e.printStackTrace();
-      throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
-    } catch (NoSuchParentResourceException e) {
-      // parent cluster doesn't exist.  shouldn't happen since we have the cluster instance
-      e.printStackTrace();
-      throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
-    } catch (NoSuchResourceException e) {
-      // no descriptor registered, use the default from the stack
-    }
-
-    if (response != null && !response.isEmpty()) {
-      Resource descriptorResource = response.iterator().next();
-      Map<String, Map<String, Object>> propertyMap = descriptorResource.getPropertiesMap();
-      if (propertyMap != null) {
-        Map<String, Object> artifactData = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
-        Map<String, Object> artifactDataProperties = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties");
-        HashMap<String, Object> data = new HashMap<String, Object>();
-
-        if (artifactData != null) {
-          data.putAll(artifactData);
-        }
-
-        if (artifactDataProperties != null) {
-          data.put("properties", artifactDataProperties);
-        }
-
-        descriptor = kerberosDescriptorFactory.createInstance(data);
-      }
-    }
-    // -------------------------------
-
-    // -------------------------------
-    // Attempt to build and return a composite of the default Kerberos descriptor and the user-supplied
-    // Kerberos descriptor. If the default descriptor exists, overlay the user-supplied Kerberos
-    // descriptor on top of it (if it exists) and return the composite; else return the user-supplied
-    // Kerberos descriptor. If both values are null, null may be returned.
-    if (defaultDescriptor == null) {
-      return descriptor;
     } else {
-      if (descriptor != null) {
-        defaultDescriptor.update(descriptor);
+      if (userDescriptor != null) {
+        stackDescriptor.update(userDescriptor);
       }
-      return defaultDescriptor;
+      kerberosDescriptor = stackDescriptor;
     }
-    // -------------------------------
+
+    if (evaluateWhenClauses) {
+      Set<String> services = new HashSet<String>(cluster.getServices().keySet());
+
+      if(additionalServices != null) {
+        services.addAll(additionalServices);
+      }
+
+      // Build the context needed to filter out Kerberos identities...
+      // This includes the current set of configurations for the cluster and the set of installed services
+      Map<String, Object> context = new HashMap<String, Object>();
+      context.put("configurations", calculateConfigurations(cluster, null, kerberosDescriptor.getProperties()));
+      context.put("services", services);
+
+      // Get the Kerberos identities that need to be pruned
+      Map<String, Set<String>> identitiesToRemove = processWhenClauses("", kerberosDescriptor, context, new HashMap<String, Set<String>>());
+
+      // Prune off the Kerberos identities that need to be removed due to the evaluation of its _when_ clause
+      for (Map.Entry<String, Set<String>> identity : identitiesToRemove.entrySet()) {
+        String[] path = identity.getKey().split("/");
+        AbstractKerberosDescriptorContainer container = null;
+
+        // Follow the path to the container that contains the identities to remove
+        for (String name : path) {
+          if (container == null) {
+            container = kerberosDescriptor;
+          } else {
+            container = container.getChildContainer(name);
+
+            if (container == null) {
+              break;
+            }
+          }
+        }
+
+        // Remove the relevant identities from the found container
+        if (container != null) {
+          for (String identityName : identity.getValue()) {
+            container.removeIdentity(identityName);
+          }
+        }
+      }
+    }
+
+    return kerberosDescriptor;
   }
 
   @Override
@@ -2499,6 +2472,86 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       return copy;
     }
+  }
+
+  /**
+   * Get the user-supplied Kerberos descriptor from the set of cluster artifacts
+   *
+   * @param cluster the cluster
+   * @return a Kerberos descriptor
+   */
+  private KerberosDescriptor getKerberosDescriptorUpdates(Cluster cluster) throws AmbariException {
+    // find instance using name and foreign keys
+    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    foreignKeys.put("cluster", String.valueOf(cluster.getClusterId()));
+
+    ArtifactEntity entity = artifactDAO.findByNameAndForeignKeys("kerberos_descriptor", foreignKeys);
+    return (entity == null) ? null : kerberosDescriptorFactory.createInstance(entity.getArtifactData());
+  }
+
+  /**
+   * Get the default Kerberos descriptor from the stack, which is the same as the value from
+   * <code>stacks/:stackName/versions/:version/artifacts/kerberos_descriptor</code>
+   *
+   * @param cluster the cluster
+   * @return a Kerberos Descriptor
+   * @throws AmbariException if an error occurs while retrieving the Kerberos descriptor
+   */
+  private KerberosDescriptor getKerberosDescriptorFromStack(Cluster cluster) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+
+    // -------------------------------
+    // Get the default Kerberos descriptor from the stack, which is the same as the value from
+    // stacks/:stackName/versions/:version/artifacts/kerberos_descriptor
+    return ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
+    // -------------------------------
+  }
+
+  /**
+   * Recursively walk the Kerberos descriptor tree to find all Kerberos identity definitions and
+   * determine which should be filtered out.
+   *
+   * No actual filtering is performed while processing since any referenced Kerberos identities need
+   * to be accessible throughout the process. So a map of container path to a list of identities is
+   * created an returned
+   *
+   * @param currentPath
+   * @param container
+   * @param context
+   * @param identitiesToRemove
+   * @return
+   * @throws AmbariException
+   */
+  private Map<String,Set<String>> processWhenClauses(String currentPath, AbstractKerberosDescriptorContainer container, Map<String, Object> context, Map<String,Set<String>> identitiesToRemove) throws AmbariException {
+
+    // Get the list of this container's identities.
+    // Do not filter these identities using KerberosIdentityDescriptor#shouldInclude since we will do
+    // that later.
+    List<KerberosIdentityDescriptor> identities = container.getIdentities(true, null);
+
+    if((identities != null) && !identities.isEmpty()) {
+      Set<String> set = null;
+
+      for (KerberosIdentityDescriptor identity : identities) {
+        if (!identity.shouldInclude(context)) {
+          if (set == null) {
+            set = new HashSet<String>();
+            identitiesToRemove.put(currentPath, set);
+          }
+
+          set.add(identity.getName());
+        }
+      }
+    }
+
+    Collection<? extends AbstractKerberosDescriptorContainer> children = container.getChildContainers();
+    if(children != null) {
+      for(AbstractKerberosDescriptorContainer child: children) {
+        identitiesToRemove = processWhenClauses(currentPath + "/" + child.getName(), child, context, identitiesToRemove);
+      }
+    }
+
+    return identitiesToRemove;
   }
 
   /* ********************************************************************************************

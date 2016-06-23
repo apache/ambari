@@ -55,12 +55,12 @@ public class KerberosComponentDescriptorTest {
       new HashMap<String, Object>() {
         {
           put("name", "A_DIFFERENT_COMPONENT_NAME");
-          put(KerberosDescriptorType.IDENTITY.getDescriptorPluralName(), new ArrayList<Object>() {{
+          put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), new ArrayList<Object>() {{
             add(KerberosIdentityDescriptorTest.MAP_VALUE);
             add(KerberosIdentityDescriptorTest.MAP_VALUE_ALT);
             add(KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE);
           }});
-          put(KerberosDescriptorType.CONFIGURATION.getDescriptorPluralName(), new ArrayList<Map<String, Object>>() {{
+          put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), new ArrayList<Map<String, Object>>() {{
             add(new HashMap<String, Object>() {
               {
                 put("service-site", new HashMap<String, String>() {
@@ -72,7 +72,7 @@ public class KerberosComponentDescriptorTest {
               }
             });
           }});
-          put(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
+          put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
             add("component.name.rules2");
           }});
         }

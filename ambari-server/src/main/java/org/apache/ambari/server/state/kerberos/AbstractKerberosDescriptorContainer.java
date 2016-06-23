@@ -125,7 +125,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       Object list;
 
       // (Safely) Get the set of KerberosIdentityDescriptors
-      list = data.get(KerberosDescriptorType.IDENTITY.getDescriptorPluralName());
+      list = data.get(Type.IDENTITY.getDescriptorPluralName());
       if (list instanceof Collection) {
         for (Object item : (Collection) list) {
           if (item instanceof Map) {
@@ -135,7 +135,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       }
 
       // (Safely) Get the set of KerberosConfigurationDescriptors
-      list = data.get(KerberosDescriptorType.CONFIGURATION.getDescriptorPluralName());
+      list = data.get(Type.CONFIGURATION.getDescriptorPluralName());
       if (list instanceof Collection) {
         for (Object item : (Collection) list) {
           if (item instanceof Map) {
@@ -145,7 +145,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       }
 
       // (Safely) Get the set of KerberosConfigurationDescriptors
-      list = data.get(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName());
+      list = data.get(Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName());
       if (list instanceof Collection) {
         for (Object item : (Collection) list) {
           if (item instanceof String) {
@@ -155,6 +155,21 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       }
     }
   }
+
+  /**
+   * Returns the child containers associated with this container.
+   *
+   * @return an immutable collection of {@link AbstractKerberosDescriptorContainer}s
+   */
+  public abstract Collection<? extends AbstractKerberosDescriptorContainer> getChildContainers();
+
+  /**
+   * Returns a specific named child container
+   * @param name the name of the child container to retrieve
+   *
+   * @return an {@link AbstractKerberosDescriptorContainer}
+   */
+  public abstract AbstractKerberosDescriptorContainer getChildContainer(String name);
 
   /**
    * Returns the raw List of KerberosIdentityDescriptors contained within this
@@ -639,15 +654,15 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
 
           if (descriptor != null) {
             if ((serviceName != null) && !serviceName.isEmpty()) {
-              descriptor = descriptor.getDescriptor(KerberosDescriptorType.SERVICE, serviceName);
+              descriptor = descriptor.getDescriptor(Type.SERVICE, serviceName);
 
               if ((descriptor != null) && (componentName != null) && !componentName.isEmpty()) {
-                descriptor = descriptor.getDescriptor(KerberosDescriptorType.COMPONENT, componentName);
+                descriptor = descriptor.getDescriptor(Type.COMPONENT, componentName);
               }
             }
 
             if (descriptor != null) {
-              descriptor = descriptor.getDescriptor(KerberosDescriptorType.IDENTITY, identityName);
+              descriptor = descriptor.getDescriptor(Type.IDENTITY, identityName);
 
               if (descriptor instanceof KerberosIdentityDescriptor) {
                 identityDescriptor = (KerberosIdentityDescriptor) descriptor;
@@ -676,10 +691,10 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
    * @return a AbstractKerberosDescriptor representing the requested descriptor or null if not found
    */
   @Override
-  protected AbstractKerberosDescriptor getDescriptor(KerberosDescriptorType type, String name) {
-    if (KerberosDescriptorType.IDENTITY == type) {
+  protected AbstractKerberosDescriptor getDescriptor(Type type, String name) {
+    if (Type.IDENTITY == type) {
       return getIdentity(name);
-    } else if (KerberosDescriptorType.CONFIGURATION == type) {
+    } else if (Type.CONFIGURATION == type) {
       return getConfiguration(name);
     } else {
       return null;
@@ -703,7 +718,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       for (KerberosIdentityDescriptor identity : identities) {
         list.add(identity.toMap());
       }
-      map.put(KerberosDescriptorType.IDENTITY.getDescriptorPluralName(), list);
+      map.put(Type.IDENTITY.getDescriptorPluralName(), list);
     }
 
     if (configurations != null) {
@@ -711,12 +726,12 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       for (KerberosConfigurationDescriptor configuration : configurations.values()) {
         list.add(configuration.toMap());
       }
-      map.put(KerberosDescriptorType.CONFIGURATION.getDescriptorPluralName(), list);
+      map.put(Type.CONFIGURATION.getDescriptorPluralName(), list);
     }
 
     if (authToLocalProperties != null) {
       List<String> list = new ArrayList<String>(authToLocalProperties);
-      map.put(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), list);
+      map.put(Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), list);
     }
 
     return map;

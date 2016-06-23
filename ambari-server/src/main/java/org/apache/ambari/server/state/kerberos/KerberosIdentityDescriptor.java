@@ -129,12 +129,12 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
 
       setPassword(getStringValue(data, "password"));
 
-      item = data.get(KerberosDescriptorType.PRINCIPAL.getDescriptorName());
+      item = data.get(Type.PRINCIPAL.getDescriptorName());
       if (item instanceof Map) {
         setPrincipalDescriptor(new KerberosPrincipalDescriptor((Map<?, ?>) item));
       }
 
-      item = data.get(KerberosDescriptorType.KEYTAB.getDescriptorName());
+      item = data.get(Type.KEYTAB.getDescriptorName());
       if (item instanceof Map) {
         setKeytabDescriptor(new KerberosKeytabDescriptor((Map<?, ?>) item));
       }
@@ -299,11 +299,11 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     Map<String, Object> dataMap = super.toMap();
 
     if (principal != null) {
-      dataMap.put(KerberosDescriptorType.PRINCIPAL.getDescriptorName(), principal.toMap());
+      dataMap.put(Type.PRINCIPAL.getDescriptorName(), principal.toMap());
     }
 
     if (keytab != null) {
-      dataMap.put(KerberosDescriptorType.KEYTAB.getDescriptorName(), keytab.toMap());
+      dataMap.put(Type.KEYTAB.getDescriptorName(), keytab.toMap());
     }
 
     if (password != null) {
