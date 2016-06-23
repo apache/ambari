@@ -1217,7 +1217,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
      *  }
      * </code>
      */
-    var clientsToMasterMap = this.getClientsMap('isMaster');
+    var clientsToMasterMap = this.getClientsMap('isMaster'),
+        clientsToSlaveMap = this.getClientsMap('isSlave');
 
     slaveHosts.forEach(function (_slave) {
       if (_slave.componentName !== 'CLIENT') {
@@ -1253,6 +1254,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
                 });
               });
             }
+          }
+          if (clientsToSlaveMap[_client.component_name]) {
+            clientsToSlaveMap[_client.component_name].forEach(function (componentName) {
+              slaveHosts.filterProperty('componentName', componentName).forEach(function (slaveHost) {
+                hostNames = hostNames.concat(slaveHost.hosts.mapProperty('hostName')).uniq();
+              });
+            });
           }
           if (clientOnAllHosts.length > 0) {
             var compOnAllHosts = false;
