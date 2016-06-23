@@ -32,6 +32,7 @@ import shutil
 from resource_management.core.logger import Logger
 from setup_ranger_atlas import setup_ranger_atlas
 
+
 class MetadataServer(Script):
 
   def get_component_name(self):
@@ -47,7 +48,7 @@ class MetadataServer(Script):
 
     self.install_packages(env)
 
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None, config_dir=None):
     import params
     env.set_params(params)
     metadata()
@@ -56,11 +57,8 @@ class MetadataServer(Script):
     import params
     env.set_params(params)
 
-    # TODO: Add ATLAS_CONFIG_VERSIONING stack feature and uncomment this code when config versioning for Atlas is supported
-    #if params.version and check_stack_feature(StackFeature.ATLAS_CONFIG_VERSIONING, params.version):
-    #  conf_select.select(params.stack_name, "atlas", params.version)
-
-    if params.version and check_stack_feature(StackFeature.ATLAS_ROLLING_UPGRADE, params.version):
+    if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, params.version):
+      conf_select.select(params.stack_name, "atlas", params.version)
       stack_select.select("atlas-server", params.version)
 
   def start(self, env, upgrade_type=None):

@@ -69,7 +69,6 @@
       <parallel-scheduler/>
       <service-check>false</service-check>
 
-      <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
       <service name="ATLAS">
         <component>ATLAS_SERVER</component>
       </service>
@@ -485,7 +484,6 @@
       </service>
     </group>
 
-    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
     <group xsi:type="restart" name="ATLAS" title="Atlas">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -493,6 +491,16 @@
       <parallel-scheduler/>
       <service name="ATLAS">
         <component>ATLAS_SERVER</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="ATLAS_CLIENTS" title="Atlas Clients">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>true</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="ATLAS">
+        <component>ATLAS_CLIENT</component>
       </service>
     </group>
 
@@ -1053,7 +1061,6 @@
       </component>
     </service>
 
-    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
     <service name="ATLAS">
       <component name="ATLAS_SERVER">
         <upgrade>
@@ -1061,6 +1068,11 @@
         </upgrade>
       </component>
 
+      <component name="ATLAS_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
     </service>
   </processing>
 </upgrade>
