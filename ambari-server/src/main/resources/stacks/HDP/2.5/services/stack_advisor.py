@@ -863,7 +863,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if 'hive.tez.container.size' in services['configurations']['hive-site']['properties']:
         hive_container_size = float(services['configurations']['hive-site']['properties']['hive.tez.container.size'])
         Logger.info("'hive.tez.container.size' read from services as : {0}".format(hive_container_size))
-
     if not hive_container_size:
       raise Fail("Couldn't retrieve Hive Server 'hive.tez.container.size' config.")
 
@@ -873,13 +872,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return hive_container_size
 
   """
-  Gets YARN's minimum container size (yarn.scheduler.minimum-allocation-mb). Takes into account if it has been calculated
-  as part of current Stack Advisor invocation.
+  Gets YARN's minimum container size (yarn.scheduler.minimum-allocation-mb).
+  Reads from:
+    - configurations (if changed as part of current Stack Advisor invocation (output)), and services["changed-configurations"]
+      is empty, else
+    - services['configurations'] (input).
+
+  services["changed-configurations"] would be empty if Stack Advisor call is made from Blueprints (1st invocation). Subsequent
+  Stack Advisor calls will have it non-empty. We do this because in subsequent invocations, even if Stack Advsior calculates this
+  value (configurations), it is finally not recommended, making 'input' value to survive.
   """
   def get_yarn_min_container_size(self, services, configurations):
     yarn_min_container_size = None
-    # Check if 'yarn.scheduler.minimum-allocation-mb' is modified in current ST invocation.
-    if 'yarn-site' in configurations and 'yarn.scheduler.minimum-allocation-mb' in configurations['yarn-site']['properties']:
+    # Check if services["changed-configurations"] is empty and 'yarn.scheduler.minimum-allocation-mb' is modified in current ST invocation.
+    if not services["changed-configurations"] and \
+      'yarn-site' in configurations and 'yarn.scheduler.minimum-allocation-mb' in configurations['yarn-site']['properties']:
       yarn_min_container_size = float(configurations['yarn-site']['properties']['yarn.scheduler.minimum-allocation-mb'])
       Logger.info("'yarn.scheduler.minimum-allocation-mb' read from configurations as : {0}".format(yarn_min_container_size))
 
@@ -909,14 +916,22 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       return 256
 
   """
-  Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb). Takes into account if it has been calculated
-  as part of current Stack Advisor invocation.
+  Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb).
+  Reads from:
+    - configurations (if changed as part of current Stack Advisor invocation (output)), and services["changed-configurations"]
+      is empty, else
+    - services['configurations'] (input).
+
+  services["changed-configurations"] would be empty is Stack Advisor call if made from Blueprints (1st invocation). Subsequent
+  Stack Advisor calls will have it non-empty. We do this because in subsequent invocations, even if Stack Advsior calculates this
+  value (configurations), it is finally not recommended, making 'input' value to survive.
   """
   def get_yarn_nm_mem_in_mb(self, services, configurations):
     yarn_nm_mem_in_mb = None
 
-    # Check if 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
-    if 'yarn-site' in configurations and 'yarn.nodemanager.resource.memory-mb' in configurations['yarn-site']['properties']:
+    # Check if services["changed-configurations"] is empty and 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
+    if not services["changed-configurations"] and\
+        'yarn-site' in configurations and 'yarn.nodemanager.resource.memory-mb' in configurations['yarn-site']['properties']:
       yarn_nm_mem_in_mb = float(configurations['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb'])
       Logger.info("'yarn.nodemanager.resource.memory-mb' read from configurations as : {0}".format(yarn_nm_mem_in_mb))
 
@@ -925,6 +940,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       if 'yarn-site' in services['configurations'] and \
           'yarn.nodemanager.resource.memory-mb' in services['configurations']['yarn-site']['properties']:
         yarn_nm_mem_in_mb = float(services['configurations']['yarn-site']['properties']['yarn.nodemanager.resource.memory-mb'])
+        Logger.info("'yarn.nodemanager.resource.memory-mb' read from services as : {0}".format(yarn_nm_mem_in_mb))
 
     if not yarn_nm_mem_in_mb:
       raise Fail("Couldn't retrieve YARN's 'yarn.nodemanager.resource.memory-mb' config.")
