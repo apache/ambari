@@ -88,10 +88,10 @@ public class ServiceFormattedException extends WebApplicationException {
     response.put("trace", trace);
     response.put("status", status);
 
-    if(message != null) {
+    if(message != null && status != 404) {
       LOG.error(message);
     }
-    if(trace != null) {
+    if(trace != null && status != 404) {
       LOG.error(trace);
     }
 

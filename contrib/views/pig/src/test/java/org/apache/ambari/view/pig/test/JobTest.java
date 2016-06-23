@@ -116,6 +116,7 @@ public class JobTest extends BasePigTest {
     TempletonApi api = createNiceMock(TempletonApi.class);
     UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
+    data.id = "job_1466418324742_0005";
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
@@ -150,6 +151,7 @@ public class JobTest extends BasePigTest {
     TempletonApi api = createNiceMock(TempletonApi.class);
     UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
+    data.id = "job_1466418324742_0005";
     expect(api.runPigQuery((File) anyObject(), anyString(), (String) isNull())).andReturn(data).anyTimes();
     replay(api);
 
@@ -190,6 +192,7 @@ public class JobTest extends BasePigTest {
     TempletonApi api = createNiceMock(TempletonApi.class);
     UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
+    data.id = "job_1466418324742_0005";
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 
@@ -215,6 +218,7 @@ public class JobTest extends BasePigTest {
     TempletonApi api = createNiceMock(TempletonApi.class);
     UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
+    data.id = "job_1466418324742_0005";
     expect(api.runPigQuery((File) anyObject(), anyString(), (String) isNull())).andReturn(data);
     replay(api);
 
@@ -273,6 +277,7 @@ public class JobTest extends BasePigTest {
     TempletonApi api = createNiceMock(TempletonApi.class);
     UserLocalObjects.setTempletonApi(api, context);
     TempletonApi.JobData data = api.new JobData();
+    data.id = "job_1466418324742_0005";
     expect(api.runPigQuery((File) anyObject(), anyString(), eq("-useHCatalog"))).andReturn(data);
     replay(api);
 

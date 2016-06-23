@@ -29,6 +29,7 @@ import org.apache.ambari.view.pig.templeton.client.TempletonApiFactory;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.ambari.view.pig.utils.UserLocalObjects;
+import org.apache.ambari.view.utils.ambari.AmbariApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
@@ -233,14 +234,17 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
     TempletonApi.JobData data;
     try {
       data = UserLocalObjects.getTempletonApi(context).runPigQuery(new File(job.getPigScript()), statusdir, job.getTempletonArguments());
+      if (data.id != null) {
+        job.setJobId(data.id);
+        JobPolling.pollJob(this, job);
+      } else {
+        throw new AmbariApiException("Cannot get id for the Job.");
+      }
     } catch (IOException templetonBadResponse) {
       String msg = String.format("Templeton bad response: %s", templetonBadResponse.toString());
       LOG.debug(msg);
       throw new ServiceFormattedException(msg, templetonBadResponse);
     }
-    job.setJobId(data.id);
-
-    JobPolling.pollJob(this, job);
   }
 
   /**
