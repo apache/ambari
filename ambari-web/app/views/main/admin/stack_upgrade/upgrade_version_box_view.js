@@ -161,7 +161,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
       buttons: [],
       isDisabled: false
     });
-    var isInstalling = this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
     var isSuspended = App.get('upgradeSuspended');
 
     if (['INSTALLING', 'CURRENT'].contains(status)) {
@@ -169,12 +168,12 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }
     else if (status === 'INIT') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
-      element.set('isDisabled', this.isDisabledOnInit() || isInstalling);
+      element.set('isDisabled', this.isDisabledOnInit());
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
-        var isDisabled = !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') || this.get('controller.requestInProgress') || isInstalling;
+        var isDisabled = this.isDisabledOnInstalled();
         element.set('isButtonGroup', true);
         if (status === 'OUT_OF_SYNC') {
           element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.reinstall') : Em.I18n.t('admin.stackVersions.version.reinstall'));
@@ -199,7 +198,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.setProperties(statePropertiesMap['INSTALLED']);
       }
     }
-    else if ((['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) && !isSuspended) {
+    else if ((this.get('isUpgrading')) && !isSuspended) {
       element.set('isLink', true);
       element.set('action', 'openUpgradeDialog');
       if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT', 'ABORTED'].contains(App.get('upgradeState'))) {
@@ -238,11 +237,26 @@ App.UpgradeVersionBoxView = Em.View.extend({
   ),
 
   /**
-   * check if actions of stack version disabled
+   * check if actions of INIT stack version disabled
    * @returns {boolean}
    */
   isDisabledOnInit: function() {
-    return this.get('controller.requestInProgress') || (App.get('upgradeIsRunning') && !App.get('upgradeSuspended'));
+    return  this.get('controller.requestInProgress') ||
+            (App.get('upgradeIsRunning') && !App.get('upgradeSuspended')) ||
+            this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
+  },
+
+  /**
+   * check if actions of INSTALLED stack version disabled
+   * @returns {boolean}
+   */
+  isDisabledOnInstalled: function() {
+    return !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') ||
+      this.get('controller.requestInProgress') ||
+      this.get('parentView.repoVersions').someProperty('status', 'INSTALLING') ||
+      (this.get('controller.isDowngrade') &&
+        (this.get('controller.currentVersion.repository_name') === this.get('controller.upgradeVersion'))
+      );
   },
 
   didInsertElement: function () {

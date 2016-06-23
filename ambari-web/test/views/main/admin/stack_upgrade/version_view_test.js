@@ -60,15 +60,16 @@ describe('App.mainAdminStackVersionsView', function () {
           repositoryVersion: "2.2.2.1"
         }),
         Em.Object.create({
+          status: "INSTALLED",
+          repositoryVersion: "2.2.3.1",
+          displayName: 'HDP-2.2'
+        }),
+        Em.Object.create({
           status: "INSTALL_FAILED",
           repositoryVersion: "2.2.1.1"
         }),
         Em.Object.create({
           status: "OUT_OF_SYNC",
-          repositoryVersion: "2.2.1.1"
-        }),
-        Em.Object.create({
-          status: "UPGRADING",
           repositoryVersion: "2.2.1.1"
         }),
         Em.Object.create({
@@ -99,15 +100,16 @@ describe('App.mainAdminStackVersionsView', function () {
               repositoryVersion: "2.2.2.1"
             }),
             Em.Object.create({
+              status: "INSTALLED",
+              repositoryVersion: "2.2.3.1",
+              displayName: 'HDP-2.2'
+            }),
+            Em.Object.create({
               status: "INSTALL_FAILED",
               repositoryVersion: "2.2.1.1"
             }),
             Em.Object.create({
               status: "OUT_OF_SYNC",
-              repositoryVersion: "2.2.1.1"
-            }),
-            Em.Object.create({
-              status: "UPGRADING",
               repositoryVersion: "2.2.1.1"
             }),
             Em.Object.create({
@@ -179,8 +181,9 @@ describe('App.mainAdminStackVersionsView', function () {
           }),
           filteredVersions: [
             Em.Object.create({
-              status: "UPGRADING",
-              repositoryVersion: "2.2.1.1"
+              status: "INSTALLED",
+              repositoryVersion: "2.2.3.1",
+              displayName: 'HDP-2.2'
             })
           ]
         },
@@ -219,10 +222,12 @@ describe('App.mainAdminStackVersionsView', function () {
       sinon.stub(App, 'get', function (key) {
         return key === 'supports.displayOlderVersions' ? displayOlderVersions : Em.get(App, key);
       });
+      sinon.stub(App.router, 'get').returns('HDP-2.2')
     });
 
     afterEach(function () {
       App.get.restore();
+      App.router.get.restore();
     });
 
     testCases.forEach(function(t) {
