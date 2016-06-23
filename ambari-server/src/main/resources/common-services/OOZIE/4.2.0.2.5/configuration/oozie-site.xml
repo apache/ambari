@@ -16,7 +16,7 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<configuration supports_final="true" supports_do_not_extend="true">
+<configuration supports_final="true">
   <property>
     <name>oozie.service.SparkConfigurationService.spark.configurations</name>
     <value>*=spark-conf</value>
