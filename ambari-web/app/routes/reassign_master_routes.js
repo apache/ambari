@@ -57,8 +57,8 @@ module.exports = App.WizardRoute.extend({
                 var step4Controller = router.get('reassignMasterWizardStep4Controller');
                 var testDBTaskId = step4Controller.get('tasks').filterProperty('command', 'testDBConnection').get('firstObject.id');
 
-                if(currStep !== "7" 
-                   && testDBTaskId 
+                if(currStep !== "7"
+                   && testDBTaskId
                    && reassignMasterController.get('content.tasksStatuses').get(testDBTaskId) === "FAILED")
                 {
                   App.showConfirmationPopup(function () {
@@ -224,19 +224,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('reassignMasterController');
       var reassignMasterWizardStep4 = router.get('reassignMasterWizardStep4Controller');
       if (!reassignMasterWizardStep4.get('isSubmitDisabled')) {
-        controller.finish();
-        controller.get('popup').hide();
-        App.clusterStatus.setClusterStatus({
-          clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'DEFAULT',
-          localdb: App.db.data
-        }, {alwaysCallback: function () {
-          controller.get('popup').hide();
-          router.transitionTo('main.index');
-          Em.run.next(function() {
-            location.reload();
-          });
-        }});
+        controller.resetOnClose(controller, 'main.index');
       }
     },
 
@@ -328,21 +316,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('reassignMasterController');
       var reassignMasterWizardStep7 = router.get('reassignMasterWizardStep7Controller');
       if (!reassignMasterWizardStep7.get('isSubmitDisabled')) {
-        controller.finish();
-        controller.get('popup').hide();
-        App.clusterStatus.setClusterStatus({
-          clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'DEFAULT',
-          localdb: App.db.data
-        }, {
-          alwaysCallback: function () {
-            controller.get('popup').hide();
-            router.transitionTo('main.index');
-            Em.run.next(function() {
-              location.reload();
-            });
-          }
-        });
+        controller.resetOnClose(controller, 'main.index');
       }
     },
 
