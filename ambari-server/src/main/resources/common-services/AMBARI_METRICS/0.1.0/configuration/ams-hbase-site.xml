@@ -284,7 +284,7 @@
   </property>
   <property>
     <name>hbase.rpc.timeout</name>
-    <value>30000</value>
+    <value>300000</value>
     <description>
       This is for the RPC layer to define how long HBase client applications
       take for a remote call to time out. It uses pings to check connections

@@ -194,6 +194,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String TEZ_SITE_QUEUE_NAME = "tez.queue.name";
   public static final String YARN_ENV_QUEUE_NAME = "service_check.queue.name";
   public static final String MAPRED_SITE_QUEUE_NAME = "mapreduce.job.queuename";
+  private static final String AMS_HBASE_SITE = "ams-hbase-site";
+  private static final String HBASE_RPC_TIMEOUT_PROPERTY = "hbase.rpc.timeout";
 
   static {
     // Manually create role order since there really isn't any mechanism for this
@@ -1835,6 +1837,18 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             newProperties.put("content", updateAmsGrafanaIni(content));
             updateConfigurationPropertiesForCluster(cluster, "ams-grafana-ini", newProperties, true, true);
           }
+
+          Config amsHbaseSite = cluster.getDesiredConfigByType(AMS_HBASE_SITE);
+          if (amsHbaseSite != null) {
+            Map<String, String> amsHbaseSiteProperties = amsHbaseSite.getProperties();
+            Map<String, String> newProperties = new HashMap<>();
+            if (amsHbaseSiteProperties.containsKey(HBASE_RPC_TIMEOUT_PROPERTY) &&
+                "30000".equals(amsHbaseSiteProperties.get(HBASE_RPC_TIMEOUT_PROPERTY))) {
+              newProperties.put(HBASE_RPC_TIMEOUT_PROPERTY, String.valueOf(300000));
+            }
+            updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
+          }
+
         }
       }
     }
