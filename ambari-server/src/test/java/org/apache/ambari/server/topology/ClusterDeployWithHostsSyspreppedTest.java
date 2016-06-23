@@ -335,7 +335,7 @@ public class ClusterDeployWithHostsSyspreppedTest {
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
-    expect(ambariContext.areHostsSysPrepped()).andReturn(true).anyTimes();
+    expect(ambariContext.shouldSkipInstallTasks()).andReturn(true).anyTimes();
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
       andReturn(Collections.singletonList(configurationRequest));
