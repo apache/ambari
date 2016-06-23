@@ -138,7 +138,6 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stack.ExtensionHelper;
-import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -177,7 +176,6 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
@@ -2692,7 +2690,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
             // Skip INSTALL task in case SysPrepped hosts and in case of server components. In case of server component
             // START task should run configuration script.
-            if (Boolean.parseBoolean(configs.areHostsSysPrepped()) &&
+            if (configs.skipInstallTasks() &&
                   "INITIAL_INSTALL".equals(requestProperties.get("phase")) &&
                     newState == State.INSTALLED && !isClientComponent(cluster, scHost)) {
               LOG.info("Skipping create of INSTALL task for {} on {} because host is sysprepped.", scHost

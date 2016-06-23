@@ -492,6 +492,9 @@ public class Configuration {
   public static final String SYS_PREPPED_HOSTS_KEY = "packages.pre.installed";
   public static final String SYS_PREPPED_HOSTS_DEFAULT = "false";
 
+  public static final String BLUEPRINT_SKIP_INSTALL_TASKS_KEY = "blueprint.skip_install_tasks";
+  public static final String BLUEPRINT_SKIP_INSTALL_TASKS_DEFAULT = "false";
+
   /**
    * !!! TODO: For embedded server only - should be removed later
    */
@@ -1288,6 +1291,12 @@ public class Configuration {
 
   public String areHostsSysPrepped(){
     return properties.getProperty(SYS_PREPPED_HOSTS_KEY, SYS_PREPPED_HOSTS_DEFAULT);
+  }
+
+  public boolean skipInstallTasks(){
+    String skipInstallCommandsProperty = properties.getProperty
+      (BLUEPRINT_SKIP_INSTALL_TASKS_KEY, BLUEPRINT_SKIP_INSTALL_TASKS_DEFAULT);
+    return Boolean.parseBoolean(areHostsSysPrepped()) && Boolean.parseBoolean(skipInstallCommandsProperty);
   }
 
   public String getStackAdvisorScript() {
