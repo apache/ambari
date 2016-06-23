@@ -91,7 +91,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       elif application_properties['atlas.graph.storage.hostname'] == hbase_zookeeper_quorum:
         validationItems.append({"config-name": "atlas.graph.storage.hostname",
                                 "item": self.getWarnItem(
-                                    "Note that Atlas is configured to use the HBASE instance being installed for this cluster.")})
+                                    "Atlas is configured to use the HBase installed in this cluster. If you would like Atlas to use another HBase instance, please configure this property and HBASE_CONF_DIR variable in atlas-env appropriately.")})
 
       if not application_properties['atlas.audit.hbase.zookeeper.quorum']:
         validationItems.append({"config-name": "atlas.audit.hbase.zookeeper.quorum",

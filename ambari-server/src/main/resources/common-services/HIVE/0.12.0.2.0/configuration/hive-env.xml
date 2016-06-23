@@ -234,9 +234,6 @@ else
   export HIVE_AUX_JARS_PATH=/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar
 fi
 export METASTORE_PORT={{hive_metastore_port}}
-
-export HADOOP_CLASSPATH={{atlas_home_dir}}/hook/hive:${HADOOP_CLASSPATH}
-
     </value>
     <value-attributes>
       <type>content</type>

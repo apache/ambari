@@ -69,16 +69,14 @@
 
       export METASTORE_PORT={{hive_metastore_port}}
 
-      export HADOOP_CLASSPATH={{atlas_home_dir}}/hook/hive:${HADOOP_CLASSPATH}
-
       {% if sqla_db_used or lib_dir_available %}
       export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
       export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
       {% endif %}
-    </value>
-    <value-attributes>
+        </value>
+        <value-attributes>
       <type>content</type>
-    </value-attributes>
+        </value-attributes>
     <on-ambari-upgrade add="true"/>
-  </property>
+    </property>
 </configuration>
