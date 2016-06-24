@@ -99,9 +99,14 @@ hive_user_home_dir = "/home/hive"
 hive_server2_hive2_dir = None
 hive_server2_hive2_lib = None
 if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_unformatted):
-  hive_schematool_ver_bin = format('{stack_root}/{version}/hive2/bin')
-  hive_schematool_bin = format('{stack_root}/current/{component_directory}/bin')
+  # the name of the hiveserver2-hive2 component
   hive_server2_hive2_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER_INTERACTIVE"]
+
+  # when using the version, we can just specify the component as "hive2"
+  hive_schematool_ver_bin = format('{stack_root}/{version}/hive2/bin')
+
+  # use the schematool which ships with hive2
+  hive_schematool_bin = format('{stack_root}/current/{hive_server2_hive2_component}/bin')
 
   # <stack-root>/<version>/hive2 (as opposed to <stack-root>/<version>/hive)
   hive_server2_hive2_dir = format('{stack_root}/current/{hive_server2_hive2_component}')
