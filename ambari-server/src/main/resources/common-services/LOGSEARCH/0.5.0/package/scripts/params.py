@@ -247,6 +247,7 @@ metrics_monitor_log_dir = default('/configurations/ams-env/metrics_monitor_log_d
 atlas_log_dir = default('/configurations/atlas-env/metadata_log_dir', '/var/log/atlas')
 accumulo_log_dir = default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')
 falcon_log_dir = default('/configurations/falcon-env/falcon_log_dir', '/var/log/falcon')
+flume_log_dir = default('/configurations/flume-env/flume_log_dir', '/var/log/flume')
 hbase_log_dir = default('/configurations/hbase-env/hbase_log_dir', '/var/log/hbase')
 hdfs_log_dir_prefix = default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')
 hive_log_dir = default('/configurations/hive-env/hive_log_dir', '/var/log/hive')
@@ -259,6 +260,7 @@ ranger_kms_log_dir = default('/configurations/kms-env/kms_log_dir', '/var/log/ra
 storm_log_dir = default('/configurations/storm-env/storm_log_dir', '/var/log/storm')
 yarn_log_dir_prefix = default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')
 mapred_log_dir_prefix = default('/configurations/mapred-env/mapred_log_dir_prefix', '/var/log/hadoop')
+zeppelin_log_dir = default('/configuration/zeppelin-env/zeppelin_log_dir', '/var/log/zeppelin')
 zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zookeeper')
 
 #####################################
@@ -328,8 +330,8 @@ logfeeder_checkpoint_folder = default('/configurations/logfeeder-env/logfeeder.c
 logfeeder_log_filter_enable = str(default('/configurations/logfeeder-properties/logfeeder.log.filter.enable', True)).lower()
 logfeeder_solr_config_interval = default('/configurations/logfeeder-properties/logfeeder.solr.config.interval', 5)
 
-logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'hbase', 'hdfs', 'hive', 'kafka',
-                                'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'storm', 'yarn', 'zookeeper']
+logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'kafka',
+                                'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'storm', 'yarn', 'zeppelin', 'zookeeper']
 
 logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in
                                                                               logfeeder_supported_services]

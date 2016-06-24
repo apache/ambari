@@ -100,6 +100,18 @@
       ]
       
     },
+    "flume":{
+      "label":"Flume",
+      "components":[
+        {
+          "name":"flume_handler"
+        }
+      ],
+      "dependencies":[
+        
+      ]
+      
+    },
     "hbase":{
       "label":"HBase",
       "components":[
@@ -108,6 +120,9 @@
         },
         {
           "name":"hbase_regionserver"
+        },
+        {
+          "name":"hbase_phoenix_server"
         }
         
       ],
@@ -272,6 +287,9 @@
         },
         {
           "name":"logsearch_perf"
+        },
+        {
+          "name":"logsearch_solr"
         }
         
       ],
@@ -424,6 +442,17 @@
         
       ]
       
+    },
+    "zeppelin":{
+      "label":"Zeppelin",
+      "components":[
+        {
+          "name":"zeppelin"
+        }
+      ],
+      "dependencies":[
+        
+      ]
     },
     "zookeeper":{
       "label":"ZooKeeper",

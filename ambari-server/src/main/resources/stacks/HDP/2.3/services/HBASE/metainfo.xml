@@ -33,6 +33,12 @@
             <script>scripts/phoenix_queryserver.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_phoenix_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
       </components>
 

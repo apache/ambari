@@ -53,6 +53,12 @@ limitations under the License.
               </auto-deploy>
             </dependency>
           </dependencies>
+          <logs>
+            <log>
+              <logId>zeppelin</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
       </components>
 

@@ -26,6 +26,11 @@
       "type":"hbase_regionserver",
       "rowtype":"service",
       "path":"{{hbase_log_dir}}/hbase-hbase-regionserver-*.log"
+    },
+    {
+      "type":"hbase_phoenix_server",
+      "rowtype":"service",
+      "path":"{{hbase_log_dir}}/phoenix-hbase-server.log"
     }
 
   ],
@@ -45,6 +50,30 @@
       "log4j_format":"%d{ISO8601} %-5p [%t] %c{2}: %m%n",
       "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
       "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hbase_phoenix_server"
+          ]
+
+        }
+      },
+      "log4j_format":"%d{ISO8601} %-5p [%t] %c{2}: %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{

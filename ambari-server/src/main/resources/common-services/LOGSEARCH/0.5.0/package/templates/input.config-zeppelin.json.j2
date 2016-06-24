@@ -18,57 +18,27 @@
 {
   "input":[
     {
-      "type":"logsearch_app",
+      "type":"zeppelin",
       "rowtype":"service",
-      "path":"{{logsearch_log_dir}}/logsearch.json"
-    },
-    {
-      "type":"logsearch_feeder",
-      "rowtype":"service",
-      "path":"{{logfeeder_log_dir}}/logsearch-logfeeder.json"
-    },
-    {
-      "type":"logsearch_perf",
-      "rowtype":"service",
-      "path":"{{logsearch_log_dir}}/logsearch-performance.json"
-    },
-    {
-      "type":"logsearch_solr",
-      "rowtype":"service",
-      "path":"{{logsearch_solr_log_dir}}/solr.log"
+      "path":"{{zeppelin_log_dir}}/zeppelin-zeppelin-*.log"
     }
 
   ],
   "filter":[
     {
-      "filter":"json",
-      "conditions":{
-        "fields":{
-          "type":[
-            "logsearch_app",
-            "logsearch_feeder",
-            "logsearch_perf"
-          ]
-
-        }
-
-      }
-
-    },
-    {
       "filter":"grok",
       "conditions":{
         "fields":{
           "type":[
-            "logsearch_solr"
+            "zeppelin"
           ]
 
         }
 
       },
       "log4j_format":"",
-      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
-      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}",
+      "multiline_pattern":"^(%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{TIMESTAMP_ISO8601:logtime}\\])",
+      "message_pattern":"(?m)^%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{TIMESTAMP_ISO8601:logtime}\\]%{SPACE}\\(\\{{"{"}}%{DATA:thread_name}\\{{"}"}}%{SPACE}%{JAVAFILE:file}\\[%{JAVAMETHOD:method}\\]:%{INT:line_number}\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{

@@ -18,61 +18,31 @@
 {
   "input":[
     {
-      "type":"logsearch_app",
+      "type":"flume_handler",
       "rowtype":"service",
-      "path":"{{logsearch_log_dir}}/logsearch.json"
-    },
-    {
-      "type":"logsearch_feeder",
-      "rowtype":"service",
-      "path":"{{logfeeder_log_dir}}/logsearch-logfeeder.json"
-    },
-    {
-      "type":"logsearch_perf",
-      "rowtype":"service",
-      "path":"{{logsearch_log_dir}}/logsearch-performance.json"
-    },
-    {
-      "type":"logsearch_solr",
-      "rowtype":"service",
-      "path":"{{logsearch_solr_log_dir}}/solr.log"
+      "path":"{{flume_log_dir}}/flume.log"
     }
 
   ],
   "filter":[
     {
-      "filter":"json",
-      "conditions":{
-        "fields":{
-          "type":[
-            "logsearch_app",
-            "logsearch_feeder",
-            "logsearch_perf"
-          ]
-
-        }
-
-      }
-
-    },
-    {
       "filter":"grok",
       "conditions":{
         "fields":{
           "type":[
-            "logsearch_solr"
+            "flume_handler"
           ]
 
         }
 
       },
       "log4j_format":"",
-      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
-      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}",
+      "multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
+      "message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}\\(%{JAVACLASS:class}\\.%{JAVAMETHOD:method}:%{INT:line_number}\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
       "post_map_values":{
         "logtime":{
           "map_date":{
-            "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+            "date_pattern":"dd MMM yyyy HH:mm:ss,SSS"
           }
 
         }
