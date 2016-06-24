@@ -59,6 +59,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>livy_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
       </components>
 

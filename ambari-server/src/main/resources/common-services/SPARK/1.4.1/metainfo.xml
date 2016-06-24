@@ -62,6 +62,12 @@
               </auto-deploy>
             </dependency>
           </dependencies>
+          <logs>
+            <log>
+              <logId>spark_thriftserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <commandScript>
             <script>scripts/spark_thrift_server.py</script>
             <scriptType>PYTHON</scriptType>

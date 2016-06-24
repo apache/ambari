@@ -20,27 +20,32 @@
     {
       "type":"hdfs_datanode",
       "rowtype":"service",
-      "path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-datanode-*.log"
+      "path":"{{hdfs_log_dir_prefix}}/{hdfs_user}}/hadoop-{{hdfs_user}}-datanode-*.log"
     },
     {
       "type":"hdfs_namenode",
       "rowtype":"service",
-      "path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-namenode-*.log"
+      "path":"{{hdfs_log_dir_prefix}}/{hdfs_user}}/hadoop-{{hdfs_user}}-namenode-*.log"
     },
     {
       "type":"hdfs_journalnode",
       "rowtype":"service",
-      "path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-journalnode-*.log"
+      "path":"{{hdfs_log_dir_prefix}}/{hdfs_user}}/hadoop-{{hdfs_user}}-journalnode-*.log"
     },
     {
       "type":"hdfs_secondarynamenode",
       "rowtype":"service",
-      "path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-secondarynamenode-*.log"
+      "path":"{{hdfs_log_dir_prefix}}/{hdfs_user}}/hadoop-{{hdfs_user}}-secondarynamenode-*.log"
     },
     {
       "type":"hdfs_zkfc",
       "rowtype":"service",
-      "path":"{{hdfs_log_dir_prefix}}/hdfs/hadoop-hdfs-zkfc-*.log"
+      "path":"{{hdfs_log_dir_prefix}}/{hdfs_user}}/hadoop-{{hdfs_user}}-zkfc-*.log"
+    },
+    {
+      "type":"hdfs_nfs3",
+      "rowtype":"service",
+      "path":"{{hdfs_log_dir_prefix}}/{{hdfs_user}}/hadoop-{{hdfs_user}}-nfs3-*.log"
     },
     {
       "type":"hdfs_audit",
@@ -52,7 +57,7 @@
         "repoType":"1",
         "repo":"hdfs"
       },
-      "path":"{{hdfs_log_dir_prefix}}/hdfs/hdfs-audit.log"
+      "path":"{{hdfs_log_dir_prefix}}/{hdfs_user}}/hdfs-audit.log"
     }
 
   ],
@@ -66,7 +71,8 @@
             "hdfs_journalnode",
             "hdfs_secondarynamenode",
             "hdfs_namenode",
-            "hdfs_zkfc"
+            "hdfs_zkfc",
+            "hdfs_nfs3"
           ]
 
         }
@@ -80,7 +86,6 @@
           "map_date":{
             "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
           }
-
         }
 
       }

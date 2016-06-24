@@ -87,6 +87,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>ams_monitor</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
 
         <component>
@@ -105,6 +111,12 @@
             <config-type>ams-grafana-ini</config-type>
           </configuration-dependencies>
         </component>
+        <logs>
+          <log>
+            <logId>ams_grafana</logId>
+            <primary>true</primary>
+          </log>
+        </logs>
       </components>
 
       <osSpecifics>

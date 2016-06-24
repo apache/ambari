@@ -20,32 +20,32 @@
     {
       "type":"mapred_historyserver",
       "rowtype":"service",
-      "path":"{{mapred_log_dir_prefix}}/mapred/mapred-mapred-historyserver*.log"
+      "path":"{{mapred_log_dir_prefix}}/{{mapred_user}}/mapred-{{mapred_user}}-historyserver*.log"
     },
     {
       "type":"yarn_nodemanager",
       "rowtype":"service",
-      "path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-nodemanager-*.log"
+      "path":"{{yarn_log_dir_prefix}}/{{yarn_user}}/yarn-{{yarn_user}}-nodemanager-*.log"
     },
     {
       "type":"yarn_resourcemanager",
       "rowtype":"service",
-      "path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-resourcemanager-*.log"
+      "path":"{{yarn_log_dir_prefix}}/{{yarn_user}}/yarn-{{yarn_user}}-resourcemanager-*.log"
     },
     {
       "type":"yarn_timelineserver",
       "rowtype":"service",
-      "path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-timelineserver-*.log"
+      "path":"{{yarn_log_dir_prefix}}/{{yarn_user}}/yarn-{{yarn_user}}-timelineserver-*.log"
     },
     {
       "type":"yarn_historyserver",
       "rowtype":"service",
-      "path":"{{yarn_log_dir_prefix}}/yarn/yarn-yarn-historyserver-*.log"
+      "path":"{{yarn_log_dir_prefix}}/{{yarn_user}}/yarn-{{yarn_user}}-historyserver-*.log"
     },
     {
       "type":"yarn_jobsummary",
       "rowtype":"service",
-      "path":"{{yarn_log_dir_prefix}}/yarn/hadoop-mapreduce.jobsummary.log"
+      "path":"{{yarn_log_dir_prefix}}/{{yarn_user}}/hadoop-mapreduce.jobsummary.log"
     }
 
   ],

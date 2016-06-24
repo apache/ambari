@@ -59,6 +59,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>spark2_jobhistory_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
         <component>
           <name>SPARK2_THRIFTSERVER</name>
@@ -101,6 +107,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>spark2_thriftserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
         <component>
           <name>SPARK2_CLIENT</name>

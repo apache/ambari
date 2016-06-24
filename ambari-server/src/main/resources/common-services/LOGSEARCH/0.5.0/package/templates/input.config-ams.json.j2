@@ -31,8 +31,17 @@
       "type":"ams_collector",
       "rowtype":"service",
       "path":"{{metrics_collector_log_dir}}/ambari-metrics-collector.log"
+    },
+    {
+      "type":"ams_monitor",
+      "rowtype":"service",
+      "path":"{{metrics_monitor_log_dir}}/ambari-metrics-monitor.out"
+    },
+    {
+      "type":"ams_grafana",
+      "rowtype":"service",
+      "path":"{{metrics_grafana_log_dir}}/grafana.log"
     }
-
   ],
   "filter":[
     {
@@ -85,7 +94,79 @@
 
       }
 
-    }
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ams_grafana"
+          ]
+
+        }
+
+      },
+      "log4j_format":"%d{ISO8601} %-5p [%t] %c{2}: %m%n",
+      "multiline_pattern":"^(%{DATESTAMP})",
+      "message_pattern":"(?m)^%{DATESTAMP}%{SPACE}\\[%{WORD:level}\\]%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"yyyy/MM/dd HH:mm:ss"
+          }
+
+        },
+        "level":[
+          {
+           "map_fieldvalue":{
+              "pre_value":"I",
+              "post_value":"INFO"
+           },
+           "map_fieldvalue":{
+               "pre_value":"W",
+               "post_value":"WARN"
+           },
+           "map_fieldvalue":{
+               "pre_value":"D",
+               "post_value":"DEBUG"
+            },
+            "map_fieldvalue":{
+               "pre_value":"E",
+               "post_value":"ERROR"
+            },
+            "map_fieldvalue":{
+               "pre_value":"F",
+               "post_value":"FATAL"
+            }
+           }
+         ]
+
+      }
+
+    },
+    {
+          "filter":"grok",
+          "conditions":{
+            "fields":{
+              "type":[
+                "ams_monitor"
+              ]
+            }
+          },
+          "log4j_format":"",
+          "multiline_pattern":"^(%{DATESTAMP:logtime})",
+          "message_pattern":"(?m)^%{DATESTAMP:logtime}%{SPACE}\\[%{LOGLEVEL:level}\\]%{SPACE}%{JAVAFILE:file}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+          "post_map_values":{
+            "logtime":{
+              "map_date":{
+                "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+              }
+
+            }
+
+          }
+
+        }
 
   ]
 

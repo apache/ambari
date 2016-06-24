@@ -240,9 +240,11 @@ logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['conte
 ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
 knox_log_dir = '/var/log/knox'
+hst_log_dir = '/var/log/hst'
 
-metrics_collector_log_dir = default('/configurations/ams-env/metrics_collector_log_dir', '/var/log')
-metrics_monitor_log_dir = default('/configurations/ams-env/metrics_monitor_log_dir', '/var/log')
+metrics_collector_log_dir = default('/configurations/ams-env/metrics_collector_log_dir', '/var/log/ambari-metrics-collector')
+metrics_monitor_log_dir = default('/configurations/ams-env/metrics_monitor_log_dir', '/var/log/ambari-metrics-monitor')
+metrics_grafana_log_dir = default('/configurations/ams-grafana-env/metrics_grafana_log_dir', '/var/log/ambari-metrics-grafana')
 
 atlas_log_dir = default('/configurations/atlas-env/metadata_log_dir', '/var/log/atlas')
 accumulo_log_dir = default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')
@@ -251,6 +253,7 @@ flume_log_dir = default('/configurations/flume-env/flume_log_dir', '/var/log/flu
 hbase_log_dir = default('/configurations/hbase-env/hbase_log_dir', '/var/log/hbase')
 hdfs_log_dir_prefix = default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')
 hive_log_dir = default('/configurations/hive-env/hive_log_dir', '/var/log/hive')
+hcat_log_dir = default('configurations/hive-env/hcat_log_dir', '/var/log/webhcat')
 kafka_log_dir = default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')
 nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
 oozie_log_dir = default('/configurations/oozie-env/oozie_log_dir', '/var/log/oozie')
@@ -262,6 +265,13 @@ yarn_log_dir_prefix = default('/configurations/yarn-env/yarn_log_dir_prefix', '/
 mapred_log_dir_prefix = default('/configurations/mapred-env/mapred_log_dir_prefix', '/var/log/hadoop')
 zeppelin_log_dir = default('/configuration/zeppelin-env/zeppelin_log_dir', '/var/log/zeppelin')
 zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zookeeper')
+spark_log_dir = default('/configurations/spark-env/spark_log_dir', '/var/log/spark')
+livy_log_dir = default('/configurations/livy-env/livy_log_dir', '/var/log/livy')
+spark2_log_dir = default('/configurations/spark2-env/spark_log_dir', '/var/log/spark2')
+
+hdfs_user = default('configurations/hadoop-env/hdfs_user', 'hdfs')
+mapred_user =  default('configurations/mapred-env/mapred_user', 'mapred')
+yarn_user =  default('configurations/yarn-env/yarn_user', 'yarn')
 
 #####################################
 # Logsearch auth configs
@@ -330,8 +340,8 @@ logfeeder_checkpoint_folder = default('/configurations/logfeeder-env/logfeeder.c
 logfeeder_log_filter_enable = str(default('/configurations/logfeeder-properties/logfeeder.log.filter.enable', True)).lower()
 logfeeder_solr_config_interval = default('/configurations/logfeeder-properties/logfeeder.solr.config.interval', 5)
 
-logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'kafka',
-                                'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'storm', 'yarn', 'zeppelin', 'zookeeper']
+logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'hst', 'kafka',
+                                'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'spark', 'spark2', 'storm', 'yarn', 'zeppelin', 'zookeeper']
 
 logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in
                                                                               logfeeder_supported_services]

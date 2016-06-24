@@ -26,8 +26,12 @@
       "type":"hive_metastore",
       "rowtype":"service",
       "path":"{{hive_log_dir}}/hivemetastore.log"
+    },
+    {
+      "type": "webhcat_server",
+      "rowntype":"service",
+      "path":"{{hcat_log_dir}}/webhcat.log"
     }
-
   ],
   "filter":[
     {
@@ -51,6 +55,37 @@
             "date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
           }
 
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "webhcat_server"
+          ]
+
+        }
+
+      },
+      "log4j_format":" %-5p | %d{DATE} | %c | %m%n",
+      "multiline_pattern":"^(%{SPACE}%{LOGLEVEL:level}%{CUSTOM_SEPARATOR}%{CUSTOM_DATESTAMP:logtime})",
+      "message_pattern":"(?m)^%{SPACE}%{LOGLEVEL:level}%{CUSTOM_SEPARATOR}%{CUSTOM_DATESTAMP:logtime}%{CUSTOM_SEPARATOR}%{JAVACLASS:file}%{CUSTOM_SEPARATOR}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "date_pattern":"dd MMM yyyy HH:mm:ss,SSS"
+          }
+
+        },
+        "level":{
+           "map_fieldvalue":{
+             "pre_value":"WARNING",
+             "post_value":"WARN"
+            }
         }
 
       }

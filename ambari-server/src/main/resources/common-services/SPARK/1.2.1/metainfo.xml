@@ -61,6 +61,12 @@
              </auto-deploy>
            </dependency>
           </dependencies>
+          <logs>
+            <log>
+              <logId>spark_jobhistory_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <commandScript>
             <script>scripts/job_history_server.py</script>
             <scriptType>PYTHON</scriptType>
