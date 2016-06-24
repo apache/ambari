@@ -132,7 +132,7 @@ App.ConfigOverridable = Em.Mixin.create({
             id: (new Date()).getTime(),
             name: newConfigGroupName,
             is_default: false,
-            parent_config_group_id: serviceId + '_default',
+            parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceId),
             description: Em.I18n.t('config.group.description.default').format(new Date().toDateString()),
             service_id: serviceId,
             service_name: serviceId,
