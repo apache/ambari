@@ -567,7 +567,10 @@ limitations under the License.
   </property>
   <property>
     <name>hive.llap.io.memory.mode</name>
-    <value>none</value>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 
