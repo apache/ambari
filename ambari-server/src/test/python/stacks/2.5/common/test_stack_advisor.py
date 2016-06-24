@@ -3542,12 +3542,6 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '512')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '1024')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '1')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '512')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '1')
-
 
 
   # Test 20: (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
@@ -3741,14 +3735,6 @@ class TestHDP25StackAdvisor(TestCase):
                       {'visible': 'false'})
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '682')
-
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '5115')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '1')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '4774')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '1')
-
-
 
 
 
@@ -3945,12 +3931,6 @@ class TestHDP25StackAdvisor(TestCase):
                       {'maximum': '100', 'minimum': '20', 'visible': 'true'})
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '1024')
-
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '17408')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '1')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '16384')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '1')
 
 
 
@@ -4151,11 +4131,6 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '2048')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '40960')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '4')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '36864')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '2')
 
 
 
@@ -4351,11 +4326,6 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '682')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '12276')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '3')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '9204')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '2')
 
 
 
@@ -4549,11 +4519,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '2048')
 
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '204800')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '3')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '201728')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '1')
 
 
 
@@ -4753,11 +4718,6 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '3072')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '39936')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '4')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '35840')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '3')
 
 
 
@@ -4954,11 +4914,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '1705')
 
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '204600')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '10')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '201190')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '4')
 
 
 
@@ -5148,11 +5103,6 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '2048')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '204800')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '3')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '201728')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '2')
 
 
 
@@ -5335,11 +5285,6 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '2048')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '204800')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '3')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '201728')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '2')
 
 
 
@@ -5525,11 +5470,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '2048')
 
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '204800')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '3')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '201728')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '2')
 
 
 
@@ -5607,13 +5547,7 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
-      "changed-configurations": [
-        {
-          u'old_value': u'3',
-          u'type': u'hive-interactive-site',
-          u'name': u'hive.server2.tez.sessions.per.default.queue'
-        }
-      ],
+      "changed-configurations": [ ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -5724,29 +5658,24 @@ class TestHDP25StackAdvisor(TestCase):
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '4')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204800')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10240')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '201728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '7168')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '512')
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
                       {'visible': 'false'})
 
-    self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '2048')
+    self.assertEqual(configurations['tez-interactive-site']['properties']['tez.am.resource.memory.mb'], '512')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '204800')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '3')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '201728')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '4')
 
 
 
@@ -5961,11 +5890,6 @@ class TestHDP25StackAdvisor(TestCase):
 
     self.assertTrue('tez.am.resource.memory.mb' not in configurations['tez-interactive-site']['properties'])
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '2048')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '0')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '0')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '0')
 
 
 
@@ -6142,11 +6066,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
                       {'maximum': '100', 'minimum': '20', 'visible': 'true'})
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '10240')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '1')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '512')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '1')
 
 
 
@@ -6336,11 +6255,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
                       {'visible': 'false'})
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '8192')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '1')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '0')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '2')
 
 
 
@@ -6510,11 +6424,6 @@ class TestHDP25StackAdvisor(TestCase):
                       self.expected_hive_interactive_site_default['hive-interactive-site']['properties']['hive.llap.daemon.queue.name'])
     self.assertEquals(configurations['hive-interactive-site']['properties']['hive.server2.tez.default.queues'], 'default')
 
-    # Check '*_copy' configs, used for displaying it as label on UI.
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb_copy'], '4096')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors_copy'], '1')
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size_copy'], '512')
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes_copy'], '1')
 
 
 
