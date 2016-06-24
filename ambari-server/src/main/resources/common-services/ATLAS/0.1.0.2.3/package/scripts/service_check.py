@@ -33,7 +33,7 @@ class AtlasServiceCheck(Script):
 
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}"),
-              user=params.metadata_user)
+              user=params.smoke_test_user)
 
     try:
       Execute(params.smoke_cmd, user=params.metadata_user, tries = 5,

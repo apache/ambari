@@ -52,7 +52,7 @@ class TestAtlasCheck(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM',
-                              user = 'atlas')
+                              user = 'ambari-qa')
 
     self.assertResourceCalled('Execute', 'curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{http_code}" https://c6401.ambari.apache.org:21443/',
                               user = 'atlas',
