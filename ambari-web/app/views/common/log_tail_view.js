@@ -104,6 +104,7 @@ App.LogTailView = Em.View.extend(App.InfiniteScrollMixin, {
     this._super();
     this.stopLogPolling();
     this.unsubscribeResize();
+    this.get('logRows').clear();
   },
 
   resizeHandler: function() {
