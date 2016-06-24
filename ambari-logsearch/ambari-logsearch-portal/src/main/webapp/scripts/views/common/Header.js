@@ -42,7 +42,8 @@ define(['require',
                 'globalFilter': "li[data-id='exclusionList']",
                 'globalNotification': '.dropdown .excludeStatus',
                 'timeZoneChange': "li[data-id='timeZoneChange']",
-                'createFilters' : "[data-id='createFilters']"
+                'createFilters' : "[data-id='createFilters']",
+                'editParams'  : "a[data-id='editParams']"
             },
 
             /** ui events hash */
@@ -52,6 +53,7 @@ define(['require',
                 events['click ' + this.ui.globalFilter] = 'exclusionListClick';
                 events['click ' + this.ui.timeZoneChange] = 'timeZoneChangeClick';
                 events['click ' + this.ui.createFilters] = 'createFiltersClick';
+                events['click ' + this.ui.editParams] = 'editParamsClick';
                 return events;
             },
 
@@ -92,6 +94,7 @@ define(['require',
                     }
                     this.ui.timeZoneChange.find('span').text(moment.tz(storeTimezone.value.split(',')[0]).zoneName());
                 }
+                this.checkParams();
             },
             onShow : function(){
                 this.triggerAutoTourCheck();
@@ -99,6 +102,48 @@ define(['require',
             loadTimeZone: function() {
 
 
+            },
+            checkParams : function(){
+                if(window.location.search){
+                    var url = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+                    if(url.length === 1){
+                        var bundleIdCheck = url[0].split('=');
+                        (bundleIdCheck[0] ==='bundle_id') ? this.ui.editParams.hide() : this.ui.editParams.show();
+                    }else{
+                      this.ui.editParams.show();  
+                    }
+                }
+            },
+            editParamsClick: function() {
+                 var that = this;
+                 var newUrl = '',
+                     hash,
+                     str = '<ul>';
+                 var oldUrl = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+                 for (var i = 0; i < oldUrl.length; i++) {
+
+                     hash = oldUrl[i].split('=');
+                     if (hash[0] === "bundle_id") {
+                            if(_.isEmpty(hash[1])){
+                                hash[1] = '';
+                            }
+                         newUrl = hash[0] + "=" + hash[1];
+                     }else{
+                       str += '<li>' + hash[0] + "  : " + hash[1] + '</li>'; 
+                     }     
+                 }
+                 str += '</ul>';
+
+                 Utils.bootboxCustomDialogs({
+                     'title': ' Are you sure you want to remove these params ?',
+                     'msg': str,
+                     'callback': function() {
+                         var editUrl = window.location.href.substring(0, window.location.href.indexOf('?'));
+                         var params = (newUrl.length > 0) ? window.location.search = '?' + newUrl : window.location.search = '';
+                         window.location.href = editUrl + params;
+                         that.ui.editParams.hide();
+                     }
+                 });
             },
             takeATour: function() {
                 require(['utils/Intro'], function(Intro) {

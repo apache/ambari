@@ -357,6 +357,23 @@ define(['require',
 		});
 	};
 
+	Utils.bootboxCustomDialogs = function(params) {
+	    bootbox.dialog({
+	    	title: params.title,
+	        message: params.msg,
+	        buttons: {
+	            cancel: {
+	                label: "Cancel",
+	                className: "btn-secondary"
+	            },
+	            Ok: {
+	                className: "btn-primary",
+	                callback: params.callback
+	            }
+	        }
+	    });
+	};
+
 	Utils.filterResultByIds = function(results, selectedVals) {
 		return _.filter(results, function(obj) {
 			if ($.inArray(obj.id, selectedVals) < 0)
@@ -737,11 +754,16 @@ define(['require',
 		var params = {},
 		    tokens,
 		    re = /[?&]?([^=]+)=([^&]*)/g;
-
-		while (tokens = re.exec(qs)) {
-		    params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+		try {
+		    while (tokens = re.exec(qs)) {
+		        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+		    }
+		} catch (exception) {
+			console.error(exception);
+		    Utils.notifyError({
+		        content: exception
+		    });
 		}
-
 		return params;
 	};
 	/**
