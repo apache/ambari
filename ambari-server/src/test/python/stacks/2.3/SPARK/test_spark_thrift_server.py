@@ -127,6 +127,7 @@ class TestSparkThriftServer(RMFTestCase):
         key_value_delimiter = ' ',
         group = 'spark',
         properties = self.getConfig()['configurations']['spark-defaults'],
+        mode = 0644
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/spark-env.sh',
         content = InlineTemplate(self.getConfig()['configurations']['spark-env']['content']),
@@ -144,11 +145,13 @@ class TestSparkThriftServer(RMFTestCase):
         content = InlineTemplate(self.getConfig()['configurations']['spark-metrics-properties']['content']),
         owner = 'spark',
         group = 'spark',
+        mode = 0644
     )
     self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
         content = InlineTemplate(' '),
         owner = 'spark',
         group = 'spark',
+        mode = 0644
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
@@ -159,7 +162,8 @@ class TestSparkThriftServer(RMFTestCase):
         key_value_delimiter = ' ',
         owner = 'hive',
         group = 'hadoop',
-        properties = self.getConfig()['configurations']['spark-thrift-sparkconf']
+        properties = self.getConfig()['configurations']['spark-thrift-sparkconf'],
+        mode = 0644
     )
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
