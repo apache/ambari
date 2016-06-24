@@ -278,7 +278,7 @@ angular.module('ambariAdminConsole')
 
     postVersionDefinitionFile: function (isXMLdata, data, isDryRun) {
       var deferred = $q.defer(),
-        url = Settings.baseUrl + '/version_definitions' + (isDryRun ? '?dry_run=true' : ''),
+        url = Settings.baseUrl + '/version_definitions?skip_url_check=true' + (isDryRun ? '&dry_run=true' : ''),
         configs = isXMLdata? { headers: {'Content-Type': 'text/xml'}} : null;
 
       $http.post(url, data, configs)

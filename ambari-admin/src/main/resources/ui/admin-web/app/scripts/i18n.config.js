@@ -398,7 +398,13 @@ angular.module('ambariAdminConsole')
       'readInfo': 'Read Version Info',
       'browse': 'Browse',
       'installOn': 'Install on...',
-      'register': 'Register Version',
+      'register': {
+        'title': 'Register Version',
+        'error': {
+          'header': 'Unable to Register',
+          'body': 'You are attempting to register a version with a Base URL that is already in use with an existing registered version. You *must* review your Base URLs and confirm they are unique for the version you are trying to register.'
+        }
+      },
       'deregister': 'Deregister Version',
       'deregisterConfirmation': 'Are you sure you want to deregister version <strong>{{versionName}}</strong> ?',
       'placeholder': 'Version Number (0.0)',

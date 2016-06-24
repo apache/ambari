@@ -332,7 +332,14 @@ angular.module('ambariAdminConsole')
               }));
               $location.path('/stackVersions');
             }).catch(function (data) {
-              Alert.error($t('versions.alerts.versionUpdateError'), data.message);
+              Stack.deleteRepo(versionInfo.stack_name, versionInfo.stack_version, versionInfo.id);
+              ConfirmationModal.show(
+                $t('versions.register.error.header'),
+                $t('versions.register.error.body'),
+                null,
+                null,
+                true
+              )
             });
           }
         })
