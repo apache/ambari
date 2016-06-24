@@ -220,9 +220,6 @@ def falcon(type, action = None, upgrade_type=None):
     File(os.path.join(params.falcon_conf_dir, 'falcon-env.sh'),
       content = InlineTemplate(params.falcon_env_sh_template))
 
-    File(os.path.join(params.falcon_conf_dir, 'client.properties'),
-      content = Template('client.properties.j2'))
-
     PropertiesFile(os.path.join(params.falcon_conf_dir, 'runtime.properties'),
       properties = params.falcon_runtime_properties)
 
