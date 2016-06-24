@@ -579,7 +579,10 @@ class PGConfig(LinuxDBMSConfig):
     retcode, out, err = run_os_command(PGConfig.PG_ST_CMD)
     # on RHEL and SUSE PG_ST_COMD returns RC 0 for running and 3 for stoppped
     if retcode == 0:
-      pg_status = PGConfig.PG_STATUS_RUNNING
+      if out.strip() == "Running clusters:":
+        pg_status = "stopped"
+      else:
+        pg_status = PGConfig.PG_STATUS_RUNNING
     else:
       if retcode == 3:
         pg_status = "stopped"
