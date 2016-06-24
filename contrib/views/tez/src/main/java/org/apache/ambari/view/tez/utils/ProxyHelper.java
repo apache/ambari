@@ -22,7 +22,7 @@ package org.apache.ambari.view.tez.utils;
 import com.google.inject.Inject;
 import org.apache.ambari.view.URLConnectionProvider;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.tez.exceptions.ProxyException;
+import org.apache.ambari.view.tez.exceptions.TezWebAppException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ public class ProxyHelper {
         if (inputStream != null) {
           trace = IOUtils.toString(inputStream);
         }
-        throw new ProxyException("Failed to fetch results by the proxy from url: " + url, connection.getResponseCode(), trace);
+        throw new TezWebAppException("Failed to fetch results by the proxy from url: " + url, connection.getResponseCode(), trace);
       }
 
       inputStream = connection.getInputStream();
@@ -69,8 +69,7 @@ public class ProxyHelper {
 
     } catch (IOException e) {
       LOG.error("Cannot access the url: {}", url, e);
-      throw new ProxyException("Failed to fetch results by the proxy from url: " + url + ".Internal Error.",
-        Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage());
+      throw new TezWebAppException("Failed to fetch results by the proxy from url: " + url + ". Internal Error.", e);
     } finally {
       if (inputStream != null) {
         try {
