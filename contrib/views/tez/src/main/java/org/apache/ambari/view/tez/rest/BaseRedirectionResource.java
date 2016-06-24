@@ -18,7 +18,7 @@
 
 package org.apache.ambari.view.tez.rest;
 
-import org.apache.ambari.view.tez.exceptions.ProxyException;
+import org.apache.ambari.view.tez.exceptions.TezWebAppException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -29,6 +29,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * Base class for resources which will redirect the call to the active URL by fetching the current active URL.
@@ -36,15 +38,18 @@ import java.net.URISyntaxException;
  */
 public abstract class BaseRedirectionResource {
 
+  private static final Logger LOG = LoggerFactory.getLogger(BaseRedirectionResource.class);
+
   @Path("/{endpoint:.+}")
   @GET
   public Response getData(@Context UriInfo uriInfo, @PathParam("endpoint") String endpoint) {
     String url = getProxyUrl(endpoint, uriInfo.getQueryParameters());
     try {
+      LOG.debug("Redirecting to URL: {}", url);
       return Response.temporaryRedirect(new URI(url)).build();
     } catch (URISyntaxException e) {
-      throw new ProxyException("Failed to set the redirection url to : " + url + ".Internal Error.",
-        Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage());
+      LOG.error("Redirecting to URL {} failed: ", url, e);
+      throw new TezWebAppException("Failed to set the redirection url to : " + url + ". Internal Error.", e);
     }
   }
 
