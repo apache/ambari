@@ -64,6 +64,7 @@ def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
     key_value_delimiter = " ",
     owner=params.spark_user,
     group=params.spark_group,
+    mode=0644
   )
 
   # create spark-env.sh in etc/conf dir
@@ -86,13 +87,15 @@ def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
   File(os.path.join(config_dir, 'metrics.properties'),
        owner=params.spark_user,
        group=params.spark_group,
-       content=InlineTemplate(params.spark_metrics_properties)
+       content=InlineTemplate(params.spark_metrics_properties),
+       mode=0644
   )
 
   File(os.path.join(params.spark_conf, 'java-opts'),
       owner=params.spark_user,
       group=params.spark_group,
-      content=InlineTemplate(params.spark_javaopts_properties)
+      content=InlineTemplate(params.spark_javaopts_properties),
+      mode=0644
   )
 
   Directory(params.spark_logs_dir,
@@ -115,6 +118,7 @@ def setup_spark(env, type, upgrade_type=None, action=None, config_dir=None):
       owner = params.hive_user,
       group = params.user_group,
       key_value_delimiter = " ",
+      mode=0644
     )
 
   effective_version = params.version if upgrade_type is not None else params.stack_version_formatted
