@@ -511,17 +511,21 @@ public class DatabaseConsistencyCheckHelper {
 
         //compare required service configs from stack with mapped service configs from db
         Map<Integer, Multimap<String, String>> dbServiceVersionConfigs = dbClusterServiceVersionConfigs.get(clusterName);
-        for (Integer serviceVersion : dbServiceVersionConfigs.keySet()) {
-          Multimap<String, String> dbServiceConfigs = dbServiceVersionConfigs.get(serviceVersion);
-          for (String serviceName : dbServiceConfigs.keySet()) {
-            Collection<String> serviceConfigsFromStack = stackServiceConfigs.get(serviceName);
-            Collection<String> serviceConfigsFromDB = dbServiceConfigs.get(serviceName);
-            if (serviceConfigsFromDB != null && serviceConfigsFromStack != null) {
-              serviceConfigsFromStack.removeAll(serviceConfigsFromDB);
-              if (!serviceConfigsFromStack.isEmpty()) {
-                LOG.error("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
-                        StringUtils.join(serviceConfigsFromStack, ","), serviceName, Integer.toString(serviceVersion), clusterName);
-                errorAvailable = true;
+        if (dbServiceVersionConfigs != null) {
+          for (Integer serviceVersion : dbServiceVersionConfigs.keySet()) {
+            Multimap<String, String> dbServiceConfigs = dbServiceVersionConfigs.get(serviceVersion);
+            if (dbServiceConfigs != null) {
+              for (String serviceName : dbServiceConfigs.keySet()) {
+                Collection<String> serviceConfigsFromStack = stackServiceConfigs.get(serviceName);
+                Collection<String> serviceConfigsFromDB = dbServiceConfigs.get(serviceName);
+                if (serviceConfigsFromDB != null && serviceConfigsFromStack != null) {
+                  serviceConfigsFromStack.removeAll(serviceConfigsFromDB);
+                  if (!serviceConfigsFromStack.isEmpty()) {
+                    LOG.error("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
+                            StringUtils.join(serviceConfigsFromStack, ","), serviceName, Integer.toString(serviceVersion), clusterName);
+                    errorAvailable = true;
+                  }
+                }
               }
             }
           }
