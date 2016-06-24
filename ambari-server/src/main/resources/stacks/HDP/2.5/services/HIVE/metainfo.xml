@@ -102,9 +102,14 @@
             </customCommand>
           </customCommands>
           <configuration-dependencies>
+            <config-type>beeline-log4j2</config-type>
+            <config-type>hive-exec-log4j2</config-type>
+            <config-type>hive-log4j2</config-type>
             <config-type>hive-site</config-type>
             <config-type>hive-interactive-site</config-type>
             <config-type>hive-interactive-env</config-type>
+            <config-type>llap-cli-log4j2</config-type>
+            <config-type>llap-daemon-log4j</config-type>
           </configuration-dependencies>
         </component>
       </components>
