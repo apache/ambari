@@ -291,7 +291,7 @@ public class SolrUtil {
       return "";
     }
     String newSearch = search.replaceAll("[\\t\\n\\r]", " ");
-    newSearch = newSearch.replaceAll("(?=[]\\[+&|!(){}^~*=$/@%?:.\\\\-])",
+    newSearch = newSearch.replaceAll("(?=[]\\[+&|!(){}^~=$/@%?:.\\\\-])",
         "\\\\");
 
     return newSearch.replace(" ", "\\ ");

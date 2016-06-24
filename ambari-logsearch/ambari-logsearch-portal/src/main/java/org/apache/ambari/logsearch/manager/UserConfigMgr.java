@@ -96,7 +96,7 @@ public class UserConfigMgr extends MgrBase {
     SolrQuery solrQuery = new SolrQuery();
     queryGenerator.setMainQuery(solrQuery, null);
     queryGenerator.setSingleIncludeFilter(solrQuery,
-        LogSearchConstants.FILTER_NAME, filterName);
+        LogSearchConstants.FILTER_NAME, solrUtil.makeSearcableString(filterName));
     queryGenerator.setSingleIncludeFilter(solrQuery,
         LogSearchConstants.USER_NAME, loggedInUserName);
     try {
@@ -199,7 +199,7 @@ public class UserConfigMgr extends MgrBase {
           LogSearchConstants.USER_NAME, userName,
           LogSearchConstants.SHARE_NAME_LIST, userName);
       queryGenerator.setSingleIncludeFilter(userConfigQuery,
-          LogSearchConstants.FILTER_NAME, filterName);
+          LogSearchConstants.FILTER_NAME, solrUtil.makeSearcableString(filterName));
 
       if (stringUtil.isEmpty(searchCriteria.getSortBy())) {
         searchCriteria.setSortBy(LogSearchConstants.FILTER_NAME);
