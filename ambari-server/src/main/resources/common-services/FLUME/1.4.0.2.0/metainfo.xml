@@ -35,6 +35,12 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <logs>
+            <log>
+              <logId>flume_handler</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
         </component>
       </components>
 

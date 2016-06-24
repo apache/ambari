@@ -84,6 +84,12 @@
             <script>scripts/logsearch_solr.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <logs>
+            <log>
+              <logId>logsearch_solr</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
           <dependencies>
             <dependency>
               <name>LOGSEARCH/LOGSEARCH_SOLR_CLIENT</name>
