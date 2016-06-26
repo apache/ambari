@@ -141,7 +141,7 @@ def setup_solr_client(config, user = None, group = None, custom_log4j = True, cu
              )
 
     File(solr_client_log,
-         mode=0644,
+         mode=0664,
          owner=solr_user,
          group=solr_group,
          content=''
