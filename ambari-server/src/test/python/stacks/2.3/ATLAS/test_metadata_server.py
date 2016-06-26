@@ -148,7 +148,7 @@ class TestMetadataServer(RMFTestCase):
       self.assertResourceCalled('File', '/var/log/ambari-logsearch-solr-client/solr-client.log',
                                 owner='solr',
                                 group='hadoop',
-                                mode=0644,
+                                mode=0664,
                                 content = ''
       )
       self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --download-config --config-dir /tmp/solr_config_basic_configs_0.[0-9]* --config-set basic_configs --retry 30 --interval 5')
