@@ -25,6 +25,13 @@ import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.apache.solr.common.cloud.SolrZkClient;
 
 public class AmbariSolrCloudClientBuilder {
+  private static final String KEYSTORE_LOCATION_ARG = "javax.net.ssl.keyStore";
+  private static final String KEYSTORE_PASSWORD_ARG = "javax.net.ssl.keyStorePassword";
+  private static final String KEYSTORE_TYPE_ARG = "javax.net.ssl.keyStoreType";
+  private static final String TRUSTSTORE_LOCATION_ARG = "javax.net.ssl.trustStore";
+  private static final String TRUSTSTORE_PASSWORD_ARG = "javax.net.ssl.trustStorePassword";
+  private static final String TRUSTSTORE_TYPE_ARG = "javax.net.ssl.trustStoreType";
+  
   String zkConnectString;
   String collection;
   String configSet;
@@ -118,6 +125,48 @@ public class AmbariSolrCloudClientBuilder {
 
   public AmbariSolrCloudClientBuilder withSolrZkClient(int zkClientTimeout, int zkClientConnectTimeout) {
     this.solrZkClient = new SolrZkClient(this.zkConnectString, zkClientTimeout, zkClientConnectTimeout);
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withKeyStoreLocation(String keyStoreLocation) {
+    if (keyStoreLocation != null) {
+      System.setProperty(KEYSTORE_LOCATION_ARG, keyStoreLocation);
+    }
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withKeyStorePassword(String keyStorePassword) {
+    if (keyStorePassword != null) {
+      System.setProperty(KEYSTORE_PASSWORD_ARG, keyStorePassword);
+    }
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withKeyStoreType(String keyStoreType) {
+    if (keyStoreType != null) {
+      System.setProperty(KEYSTORE_TYPE_ARG, keyStoreType);
+    }
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withTrustStoreLocation(String trustStoreLocation) {
+    if (trustStoreLocation != null) {
+      System.setProperty(TRUSTSTORE_LOCATION_ARG, trustStoreLocation);
+    }
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withTrustStorePassword(String trustStorePassword) {
+    if (trustStorePassword != null) {
+      System.setProperty(TRUSTSTORE_PASSWORD_ARG, trustStorePassword);
+    }
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withTrustStoreType(String trustStoreType) {
+    if (trustStoreType != null) {
+      System.setProperty(TRUSTSTORE_TYPE_ARG, trustStoreType);
+    }
     return this;
   }
 

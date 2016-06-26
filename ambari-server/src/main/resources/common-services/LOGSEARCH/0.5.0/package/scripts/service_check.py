@@ -30,9 +30,8 @@ class LogSearchServiceCheck(Script):
       Execute(params.smoke_logsearch_cmd, user=params.logsearch_user, timeout = 10)
       Logger.info('Log Search Server up and running')
     except:
-      Logger.debug('Log Search Server not running')
-
-
+      Logger.error('Log Search Server not running')
+      raise
 
 if __name__ == "__main__":
   LogSearchServiceCheck().execute()

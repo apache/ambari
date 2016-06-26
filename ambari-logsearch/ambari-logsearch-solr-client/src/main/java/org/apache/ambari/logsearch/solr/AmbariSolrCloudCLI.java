@@ -46,7 +46,7 @@ public class AmbariSolrCloudCLI {
   private static final String CREATE_SHARD_COMMAND = "create-shard";
   private static final String CMD_LINE_SYNTAX =
     "\n./solrCloudCli.sh --create-collection -z host1:2181,host2:2181/ambari-solr -c collection -cs conf_set"
-      + "\n./solrCloudCli.sh --upload-config -z host1:2181,host2:2181/ambari-solr -d /tmp/myonfig_dir -cs config_set"
+      + "\n./solrCloudCli.sh --upload-config -z host1:2181,host2:2181/ambari-solr -d /tmp/myconfig_dir -cs config_set"
       + "\n./solrCloudCli.sh --download-config -z host1:2181,host2:2181/ambari-solr -cs config_set -d /tmp/myonfig_dir"
       + "\n./solrCloudCli.sh --check-config -z host1:2181,host2:2181/ambari-solr -cs config_set"
       + "\n./solrCloudCli.sh --create-shard -z host1:2181,host2:2181/ambari-solr -c collection -sn myshard\n";
@@ -187,6 +187,48 @@ public class AmbariSolrCloudCLI {
       .argName("jaas_file")
       .build();
 
+    final Option keyStoreLocationOption = Option.builder("ksl")
+      .longOpt("key-store-location")
+      .desc("Location of the key store used to communicate with Solr using SSL")
+      .numberOfArgs(1)
+      .argName("key store location")
+      .build();
+
+    final Option keyStorePasswordOption = Option.builder("ksp")
+      .longOpt("key-store-password")
+      .desc("Key store password used to communicate with Solr using SSL")
+      .numberOfArgs(1)
+      .argName("key store password")
+      .build();
+
+    final Option keyStoreTypeOption = Option.builder("kst")
+      .longOpt("key-store-type")
+      .desc("Type of the key store used to communicate with Solr using SSL")
+      .numberOfArgs(1)
+      .argName("key store type")
+      .build();
+
+    final Option trustStoreLocationOption = Option.builder("tsl")
+      .longOpt("trust-store-location")
+      .desc("Location of the trust store used to communicate with Solr using SSL")
+      .numberOfArgs(1)
+      .argName("trust store location")
+      .build();
+
+    final Option trustStorePasswordOption = Option.builder("tsp")
+      .longOpt("trust-store-password")
+      .desc("Trust store password used to communicate with Solr using SSL")
+      .numberOfArgs(1)
+      .argName("trust store password")
+      .build();
+
+    final Option trustStoreTypeOption = Option.builder("tst")
+      .longOpt("trust-store-type")
+      .desc("Type of the trust store used to communicate with Solr using SSL")
+      .numberOfArgs(1)
+      .argName("trust store type")
+      .build();
+
     options.addOption(helpOption);
     options.addOption(retryOption);
     options.addOption(intervalOption);
@@ -207,6 +249,12 @@ public class AmbariSolrCloudCLI {
     options.addOption(checkConfigOption);
     options.addOption(createShardOption);
     options.addOption(jaasFileOption);
+    options.addOption(keyStoreLocationOption);
+    options.addOption(keyStorePasswordOption);
+    options.addOption(keyStoreTypeOption);
+    options.addOption(trustStoreLocationOption);
+    options.addOption(trustStorePasswordOption);
+    options.addOption(trustStoreTypeOption);
 
 
     try {
@@ -254,6 +302,12 @@ public class AmbariSolrCloudCLI {
       String shardName = cli.hasOption("sn") ? cli.getOptionValue("sn") : null;
       boolean isSplitting = !cli.hasOption("ns");
       String jaasFile = cli.hasOption("jf") ? cli.getOptionValue("jf") : null;
+      String keyStoreLocation = cli.hasOption("ksl") ? cli.getOptionValue("ksl") : null;
+      String keyStorePassword = cli.hasOption("ksp") ? cli.getOptionValue("ksp") : null;
+      String keyStoreType = cli.hasOption("kst") ? cli.getOptionValue("kst") : null;
+      String trustStoreLocation = cli.hasOption("tsl") ? cli.getOptionValue("tsl") : null;
+      String trustStorePassword = cli.hasOption("tsp") ? cli.getOptionValue("tsp") : null;
+      String trustStoreType = cli.hasOption("tst") ? cli.getOptionValue("tst") : null;
 
 
       AmbariSolrCloudClientBuilder clientBuilder = new AmbariSolrCloudClientBuilder()
@@ -269,7 +323,13 @@ public class AmbariSolrCloudCLI {
         .withRouterField(routerField)
         .withJaasFile(jaasFile) // call before creating SolrClient
         .withSplitting(isSplitting)
-        .withSolrZkClient(ZK_CLIENT_TIMEOUT, ZK_CLIENT_CONNECT_TIMEOUT);
+        .withSolrZkClient(ZK_CLIENT_TIMEOUT, ZK_CLIENT_CONNECT_TIMEOUT)
+        .withKeyStoreLocation(keyStoreLocation)
+        .withKeyStorePassword(keyStorePassword)
+        .withKeyStoreType(keyStoreType)
+        .withTrustStoreLocation(trustStoreLocation)
+        .withTrustStorePassword(trustStorePassword)
+        .withTrustStoreType(trustStoreType);
 
       AmbariSolrCloudClient solrCloudClient = null;
       switch (command) {

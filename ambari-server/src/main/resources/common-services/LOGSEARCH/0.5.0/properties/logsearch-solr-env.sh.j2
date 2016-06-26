@@ -94,10 +94,10 @@ SOLR_PORT={{logsearch_solr_port}}
 
 # Be sure to update the paths to the correct keystore for your environment
 {% if logsearch_solr_ssl_enabled %}
-SOLR_SSL_KEY_STORE={{logsearch_solr_ssl_server_keystore_location}}
-SOLR_SSL_KEY_STORE_PASSWORD={{logsearch_solr_ssl_server_keystore_password}}
-SOLR_SSL_TRUST_STORE={{logsearch_solr_ssl_server_keystore_location}}
-SOLR_SSL_TRUST_STORE_PASSWORD={{logsearch_solr_ssl_server_keystore_password}}
+SOLR_SSL_KEY_STORE={{logsearch_solr_keystore_location}}
+SOLR_SSL_KEY_STORE_PASSWORD={{logsearch_solr_keystore_password}}
+SOLR_SSL_TRUST_STORE={{logsearch_solr_keystore_location}}
+SOLR_SSL_TRUST_STORE_PASSWORD={{logsearch_solr_keystore_password}}
 SOLR_SSL_NEED_CLIENT_AUTH=false
 SOLR_SSL_WANT_CLIENT_AUTH=false
 {% endif %}
