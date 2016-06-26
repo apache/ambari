@@ -105,14 +105,14 @@ class TestLogSearch(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
 
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --download-config -d /tmp/solr_config_hadoop_logs_0.[0-9]* -cs hadoop_logs -rt 30 -i 5')
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --upload-config -d /etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf -cs hadoop_logs -rt 30 -i 5')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --download-config --config-dir /tmp/solr_config_hadoop_logs_0.[0-9]* --config-set hadoop_logs --retry 30 --interval 5')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf --config-set hadoop_logs --retry 30 --interval 5')
 
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --download-config -d /tmp/solr_config_history_0.[0-9]* -cs history -rt 30 -i 5')
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --upload-config -d /etc/ambari-logsearch-portal/conf/solr_configsets/history/conf -cs history -rt 30 -i 5')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --download-config --config-dir /tmp/solr_config_history_0.[0-9]* --config-set history --retry 30 --interval 5')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/history/conf --config-set history --retry 30 --interval 5')
 
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --download-config -d /tmp/solr_config_audit_logs_0.[0-9]* -cs audit_logs -rt 30 -i 5')
-    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh -z c6401.ambari.apache.org:2181/logsearch --upload-config -d /etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf -cs audit_logs -rt 30 -i 5')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --download-config --config-dir /tmp/solr_config_audit_logs_0.[0-9]* --config-set audit_logs --retry 30 --interval 5')
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf --config-set audit_logs --retry 30 --interval 5')
 
     self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/etc/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo=True

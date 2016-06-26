@@ -99,21 +99,21 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_server_truststore_location</name>
-    <value>/etc/security/serverKeys/logsearch-solr-ssl.trustStore.jks</value>
+    <name>logsearch_solr_truststore_location</name>
+    <value>/etc/security/serverKeys/logsearch.trustStore.jks</value>
     <display-name>Log Search Solr trust store location</display-name>
     <description>Location of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_server_truststore_type</name>
+    <name>logsearch_solr_truststore_type</name>
     <value>jks</value>
     <display-name>Log Search Solr trust store type</display-name>
     <description>Type of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_server_truststore_password</name>
+    <name>logsearch_solr_truststore_password</name>
     <value>bigdata</value>
     <property-type>PASSWORD</property-type>
     <display-name>Log Search Solr trust store password</display-name>
@@ -124,21 +124,21 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_server_keystore_location</name>
-    <value>/etc/security/serverKeys/logsearch-solr-ssl.keyStore.jks</value>
+    <name>logsearch_solr_keystore_location</name>
+    <value>/etc/security/serverKeys/logsearch.keyStore.jks</value>
     <display-name>Log Search Solr key store location</display-name>
     <description>Location of the key store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_server_keystore_type</name>
+    <name>logsearch_solr_keystore_type</name>
     <value>jks</value>
     <display-name>Log Search Solr key store type</display-name>
     <description>Type of the key store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_server_keystore_password</name>
+    <name>logsearch_solr_keystore_password</name>
     <value>bigdata</value>
     <display-name>Log Search Solr key store password</display-name>
     <property-type>PASSWORD</property-type>

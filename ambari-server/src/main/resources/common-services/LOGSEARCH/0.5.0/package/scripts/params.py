@@ -225,6 +225,7 @@ logsearch_custom_properties.pop("logsearch.external.auth.login_url", None)
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
 logsearch_log_dir = config['configurations']['logsearch-env']['logsearch_log_dir']
 logsearch_log = logsearch_log_dir + '/logsearch.out'
+logsearch_ui_protocol = config['configurations']['logsearch-env']["logsearch_ui_protocol"]
 logsearch_ui_port = config['configurations']['logsearch-env']["logsearch_ui_port"]
 logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsearch_debug_enabled"]).lower()
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
@@ -315,24 +316,24 @@ logfeeder_env_content = config['configurations']['logfeeder-env']['content']
 logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 
 logsearch_solr_ssl_enabled = default('configurations/logsearch-solr-env/logsearch_solr_ssl_enabled', False)
-logsearch_solr_ssl_server_keystore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_keystore_location']
-logsearch_solr_ssl_server_keystore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_keystore_password']
-logsearch_solr_ssl_server_keystore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_keystore_type']
-logsearch_solr_ssl_server_truststore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_truststore_location']
-logsearch_solr_ssl_server_truststore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_truststore_password']
-logsearch_solr_ssl_server_truststore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_ssl_server_truststore_type']
-logsearch_solr_ssl_client_keystore_location = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_keystore_location']
-logsearch_solr_ssl_client_keystore_password = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_keystore_password']
-logsearch_solr_ssl_client_keystore_type = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_keystore_type']
-logsearch_solr_ssl_client_truststore_location = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_truststore_location']
-logsearch_solr_ssl_client_truststore_password = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_truststore_password']
-logsearch_solr_ssl_client_truststore_type = config['configurations']['logsearch-env']['logsearch_solr_ssl_client_truststore_type']
-logfeeder_solr_ssl_client_keystore_location = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_keystore_location']
-logfeeder_solr_ssl_client_keystore_password = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_keystore_password']
-logfeeder_solr_ssl_client_keystore_type = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_keystore_type']
-logfeeder_solr_ssl_client_truststore_location = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_truststore_location']
-logfeeder_solr_ssl_client_truststore_password = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_truststore_password']
-logfeeder_solr_ssl_client_truststore_type = config['configurations']['logfeeder-env']['logfeeder_solr_ssl_client_truststore_type']
+logsearch_solr_keystore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_keystore_location']
+logsearch_solr_keystore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_keystore_password']
+logsearch_solr_keystore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_keystore_type']
+logsearch_solr_truststore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_truststore_location']
+logsearch_solr_truststore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_truststore_password']
+logsearch_solr_truststore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_truststore_type']
+logsearch_keystore_location = config['configurations']['logsearch-env']['logsearch_keystore_location']
+logsearch_keystore_password = config['configurations']['logsearch-env']['logsearch_keystore_password']
+logsearch_keystore_type = config['configurations']['logsearch-env']['logsearch_keystore_type']
+logsearch_truststore_location = config['configurations']['logsearch-env']['logsearch_truststore_location']
+logsearch_truststore_password = config['configurations']['logsearch-env']['logsearch_truststore_password']
+logsearch_truststore_type = config['configurations']['logsearch-env']['logsearch_truststore_type']
+logfeeder_keystore_location = config['configurations']['logfeeder-env']['logfeeder_keystore_location']
+logfeeder_keystore_password = config['configurations']['logfeeder-env']['logfeeder_keystore_password']
+logfeeder_keystore_type = config['configurations']['logfeeder-env']['logfeeder_keystore_type']
+logfeeder_truststore_location = config['configurations']['logfeeder-env']['logfeeder_truststore_location']
+logfeeder_truststore_password = config['configurations']['logfeeder-env']['logfeeder_truststore_password']
+logfeeder_truststore_type = config['configurations']['logfeeder-env']['logfeeder_truststore_type']
 
 logfeeder_checkpoint_folder = default('/configurations/logfeeder-env/logfeeder.checkpoint.folder',
                                       '/etc/ambari-logsearch-logfeeder/conf/checkpoints')
@@ -362,4 +363,4 @@ logsearch_server_hosts = config['clusterHostInfo']['logsearch_server_hosts']
 logsearch_server_host = ""
 if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
   logsearch_server_host = logsearch_server_hosts[0]
-smoke_logsearch_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" http://{logsearch_server_host}:{logsearch_ui_port}/login.jsp | grep 200')
+smoke_logsearch_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {logsearch_ui_protocol}://{logsearch_server_host}:{logsearch_ui_port}/login.jsp | grep 200')

@@ -22,6 +22,13 @@
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
   <property>
+    <name>logsearch_ui_protocol</name>
+    <value>http</value>
+    <description>Protocol (http or https)</description>
+    <display-name>Log Search UI Protocol</display-name>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>logsearch_ui_port</name>
     <value>61888</value>
     <description>Default port for Log Search UI</description>
@@ -117,23 +124,23 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_client_truststore_location</name>
-    <value>/etc/security/serverKeys/logsearch-solr-ssl.trustStore.jks</value>
-    <display-name>Log Search Solr client trust store location</display-name>
+    <name>logsearch_truststore_location</name>
+    <value>/etc/security/serverKeys/logsearch.trustStore.jks</value>
+    <display-name>Log Search trust store location</display-name>
     <description>Location of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_client_truststore_type</name>
+    <name>logsearch_truststore_type</name>
     <value>jks</value>
-    <display-name>Log Search Solr client trust store type</display-name>
+    <display-name>Log Search trust store type</display-name>
     <description>Type of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_client_truststore_password</name>
+    <name>logsearch_truststore_password</name>
     <value>bigdata</value>
-    <display-name>Log Search Solr client trust store password</display-name>
+    <display-name>Log Search trust store password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Password to open the trust store file.</description>
     <value-attributes>
@@ -142,23 +149,23 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_client_keystore_location</name>
-    <value>/etc/security/serverKeys/logsearch-solr-ssl.keyStore.jks</value>
-    <display-name>Log Search Solr client key store location</display-name>
+    <name>logsearch_keystore_location</name>
+    <value>/etc/security/serverKeys/logsearch.keyStore.jks</value>
+    <display-name>Log Search key store location</display-name>
     <description>Location of the key store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_client_keystore_type</name>
+    <name>logsearch_keystore_type</name>
     <value>jks</value>
-    <display-name>Log Search Solr client key store type</display-name>
+    <display-name>Log Search key store type</display-name>
     <description>Type of the key store file.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_ssl_client_keystore_password</name>
+    <name>logsearch_keystore_password</name>
     <value>bigdata</value>
-    <display-name>Log Search Solr client key store password</display-name>
+    <display-name>Log Search key store password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Password to open the key store file.</description>
     <value-attributes>

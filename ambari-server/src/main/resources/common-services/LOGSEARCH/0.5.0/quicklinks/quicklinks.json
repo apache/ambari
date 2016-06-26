@@ -3,7 +3,14 @@
   "description": "default quick links configuration",
   "configuration": {
     "protocol": {
-      "type": "http"
+      "type":"https",
+      "checks":[
+        {
+          "property":"logsearch_ui_protocol",
+          "desired":"https",
+          "site":"logsearch-env"
+        }
+      ]
     },
     "links": [
       {

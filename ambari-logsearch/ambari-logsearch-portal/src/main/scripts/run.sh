@@ -50,8 +50,8 @@ if [ "$LOGSEARCH_DEBUG" = "true" ] && [ ! -z "$LOGSEARCH_DEBUG_PORT" ]; then
   LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$LOGSEARCH_DEBUG_PORT,server=y,suspend=n "
 fi
 
-if [ $LOGSEARCH_SOLR_SSL_ENABLED = "true" ]; then
-  LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Djavax.net.ssl.keyStore=$LOGSEARCH_SOLR_SSL_CLIENT_KEYSTORE_LOCATION -Djavax.net.ssl.keyStoreType=$LOGSEARCH_SOLR_SSL_CLIENT_KEYSTORE_TYPE -Djavax.net.ssl.keyStorePassword=$LOGSEARCH_SOLR_SSL_CLIENT_KEYSTORE_PASSWORD -Djavax.net.ssl.trustStore=$LOGSEARCH_SOLR_SSL_CLIENT_TRUSTSTORE_LOCATION -Djavax.net.ssl.trustStoreType=$LOGSEARCH_SOLR_SSL_CLIENT_TRUSTSTORE_TYPE -Djavax.net.ssl.trustStorePassword=$LOGSEARCH_SOLR_SSL_CLIENT_TRUSTSTORE_PASSWORD"
+if [ $LOGSEARCH_SSL = "true" ]; then
+  LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Djavax.net.ssl.keyStore=$LOGSEARCH_KEYSTORE_LOCATION -Djavax.net.ssl.keyStoreType=$LOGSEARCH_KEYSTORE_TYPE -Djavax.net.ssl.keyStorePassword=$LOGSEARCH_KEYSTORE_PASSWORD -Djavax.net.ssl.trustStore=$LOGSEARCH_TRUSTSTORE_LOCATION -Djavax.net.ssl.trustStoreType=$LOGSEARCH_TRUSTSTORE_TYPE -Djavax.net.ssl.trustStorePassword=$LOGSEARCH_TRUSTSTORE_PASSWORD"
 fi
 
 if [ "$PID_FILE" = "" ]; then

@@ -33,11 +33,11 @@ if [ "$LOGFEEDER_JAVA_MEM" = "" ]; then
 fi
 
 {% if logsearch_solr_ssl_enabled %}
-export LOGFEEDER_SOLR_SSL_ENABLED="true"
-export LOGFEEDER_SOLR_SSL_CLIENT_KEYSTORE_LOCATION={{logfeeder_solr_ssl_client_keystore_location}}
-export LOGFEEDER_SOLR_SSL_CLIENT_KEYSTORE_PASSWORD={{logfeeder_solr_ssl_client_keystore_password}}
-export LOGFEEDER_SOLR_SSL_CLIENT_KEYSTORE_TYPE={{logfeeder_solr_ssl_client_keystore_type}}
-export LOGFEEDER_SOLR_SSL_CLIENT_TRUSTSTORE_LOCATION={{logfeeder_solr_ssl_client_truststore_location}}
-export LOGFEEDER_SOLR_SSL_CLIENT_TRUSTSTORE_PASSWORD={{logfeeder_solr_ssl_client_truststore_password}}
-export LOGFEEDER_SOLR_SSL_CLIENT_TRUSTSTORE_TYPE={{logfeeder_solr_ssl_client_truststore_type}}
+export LOGFEEDER_SSL="true"
+export LOGFEEDER_KEYSTORE_LOCATION={{logfeeder_keystore_location}}
+export LOGFEEDER_KEYSTORE_PASSWORD={{logfeeder_keystore_password}}
+export LOGFEEDER_KEYSTORE_TYPE={{logfeeder_keystore_type}}
+export LOGFEEDER_TRUSTSTORE_LOCATION={{logfeeder_truststore_location}}
+export LOGFEEDER_TRUSTSTORE_PASSWORD={{logfeeder_truststore_password}}
+export LOGFEEDER_TRUSTSTORE_TYPE={{logfeeder_truststore_type}}
 {% endif %}
