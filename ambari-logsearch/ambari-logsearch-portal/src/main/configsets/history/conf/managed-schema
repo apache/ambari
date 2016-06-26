@@ -88,6 +88,7 @@
   <field name="rowtype" type="string" required="true"/>
   <field name="share_username_list" type="string" multiValued="true"/>
   <field name="username" type="key_lower_case" indexed="true" required="true" stored="true"/>
+  <field name="text" type="text_std_token_lower_case" multiValued="true" indexed="true" stored="false"/>
 
   <dynamicField name='ngram_*' type="n_gram" multiValued="false" stored="false"/>
   <dynamicField name='std_*' type="text_std_token_lower_case" multiValued="false" stored="false"/>
