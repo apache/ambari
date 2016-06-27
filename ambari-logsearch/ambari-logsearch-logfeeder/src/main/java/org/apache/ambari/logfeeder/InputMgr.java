@@ -161,7 +161,7 @@ public class InputMgr {
       }
 
       if (isCheckPointFolderValid) {
-        logger.warn("Using folder " + checkPointFolderFile
+        logger.info("Using folder " + checkPointFolderFile
           + " for storing checkpoints");
       }
     }
