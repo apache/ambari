@@ -320,12 +320,15 @@ public class UpgradeCatalog240Test {
     expect(dbAccessor.getConnection()).andReturn(connection);
     expect(connection.createStatement()).andReturn(statement);
 
-    dbAccessor.dropColumn(UpgradeCatalog240.VIEWINSTANCE_TABLE,UpgradeCatalog240.CLUSTER_HANDLE_COLUMN);
+    dbAccessor.dropColumn(UpgradeCatalog240.VIEWINSTANCE_TABLE, UpgradeCatalog240.CLUSTER_HANDLE_COLUMN);
 
     Capture<DBAccessor.DBColumnInfo> capturedClusterHandleColumn = EasyMock.newCapture();
-    dbAccessor.renameColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), anyString() , capture(capturedClusterHandleColumn));
+    dbAccessor.renameColumn(eq(UpgradeCatalog240.VIEWINSTANCE_TABLE), anyString(), capture(capturedClusterHandleColumn));
     Capture<DBAccessor.DBColumnInfo> requestScheduleUserIdInfo = newCapture();
     dbAccessor.addColumn(eq(UpgradeCatalog240.REQUESTSCHEDULE_TABLE), capture(requestScheduleUserIdInfo));
+
+    Capture<DBAccessor.DBColumnInfo> provisionActionColumnInfo = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog240.TOPOLOGY_REQUEST_TABLE), capture(provisionActionColumnInfo));
 
     replay(dbAccessor, configuration, connection, statement, resultSet);
 
@@ -536,6 +539,12 @@ public class UpgradeCatalog240Test {
     Assert.assertEquals("authenticated_user_id", requestScheduleUserIdInfoValue.getName());
     Assert.assertEquals(Integer.class, requestScheduleUserIdInfoValue.getType());
     Assert.assertEquals(null, requestScheduleUserIdInfoValue.getDefaultValue());
+
+    DBAccessor.DBColumnInfo provisionActionColumnInfoValue = provisionActionColumnInfo.getValue();
+    Assert.assertNotNull(provisionActionColumnInfoValue);
+    Assert.assertEquals(UpgradeCatalog240.PROVISION_ACTION_COL, provisionActionColumnInfoValue.getName());
+    Assert.assertEquals(String.class, provisionActionColumnInfoValue.getType());
+    Assert.assertEquals(true, provisionActionColumnInfoValue.isNullable());
 
     verify(dbAccessor);
   }

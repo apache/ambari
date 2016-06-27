@@ -101,12 +101,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String CONFIG_RECOMMENDATION_STRATEGY = "config_recommendation_strategy";
 
   /**
-   * Support for controlling whether Install and Start tasks are created on
-   * blueprint deploy by default.
-   */
-  public static final String PROVISION_ACTION_PROPERTY = "provision_action";
-
-  /**
    * The repo version to use
    */
   public static final String REPO_VERSION_PROPERTY = "repository_version";
@@ -133,8 +127,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * configuration recommendation strategy
    */
   private final ConfigRecommendationStrategy configRecommendationStrategy;
-
-  private final ProvisionAction provisionAction;
 
   private String repoVersion;
 
@@ -180,7 +172,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
 
-    this.provisionAction = parseProvisionAction(properties);
+    setProvisionAction(parseProvisionAction(properties));
   }
 
   private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
@@ -438,13 +430,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     } else {
       return ProvisionAction.INSTALL_AND_START;
     }
-  }
-
-  /**
-   * Get requested @ProvisionClusterRequest.ProvisionAction
-   */
-  public ProvisionAction getProvisionAction() {
-    return provisionAction;
   }
 
   /**

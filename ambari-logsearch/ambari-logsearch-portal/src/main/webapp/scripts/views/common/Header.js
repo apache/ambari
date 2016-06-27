@@ -77,7 +77,9 @@ define(['require',
 
             /** all events binding here */
             bindEvents: function() {
-
+                this.listenTo(this.globalVent,"currentMap:load",function(obj){
+                    this.currentTimezone = obj;
+                },this);
             },
             /** on render callback */
             onRender: function() {
@@ -94,6 +96,7 @@ define(['require',
                     }
                     this.ui.timeZoneChange.find('span').text(moment.tz(storeTimezone.value.split(',')[0]).zoneName());
                 }
+                this.currentTimezone = storeTimezone;
                 this.checkParams();
             },
             onShow : function(){
@@ -146,9 +149,9 @@ define(['require',
                  });
             },
             takeATour: function() {
-                require(['utils/Intro'], function(Intro) {
-                    Intro.Start();
-                });
+            	require(['utils/Tour'],function(Tour){
+            		Tour.Start();
+            	});
 
                 /*localStorage.clear();
                 if (typeof(Storage) !== "undefined") {
@@ -354,7 +357,7 @@ define(['require',
             timeZoneChangeClick: function() {
                 var that = this;
                 require(['views/dialog/TimeZoneChangeView'], function(TimeZoneChangeView) {
-                    var view = new TimeZoneChangeView({});
+                    var view = new TimeZoneChangeView({currentTime : that.currentTimezone});
                     var opts = {
                         title: "Time Zone",
                         content: view,
@@ -392,8 +395,10 @@ define(['require',
                 var content = this.dialog.options.content;
                 this.onDialogClosed();
                 if (content.changedTimeZone) {
+                    var obj = Utils.localStorage.checkLocalStorage('timezone');
                     Utils.localStorage.setLocalStorage('timezone', content.selectedtimeZone);
                     //this.ui.timeZoneChange.find('span').text(moment.tz(content.selectedtimeZone).zoneName());
+                    this.globalVent.trigger("currentMap:load",obj);
                     window.open(window.location.href, '_blank');
 
                 }

@@ -1010,7 +1010,7 @@ body {
     left: 0;
     width: 100%;
     right: 0;
-    z-index: 9999999;
+    z-index: 2002;
     height: 100%;
 }
 .overlayDashboard{
@@ -1816,7 +1816,7 @@ button.depLinks{
 
 
 .addOnWrap{
-  min-height:30px;
+  height:30px;
 }
 .addOnRightBDR{
   border-right:1px solid #CCC !important;
@@ -2147,4 +2147,50 @@ input.filterInput{
 }
 .nvd3 rect[height="1"] {
   display: none !important;
+}
+.popover {
+  z-index: 2002;
+}
+.popover[class*="tour-"] {
+  z-index: 2002;
+}
+.tour-backdrop {
+  z-index: 2001;
+  opacity: 0.6;
+}
+.tour-step-backdrop {
+  z-index: 2001;
+}
+.tour-step-backdrop > td {
+  z-index: 2001;
+}
+.tour-step-background {
+  z-index: 2002;
+}
+.popover.right>.arrow {
+    border-right-color: rgba(255, 255, 255, 1);
+}
+.popover.bottom>.arrow{
+      border-bottom-color: rgba(255, 255, 255, 1);
+}
+.popover.top>.arrow {
+    border-top-color: rgba(255, 255, 255, 1);
+}
+.tour-tour-element{
+  background-color: #ffffff !important;
+}
+.popover.left>.arrow {
+    border-left-color: rgba(255, 255, 255, 1);
+}
+.modal-backdrop{
+  background-color: rgba(0,0,0,0.6);
+}
+a.params{
+  font-size: 10px;
+  color: yellow;
+  display: none;
+}
+a.params:hover,a.params:visited,a.params:active,a.params:focus{
+  color:#e8e80c !important;
+  text-decoration: none;
 }

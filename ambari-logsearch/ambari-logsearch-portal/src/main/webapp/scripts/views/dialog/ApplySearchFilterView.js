@@ -78,7 +78,7 @@ define(['require',
                     userId: "admin",
                     rowType:"history"
                 });
-                this.collection.fetch({
+                this.collection.getFirstPage({
                     error: function(jqXHR, textStatus, errorThrown) {
                         Utils.notifyError({
                             content: "There is some problem in Event History, Please try again later."
