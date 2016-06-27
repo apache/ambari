@@ -2179,39 +2179,32 @@ var hdp2properties = [
     "index": 5
   },
   {
-    "name": "logsearch.logfeeder.include.default.level",
+    "name": "logsearch.solr.metrics.collector.hosts",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 6
   },
   {
-    "name": "logsearch.solr.metrics.collector.hosts",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-properties.xml",
-    "category": "Advanced logsearch-properties",
-    "index": 9
-  },
-  {
     "name": "logsearch.external.auth.enabled",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 10
+    "index": 7
   },
   {
     "name": "logsearch.external.auth.host_url",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 11
+    "index": 8
   },
   {
     "name": "logsearch.external.auth.login_url",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
-    "index": 12
+    "index": 9
   },
   /*logsearch-solr-env*/
   {

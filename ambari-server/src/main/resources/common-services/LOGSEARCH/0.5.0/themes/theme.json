@@ -77,6 +77,10 @@
           "subsection-name": "subsection-logsearch-solr-col1"
         },
         {
+          "config" : "logsearch-properties/logsearch.logfeeder.include.default.level",
+          "subsection-name": "subsection-logsearch-server-col1"
+        },
+        {
           "config": "logsearch-env/logsearch_app_max_memory",
           "subsection-name": "subsection-logsearch-server-col1"
         },
@@ -142,6 +146,12 @@
               "unit-name": "GB"
             }
           ]
+        }
+      },
+      {
+        "config": "logsearch-properties/logsearch.logfeeder.include.default.level",
+        "widget": {
+          "type": "text-field"
         }
       },
       {
