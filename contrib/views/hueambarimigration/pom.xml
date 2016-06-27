@@ -22,6 +22,7 @@
     <version>2.4.0.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>huetoambari-view</artifactId>
   <packaging>jar</packaging>
   <name>Hue To Ambari Migration-view</name>
