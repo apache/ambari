@@ -34,7 +34,6 @@ public class MapperFieldValue extends Mapper {
   String prevValue = null;
   String newValue = null;
 
-  @SuppressWarnings("hiding")
   @Override
   public boolean init(String inputDesc, String fieldName,
       String mapClassCode, Object mapConfigs) {

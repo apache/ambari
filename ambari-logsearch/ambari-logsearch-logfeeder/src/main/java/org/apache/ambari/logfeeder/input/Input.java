@@ -58,8 +58,6 @@ public abstract class Input extends ConfigBlock implements Runnable {
    * This method will be called from the thread spawned for the output. This
    * method should only exit after all data are read from the source or the
    * process is exiting
-   *
-   * @throws Exception
    */
   abstract void start() throws Exception;
 
@@ -88,11 +86,6 @@ public abstract class Input extends ConfigBlock implements Runnable {
     return super.getNameForThread() + ":" + type;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
     try {
@@ -117,9 +110,6 @@ public abstract class Input extends ConfigBlock implements Runnable {
     }
   }
 
-  /**
-   *
-   */
   public void flush() {
     if (firstFilter != null) {
       firstFilter.flush();
@@ -145,12 +135,8 @@ public abstract class Input extends ConfigBlock implements Runnable {
    * This is generally used by final checkin
    */
   public void checkIn() {
-
   }
 
-  /**
-   * @return
-   */
   public boolean isReady() {
     return true;
   }
@@ -258,7 +244,6 @@ public abstract class Input extends ConfigBlock implements Runnable {
 
   @Override
   public String getShortDescription() {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -277,9 +262,6 @@ public abstract class Input extends ConfigBlock implements Runnable {
     return getShortDescription();
   }
 
-  /**
-   *
-   */
   public void rollOver() {
     // Only some inputs support it. E.g. InputFile
   }
@@ -300,16 +282,10 @@ public abstract class Input extends ConfigBlock implements Runnable {
     return outputList;
   }
 
-  /**
-   * @param output
-   */
   public void addOutput(Output output) {
     outputList.add(output);
   }
 
-  /**
-   * @param metricsList
-   */
   public void addMetricsContainers(List<MetricCount> metricsList) {
     super.addMetricsContainers(metricsList);
     if (firstFilter != null) {

@@ -37,8 +37,7 @@ public class MetricsMgr {
   String appId = "logfeeder";
 
   long lastPublishTimeMS = 0; // Let's do the first publish immediately
-  long lastFailedPublishTimeMS = System.currentTimeMillis(); // Reset the
-  // clock
+  long lastFailedPublishTimeMS = System.currentTimeMillis(); // Reset the clock
 
   int publishIntervalMS = 60 * 1000;
   int maxMetricsBuffer = 60 * 60 * 1000; // If AMS is down, we should not keep
@@ -84,16 +83,10 @@ public class MetricsMgr {
     }
   }
 
-  /**
-   * @return
-   */
   public boolean isMetricsEnabled() {
     return isMetricsEnabled;
   }
 
-  /**
-   * @param metricsList
-   */
   synchronized public void useMetrics(List<MetricCount> metricsList) {
     if (!isMetricsEnabled) {
       return;
@@ -145,7 +138,6 @@ public class MetricsMgr {
         value += (currCount - metric.prevPublishCount);
         timelineMetric.getMetricValues().put(currMSLong, value);
         metric.prevPublishCount = currCount;
-        metric.prevPublishMS = currMS;
       }
     }
 

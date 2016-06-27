@@ -27,13 +27,7 @@ public class LogFeederConstants {
   public static final String SOLR_COMPONENT = "type";
   public static final String SOLR_HOST = "host";
 
-  //
   // UserConfig Constants History
-  public static final String ID = "id";
-  public static final String USER_NAME = "username";
   public static final String VALUES = "jsons";
-  public static final String FILTER_NAME = "filtername";
   public static final String ROW_TYPE = "rowtype";
-
-
 }
