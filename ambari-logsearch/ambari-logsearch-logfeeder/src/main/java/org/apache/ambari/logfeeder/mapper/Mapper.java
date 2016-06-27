@@ -26,7 +26,6 @@ public abstract class Mapper {
   String fieldName;
   String mapClassCode;
 
-  @SuppressWarnings("hiding")
   public boolean init(String inputDesc, String fieldName,
                       String mapClassCode, Object mapConfigs) {
     this.inputDesc = inputDesc;
@@ -35,10 +34,6 @@ public abstract class Mapper {
     return true;
   }
 
-  /**
-   * @param value
-   * @return
-   */
   public Object apply(Map<String, Object> jsonObj, Object value) {
     return value;
   }

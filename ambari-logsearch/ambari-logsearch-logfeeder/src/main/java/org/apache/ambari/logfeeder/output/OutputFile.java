@@ -26,7 +26,6 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
-import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -96,7 +95,6 @@ public class OutputFile extends Output {
     throws Exception {
     String outStr = null;
     if (codec.equals("csv")) {
-      // Convert to CSV
       CSVPrinter csvPrinter = new CSVPrinter(outWriter, CSVFormat.RFC4180);
       //TODO:
     } else {
@@ -110,11 +108,6 @@ public class OutputFile extends Output {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.ambari.logfeeder.output.Output#write()
-   */
   @Override
   synchronized public void write(String block, InputMarker inputMarker) throws Exception {
     if (outWriter != null && block != null) {
@@ -125,11 +118,6 @@ public class OutputFile extends Output {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.apache.ambari.logfeeder.ConfigBlock#getShortDescription()
-   */
   @Override
   public String getShortDescription() {
     return "output:destination=file,path=" + filePath;

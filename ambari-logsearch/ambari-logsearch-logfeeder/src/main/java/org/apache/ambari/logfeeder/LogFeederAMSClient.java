@@ -41,26 +41,11 @@ public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
     logger.info("AMS collector URL=" + collectorHosts);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink#
-   * getCollectorUri()
-   */
   @Override
   public String getCollectorUri(String host) {
-
     return collectorHosts;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink#
-   * getTimeoutSeconds()
-   */
   @Override
   protected int getTimeoutSeconds() {
     // TODO: Hard coded timeout
