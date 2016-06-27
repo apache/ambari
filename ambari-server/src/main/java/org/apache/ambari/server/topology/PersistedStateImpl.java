@@ -23,8 +23,6 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
-import org.apache.ambari.server.controller.internal.BaseClusterRequest;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostGroupDAO;
@@ -99,7 +97,7 @@ public class PersistedStateImpl implements PersistedState {
 
 
   @Override
-  public  PersistedTopologyRequest persistTopologyRequest(BaseClusterRequest request) {
+  public  PersistedTopologyRequest persistTopologyRequest(TopologyRequest request) {
     TopologyRequestEntity requestEntity = toEntity(request);
     topologyRequestDAO.create(requestEntity);
     return new PersistedTopologyRequest(requestEntity.getId(), request);
@@ -180,9 +178,6 @@ public class PersistedStateImpl implements PersistedState {
       if (clusterTopology == null) {
         try {
           clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
-          if (entity.getProvisionAction() != null) {
-            clusterTopology.setProvisionAction(entity.getProvisionAction());
-          }
           topologyRequests.put(replayedRequest.getClusterId(), clusterTopology);
           allRequests.put(clusterTopology, new ArrayList<LogicalRequest>());
         } catch (InvalidTopologyException e) {
@@ -216,7 +211,7 @@ public class PersistedStateImpl implements PersistedState {
     return allRequests;
   }
 
-  private TopologyRequestEntity toEntity(BaseClusterRequest request) {
+  private TopologyRequestEntity toEntity(TopologyRequest request) {
     TopologyRequestEntity entity = new TopologyRequestEntity();
 
     //todo: this isn't set for a scaling operation because we had intended to allow multiple
@@ -231,10 +226,6 @@ public class PersistedStateImpl implements PersistedState {
     entity.setClusterId(request.getClusterId());
     entity.setClusterProperties(propertiesAsString(request.getConfiguration().getProperties()));
     entity.setDescription(request.getDescription());
-
-    if (request.getProvisionAction() != null) {
-      entity.setProvisionAction(request.getProvisionAction());
-    }
 
     // host groups
     Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<TopologyHostGroupEntity>();

@@ -144,7 +144,7 @@ public class ClusterResourceProviderTest {
   public void testCreateResource_blueprint_With_ProvisionAction() throws Exception {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     Map<String, Object> properties = requestProperties.iterator().next();
-    properties.put(BaseClusterRequest.PROVISION_ACTION_PROPERTY, "INSTALL_ONLY");
+    properties.put(ProvisionClusterRequest.PROVISION_ACTION_PROPERTY, "INSTALL_ONLY");
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");
 
