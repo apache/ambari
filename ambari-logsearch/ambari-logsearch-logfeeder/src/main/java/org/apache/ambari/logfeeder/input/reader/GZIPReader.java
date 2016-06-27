@@ -55,6 +55,9 @@ public class GZIPReader extends InputStreamReader {
 
   /**
    * validating file based on magic number
+   *
+   * @param fileName
+   * @return
    */
   public static boolean isValidFile(String fileName) {
     // TODO make it generic and put in factory itself

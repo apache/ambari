@@ -44,6 +44,7 @@ import org.apache.solr.common.util.Base64;
 public class InputFile extends Input {
   static private Logger logger = Logger.getLogger(InputFile.class);
 
+  // String startPosition = "beginning";
   String logPath = null;
   boolean isStartFromBegining = true;
 
@@ -109,6 +110,11 @@ public class InputFile extends Input {
     super.init();
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.input.Input#isReady()
+   */
   @Override
   public boolean isReady() {
     if (!isReady) {
@@ -238,6 +244,11 @@ public class InputFile extends Input {
     isRolledOver = true;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.input.Input#monitor()
+   */
   @Override
   void start() throws Exception {
 
@@ -247,6 +258,7 @@ public class InputFile extends Input {
     boolean isProcessFile = getBooleanValue("process_file", true);
     if (isProcessFile) {
       if (isTail()) {
+        // Just process the first file
         processFile(logPathFiles[0]);
       } else {
         for (File file : logPathFiles) {
@@ -261,8 +273,11 @@ public class InputFile extends Input {
           }
         }
       }
+      // Call the close for the input. Which should flush to the filters and
+      // output
       close();
     }else{
+      //copy files
       copyFiles(logPathFiles);
     }
     
@@ -289,12 +304,15 @@ public class InputFile extends Input {
     int lineCount = 0;
     try {
       setFilePath(logPathFile.getAbsolutePath());
+//      br = new BufferedReader(new FileReader(logPathFile));
       br = new BufferedReader(LogsearchReaderFactory.INSTANCE.getReader(logPathFile));
 
       // Whether to send to output from the beginning.
       boolean resume = isStartFromBegining;
 
-      // Seems FileWatch is not reliable, so let's only use file key comparison
+      // Seems FileWatch is not reliable, so let's only use file key
+      // comparison
+      // inputMgr.monitorSystemFileChanges(this);
       fileKey = getFileKey(logPathFile);
       base64FileKey = Base64.byteArrayToBase64(fileKey.toString()
         .getBytes());
@@ -303,6 +321,7 @@ public class InputFile extends Input {
 
       if (isTail()) {
         try {
+          // Let's see if there is a checkpoint for this file
           logger.info("Checking existing checkpoint file. "
             + getShortDescription());
 
@@ -329,7 +348,9 @@ public class InputFile extends Input {
                 + checkPointFile
                 + ", input=" + getShortDescription());
             } else {
-              String jsonCheckPointStr = new String(b, 0, readSize);
+              // Create JSON string
+              String jsonCheckPointStr = new String(b, 0,
+                readSize);
               jsonCheckPoint = LogFeederUtil
                 .toJSONObject(jsonCheckPointStr);
 
@@ -384,7 +405,8 @@ public class InputFile extends Input {
             }
             sleepIteration++;
             try {
-              // Since FileWatch service is not reliable, we will check
+              // Since FileWatch service is not reliable, we will
+              // check
               // file inode every n seconds after no write
               if (sleepIteration > 4) {
                 Object newFileKey = getFileKey(logPathFile);
@@ -426,8 +448,11 @@ public class InputFile extends Input {
                     break;
                   }
                   try {
+                    // Open new file
                     logger.info("Opening new rolled over file."
                       + getShortDescription());
+//                    br = new BufferedReader(new FileReader(
+//                            logPathFile));
                     br = new BufferedReader(LogsearchReaderFactory.
                       INSTANCE.getReader(logPathFile));
                     lineCount = 0;
@@ -441,7 +466,9 @@ public class InputFile extends Input {
                   } catch (Exception ex) {
                     logger.error("Error opening rolled over file. "
                       + getShortDescription());
-                    // Let's add this to monitoring and exit this thread
+                    // Let's add this to monitoring and exit
+                    // this
+                    // thread
                     logger.info("Added input to not ready list."
                       + getShortDescription());
                     isReady = false;
@@ -474,7 +501,9 @@ public class InputFile extends Input {
             }
             if (resume) {
               InputMarker marker = new InputMarker();
+              marker.fileKey = fileKey;
               marker.base64FileKey = base64FileKey;
+              marker.filePath = filePath;
               marker.input = this;
               marker.lineNumber = lineCount;
               outputLine(line, marker);
@@ -504,6 +533,10 @@ public class InputFile extends Input {
     }
   }
 
+  /**
+   * @param logPathFile2
+   * @return
+   */
   static public Object getFileKey(File file) {
     try {
       Path fileFullPath = Paths.get(file.getAbsolutePath());
@@ -518,6 +551,11 @@ public class InputFile extends Input {
     return file.toString();
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.input.Input#getShortDescription()
+   */
   @Override
   public String getShortDescription() {
     return "input:source="
@@ -526,6 +564,7 @@ public class InputFile extends Input {
       + (logPathFiles != null && logPathFiles.length > 0 ? logPathFiles[0]
       .getAbsolutePath() : getStringValue("path"));
   }
+  
   
   public void copyFiles(File[] files) {
     boolean isCopyFile = getBooleanValue("copy_file", false);

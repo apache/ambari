@@ -33,6 +33,7 @@ public class MapperFieldName extends Mapper {
   Logger logger = Logger.getLogger(MapperFieldName.class);
   String newValue = null;
 
+  @SuppressWarnings("hiding")
   @Override
   public boolean init(String inputDesc, String fieldName,
       String mapClassCode, Object mapConfigs) {
@@ -55,7 +56,9 @@ public class MapperFieldName extends Mapper {
   @Override
   public Object apply(Map<String, Object> jsonObj, Object value) {
     if (newValue != null) {
+      // Remove the old one
       jsonObj.remove(fieldName);
+      // Add with new key name
       jsonObj.put(newValue, value);
     } else {
       LogFeederUtil.logErrorMessageByInterval(this.getClass()

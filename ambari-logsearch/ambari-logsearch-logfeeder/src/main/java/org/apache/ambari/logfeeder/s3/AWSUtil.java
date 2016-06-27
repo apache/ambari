@@ -29,6 +29,13 @@ public enum AWSUtil {
   INSTANCE;
   private static final Logger LOG = Logger.getLogger(AWSUtil.class);
 
+  /**
+   * Get aws username
+   * 
+   * @param accessKey
+   * @param secretKey
+   * @return String
+   */
   public String getAwsUserName(String accessKey, String secretKey) {
     String username = null;
     AWSCredentials awsCredentials = createAWSCredentials(accessKey, secretKey);
@@ -78,6 +85,7 @@ public enum AWSUtil {
           secretKey);
       return awsCredentials;
     } else {
+      // retrun null
       return null;
     }
   }

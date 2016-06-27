@@ -44,13 +44,16 @@ public class ApplyLogFilter extends DefaultDataFilter {
       if (isNotEmpty(componentName)) {
         String level = (String) jsonObj.get(LogFeederConstants.SOLR_LEVEL);
         if (isNotEmpty(level)) {
+          // find component filter
           VLogfeederFilter componentFilter = FetchConfigFromSolr.findComponentFilter(componentName);
           if (componentFilter == null) {
+            //return default value if there is no filter found for particular component
             return defaultValue;
           }
           List<String> allowedLevels = FetchConfigFromSolr.getAllowedLevels(
               hostName, componentFilter);
           if (allowedLevels == null || allowedLevels.isEmpty()) {
+            // if allowedlevels list is empty then allow everything
             allowedLevels.add(LogFeederConstants.ALL);
           }
           return LogFeederUtil.isListContains(allowedLevels, level, false);

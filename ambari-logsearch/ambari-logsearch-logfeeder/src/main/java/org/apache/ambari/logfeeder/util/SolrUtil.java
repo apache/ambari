@@ -37,6 +37,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.SolrInputDocument;
 
 public class SolrUtil {
 
@@ -46,6 +47,7 @@ public class SolrUtil {
   SolrClient solrClient = null;
   CloudSolrClient solrClouldClient = null;
 
+  boolean isSolrCloud = true;
   String solrDetail = "";
   String collectionName = null;
 
@@ -110,6 +112,10 @@ public class SolrUtil {
     return solrClient;
   }
 
+  /**
+   * @param waitDurationMS
+   * @return
+   */
   public boolean checkSolrStatus(int waitDurationMS) {
     boolean status = false;
     try {
@@ -195,4 +201,15 @@ public class SolrUtil {
     }
     return configMap;
   }
+
+  /**
+   * @param solrInputDocument
+   * @throws SolrServerException
+   * @throws IOException
+   */
+  public void addDoc(SolrInputDocument solrInputDocument) throws SolrServerException, IOException {
+    solrClient.add(solrInputDocument);
+    solrClient.commit();
+  }
+
 }

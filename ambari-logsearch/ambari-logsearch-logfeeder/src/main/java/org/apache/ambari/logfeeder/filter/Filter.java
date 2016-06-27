@@ -56,8 +56,12 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
+  /**
+   *
+   */
   @SuppressWarnings("unchecked")
   protected void initializePostMapValues() {
+    // Initialize map values
     Map<String, Object> postMapValues = (Map<String, Object>) getConfigValue("post_map_values");
     if (postMapValues == null) {
       return;
@@ -93,6 +97,10 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
+  /**
+   * @param mapClassCode
+   * @return
+   */
   protected Mapper getMapper(String mapClassCode) {
     String classFullName = AliasUtil.getInstance().readAlias(mapClassCode, ALIAS_TYPE.MAPPER, ALIAS_PARAM.KLASS);
     if (classFullName != null && !classFullName.isEmpty()) {
@@ -124,6 +132,9 @@ public abstract class Filter extends ConfigBlock {
 
   /**
    * Deriving classes should implement this at the minimum
+   *
+   * @param inputStr
+   * @param marker
    */
   public void apply(String inputStr, InputMarker inputMarker) {
     // TODO: There is no transformation for string types.
@@ -152,6 +163,9 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
+  /**
+   *
+   */
   public void close() {
     if (nextFilter != null) {
       nextFilter.close();
@@ -173,6 +187,7 @@ public abstract class Filter extends ConfigBlock {
   @Override
   public boolean isFieldConditionMatch(String fieldName, String stringValue) {
     if (!super.isFieldConditionMatch(fieldName, stringValue)) {
+      // Let's try input
       if (input != null) {
         return input.isFieldConditionMatch(fieldName, stringValue);
       } else {
@@ -184,6 +199,7 @@ public abstract class Filter extends ConfigBlock {
 
   @Override
   public String getShortDescription() {
+    // TODO Auto-generated method stub
     return null;
   }
 

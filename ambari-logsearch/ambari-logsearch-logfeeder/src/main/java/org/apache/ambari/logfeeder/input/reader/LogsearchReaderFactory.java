@@ -30,6 +30,11 @@ public enum LogsearchReaderFactory {
   private static Logger logger = Logger
     .getLogger(LogsearchReaderFactory.class);
 
+  /**
+   * @param fileName
+   * @return
+   * @throws FileNotFoundException
+   */
   public Reader getReader(File file) throws FileNotFoundException {
     logger.debug("Inside reader factory for file:" + file);
     if (GZIPReader.isValidFile(file.getAbsolutePath())) {

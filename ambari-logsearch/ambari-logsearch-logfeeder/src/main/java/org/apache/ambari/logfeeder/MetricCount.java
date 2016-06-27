@@ -27,5 +27,7 @@ public class MetricCount {
   public long prevLogCount = 0;
   public long prevLogMS = System.currentTimeMillis();
   public long prevPublishCount = 0;
-  public int publishCount = 0; // Count of published metrics. Used for first time sending metrics
+  public long prevPublishMS = 0; // We will try to publish one immediately
+  public int publishCount = 0; // Count of published metrics. Used for first
+  // time sending metrics
 }

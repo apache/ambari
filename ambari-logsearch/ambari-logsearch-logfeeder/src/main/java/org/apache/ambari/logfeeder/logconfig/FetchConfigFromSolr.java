@@ -140,10 +140,12 @@ public class FetchConfigFromSolr extends Thread {
       }
       if (LogFeederUtil.isListContains(hosts, hostName, false)) {
         if (isFilterExpired(componentFilter)) {
+          // pick default
           logger.debug("Filter for component " + componentName + " and host :"
               + hostName + " is expired at " + componentFilter.getExpiryTime());
           return defaultLevels;
         } else {
+          // return tmp filter levels
           return overrideLevels;
         }
       }

@@ -19,11 +19,15 @@ package org.apache.ambari.logfeeder.util;
  */
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class PlaceholderUtilTest {
+
+  private static final Logger LOG = Logger.getLogger(PlaceholderUtilTest.class);
+
   @Test
   public void testPlaceholderUtil_replaceVariables() {
     HashMap<String, String> contextParam = new HashMap<String, String>();

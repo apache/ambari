@@ -30,6 +30,10 @@ public class OutputData {
   Map<String, Object> jsonObj;
   InputMarker inputMarker;
 
+  /**
+   * @param jsonObj
+   * @param inputMarker
+   */
   public OutputData(Map<String, Object> jsonObj, InputMarker inputMarker) {
     super();
     this.jsonObj = jsonObj;

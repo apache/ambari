@@ -83,14 +83,18 @@ public class OutputKafka extends Output {
     int lingerMS = getIntValue("linger_ms", DEFAULT_LINGER_MS);
 
     Properties props = new Properties();
+    // 0.9.0
     props.put("bootstrap.servers", brokerList);
     props.put("client.id", "logfeeder_producer");
     props.put("key.serializer", StringSerializer.class.getName());
     props.put("value.serializer", StringSerializer.class.getName());
     props.put("compression.type", "snappy");
+    // props.put("retries", "3");
     props.put("batch.size", batchSize);
     props.put("linger.ms", lingerMS);
+    // props.put("metadata.broker.list", brokerList);
 
+    // Get all kafka custom properties
     for (String key : configs.keySet()) {
       if (key.startsWith("kafka.")) {
         Object value = configs.get(key);
@@ -122,8 +126,11 @@ public class OutputKafka extends Output {
               kafkaCallBack = failedMessages.take();
             }
             if (publishMessage(kafkaCallBack.message, kafkaCallBack.inputMarker)) {
+              // logger.info("Sent message. count=" +
+              // kafkaCallBack.thisMessageNumber);
               kafkaCallBack = null;
             } else {
+              // Should wait for sometime
               LOG.error("Kafka is down. messageNumber=" + kafkaCallBack.thisMessageNumber + ". Going to sleep for "
                   + FAILED_RETRY_INTERVAL + " seconds");
               Thread.sleep(FAILED_RETRY_INTERVAL * 1000);
@@ -176,6 +183,9 @@ public class OutputKafka extends Output {
     super.setDrain(drain);
   }
 
+  /**
+   * Flush document buffer
+   */
   public void flush() {
     LOG.info("Flush called...");
     setDrain(true);
@@ -261,6 +271,9 @@ public class OutputKafka extends Output {
         }
         output.incrementStat(1);
         output.writeBytesMetric.count += message.length();
+
+        // metadata.partition();
+        // metadata.offset();
       } else {
         output.isKafkaBrokerUp = false;
         String logKeyMessage = this.getClass().getSimpleName() + "_KAFKA_ASYNC_ERROR";
@@ -276,6 +289,6 @@ public class OutputKafka extends Output {
   public void copyFile(File inputFile, InputMarker inputMarker)
       throws UnsupportedOperationException {
     throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=kafka");
+        "copyFile method is not yet supported for output=kafka");     
   }
 }

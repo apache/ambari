@@ -58,6 +58,11 @@ public class FilterKeyValue extends Filter {
 
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.filter.Filter#apply(java.lang.String)
+   */
   @Override
   public void apply(String inputStr, InputMarker inputMarker) {
     apply(LogFeederUtil.toJSONObject(inputStr), inputMarker);
@@ -82,6 +87,7 @@ public class FilterKeyValue extends Filter {
             String value = nvTokenizer.nextToken();
             jsonObj.put(name, value);
           } else {
+            // Unbalanced name value pairs
             logParseError("name=" + name + ", pair=" + nv
               + ", field=" + sourceField + ", field_value="
               + valueObj);
@@ -107,6 +113,11 @@ public class FilterKeyValue extends Filter {
         Level.ERROR);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.ConfigBlock#getShortDescription()
+   */
   @Override
   public String getShortDescription() {
     return "filter:filter=keyvalue,regex=" + sourceField;

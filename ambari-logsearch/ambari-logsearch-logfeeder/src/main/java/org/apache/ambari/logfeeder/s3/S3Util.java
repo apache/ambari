@@ -31,18 +31,24 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
+import com.amazonaws.services.s3.transfer.model.UploadResult;
 
 /**
  * Utility to connect to s3
+ *
  */
 public enum S3Util {
   INSTANCE;
@@ -52,6 +58,11 @@ public enum S3Util {
   public final String S3_PATH_START_WITH = "s3://";
   public final String S3_PATH_SEPARATOR = "/";
 
+  /**
+   * get s3 client
+   * 
+   * @return AmazonS3
+   */
   public AmazonS3 getS3Client(String accessKey, String secretKey) {
     AWSCredentials awsCredentials = AWSUtil.INSTANCE.createAWSCredentials(
         accessKey, secretKey);
@@ -64,6 +75,10 @@ public enum S3Util {
     return s3client;
   }
 
+  /**
+   * 
+   * @return TransferManager
+   */
   public TransferManager getTransferManager(String accessKey, String secretKey) {
     AWSCredentials awsCredentials = AWSUtil.INSTANCE.createAWSCredentials(
         accessKey, secretKey);
@@ -76,12 +91,21 @@ public enum S3Util {
     return transferManager;
   }
 
+  /**
+   * shutdown s3 transfer manager
+   */
   public void shutdownTransferManager(TransferManager transferManager) {
     if (transferManager != null) {
       transferManager.shutdownNow();
     }
   }
 
+  /**
+   * Extract bucket name from s3 file complete path
+   * 
+   * @param s3Path
+   * @return String
+   */
   public String getBucketName(String s3Path) {
     String bucketName = null;
     // s3path
@@ -93,6 +117,12 @@ public enum S3Util {
     return bucketName;
   }
 
+  /**
+   * get s3 key from s3Path after removing bucketname
+   * 
+   * @param s3Path
+   * @return String
+   */
   public String getS3Key(String s3Path) {
     StringBuilder s3Key = new StringBuilder();
     // s3path
@@ -112,12 +142,18 @@ public enum S3Util {
     return s3Key.toString();
   }
 
+  /**
+   * 
+   * @param bucketName
+   * @param s3Key
+   * @param localFile
+   */
   public void uploadFileTos3(String bucketName, String s3Key, File localFile,
       String accessKey, String secretKey) {
     TransferManager transferManager = getTransferManager(accessKey, secretKey);
     try {
       Upload upload = transferManager.upload(bucketName, s3Key, localFile);
-      upload.waitForUploadResult();
+      UploadResult uploadResult = upload.waitForUploadResult();
     } catch (AmazonClientException | InterruptedException e) {
       LOG.error("s3 uploading failed for file :" + localFile.getAbsolutePath(),
           e);
@@ -128,6 +164,10 @@ public enum S3Util {
 
   /**
    * Get the buffer reader to read s3 file as a stream
+   * 
+   * @param s3Path
+   * @return BufferedReader
+   * @throws IOException
    */
   public BufferedReader getReader(String s3Path, String accessKey,
       String secretKey) throws IOException {
@@ -152,6 +192,12 @@ public enum S3Util {
     }
   }
 
+  /**
+   * 
+   * @param data
+   * @param bucketName
+   * @param s3Key
+   */
   public void writeIntoS3File(String data, String bucketName, String s3Key,
       String accessKey, String secretKey) {
     InputStream in = null;
@@ -164,9 +210,10 @@ public enum S3Util {
       TransferManager transferManager = getTransferManager(accessKey, secretKey);
       try {
         if (transferManager != null) {
-          transferManager.upload(
+          UploadResult uploadResult = transferManager
+              .upload(
                   new PutObjectRequest(bucketName, s3Key, in,
-                  new ObjectMetadata())).waitForUploadResult();
+                      new ObjectMetadata())).waitForUploadResult();
           LOG.debug("Data Uploaded to s3 file :" + s3Key + " in bucket :"
               + bucketName);
         }

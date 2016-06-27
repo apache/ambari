@@ -77,6 +77,7 @@ public class FilterGrok extends Filter {
 
     try {
       grokErrorMetric.metricsName = "filter.error.grok";
+      // Get the Grok file patterns
       messagePattern = escapePattern(getStringValue("message_pattern"));
       multilinePattern = escapePattern(getStringValue("multiline_pattern"));
       sourceField = getStringValue("source_field");
@@ -93,6 +94,7 @@ public class FilterGrok extends Filter {
       extractNamedParams(messagePattern, namedParamList);
 
       grokMessage = new Grok();
+      // grokMessage.addPatternFromReader(r);
       loadPatterns(grokMessage);
       grokMessage.compile(messagePattern);
       if (!StringUtils.isEmpty(multilinePattern)) {
@@ -113,12 +115,20 @@ public class FilterGrok extends Filter {
 
   }
 
+  /**
+   * @param stringValue
+   * @return
+   */
   private String escapePattern(String inPattern) {
     String inStr = inPattern;
     if (inStr != null) {
       if (inStr.contains("(?m)") && !inStr.contains("(?s)")) {
         inStr = inStr.replaceFirst("(?m)", "(?s)");
       }
+      // inStr = inStr.replaceAll("\\[", "\\\\[");
+      // inStr = inStr.replaceAll("\\]", "\\\\]");
+      // inStr = inStr.replaceAll("\\(", "\\\\(");
+      // inStr = inStr.replaceAll("\\)", "\\\\)");
     }
     return inStr;
   }
@@ -168,6 +178,11 @@ public class FilterGrok extends Filter {
     return true;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.filter.Filter#apply(java.lang.String)
+   */
   @Override
   public void apply(String inputStr, InputMarker inputMarker) {
     if (grokMessage == null) {
@@ -175,13 +190,20 @@ public class FilterGrok extends Filter {
     }
 
     if (grokMultiline != null) {
+      // Check if new line
       String jsonStr = grokMultiline.capture(inputStr);
       if (!"{}".equals(jsonStr)) {
+        // New line
         if (strBuff != null) {
+          savedInputMarker.beginLineNumber = firstInputMarker.lineNumber;
+          // Construct JSON object and add only the interested named
+          // parameters
           Map<String, Object> jsonObj = Collections
             .synchronizedMap(new HashMap<String, Object>());
           try {
-            applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
+            // Handle message parsing
+            applyMessage(strBuff.toString(), jsonObj,
+              currMultilineJsonStr);
           } finally {
             strBuff = null;
             savedInputMarker = null;
@@ -195,6 +217,7 @@ public class FilterGrok extends Filter {
         strBuff = new StringBuilder();
         firstInputMarker = inputMarker;
       } else {
+        // strBuff.append(System.lineSeparator());
         strBuff.append('\r');
         strBuff.append('\n');
       }
@@ -230,6 +253,7 @@ public class FilterGrok extends Filter {
     boolean parseError = false;
     if ("{}".equals(jsonStr)) {
       parseError = true;
+      // Error parsing string.
       logParseError(inputStr);
 
       if (multilineJsonStr == null) {
@@ -249,6 +273,7 @@ public class FilterGrok extends Filter {
       }
     }
     if (parseError) {
+      // Add error tags
       @SuppressWarnings("unchecked")
       List<String> tagsList = (List<String>) jsonObj.get("tags");
       if (tagsList == null) {
@@ -257,7 +282,8 @@ public class FilterGrok extends Filter {
       }
       tagsList.add("error_grok_parsing");
       if (sourceField == null) {
-        // For now let's put the raw message in log_message, so it is will be searchable
+        // For now let's put the raw message in log_message, so it is
+        // will be searchable
         jsonObj.put("log_message", inputStr);
       }
     }
@@ -288,6 +314,7 @@ public class FilterGrok extends Filter {
   @Override
   public void flush() {
     if (strBuff != null) {
+      // Handle message parsing
       Map<String, Object> jsonObj = Collections
         .synchronizedMap(new HashMap<String, Object>());
       applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
@@ -297,6 +324,11 @@ public class FilterGrok extends Filter {
     super.flush();
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.ConfigBlock#getShortDescription()
+   */
   @Override
   public String getShortDescription() {
     return "filter:filter=grok,regex=" + messagePattern;
@@ -311,7 +343,9 @@ public class FilterGrok extends Filter {
   @Override
   public void logStat() {
     super.logStat();
+    // Printing stat for grokErrors
     logStatForMetric(grokErrorMetric, "Stat: Grok Errors");
+
   }
 
 }

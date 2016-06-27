@@ -24,7 +24,10 @@ package org.apache.ambari.logfeeder.input;
  */
 public class InputMarker {
   public int lineNumber = 0;
+  public int beginLineNumber = 0;
   public Input input;
+  public String filePath;
+  public Object fileKey = null;
   public String base64FileKey = null;
 
   @Override

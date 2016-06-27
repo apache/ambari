@@ -45,11 +45,15 @@ public abstract class ConfigBlock {
 
   /**
    * Used while logging. Keep it short and meaningful
+   *
+   * @return
    */
   public abstract String getShortDescription();
 
   /**
    * Every implementor need to give name to the thread they create
+   *
+   * @return
    */
   public String getNameForThread() {
     return this.getClass().getSimpleName();
@@ -64,13 +68,20 @@ public abstract class ConfigBlock {
 
   /**
    * This method needs to be overwritten by deriving classes.
+   *
+   * @throws Exception
    */
   public void init() throws Exception {
+
   }
 
+  /**
+   * @param map
+   */
   public void loadConfig(Map<String, Object> map) {
     configs = LogFeederUtil.cloneObject(map);
 
+    // Extract fields from config block
     Map<String, String> nvList = getNVList("add_fields");
     if (nvList != null) {
       contextFields.putAll(nvList);
@@ -145,6 +156,10 @@ public abstract class ConfigBlock {
     return allow;
   }
 
+  /**
+   * @param string
+   * @return
+   */
   @SuppressWarnings("unchecked")
   public Map<String, String> getNVList(String key) {
     return (Map<String, String>) configs.get(key);

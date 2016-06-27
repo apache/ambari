@@ -80,6 +80,7 @@ public class LogFeederUtil {
   public static final Object _LOCK = new Object();
   
   static{
+    //set hostname and hostIp
     setHostNameAndIP();
   }
   
@@ -90,6 +91,10 @@ public class LogFeederUtil {
   /**
    * This method will read the properties from System, followed by propFile
    * and finally from the map
+   *
+   * @param propFile
+   * @param propNVList
+   * @throws Exception
    */
   static public void loadProperties(String propFile, String[] propNVList)
     throws Exception {
@@ -146,10 +151,14 @@ public class LogFeederUtil {
       logger.fatal("Properties file is not loaded.");
       throw new Exception("Properties not loaded");
     } else {
+      // Let's load properties from argument list
       updatePropertiesFromMap(propNVList);
     }
   }
 
+  /**
+   * @param nvList
+   */
   private static void updatePropertiesFromMap(String[] nvList) {
     if (nvList == null) {
       return;
@@ -232,6 +241,10 @@ public class LogFeederUtil {
     return retValue;
   }
 
+  static public boolean isEnabled(Map<String, Object> configs) {
+    return isEnabled(configs, configs);
+  }
+
   static public boolean isEnabled(Map<String, Object> conditionConfigs,
                                   Map<String, Object> valueConfigs) {
     boolean allow = toBoolean((String) valueConfigs.get("is_enabled"), true);
@@ -312,11 +325,18 @@ public class LogFeederUtil {
     metric.prevLogMS = currMS;
   }
 
+  static public void logCountForMetric(MetricCount metric, String prefixStr,
+                                       String postFix) {
+    logger.info(prefixStr + ": count=" + metric.count + postFix);
+  }
+
   public static Map<String, Object> cloneObject(Map<String, Object> map) {
     if (map == null) {
       return null;
     }
     String jsonStr = gson.toJson(map);
+    // We need to clone it, so we will create a JSON string and convert it
+    // back
     Type type = new TypeToken<Map<String, Object>>() {
     }.getType();
     return gson.fromJson(jsonStr, type);
@@ -438,6 +458,10 @@ public class LogFeederUtil {
     return instance;
   }
 
+  /**
+   * @param fileName
+   * @return
+   */
   public static HashMap<String, Object> readJsonFromFile(File jsonFile) {
     ObjectMapper mapper = new ObjectMapper();
     try {

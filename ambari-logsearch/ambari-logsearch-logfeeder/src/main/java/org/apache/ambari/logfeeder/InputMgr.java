@@ -76,6 +76,9 @@ public class InputMgr {
     inputList.add(input);
   }
 
+  /**
+   * @param input
+   */
   public void removeInput(Input input) {
     logger.info("Trying to remove from inputList. "
       + input.getShortDescription());
@@ -90,6 +93,9 @@ public class InputMgr {
     }
   }
 
+  /**
+   * @return
+   */
   public int getActiveFilesCount() {
     int count = 0;
     for (Input input : inputList) {
@@ -267,6 +273,9 @@ public class InputMgr {
     metricsList.add(filesCountMetric);
   }
 
+  /**
+   *
+   */
   public void logStats() {
     for (Input input : inputList) {
       input.logStat();
@@ -343,7 +352,9 @@ public class InputMgr {
     logger.info("Cleaning checkPoint files. checkPointFolderFile="
       + checkPointFolderFile.getAbsolutePath());
     try {
-      // Loop over the check point files and if filePath is not present, then move to closed
+      // Loop over the check point files and if filePath is not present,
+      // then
+      // move to closed
       String searchPath = "*" + checkPointExtension;
       FileFilter fileFilter = new WildcardFileFilter(searchPath);
       File[] checkPointFiles = checkPointFolderFile.listFiles(fileFilter);
@@ -462,7 +473,9 @@ public class InputMgr {
         } else {
           logger.info("Configuring to monitor folder "
             + folderToWatch + " for file " + fileToMonitor);
-          // get the directory we want to watch, using the Paths singleton class
+          // get the directory we want to watch, using the Paths
+          // singleton
+          // class
           Path toWatch = Paths.get(folderToWatch.getAbsolutePath());
           if (toWatch == null) {
             throw new UnsupportedOperationException(
@@ -485,6 +498,11 @@ public class InputMgr {
   }
 
   class FileSystemMonitor implements Runnable {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
       try {
@@ -526,6 +544,9 @@ public class InputMgr {
 
   }
 
+  /**
+   * 
+   */
   public void waitOnAllInputs() {
     //wait on inputs
     if (inputList != null) {

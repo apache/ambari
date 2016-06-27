@@ -102,6 +102,11 @@ public class InputS3File extends Input {
     super.init();
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.input.Input#isReady()
+   */
   @Override
   public boolean isReady() {
     if (!isReady) {
@@ -196,6 +201,11 @@ public class InputS3File extends Input {
     isRolledOver = true;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.input.Input#monitor()
+   */
   @Override
   void start() throws Exception {
     if (s3LogPathFiles == null || s3LogPathFiles.length == 0) {
@@ -203,6 +213,7 @@ public class InputS3File extends Input {
     }
 
     if (isTail()) {
+      // Just process the first file
       processFile(s3LogPathFiles[0]);
     } else {
       for (String s3FilePath : s3LogPathFiles) {
@@ -217,6 +228,8 @@ public class InputS3File extends Input {
         }
       }
     }
+    // Call the close for the input. Which should flush to the filters and
+    // output
     close();
   }
 
@@ -252,7 +265,9 @@ public class InputS3File extends Input {
       // Whether to send to output from the beginning.
       boolean resume = isStartFromBegining;
 
-      // Seems FileWatch is not reliable, so let's only use file key comparison
+      // Seems FileWatch is not reliable, so let's only use file key
+      // comparison
+      // inputMgr.monitorSystemFileChanges(this);
       fileKey = getFileKey(logPathFile);
       base64FileKey = Base64.byteArrayToBase64(fileKey.toString().getBytes());
       logger.info("fileKey=" + fileKey + ", base64=" + base64FileKey + ". "
@@ -286,6 +301,7 @@ public class InputS3File extends Input {
                       + ", input="
                       + getShortDescription());
             } else {
+              // Create JSON string
               String jsonCheckPointStr = new String(b, 0, readSize);
               jsonCheckPoint = LogFeederUtil.toJSONObject(jsonCheckPointStr);
 
@@ -336,7 +352,8 @@ public class InputS3File extends Input {
             }
             sleepIteration++;
             try {
-              // Since FileWatch service is not reliable, we will check
+              // Since FileWatch service is not reliable, we will
+              // check
               // file inode every n seconds after no write
               if (sleepIteration > 4) {
                 Object newFileKey = getFileKey(logPathFile);
@@ -390,7 +407,9 @@ public class InputS3File extends Input {
                   } catch (Exception ex) {
                     logger.error("Error opening rolled over file. "
                         + getShortDescription());
-                    // Let's add this to monitoring and exit this thread
+                    // Let's add this to monitoring and exit
+                    // this
+                    // thread
                     logger.info("Added input to not ready list."
                         + getShortDescription());
                     isReady = false;
@@ -420,7 +439,9 @@ public class InputS3File extends Input {
             }
             if (resume) {
               InputMarker marker = new InputMarker();
+              marker.fileKey = fileKey;
               marker.base64FileKey = base64FileKey;
+              marker.filePath = filePath;
               marker.input = this;
               marker.lineNumber = lineCount;
               outputLine(line, marker);
@@ -448,10 +469,19 @@ public class InputS3File extends Input {
     }
   }
 
+  /**
+   * @param s3FilePath
+   * @return
+   */
   static public Object getFileKey(String s3FilePath) {
     return s3FilePath.toString();
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.apache.ambari.logfeeder.input.Input#getShortDescription()
+   */
   @Override
   public String getShortDescription() {
     return "input:source="

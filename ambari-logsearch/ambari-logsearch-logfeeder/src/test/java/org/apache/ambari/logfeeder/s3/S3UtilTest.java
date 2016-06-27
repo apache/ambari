@@ -18,9 +18,14 @@
  */
 package org.apache.ambari.logfeeder.s3;
 
+import org.apache.log4j.Logger;
+import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class S3UtilTest {
+  private static final Logger LOG = Logger.getLogger(S3UtilTest.class);
+
+  // @Test
   public void testS3Util_pathToBucketName() throws Exception {
     String s3Path = "s3://bucket_name/path/file.txt";
     String expectedBucketName = "bucket_name";
@@ -28,6 +33,7 @@ public class S3UtilTest {
     assertEquals(expectedBucketName, actualBucketName);
   }
 
+  // @Test
   public void testS3Util_pathToS3Key() throws Exception {
     String s3Path = "s3://bucket_name/path/file.txt";
     String expectedS3key = "path/file.txt";
