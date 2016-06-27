@@ -74,13 +74,13 @@ public class JSONRequest<RESPONSE> {
    * @return unmarshalled response data
    */
   public RESPONSE get(WebResource resource) throws IOException {
-    LOG.debug("GET " + resource.toString());
+    LOG.info("GET {}", resource);
 
     InputStream inputStream = readFrom(resource, "GET", null, new HashMap<String, String>());
 
     recordLastCurlCommand(String.format("curl \"" + resource.toString() + "\""));
     String responseJson = IOUtils.toString(inputStream);
-    LOG.debug(String.format("RESPONSE => %s", responseJson));
+    LOG.debug("RESPONSE {}", responseJson);
     return gson.fromJson(responseJson, responseClass);
   }
 
@@ -107,8 +107,8 @@ public class JSONRequest<RESPONSE> {
    * @return unmarshalled response data
    */
   public RESPONSE post(WebResource resource, MultivaluedMapImpl data) throws IOException {
-    LOG.debug("POST " + resource.toString());
-    LOG.debug("data: " + data.toString());
+    LOG.info("POST: {}", resource);
+    LOG.debug("data: {}", data);
 
     StringBuilder curlBuilder = new StringBuilder();
 
@@ -121,7 +121,7 @@ public class JSONRequest<RESPONSE> {
     InputStream inputStream = readFrom(resource, "POST", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
 
-    LOG.debug(String.format("RESPONSE => %s", responseJson));
+    LOG.debug("RESPONSE => {}", responseJson);
     return gson.fromJson(responseJson, responseClass);
   }
 
@@ -153,7 +153,7 @@ public class JSONRequest<RESPONSE> {
    * @return unmarshalled response data
    */
   public RESPONSE put(WebResource resource, MultivaluedMapImpl data) throws IOException {
-    LOG.debug("PUT " + resource.toString());
+    LOG.info("PUT {}", resource);
 
     StringBuilder curlBuilder = new StringBuilder();
 
@@ -167,7 +167,7 @@ public class JSONRequest<RESPONSE> {
     InputStream inputStream = readFrom(resource, "PUT", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
 
-    LOG.debug(String.format("RESPONSE => %s", responseJson));
+    LOG.debug("RESPONSE => {}", responseJson);
     return gson.fromJson(responseJson, responseClass);
   }
 
@@ -190,7 +190,7 @@ public class JSONRequest<RESPONSE> {
     }
 
     if (data != null)
-      LOG.debug("... data: " + builder.build().getRawQuery());
+      LOG.debug("data: {}", builder.build().getRawQuery());
     return builder;
   }
 
@@ -222,7 +222,7 @@ public class JSONRequest<RESPONSE> {
    * @return unmarshalled response data
    */
   public RESPONSE delete(WebResource resource, MultivaluedMapImpl data) throws IOException {
-    LOG.debug("DELETE " + resource.toString());
+    LOG.info("DELETE {}", resource.toString());
 
     StringBuilder curlBuilder = new StringBuilder();
 
@@ -236,7 +236,7 @@ public class JSONRequest<RESPONSE> {
     InputStream inputStream = readFrom(resource, "DELETE", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
 
-    LOG.debug(String.format("RESPONSE => %s", responseJson));
+    LOG.debug("RESPONSE => {}", responseJson);
     return gson.fromJson(responseJson, responseClass);
   }
 

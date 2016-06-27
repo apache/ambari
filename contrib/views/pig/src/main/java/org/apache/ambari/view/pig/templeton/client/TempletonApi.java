@@ -142,8 +142,7 @@ public class TempletonApi {
     try {
       request.delete();
     } catch (IOException e) {
-      //TODO: remove this after HIVE-5835 resolved
-      LOG.debug("Ignoring 500 response from webhcat (see HIVE-5835)");
+      LOG.error("Ignoring 500 response from webhcat (see HIVE-5835)");
     }
   }
 

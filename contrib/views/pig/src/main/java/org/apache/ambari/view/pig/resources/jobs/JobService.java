@@ -19,7 +19,6 @@
 package org.apache.ambari.view.pig.resources.jobs;
 
 import com.google.inject.Inject;
-import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.persistence.utils.Indexed;
 import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
@@ -36,8 +35,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -91,11 +102,13 @@ public class JobService extends BaseService {
   @Path("{jobId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getJob(@PathParam("jobId") String jobId) {
+    LOG.info("Fetching job with id : {}", jobId);
     try {
       PigJob job = null;
       try {
         job = getResourceManager().read(jobId);
       } catch (ItemNotFound itemNotFound) {
+        LOG.error("Exception occurred : ", itemNotFound);
         throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
       }
       getResourceManager().retrieveJobStatus(job);
@@ -103,8 +116,10 @@ public class JobService extends BaseService {
       object.put("job", job);
       return Response.ok(object).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -116,11 +131,13 @@ public class JobService extends BaseService {
   @Path("{jobId}")
   public Response killJob(@PathParam("jobId") String jobId,
                           @QueryParam("remove") final String remove) throws IOException {
+    LOG.info("killing job : {}, remove : {}", jobId, remove);
     try {
       PigJob job = null;
       try {
         job = getResourceManager().read(jobId);
       } catch (ItemNotFound itemNotFound) {
+        LOG.error("Exception occurred : ", itemNotFound);
         throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
       }
       getResourceManager().killJob(job);
@@ -129,8 +146,10 @@ public class JobService extends BaseService {
       }
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -151,6 +170,7 @@ public class JobService extends BaseService {
           try {
             job = getResourceManager().read(jobId);
           } catch (ItemNotFound itemNotFound) {
+            LOG.error("Exception occurred : ", itemNotFound);
             return null;
           }
           return job;
@@ -162,8 +182,10 @@ public class JobService extends BaseService {
       getResourceManager().retrieveJobStatus(job);
       return Response.ok().build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -176,19 +198,22 @@ public class JobService extends BaseService {
                               @PathParam("jobId") String jobId,
                               @PathParam("fileName") String fileName,
                               @QueryParam("page") Long page) {
+    LOG.info("fetching results in fileName {} ", fileName);
     try {
       PigJob job = null;
       try {
         job = getResourceManager().read(jobId);
       } catch (ItemNotFound itemNotFound) {
+        LOG.error("Exception occurred : ", itemNotFound);
         throw new NotFoundFormattedException("Job with id '" + jobId + "' not found", null);
       }
       String filePath = job.getStatusDir() + "/" + fileName;
-      LOG.debug("Reading file " + filePath);
+      LOG.debug("Reading file {}", filePath);
       FilePaginator paginator = new FilePaginator(filePath, context);
 
-      if (page == null)
+      if (page == null) {
         page = 0L;
+      }
 
       FileResource file = new FileResource();
       file.setFilePath(filePath);
@@ -201,12 +226,16 @@ public class JobService extends BaseService {
       object.put("file", file);
       return Response.ok(object).status(200).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (IOException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new NotFoundFormattedException(ex.getMessage(), ex);
     } catch (InterruptedException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new NotFoundFormattedException(ex.getMessage(), ex);
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -217,6 +246,7 @@ public class JobService extends BaseService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getJobList(@QueryParam("scriptId") final String scriptId) {
+    LOG.info("Fechting scriptId : {} ", scriptId);
     try {
       List allJobs = getResourceManager().readAll(
           new OnlyOwnersFilteringStrategy(this.context.getUsername()) {
@@ -235,8 +265,10 @@ public class JobService extends BaseService {
       object.put("jobs", allJobs);
       return Response.ok(object).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -249,6 +281,7 @@ public class JobService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response runJob(PigJobRequest request, @Context HttpServletResponse response,
                          @Context UriInfo ui) {
+    LOG.info("Creating new job : {} ", request);
     try {
       request.validatePOST();
       getResourceManager().create(request.job);
@@ -268,10 +301,13 @@ public class JobService extends BaseService {
       object.put("job", job);
       return Response.ok(object).status(201).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (IllegalArgumentException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new BadRequestFormattedException(ex.getMessage(), ex);
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -298,6 +334,13 @@ public class JobService extends BaseService {
       if (!explainPOST().isEmpty()) {
         throw new BadRequestFormattedException(explainPOST(), null);
       }
+    }
+
+    @Override
+    public String toString() {
+      return new StringBuilder("PigJobRequest{")
+        .append("job=").append(job)
+        .append('}').toString();
     }
   }
 }

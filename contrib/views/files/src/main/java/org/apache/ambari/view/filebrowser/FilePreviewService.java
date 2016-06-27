@@ -29,6 +29,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -40,6 +42,7 @@ import java.io.InputStream;
  * File Preview Service
  */
 public class FilePreviewService extends HdfsService {
+  protected static final Logger LOG = LoggerFactory.getLogger(FilePreviewService.class);
 
   private CompressionCodecFactory compressionCodecFactory;
 
@@ -57,8 +60,8 @@ public class FilePreviewService extends HdfsService {
   @GET
   @Path("/file")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response previewFile(@QueryParam("path") String path,@QueryParam("start") int start,@QueryParam("end") int end) {
-
+  public Response previewFile(@QueryParam("path") String path, @QueryParam("start") int start, @QueryParam("end") int end) {
+    LOG.info("previewing file {}, from start {}, till end {}", path, start, end);
     try {
       HdfsApi api = getApi(context);
       FileStatus status = api.getFileStatus(path);
@@ -84,10 +87,13 @@ public class FilePreviewService extends HdfsService {
 
       return Response.ok(response).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Error occurred while previewing {} : ", path, ex);
       throw ex;
     } catch (FileNotFoundException ex) {
+      LOG.error("Error occurred while previewing {} : ", path, ex);
       throw new NotFoundFormattedException(ex.getMessage(), ex);
     } catch (Exception ex) {
+      LOG.error("Error occurred while previewing {} : ", path, ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }

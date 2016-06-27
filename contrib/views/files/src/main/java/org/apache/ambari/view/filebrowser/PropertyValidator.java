@@ -22,8 +22,11 @@ import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.utils.ambari.ValidatorUtils;
 import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PropertyValidator implements Validator {
+  protected static final Logger LOG = LoggerFactory.getLogger(PropertyValidator.class);
 
   public static final String WEBHDFS_URL = "webhdfs.url";
 
@@ -38,6 +41,7 @@ public class PropertyValidator implements Validator {
       String webhdfsUrl = viewInstanceDefinition.getPropertyMap().get(WEBHDFS_URL);
       if (webhdfsUrl != null) {
         if (!ValidatorUtils.validateHdfsURL(webhdfsUrl)) {
+          LOG.error("Invalid webhdfs.url = {}", webhdfsUrl);
           return new InvalidPropertyValidationResult(false, "Must be valid URL");
         }
       }
