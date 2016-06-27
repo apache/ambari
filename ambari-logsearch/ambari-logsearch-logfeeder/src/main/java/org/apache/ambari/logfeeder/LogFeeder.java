@@ -51,7 +51,6 @@ import com.google.gson.reflect.TypeToken;
 public class LogFeeder {
   static Logger logger = Logger.getLogger(LogFeeder.class);
 
-  // List<Input> inputList = new ArrayList<Input>();
   Collection<Output> outputList = new ArrayList<Output>();
 
   OutputMgr outMgr = new OutputMgr();
@@ -79,11 +78,8 @@ public class LogFeeder {
 
   public void init() throws Throwable {
 
-    // Load properties
     LogFeederUtil.loadProperties("logfeeder.properties", inputParams);
 
-    // loop the properties and load them
-    // Load the configs
     String configFiles = LogFeederUtil.getStringProperty("logfeeder.config.files");
     logger.info("logfeeder.config.files=" + configFiles);
     
@@ -129,7 +125,6 @@ public class LogFeeder {
     }
     inputMgr.init();
     metricsMgr.init();
-    //starting timer to fetch config from solr 
     logger.debug("==============");
   }
 
@@ -149,10 +144,6 @@ public class LogFeeder {
 
   /**
    * This method loads the configurations from the given file.
-   *
-   * @param configFile
-   * @return
-   * @throws Exception
    */
   void loadConfigsUsingFile(File configFile) throws Exception {
     FileInputStream fileInputStream = null;
@@ -205,13 +196,9 @@ public class LogFeeder {
 
   }
 
-  /**
-   *
-   */
   private void mergeAllConfigs() {
     globalMap = mergeConfigs(globalConfigList);
 
-    // Sort the filter blocks
     sortBlocks(filterConfigList);
     // First loop for output
     for (Map<String, Object> map : outputConfigList) {
@@ -365,10 +352,6 @@ public class LogFeeder {
     }
   }
 
-  /**
-   * @param filterConfigList2
-   * @return
-   */
   private void sortBlocks(List<Map<String, Object>> blockList) {
 
     Collections.sort(blockList, new Comparator<Map<String, Object>>() {
@@ -414,9 +397,6 @@ public class LogFeeder {
     });
   }
 
-  /**
-   * @param globalConfigList2
-   */
   private Map<String, Object> mergeConfigs(
     List<Map<String, Object>> configList) {
     Map<String, Object> mergedConfig = new HashMap<String, Object>();
@@ -518,11 +498,6 @@ public class LogFeeder {
     }
   }
 
-  /**
-   * @param inFile
-   * @return
-   * @throws Throwable
-   */
   public String readFile(BufferedReader br) throws Exception {
     try {
       StringBuilder sb = new StringBuilder();
@@ -595,15 +570,12 @@ public class LogFeeder {
   public void waitOnAllDaemonThreads() {
     String foreground = LogFeederUtil.getStringProperty("foreground");
     if (foreground != null && foreground.equalsIgnoreCase("true")) {
-      // wait on inputmgr daemon threads
       inputMgr.waitOnAllInputs();
-      // set isLogfeederCompleted to true to stop statLoggerThread
       isLogfeederCompleted = true;
       if (statLoggerThread != null) {
         try {
           statLoggerThread.join();
         } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }

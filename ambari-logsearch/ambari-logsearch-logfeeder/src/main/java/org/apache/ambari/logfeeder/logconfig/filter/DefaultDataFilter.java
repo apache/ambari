@@ -20,14 +20,10 @@ package org.apache.ambari.logfeeder.logconfig.filter;
 
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 /**
  * Default filter to allow everything
  */
 public class DefaultDataFilter {
-  private static Logger logger = Logger.getLogger(DefaultDataFilter.class);
-  
   public boolean applyFilter(Map<String, Object> outputJsonObj, boolean defaultValue) {
     return defaultValue;
   }

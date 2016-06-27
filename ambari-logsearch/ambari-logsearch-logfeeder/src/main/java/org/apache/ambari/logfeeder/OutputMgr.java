@@ -54,11 +54,6 @@ public class OutputMgr {
     this.outputList = outputList;
   }
 
-  /**
-   * @param jsonObj
-   * @param inputStr
-   * @param input
-   */
   public void write(Map<String, Object> jsonObj, InputMarker inputMarker) {
     Input input = inputMarker.input;
 
@@ -183,9 +178,6 @@ public class OutputMgr {
     }
   }
 
-  /**
-   * Close all the outputs
-   */
   public void close() {
     logger.info("Close called for outputs ...");
     for (Output output : outputList) {
@@ -235,9 +227,6 @@ public class OutputMgr {
     }
   }
 
-  /**
-   *
-   */
   public void logStats() {
     for (Output output : outputList) {
       output.logStat();
@@ -246,9 +235,6 @@ public class OutputMgr {
       "Stat: Messages Truncated", null);
   }
 
-  /**
-   * @param metricsList
-   */
   public void addMetricsContainers(List<MetricCount> metricsList) {
     metricsList.add(messageTruncateMetric);
     for (Output output : outputList) {

@@ -35,7 +35,6 @@ public class MapperDate extends Mapper {
   SimpleDateFormat dateFormatter = null;
   boolean isEpoch = false;
 
-  @SuppressWarnings("hiding")
   @Override
   public boolean init(String inputDesc, String fieldName,
                       String mapClassCode, Object mapConfigs) {
@@ -76,7 +75,6 @@ public class MapperDate extends Mapper {
     if (value != null) {
       try {
         if (isEpoch) {
-          // First convert to long
           long ms = Long.parseLong(value.toString()) * 1000;
           value = new Date(ms);
         } else if (dateFormatter != null) {

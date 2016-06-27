@@ -38,7 +38,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**
- * 
  * Write log file into s3 bucket
  */
 public class OutputS3File extends Output {
@@ -93,14 +92,8 @@ public class OutputS3File extends Output {
         s3Key);
     // write global config
     writeGlobalConfig();
-
   }
 
-  /**
-   * 
-   * @param filters
-   * @param filter
-   */
   public void addFilters(ArrayList<Map<String, Object>> filters, Filter filter) {
     if (filter != null) {
       Map<String, Object> filterConfig = new HashMap<String, Object>();
@@ -112,13 +105,6 @@ public class OutputS3File extends Output {
     }
   }
 
-  /**
-   * 
-   * @param filters
-   * @param inputConfig
-   * @param bucketName
-   * @param componentName
-   */
   public void writeConfigToS3(Map<String, Object> config, String bucketName,
       String accessKey, String secretKey, HashMap<String, String> contextParam,
       String s3Key) {
@@ -126,17 +112,12 @@ public class OutputS3File extends Output {
     s3ConfigDir = PlaceholderUtil.replaceVariables(s3ConfigDir, contextParam);
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     String configJson = gson.toJson(config);
-    // write json to s3 file
+
     s3Key = s3ConfigDir + S3Util.INSTANCE.S3_PATH_SEPARATOR + s3Key;
     S3Util.INSTANCE.writeIntoS3File(configJson, bucketName, s3Key, accessKey,
         secretKey);
   }
 
-  /**
-   * 
-   * @param componentName
-   * @return String
-   */
   public String getComponentConfigFileName(String componentName) {
     String fileName = "input.config-" + componentName + ".json";
     return fileName;
@@ -222,6 +203,6 @@ public class OutputS3File extends Output {
   @Override
   public void write(String block, InputMarker inputMarker) throws Exception {
     throw new UnsupportedOperationException(
-        "write method is not yet supported for output=s3_file");    
+        "write method is not yet supported for output=s3_file");
   }
 }

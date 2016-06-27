@@ -22,22 +22,19 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.log4j.Logger;
-
 
 public class JSONFilterCode extends Filter {
-  private static Logger logger = Logger.getLogger(JSONFilterCode.class);
 
   @Override
   public void apply(String inputStr, InputMarker inputMarker) {
     Map<String, Object> jsonMap = LogFeederUtil.toJSONObject(inputStr);
-    // linenumber
+
     Double lineNumberD = (Double) jsonMap.get("line_number");
     if (lineNumberD != null) {
       long lineNumber = lineNumberD.longValue();
       jsonMap.put("line_number", lineNumber);
     }
-    // logtime
+
     String timeStampStr = (String) jsonMap.get("logtime");
     if (timeStampStr != null && !timeStampStr.isEmpty()) {
       String logtime = LogFeederUtil.getDate(timeStampStr);

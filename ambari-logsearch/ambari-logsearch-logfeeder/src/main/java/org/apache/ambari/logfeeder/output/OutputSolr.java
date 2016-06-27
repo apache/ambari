@@ -249,9 +249,6 @@ public class OutputSolr extends Output {
     }
   }
 
-  /**
-   * Flush document buffer
-   */
   public void flush() {
     LOG.info("Flush called...");
     setDrain(true);
@@ -378,8 +375,6 @@ public class OutputSolr extends Output {
      * successfully able to write to the collection or shard. It will block till
      * it can write. The outgoingBuffer is a BlockingQueue and when it is full, it
      * will automatically stop parsing the log files.
-     * @param outputData 
-     * @return 
      */
     private boolean sendToSolr(OutputData outputData) {
       boolean result = false;
@@ -503,14 +498,12 @@ public class OutputSolr extends Output {
 
   @Override
   public void write(String block, InputMarker inputMarker) throws Exception {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker)
       throws UnsupportedOperationException {
     throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=solr");     
+        "copyFile method is not yet supported for output=solr");
   }
 }
