@@ -195,7 +195,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   },
 
   showErrMsg: function(category) {
-    this.set('errMsg', category+ " " + Em.I18n.t('hosts.combo.search.invalidCategory'));
+    this.set('errMsg', category.attributes.value + " " + Em.I18n.t('hosts.combo.search.invalidCategory'));
   },
 
   clearErrMsg: function() {
