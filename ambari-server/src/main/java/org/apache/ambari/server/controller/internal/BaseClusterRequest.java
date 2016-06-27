@@ -42,16 +42,9 @@ import java.util.Set;
  */
 public abstract class BaseClusterRequest implements TopologyRequest {
   /**
-   * Support for controlling whether Install and Start tasks are created on
-   * blueprint deploy by default.
-   */
-  public static final String PROVISION_ACTION_PROPERTY = "provision_action";
-  /**
    * host group info map
    */
   protected final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
-
-  protected ProvisionAction provisionAction;
 
   /**
    * cluster id
@@ -191,16 +184,5 @@ public abstract class BaseClusterRequest implements TopologyRequest {
           ensureResourceProvider(Resource.Type.Host);
     }
     return hostResourceProvider;
-  }
-
-  /**
-   * Get requested @ProvisionClusterRequest.ProvisionAction
-   */
-  public ProvisionAction getProvisionAction() {
-    return provisionAction;
-  }
-
-  public void setProvisionAction(ProvisionAction provisionAction) {
-    this.provisionAction = provisionAction;
   }
 }
