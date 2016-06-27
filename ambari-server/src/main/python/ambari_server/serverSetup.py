@@ -786,9 +786,14 @@ class JDKSetupLinux(JDKSetup):
 
   def adjust_jce_permissions(self, jdk_path):
     ambari_user = read_ambari_user()
-    cmd = self.SET_JCE_PERMISSIONS.format(ambari_user, jdk_path, configDefaults.JDK_SECURITY_DIR)
-    cmd += " && " + self.SET_JCE_FILE_MODE.format(jdk_path, configDefaults.JDK_SECURITY_DIR, "*")
-    cmd += " && " + self.SET_JCE_JAR_MODE.format(jdk_path, configDefaults.JDK_SECURITY_DIR, "*.jar")
+    cmds = []
+    if ambari_user:
+      cmds.append(self.SET_JCE_PERMISSIONS.format(ambari_user, jdk_path, configDefaults.JDK_SECURITY_DIR))
+    cmds.append(self.SET_JCE_FILE_MODE.format(jdk_path, configDefaults.JDK_SECURITY_DIR, "*"))
+    cmds.append(self.SET_JCE_JAR_MODE.format(jdk_path, configDefaults.JDK_SECURITY_DIR, "*.jar"))
+
+    cmd = " && ".join(cmds)
+
     process = subprocess.Popen(cmd,
                            stdout=subprocess.PIPE,
                            stdin=subprocess.PIPE,
@@ -796,6 +801,9 @@ class JDKSetupLinux(JDKSetup):
                            shell=True
                            )
     (stdoutdata, stderrdata) = process.communicate()
+
+    if process.returncode != 0:
+      print_warning_msg("Failed to change jce permissions. {0}\n{1}".format(stderrdata, stdoutdata))
 
 def download_and_install_jdk(options):
   properties = get_ambari_properties()
