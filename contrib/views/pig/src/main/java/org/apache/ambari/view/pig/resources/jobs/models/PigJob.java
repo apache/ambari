@@ -102,9 +102,8 @@ public class PigJob implements Serializable, PersonalResource {
 
     PigJob pigScript = (PigJob) o;
 
-    if (!id.equals(pigScript.id)) return false;
+    return id.equals(pigScript.id);
 
-    return true;
   }
 
   @Override
@@ -255,5 +254,16 @@ public class PigJob implements Serializable, PersonalResource {
 
   public void setSourceFile(String sourceFile) {
     this.sourceFile = sourceFile;
+  }
+
+  @Override
+  public String toString() {
+    return new StringBuilder("PigJob{")
+      .append("id='").append(id)
+      .append(", scriptId='").append(scriptId)
+      .append(", owner='").append(owner)
+      .append(", jobId='").append(jobId)
+      .append('}')
+      .toString();
   }
 }

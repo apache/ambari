@@ -41,7 +41,7 @@ public class UserLocalConnection extends UserLocal<Connection> {
       authCredentialsLocal.remove(context);  // we should not store credentials in memory,
       // password is erased after connection established
       Connection connection = hiveConnectionFactory.create();
-      LOG.debug("returning connection : {} for context : {} ", connection,context);
+    LOG.debug("returning connection : {} for context : {} ", connection, context);
       return connection;
   }
 

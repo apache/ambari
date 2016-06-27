@@ -20,8 +20,8 @@ package org.apache.ambari.view.pig.resources.scripts;
 
 import com.google.inject.Inject;
 import org.apache.ambari.view.ViewResourceHandler;
-import org.apache.ambari.view.pig.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.pig.persistence.utils.ItemNotFound;
+import org.apache.ambari.view.pig.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.pig.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.services.BaseService;
@@ -32,8 +32,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 /**
@@ -69,6 +80,7 @@ public class ScriptService extends BaseService {
   @Path("{scriptId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getScript(@PathParam("scriptId") String scriptId) {
+    LOG.info("Fetching scriptId : {}", scriptId);
     try {
       PigScript script = null;
       script = getResourceManager().read(scriptId);
@@ -76,10 +88,13 @@ public class ScriptService extends BaseService {
       object.put("script", script);
       return Response.ok(object).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (ItemNotFound itemNotFound) {
+      LOG.error("Exception occurred : ", itemNotFound);
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -90,14 +105,18 @@ public class ScriptService extends BaseService {
   @DELETE
   @Path("{scriptId}")
   public Response deleteScript(@PathParam("scriptId") String scriptId) {
+    LOG.info("Deleting scriptId : {}", scriptId);
     try {
       getResourceManager().delete(scriptId);
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (ItemNotFound itemNotFound) {
+      LOG.error("Exception occurred : ", itemNotFound);
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -117,8 +136,10 @@ public class ScriptService extends BaseService {
       object.put("scripts", allScripts);
       return Response.ok(object).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -131,14 +152,18 @@ public class ScriptService extends BaseService {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response updateScript(PigScriptRequest request,
                                @PathParam("scriptId") String scriptId) {
+    LOG.info("updating scriptId : {} ", scriptId);
     try {
       getResourceManager().update(request.script, scriptId);
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (ItemNotFound itemNotFound) {
+      LOG.error("Exception occurred : ", itemNotFound);
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
@@ -150,6 +175,7 @@ public class ScriptService extends BaseService {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response saveScript(PigScriptRequest request, @Context HttpServletResponse response,
                              @Context UriInfo ui) {
+    LOG.info("Creating new script : {}", request);
     try {
       getResourceManager().create(request.script);
 
@@ -164,10 +190,13 @@ public class ScriptService extends BaseService {
       object.put("script", script);
       return Response.ok(object).status(201).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (ItemNotFound itemNotFound) {
+      LOG.error("Exception occurred : ", itemNotFound);
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
