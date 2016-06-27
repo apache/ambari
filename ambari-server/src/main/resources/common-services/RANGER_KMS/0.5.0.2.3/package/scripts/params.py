@@ -39,6 +39,7 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
 stack_support_kms_hsm = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT, stack_version_formatted)
 stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
+stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, stack_version_formatted)
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -244,3 +245,8 @@ if stack_supports_ranger_kerberos and security_enabled:
   rangerkms_principal = default("/configurations/dbks-site/ranger.ks.kerberos.principal", None)
   if rangerkms_principal is not None:
     rangerkms_principal = rangerkms_principal.replace('_HOST', kms_host.lower())
+
+# ranger kms pid
+user_group = config['configurations']['cluster-env']['user_group']
+ranger_kms_pid_dir = default("/configurations/kms-env/ranger_kms_pid_dir", "/var/run/ranger_kms")
+ranger_kms_pid_file = format('{ranger_kms_pid_dir}/rangerkms.pid')

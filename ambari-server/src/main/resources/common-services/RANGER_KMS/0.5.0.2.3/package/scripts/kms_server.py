@@ -17,9 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
@@ -48,6 +50,10 @@ class KmsServer(Script):
 
     env.set_params(params)
     kms_service(action = 'stop')
+    if params.stack_supports_pid:
+      File(params.ranger_kms_pid_file,
+        action = "delete"
+      )
 
   def start(self, env, upgrade_type=None):
     import params
@@ -58,7 +64,14 @@ class KmsServer(Script):
     setup_kms_jce()
     kms_service(action = 'start')
 
-  def status(self, env):    
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+
+    if status_params.stack_supports_pid:
+      check_process_status(status_params.ranger_kms_pid_file)
+      return
+
     cmd = 'ps -ef | grep proc_rangerkms | grep -v grep'
     code, output = shell.call(cmd, timeout=20)
     if code != 0:

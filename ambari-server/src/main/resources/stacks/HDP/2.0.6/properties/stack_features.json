@@ -250,6 +250,16 @@
       "name": "atlas_upgrade_support",
       "description": "Atlas supports express and rolling upgrades",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_pid_support",
+      "description": "Ranger Service support pid generation AMBARI-16756",
+      "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_kms_pid_support",
+      "description": "Ranger KMS Service support pid generation",
+      "min_version": "2.5.0.0"
     }
   ]
 }
