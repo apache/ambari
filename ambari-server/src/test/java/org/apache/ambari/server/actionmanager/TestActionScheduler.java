@@ -205,18 +205,15 @@ public class TestActionScheduler {
     scheduler.setTaskTimeoutAdjustment(false);
 
     List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1, scheduler);
-    AgentCommand scheduledCommand = ac.get(0);
-    assertTrue(scheduledCommand instanceof ExecutionCommand);
-    assertEquals("1-977", ((ExecutionCommand) scheduledCommand).getCommandId());
-    assertEquals(clusterHostInfo, ((ExecutionCommand) scheduledCommand).getClusterHostInfo());
+    assertTrue(ac.get(0) instanceof ExecutionCommand);
+    assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
+    assertEquals(clusterHostInfo, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
 
     //The action status has not changed, it should be queued again.
-    ac = waitForQueueSize(hostname, aq, 2, scheduler);
-    // first command is cancel for previous
-    scheduledCommand = ac.get(1);
-    assertTrue(scheduledCommand instanceof ExecutionCommand);
-    assertEquals("1-977", ((ExecutionCommand) scheduledCommand).getCommandId());
-    assertEquals(clusterHostInfo, ((ExecutionCommand) scheduledCommand).getClusterHostInfo());
+    ac = waitForQueueSize(hostname, aq, 1, scheduler);
+    assertTrue(ac.get(0) instanceof ExecutionCommand);
+    assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
+    assertEquals(clusterHostInfo, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
 
     //Now change the action status
     s.setHostRoleStatus(hostname, "NAMENODE", HostRoleStatus.COMPLETED);
@@ -320,9 +317,6 @@ public class TestActionScheduler {
     scheduler.doWork();
     //Check that in_progress command is rescheduled
     assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname, "SECONDARY_NAMENODE"));
-
-    // Check was generated cancel command on timeout
-    assertFalse(aq.dequeue(hostname, AgentCommandType.CANCEL_COMMAND).isEmpty());
 
     //Switch command back to IN_PROGRESS status and check that other command is not rescheduled
     stages.get(0).setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
