@@ -390,7 +390,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       fileNamesToSave.forEach(function(fName) {
 
         /** @see <code>_timeStamps<code> **/
-        if (this.get('_timeStamps')[fName] === tagVersion) tagVersion++;
+        if (this.get('_timeStamps')[fName] === tagVersion) {
+          tagVersion = "version" + ((new Date).getTime() + 1);
+        }
         this.get('_timeStamps')[fName] = tagVersion;
 
         if (this.allowSaveSite(fName)) {
