@@ -47,10 +47,13 @@ define(['require',
              * @constructs
              */
             initialize: function(options) {
-                _.extend(this, _.pick(options, ''));
+                _.extend(this, _.pick(options, 'currentTime'));
                 this.dateUtil = Utils.dateUtil;
                 this.changedTimeZone = false;
-                var storeTimezone = Utils.localStorage.checkLocalStorage('timezone');
+                var storeTimezone = '';
+                if(!_.isUndefined(this.currentTime)){
+                    storeTimezone = this.currentTime;
+                }
                 if (storeTimezone && storeTimezone != "undefined") {
                     this.selectedtimeZone = storeTimezone.value
                 }

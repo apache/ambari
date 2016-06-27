@@ -137,12 +137,6 @@
          noty: {
              deps: ['jquery'],
          },
-         timeline: {
-             deps: ['jquery']
-         },
-         intro: {
-             exports: 'introJs'
-         },
          WorldMapGenerator: {
              deps: ['jquery']
          },
@@ -157,6 +151,9 @@
          },
          dashboard: {
              deps: ['jquery', 'jquery-ui', 'gridster']
+         },
+         tour : {
+            exports : 'tour'
          }
 
      },
@@ -219,13 +216,13 @@
          'd3.tip': "../libs/other/d3/d3.tip",
          'nv': "../libs/other/nvd3/js/nv.d3",
          'noty': '../libs/other/noty/jquery.noty.packaged',
-         'intro': '../libs/other/intro/js/intro.min',
          'tmpl': '../templates',
          'WorldMapGenerator': '../libs/other/timezone/WorldMapGenerator',
          'jstimezonedetect': '../libs/other/timezone/jstz-1.0.4.min',
          'sparkline': '../libs/other/sparkline/jquery.sparkline',
          'gridster': '../libs/other/gridster/js/jquery.gridster',
          'dashboard': '../libs/other/dashboard/dashboard',
+         'tour' : '../libs/other/bootstrap-tour-0.10.3/js/bootstrap-tour.min'
 
 
      },
