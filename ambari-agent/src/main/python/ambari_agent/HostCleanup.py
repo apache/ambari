@@ -538,7 +538,7 @@ def main():
   hostCheckResultPath = os.path.join(hostCheckFileDir, OUTPUT_FILE_NAME)
 
   parser = optparse.OptionParser()
-  parser.add_option("-v", "--verbose", dest="verbose", action="store_false",
+  parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
                     default=False, help="output verbosity.")
   parser.add_option("-f", "--file", dest="inputfiles",
                     default=hostCheckFilesPaths,
