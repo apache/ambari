@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ComponentIsNotRunning
@@ -68,8 +69,19 @@ class RangerUsersync(Script):
     env.set_params(params)
     
     Execute((params.usersync_stop,), environment={'JAVA_HOME': params.java_home}, sudo=True)
+    if params.stack_supports_pid:
+      File(params.ranger_usersync_pid_file,
+        action = "delete"
+      )
     
   def status(self, env):
+    import status_params
+    env.set_params(status_params)
+
+    if status_params.stack_supports_pid:
+      check_process_status(status_params.ranger_usersync_pid_file)
+      return
+
     cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'
     code, output = shell.call(cmd, timeout=20)
 

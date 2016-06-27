@@ -28,12 +28,9 @@ from resource_management.libraries.functions import StackFeature
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
-ranger_pid_dir = config['configurations']['ranger-env']['ranger_pid_dir']
-tagsync_pid_file = format('{ranger_pid_dir}/tagsync.pid')
 stack_name = default("/hostLevelParams/stack_name", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-ranger_admin_pid_file = format('{ranger_pid_dir}/rangeradmin.pid')
-ranger_usersync_pid_file = format('{ranger_pid_dir}/usersync.pid')
-stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_PID_SUPPORT, stack_version_formatted)
+stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, stack_version_formatted)
+ranger_kms_pid_dir = default("/configurations/kms-env/ranger_kms_pid_dir", "/var/run/ranger_kms")
+ranger_kms_pid_file = format('{ranger_kms_pid_dir}/rangerkms.pid')

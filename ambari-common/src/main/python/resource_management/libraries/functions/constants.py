@@ -90,3 +90,5 @@ class StackFeature:
   HBASE_HOME_DIRECTORY = "hbase_home_directory"
   ATLAS_RANGER_PLUGIN_SUPPORT = "atlas_ranger_plugin_support"
   ATLAS_UPGRADE_SUPPORT = "atlas_upgrade_support"
+  RANGER_PID_SUPPORT = "ranger_pid_support"
+  RANGER_KMS_PID_SUPPORT = "ranger_kms_pid_support"

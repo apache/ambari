@@ -207,6 +207,14 @@ def kms(upgrade_type=None):
               recursive_ownership = True,
     )
 
+    Directory(params.ranger_kms_pid_dir,
+      mode=0755,
+      owner = params.kms_user,
+      group = params.user_group,
+      cd_access = "a",
+      create_parents=True
+    )
+
     Directory(params.kms_log_dir,
       owner = params.kms_user,
       group = params.kms_group,
