@@ -25,7 +25,6 @@ import org.apache.log4j.Logger;
 
 /**
  * Output that just ignore the logs
- *
  */
 public class OutputDevNull extends Output {
 
@@ -33,7 +32,6 @@ public class OutputDevNull extends Output {
 
   @Override
   public void write(String block, InputMarker inputMarker){
-    // just ignore the logs
     logger.trace("Ignore log block: " + block);
   }
 

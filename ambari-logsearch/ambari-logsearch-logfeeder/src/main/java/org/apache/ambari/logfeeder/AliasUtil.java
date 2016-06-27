@@ -41,16 +41,10 @@ public class AliasUtil {
     KLASS
   }
 
-  /**
-   *
-   */
   private AliasUtil() {
     init();
   }
 
-  /**
-   * @return
-   */
   public static AliasUtil getInstance() {
     if (instance == null) {
       synchronized (AliasUtil.class) {
@@ -73,11 +67,6 @@ public class AliasUtil {
   }
 
 
-  /**
-   * @param key
-   * @param aliastype
-   * @return
-   */
   public String readAlias(String key, ALIAS_TYPE aliastype, ALIAS_PARAM aliasParam) {
     String result = key;// key as a default value;
     HashMap<String, String> aliasInfo = getAliasInfo(key, aliastype);

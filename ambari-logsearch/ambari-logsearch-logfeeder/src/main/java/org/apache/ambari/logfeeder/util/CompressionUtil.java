@@ -32,13 +32,6 @@ public class CompressionUtil {
 
   private static final Logger LOG = Logger.getLogger(CompressionUtil.class);
 
-  /**
-   * Compress file
-   * 
-   * @param inputFile
-   * @param outputFile
-   * @param algoName 
-   */
   public static File compressFile(File inputFile, File outputFile, String algoName) {
     CompressorOutputStream cos = null;
     FileInputStream ios = null;
@@ -68,7 +61,6 @@ public class CompressionUtil {
     } catch (Exception e) {
       LOG.error(e);
     } finally {
-      // Close the stream
       if (cos != null) {
         try {
           cos.close();

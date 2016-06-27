@@ -21,24 +21,13 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
-
 public class PlaceholderUtil {
-
-  private static Logger LOG = Logger.getLogger(PlaceholderUtil.class);
 
   private static Pattern placeHolderPattern;
   static {
-//    placeHolderPattern = Pattern.compile("\\{(.*?)\\}");
     placeHolderPattern = Pattern.compile("\\$\\s*(\\w+)");
   }
 
-  /**
-   * 
-   * @param inputStr
-   * @param contextParam
-   * @return String
-   */
   public static String replaceVariables(String inputStr,
       HashMap<String, String> contextParam) {
     Matcher m = placeHolderPattern.matcher(inputStr);
@@ -57,13 +46,6 @@ public class PlaceholderUtil {
     return output;
   }
 
-  /**
-   * 
-   * @param contextParam
-   * @param defaultValue
-   * @param key
-   * @return String
-   */
   private static String getFromContext(HashMap<String, String> contextParam,
       String defaultValue, String key) {
     String returnValue = defaultValue;// by default set default value as a

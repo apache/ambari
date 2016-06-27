@@ -19,11 +19,16 @@
 package org.apache.ambari.view.hive.backgroundjobs;
 
 import org.apache.ambari.view.ViewContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BackgroundJobController {
+  private final static Logger LOG =
+    LoggerFactory.getLogger(BackgroundJobController.class);
+
   private ViewContext context;
 
   protected BackgroundJobController(ViewContext context) {
@@ -39,6 +44,7 @@ public class BackgroundJobController {
 
   private Map<String, Thread> jobs = new HashMap<String, Thread>();
   public void startJob(String key, Runnable runnable) {
+    LOG.info("Starting job with key : {}", key);
     if (jobs.containsKey(key)) {
       interrupt(key);
       try {

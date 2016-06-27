@@ -20,7 +20,6 @@
 package org.apache.ambari.logfeeder.output;
 
 import java.io.File;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,21 +30,15 @@ import org.apache.ambari.logfeeder.MetricCount;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.log4j.Logger;
 
-import com.google.gson.reflect.TypeToken;
-
 public abstract class Output extends ConfigBlock {
   static private Logger logger = Logger.getLogger(Output.class);
 
   String destination = null;
 
-  Type jsonType = new TypeToken<Map<String, String>>() {
-  }.getType();
-
   public MetricCount writeBytesMetric = new MetricCount();
 
   @Override
   public String getShortDescription() {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -63,11 +56,6 @@ public abstract class Output extends ConfigBlock {
   public abstract void copyFile(File inputFile, InputMarker inputMarker)
       throws UnsupportedOperationException;
 
-  /**
-   * @param jsonObj
-   * @param input
-   * @throws Exception
-   */
   public void write(Map<String, Object> jsonObj, InputMarker inputMarker)
     throws Exception {
     write(LogFeederUtil.getGson().toJson(jsonObj), inputMarker);
@@ -85,8 +73,6 @@ public abstract class Output extends ConfigBlock {
 
   /**
    * This is called on shutdown. All output should extend it.
-   *
-   * @return
    */
   public boolean isClosed() {
     return isClosed;
@@ -114,9 +100,7 @@ public abstract class Output extends ConfigBlock {
   public synchronized void logStat() {
     super.logStat();
 
-    //Printing stat for writeBytesMetric
     logStatForMetric(writeBytesMetric, "Stat: Bytes Written");
-
   }
   
   public void trimStrValue(Map<String, Object> jsonObj) {

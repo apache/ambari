@@ -20,7 +20,6 @@ package org.apache.ambari.view.capacityscheduler;
 
 import org.apache.ambari.view.AmbariHttpException;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.capacityscheduler.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.capacityscheduler.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.commons.io.IOUtils;
@@ -30,7 +29,14 @@ import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -117,14 +123,17 @@ public class ConfigurationService {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response readLatestConfiguration() {
+    LOG.debug("reading all configurations");
     Response response = null;
     try {
       String versionTag = getVersionTag();
       JSONObject configurations = getConfigurationFromAmbari(versionTag);
       response = Response.ok(configurations).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Error occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Error occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
@@ -140,19 +149,23 @@ public class ConfigurationService {
   @Path("cluster")
   @Produces(MediaType.APPLICATION_JSON)
   public Response readClusterInfo() {
+    LOG.debug("Reading cluster info.");
     Response response = null;
     try {
       JSONObject configurations = readFromCluster("");
       response = Response.ok(configurations).build();
     } catch (AmbariHttpException ex) {
+      LOG.error("Error occurred : ", ex);
       if (ex.getResponseCode() == 403) {
         throw new ServiceFormattedException("You do not have permission to view Capacity Scheduler configuration. Contact your Cluster administrator", ex);
       } else {
         throw new ServiceFormattedException(ex.getMessage(), ex);
       }
     } catch (WebApplicationException ex) {
+      LOG.error("Error occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Error occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
@@ -168,13 +181,16 @@ public class ConfigurationService {
   @Path("all")
   @Produces(MediaType.APPLICATION_JSON)
   public Response readAllConfigurations() {
+    LOG.debug("Reading all configurations.");
     Response response = null;
     try {
       JSONObject responseJSON = readFromCluster(CONFIGURATION_URL);
       response = Response.ok( responseJSON ).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Error occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Error occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
@@ -190,13 +206,16 @@ public class ConfigurationService {
   @Path("byTag/{tag}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response readConfigurationByTag(@PathParam("tag") String tag) {
+    LOG.info("Reading configurations for tag : {}", tag);
     Response response = null;
     try {
       JSONObject configurations = getConfigurationFromAmbari(tag);
       response = Response.ok(configurations).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
@@ -212,6 +231,7 @@ public class ConfigurationService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/privilege")
   public Response getPrivilege() {
+    LOG.debug("Reading privilege.");
     Response response = null;
 
     try {
@@ -219,8 +239,10 @@ public class ConfigurationService {
 
       response = Response.ok(operator).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
@@ -236,6 +258,7 @@ public class ConfigurationService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/nodeLabels")
   public Response getNodeLabels() {
+    LOG.debug("reading nodeLables");
     Response response;
 
     try {
@@ -247,10 +270,13 @@ public class ConfigurationService {
 
       response = Response.ok(nodeLabels).build();
     } catch (ConnectException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException("Connection to Resource Manager refused", ex);
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
@@ -279,7 +305,7 @@ public class ConfigurationService {
       }
 
     } catch (AmbariHttpException e) {
-      LOG.info("Got Error response from url : {}. Response : {}", url, e.getMessage());
+      LOG.error("Got Error response from url : {}. Response : {}", url, e.getMessage(), e);
     }
 
     return false;
@@ -367,10 +393,12 @@ public class ConfigurationService {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response writeConfiguration(JSONObject request) {
+    LOG.debug("writeConfiguration for request : {} ", request);
     JSONObject response;
     try {
 
       if (isOperator() == false) {
+        LOG.error("returning 401 as not an operator.");
         return Response.status(401).build();
       }
 
@@ -380,8 +408,10 @@ public class ConfigurationService {
       response = getJsonObject(responseString);
 
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
@@ -398,9 +428,11 @@ public class ConfigurationService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/saveAndRefresh")
   public Response writeAndRefreshConfiguration(JSONObject request) {
+    LOG.debug("writeAndRefreshConfiguration for request : {} ", request);
     try {
 
       if (isOperator() == false) {
+        LOG.error("throwing 401 error as not an operator");
         return Response.status(401).build();
       }
 
@@ -412,8 +444,10 @@ public class ConfigurationService {
       ambariApi.requestClusterAPI("requests/", "POST", data.toJSONString(), headers);
 
     } catch (WebApplicationException ex) {
+      LOG.info("Exception Occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.info("Exception Occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
     return readLatestConfiguration();
@@ -429,9 +463,11 @@ public class ConfigurationService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/saveAndRestart")
   public Response writeAndRestartConfiguration(JSONObject request) {
+    LOG.debug("writeAndRestartConfiguration for request : {} ", request);
     try {
 
       if (isOperator() == false) {
+        LOG.error("throwing 401 error as not an operator.");
         return Response.status(401).build();
       }
 
@@ -444,8 +480,10 @@ public class ConfigurationService {
       ambariApi.requestClusterAPI("requests/", "POST", data.toJSONString(), headers);
 
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occured : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occured : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
     return readLatestConfiguration();
@@ -460,6 +498,7 @@ public class ConfigurationService {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/getConfig")
   public Response getConfigurationValue(@QueryParam("siteName") String siteName,@QueryParam("configName") String configName){
+    LOG.info("Get configuration value for siteName {}, configName {}", siteName, configName);
     try{
       String configValue = context.getCluster().getConfigurationValue(siteName,configName);
       JSONObject res = new JSONObject();
@@ -472,8 +511,10 @@ public class ConfigurationService {
       res.put("configs" ,arr);
       return Response.ok(res).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occurred : ", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occurred : ", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
