@@ -9,7 +9,9 @@
         "RANGER_USERSYNC", 
         "ZOOKEEPER_SERVER", 
         "ZOOKEEPER_CLIENT", 
-        "KERBEROS_CLIENT"
+        "KERBEROS_CLIENT",
+        "LOGSEARCH_SOLR",
+        "LOGSEARCH_SOLR_CLIENT"
     ], 
     "configuration_attributes": {
         "ranger-hdfs-audit": {}, 
@@ -51,7 +53,9 @@
         "tagsync-log4j": {}, 
         "ranger-hdfs-security": {}, 
         "usersync-properties": {}, 
-        "zookeeper-env": {}, 
+        "zookeeper-env": {},
+        "logsearch-solr-env": {},
+        "logsearch-solr-client-log4j": {},
         "cluster-env": {}
     }, 
     "public_hostname": "c6401.ambari.apache.org", 
@@ -152,7 +156,13 @@
         }, 
         "zookeeper-env": {
             "tag": "version1467016680492"
-        }, 
+        },
+        "logsearch-solr-env": {
+            "tag": "version1467098537360"
+        },
+        "logsearch-solr-client-log4j": {
+            "tag": "version1467096917836"
+        },
         "cluster-env": {
             "tag": "version1467016680567"
         }
@@ -244,6 +254,9 @@
         ], 
         "zookeeper_hosts": [
             "c6401.ambari.apache.org"
+        ],
+        "logsearch_solr_hosts": [
+            "c6401.ambari.apache.org"
         ]
     }, 
     "configurations": {
@@ -301,7 +314,7 @@
             "ranger.truststore.password": "changeit", 
             "ranger.ldap.bind.password": "{{ranger_usersync_ldap_ldapbindpassword}}", 
             "ranger.audit.solr.password": "NONE", 
-            "ranger.audit.solr.zookeepers": "NONE", 
+            "ranger.audit.solr.zookeepers": "c6401.ambari.apache.org:2181/ambari-solr", 
             "ranger.lookup.kerberos.principal": "rangerlookup/_HOST@EXAMPLE.COM",
             "ranger.service.https.port": "6182", 
             "ranger.plugins.storm.serviceuser": "storm", 
@@ -364,6 +377,7 @@
             "ranger_solr_shards": "1", 
             "ranger_solr_config_set": "ranger_audits", 
             "ranger_user": "ranger", 
+            "ranger_solr_replication_factor": "1",
             "xml_configurations_supported": "true", 
             "ranger-atlas-plugin-enabled": "No", 
             "ranger-hbase-plugin-enabled": "No", 
@@ -371,7 +385,7 @@
             "bind_anonymous": "false", 
             "ranger_admin_username": "amb_ranger_admin", 
             "admin_password": "admin", 
-            "is_solrCloud_enabled": "false", 
+            "is_solrCloud_enabled": "true", 
             "ranger-storm-plugin-enabled": "No", 
             "ranger-hdfs-plugin-enabled": "No", 
             "ranger_group": "ranger", 
@@ -696,7 +710,35 @@
             "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOOKEEPER_HOME={{zk_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}", 
             "zk_pid_dir": "/var/run/zookeeper", 
             "zookeeper_principal_name": "zookeeper/_HOST@EXAMPLE.COM"
-        }, 
+        },
+        "logsearch-solr-env": {
+            "logsearch_solr_datadir": "/opt/logsearch_solr/data", 
+            "logsearch_solr_keystore_location": "/etc/security/serverKeys/logsearch.keyStore.jks", 
+            "logsearch_solr_kerberos_name_rules": "DEFAULT", 
+            "logsearch_solr_user": "logsearch-solr", 
+            "logsearch_solr_maxmem": "1024", 
+            "content": "#!/bin/bash\n# Licensed to the Apache Software Foundation (ASF) under one or more\n# contributor license agreements. See the NOTICE file distributed with\n# this work for additional information regarding copyright ownership.\n# The ASF licenses this file to You under the Apache License, Version 2.0\n# (the \"License\"); you may not use this file except in compliance with\n# the License. You may obtain a copy of the License at\n#\n# http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# By default the script will use JAVA_HOME to determine which java\n# to use, but you can set a specific path for Solr to use without\n# affecting other Java applications on your server/workstation.\nSOLR_JAVA_HOME={{java64_home}}\n\n# Increase Java Min/Max Heap as needed to support your indexing / query needs\nSOLR_JAVA_MEM=\"-Xms{{logsearch_solr_min_mem}}m -Xmx{{logsearch_solr_max_mem}}m\"\n\n# Enable verbose GC logging\nGC_LOG_OPTS=\"-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails \\\n-XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime\"\n\n# These GC settings have shown to work well for a number of common Solr workloads\nGC_TUNE=\"-XX:NewRatio=3 \\\n-XX:SurvivorRatio=4 \\\n-XX:TargetSurvivorRatio=90 \\\n-XX:MaxTenuringThreshold=8 \\\n-XX:+UseConcMarkSweepGC \\\n-XX:+UseParNewGC \\\n-XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 \\\n-XX:+CMSScavengeBeforeRemark \\\n-XX:PretenureSizeThreshold=64m \\\n-XX:+UseCMSInitiatingOccupancyOnly \\\n-XX:CMSInitiatingOccupancyFraction=50 \\\n-XX:CMSMaxAbortablePrecleanTime=6000 \\\n-XX:+CMSParallelRemarkEnabled \\\n-XX:+ParallelRefProcEnabled\"\n\n# Set the ZooKeeper connection string if using an external ZooKeeper ensemble\n# e.g. host1:2181,host2:2181/chroot\n# Leave empty if not using SolrCloud\nZK_HOST=\"{{zookeeper_quorum}}{{logsearch_solr_znode}}\"\n\n# Set the ZooKeeper client timeout (for SolrCloud mode)\nZK_CLIENT_TIMEOUT=\"60000\"\n\n# By default the start script uses \"localhost\"; override the hostname here\n# for production SolrCloud environments to control the hostname exposed to cluster state\n#SOLR_HOST=\"192.168.1.1\"\n\n# By default the start script uses UTC; override the timezone if needed\n#SOLR_TIMEZONE=\"UTC\"\n\n# Set to true to activate the JMX RMI connector to allow remote JMX client applications\n# to monitor the JVM hosting Solr; set to \"false\" to disable that behavior\n# (false is recommended in production environments)\nENABLE_REMOTE_JMX_OPTS=\"true\"\n\n# The script will use SOLR_PORT+10000 for the RMI_PORT or you can set it here\nRMI_PORT={{logsearch_solr_jmx_port}}\n\n# Anything you add to the SOLR_OPTS variable will be included in the java\n# start command line as-is, in ADDITION to other options. If you specify the\n# -a option on start script, those options will be appended as well. Examples:\n#SOLR_OPTS=\"$SOLR_OPTS -Dsolr.autoSoftCommit.maxTime=3000\"\n#SOLR_OPTS=\"$SOLR_OPTS -Dsolr.autoCommit.maxTime=60000\"\n#SOLR_OPTS=\"$SOLR_OPTS -Dsolr.clustering.enabled=true\"\n\n# Location where the bin/solr script will save PID files for running instances\n# If not set, the script will create PID files in $SOLR_TIP/bin\nSOLR_PID_DIR={{logsearch_solr_piddir}}\n\n# Path to a directory where Solr creates index files, the specified directory\n# must contain a solr.xml; by default, Solr will use server/solr\nSOLR_HOME={{logsearch_solr_datadir}}\n\n# Solr provides a default Log4J configuration properties file in server/resources\n# however, you may want to customize the log settings and file appender location\n# so you can point the script to use a different log4j.properties file\nLOG4J_PROPS={{logsearch_solr_conf}}/log4j.properties\n\n# Location where Solr should write logs to; should agree with the file appender\n# settings in server/resources/log4j.properties\nSOLR_LOGS_DIR={{logsearch_solr_log_dir}}\n\n# Sets the port Solr binds to, default is 8983\nSOLR_PORT={{logsearch_solr_port}}\n\n# Be sure to update the paths to the correct keystore for your environment\n{% if logsearch_solr_ssl_enabled %}\nSOLR_SSL_KEY_STORE={{logsearch_solr_keystore_location}}\nSOLR_SSL_KEY_STORE_PASSWORD={{logsearch_solr_keystore_password}}\nSOLR_SSL_TRUST_STORE={{logsearch_solr_keystore_location}}\nSOLR_SSL_TRUST_STORE_PASSWORD={{logsearch_solr_keystore_password}}\nSOLR_SSL_NEED_CLIENT_AUTH=false\nSOLR_SSL_WANT_CLIENT_AUTH=false\n{% endif %}\n\n# Uncomment to set a specific SSL port (-Djetty.ssl.port=N); if not set\n# and you are using SSL, then the start script will use SOLR_PORT for the SSL port\n#SOLR_SSL_PORT=\n\n{% if security_enabled -%}\nSOLR_HOST=`hostname -f`\nSOLR_JAAS_FILE={{logsearch_solr_jaas_file}}\nSOLR_KERB_KEYTAB={{logsearch_solr_web_kerberos_keytab}}\nSOLR_KERB_PRINCIPAL={{logsearch_solr_web_kerberos_principal}}\nSOLR_KERB_NAME_RULES={{logsearch_solr_kerberos_name_rules}}\n\nSOLR_AUTHENTICATION_CLIENT_CONFIGURER=\"org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer\"\nSOLR_AUTHENTICATION_OPTS=\" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST} -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}\"\n{% endif %}", 
+            "logsearch_solr_pid_dir": "/var/run/ambari-logsearch-solr", 
+            "logsearch_solr_truststore_password": "bigdata", 
+            "logsearch_solr_truststore_type": "jks", 
+            "logsearch_solr_keystore_type": "jks", 
+            "logsearch_solr_log_dir": "/var/log/ambari-logsearch-solr", 
+            "logsearch_solr_web_kerberos_keytab": "/etc/security/keytabs/spnego.service.keytab", 
+            "logsearch_solr_ssl_enabled": "false", 
+            "logsearch_solr_client_log_dir": "/var/log/ambari-logsearch-solr-client", 
+            "logsearch_solr_web_kerberos_principal": "HTTP/_HOST@EXAMPLE.COM", 
+            "logsearch_solr_znode": "/ambari-solr", 
+            "logsearch_solr_keystore_password": "bigdata", 
+            "logsearch_solr_port": "8886", 
+            "logsearch_solr_kerberos_principal": "logsearch-solr/_HOST@EXAMPLE.COM", 
+            "logsearch_solr_jmx_port": "18886", 
+            "logsearch_solr_truststore_location": "/etc/security/serverKeys/logsearch.trustStore.jks", 
+            "logsearch_solr_minmem": "512", 
+            "logsearch_solr_kerberos_keytab": "/etc/security/keytabs/logsearch-solr.service.keytab"
+        },
+        "logsearch-solr-client-log4j": {
+            "content": "# Copyright 2011 The Apache Software Foundation\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\nlog4j.rootLogger=INFO,file,stdout,stderr\n\nlog4j.appender.file=org.apache.log4j.RollingFileAppender\nlog4j.appender.file.File={{logsearch_solr_client_log}}\nlog4j.appender.file.MaxFileSize=80MB\nlog4j.appender.file.MaxBackupIndex=60\nlog4j.appender.file.layout=org.apache.log4j.PatternLayout\nlog4j.appender.file.layout.ConversionPattern=%d{DATE} %5p [%t] %c{1}:%L - %m%n\n\nlog4j.appender.stdout=org.apache.log4j.ConsoleAppender\nlog4j.appender.stdout.Threshold=INFO\nlog4j.appender.stdout.Target=System.out\nlog4j.appender.stdout.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stdout.layout.ConversionPattern=%m%n\n\nlog4j.appender.stderr=org.apache.log4j.ConsoleAppender\nlog4j.appender.stderr.Threshold=ERROR\nlog4j.appender.stderr.Target=System.err\nlog4j.appender.stderr.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stderr.layout.ConversionPattern=%m%n"
+        },
         "cluster-env": {
             "security_enabled": "true", 
             "override_uid": "true", 

@@ -22,7 +22,7 @@ import re
 import random
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute, Link
-from resource_management.core.source import DownloadSource, InlineTemplate
+from resource_management.core.source import DownloadSource, InlineTemplate, Template
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import ModifyPropertiesFile
 from resource_management.libraries.resources.properties_file import PropertiesFile
@@ -190,6 +190,10 @@ def setup_ranger_admin(upgrade_type=None):
   do_keystore_setup(upgrade_type=upgrade_type)
 
   create_core_site_xml(ranger_conf)
+
+  if params.stack_supports_logsearch_client and params.is_solrCloud_enabled:
+    solr_cloud_util.setup_solr_client(params.config, user = params.solr_user, custom_log4j = params.custom_log4j)
+    setup_ranger_audit_solr()
 
 def setup_ranger_db(stack_version=None):
   import params
@@ -557,9 +561,15 @@ def setup_ranger_audit_solr():
   random_num = random.random()
   tmp_config_set_folder = format('{tmp_dir}/ranger_config_{ranger_solr_config_set}_{random_num}')
 
+  if params.security_enabled and params.stack_supports_ranger_kerberos:
+    File(format("{solr_jaas_file}"),
+      content=Template("ranger_solr_jass_conf.j2"),
+      owner=params.unix_user
+    )
+
   solr_cloud_util.upload_configuration_to_zk(
     zookeeper_quorum = params.zookeeper_quorum,
-    solr_znode = params.logsearch_solr_znode,
+    solr_znode = params.solr_znode,
     config_set = params.ranger_solr_config_set,
     config_set_dir = params.ranger_solr_conf,
     tmp_config_set_dir = tmp_config_set_folder,
@@ -569,10 +579,11 @@ def setup_ranger_audit_solr():
 
   solr_cloud_util.create_collection(
     zookeeper_quorum = params.zookeeper_quorum,
-    solr_znode = params.logsearch_solr_znode,
+    solr_znode = params.solr_znode,
     collection = params.ranger_solr_collection_name,
     config_set = params.ranger_solr_config_set,
     java64_home = params.java_home,
     user = params.unix_user,
     shards = params.ranger_solr_shards,
-    replication_factor = params.replication_factor)
+    replication_factor = int(params.replication_factor),
+    jaas_file = params.solr_jaas_file)

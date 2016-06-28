@@ -46,7 +46,7 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
   """
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home)
   Execute(format('{solr_cli_prefix} --download-config --config-dir {tmp_config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}'),
-          only_if=as_user(format("{solr_cli_prefix} --check-config --config-set{config_set} --retry {retry} --interval {interval}"), user),
+          only_if=as_user(format("{solr_cli_prefix} --check-config --config-set {config_set} --retry {retry} --interval {interval}"), user),
           user=user
           )
 

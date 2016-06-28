@@ -52,7 +52,7 @@ def should_install_logsearch_solr():
 
 def should_install_logsearch_solr_client():
   config = Script.get_config()
-  return 'role' in config and (config['role'] == "LOGSEARCH_SOLR_CLIENT" or config['role'] == 'ATLAS_SERVER')
+  return 'role' in config and (config['role'] == "LOGSEARCH_SOLR_CLIENT" or config['role'] == 'ATLAS_SERVER' or config['role'] == 'RANGER_ADMIN')
 
 def should_install_logsearch_portal():
   config = Script.get_config()
