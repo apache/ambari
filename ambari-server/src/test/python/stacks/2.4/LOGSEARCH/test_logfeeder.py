@@ -27,35 +27,24 @@ class TestLogFeeder(RMFTestCase):
   STACK_VERSION = "2.4"
 
   def configureResourcesCalled(self):
-    self.assertResourceCalled('User', 'logfeeder',
-                              groups = ['hadoop', 'agent_group'],
-                              fetch_nonlocal_groups = True)
     self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-logfeeder',
                               create_parents=True,
-                              owner = 'logfeeder',
-                              group = 'hadoop',
                               cd_access='a',
                               mode=0755
                               )
     self.assertResourceCalled('Directory', '/var/run/ambari-logsearch-logfeeder',
                               create_parents=True,
-                              owner = 'logfeeder',
-                              group = 'hadoop',
                               cd_access='a',
                               mode=0755
                               )
     self.assertResourceCalled('Directory', '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
                               create_parents=True,
-                              owner = 'logfeeder',
-                              group = 'hadoop',
                               cd_access='a',
                               mode=0755
                               )
 
     self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-logfeeder',
                               create_parents=True,
-                              owner = 'logfeeder',
-                              group = 'hadoop',
                               recursive_ownership=True,
                               cd_access='a',
                               mode=0755
@@ -63,38 +52,26 @@ class TestLogFeeder(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/ambari-logsearch-logfeeder/conf',
                               create_parents=True,
                               recursive_ownership=True,
-                              owner = 'logfeeder',
-                              group = 'hadoop',
                               cd_access='a',
                               mode=0755
                               )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-logfeeder/logfeeder.out',
                               mode=0644,
-                              content='',
-                              owner = 'logfeeder',
-                              group = 'hadoop'
+                              content=''
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
-                              content=Template('logfeeder.properties.j2'),
-                              owner = 'logfeeder',
-                              group = 'hadoop'
+                              content=Template('logfeeder.properties.j2')
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh',
                               mode=0755,
-                              owner = 'logfeeder',
-                              group = 'hadoop',
                               content=InlineTemplate(self.getConfig()['configurations']['logfeeder-env']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/log4j.xml',
-                              content=InlineTemplate(self.getConfig()['configurations']['logfeeder-log4j']['content']),
-                              owner = 'logfeeder',
-                              group = 'hadoop'
+                              content=InlineTemplate(self.getConfig()['configurations']['logfeeder-log4j']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/grok-patterns',
                               content=Template('grok-patterns.j2'),
-                              owner = 'logfeeder',
-                              group = 'hadoop',
                               encoding='utf-8'
                               )
 
@@ -106,14 +83,10 @@ class TestLogFeeder(RMFTestCase):
 
     for file_name in logfeeder_config_file_names:
       self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/' + file_name,
-                                content=Template(file_name + ".j2"),
-                                owner = 'logfeeder',
-                                group = 'hadoop'
+                                content=Template(file_name + ".j2")
                                 )
-  @patch('grp.getgrgid')
-  def test_configure_default(self, grp_mock):
-    grp_mock.return_value = MagicMock()
-    grp_mock.return_value.gr_name = 'agent_group'
+
+  def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logfeeder.py",
                        classname="LogFeeder",
                        command="configure",
@@ -125,10 +98,7 @@ class TestLogFeeder(RMFTestCase):
     self.configureResourcesCalled()
     self.assertNoMoreResources()
 
-  @patch('grp.getgrgid')
-  def test_start_default(self, grp_mock):
-    grp_mock.return_value = MagicMock()
-    grp_mock.return_value.gr_name = 'agent_group'
+  def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logfeeder.py",
                        classname="LogFeeder",
                        command="start",
@@ -138,8 +108,7 @@ class TestLogFeeder(RMFTestCase):
                        )
 
     self.configureResourcesCalled()
-    self.assertResourceCalled('Execute', '/usr/lib/ambari-logsearch-logfeeder/run.sh',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/lib/ambari-logsearch-logfeeder/run.sh',
                               environment={
-                                'LOGFEEDER_INCLUDE': '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh'},
-                              user = 'logfeeder'
+                                'LOGFEEDER_INCLUDE': '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh'}
                               )
