@@ -454,10 +454,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Update 'hive.llap.daemon.queue.name' prop combo entries and llap capacity slider visibility.
     self.setLlapDaemonQueuePropAttributesAndCapSliderVisibility(services, configurations)
 
-    read_llap_daemon_yarn_cont_mb = long(self.get_yarn_min_container_size(services, configurations))
-    putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', read_llap_daemon_yarn_cont_mb)
-    # initial memory setting to make sure hive.llap.daemon.yarn.container.mb >= yarn.scheduler.minimum-allocation-mb
-    Logger.debug("Adjusted 'hive.llap.daemon.yarn.container.mb' to yarn min container size as initial size "
+    if not services["changed-configurations"]:
+      read_llap_daemon_yarn_cont_mb = long(self.get_yarn_min_container_size(services, configurations))
+      putHiveInteractiveSiteProperty('hive.llap.daemon.yarn.container.mb', read_llap_daemon_yarn_cont_mb)
+      # initial memory setting to make sure hive.llap.daemon.yarn.container.mb >= yarn.scheduler.minimum-allocation-mb
+      Logger.info("Adjusted 'hive.llap.daemon.yarn.container.mb' to yarn min container size as initial size "
                  "(" + str(self.get_yarn_min_container_size(services, configurations)) + " MB).")
 
     try:
