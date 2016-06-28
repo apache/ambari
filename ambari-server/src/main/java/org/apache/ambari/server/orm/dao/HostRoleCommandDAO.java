@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
-import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
-
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,6 +43,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -138,10 +136,13 @@ public class HostRoleCommandDAO {
 
 
   @Inject
-  Provider<EntityManager> entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
 
   @Inject
-  DaoUtils daoUtils;
+  private DaoUtils daoUtils;
+
+  @Inject
+  private Configuration configuration;
 
   /**
    * Used to ensure that methods which rely on the completion of
@@ -278,10 +279,10 @@ public class HostRoleCommandDAO {
         "ORDER BY task.taskId",
       HostRoleCommandEntity.class);
 
-    if (daoUtils.getDbType().equals(ORACLE) && taskIds.size() > ORACLE_LIST_LIMIT) {
+    if (taskIds.size() > configuration.getTaskIdListLimit()) {
       List<HostRoleCommandEntity> result = new ArrayList<HostRoleCommandEntity>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), ORACLE_LIST_LIMIT);
+      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> list : lists) {
         result.addAll(daoUtils.selectList(query, list));
       }
@@ -348,10 +349,10 @@ public class HostRoleCommandDAO {
             "ORDER BY task.taskId", Long.class
     );
 
-    if (daoUtils.getDbType().equals(ORACLE) && taskIds.size() > ORACLE_LIST_LIMIT) {
+    if (taskIds.size() > configuration.getTaskIdListLimit()) {
       List<Long> result = new ArrayList<Long>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), ORACLE_LIST_LIMIT);
+      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> taskIdList : lists) {
         result.addAll(daoUtils.selectList(query, requestIds, taskIdList));
       }

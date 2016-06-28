@@ -777,6 +777,14 @@ public class Configuration {
    */
   public static final String METRIC_RETRIEVAL_SERVICE_THREADPOOL_WORKER_QUEUE_SIZE = "server.metrics.retrieval-service.threadpool.worker.size";
 
+  /**
+   * The number of tasks that can be queried from the database at once
+   * In the case of more tasks, multiple queries are issued
+   * @return
+   */
+  private static final String TASK_ID_LIST_LIMIT = "task.query.parameterlist.size";
+  private static final int TASK_ID_LIST_LIMIT_DEFAULT = 999;
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -3214,6 +3222,16 @@ public class Configuration {
     return Integer.parseInt(
         properties.getProperty(METRIC_RETRIEVAL_SERVICE_THREADPOOL_WORKER_QUEUE_SIZE,
             String.valueOf(10 * getMetricsServiceThreadPoolMaxSize())));
+  }
+
+  /**
+   * Returns the number of tasks that can be queried from the database at once
+   * In the case of more tasks, multiple queries are issued
+   * @return
+   */
+  public int getTaskIdListLimit() {
+    return Integer.parseInt(properties.getProperty(TASK_ID_LIST_LIMIT,
+            String.valueOf(TASK_ID_LIST_LIMIT_DEFAULT)));
   }
 
 }
