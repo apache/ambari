@@ -331,7 +331,7 @@ class RangeradminV2:
 
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
-  def get_repository_by_name_curl(self, component_user,component_user_keytab,component_user_principal,name, component, status):
+  def get_repository_by_name_curl(self, component_user, component_user_keytab, component_user_principal, name, component, status, is_keyadmin = False):
     """
     :param component_user: service user for which call is to be made
     :param component_user_keytab: keytab of service user
@@ -344,6 +344,8 @@ class RangeradminV2:
     """
     try:
       search_repo_url = self.url_repos_pub + "?serviceName=" + name + "&serviceType=" + component + "&isEnabled=" + status
+      if is_keyadmin:
+        search_repo_url = '{0}&suser=keyadmin'.format(search_repo_url)
       response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,request_method='GET')
       response_stripped = response[1:len(response) - 1]
       if response_stripped and len(response_stripped) > 0:
@@ -360,7 +362,7 @@ class RangeradminV2:
 
 
   @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
-  def create_repository_curl(self,component_user,component_user_keytab,component_user_principal,name, data,policy_user):
+  def create_repository_curl(self, component_user, component_user_keytab, component_user_principal, name, data, policy_user, is_keyadmin = False):
     """
     :param component_user: service user for which call is to be made
     :param component_user_keytab: keytab of service user
@@ -371,6 +373,8 @@ class RangeradminV2:
     """
     try:
       search_repo_url = self.url_repos_pub
+      if is_keyadmin:
+        search_repo_url = '{0}?suser=keyadmin'.format(search_repo_url)
       header = 'Content-Type: application/json'
       method = 'POST'
 
