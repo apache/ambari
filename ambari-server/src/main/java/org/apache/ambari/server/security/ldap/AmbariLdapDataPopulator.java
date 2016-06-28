@@ -101,7 +101,7 @@ public class AmbariLdapDataPopulator {
   private static final int USERS_PAGE_SIZE = 500;
 
   // REGEXP to check member attribute starts with "cn=" or "uid=" - case insensitive
-  private static final String IS_MEMBER_DN_REGEXP = "^(?i)(%s|%s)=.*$";
+  private static final String IS_MEMBER_DN_REGEXP = "^(?i)(uid|cn|%s|%s)=.*$";
 
   private static final String MEMBER_ATTRIBUTE_REPLACE_STRING = "${member}";
   private static final String MEMBER_ATTRIBUTE_VALUE_PLACEHOLDER = "{member}";

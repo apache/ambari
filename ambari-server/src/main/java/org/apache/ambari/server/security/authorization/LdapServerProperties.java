@@ -63,6 +63,7 @@ public class LdapServerProperties {
   private String syncGroupMemberFilter = "";
   //LDAP pagination properties
   private boolean paginationEnabled = true;
+  private String adminGroupMappingMemberAttr = ""; // custom group search filter for admin mappings
 
   public List<String> getLdapUrls() {
     String protocol = useSsl ? "ldaps://" : "ldap://";
@@ -301,6 +302,14 @@ public class LdapServerProperties {
     this.syncGroupMemberFilter = syncGroupMemberFilter;
   }
 
+  public String getAdminGroupMappingMemberAttr() {
+    return adminGroupMappingMemberAttr;
+  }
+
+  public void setAdminGroupMappingMemberAttr(String adminGroupMappingMemberAttr) {
+    this.adminGroupMappingMemberAttr = adminGroupMappingMemberAttr;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -352,6 +361,7 @@ public class LdapServerProperties {
 
     if (userSearchFilter != null ? !userSearchFilter.equals(that.userSearchFilter) : that.userSearchFilter != null) return false;
     if (alternateUserSearchFilter != null ? !alternateUserSearchFilter.equals(that.alternateUserSearchFilter) : that.alternateUserSearchFilter != null) return false;
+    if (adminGroupMappingMemberAttr != null ? !adminGroupMappingMemberAttr.equals(that.adminGroupMappingMemberAttr) : that.adminGroupMappingMemberAttr != null) return false;
 
 
     return true;
@@ -383,6 +393,7 @@ public class LdapServerProperties {
     result = 31 * result + (referralMethod != null ? referralMethod.hashCode() : 0);
     result = 31 * result + (userSearchFilter != null ? userSearchFilter.hashCode() : 0);
     result = 31 * result + (alternateUserSearchFilter != null ? alternateUserSearchFilter.hashCode() : 0);
+    result = 31 * result + (adminGroupMappingMemberAttr != null ? adminGroupMappingMemberAttr.hashCode() : 0);
     return result;
   }
 
@@ -396,5 +407,4 @@ public class LdapServerProperties {
       .replace("{usernameAttribute}", usernameAttribute)
       .replace("{userObjectClass}", userObjectClass);
   }
-
 }
