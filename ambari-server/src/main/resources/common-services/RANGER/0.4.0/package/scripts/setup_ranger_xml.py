@@ -112,6 +112,14 @@ def setup_ranger_admin(upgrade_type=None):
             recursive_ownership = True,
   )
 
+  Directory(params.ranger_pid_dir,
+    mode=0755,
+    owner = params.unix_user,
+    group = params.user_group,
+    cd_access = "a",
+    create_parents=True
+  )
+
   Directory(params.admin_log_dir,
     owner = params.unix_user,
     group = params.unix_group,
@@ -342,10 +350,12 @@ def setup_usersync(upgrade_type=None):
     password_validation(params.ranger_usersync_ldap_ldapbindpassword)
 
   Directory(params.ranger_pid_dir,
-    mode=0750,
+    mode=0755,
     owner = params.unix_user,
-    group = params.unix_group
-  )  
+    group = params.user_group,
+    cd_access = "a",
+    create_parents=True
+  )
 
   Directory(params.usersync_log_dir,
     owner = params.unix_user,
@@ -454,10 +464,10 @@ def setup_tagsync(upgrade_type=None):
   )
 
   Directory(params.ranger_pid_dir,
-    mode=0750,
+    mode=0755,
     create_parents=True,
     owner = params.unix_user,
-    group = params.unix_group,
+    group = params.user_group,
     cd_access = "a",
   )
 

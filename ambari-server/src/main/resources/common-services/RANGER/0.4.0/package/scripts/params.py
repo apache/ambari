@@ -65,6 +65,7 @@ stack_supports_ranger_log4j =  stack_version_formatted and check_stack_feature(S
 stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 stack_supports_usersync_passwd = stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, stack_version_formatted)
 stack_supports_logsearch = stack_version_formatted and check_stack_feature(StackFeature.LOGSEARCH_SUPPORT, stack_version_formatted)
+stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_PID_SUPPORT, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
@@ -319,3 +320,8 @@ if stack_supports_ranger_kerberos and not has_namenode:
     core_site_property['hadoop.security.auth_to_local'] = core_site_auth_to_local_property
 
 restart_type = default("/commandParams/restart_type", "")
+
+# ranger service pid
+user_group = config['configurations']['cluster-env']['user_group']
+ranger_admin_pid_file = format('{ranger_pid_dir}/rangeradmin.pid')
+ranger_usersync_pid_file = format('{ranger_pid_dir}/usersync.pid')

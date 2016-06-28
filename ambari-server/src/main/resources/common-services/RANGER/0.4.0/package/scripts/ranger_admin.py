@@ -17,11 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
@@ -55,7 +57,10 @@ class RangerAdmin(Script):
 
     env.set_params(params)
     Execute(format('{params.ranger_stop}'), environment={'JAVA_HOME': params.java_home}, user=params.unix_user)
-
+    if params.stack_supports_pid:
+      File(params.ranger_admin_pid_file,
+        action = "delete"
+      )
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -86,6 +91,11 @@ class RangerAdmin(Script):
     import status_params
 
     env.set_params(status_params)
+
+    if status_params.stack_supports_pid:
+      check_process_status(status_params.ranger_admin_pid_file)
+      return
+
     cmd = 'ps -ef | grep proc_rangeradmin | grep -v grep'
     code, output = shell.call(cmd, timeout=20)
 

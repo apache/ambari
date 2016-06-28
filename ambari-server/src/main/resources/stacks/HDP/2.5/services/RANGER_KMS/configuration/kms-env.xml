@@ -30,4 +30,15 @@
     <description>HSM partition password</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>ranger_kms_pid_dir</name>
+    <value>/var/run/ranger_kms</value>
+    <description/>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
