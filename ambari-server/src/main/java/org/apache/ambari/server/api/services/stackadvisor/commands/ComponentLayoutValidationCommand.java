@@ -44,8 +44,7 @@ public class ComponentLayoutValidationCommand extends StackAdvisorCommand<Valida
   @Override
   protected void validate(StackAdvisorRequest request) throws StackAdvisorException {
     if (request.getHosts() == null || request.getHosts().isEmpty() || request.getServices() == null
-        || request.getServices().isEmpty() || request.getComponentHostsMap() == null
-        || request.getComponentHostsMap().isEmpty()) {
+        || request.getServices().isEmpty()) {
       throw new StackAdvisorException("Hosts, services and recommendations must not be empty");
     }
   }
