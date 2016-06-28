@@ -37,8 +37,6 @@ public class DaoUtils {
   @Inject
   private DBAccessor dbAccessor;
 
-  public static final int ORACLE_LIST_LIMIT = 999;
-
   public DbType getDbType() {
     return dbAccessor.getDbType();
   }
