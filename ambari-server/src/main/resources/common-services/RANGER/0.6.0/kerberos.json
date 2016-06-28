@@ -119,7 +119,7 @@
                 "atlas.jaas.KafkaClient.option.keyTab": "{{tagsync_keytab_path}}",
                 "atlas.jaas.KafkaClient.option.principal": "{{tagsync_jaas_principal}}",
                 "atlas.kafka.sasl.kerberos.service.name": "kafka",
-                "atlas.kafka.security.protocol": "SASL_PLAINTEXT"
+                "atlas.kafka.security.protocol": "PLAINTEXTSASL"
               }
             }
           ]

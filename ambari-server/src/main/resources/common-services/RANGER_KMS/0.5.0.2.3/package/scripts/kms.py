@@ -380,13 +380,13 @@ def enable_kms_plugin():
     if not ranger_flag:
       Logger.error('Error in Get/Create service for Ranger Kms.')
 
-    current_datetime = datetime.now()
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     File(format('{kms_conf_dir}/ranger-security.xml'),
       owner = params.kms_user,
       group = params.kms_group,
       mode = 0644,
-      content = InlineTemplate(format('<ranger>\n<enabled>{current_datetime}</enabled>\n</ranger>'))
+      content = format('<ranger>\n<enabled>{current_datetime}</enabled>\n</ranger>')
     )
 
     Directory([os.path.join('/etc', 'ranger', params.repo_name), os.path.join('/etc', 'ranger', params.repo_name, 'policycache')],
@@ -565,12 +565,12 @@ def check_ranger_service_support_kerberos():
   response_code = ranger_adm_obj.check_ranger_login_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, policymgr_mgr_url, True)
 
   if response_code is not None and response_code[0] == 200:
-    get_repo_name_response = ranger_adm_obj.get_repository_by_name_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, 'kms', 'true')
+    get_repo_name_response = ranger_adm_obj.get_repository_by_name_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, 'kms', 'true', is_keyadmin = True)
     if get_repo_name_response is not None:
       Logger.info('KMS repository {0} exist'.format(get_repo_name_response['name']))
       return True
     else:
-      create_repo_response = ranger_adm_obj.create_repository_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, json.dumps(params.kms_ranger_plugin_repo), None)
+      create_repo_response = ranger_adm_obj.create_repository_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, json.dumps(params.kms_ranger_plugin_repo), None, is_keyadmin = True)
       if create_repo_response is not None and len(create_repo_response) > 0:
         return True
       else:
