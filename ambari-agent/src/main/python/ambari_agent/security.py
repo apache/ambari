@@ -214,12 +214,14 @@ class CertificateManager():
     stream.close()
     srvr_crt_f = open(self.getSrvrCrtName(), 'w+')
     srvr_crt_f.write(response)
+    srvr_crt_f.close()
 
   def reqSignCrt(self):
     sign_crt_req_url = self.server_url + '/certs/' + hostname.hostname(
       self.config)
     agent_crt_req_f = open(self.getAgentCrtReqName())
     agent_crt_req_content = agent_crt_req_f.read()
+    agent_crt_req_f.close()
     passphrase_env_var = self.config.get('security', 'passphrase_env_var_name')
     passphrase = os.environ[passphrase_env_var]
     register_data = {'csr': agent_crt_req_content,
