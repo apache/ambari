@@ -53,6 +53,47 @@
         </theme>
       </themes>
 
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>ranger_${stack_version}-admin</name>
+            </package>
+            <package>
+              <name>ranger_${stack_version}-usersync</name>
+            </package>
+            <package>
+              <name>ranger_${stack_version}-tagsync</name>
+              <condition>should_install_ranger_tagsync</condition>
+            </package>
+            <package>
+              <name>ambari-logsearch-solr-client</name>
+              <condition>should_install_logsearch_solr_client</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>ranger-${stack_version}-admin</name>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-usersync</name>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-tagsync</name>
+              <condition>should_install_ranger_tagsync</condition>
+            </package>
+            <package>
+              <name>ambari-logsearch-solr-client</name>
+              <condition>should_install_logsearch_solr_client</condition>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
       <configuration-dependencies>
         <config-type>admin-log4j</config-type>
         <config-type>usersync-log4j</config-type>
