@@ -416,6 +416,16 @@ public class HostRoleCommand {
     return requestId;
   }
 
+  /**
+   * Gets whether commands which fail and are retryable are automatically
+   * skipped and marked with {@link HostRoleStatus#SKIPPED_FAILED}.
+   *
+   * @return
+   */
+  public boolean isFailureAutoSkipped() {
+    return autoSkipFailure;
+  }
+
   @Override
   public int hashCode() {
     return Long.valueOf(taskId).hashCode();

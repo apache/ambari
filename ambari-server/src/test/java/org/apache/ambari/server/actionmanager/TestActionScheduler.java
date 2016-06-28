@@ -24,7 +24,12 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyCollectionOf;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -572,7 +577,7 @@ public class TestActionScheduler {
 
     List<Stage> stages = new ArrayList<Stage>();
     Map<String, String> payload = new HashMap<String, String>();
-    final Stage s = getStageWithServerAction(1, 977, payload, "test", 1200);
+    final Stage s = getStageWithServerAction(1, 977, payload, "test", 1200, false, false);
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -727,7 +732,7 @@ public class TestActionScheduler {
     List<Stage> stages = new ArrayList<Stage>();
     Map<String, String> payload = new HashMap<String, String>();
     payload.put(MockServerAction.PAYLOAD_FORCE_FAIL, "timeout");
-    final Stage s = getStageWithServerAction(1, 977, payload, "test", 2);
+    final Stage s = getStageWithServerAction(1, 977, payload, "test", 2, false, false);
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -798,7 +803,7 @@ public class TestActionScheduler {
 
   @Test
   public void testTimeOutWithHostNull() throws AmbariException {
-    Stage s = getStageWithServerAction(1, 977, null, "test", 2);
+    Stage s = getStageWithServerAction(1, 977, null, "test", 2, false, false);
     s.setHostRoleStatus(null, Role.AMBARI_SERVER_ACTION.toString(), HostRoleStatus.IN_PROGRESS);
 
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class)
@@ -817,25 +822,47 @@ public class TestActionScheduler {
 
   @Test
   public void testTimeoutRequestDueAgentRestartExecuteCommand() throws Exception {
-    testTimeoutRequest(RoleCommand.EXECUTE);
+    testTimeoutRequest(RoleCommand.EXECUTE, false, false);
   }
 
   @Test
   public void testTimeoutRequestDueAgentRestartCustomCommand() throws Exception {
-    testTimeoutRequest(RoleCommand.CUSTOM_COMMAND);
+    testTimeoutRequest(RoleCommand.CUSTOM_COMMAND, false, false);
   }
 
   @Test
   public void testTimeoutRequestDueAgentRestartActionExecute() throws Exception {
-    testTimeoutRequest(RoleCommand.ACTIONEXECUTE);
+    testTimeoutRequest(RoleCommand.ACTIONEXECUTE, false, false);
   }
 
   @Test
   public void testTimeoutRequestDueAgentRestartServiceCheck() throws Exception {
-    testTimeoutRequest(RoleCommand.SERVICE_CHECK);
+    testTimeoutRequest(RoleCommand.SERVICE_CHECK, false, false);
   }
 
-  private void testTimeoutRequest(RoleCommand roleCommand) throws AmbariException, InvalidStateTransitionException {
+  /**
+   * Ensures that the task is timed out but is not skipped just because its
+   * stage is skipped.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testTimeoutWithSkippableStageButNotCommand() throws Exception {
+    testTimeoutRequest(RoleCommand.EXECUTE, true, false);
+  }
+
+  /**
+   * Ensures that the task is timed out and that it will be skipped.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testTimeoutWithSkippableCommand() throws Exception {
+    testTimeoutRequest(RoleCommand.EXECUTE, true, true);
+  }
+
+  private void testTimeoutRequest(RoleCommand roleCommand, boolean stageSupportsAutoSkip,
+      boolean autoSkipFailedTask) throws AmbariException, InvalidStateTransitionException {
     final long HOST_REGISTRATION_TIME = 100L;
     final long STAGE_TASK_START_TIME = HOST_REGISTRATION_TIME - 1L;
 
@@ -872,7 +899,7 @@ public class TestActionScheduler {
       EasyMock.expectLastCall();
     }
 
-    Stage s = getStageWithServerAction(1, 977, null, "test", 2);
+    Stage s = getStageWithServerAction(1, 977, null, "test", 2, stageSupportsAutoSkip, autoSkipFailedTask);
     s.setStartTime(null, Role.AMBARI_SERVER_ACTION.toString(), STAGE_TASK_START_TIME);
     s.setHostRoleStatus(null, Role.AMBARI_SERVER_ACTION.toString(), HostRoleStatus.IN_PROGRESS);
     s.getExecutionCommands(null).get(0).getExecutionCommand().setServiceName("Service name");
@@ -881,7 +908,10 @@ public class TestActionScheduler {
     aq.enqueue(Stage.INTERNAL_HOSTNAME, s.getExecutionCommands(null).get(0).getExecutionCommand());
     List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
 
-    db.timeoutHostRole(EasyMock.anyString(), EasyMock.anyLong(), EasyMock.anyLong(), EasyMock.anyString(), EasyMock.anyBoolean());
+    boolean taskShouldBeSkipped = stageSupportsAutoSkip && autoSkipFailedTask;
+    db.timeoutHostRole(EasyMock.anyString(), EasyMock.anyLong(), EasyMock.anyLong(),
+        EasyMock.anyString(), EasyMock.eq(taskShouldBeSkipped));
+
     EasyMock.expectLastCall();
 
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class)
@@ -910,7 +940,7 @@ public class TestActionScheduler {
     List<Stage> stages = new ArrayList<Stage>();
     Map<String, String> payload = new HashMap<String, String>();
     payload.put(MockServerAction.PAYLOAD_FORCE_FAIL, "exception");
-    final Stage s = getStageWithServerAction(1, 977, payload, "test", 300);
+    final Stage s = getStageWithServerAction(1, 977, payload, "test", 300, false, false);
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -978,20 +1008,27 @@ public class TestActionScheduler {
     assertEquals("test", stages.get(0).getRequestContext());
   }
 
-  private Stage getStageWithServerAction(long requestId, long stageId,
-                                                Map<String, String> payload, String requestContext,
-                                                int timeout) {
+  private Stage getStageWithServerAction(long requestId, long stageId, Map<String, String> payload,
+      String requestContext, int timeout, boolean stageSupportsAutoSkip,
+      boolean autoSkipFailedTask) {
 
     Stage stage = stageFactory.createNew(requestId, "/tmp", "cluster1", 1L, requestContext, CLUSTER_HOST_INFO,
       "{}", "{}");
+
     stage.setStageId(stageId);
+    stage.setSkippable(stageSupportsAutoSkip);
+    stage.setAutoSkipFailureSupported(stageSupportsAutoSkip);
 
     stage.addServerActionCommand(MockServerAction.class.getName(), null,
         Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(null, System.currentTimeMillis()),
         payload,
-        null, null, timeout, false, false);
+        null, null, timeout, false, autoSkipFailedTask);
+
+    // make sure the task ID matches the command ID
+    stage.getExecutionCommands(null).get(0).getExecutionCommand().setTaskId(
+        stage.getOrderedHostRoleCommands().get(0).getTaskId());
 
     return stage;
   }
@@ -1752,7 +1789,6 @@ public class TestActionScheduler {
     Stage stage = stageFactory.createNew(requestId, "/tmp", clusterName, 1L, "getStageWithSingleTask",
       CLUSTER_HOST_INFO, "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     stage.setStageId(stageId);
-    //stage.setAutoSkipFailureSupported(true);
     return stage;
   }
 
@@ -2034,7 +2070,7 @@ public class TestActionScheduler {
 
     List<Stage> stages = new ArrayList<Stage>();
     Map<String, String> payload = new HashMap<String, String>();
-    final Stage s = getStageWithServerAction(1, 977, payload, "test", 300);
+    final Stage s = getStageWithServerAction(1, 977, payload, "test", 300, false, false);
     stages.add(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
