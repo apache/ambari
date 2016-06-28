@@ -43,7 +43,9 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -237,6 +239,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   @Inject
   Users users;
 
+  @Inject
+  Configuration config;
+
   /**
    * Logger.
    */
@@ -414,6 +419,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addConnectionTimeoutParamForWebAndMetricAlerts();
     addSliderClientConfig();
     updateRequestScheduleEntityUserIds();
+    updateRecoveryConfigurationDML();
   }
 
   /**
@@ -1649,6 +1655,122 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time = start_time", false);
     dbAccessor.executeQuery("UPDATE " + HOST_ROLE_COMMAND_TABLE + " SET original_start_time=-1 WHERE original_start_time IS NULL");
     dbAccessor.setColumnNullable(HOST_ROLE_COMMAND_TABLE, columnName, false);
+  }
+
+  /**
+   * Puts each item in the specified list inside single quotes and
+   * returns a comma separated value for use in a SQL query.
+   * @param list
+   * @return
+   */
+  private String sqlStringListFromArrayList(List<String> list) {
+    List sqlList = new ArrayList<String>(list.size());
+
+    for (String item : list) {
+      sqlList.add(String.format("'%s'", item.trim()));
+    }
+
+    return StringUtils.join(sqlList, ',');
+  }
+
+  /**
+   * Update clusterconfig table for config type 'cluster-env' with the
+   * recovery attributes.
+   *
+   * @throws AmbariException
+   */
+  private void updateRecoveryClusterEnvConfig() throws AmbariException {
+    Map<String, String> propertyMap = new HashMap<>();
+
+    if (StringUtils.isNotEmpty(config.getNodeRecoveryType())) {
+      propertyMap.put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "true");
+      propertyMap.put(RecoveryConfigHelper.RECOVERY_TYPE_KEY, config.getNodeRecoveryType());
+    }
+    else {
+      propertyMap.put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "false");
+    }
+
+    if (StringUtils.isNotEmpty(config.getNodeRecoveryLifetimeMaxCount())) {
+      propertyMap.put(RecoveryConfigHelper.RECOVERY_LIFETIME_MAX_COUNT_KEY, config.getNodeRecoveryLifetimeMaxCount());
+    }
+
+    if (StringUtils.isNotEmpty(config.getNodeRecoveryMaxCount())) {
+      propertyMap.put(RecoveryConfigHelper.RECOVERY_MAX_COUNT_KEY, config.getNodeRecoveryMaxCount());
+    }
+
+    if (StringUtils.isNotEmpty(config.getNodeRecoveryRetryGap())) {
+      propertyMap.put(RecoveryConfigHelper.RECOVERY_RETRY_GAP_KEY, config.getNodeRecoveryRetryGap());
+    }
+
+    if (StringUtils.isNotEmpty(config.getNodeRecoveryWindowInMin())) {
+      propertyMap.put(RecoveryConfigHelper.RECOVERY_WINDOW_IN_MIN_KEY, config.getNodeRecoveryWindowInMin());
+    }
+
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+
+    Clusters clusters = ambariManagementController.getClusters();
+
+    // for each cluster, update/create the cluster-env config type in clusterconfig
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    for (final Cluster cluster : clusterMap.values()) {
+      updateConfigurationPropertiesForCluster(cluster, ConfigHelper.CLUSTER_ENV, propertyMap,
+              true /* update if exists */, true /* create new config type */);
+    }
+  }
+
+  /**
+   * Alter servicecomponentdesiredstate table to update recovery_enabled to 1
+   * for the components that have been marked for auto start in ambari.properties
+   * @throws SQLException
+   */
+  private void updateRecoveryComponents() throws SQLException {
+
+    /*
+     * Whether specific components are enabled/disabled for recovery. Being enabled takes
+     * precedence over being disabled. When specific components are enabled then only
+     * those components are enabled. When specific components are disabled then all of
+     * the other components are enabled.
+     */
+    String enabledComponents = config.getRecoveryEnabledComponents();
+    String disabledComponents = config.getRecoveryDisabledComponents();
+    String query;
+
+    if (StringUtils.isEmpty(enabledComponents)) {
+      if (StringUtils.isEmpty(disabledComponents)) {
+        // disable all components
+        query = String.format("UPDATE %s SET recovery_enabled = 0", SERVICE_COMPONENT_DESIRED_STATE_TABLE);
+      }
+      else {
+        // enable (1 - disabledComponents)
+        List<String> disabledComponentsList = Arrays.asList(disabledComponents.split(","));
+        String components = sqlStringListFromArrayList(disabledComponentsList);
+        query = String.format("UPDATE %s SET recovery_enabled = 1 WHERE component_name NOT IN (%s)",
+                SERVICE_COMPONENT_DESIRED_STATE_TABLE, components);
+      }
+    }
+    else {
+      // enable the specified components
+      List<String> enabledComponentsList = Arrays.asList(enabledComponents.split(","));
+      String components = sqlStringListFromArrayList(enabledComponentsList);
+      query = String.format("UPDATE %s SET recovery_enabled = 1 WHERE component_name IN (%s)",
+              SERVICE_COMPONENT_DESIRED_STATE_TABLE, components);
+    }
+
+    dbAccessor.executeQuery(query);
+  }
+
+
+  /**
+   * Update clusterconfig table and servicecomponentdesiredstate table with the
+   * recovery attributes and componenents to be recovered.
+   *
+   * @throws SQLException
+     */
+  @Transactional
+  protected void updateRecoveryConfigurationDML() throws SQLException, AmbariException {
+    updateRecoveryClusterEnvConfig();
+    updateRecoveryComponents();
   }
 
   /**

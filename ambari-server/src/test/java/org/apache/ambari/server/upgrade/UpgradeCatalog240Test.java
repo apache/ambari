@@ -584,6 +584,7 @@ public class UpgradeCatalog240Test {
     Method addConnectionTimeoutParamForWebAndMetricAlerts = AbstractUpgradeCatalog.class.getDeclaredMethod("addConnectionTimeoutParamForWebAndMetricAlerts");
     Method addSliderClientConfig = UpgradeCatalog240.class.getDeclaredMethod("addSliderClientConfig");
     Method updateRequestScheduleEntityUserIds = UpgradeCatalog240.class.getDeclaredMethod("updateRequestScheduleEntityUserIds");
+    Method updateRecoveryConfigurationDML = UpgradeCatalog240.class.getDeclaredMethod("updateRecoveryConfigurationDML");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -627,6 +628,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateHBaseConfigs)
             .addMockedMethod(addSliderClientConfig)
             .addMockedMethod(updateRequestScheduleEntityUserIds)
+            .addMockedMethod(updateRecoveryConfigurationDML)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -665,6 +667,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateHBaseConfigs();
     upgradeCatalog240.addSliderClientConfig();
     upgradeCatalog240.updateRequestScheduleEntityUserIds();
+    upgradeCatalog240.updateRecoveryConfigurationDML();
 
     replay(upgradeCatalog240, dbAccessor);
 
