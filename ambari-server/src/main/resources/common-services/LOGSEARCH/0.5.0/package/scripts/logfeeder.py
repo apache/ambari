@@ -16,14 +16,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import os
-import grp
+
+import getpass
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.script.script import Script
 from setup_logfeeder import setup_logfeeder
-from resource_management.core.resources.accounts import User
 from logsearch_common import kill_process
 
 
@@ -37,9 +36,6 @@ class LogFeeder(Script):
   def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    User(params.logfeeder_user,
-         groups=[params.user_group, grp.getgrgid(os.getegid()).gr_name],
-         fetch_nonlocal_groups = params.fetch_nonlocal_groups)
 
     setup_logfeeder()
 
@@ -47,16 +43,15 @@ class LogFeeder(Script):
     import params
     env.set_params(params)
     self.configure(env)
-    Execute(format("{logfeeder_dir}/run.sh"),
-            environment={'LOGFEEDER_INCLUDE': format('{logsearch_logfeeder_conf}/logfeeder-env.sh')},
-            user = params.logfeeder_user
+    Execute(format("{sudo} {logfeeder_dir}/run.sh"),
+            environment={'LOGFEEDER_INCLUDE': format('{logsearch_logfeeder_conf}/logfeeder-env.sh')}
             )
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    kill_process(params.logfeeder_pid_file, params.logfeeder_user, params.logfeeder_log_dir)
+    kill_process(params.logfeeder_pid_file, getpass.getuser(), params.logfeeder_log_dir)
 
   def status(self, env):
     import status_params

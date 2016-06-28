@@ -292,8 +292,6 @@
       },
       "logfeeder-env": {
         "logsearch_ui_port": "61888",
-        "logfeeder_user": "logfeeder",
-        "logfeeder_group": "logfeeder",
         "logfeeder_pid_dir": "/var/run/ambari-logsearch-logfeeder",
         "logfeeder_log_dir": "/var/log/ambari-logsearch-logfeeder",
         "logfeeder_max_mem": "512m",

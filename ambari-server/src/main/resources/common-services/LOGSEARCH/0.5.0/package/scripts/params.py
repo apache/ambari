@@ -306,7 +306,6 @@ logsearch_auth_external_login_url = config['configurations']['logsearch-properti
 logfeeder_dir = "/usr/lib/ambari-logsearch-logfeeder"
 
 # logfeeder-env configs
-logfeeder_user = config['configurations']['logfeeder-env']['logfeeder_user']
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']
 logfeeder_log = logfeeder_log_dir + '/logfeeder.out'
 logfeeder_max_mem = config['configurations']['logfeeder-env']['logfeeder_max_mem']
