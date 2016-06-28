@@ -691,10 +691,18 @@ class ActionScheduler implements Runnable {
           status = HostRoleStatus.ABORTED;
         } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now, commandTimeout)) {
           // Process command timeouts
-          LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:" + s.getActionId() + " timed out");
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
-            LOG.warn("Host:" + host + ", role:" + roleStr + ", actionId:" + s.getActionId() + " expired");
-            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), s.isAutoSkipOnFailureSupported());
+            LOG.warn("Host: {}, role: {}, actionId: {} expired and will be failed", host, roleStr,
+                s.getActionId());
+
+            // determine if the task should be auto skipped
+            boolean isSkipSupported = s.isAutoSkipOnFailureSupported();
+            HostRoleCommand hostRoleCommand = s.getHostRoleCommand(c.getTaskId());
+            if (isSkipSupported && null != hostRoleCommand) {
+              isSkipSupported = hostRoleCommand.isFailureAutoSkipped();
+            }
+
+            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), isSkipSupported);
             //Reinitialize status
             status = s.getHostRoleStatus(host, roleStr);
 
@@ -714,6 +722,9 @@ class ActionScheduler implements Runnable {
             LOG.info("Removing command from queue, host={}, commandId={} ", host, c.getCommandId());
             actionQueue.dequeue(host, c.getCommandId());
           } else {
+            LOG.info("Host: {}, role: {}, actionId: {} timed out and will be rescheduled", host,
+                roleStr, s.getActionId());
+
             // reschedule command
             commandsToSchedule.add(c);
             LOG.trace("===> commandsToSchedule(reschedule)=" + commandsToSchedule.size());

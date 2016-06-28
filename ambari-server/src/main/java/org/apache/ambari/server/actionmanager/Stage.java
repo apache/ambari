@@ -733,6 +733,29 @@ public class Stage {
   }
 
   /**
+   * Gets the {@link HostRoleCommand} matching the specified ID from this stage.
+   * This will not hit the database, instead using the pre-cached list of HRCs
+   * from the construction of the stage.
+   *
+   * @param taskId
+   *          the ID to match
+   * @return the {@link HostRoleCommand} or {@code null} if none match.
+   */
+  public HostRoleCommand getHostRoleCommand(long taskId) {
+    for (Map.Entry<String, Map<String, HostRoleCommand>> hostEntry : hostRoleCommands.entrySet()) {
+      Map<String, HostRoleCommand> hostCommands = hostEntry.getValue();
+      for (Map.Entry<String, HostRoleCommand> hostCommand : hostCommands.entrySet()) {
+        HostRoleCommand hostRoleCommand = hostCommand.getValue();
+        if (null != hostRoleCommand && hostRoleCommand.getTaskId() == taskId) {
+          return hostRoleCommand;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * This method should be used only in stage planner. To add
    * a new execution command use
    * {@link #addHostRoleExecutionCommand(String, org.apache.ambari.server.Role, org.apache.ambari.server.RoleCommand, org.apache.ambari.server.state.ServiceComponentHostEvent, String, String, boolean)}
