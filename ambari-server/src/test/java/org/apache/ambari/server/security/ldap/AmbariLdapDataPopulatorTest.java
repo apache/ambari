@@ -1809,6 +1809,25 @@ public class AmbariLdapDataPopulatorTest {
   }
 
   @Test
+  public void testIsMemberAttributeBaseDn_withDifferentUserAndGroupNameAttribute() {
+    // GIVEN
+    Configuration configuration = createNiceMock(Configuration.class);
+    Users users = createNiceMock(Users.class);
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
+    expect(ldapServerProperties.getUsernameAttribute()).andReturn("sAMAccountName");
+    expect(ldapServerProperties.getGroupNamingAttr()).andReturn("groupOfNames");
+
+    replay(configuration, users, ldapServerProperties);
+
+    // WHEN
+    AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
+    boolean result = populator.isMemberAttributeBaseDn("cn=mygroupname,OU=myOrganizationUnit,DC=apache,DC=org");
+    // THEN
+    assertTrue(result);
+  }
+
+  @Test
   public void testGetUniqueIdMemberPattern() {
     // GIVEN
     Configuration configuration = createNiceMock(Configuration.class);

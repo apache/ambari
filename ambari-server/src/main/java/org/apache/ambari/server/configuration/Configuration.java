@@ -195,6 +195,7 @@ public class Configuration {
   public static final String LDAP_GROUP_NAMING_ATTR_KEY = "authentication.ldap.groupNamingAttr";
   public static final String LDAP_GROUP_MEMEBERSHIP_ATTR_KEY = "authentication.ldap.groupMembershipAttr";
   public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY = "authorization.ldap.adminGroupMappingRules";
+  public static final String LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_KEY = "authorization.ldap.adminGroupMappingMemberAttr";
   /**
    * When authentication through LDAP is enabled then Ambari Server uses this filter to lookup
    * the user in LDAP based on the provided ambari user name.
@@ -509,7 +510,7 @@ public class Configuration {
   private static final String LDAP_GROUP_NAMING_ATTR_DEFAULT = "cn";
   private static final String LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT = "member";
   private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT = "Ambari Administrators";
-
+  private static final String LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT = "";
   /**
    * If the default LDAP user search filter is not able to find the authenticating user
    * in LDAP than Ambari can fall back an alternative user search filter if this
@@ -1879,6 +1880,8 @@ public class Configuration {
       getProperty(LDAP_GROUP_NAMING_ATTR_KEY, LDAP_GROUP_NAMING_ATTR_DEFAULT));
     ldapServerProperties.setAdminGroupMappingRules(properties.getProperty(
       LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
+    ldapServerProperties.setAdminGroupMappingMemberAttr(properties.getProperty(
+      LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_KEY, LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT));
     ldapServerProperties.setUserSearchFilter(properties.getProperty(
       LDAP_USER_SEARCH_FILTER_KEY, LDAP_USER_SEARCH_FILTER_DEFAULT));
     ldapServerProperties.setAlternateUserSearchFilter(properties.getProperty(
