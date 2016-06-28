@@ -751,7 +751,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.alternatives.empty': 'alternative issues',
   'installer.step3.hostWarningsPopup.issue':'issue',
   'installer.step3.hostWarningsPopup.issues':'issues',
-  'installer.step3.hostWarningsPopup.emptyMessage':'There were no',
+  'installer.step3.hostWarningsPopup.emptyMessage':'There were no {0}',
   'installer.step3.hostWarningsPopup.empty.filesAndFolders':'unwanted files and folders',
   'installer.step3.hostWarningsPopup.empty.processes':'unwanted processes',
   'installer.step3.hostWarningsPopup.empty.packages':'unwanted packages',
