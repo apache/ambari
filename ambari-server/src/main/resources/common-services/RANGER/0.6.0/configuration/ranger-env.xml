@@ -40,6 +40,11 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>ranger_solr_replication_factor</name>
+    <value>1</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>ranger-atlas-plugin-enabled</name>
     <value>No</value>
     <display-name>Atlas Ranger Plugin</display-name>

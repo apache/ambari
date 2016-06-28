@@ -227,7 +227,7 @@
       "min_version": "2.5.0.0"
     },
     {
-      "name": "logsearch_support",
+      "name": "ranger_install_logsearch_client",
       "description": "LogSearch Service support",
       "min_version": "2.5.0.0"
     },
