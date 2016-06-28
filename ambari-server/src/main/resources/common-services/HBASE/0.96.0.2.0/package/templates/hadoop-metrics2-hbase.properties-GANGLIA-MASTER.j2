@@ -75,7 +75,9 @@ hbase.sink.timeline.truststore.path = {{metric_truststore_path}}
 hbase.sink.timeline.truststore.type = {{metric_truststore_type}}
 hbase.sink.timeline.truststore.password = {{metric_truststore_password}}
 
-{% else %}
+{% endif %}
+
+{% if has_ganglia_server %}
 
 # Configuration of the "hbase" context for ganglia
 # Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
