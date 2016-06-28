@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>PIG</name>
-      <version>0.15.0.2.5</version>
+      <version>0.16.0.2.5</version>
     </service>
   </services>
 </metainfo>
