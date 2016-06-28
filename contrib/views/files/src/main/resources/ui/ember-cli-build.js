@@ -27,6 +27,9 @@ module.exports = function(defaults) {
       paths: [
         'bower_components/bootstrap/less'
       ]
+    },
+    fingerprint: {
+      enabled: false
     }
   });
 
