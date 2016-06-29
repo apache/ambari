@@ -77,7 +77,7 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property require-input="true">
+  <property>
     <name>ldap_url</name>
     <display-name>LDAP url</display-name>
     <description>
@@ -91,7 +91,7 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property require-input="true">
+  <property>
     <name>container_dn</name>
     <display-name>Container DN</display-name>
     <description>
@@ -104,7 +104,7 @@
     <value/>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property require-input="true">
+  <property>
     <name>encryption_types</name>
     <display-name>Encryption Types</display-name>
     <description>
@@ -131,7 +131,7 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property require-input="true">
+  <property>
     <name>kdc_hosts</name>
     <description>
       A comma-delimited list of IP addresses or FQDNs declaring the KDC hosts.
@@ -145,7 +145,7 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property require-input="true">
+  <property>
     <name>admin_server_host</name>
     <display-name>Kadmin host</display-name>
     <description>
