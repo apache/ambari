@@ -195,7 +195,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if oozieServerrHosts is not None:
           oozieServerHostsNameList = []
           for oozieServerHost in oozieServerrHosts:
-            oozieServerHostsNameList.append(oozieServerHost["Hosts"]["public_host_name"])
+            oozieServerHostsNameList.append(oozieServerHost["Hosts"]["host_name"])
           oozieServerHostsNames = ",".join(oozieServerHostsNameList)
           if not oozie_user in users and oozie_user is not None:
             users[oozie_user] = {"propertyHosts" : oozieServerHostsNames,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
@@ -213,7 +213,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if hiveServerHosts is not None:
           hiveServerHostsNameList = []
           for hiveServerHost in hiveServerHosts:
-            hiveServerHostsNameList.append(hiveServerHost["Hosts"]["public_host_name"])
+            hiveServerHostsNameList.append(hiveServerHost["Hosts"]["host_name"])
           hiveServerHostsNames = ",".join(hiveServerHostsNameList)
           if not hive_user in users and hive_user is not None:
             users[hive_user] = {"propertyHosts" : hiveServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
@@ -221,7 +221,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if webHcatServerHosts is not None:
           webHcatServerHostsNameList = []
           for webHcatServerHost in webHcatServerHosts:
-            webHcatServerHostsNameList.append(webHcatServerHost["Hosts"]["public_host_name"])
+            webHcatServerHostsNameList.append(webHcatServerHost["Hosts"]["host_name"])
           webHcatServerHostsNames = ",".join(webHcatServerHostsNameList)
           if not webhcat_user in users and webhcat_user is not None:
             users[webhcat_user] = {"propertyHosts" : webHcatServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
@@ -235,7 +235,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if len(rmHosts) > 1:
           rmHostsNameList = []
           for rmHost in rmHosts:
-            rmHostsNameList.append(rmHost["Hosts"]["public_host_name"])
+            rmHostsNameList.append(rmHost["Hosts"]["host_name"])
           rmHostsNames = ",".join(rmHostsNameList)
           if not yarn_user in users and yarn_user is not None:
             users[yarn_user] = {"propertyHosts" : rmHostsNames, "config" : "yarn-env", "propertyName" : "yarn_user"}

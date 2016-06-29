@@ -851,6 +851,7 @@ CREATE TABLE ambari.topology_request (
   cluster_properties TEXT,
   cluster_attributes TEXT,
   description VARCHAR(1024),
+  provision_action VARCHAR(255),
   CONSTRAINT PK_topology_request PRIMARY KEY (id),
   CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id)
 );

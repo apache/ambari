@@ -76,7 +76,7 @@ angular.module('ambariAdminConsole')
       "AMBARI.MANAGE_USERS",
       "AMBARI.MANAGE_VIEWS",
       "AMBARI.RENAME_CLUSTER",
-      "AMBARI.SET_SERVICE_USERS_GROUPS"
+      "SERVICE.SET_SERVICE_USERS_GROUPS"
     ],
 
     orderedLevels: ['SERVICE', 'HOST', 'CLUSTER', 'AMBARI'],

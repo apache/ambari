@@ -919,6 +919,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
                 continue;
               }
               UpgradeItemEntity itemEntity = new UpgradeItemEntity();
+
               itemEntity.setText(wrapper.getText());
               itemEntity.setTasks(wrapper.getTasksJson());
               itemEntity.setHosts(wrapper.getHostsJson());
@@ -1539,28 +1540,38 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
+
     switch (task.getType()) {
+      case SERVER_ACTION:
       case MANUAL: {
-        ManualTask mt = (ManualTask) task;
-        JsonArray messageArray = new JsonArray();
-        for(String message: mt.messages){
-          JsonObject messageObj = new JsonObject();
-          messageObj.addProperty("message", message);
-          messageArray.add(messageObj);
-        }
-        itemDetail = messageArray.toString();
-        if (null != mt.summary) {
-          stageText = mt.summary;
+        ServerSideActionTask serverTask = (ServerSideActionTask) task;
+
+        if (null != serverTask.summary) {
+          stageText = serverTask.summary;
         }
 
-        entity.setText(itemDetail);
+        if (task.getType() == Task.Type.MANUAL) {
+          ManualTask mt = (ManualTask) task;
 
-        if (null != mt.structuredOut) {
-          commandParams.put(COMMAND_PARAM_STRUCT_OUT, mt.structuredOut);
+          if (StringUtils.isNotBlank(mt.structuredOut)) {
+            commandParams.put(COMMAND_PARAM_STRUCT_OUT, mt.structuredOut);
+          }
         }
 
-        //To be used later on by the Stage...
-        itemDetail = StringUtils.join(mt.messages, " ");
+        if (!serverTask.messages.isEmpty()) {
+          JsonArray messageArray = new JsonArray();
+          for (String message : serverTask.messages) {
+            JsonObject messageObj = new JsonObject();
+            messageObj.addProperty("message", message);
+            messageArray.add(messageObj);
+          }
+          itemDetail = messageArray.toString();
+
+          entity.setText(itemDetail);
+
+          //To be used later on by the Stage...
+          itemDetail = StringUtils.join(serverTask.messages, " ");
+        }
         break;
       }
       case CONFIGURE: {

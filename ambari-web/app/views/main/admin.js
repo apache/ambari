@@ -30,7 +30,7 @@ App.MainAdminView = Em.View.extend({
         label: Em.I18n.t('admin.stackUpgrade.title')
       });
     }
-    if(App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+    if(App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
       items.push({
         name: 'adminServiceAccounts',
         url: 'adminServiceAccounts',

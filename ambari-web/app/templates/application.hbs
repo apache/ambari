@@ -65,7 +65,7 @@
                 <li><a href="" id="about" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
                 {{#if App.router.clusterInstallCompleted}}
                   {{#if isClusterDataLoaded}}
-                    {{#isAuthorized "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER, AMBARI.SET_SERVICE_USERS_GROUPS"}}
+                    {{#isAuthorized "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER, SERVICE.SET_SERVICE_USERS_GROUPS"}}
                       <li><a href=""
                              id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
                       </li>
@@ -73,7 +73,7 @@
                   {{/if}}
                 {{else}}
                   {{#if App.isPermissionDataLoaded}}
-                    {{#isAuthorized "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER, AMBARI.SET_SERVICE_USERS_GROUPS"}}
+                    {{#isAuthorized "AMBARI.ADD_DELETE_CLUSTERS, AMBARI.ASSIGN_ROLES, AMBARI.EDIT_STACK_REPOS, AMBARI.MANAGE_GROUPS, AMBARI.MANAGE_STACK_VERSIONS, AMBARI.MANAGE_USERS, AMBARI.MANAGE_VIEWS, AMBARI.RENAME_CLUSTER, SERVICE.SET_SERVICE_USERS_GROUPS"}}
                       <li><a href=""
                              id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
                       </li>

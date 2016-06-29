@@ -43,7 +43,7 @@ App.MainMenuView = Em.CollectionView.extend({
               {label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
           );
         }
-        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.MODIFY_CONFIGS, SERVICE.START_STOP, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
+        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.MODIFY_CONFIGS, SERVICE.START_STOP, SERVICE.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
           || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
           result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
         }
@@ -112,7 +112,7 @@ App.MainMenuView = Em.CollectionView.extend({
             label: Em.I18n.t('admin.stackUpgrade.title')
           });
         }
-        if(App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS') ||  (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+        if(App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS') ||  (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
           categories.push({
             name: 'adminServiceAccounts',
             url: 'serviceAccounts',

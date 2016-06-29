@@ -25,6 +25,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -200,17 +201,6 @@ kms_plugin_config = {
   'provider' : format('kms://http@{kms_host}:{kms_port}/kms') 
 }
 
-if stack_supports_ranger_kerberos:
-  kms_plugin_config['policy.download.auth.users'] = 'keyadmin'
-
-kms_ranger_plugin_repo = {
-  'isEnabled' : 'true',
-  'configs' : kms_plugin_config,
-  'description' : 'kms repo',
-  'name' : repo_name,
-  'type' : 'kms'
-}
-
 xa_audit_db_is_enabled = False
 if stack_supports_ranger_audit_db:
   xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.destination.db']
@@ -241,10 +231,25 @@ hms_partition_passwd = default("/configurations/kms-env/hsm_partition_password",
 
 # kms kerberos from stack 2.5 onward
 rangerkms_keytab = config['configurations']['dbks-site']['ranger.ks.kerberos.keytab']
-if stack_supports_ranger_kerberos and security_enabled:
-  rangerkms_principal = default("/configurations/dbks-site/ranger.ks.kerberos.principal", None)
-  if rangerkms_principal is not None:
-    rangerkms_principal = rangerkms_principal.replace('_HOST', kms_host.lower())
+rangerkms_bare_principal = 'rangerkms'
+
+if stack_supports_ranger_kerberos:
+  if security_enabled:
+    rangerkms_principal = default("/configurations/dbks-site/ranger.ks.kerberos.principal", None)
+    if rangerkms_principal is not None:
+      rangerkms_bare_principal = get_bare_principal(rangerkms_principal)
+      rangerkms_principal = rangerkms_principal.replace('_HOST', kms_host.lower())
+    kms_plugin_config['policy.download.auth.users'] = format('keyadmin,{rangerkms_bare_principal}')
+  else:
+    kms_plugin_config['policy.download.auth.users'] = 'keyadmin'
+
+kms_ranger_plugin_repo = {
+  'isEnabled' : 'true',
+  'configs' : kms_plugin_config,
+  'description' : 'kms repo',
+  'name' : repo_name,
+  'type' : 'kms'
+}
 
 # ranger kms pid
 user_group = config['configurations']['cluster-env']['user_group']

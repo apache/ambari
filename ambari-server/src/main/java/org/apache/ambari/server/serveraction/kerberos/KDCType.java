@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.sun.istack.NotNull;
-
 /**
  * Enumerates the supported KDC types
  */
